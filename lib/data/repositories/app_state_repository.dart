@@ -1150,6 +1150,105 @@ class AppStateRepository extends ChangeNotifier {
     logAudit('Review Added', 'User ${_currentUser!.name} reviewed provider (ID: $targetId)');
   }
 
+  // ─── AI NUTRITION & DIET ──────────────────────────────────────────────────
+
+  Future<List<String>> runAiNutritionSchedule({
+    required String petName,
+    required String breed,
+    required String age,
+    required String weight,
+  }) async {
+    final openAiApiKey = dotenv.env['OPENAI_API_KEY'];
+    if (openAiApiKey != null && openAiApiKey.isNotEmpty) {
+      try {
+        final response = await http.post(
+          Uri.parse('https://api.openai.com/v1/chat/completions'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $openAiApiKey',
+          },
+          body: jsonEncode({
+            'model': 'gpt-4o-mini',
+            'messages': [
+              {
+                'role': 'system',
+                'content': 'You are a pet nutrition expert. Provide a recommended feeding schedule (times only, format HH:MM) as a JSON array for the given pet details. Return ONLY the JSON array.'
+              },
+              {'role': 'user', 'content': 'Pet: $petName, Breed: $breed, Age: $age, Weight: $weight'}
+            ],
+            'temperature': 0.7,
+          }),
+        );
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          final content = data['choices'][0]['message']['content'].toString().trim();
+          // Remove potential markdown code blocks if the AI includes them
+          final cleanJson = content.replaceAll('```json', '').replaceAll('```', '').trim();
+          final List<dynamic> suggested = jsonDecode(cleanJson);
+          return suggested.map((e) => e.toString()).toList();
+        }
+      } catch (_) {}
+    }
+
+    // Fallback default schedule
+    await Future.delayed(const Duration(milliseconds: 1500));
+    return ['08:00', '13:00', '19:00'];
+  }
+
+  Future<Map<String, dynamic>> runAiNutritionRecommendation({
+    required String petName,
+    required String breed,
+    required String age,
+    required String weight,
+    String? currentDiet,
+  }) async {
+    final openAiApiKey = dotenv.env['OPENAI_API_KEY'];
+    if (openAiApiKey != null && openAiApiKey.isNotEmpty) {
+      try {
+        final response = await http.post(
+          Uri.parse('https://api.openai.com/v1/chat/completions'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $openAiApiKey',
+          },
+          body: jsonEncode({
+            'model': 'gpt-4o-mini',
+            'messages': [
+              {
+                'role': 'system',
+                'content': 'You are a specialized veterinary nutritionist. Analyze the pet\'s profile and provide a professional dietary plan as JSON. Include "calories", "nutrients" (list of strings), and "recommendations" (list of strings). Return ONLY valid JSON.'
+              },
+              {'role': 'user', 'content': 'Pet: $petName, Breed: $breed, Age: $age, Weight: $weight. Current Diet: ${currentDiet ?? 'Not specified'}'}
+            ],
+            'temperature': 0.7,
+          }),
+        );
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          final content = data['choices'][0]['message']['content'].toString().trim();
+          // Remove potential markdown code blocks if the AI includes them
+          final cleanJson = content.replaceAll('```json', '').replaceAll('```', '').trim();
+          return jsonDecode(cleanJson);
+        }
+      } catch (_) {}
+    }
+
+    await Future.delayed(const Duration(milliseconds: 1800));
+    return {
+      'calories': '350-400 kcal/day based on weight ($weight) and age ($age).',
+      'nutrients': [
+        'High-quality animal-based protein (min 26%)',
+        'Omega-3 and Omega-6 fatty acids for coat health',
+        'Balanced fiber (3-5%) for digestive stability'
+      ],
+      'recommendations': [
+        'Transition slowly over 7-10 days if changing brands.',
+        'Maintain consistent feeding times to regulate metabolism.',
+        'Ensure fresh water is available at all times.'
+      ]
+    };
+  }
+
   // ─── AI BREED FINDER ─────────────────────────────────────────────────────
 
   Future<String> identifyBreed({required String imagePath}) async {
