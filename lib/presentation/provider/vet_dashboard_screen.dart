@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -24,16 +23,18 @@ class VetDashboardScreen extends StatelessWidget {
     final state = context.read<AppStateRepository>();
 
     final size = MediaQuery.of(context).size;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GlassScaffold(
       appBar: AppBar(
-        title: const Text('Provider Portal'),
+        title: const Text('Clinic Console'),
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.logout_rounded, color: AppColors.dangerRed),
             onPressed: () {
+              HapticFeedback.mediumImpact();
               state.logout();
               Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const LoginScreen()), (r) => false);
             },
@@ -62,10 +63,10 @@ class VetDashboardScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('Hi, ${user?.name ?? 'Doctor'}', 
-                          style: Theme.of(context).textTheme.displayLarge?.copyWith(fontSize: 28, fontWeight: FontWeight.w700)),
+                          style: AppTypography.headlineMedium.copyWith(fontWeight: FontWeight.w800, fontSize: 28)),
                         const SizedBox(height: 4),
-                        Text('Your clinic dashboard is ready', 
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
+                        Text('Your clinic dashboard is active', 
+                          style: AppTypography.bodyLarge.copyWith(color: Colors.grey[500], fontWeight: FontWeight.w600)),
                       ],
                     ),
                   ),
@@ -98,16 +99,20 @@ class VetDashboardScreen extends StatelessWidget {
                               );
                             },
                             useGlass: false,
-                            borderRadius: 20,
+                            borderRadius: 24,
                             child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 20),
-                              decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(20)),
+                              padding: const EdgeInsets.symmetric(vertical: 22),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF006684), 
+                                borderRadius: BorderRadius.circular(24),
+                                boxShadow: [BoxShadow(color: const Color(0xFF006684).withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10))],
+                              ),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   const Icon(Icons.note_add_rounded, color: Colors.white, size: 20),
                                   const SizedBox(width: 10),
-                                  Text('NEW LOG', style: AppTypography.labelSmall.copyWith(color: Colors.white, fontWeight: FontWeight.w700, letterSpacing: 1)),
+                                  Text('NEW LOG', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, letterSpacing: 1.2, fontSize: 11)),
                                 ],
                               ),
                             ),
@@ -120,15 +125,15 @@ class VetDashboardScreen extends StatelessWidget {
                           child: PremiumCard(
                             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ClientListScreen())),
                             opacity: 0.15,
-                            borderRadius: 20,
+                            borderRadius: 24,
                             child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 20),
+                              padding: const EdgeInsets.symmetric(vertical: 22),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   const Icon(Icons.people_alt_rounded, color: AppColors.primary, size: 20),
                                   const SizedBox(width: 10),
-                                  Text('PATIENTS', style: AppTypography.labelSmall.copyWith(color: AppColors.primary, fontWeight: FontWeight.w700, letterSpacing: 1)),
+                                  Text('CLIENTS', style: TextStyle(color: isDark ? Colors.white : AppColors.primary, fontWeight: FontWeight.w800, letterSpacing: 1.2, fontSize: 11)),
                                 ],
                               ),
                             ),
@@ -140,7 +145,7 @@ class VetDashboardScreen extends StatelessWidget {
                   const SizedBox(height: 48),
 
                   // Today's Schedule
-                  Text('Scheduled Consultations', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700, fontSize: 22)),
+                  Text('Scheduled Consultations', style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w800)),
                   const SizedBox(height: 20),
                   if (events.isEmpty)
                     _buildEmptyState(context, 'No appointments booked yet.')
@@ -166,9 +171,9 @@ class VetDashboardScreen extends StatelessWidget {
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text('${evt.petName} • ${evt.title}', 
-                                            style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700, fontSize: 16)),
+                                            style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.w800, fontSize: 15)),
                                           Text('${evt.fromTime} - ${evt.toTime}', 
-                                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600, fontSize: 13)),
+                                            style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.w600, color: Colors.grey[500])),
                                         ],
                                       ),
                                     ),
@@ -183,7 +188,7 @@ class VetDashboardScreen extends StatelessWidget {
                   const SizedBox(height: 48),
 
                   // Recent Consultations
-                  Text('Recent Case Logs', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700, fontSize: 22)),
+                  Text('Recent Case Logs', style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w800)),
                   const SizedBox(height: 20),
                   if (records.isEmpty)
                     _buildEmptyState(context, 'No medical logs recorded.')
@@ -203,15 +208,15 @@ class VetDashboardScreen extends StatelessWidget {
                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
                                         Text(rec.petName.toUpperCase(), 
-                                          style: Theme.of(context).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700, color: AppColors.primary, letterSpacing: 1)),
-                                        Text(rec.date, style: Theme.of(context).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700)),
+                                          style: const TextStyle(fontWeight: FontWeight.w900, color: AppColors.primary, letterSpacing: 1.2, fontSize: 10)),
+                                        Text(rec.date, style: AppTypography.labelSmall.copyWith(fontWeight: FontWeight.w700, color: Colors.grey[500])),
                                       ],
                                     ),
-                                    const SizedBox(height: 8),
-                                    Text(rec.title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700, fontSize: 16)),
+                                    const SizedBox(height: 12),
+                                    Text(rec.title, style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.w800)),
                                     const SizedBox(height: 8),
                                     Text(rec.diagnosis ?? rec.description, 
-                                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 14, height: 1.5),
+                                      style: AppTypography.bodyMedium.copyWith(fontSize: 14, height: 1.5, color: isDark ? Colors.white70 : Colors.black87),
                                       maxLines: 2, overflow: TextOverflow.ellipsis),
                                   ],
                                 ),
@@ -233,35 +238,36 @@ class VetDashboardScreen extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface.withOpacity(0.4),
+        color: Theme.of(context).colorScheme.surface.withOpacity(0.05),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant.withOpacity(0.5)),
+        border: Border.all(color: Colors.grey.withOpacity(0.1)),
       ),
-      child: Center(child: Text(msg, style: Theme.of(context).textTheme.bodyMedium)),
+      child: Center(child: Text(msg, style: AppTypography.bodyMedium)),
     );
   }
 
   Widget _buildKpiCard(BuildContext context, String title, String value, IconData icon, Color color) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return PremiumCard(
       opacity: 0.2,
-      borderRadius: 20,
+      borderRadius: 24,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
-              child: Icon(icon, color: color, size: 16),
+              child: Icon(icon, color: color, size: 18),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
             Text(value, 
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700, fontSize: 16),
+              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: isDark ? Colors.white : Colors.black87),
               maxLines: 1, overflow: TextOverflow.ellipsis),
-            const SizedBox(height: 2),
+            const SizedBox(height: 4),
             Text(title, 
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(fontSize: 8, fontWeight: FontWeight.w700, letterSpacing: 0.5),
+              style: TextStyle(fontSize: 8, fontWeight: FontWeight.w800, letterSpacing: 0.8, color: Colors.grey[500]),
               maxLines: 1, overflow: TextOverflow.ellipsis),
           ],
         ),

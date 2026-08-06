@@ -32,6 +32,10 @@ class ProductDetailsScreen extends StatelessWidget {
             ),
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             elevation: 0,
+            systemOverlayStyle: SystemUiOverlayStyle(
+              statusBarColor: Colors.transparent,
+              statusBarIconBrightness: Theme.of(context).brightness == Brightness.dark ? Brightness.light : Brightness.dark,
+            ),
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
                 color: Theme.of(context).scaffoldBackgroundColor,

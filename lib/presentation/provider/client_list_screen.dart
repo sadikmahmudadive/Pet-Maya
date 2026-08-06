@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:animate_do/animate_do.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../data/repositories/app_state_repository.dart';
 import '../common_widgets/glass_scaffold.dart';
 import '../common_widgets/premium_card.dart';
 import '../owner/pets/pet_details_screen.dart';
-import 'package:animate_do/animate_do.dart';
 import 'add_service_record_modal.dart';
 
 class ClientListScreen extends StatelessWidget {
@@ -15,10 +16,11 @@ class ClientListScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final pets = context.select((AppStateRepository state) => state.pets);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GlassScaffold(
       appBar: AppBar(
-        title: const Text('Patient Directory'),
+        title: const Text('Patient Directory', style: TextStyle(fontWeight: FontWeight.w800)),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -33,11 +35,11 @@ class ClientListScreen extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.only(bottom: 16),
               child: PremiumCard(
-                opacity: 0.15,
+                opacity: 0.2,
                 borderRadius: 28,
                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => PetDetailsScreen(petId: pet.petID))),
                 child: Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(18),
                   child: Row(
                     children: [
                       Container(
@@ -49,8 +51,8 @@ class ClientListScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(24),
                           child: Image.network(
                             pet.photoUrl ?? 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=400',
-                            width: 60,
-                            height: 60,
+                            width: 64,
+                            height: 64,
                             fit: BoxFit.cover,
                           ),
                         ),
@@ -60,22 +62,28 @@ class ClientListScreen extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(pet.name, style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.w700, fontSize: 17)),
+                            Text(pet.name, style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.w800, fontSize: 18)),
+                            const SizedBox(height: 2),
                             Text('${pet.breed} • ${pet.gender}', 
-                              style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary, fontWeight: FontWeight.w600, fontSize: 13)),
-                            const SizedBox(height: 4),
-                            Text('ID: ${pet.petID.toUpperCase()}', 
-                              style: AppTypography.labelSmall.copyWith(color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 9, letterSpacing: 0.5)),
+                              style: TextStyle(color: isDark ? Colors.white70 : Colors.black54, fontWeight: FontWeight.w600, fontSize: 13)),
+                            const SizedBox(height: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
+                              child: Text('ID: ${pet.petID.toUpperCase()}', 
+                                style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w900, fontSize: 8, letterSpacing: 0.5)),
+                            ),
                           ],
                         ),
                       ),
                       IconButton(
                         icon: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), shape: BoxShape.circle),
-                          child: const Icon(Icons.note_add_rounded, color: AppColors.primary, size: 20),
+                          padding: const EdgeInsets.all(10),
+                          decoration: const BoxDecoration(color: Color(0xFF006684), shape: BoxShape.circle),
+                          child: const Icon(Icons.note_add_rounded, color: Colors.white, size: 18),
                         ),
                         onPressed: () {
+                          HapticFeedback.mediumImpact();
                           showModalBottomSheet(
                             context: context,
                             isScrollControlled: true,
@@ -84,7 +92,6 @@ class ClientListScreen extends StatelessWidget {
                           );
                         },
                       ),
-                      const Icon(Icons.arrow_forward_ios_rounded, color: AppColors.textTertiary, size: 14),
                     ],
                   ),
                 ),

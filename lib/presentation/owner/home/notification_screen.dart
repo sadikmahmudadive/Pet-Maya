@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:animate_do/animate_do.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../data/models/notification_model.dart';
 import '../../../data/repositories/app_state_repository.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
-import 'package:animate_do/animate_do.dart';
+import '../../common_widgets/empty_state.dart';
 
 class NotificationScreen extends StatelessWidget {
   const NotificationScreen({super.key});
@@ -36,21 +37,10 @@ class NotificationScreen extends StatelessWidget {
         ],
       ),
       body: notifications.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(32),
-                    decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.05), shape: BoxShape.circle),
-                    child: Icon(Icons.notifications_off_rounded, size: 64, color: AppColors.primary.withOpacity(0.2)),
-                  ),
-                  const SizedBox(height: 24),
-                  Text('All caught up!', style: AppTypography.headlineMedium.copyWith(fontWeight: FontWeight.w700)),
-                  const SizedBox(height: 8),
-                  Text('You have no new alerts at the moment', style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary)),
-                ],
-              ),
+          ? const EmptyState(
+              icon: Icons.notifications_off_rounded,
+              title: 'All caught up!',
+              message: 'You have no new alerts at the moment',
             )
           : ListView.builder(
               padding: const EdgeInsets.fromLTRB(20, 100, 20, 120),
@@ -155,9 +145,5 @@ class NotificationScreen extends StatelessWidget {
       case NotificationType.order: return AppColors.accentAmber;
       case NotificationType.system: return AppColors.tertiary;
     }
-  }
-
-  Color _getBgColor(NotificationType type) {
-    return _getColor(type).withOpacity(0.12);
   }
 }

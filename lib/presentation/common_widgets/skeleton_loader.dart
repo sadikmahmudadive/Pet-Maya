@@ -38,6 +38,10 @@ class _SkeletonLoaderState extends State<SkeletonLoader> with SingleTickerProvid
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final baseColor = isDark ? Colors.white.withOpacity(0.05) : Colors.grey[300]!;
+    final highlightColor = isDark ? Colors.white.withOpacity(0.12) : Colors.white.withOpacity(0.5);
+
     return RepaintBoundary(
       child: AnimatedBuilder(
         animation: _animation,
@@ -47,7 +51,7 @@ class _SkeletonLoaderState extends State<SkeletonLoader> with SingleTickerProvid
             height: widget.height,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(widget.borderRadius),
-              color: Colors.grey[200], // Static base color
+              color: baseColor,
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -59,11 +63,11 @@ class _SkeletonLoaderState extends State<SkeletonLoader> with SingleTickerProvid
                   0.9
                 ],
                 colors: [
-                  Colors.grey[300]!,
-                  Colors.grey[300]!,
-                  Colors.white.withOpacity(0.5),
-                  Colors.grey[300]!,
-                  Colors.grey[300]!,
+                  baseColor,
+                  baseColor,
+                  highlightColor,
+                  baseColor,
+                  baseColor,
                 ],
               ),
             ),

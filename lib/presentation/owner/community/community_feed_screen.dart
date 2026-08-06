@@ -7,6 +7,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../../data/repositories/app_state_repository.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
+import '../../common_widgets/empty_state.dart';
 import 'package:animate_do/animate_do.dart';
 import 'create_post_screen.dart';
 import 'comments_bottom_sheet.dart';
@@ -72,7 +73,11 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
           // Feed List
           Expanded(
             child: posts.isEmpty
-                ? Center(child: Text('No posts yet in this category.', style: AppTypography.bodyMedium))
+                ? const EmptyState(
+                    icon: Icons.chat_bubble_outline_rounded,
+                    title: 'No posts yet',
+                    message: 'Be the first to share a moment with the community!',
+                  )
                 : RefreshIndicator(
                     onRefresh: () async {
                       HapticFeedback.mediumImpact();

@@ -1,17 +1,17 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:animate_do/animate_do.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../data/repositories/app_state_repository.dart';
 import '../../../data/models/event_model.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
+import '../../common_widgets/empty_state.dart';
 import 'add_event_modal.dart';
 import 'events_history_screen.dart';
-import 'package:animate_do/animate_do.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
@@ -30,14 +30,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
   Widget build(BuildContext context) {
     final state = context.watch<AppStateRepository>();
     
-    // Filter events based on selected date AND category
     final events = state.events.where((e) {
       final isSameDay = e.date.year == _selectedDate.year && 
                         e.date.month == _selectedDate.month && 
                         e.date.day == _selectedDate.day;
       if (!isSameDay) return false;
       if (_activeCategory != 'All' && e.category != _activeCategory) {
-          // Special case for 'Vet Appointment' vs 'Vet Visit' if needed, but categories should match model
           if (!(_activeCategory == 'Vet Visit' && e.category == 'Vet Appointment')) return false;
       }
       return true;
@@ -67,21 +65,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
         slivers: [
-          CupertinoSliverRefreshControl(
-            onRefresh: () async {
-              HapticFeedback.mediumImpact();
-              final user = state.currentUser;
-              if (user != null) await state.syncFromFirebase(user);
-            },
-          ),
           SliverToBoxAdapter(
             child: Column(
               children: [
                 const SizedBox(height: 100),
-                // Dynamic Calendar Grid
                 FadeInDown(child: _buildDynamicCalendar(state.events)),
-                
-                // Category Quick Filters
                 const SizedBox(height: 24),
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
@@ -91,15 +79,19 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     children: _categories.map((cat) => _buildFilterChip(cat)).toList(),
                   ),
                 ),
-
                 const SizedBox(height: 32),
               ],
             ),
           ),
           
-          // Events for the selected day
           events.isEmpty
-              ? SliverFillRemaining(child: _buildEmptyEvents())
+              ? SliverFillRemaining(
+                  child: const EmptyState(
+                    icon: Icons.event_available_rounded,
+                    title: 'No activities',
+                    message: 'Nothing scheduled for this day',
+                  ),
+                )
               : SliverPadding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   sliver: SliverList(
@@ -120,10 +112,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   Widget _buildDynamicCalendar(List<EventModel> allEvents) {
     final monthStr = DateFormat('MMMM yyyy').format(_viewDate);
-    
-    // Logic for 42 cells (7x6 grid)
     final firstDayOfMonth = DateTime(_viewDate.year, _viewDate.month, 1);
-    final daysBefore = firstDayOfMonth.weekday - 1; // M=1
+    final daysBefore = firstDayOfMonth.weekday - 1;
     final startDate = firstDayOfMonth.subtract(Duration(days: daysBefore));
 
     return Padding(
@@ -243,7 +233,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         opacity: isSelected ? 0.4 : 0.1,
         borderRadius: 20,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
           child: Text(
             label,
             style: AppTypography.labelSmall.copyWith(
@@ -326,15 +316,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   Widget _buildEmptyEvents() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.event_available_rounded, size: 60, color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.2)),
-          const SizedBox(height: 12),
-          Text('No activities scheduled for this day', style: AppTypography.titleMedium),
-        ],
-      ),
+    return const EmptyState(
+      icon: Icons.event_available_rounded,
+      title: 'No activities',
+      message: 'No activities scheduled for this day',
     );
   }
 

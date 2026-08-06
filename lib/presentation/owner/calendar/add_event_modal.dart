@@ -8,6 +8,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../../data/repositories/app_state_repository.dart';
 import '../../../data/models/event_model.dart';
 import '../../../data/models/pet_model.dart';
+import '../../common_widgets/premium_card.dart';
 
 class AddEventModal extends StatefulWidget {
   final EventModel? event;
@@ -60,7 +61,8 @@ class _AddEventModalState extends State<AddEventModal> {
 
     final pets = context.read<AppStateRepository>().pets;
     if (isEdit) {
-      _selectedPet = pets.firstWhere((p) => p.petID == widget.event!.petId, orElse: () => pets.first);
+      final found = pets.where((p) => p.petID == widget.event!.petId).toList();
+      _selectedPet = found.isNotEmpty ? found.first : (pets.isNotEmpty ? pets.first : null);
     } else if (pets.isNotEmpty) {
       _selectedPet = pets.first;
     }
@@ -105,11 +107,7 @@ class _AddEventModalState extends State<AddEventModal> {
       isCompleted: widget.event?.isCompleted ?? false,
     );
 
-    if (isEdit) {
-      repo.addEvent(event); // addEvent in this repo uses .set which handles update too
-    } else {
-      repo.addEvent(event);
-    }
+    repo.addEvent(event);
 
     HapticFeedback.mediumImpact();
     Navigator.pop(context);
@@ -126,6 +124,7 @@ class _AddEventModalState extends State<AddEventModal> {
   Widget build(BuildContext context) {
     final pets = context.watch<AppStateRepository>().pets;
     final isEdit = widget.event != null;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       padding: EdgeInsets.only(
@@ -136,7 +135,7 @@ class _AddEventModalState extends State<AddEventModal> {
       ),
       decoration: BoxDecoration(
         color: Theme.of(context).scaffoldBackgroundColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(36)),
       ),
       child: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
@@ -149,7 +148,7 @@ class _AddEventModalState extends State<AddEventModal> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey.withOpacity(0.3),
+                  color: Colors.grey.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
@@ -157,44 +156,36 @@ class _AddEventModalState extends State<AddEventModal> {
             const SizedBox(height: 24),
             Text(
               isEdit ? 'Edit Event' : 'Add Event',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
+              style: AppTypography.headlineSmall.copyWith(fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 24),
 
             // Title Input
-            _buildSectionLabel('Title'),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: TextField(
-                controller: _titleController,
-                decoration: const InputDecoration(
-                  hintText: 'Title (e.g., Vaccination, Vet visit)',
-                  border: InputBorder.none,
-                  hintStyle: TextStyle(fontSize: 14, color: Colors.grey),
-                ),
-              ),
+            _buildPremiumField(
+              label: 'Title',
+              controller: _titleController,
+              hintText: 'e.g., Vaccination, Vet visit',
+              icon: Icons.edit_calendar_rounded,
             ),
             const SizedBox(height: 20),
 
             // Select Pet
             _buildSectionLabel('Select Pet'),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<PetModel>(
-                  value: _selectedPet,
-                  isExpanded: true,
-                  items: pets.map((p) => DropdownMenuItem(value: p, child: Text(p.name))).toList(),
-                  onChanged: (p) => setState(() => _selectedPet = p),
-                  hint: const Text('No Pet Selected', style: TextStyle(fontSize: 14)),
+            PremiumCard(
+              opacity: 0.1,
+              borderRadius: 16,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<PetModel>(
+                    value: _selectedPet,
+                    isExpanded: true,
+                    icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.primary),
+                    items: pets.map((p) => DropdownMenuItem(value: p, child: Text(p.name, style: const TextStyle(fontWeight: FontWeight.w700)))).toList(),
+                    onChanged: (p) => setState(() => _selectedPet = p),
+                    hint: const Text('No Pet Selected', style: TextStyle(fontSize: 14)),
+                    dropdownColor: isDark ? const Color(0xFF1A1A1A) : Colors.white,
+                  ),
                 ),
               ),
             ),
@@ -202,19 +193,19 @@ class _AddEventModalState extends State<AddEventModal> {
 
             // Select Time
             _buildSectionLabel('Select Time'),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildTimePicker('From', _fromTime, (t) => setState(() => _fromTime = t)),
-                  const Icon(Icons.chevron_right_rounded, color: Colors.grey),
-                  _buildTimePicker('To', _toTime, (t) => setState(() => _toTime = t)),
-                ],
+            PremiumCard(
+              opacity: 0.1,
+              borderRadius: 16,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildTimePicker('From', _fromTime, (t) => setState(() => _fromTime = t)),
+                    const Icon(Icons.chevron_right_rounded, color: Colors.grey),
+                    _buildTimePicker('To', _toTime, (t) => setState(() => _toTime = t)),
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 20),
@@ -234,11 +225,11 @@ class _AddEventModalState extends State<AddEventModal> {
                       selected: isSelected,
                       onSelected: (val) => setState(() => _category = cat),
                       backgroundColor: AppColors.primary.withOpacity(0.05),
-                      selectedColor: const Color(0xFFFFC145), // Amber from image
+                      selectedColor: const Color(0xFFFFC145), 
                       labelStyle: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
-                        color: isSelected ? Colors.white : Colors.black87,
+                        color: isSelected ? Colors.white : (isDark ? Colors.white70 : Colors.black87),
                       ),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -250,22 +241,11 @@ class _AddEventModalState extends State<AddEventModal> {
             const SizedBox(height: 20),
 
             // Notes
-            _buildSectionLabel('Notes'),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: TextField(
-                controller: _noteController,
-                maxLines: 3,
-                decoration: const InputDecoration(
-                  hintText: 'Notes...',
-                  border: InputBorder.none,
-                  hintStyle: TextStyle(fontSize: 14, color: Colors.grey),
-                ),
-              ),
+            _buildPremiumField(
+              label: 'Notes',
+              controller: _noteController,
+              hintText: 'Notes...',
+              maxLines: 3,
             ),
             const SizedBox(height: 24),
 
@@ -273,7 +253,7 @@ class _AddEventModalState extends State<AddEventModal> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Set Notification Reminder', style: TextStyle(fontWeight: FontWeight.w600)),
+                Text('Set Notification Reminder', style: AppTypography.bodyLarge.copyWith(fontWeight: FontWeight.w700)),
                 Switch(
                   value: _isReminderEnabled,
                   onChanged: (val) => setState(() => _isReminderEnabled = val),
@@ -290,14 +270,14 @@ class _AddEventModalState extends State<AddEventModal> {
               child: ElevatedButton(
                 onPressed: _isSaving ? null : _saveEvent,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF006684), // Dark teal from image
+                  backgroundColor: const Color(0xFF006684), 
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 ),
                 child: _isSaving
                     ? const CircularProgressIndicator(color: Colors.white)
                     : Text(
                         isEdit ? 'Update Event' : 'Save Event',
-                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16),
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16),
                       ),
               ),
             ),
@@ -308,12 +288,53 @@ class _AddEventModalState extends State<AddEventModal> {
   }
 
   Widget _buildSectionLabel(String label) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(left: 4, bottom: 8),
       child: Text(
         label,
-        style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.black87),
+        style: TextStyle(fontWeight: FontWeight.w800, color: isDark ? Colors.white70 : Colors.black54, fontSize: 11, letterSpacing: 0.5),
       ),
+    );
+  }
+
+  Widget _buildPremiumField({
+    required String label,
+    required TextEditingController controller,
+    required String hintText,
+    IconData? icon,
+    int maxLines = 1,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionLabel(label),
+        PremiumCard(
+          opacity: 0.1,
+          borderRadius: 16,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                if (icon != null) ...[Icon(icon, size: 20, color: AppColors.primary), const SizedBox(width: 12)],
+                Expanded(
+                  child: TextField(
+                    controller: controller,
+                    maxLines: maxLines,
+                    style: TextStyle(fontWeight: FontWeight.w700, color: isDark ? Colors.white : Colors.black87),
+                    decoration: InputDecoration(
+                      hintText: hintText,
+                      border: InputBorder.none,
+                      hintStyle: TextStyle(fontSize: 14, color: isDark ? Colors.white24 : Colors.grey),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -325,11 +346,11 @@ class _AddEventModalState extends State<AddEventModal> {
       },
       child: Column(
         children: [
-          Text(label, style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 4),
+          Text(label, style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w700, letterSpacing: 0.5)),
+          const SizedBox(height: 6),
           Text(
-            time.format(context).split(' ')[0], // 12:00 format
-            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
+            time.format(context).split(' ')[0], 
+            style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800),
           ),
         ],
       ),

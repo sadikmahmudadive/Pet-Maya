@@ -6,6 +6,7 @@ import '../../../data/models/vet_model.dart';
 import '../../../data/repositories/app_state_repository.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
+import '../../common_widgets/empty_state.dart';
 import 'package:animate_do/animate_do.dart';
 import 'vet_details_screen.dart';
 
@@ -27,29 +28,12 @@ class FavoriteVetsScreen extends StatelessWidget {
         elevation: 0,
       ),
       body: favoriteVets.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(32),
-                    decoration: BoxDecoration(color: AppColors.dangerRed.withOpacity(0.05), shape: BoxShape.circle),
-                    child: Icon(Icons.favorite_border_rounded, size: 64, color: AppColors.dangerRed.withOpacity(0.2)),
-                  ),
-                  const SizedBox(height: 24),
-                  Text('No favorites yet', style: AppTypography.headlineMedium.copyWith(fontWeight: FontWeight.w700)),
-                  const SizedBox(height: 8),
-                  Text('Providers you bookmark will appear here', style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary)),
-                  const SizedBox(height: 32),
-                  SizedBox(
-                    width: 200,
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('EXPLORE CARE'),
-                    ),
-                  ),
-                ],
-              ),
+          ? EmptyState(
+              icon: Icons.favorite_border_rounded,
+              title: 'No favorites yet',
+              message: 'Providers you bookmark will appear here',
+              actionLabel: 'Explore Care',
+              onAction: () => Navigator.pop(context),
             )
           : ListView.builder(
               padding: const EdgeInsets.fromLTRB(20, 100, 20, 120),

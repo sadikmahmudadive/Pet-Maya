@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:animate_do/animate_do.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../data/repositories/app_state_repository.dart';
@@ -11,7 +12,6 @@ import '../../../data/models/pet_model.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
 import 'breed_finder_screen.dart';
-import 'package:animate_do/animate_do.dart';
 
 class AddEditPetScreen extends StatefulWidget {
   final PetModel? petToEdit;
@@ -121,24 +121,25 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
   Widget build(BuildContext context) {
     final isEditing = widget.petToEdit != null;
     final pets = context.watch<AppStateRepository>().pets;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GlassScaffold(
       appBar: AppBar(
-        title: Text(isEditing ? 'Edit Pet' : 'Add Pets', style: const TextStyle(fontWeight: FontWeight.w700)),
+        title: Text(isEditing ? 'Edit Pet' : 'Add Pets', style: const TextStyle(fontWeight: FontWeight.w800)),
         backgroundColor: const Color(0xFF006684),
         foregroundColor: Colors.white,
         elevation: 0,
+        systemOverlayStyle: SystemUiOverlayStyle.light, // Forces white icons on dark teal
       ),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. Horizontal Pet List
             const SizedBox(height: 20),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Text('Your Pets', style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w700)),
+              child: Text('Your Pets', style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w800)),
             ),
             const SizedBox(height: 16),
             SizedBox(
@@ -146,6 +147,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
               child: ListView.builder(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
                 itemCount: pets.length,
                 itemBuilder: (context, index) {
                   final p = pets[index];
@@ -160,7 +162,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
                           child: p.photoUrl == null ? const Icon(Icons.pets) : null,
                         ),
                         const SizedBox(height: 8),
-                        Text(p.name, style: AppTypography.labelSmall.copyWith(fontWeight: FontWeight.w700)),
+                        Text(p.name, style: AppTypography.labelSmall.copyWith(fontWeight: FontWeight.w800)),
                       ],
                     ),
                   );
@@ -168,27 +170,25 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
               ),
             ),
 
-            // 2. Main Form Container
             Padding(
               padding: const EdgeInsets.all(16),
               child: PremiumCard(
                 opacity: 0.1,
                 borderRadius: 36,
-                backgroundColor: const Color(0xFFEDF4F8),
+                backgroundColor: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFEDF4F8),
                 child: Padding(
                   padding: const EdgeInsets.all(24),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Pet Details', style: TextStyle(color: const Color(0xFF006684).withOpacity(0.7), fontWeight: FontWeight.w700)),
-                      const SizedBox(height: 24),
+                      Text('Pet Details', style: TextStyle(color: const Color(0xFF006684), fontWeight: FontWeight.w800, fontSize: 13)),
+                      const SizedBox(height: 32),
 
-                      // Profile Pic
                       Center(
                         child: Stack(
                           children: [
                             CircleAvatar(
-                              radius: 60,
+                              radius: 64,
                               backgroundColor: Colors.white,
                               backgroundImage: CachedNetworkImageProvider(_selectedImageUrl),
                             ),
@@ -196,28 +196,25 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
                               bottom: 0,
                               right: 0,
                               child: GestureDetector(
-                                onTap: () {
-                                  // Image picker logic
-                                },
+                                onTap: () {},
                                 child: Container(
-                                  padding: const EdgeInsets.all(8),
+                                  padding: const EdgeInsets.all(10),
                                   decoration: const BoxDecoration(color: Color(0xFF006684), shape: BoxShape.circle),
-                                  child: const Icon(Icons.edit_rounded, color: Colors.white, size: 16),
+                                  child: const Icon(Icons.edit_rounded, color: Colors.white, size: 18),
                                 ),
                               ),
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 40),
 
-                      // Inputs
-                      _buildOutlinedField('Pet Name', _nameController, icon: Icons.pets_rounded),
+                      _buildPremiumInput('Pet Name', _nameController, icon: Icons.pets_rounded),
                       const SizedBox(height: 20),
                       
                       Row(
                         children: [
-                          Expanded(child: _buildOutlinedField('Breed', _breedController)),
+                          Expanded(child: _buildPremiumInput('Breed', _breedController)),
                           const SizedBox(width: 12),
                           _buildScanButton(),
                         ],
@@ -236,47 +233,43 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
                       _buildReadOnlyField('Calculated Age', _calculateAge()),
                       const SizedBox(height: 20),
 
-                      // Grid inputs
                       Row(
                         children: [
-                          Expanded(child: _buildOutlinedField('Color', _colorController)),
+                          Expanded(child: _buildPremiumInput('Color', _colorController)),
                           const SizedBox(width: 12),
-                          Expanded(child: _buildOutlinedField('Sound', _soundController)),
+                          Expanded(child: _buildPremiumInput('Sound', _soundController)),
                         ],
                       ),
                       const SizedBox(height: 20),
                       Row(
                         children: [
-                          Expanded(child: _buildOutlinedField('Height', _heightController, suffix: 'cm')),
+                          Expanded(child: _buildPremiumInput('Height', _heightController, suffix: 'cm')),
                           const SizedBox(width: 12),
-                          Expanded(child: _buildOutlinedField('Weight', _weightController, suffix: 'kg')),
+                          Expanded(child: _buildPremiumInput('Weight', _weightController, suffix: 'kg')),
                         ],
                       ),
                       const SizedBox(height: 24),
 
-                      // Feeding Times
-                      Text('Feeding Times', style: TextStyle(fontWeight: FontWeight.w600, color: Colors.grey[700])),
+                      Text('Feeding Times', style: TextStyle(fontWeight: FontWeight.w800, color: isDark ? Colors.white70 : Colors.black54, fontSize: 11, letterSpacing: 0.5)),
                       const SizedBox(height: 12),
                       Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
+                        spacing: 10,
+                        runSpacing: 10,
                         children: _feedingTimes.map((t) => _buildTimeChip(t)).toList(),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 20),
                       Row(
                         children: [
                           Expanded(child: _buildActionButton(Icons.add, 'Add Time', _addTime)),
                           const SizedBox(width: 12),
-                          Expanded(child: _buildActionButton(Icons.check_circle_rounded, 'AI Suggest', _aiSuggest)),
+                          Expanded(child: _buildActionButton(Icons.auto_awesome_rounded, 'AI Suggest', _aiSuggest)),
                         ],
                       ),
                       const SizedBox(height: 24),
 
-                      // Bio
-                      _buildOutlinedField('Bio', _bioController, maxLines: 3),
-                      const SizedBox(height: 40),
+                      _buildPremiumInput('Bio', _bioController, maxLines: 3),
+                      const SizedBox(height: 48),
 
-                      // Main Action Button
                       SizedBox(
                         width: double.infinity,
                         height: 64,
@@ -284,11 +277,11 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
                           onPressed: _isSaving ? null : _savePet,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF006684),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
                           ),
                           child: _isSaving 
                             ? const CircularProgressIndicator(color: Colors.white)
-                            : Text(isEditing ? 'Update Pet' : 'Save Pet', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16)),
+                            : Text(isEditing ? 'Update Pet' : 'Save Pet', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: 0.5)),
                         ),
                       ),
                     ],
@@ -303,35 +296,37 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
     );
   }
 
-  Widget _buildOutlinedField(String label, TextEditingController controller, {IconData? icon, String? suffix, int maxLines = 1}) {
+  Widget _buildPremiumInput(String label, TextEditingController controller, {IconData? icon, String? suffix, int maxLines = 1}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 4),
-          child: Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.black54)),
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text(label.toUpperCase(), style: TextStyle(fontWeight: FontWeight.w800, color: isDark ? Colors.white70 : Colors.black54, fontSize: 11, letterSpacing: 0.5)),
         ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.grey.withOpacity(0.5)),
-          ),
-          child: Row(
-            children: [
-              if (icon != null) ...[Icon(icon, size: 20, color: Colors.grey), const SizedBox(width: 12)],
-              Expanded(
-                child: TextField(
-                  controller: controller,
-                  maxLines: maxLines,
-                  decoration: InputDecoration(
-                    border: InputBorder.none,
-                    suffixText: suffix,
-                    suffixStyle: const TextStyle(color: Colors.grey),
+        PremiumCard(
+          opacity: 0.1,
+          borderRadius: 16,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                if (icon != null) ...[Icon(icon, size: 20, color: AppColors.primary), const SizedBox(width: 12)],
+                Expanded(
+                  child: TextField(
+                    controller: controller,
+                    maxLines: maxLines,
+                    style: TextStyle(fontWeight: FontWeight.w700, color: isDark ? Colors.white : Colors.black87),
+                    decoration: InputDecoration(
+                      border: InputBorder.none,
+                      suffixText: suffix,
+                      suffixStyle: const TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ],
@@ -339,48 +334,51 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
   }
 
   Widget _buildReadOnlyField(String label, String value) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 4),
-          child: Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.black54)),
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text(label.toUpperCase(), style: TextStyle(fontWeight: FontWeight.w800, color: isDark ? Colors.white70 : Colors.black54, fontSize: 11, letterSpacing: 0.5)),
         ),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: BoxDecoration(
-            color: Colors.grey[200],
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.grey.withOpacity(0.3)),
+        PremiumCard(
+          opacity: 0.05,
+          borderRadius: 16,
+          backgroundColor: isDark ? Colors.white.withOpacity(0.05) : Colors.grey[200],
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+            child: Text(value, style: TextStyle(color: isDark ? Colors.white54 : Colors.grey[600], fontWeight: FontWeight.w800, fontSize: 14)),
           ),
-          child: Text(value, style: TextStyle(color: Colors.grey[600], fontWeight: FontWeight.w600)),
         ),
       ],
     );
   }
 
   Widget _buildDropdown(String label) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 4),
-          child: Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.black54)),
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text(label.toUpperCase(), style: TextStyle(fontWeight: FontWeight.w800, color: isDark ? Colors.white70 : Colors.black54, fontSize: 11, letterSpacing: 0.5)),
         ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.grey.withOpacity(0.5)),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: _gender,
-              isExpanded: true,
-              style: const TextStyle(fontSize: 13, color: Colors.black87, fontWeight: FontWeight.w600),
-              items: ['Male', 'Female'].map((g) => DropdownMenuItem(value: g, child: Text(g))).toList(),
-              onChanged: (val) => setState(() => _gender = val!),
+        PremiumCard(
+          opacity: 0.1,
+          borderRadius: 16,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: _gender,
+                isExpanded: true,
+                dropdownColor: isDark ? const Color(0xFF1A1A1A) : Colors.white,
+                style: TextStyle(fontSize: 14, color: isDark ? Colors.white : Colors.black87, fontWeight: FontWeight.w700),
+                items: ['Male', 'Female'].map((g) => DropdownMenuItem(value: g, child: Text(g))).toList(),
+                onChanged: (val) => setState(() => _gender = val!),
+              ),
             ),
           ),
         ),
@@ -389,14 +387,17 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
   }
 
   Widget _buildDatePicker() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.only(left: 4, bottom: 4),
-          child: Text('DOB', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.black54)),
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text('DOB', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: isDark ? Colors.white70 : Colors.black54, letterSpacing: 0.5)),
         ),
-        InkWell(
+        PremiumCard(
+          opacity: 0.1,
+          borderRadius: 16,
           onTap: () async {
             final picked = await showDatePicker(
               context: context,
@@ -407,22 +408,14 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
             if (picked != null) setState(() => _dob = picked);
           },
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.grey.withOpacity(0.5)),
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             child: Row(
               children: [
-                const Icon(Icons.calendar_month_rounded, size: 18, color: Colors.grey),
-                const SizedBox(width: 8),
-                Flexible(
-                  child: Text(
-                    _dob == null ? 'Select' : DateFormat('yyyy-MM-dd').format(_dob!),
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                const Icon(Icons.calendar_month_rounded, size: 20, color: AppColors.primary),
+                const SizedBox(width: 12),
+                Text(
+                  _dob == null ? 'Select Date' : DateFormat('yyyy-MM-dd').format(_dob!),
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: isDark ? Colors.white : Colors.black87),
                 ),
               ],
             ),
@@ -439,17 +432,16 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
         if (breed != null) setState(() => _breedController.text = breed);
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         decoration: BoxDecoration(
           color: const Color(0xFFD1E6EE),
           borderRadius: BorderRadius.circular(16),
         ),
         child: const Row(
-          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.search_rounded, size: 18, color: Color(0xFF006684)),
-            SizedBox(width: 4),
-            Text('Scan', style: TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF006684), fontSize: 13)),
+            Icon(Icons.search_rounded, size: 20, color: Color(0xFF006684)),
+            SizedBox(width: 8),
+            Text('Scan', style: TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF006684))),
           ],
         ),
       ),
@@ -458,20 +450,20 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
 
   Widget _buildTimeChip(String time) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: const Color(0xFFA8D5BA).withOpacity(0.4),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFF2D8C69).withOpacity(0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(time, style: const TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF2D8C69), fontSize: 12)),
-          const SizedBox(width: 6),
+          Text(time, style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF2D8C69), fontSize: 12)),
+          const SizedBox(width: 8),
           GestureDetector(
             onTap: () => setState(() => _feedingTimes.remove(time)),
-            child: const Icon(Icons.close_rounded, size: 14, color: Color(0xFF2D8C69)),
+            child: const Icon(Icons.close_rounded, size: 16, color: Color(0xFF2D8C69)),
           ),
         ],
       ),
@@ -482,24 +474,17 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
           color: const Color(0xFFD1E6EE),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 16, color: const Color(0xFF006684)),
-            const SizedBox(width: 4),
-            Flexible(
-              child: Text(
-                label, 
-                style: const TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF006684), fontSize: 11),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
+            Icon(icon, size: 18, color: const Color(0xFF006684)),
+            const SizedBox(width: 8),
+            Text(label, style: const TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF006684), fontSize: 13)),
           ],
         ),
       ),

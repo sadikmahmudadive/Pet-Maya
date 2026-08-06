@@ -8,6 +8,7 @@ import '../../../data/models/event_model.dart';
 import '../../../data/repositories/app_state_repository.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
+import '../../common_widgets/empty_state.dart';
 import 'package:animate_do/animate_do.dart';
 
 class EventsHistoryScreen extends StatefulWidget {
@@ -86,15 +87,10 @@ class _EventsHistoryScreenState extends State<EventsHistoryScreen> {
 
           Expanded(
             child: sortedEvents.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.event_busy_rounded, size: 64, color: Theme.of(context).colorScheme.outline.withOpacity(0.3)),
-                        const SizedBox(height: 16),
-                        Text('No activities found matching filters.', style: AppTypography.bodyMedium),
-                      ],
-                    ),
+                ? const EmptyState(
+                    icon: Icons.event_busy_rounded,
+                    title: 'No activities found',
+                    message: 'Try adjusting your filters or schedule new care tasks.',
                   )
                 : RefreshIndicator(
                     onRefresh: () async {

@@ -9,6 +9,7 @@ import '../../../data/models/vet_model.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
 import '../../common_widgets/status_chip.dart';
+import '../../common_widgets/empty_state.dart';
 import 'package:animate_do/animate_do.dart';
 import 'favorite_vets_screen.dart';
 import 'vet_details_screen.dart';
@@ -68,18 +69,11 @@ class PetServicesScreen extends StatelessWidget {
             ),
           ),
           vets.isEmpty
-              ? SliverToBoxAdapter(
-                  child: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(40.0),
-                      child: Column(
-                        children: [
-                          Icon(Icons.medical_services_outlined, size: 48, color: Theme.of(context).hintColor.withOpacity(0.3)),
-                          const SizedBox(height: 12),
-                          Text('No providers found nearby.', style: AppTypography.bodyMedium),
-                        ],
-                      ),
-                    ),
+              ? const SliverFillRemaining(
+                  child: EmptyState(
+                    icon: Icons.medical_services_outlined,
+                    title: 'No providers found',
+                    message: 'We couldn\'t find any care providers in your area at the moment.',
                   ),
                 )
               : SliverPadding(

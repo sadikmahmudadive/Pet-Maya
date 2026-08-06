@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -27,6 +26,7 @@ class PetShopDashboardScreen extends StatelessWidget {
     final lowStockCount = products.where((p) => p.isLowStock).length;
 
     final size = MediaQuery.of(context).size;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GlassScaffold(
       appBar: AppBar(
@@ -37,6 +37,7 @@ class PetShopDashboardScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.logout_rounded, color: AppColors.dangerRed),
             onPressed: () {
+              HapticFeedback.mediumImpact();
               state.logout();
               Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const LoginScreen()), (r) => false);
             },
@@ -47,12 +48,6 @@ class PetShopDashboardScreen extends StatelessWidget {
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
         slivers: [
-          CupertinoSliverRefreshControl(
-            onRefresh: () async {
-              HapticFeedback.mediumImpact();
-              if (user != null) await state.syncFromFirebase(user);
-            },
-          ),
           SliverToBoxAdapter(
             child: Padding(
               padding: EdgeInsets.fromLTRB(20, size.height * 0.1, 20, 100),
@@ -65,10 +60,10 @@ class PetShopDashboardScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('Hi, ${user?.name ?? 'Merchant'}', 
-                          style: Theme.of(context).textTheme.displayLarge?.copyWith(fontSize: 28, fontWeight: FontWeight.w700)),
+                          style: AppTypography.headlineMedium.copyWith(fontWeight: FontWeight.w800, fontSize: 28)),
                         const SizedBox(height: 4),
                         Text('Your store summary for today', 
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
+                          style: AppTypography.bodyLarge.copyWith(color: Colors.grey[500], fontWeight: FontWeight.w600)),
                       ],
                     ),
                   ),
@@ -94,16 +89,20 @@ class PetShopDashboardScreen extends StatelessWidget {
                           child: PremiumCard(
                             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const InventoryManagementScreen())),
                             useGlass: false,
-                            borderRadius: 20,
+                            borderRadius: 24,
                             child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 20),
-                              decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(20)),
+                              padding: const EdgeInsets.symmetric(vertical: 22),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF006684), 
+                                borderRadius: BorderRadius.circular(24),
+                                boxShadow: [BoxShadow(color: const Color(0xFF006684).withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10))],
+                              ),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   const Icon(Icons.inventory_2_rounded, color: Colors.white, size: 20),
                                   const SizedBox(width: 10),
-                                  Text('CATALOG', style: AppTypography.labelSmall.copyWith(color: Colors.white, fontWeight: FontWeight.w700, letterSpacing: 1)),
+                                  Text('CATALOG', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, letterSpacing: 1.2, fontSize: 11)),
                                 ],
                               ),
                             ),
@@ -116,15 +115,15 @@ class PetShopDashboardScreen extends StatelessWidget {
                           child: PremiumCard(
                             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ShopOrdersScreen())),
                             opacity: 0.15,
-                            borderRadius: 20,
+                            borderRadius: 24,
                             child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 20),
+                              padding: const EdgeInsets.symmetric(vertical: 22),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   const Icon(Icons.receipt_long_rounded, color: AppColors.primary, size: 20),
                                   const SizedBox(width: 10),
-                                  Text('ORDERS', style: AppTypography.labelSmall.copyWith(color: AppColors.primary, fontWeight: FontWeight.w700, letterSpacing: 1)),
+                                  Text('ORDERS', style: TextStyle(color: isDark ? Colors.white : AppColors.primary, fontWeight: FontWeight.w800, letterSpacing: 1.2, fontSize: 11)),
                                 ],
                               ),
                             ),
@@ -151,8 +150,8 @@ class PetShopDashboardScreen extends StatelessWidget {
                             const SizedBox(width: 16),
                             Expanded(
                               child: Text(
-                                '$lowStockCount items are running low on stock. Please restyle soon.',
-                                style: AppTypography.bodyMedium.copyWith(color: AppColors.dangerRedDeep, fontWeight: FontWeight.w700, fontSize: 13),
+                                '$lowStockCount items are running low on stock. Please update inventory.',
+                                style: AppTypography.bodyMedium.copyWith(color: isDark ? AppColors.dangerRedLight : AppColors.dangerRedDeep, fontWeight: FontWeight.w700, fontSize: 13),
                               ),
                             ),
                           ],
@@ -163,7 +162,7 @@ class PetShopDashboardScreen extends StatelessWidget {
                   ],
 
                   // Active Customer Orders
-                  Text('Recent Orders', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700, fontSize: 22)),
+                  Text('Recent Orders', style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w800)),
                   const SizedBox(height: 20),
                   if (orders.isEmpty)
                     _buildEmptyState(context, 'No orders received yet.')
@@ -182,10 +181,10 @@ class PetShopDashboardScreen extends StatelessWidget {
                                     Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Text(ord.orderId, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700, fontSize: 16)),
+                                        Text(ord.orderId, style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.w800)),
                                         const SizedBox(height: 4),
                                         Text('${ord.items.length} items • \$${ord.total.toStringAsFixed(2)}', 
-                                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600, fontSize: 13)),
+                                          style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.w600, color: Colors.grey[500])),
                                       ],
                                     ),
                                     _buildStatusBadge(ord.status),
@@ -198,8 +197,8 @@ class PetShopDashboardScreen extends StatelessWidget {
 
                   const SizedBox(height: 48),
 
-                  // Top Products Preview
-                  Text('Warehouse Overview', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700, fontSize: 22)),
+                  // Warehouse Overview
+                  Text('Warehouse Overview', style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w800)),
                   const SizedBox(height: 20),
                   ...products.take(4).map((p) => FadeInUp(
                         child: Padding(
@@ -216,7 +215,7 @@ class PetShopDashboardScreen extends StatelessWidget {
                                     child: Container(
                                       width: 50,
                                       height: 50,
-                                      color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.6),
+                                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
                                       child: p.imageUrl != null ? Image.network(p.imageUrl!, fit: BoxFit.contain) : const Icon(Icons.inventory_2),
                                     ),
                                   ),
@@ -225,13 +224,13 @@ class PetShopDashboardScreen extends StatelessWidget {
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Text(p.name, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: 14, fontWeight: FontWeight.w700), maxLines: 1, overflow: TextOverflow.ellipsis),
+                                        Text(p.name, style: AppTypography.titleMedium.copyWith(fontSize: 14, fontWeight: FontWeight.w800), maxLines: 1, overflow: TextOverflow.ellipsis),
                                         Text('Stock: ${p.stockQuantity} units', 
-                                          style: Theme.of(context).textTheme.labelSmall?.copyWith(color: p.isLowStock ? AppColors.dangerRed : null, fontWeight: FontWeight.w600)),
+                                          style: AppTypography.labelSmall.copyWith(color: p.isLowStock ? AppColors.dangerRed : Colors.grey[500], fontWeight: FontWeight.w700)),
                                       ],
                                     ),
                                   ),
-                                  Text('\$${p.price.toStringAsFixed(0)}', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700, color: AppColors.primary)),
+                                  Text('\$${p.price.toStringAsFixed(0)}', style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.primary, fontSize: 16)),
                                 ],
                               ),
                             ),
@@ -256,7 +255,7 @@ class PetShopDashboardScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
       child: Text(status.displayName.toUpperCase(), 
-        style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 9, letterSpacing: 0.5)),
+        style: TextStyle(color: color, fontWeight: FontWeight.w900, fontSize: 8, letterSpacing: 0.8)),
     );
   }
 
@@ -265,35 +264,36 @@ class PetShopDashboardScreen extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface.withOpacity(0.4),
+        color: Theme.of(context).colorScheme.surface.withOpacity(0.05),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant.withOpacity(0.5)),
+        border: Border.all(color: Colors.grey.withOpacity(0.1)),
       ),
-      child: Center(child: Text(msg, style: Theme.of(context).textTheme.bodyMedium)),
+      child: Center(child: Text(msg, style: AppTypography.bodyMedium)),
     );
   }
 
   Widget _buildKpiCard(BuildContext context, String title, String value, IconData icon, Color color) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return PremiumCard(
       opacity: 0.2,
-      borderRadius: 20,
+      borderRadius: 24,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
-              child: Icon(icon, color: color, size: 16),
+              child: Icon(icon, color: color, size: 18),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
             Text(value, 
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700, fontSize: 16),
+              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: isDark ? Colors.white : Colors.black87),
               maxLines: 1, overflow: TextOverflow.ellipsis),
-            const SizedBox(height: 2),
+            const SizedBox(height: 4),
             Text(title, 
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(fontSize: 8, fontWeight: FontWeight.w700, letterSpacing: 0.5),
+              style: TextStyle(fontSize: 8, fontWeight: FontWeight.w800, letterSpacing: 0.8, color: Colors.grey[500]),
               maxLines: 1, overflow: TextOverflow.ellipsis),
           ],
         ),

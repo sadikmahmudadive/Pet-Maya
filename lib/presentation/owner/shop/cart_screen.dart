@@ -6,6 +6,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../../data/repositories/app_state_repository.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
+import '../../common_widgets/empty_state.dart';
 import 'package:animate_do/animate_do.dart';
 import 'checkout_screen.dart';
 
@@ -35,29 +36,12 @@ class CartScreen extends StatelessWidget {
         ],
       ),
       body: items.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(32),
-                    decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.05), shape: BoxShape.circle),
-                    child: Icon(Icons.shopping_basket_rounded, size: 80, color: AppColors.primary.withOpacity(0.2)),
-                  ),
-                  const SizedBox(height: 24),
-                  Text('Your basket is empty', style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w700)),
-                  const SizedBox(height: 12),
-                  Text('Time to spoil your furry friend!', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
-                  const SizedBox(height: 32),
-                  SizedBox(
-                    width: 200,
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('BACK TO SHOP'),
-                    ),
-                  ),
-                ],
-              ),
+          ? EmptyState(
+              icon: Icons.shopping_basket_rounded,
+              title: 'Your basket is empty',
+              message: 'Time to spoil your furry friend!',
+              actionLabel: 'Back to Shop',
+              onAction: () => Navigator.pop(context),
             )
           : ListView.builder(
               padding: const EdgeInsets.fromLTRB(20, 100, 20, 200),

@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:animate_do/animate_do.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
-import '../../../data/models/pet_model.dart';
 import '../../../data/repositories/app_state_repository.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
-import 'package:animate_do/animate_do.dart';
 
 class PetFoodScreen extends StatefulWidget {
   final String petId;
@@ -52,36 +50,28 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
     );
     if (mounted) {
       setState(() => _isSaving = false);
+      HapticFeedback.mediumImpact();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Diet details saved! ✨'), backgroundColor: AppColors.healthGreen),
+        const SnackBar(content: Text('Diet details saved! ✨'), backgroundColor: AppColors.healthGreen, behavior: SnackBarBehavior.floating),
       );
     }
   }
 
   void _addMeal() async {
-    final time = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.now(),
-    );
+    final time = await showTimePicker(context: context, initialTime: TimeOfDay.now());
     if (time != null && mounted) {
       final pet = context.read<AppStateRepository>().pets.firstWhere((p) => p.petID == widget.petId);
       final formattedTime = '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
       final newTimes = List<String>.from(pet.feedingTimes)..add(formattedTime);
       newTimes.sort();
-      context.read<AppStateRepository>().updatePetNutrition(
-        petId: widget.petId,
-        feedingTimes: newTimes,
-      );
+      context.read<AppStateRepository>().updatePetNutrition(petId: widget.petId, feedingTimes: newTimes);
     }
   }
 
   void _removeMeal(String time) {
     final pet = context.read<AppStateRepository>().pets.firstWhere((p) => p.petID == widget.petId);
     final newTimes = List<String>.from(pet.feedingTimes)..remove(time);
-    context.read<AppStateRepository>().updatePetNutrition(
-      petId: widget.petId,
-      feedingTimes: newTimes,
-    );
+    context.read<AppStateRepository>().updatePetNutrition(petId: widget.petId, feedingTimes: newTimes);
   }
 
   @override
@@ -91,7 +81,7 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
 
     return GlassScaffold(
       appBar: AppBar(
-        title: Text('${pet.name}\'s Nutrition'),
+        title: Text('${pet.name}\'s Nutrition', style: const TextStyle(fontWeight: FontWeight.w800)),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -101,25 +91,25 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. Current Diet Section
             FadeInDown(
               child: PremiumCard(
-                opacity: 0.2,
-                borderRadius: 28,
+                opacity: 0.1,
+                borderRadius: 32,
+                backgroundColor: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFEDF4F8),
                 child: Padding(
                   padding: const EdgeInsets.all(24),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Current Diet', style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.w700)),
-                      const SizedBox(height: 20),
-                      _buildTextField('Food Name / Brand', _foodNameController),
-                      const SizedBox(height: 16),
-                      _buildDropdownField('Food Type', _selectedFoodType, (val) => setState(() => _selectedFoodType = val)),
+                      Text('CURRENT DIET', style: TextStyle(color: const Color(0xFF006684), fontWeight: FontWeight.w900, fontSize: 11, letterSpacing: 1)),
                       const SizedBox(height: 24),
+                      _buildPremiumInput('Food Name / Brand', _foodNameController, hint: 'e.g., Royal Canin'),
+                      const SizedBox(height: 20),
+                      _buildDropdownField('Food Type', _selectedFoodType, (val) => setState(() => _selectedFoodType = val)),
+                      const SizedBox(height: 32),
                       SizedBox(
                         width: double.infinity,
-                        height: 56,
+                        height: 60,
                         child: ElevatedButton(
                           onPressed: _isSaving ? null : _saveDietDetails,
                           style: ElevatedButton.styleFrom(
@@ -127,8 +117,8 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                           ),
                           child: _isSaving 
-                            ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                            : const Text('Save Diet Details', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                            ? const CircularProgressIndicator(color: Colors.white)
+                            : const Text('SAVE DIET DETAILS', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, letterSpacing: 0.5)),
                         ),
                       ),
                     ],
@@ -138,7 +128,6 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
             ),
             const SizedBox(height: 32),
 
-            // 2. Meal Schedule Section
             FadeInUp(
               delay: const Duration(milliseconds: 100),
               child: Column(
@@ -146,12 +135,13 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
                 children: [
                   Padding(
                     padding: const EdgeInsets.only(left: 4),
-                    child: Text('Meal Schedule', style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.w700)),
+                    child: Text('Meal Schedule', style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w800)),
                   ),
                   const SizedBox(height: 16),
                   PremiumCard(
                     opacity: 0.1,
-                    borderRadius: 28,
+                    borderRadius: 32,
+                    backgroundColor: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFF9F5FB),
                     child: Padding(
                       padding: const EdgeInsets.all(24),
                       child: Column(
@@ -164,64 +154,15 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
                           ),
                           if (pet.feedingTimes.isEmpty)
                             Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 20),
-                              child: Center(child: Text('No meals scheduled', style: TextStyle(color: Colors.grey[500]))),
+                              padding: const EdgeInsets.symmetric(vertical: 24),
+                              child: Center(child: Text('No meals scheduled', style: TextStyle(color: Colors.grey[500], fontWeight: FontWeight.w600))),
                             ),
                           const SizedBox(height: 24),
                           Row(
                             children: [
-                              Expanded(
-                                child: _buildActionButton(
-                                  icon: Icons.add,
-                                  label: 'Add Meal',
-                                  onTap: _addMeal,
-                                ),
-                              ),
+                              Expanded(child: _buildActionButton(Icons.add_rounded, 'Add Time', _addMeal)),
                               const SizedBox(width: 12),
-                              Expanded(
-                                child: _buildActionButton(
-                                  icon: Icons.auto_awesome_rounded,
-                                  label: 'AI Schedule',
-                                  onTap: () async {
-                                    final repo = context.read<AppStateRepository>();
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('Generating smart schedule... 🪄'), duration: Duration(seconds: 2)),
-                                    );
-                                    
-                                    try {
-                                      final suggestedTimes = await repo.runAiNutritionSchedule(
-                                        petName: pet.name,
-                                        breed: pet.breed,
-                                        age: pet.age,
-                                        weight: pet.weight,
-                                      );
-                                      
-                                      if (mounted) {
-                                        showDialog(
-                                          context: context,
-                                          builder: (ctx) => AlertDialog(
-                                            title: const Text('AI Suggested Schedule'),
-                                            content: Text('The AI suggests feeding times at: ${suggestedTimes.join(', ')}. Would you like to apply this?'),
-                                            actions: [
-                                              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-                                              TextButton(
-                                                onPressed: () {
-                                                  repo.updatePetNutrition(petId: pet.petID, feedingTimes: suggestedTimes);
-                                                  Navigator.pop(ctx);
-                                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Schedule updated! ✨')));
-                                                }, 
-                                                child: const Text('Apply'),
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                      }
-                                    } catch (e) {
-                                      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
-                                    }
-                                  },
-                                ),
-                              ),
+                              Expanded(child: _buildActionButton(Icons.auto_awesome_rounded, 'AI Suggest', _aiSuggest)),
                             ],
                           ),
                         ],
@@ -233,7 +174,6 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
             ),
             const SizedBox(height: 32),
 
-            // 3. AI Nutritional Recommendation Section
             FadeInUp(
               delay: const Duration(milliseconds: 200),
               child: Column(
@@ -241,60 +181,35 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
                 children: [
                   Padding(
                     padding: const EdgeInsets.only(left: 4),
-                    child: Text('AI Nutritional Recommendation', style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.w700)),
+                    child: Text('AI Nutritional Recommendation', style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w800)),
                   ),
                   const SizedBox(height: 16),
                   PremiumCard(
                     opacity: 0.1,
-                    borderRadius: 28,
+                    borderRadius: 32,
+                    backgroundColor: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFEDF4F8),
                     child: Padding(
-                      padding: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(24),
                       child: Column(
                         children: [
                           SizedBox(
                             width: double.infinity,
-                            height: 56,
+                            height: 60,
                             child: ElevatedButton.icon(
-                              onPressed: () async {
-                                final repo = context.read<AppStateRepository>();
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Analyzing profile and generating guide... 🧠'), duration: Duration(seconds: 2)),
-                                );
-                                
-                                try {
-                                  final Map<String, dynamic> guide = await repo.runAiNutritionRecommendation(
-                                    petName: pet.name,
-                                    breed: pet.breed,
-                                    age: pet.age,
-                                    weight: pet.weight,
-                                    currentDiet: pet.currentFoodName,
-                                  );
-                                  
-                                  if (mounted) {
-                                    showModalBottomSheet(
-                                      context: context,
-                                      isScrollControlled: true,
-                                      backgroundColor: Colors.transparent,
-                                      builder: (ctx) => _buildExpertGuideSheet(context, pet.name, guide),
-                                    );
-                                  }
-                                } catch (e) {
-                                  if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
-                                }
-                              },
+                              onPressed: _runAiRecommendation,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF006684),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                               ),
-                              icon: const Icon(Icons.pets_rounded, color: Colors.white, size: 20),
-                              label: const Text('Generate Expert Guide', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                              icon: const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 20),
+                              label: const Text('GENERATE EXPERT GUIDE', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, letterSpacing: 0.5)),
                             ),
                           ),
                           const SizedBox(height: 16),
                           Text(
                             'Tap above to get a professional dietary plan based on your pet\'s profile.',
                             textAlign: TextAlign.center,
-                            style: AppTypography.bodySmall.copyWith(color: isDark ? Colors.white60 : Colors.grey[600], height: 1.4),
+                            style: AppTypography.bodySmall.copyWith(color: Colors.grey[500], height: 1.4, fontWeight: FontWeight.w600),
                           ),
                         ],
                       ),
@@ -310,8 +225,163 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
     );
   }
 
-  Widget _buildExpertGuideSheet(BuildContext context, String petName, Map<String, dynamic> guide) {
+  Widget _buildPremiumInput(String label, TextEditingController controller, {String? hint}) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text(label.toUpperCase(), style: TextStyle(fontWeight: FontWeight.w800, color: isDark ? Colors.white70 : Colors.black54, fontSize: 10, letterSpacing: 0.5)),
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: isDark ? Colors.white.withOpacity(0.05) : Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: isDark ? Colors.white12 : Colors.grey.withOpacity(0.3)),
+          ),
+          child: TextField(
+            controller: controller,
+            style: TextStyle(fontWeight: FontWeight.w700, color: isDark ? Colors.white : Colors.black87),
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: TextStyle(fontSize: 14, color: isDark ? Colors.white24 : Colors.grey),
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(vertical: 18),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDropdownField(String label, String? value, Function(String?) onChanged) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text(label.toUpperCase(), style: TextStyle(fontWeight: FontWeight.w800, color: isDark ? Colors.white70 : Colors.black54, fontSize: 10, letterSpacing: 0.5)),
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: isDark ? Colors.white.withOpacity(0.05) : Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: isDark ? Colors.white12 : Colors.grey.withOpacity(0.3)),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: value,
+              isExpanded: true,
+              dropdownColor: isDark ? const Color(0xFF1A1A1A) : Colors.white,
+              hint: Text('Select Type', style: TextStyle(fontSize: 14, color: isDark ? Colors.white24 : Colors.grey)),
+              items: _foodTypes.map((t) => DropdownMenuItem(value: t, child: Text(t, style: const TextStyle(fontWeight: FontWeight.w700)))).toList(),
+              onChanged: onChanged,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMealChip(String time) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFA8D5BA).withOpacity(0.4),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFF2D8C69).withOpacity(0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(time, style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF2D8C69), fontSize: 12)),
+          const SizedBox(width: 8),
+          GestureDetector(
+            onTap: () => _removeMeal(time),
+            child: const Icon(Icons.close_rounded, size: 16, color: Color(0xFF2D8C69)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButton(IconData icon, String label, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        decoration: BoxDecoration(
+          color: const Color(0xFFD1E6EE),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 18, color: const Color(0xFF006684)),
+            const SizedBox(width: 8),
+            Text(label, style: const TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF006684), fontSize: 13)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _aiSuggest() async {
+    final repo = context.read<AppStateRepository>();
+    final pet = repo.pets.firstWhere((p) => p.petID == widget.petId);
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Consulting AI Nutritionist... 🪄'), behavior: SnackBarBehavior.floating));
+    try {
+      final suggested = await repo.runAiNutritionSchedule(petName: pet.name, breed: pet.breed, age: pet.age, weight: pet.weight);
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            title: const Text('AI Suggested Schedule'),
+            content: Text('The AI suggests feeding times at: ${suggested.join(', ')}. Would you like to apply this?'),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+              ElevatedButton(
+                onPressed: () {
+                  repo.updatePetNutrition(petId: widget.petId, feedingTimes: suggested);
+                  Navigator.pop(ctx);
+                }, 
+                child: const Text('Apply'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (_) {}
+  }
+
+  void _runAiRecommendation() async {
+    final repo = context.read<AppStateRepository>();
+    final pet = repo.pets.firstWhere((p) => p.petID == widget.petId);
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Analyzing nutritional needs... 🧠'), behavior: SnackBarBehavior.floating));
+    
+    try {
+      final guide = await repo.runAiNutritionRecommendation(petName: pet.name, breed: pet.breed, age: pet.age, weight: pet.weight, currentDiet: pet.currentFoodName);
+      if (mounted) {
+        _showExpertGuideSheet(context, pet.name, guide);
+      }
+    } catch (_) {}
+  }
+
+  void _showExpertGuideSheet(BuildContext context, String petName, Map<String, dynamic> guide) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => _buildExpertGuideSheet(context, petName, guide),
+    );
+  }
+
+  Widget _buildExpertGuideSheet(BuildContext context, String petName, Map<String, dynamic> guide) {
     final nutrients = List<String>.from(guide['nutrients'] ?? []);
     final recommendations = List<String>.from(guide['recommendations'] ?? []);
 
@@ -339,8 +409,8 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Expert Nutrition Guide', style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w800, fontSize: 22)),
-                    Text('Tailored for $petName', style: AppTypography.bodyMedium.copyWith(color: Colors.grey[500], fontWeight: FontWeight.w600)),
+                    Text('Expert Nutrition Guide', style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w900, fontSize: 22)),
+                    Text('Tailored for $petName', style: AppTypography.bodyMedium.copyWith(color: Colors.grey[500], fontWeight: FontWeight.w700)),
                   ],
                 ),
               ),
@@ -353,27 +423,15 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 1. Calories Card
-                  _buildGuideSection(
-                    context, 
-                    'Daily Caloric Goal', 
-                    guide['calories'] ?? 'Not specified', 
-                    Icons.bolt_rounded, 
-                    const Color(0xFFFFF4E8), 
-                    const Color(0xFFD98C4F)
-                  ),
-                  const SizedBox(height: 24),
-
-                  // 2. Nutrients
-                  _buildSectionHeader('Essential Nutrients'),
-                  const SizedBox(height: 12),
-                  ...nutrients.map((n) => _buildBulletPoint(context, n, Icons.check_circle_outline_rounded, AppColors.healthGreen)),
+                  _buildGuideSection(context, 'Daily Caloric Goal', guide['calories'] ?? 'N/A', Icons.bolt_rounded, const Color(0xFFD98C4F)),
                   const SizedBox(height: 32),
-
-                  // 3. Expert Tips
+                  _buildSectionHeader('Essential Nutrients'),
+                  const SizedBox(height: 16),
+                  ...nutrients.map((n) => _buildBulletPoint(n, Icons.check_circle_outline_rounded, AppColors.healthGreen)),
+                  const SizedBox(height: 32),
                   _buildSectionHeader('Expert Recommendations'),
-                  const SizedBox(height: 12),
-                  ...recommendations.map((r) => _buildBulletPoint(context, r, Icons.lightbulb_outline_rounded, AppColors.accentAmber)),
+                  const SizedBox(height: 16),
+                  ...recommendations.map((r) => _buildBulletPoint(r, Icons.lightbulb_outline_rounded, AppColors.accentAmber)),
                   const SizedBox(height: 40),
                 ],
               ),
@@ -383,14 +441,11 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
             padding: const EdgeInsets.symmetric(vertical: 24),
             child: SizedBox(
               width: double.infinity,
-              height: 60,
+              height: 64,
               child: ElevatedButton(
                 onPressed: () => Navigator.pop(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF006684),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-                ),
-                child: const Text('GOT IT, THANKS!', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, letterSpacing: 0.5)),
+                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF006684), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18))),
+                child: const Text('GOT IT, THANKS!', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 0.5)),
               ),
             ),
           ),
@@ -400,10 +455,10 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
   }
 
   Widget _buildSectionHeader(String title) {
-    return Text(title.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 11, color: AppColors.primary, letterSpacing: 1.2));
+    return Text(title.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 11, color: AppColors.primary, letterSpacing: 1.5));
   }
 
-  Widget _buildGuideSection(BuildContext context, String title, String content, IconData icon, Color bgColor, Color iconColor) {
+  Widget _buildGuideSection(BuildContext context, String title, String content, IconData icon, Color color) {
     return PremiumCard(
       opacity: 0.1,
       borderRadius: 24,
@@ -413,17 +468,17 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
           children: [
             Container(
               padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: iconColor.withOpacity(0.1), borderRadius: BorderRadius.circular(16)),
-              child: Icon(icon, color: iconColor, size: 24),
+              decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(16)),
+              child: Icon(icon, color: color, size: 24),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 20),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
+                  Text(title, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
                   const SizedBox(height: 4),
-                  Text(content, style: AppTypography.bodyMedium.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant, height: 1.4)),
+                  Text(content, style: AppTypography.bodyMedium.copyWith(color: Colors.grey[600], height: 1.4, fontWeight: FontWeight.w600)),
                 ],
               ),
             ),
@@ -433,98 +488,16 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
     );
   }
 
-  Widget _buildBulletPoint(BuildContext context, String text, IconData icon, Color color) {
+  Widget _buildBulletPoint(String text, IconData icon, Color color) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, color: color, size: 20),
-          const SizedBox(width: 12),
-          Expanded(child: Text(text, style: AppTypography.bodyLarge.copyWith(height: 1.4, fontWeight: FontWeight.w600))),
+          const SizedBox(width: 16),
+          Expanded(child: Text(text, style: const TextStyle(height: 1.5, fontWeight: FontWeight.w700, fontSize: 14))),
         ],
-      ),
-    );
-  }
-
-  Widget _buildTextField(String hint, TextEditingController controller) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.withOpacity(0.2)),
-      ),
-      child: TextField(
-        controller: controller,
-        decoration: InputDecoration(
-          hintText: hint,
-          border: InputBorder.none,
-          hintStyle: const TextStyle(fontSize: 14, color: Colors.grey),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDropdownField(String hint, String? value, Function(String?) onChanged) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.withOpacity(0.2)),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: value,
-          isExpanded: true,
-          hint: Text(hint, style: const TextStyle(fontSize: 14, color: Colors.grey)),
-          items: _foodTypes.map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
-          onChanged: onChanged,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMealChip(String time) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xFFA8D5BA).withOpacity(0.4), // Light green tint
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF2D8C69).withOpacity(0.3)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(time, style: const TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF2D8C69), fontSize: 13)),
-          const SizedBox(width: 8),
-          GestureDetector(
-            onTap: () => _removeMeal(time),
-            child: const Icon(Icons.close_rounded, size: 16, color: Color(0xFF2D8C69)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionButton({required IconData icon, required String label, required VoidCallback onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          color: const Color(0xFFD1E6EE), // Light teal tint
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 18, color: const Color(0xFF006684)),
-            const SizedBox(width: 8),
-            Text(label, style: const TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF006684), fontSize: 13)),
-          ],
-        ),
       ),
     );
   }

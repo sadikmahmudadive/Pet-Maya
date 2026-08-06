@@ -45,6 +45,7 @@ class PetDetailsScreen extends StatelessWidget {
             ),
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             elevation: 0,
+            systemOverlayStyle: SystemUiOverlayStyle.light, // Always white icons on image header
             flexibleSpace: FlexibleSpaceBar(
               background: Stack(
                 fit: StackFit.expand,
@@ -53,13 +54,26 @@ class PetDetailsScreen extends StatelessWidget {
                     pet.photoUrl ?? 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=800',
                     fit: BoxFit.cover,
                   ),
+                  // Enhanced Top Gradient for Status Bar Visibility
                   Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
+                        end: const Alignment(0, -0.2), 
+                        colors: [
+                          Colors.black.withOpacity(isDark ? 0.6 : 0.4),
+                          Colors.transparent,
+                        ],
+                      ),
+                    ),
+                  ),
+                  // Bottom Blend Gradient
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: const Alignment(0, 0.2),
                         end: Alignment.bottomCenter,
                         colors: [
-                          Colors.black.withOpacity(0.3),
                           Colors.transparent,
                           Theme.of(context).scaffoldBackgroundColor,
                         ],

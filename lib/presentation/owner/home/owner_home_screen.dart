@@ -648,8 +648,8 @@ class HomeDashboardFragment extends StatelessWidget {
                           children: [
                             const Icon(Icons.star_rounded, size: 14, color: AppColors.accentAmber),
                             const SizedBox(width: 4),
-                            Text('4.5', style: Theme.of(context).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.bold)),
-                            Text(' (10 reviews)', style: Theme.of(context).textTheme.labelSmall),
+                            Text('${vet.rating}', style: Theme.of(context).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.bold)),
+                            Text(' (${vet.reviewsCount} reviews)', style: Theme.of(context).textTheme.labelSmall),
                           ],
                         ),
                       ],

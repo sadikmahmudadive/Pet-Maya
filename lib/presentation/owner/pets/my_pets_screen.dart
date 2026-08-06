@@ -1,7 +1,7 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:animate_do/animate_do.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../data/repositories/app_state_repository.dart';
@@ -9,7 +9,7 @@ import '../../../data/models/pet_model.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
 import '../../common_widgets/status_chip.dart';
-import 'package:animate_do/animate_do.dart';
+import '../../common_widgets/empty_state.dart';
 import 'pet_details_screen.dart';
 import 'add_edit_pet_screen.dart';
 
@@ -36,17 +36,18 @@ class MyPetsScreen extends StatelessWidget {
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
         slivers: [
-          CupertinoSliverRefreshControl(
-            onRefresh: () async {
-              HapticFeedback.mediumImpact();
-              final user = context.read<AppStateRepository>().currentUser;
-              if (user != null) await context.read<AppStateRepository>().syncFromFirebase(user);
-            },
-          ),
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(20, 100, 20, 120),
             sliver: pets.isEmpty
-                ? SliverFillRemaining(child: _buildEmptyState(context))
+                ? SliverFillRemaining(
+                    child: EmptyState(
+                      icon: Icons.pets_rounded,
+                      title: 'No pets added yet',
+                      message: 'Start by creating a profile for your buddy!',
+                      actionLabel: 'Add Pet Profile',
+                      onAction: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AddEditPetScreen())),
+                    ),
+                  )
                 : SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
@@ -59,26 +60,6 @@ class MyPetsScreen extends StatelessWidget {
                       childCount: pets.length,
                     ),
                   ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEmptyState(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.pets_rounded, size: 80, color: Theme.of(context).hintColor.withOpacity(0.1)),
-          const SizedBox(height: 16),
-          Text('No pets added yet', style: AppTypography.headlineMedium),
-          const SizedBox(height: 8),
-          Text('Start by creating a profile for your buddy!', style: AppTypography.bodyMedium),
-          const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AddEditPetScreen())),
-            child: const Text('ADD PET PROFILE'),
           ),
         ],
       ),

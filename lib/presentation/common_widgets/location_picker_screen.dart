@@ -4,11 +4,11 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
-import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_typography.dart';
+import 'package:animate_do/animate_do.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_typography.dart';
 import 'glass_scaffold.dart';
 import 'premium_card.dart';
-import 'package:animate_do/animate_do.dart';
 
 class LocationPickerScreen extends StatefulWidget {
   const LocationPickerScreen({super.key});
@@ -24,12 +24,6 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
   LatLng _selectedLocation = const LatLng(23.8103, 90.4125); // Default: Dhaka
   String _address = "Fetching address...";
   bool _isLoading = true;
-
-  final List<Map<String, dynamic>> _savedLocations = [
-    {'name': 'Home', 'address': '123 Pet Lane, Paws City', 'icon': Icons.home_rounded, 'color': AppColors.primary},
-    {'name': 'Work', 'address': '456 Tech Park, Innovate Ave', 'icon': Icons.work_rounded, 'color': AppColors.tertiary},
-    {'name': 'Vet Clinic', 'address': '789 Health St, Care Valley', 'icon': Icons.medical_services_rounded, 'color': AppColors.healthGreen},
-  ];
 
   @override
   void initState() {
@@ -128,11 +122,11 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
               borderRadius: 20,
               child: TextField(
                 controller: _searchController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   hintText: 'Search for area, street...',
-                  prefixIcon: const Icon(Icons.search_rounded),
+                  prefixIcon: Icon(Icons.search_rounded),
                   border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 15),
+                  contentPadding: EdgeInsets.symmetric(vertical: 15),
                 ),
                 onSubmitted: (value) async {
                   try {

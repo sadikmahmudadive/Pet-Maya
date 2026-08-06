@@ -4,6 +4,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../data/repositories/app_state_repository.dart';
 import '../../../data/models/feed_post_model.dart';
+import '../../common_widgets/premium_card.dart';
 
 class CommentsBottomSheet extends StatefulWidget {
   final FeedPostModel post;
@@ -31,69 +32,67 @@ class _CommentsBottomSheetState extends State<CommentsBottomSheet> {
   Widget build(BuildContext context) {
     final repo = context.watch<AppStateRepository>();
     final comments = repo.getCommentsForPost(widget.post.postId);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
-      height: MediaQuery.of(context).size.height * 0.7,
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      height: MediaQuery.of(context).size.height * 0.8,
+      decoration: BoxDecoration(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(36)),
       ),
       child: Column(
         children: [
-          Container(
-            margin: const EdgeInsets.only(top: 12),
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: AppColors.borderLight,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
+          const SizedBox(height: 12),
+          Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.withOpacity(0.2), borderRadius: BorderRadius.circular(2))),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Comments (${comments.length})', style: AppTypography.titleMedium),
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Navigator.pop(context),
-                ),
+                Text('Discussion (${comments.length})', style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w800, fontSize: 18)),
+                IconButton(icon: const Icon(Icons.close_rounded, size: 20), onPressed: () => Navigator.pop(context)),
               ],
             ),
           ),
           const Divider(height: 1),
 
-          // Comments List
           Expanded(
             child: comments.isEmpty
                 ? Center(
-                    child: Text('Be the first to leave a warm comment! 🐾', style: AppTypography.bodyMedium),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.chat_bubble_outline_rounded, size: 48, color: Theme.of(context).dividerColor),
+                        const SizedBox(height: 12),
+                        Text('Be the first to share a thought!', style: AppTypography.bodyMedium.copyWith(color: Colors.grey[500])),
+                      ],
+                    ),
                   )
                 : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                    physics: const BouncingScrollPhysics(),
                     itemCount: comments.length,
                     itemBuilder: (context, index) {
                       final c = comments[index];
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
+                        padding: const EdgeInsets.only(bottom: 24),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             CircleAvatar(
-                              radius: 16,
+                              radius: 18,
                               backgroundColor: AppColors.primaryLight,
                               backgroundImage: c.userPhoto != null ? NetworkImage(c.userPhoto!) : null,
-                              child: c.userPhoto == null ? const Icon(Icons.person, size: 16) : null,
+                              child: c.userPhoto == null ? const Icon(Icons.person, size: 18) : null,
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: 14),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(c.userName, style: AppTypography.titleMedium.copyWith(fontSize: 13, fontWeight: FontWeight.bold)),
-                                  const SizedBox(height: 2),
-                                  Text(c.text, style: AppTypography.bodyMedium),
+                                  Text(c.userName, style: AppTypography.titleMedium.copyWith(fontSize: 14, fontWeight: FontWeight.w800)),
+                                  const SizedBox(height: 4),
+                                  Text(c.text, style: AppTypography.bodyMedium.copyWith(height: 1.4, color: isDark ? Colors.white70 : Colors.black87)),
                                 ],
                               ),
                             ),
@@ -107,30 +106,41 @@ class _CommentsBottomSheetState extends State<CommentsBottomSheet> {
           // Input Bar
           Container(
             padding: EdgeInsets.only(
-              left: 16,
-              right: 16,
-              top: 8,
-              bottom: MediaQuery.of(context).viewInsets.bottom + 12,
+              left: 20,
+              right: 20,
+              top: 16,
+              bottom: MediaQuery.of(context).viewInsets.bottom + 24,
             ),
             decoration: BoxDecoration(
-              color: AppColors.surface,
-              border: Border(top: BorderSide(color: AppColors.borderLight.withOpacity(0.5))),
+              color: Theme.of(context).scaffoldBackgroundColor,
+              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20, offset: const Offset(0, -10))],
             ),
             child: Row(
               children: [
                 Expanded(
-                  child: TextField(
-                    controller: _commentController,
-                    decoration: const InputDecoration(
-                      hintText: 'Add a comment...',
-                      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  child: PremiumCard(
+                    opacity: 0.1,
+                    borderRadius: 24,
+                    child: TextField(
+                      controller: _commentController,
+                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                      decoration: const InputDecoration(
+                        hintText: 'Share a kind word...',
+                        hintStyle: TextStyle(fontSize: 14, color: Colors.grey),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      ),
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
-                IconButton(
-                  icon: const Icon(Icons.send_rounded, color: AppColors.primary),
-                  onPressed: _submitComment,
+                const SizedBox(width: 12),
+                GestureDetector(
+                  onTap: _submitComment,
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
+                    child: const Icon(Icons.send_rounded, color: Colors.white, size: 20),
+                  ),
                 ),
               ],
             ),

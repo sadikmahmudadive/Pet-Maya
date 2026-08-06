@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:animate_do/animate_do.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../data/repositories/app_state_repository.dart';
 import '../common_widgets/glass_scaffold.dart';
 import '../common_widgets/premium_card.dart';
-import 'package:animate_do/animate_do.dart';
+import '../common_widgets/empty_state.dart';
 
 class AdminLogsScreen extends StatelessWidget {
   const AdminLogsScreen({super.key});
@@ -13,32 +15,28 @@ class AdminLogsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final logs = context.select((AppStateRepository repo) => repo.auditLogs);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GlassScaffold(
       appBar: AppBar(
-        title: const Text('System Audit Logs'),
+        title: const Text('System Audit', style: TextStyle(fontWeight: FontWeight.w800)),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
       body: logs.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.history_rounded, size: 64, color: AppColors.textTertiary.withOpacity(0.3)),
-                  const SizedBox(height: 16),
-                  Text('No system logs recorded yet.', style: AppTypography.bodyMedium),
-                ],
-              ),
+          ? const EmptyState(
+              icon: Icons.history_rounded,
+              title: 'No logs recorded',
+              message: 'System audit trails will appear here as users interact with the app.',
             )
           : ListView.builder(
-              padding: const EdgeInsets.fromLTRB(20, 100, 20, 20),
+              padding: const EdgeInsets.fromLTRB(20, 100, 20, 120),
               itemCount: logs.length,
+              physics: const BouncingScrollPhysics(),
               itemBuilder: (context, index) {
                 final log = logs[index];
-                // Simple parsing for display: [12:34:56] Action: Details
-                final time = log.substring(1, 9);
-                final content = log.substring(11);
+                final time = log.length >= 9 ? log.substring(1, 9) : '--:--';
+                final content = log.length >= 11 ? log.substring(11) : log;
                 final parts = content.split(': ');
                 final title = parts[0];
                 final desc = parts.length > 1 ? parts[1] : '';
@@ -46,21 +44,22 @@ class AdminLogsScreen extends StatelessWidget {
                 return FadeInLeft(
                   delay: Duration(milliseconds: 30 * index),
                   child: Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.only(bottom: 12),
                     child: PremiumCard(
-                      opacity: 0.2,
-                      borderRadius: 16,
+                      opacity: 0.15,
+                      borderRadius: 20,
                       child: Padding(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(18),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Container(
-                              width: 6,
-                              height: 40,
+                              width: 4,
+                              height: 44,
                               decoration: BoxDecoration(
                                 color: _getLogColor(title),
-                                borderRadius: BorderRadius.circular(3),
+                                borderRadius: BorderRadius.circular(10),
+                                boxShadow: [BoxShadow(color: _getLogColor(title).withOpacity(0.3), blurRadius: 8)],
                               ),
                             ),
                             const SizedBox(width: 16),
@@ -71,12 +70,18 @@ class AdminLogsScreen extends StatelessWidget {
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Text(title, style: AppTypography.titleMedium.copyWith(fontSize: 14, fontWeight: FontWeight.bold)),
-                                      Text(time, style: AppTypography.labelSmall.copyWith(fontSize: 10)),
+                                      Text(title.toUpperCase(), 
+                                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: _getLogColor(title), letterSpacing: 0.5)),
+                                      Text(time, style: AppTypography.labelSmall.copyWith(fontSize: 9, color: Colors.grey[500], fontWeight: FontWeight.w700)),
                                     ],
                                   ),
-                                  const SizedBox(height: 4),
-                                  Text(desc, style: AppTypography.bodyMedium.copyWith(fontSize: 12)),
+                                  const SizedBox(height: 6),
+                                  Text(desc, 
+                                    style: AppTypography.bodyMedium.copyWith(
+                                      fontSize: 13, 
+                                      fontWeight: FontWeight.w600,
+                                      color: isDark ? Colors.white70 : Colors.black87,
+                                    )),
                                 ],
                               ),
                             ),
@@ -95,7 +100,8 @@ class AdminLogsScreen extends StatelessWidget {
     if (action.contains('Login')) return AppColors.healthGreen;
     if (action.contains('Logout')) return AppColors.accentAmber;
     if (action.contains('Delete')) return AppColors.dangerRed;
-    if (action.contains('Add')) return AppColors.primary;
+    if (action.contains('Add') || action.contains('Create')) return AppColors.primary;
+    if (action.contains('Sync')) return Colors.blue;
     return AppColors.tertiary;
   }
 }

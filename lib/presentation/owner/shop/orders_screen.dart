@@ -8,6 +8,7 @@ import '../../../data/repositories/app_state_repository.dart';
 import '../../../data/models/order_model.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
+import '../../common_widgets/empty_state.dart';
 import 'package:animate_do/animate_do.dart';
 import 'order_details_screen.dart';
 
@@ -38,22 +39,11 @@ class OrdersScreen extends StatelessWidget {
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(20, 100, 20, 120),
             sliver: orders.isEmpty
-                ? SliverFillRemaining(
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(32),
-                            decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.05), shape: BoxShape.circle),
-                            child: Icon(Icons.receipt_long_rounded, size: 72, color: AppColors.primary.withOpacity(0.2)),
-                          ),
-                          const SizedBox(height: 24),
-                          Text('No orders yet', style: AppTypography.headlineMedium.copyWith(fontWeight: FontWeight.w700)),
-                          const SizedBox(height: 12),
-                          Text('Your order history will appear here', style: AppTypography.bodyMedium.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
-                        ],
-                      ),
+                ? const SliverFillRemaining(
+                    child: EmptyState(
+                      icon: Icons.receipt_long_rounded,
+                      title: 'No orders yet',
+                      message: 'Your order history will appear here once you make your first purchase.',
                     ),
                   )
                 : SliverList(
