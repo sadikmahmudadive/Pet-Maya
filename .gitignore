@@ -1,0 +1,77 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# PET MAYA - STRICT SECURITY GITIGNORE
+# ─────────────────────────────────────────────────────────────────────────────
+
+# --- SECRETS & CREDENTIALS (CRITICAL) ---
+.env
+.env.*
+!.env.example
+*.keystore
+*.jks
+*.p12
+*.pfx
+*.pem
+android/key.properties
+ios/Runner/GoogleService-Info.plist
+android/app/google-services.json
+ios/Flutter/ephemeral/
+android/local.properties
+
+# --- FLUTTER & DART ---
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+coverage/
+lib/generated/
+*.freezed.dart
+*.g.dart
+
+# --- ANDROID ---
+.gradle/
+Captures/
+**/android/app/debug/
+**/android/app/profile/
+**/android/app/release/
+android/*/build/
+*.apk
+*.aab
+*.aar
+
+# --- IOS ---
+*.xcworkspace
+xcuserdata/
+DerivedData/
+*.moved-aside
+*.xcuserstate
+ios/Podfile.lock
+ios/Pods/
+ios/.res/
+ios/Flutter/App.framework
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Flutter/Generated.xcconfig
+ios/Flutter/app.flx
+ios/Flutter/app.zip
+ios/Flutter/flutter_assets.zip
+ios/Flutter/flutter_export_environment.sh
+ios/ServiceDefinitions.json
+
+# --- IDE & TOOLS ---
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.history/
+*.log
+doc/api/
+node_modules/
+
+# --- OS JUNK ---
+.DS_Store
+Thumbs.db
+desktop.ini

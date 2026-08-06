@@ -1,0 +1,815 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:provider/provider.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_typography.dart';
+import '../../../data/repositories/app_state_repository.dart';
+import '../../../data/models/user_model.dart';
+import '../../../data/models/pet_model.dart';
+import '../../../data/models/event_model.dart';
+import '../../../data/models/vet_model.dart';
+import '../services/vet_details_screen.dart';
+import '../../common_widgets/floating_navbar.dart';
+import '../../common_widgets/custom_app_bar.dart';
+import '../pets/my_pets_screen.dart';
+import '../pets/pet_details_screen.dart';
+import '../pets/add_edit_pet_screen.dart';
+import '../pets/ai_health_scanner_screen.dart';
+import '../calendar/calendar_screen.dart';
+import '../calendar/add_event_modal.dart';
+import '../shop/shop_screen.dart';
+import '../services/pet_services_screen.dart';
+import '../community/community_feed_screen.dart';
+import 'pet_tracker_screen.dart';
+import '../../auth/login_screen.dart';
+
+import '../../common_widgets/status_chip.dart';
+import '../../common_widgets/parallax_header.dart';
+import '../../common_widgets/glass_card.dart';
+import '../../common_widgets/glass_scaffold.dart';
+import '../../common_widgets/premium_card.dart';
+import 'package:animate_do/animate_do.dart';
+import 'user_profile_screen.dart';
+import 'notification_screen.dart';
+
+class OwnerHomeScreen extends StatefulWidget {
+  const OwnerHomeScreen({super.key});
+
+  @override
+  State<OwnerHomeScreen> createState() => _OwnerHomeScreenState();
+}
+
+class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
+  int _currentNavIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassScaffold(
+      body: Stack(
+        children: [
+          IndexedStack(
+            index: _currentNavIndex,
+            children: [
+              HomeDashboardFragment(
+                onNavRequested: (index) => setState(() => _currentNavIndex = index),
+              ), // 0
+              const PetServicesScreen(),     // 1
+              const CommunityFeedScreen(),   // 2
+              const UserProfileScreen(),     // 3
+              const ShopScreen(),            // 4
+            ],
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: FloatingNavbar(
+              selectedIndex: _currentNavIndex > 3 ? 1 : _currentNavIndex,
+              onItemTapped: (index) => setState(() => _currentNavIndex = index),
+              onFabTapped: () => _showQuickActionSheet(context),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showQuickActionSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(32))),
+      builder: (ctx) {
+        return Container(
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 40),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(width: 40, height: 4, decoration: BoxDecoration(color: Theme.of(context).dividerColor, borderRadius: BorderRadius.circular(2))),
+              const SizedBox(height: 24),
+              Text('Quick Actions', style: Theme.of(ctx).textTheme.headlineMedium),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildQuickActionBtn(ctx, Icons.auto_awesome_rounded, 'AI Scanner', AppColors.primary, () {
+                    Navigator.pop(ctx);
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const AiHealthScannerScreen()));
+                  }),
+                  _buildQuickActionBtn(ctx, Icons.pets_rounded, 'Add Pet', AppColors.healthGreen, () {
+                    Navigator.pop(ctx);
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const AddEditPetScreen()));
+                  }),
+                  _buildQuickActionBtn(ctx, Icons.event_note_rounded, 'Add Event', AppColors.accentAmber, () {
+                    Navigator.pop(ctx);
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (_) => const AddEventModal(),
+                    );
+                  }),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildQuickActionBtn(BuildContext ctx, IconData icon, String label, Color color, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: color.withOpacity(0.2)),
+            ),
+            child: Icon(icon, color: color, size: 28),
+          ),
+          const SizedBox(height: 10),
+          Text(label, style: Theme.of(ctx).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
+
+
+  void _showProfileDialog(BuildContext context, AppStateRepository state) {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => const UserProfileScreen()));
+  }
+}
+
+class HomeDashboardFragment extends StatelessWidget {
+  final Function(int)? onNavRequested;
+
+  const HomeDashboardFragment({super.key, this.onNavRequested});
+
+  @override
+  Widget build(BuildContext context) {
+    final user = context.select((AppStateRepository state) => state.currentUser);
+    final pets = context.select((AppStateRepository state) => state.pets);
+    final events = context.select((AppStateRepository state) => state.events);
+    final vets = context.select((AppStateRepository state) => state.vets);
+    final state = context.read<AppStateRepository>();
+
+    final size = MediaQuery.of(context).size;
+    final isSmallScreen = size.width < 360;
+
+    return CustomScrollView(
+      physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+      slivers: [
+        CupertinoSliverRefreshControl(
+          onRefresh: () async {
+            HapticFeedback.mediumImpact();
+            if (user != null) await state.syncFromFirebase(user);
+          },
+        ),
+        SliverToBoxAdapter(
+          child: RepaintBoundary(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(20, size.height * 0.08, 20, 20),
+              child: _buildPremiumHeader(context, user),
+            ),
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ─── MY PETS ──────────────────────────────────────────────────
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('My Pets', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 20)),
+                    GestureDetector(
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyPetsScreen())),
+                      child: Text('See All', style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(
+                height: 180,
+                child: pets.isEmpty
+                    ? _buildEmptyPetsPlaceholder(context)
+                    : ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        scrollDirection: Axis.horizontal,
+                        itemCount: pets.length,
+                        itemBuilder: (context, index) {
+                          final pet = pets[index];
+                          return FadeInRight(
+                            delay: Duration(milliseconds: 100 * index),
+                            child: _buildVerticalPetCard(context, pet),
+                          );
+                        },
+                      ),
+              ),
+
+              // ─── DISCOVER MORE ─────────────────────────────────────────────
+              const SizedBox(height: 32),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Discover More', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 20)),
+                    const SizedBox(height: 16),
+                    GridView.count(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      crossAxisCount: 2,
+                      mainAxisSpacing: 12,
+                      crossAxisSpacing: 12,
+                      childAspectRatio: isSmallScreen ? 0.75 : 0.8,
+                      children: [
+                        _buildDiscoveryCard(
+                          context,
+                          icon: Icons.attach_money_rounded,
+                          color: const Color(0xFFE0F7FA),
+                          iconColor: const Color(0xFF006064),
+                          title: 'Pet Shop',
+                          subtitle: 'Premium treats',
+                          action: 'Shop',
+                          onTap: () => onNavRequested?.call(4),
+                        ),
+                        _buildDiscoveryCard(
+                          context,
+                          icon: Icons.location_on_rounded,
+                          color: const Color(0xFFE3F2FD),
+                          iconColor: const Color(0xFF0D47A1),
+                          title: 'Tracker',
+                          subtitle: 'Live location',
+                          action: 'Locate',
+                          onTap: () {
+                            if (pets.isNotEmpty) Navigator.push(context, MaterialPageRoute(builder: (_) => PetTrackerScreen(pet: pets.first)));
+                          },
+                        ),
+                        _buildDiscoveryCard(
+                          context,
+                          icon: Icons.chat_bubble_outline_rounded,
+                          color: const Color(0xFFF3E5F5),
+                          iconColor: const Color(0xFF4A148C),
+                          title: 'Wellness',
+                          subtitle: 'Health scan',
+                          action: 'Check',
+                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AiHealthScannerScreen())),
+                        ),
+                        _buildDiscoveryCard(
+                          context,
+                          icon: Icons.pets_rounded,
+                          color: const Color(0xFFE8F5E9),
+                          iconColor: const Color(0xFF1B5E20),
+                          title: 'Community',
+                          subtitle: 'Global feed',
+                          action: 'Explore',
+                          onTap: () => onNavRequested?.call(2),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              // ─── UPCOMING EVENTS ──────────────────────────────────────────
+              const SizedBox(height: 32),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Upcoming Events', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 20)),
+                    GestureDetector(
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CalendarScreen())),
+                      child: Text('See All', style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              if (events.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: Text('No upcoming events.'),
+                )
+              else
+                SizedBox(
+                  height: 190,
+                  child: ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
+                    itemCount: events.length > 5 ? 5 : events.length, // Show up to 5 horizontal cards
+                    itemBuilder: (context, index) {
+                      return FadeInRight(
+                        delay: Duration(milliseconds: 50 * index),
+                        child: _buildUpcomingEventCard(context, events[index], state),
+                      );
+                    },
+                  ),
+                ),
+
+              // ─── TOP VETERINARIANS ────────────────────────────────────────
+              const SizedBox(height: 32),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Top Veterinarians', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 20)),
+                    GestureDetector(
+                      onTap: () => onNavRequested?.call(1),
+                      child: Text('See All', style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              if (vets.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: Center(child: Text('No vets found.')),
+                )
+              else
+                ...vets.take(3).map((vet) => FadeInUp(child: _buildDetailedVetCard(context, vet))),
+              
+              const SizedBox(height: 160), // standard spacer to clear floating navbar
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildVerticalPetCard(BuildContext context, PetModel pet) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final cardWidth = screenWidth * 0.4; // Responsive width
+
+    return Container(
+      width: cardWidth,
+      margin: const EdgeInsets.only(left: 16, right: 4, bottom: 8),
+      child: PremiumCard(
+        opacity: 0.2,
+        borderRadius: 28,
+        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => PetDetailsScreen(petId: pet.petID))),
+        child: Column(
+          children: [
+            const SizedBox(height: 12),
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Theme.of(context).shadowColor.withOpacity(0.08),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(cardWidth * 0.25),
+                child: CachedNetworkImage(
+                  imageUrl: pet.photoUrl ?? '',
+                  width: cardWidth * 0.6,
+                  height: cardWidth * 0.6,
+                  fit: BoxFit.cover,
+                  errorWidget: (c, u, e) => Container(color: Theme.of(context).dividerColor.withOpacity(0.1), child: Icon(Icons.pets, size: 24, color: Theme.of(context).hintColor)),
+                ),
+              ),
+            ),
+            const Spacer(),
+            Text(pet.name, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 16, fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
+            Text(pet.breed, style: Theme.of(context).textTheme.labelSmall?.copyWith(fontSize: 9), maxLines: 1, overflow: TextOverflow.ellipsis),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyPetsPlaceholder(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: Theme.of(context).dividerColor, style: BorderStyle.solid),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.pets_rounded, color: Theme.of(context).hintColor.withOpacity(0.2), size: 48),
+          const SizedBox(height: 12),
+          Text('No pets added yet', style: Theme.of(context).textTheme.titleMedium),
+          TextButton(
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AddEditPetScreen())),
+            child: const Text('Add your first pet'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUpcomingEventCard(BuildContext context, EventModel evt, AppStateRepository state) {
+    final dateStr = DateFormat('MMM d, yyyy').format(evt.date);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    return Container(
+      width: screenWidth * 0.75, // Take 75% of screen width to show peek of next card
+      margin: const EdgeInsets.only(left: 4, right: 12, bottom: 12, top: 4),
+      child: PremiumCard(
+        useGlass: false,
+        backgroundColor: isDark ? Theme.of(context).cardColor : const Color(0xFFEDF4F8),
+        borderRadius: 24,
+        onTap: () {
+          HapticFeedback.lightImpact();
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            builder: (_) => AddEventModal(event: evt),
+          );
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    evt.category.toUpperCase(),
+                    style: const TextStyle(
+                      color: Color(0xFF006684),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        dateStr,
+                        style: const TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.w600),
+                      ),
+                      Text(
+                        '${evt.fromTime} - ${evt.toTime}',
+                        style: const TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Text(
+                evt.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Icon(Icons.pets_rounded, size: 14, color: isDark ? Colors.white70 : Colors.grey),
+                  const SizedBox(width: 6),
+                  Text(
+                    evt.petName,
+                    style: TextStyle(
+                      fontSize: 12, 
+                      color: isDark ? Colors.white70 : Colors.grey, 
+                      fontWeight: FontWeight.w700
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPremiumHeader(BuildContext context, UserModel? user) {
+    final hour = DateTime.now().hour;
+    String greeting = 'Good Morning,';
+    if (hour >= 12 && hour < 17) greeting = 'Good Afternoon,';
+    if (hour >= 17) greeting = 'Good Evening,';
+
+    return PremiumCard(
+      opacity: 0.3,
+      borderRadius: 32,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        child: Row(
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.5), width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                    blurRadius: 10,
+                  ),
+                ],
+              ),
+              child: CircleAvatar(
+                radius: 24, // Smaller radius for better fit
+                backgroundColor: Theme.of(context).cardColor,
+                backgroundImage: user?.photoUrl != null ? CachedNetworkImageProvider(user!.photoUrl!) : null,
+                child: user?.photoUrl == null ? Icon(Icons.person, color: Theme.of(context).colorScheme.primary, size: 20) : null,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(greeting, 
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w600, fontSize: 10),
+                    maxLines: 1, overflow: TextOverflow.ellipsis),
+                  Text(user?.name ?? 'Pet Maya User', 
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w700, fontSize: 18),
+                    maxLines: 1, overflow: TextOverflow.ellipsis),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.stars_rounded, color: Color(0xFF7B1FA2), size: 14),
+                  const SizedBox(width: 4),
+                  Text('15', style: Theme.of(context).textTheme.labelSmall?.copyWith(color: const Color(0xFF7B1FA2), fontWeight: FontWeight.bold, fontSize: 10)),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            GestureDetector(
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationScreen())),
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.notifications_rounded, color: Color(0xFF0277BD), size: 18),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPulseIndicator() {
+    return Container(
+      width: 10,
+      height: 10,
+      decoration: BoxDecoration(
+        color: AppColors.healthGreen,
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.healthGreen.withOpacity(0.4),
+            blurRadius: 8,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailedVetCard(BuildContext context, VetModel vet) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+      child: PremiumCard(
+        opacity: 0.15,
+        borderRadius: 32,
+        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => VetDetailsScreen(vet: vet))),
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.5), width: 2),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(24),
+                      child: CachedNetworkImage(
+                        imageUrl: vet.photoUrl ?? '',
+                        width: 70,
+                        height: 70,
+                        fit: BoxFit.cover,
+                        errorWidget: (c, u, e) => Container(color: Theme.of(context).dividerColor.withOpacity(0.1), child: Icon(Icons.person, color: Theme.of(context).hintColor)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(vet.name, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 18, fontWeight: FontWeight.w700)),
+                        Text(vet.qualification, style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            const Icon(Icons.star_rounded, size: 14, color: AppColors.accentAmber),
+                            const SizedBox(width: 4),
+                            Text('4.5', style: Theme.of(context).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.bold)),
+                            Text(' (10 reviews)', style: Theme.of(context).textTheme.labelSmall),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardColor.withOpacity(0.6),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('PROFESSIONAL PROFILE', style: Theme.of(context).textTheme.labelSmall?.copyWith(fontSize: 9, fontWeight: FontWeight.w700, letterSpacing: 0.8)),
+                    const SizedBox(height: 8),
+                    Text('Experienced in complex surgeries and preventive care for small animals.', style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 12, height: 1.4)),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      _buildMiniBadge(context, Icons.work_rounded, '${vet.experience} Exp'),
+                      const SizedBox(width: 8),
+                      _buildMiniBadge(context, Icons.history_rounded, 'N/A Last'),
+                    ],
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      children: [
+                        Text('Start', style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Theme.of(context).colorScheme.onPrimary, fontWeight: FontWeight.w700)),
+                        const SizedBox(width: 4),
+                        Icon(Icons.chevron_right_rounded, size: 14, color: Theme.of(context).colorScheme.onPrimary),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMiniBadge(BuildContext context, IconData icon, String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 10, color: Theme.of(context).iconTheme.color),
+          const SizedBox(width: 4),
+          Text(label, style: Theme.of(context).textTheme.labelSmall?.copyWith(fontSize: 9)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDiscoveryCard(
+    BuildContext context, {
+    required IconData icon,
+    required Color color,
+    Color? iconColor,
+    required String title,
+    required String subtitle,
+    required String action,
+    required VoidCallback onTap,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    // Premium dark mode card background logic: 
+    // Blends the pastel color into the dark background
+    final cardBg = isDark 
+        ? Color.alphaBlend(color.withOpacity(0.12), Theme.of(context).cardColor)
+        : color;
+
+    return PremiumCard(
+      onTap: onTap,
+      useGlass: false,
+      borderRadius: 28,
+      child: Container(
+        decoration: BoxDecoration(
+          color: cardBg,
+          borderRadius: BorderRadius.circular(28),
+          boxShadow: [
+            BoxShadow(
+              color: isDark ? Colors.black.withOpacity(0.2) : (iconColor?.withOpacity(0.1) ?? Theme.of(context).shadowColor.withOpacity(0.05)),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: isDark ? Colors.white.withOpacity(0.1) : Theme.of(context).cardColor.withOpacity(0.7),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: isDark ? Colors.white : (iconColor ?? Theme.of(context).iconTheme.color), size: 20),
+            ),
+            const SizedBox(height: 12),
+            Text(title, 
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontSize: 15, 
+                fontWeight: FontWeight.w700, 
+                color: isDark ? Colors.white : null,
+              ),
+              maxLines: 1, overflow: TextOverflow.ellipsis),
+            Text(subtitle, 
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                fontSize: 9, 
+                color: isDark ? Colors.white.withOpacity(0.6) : (iconColor ?? Theme.of(context).iconTheme.color)?.withOpacity(0.6), 
+                fontWeight: FontWeight.w600
+              ),
+              maxLines: 1, overflow: TextOverflow.ellipsis),
+            const Spacer(),
+            Center(
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.white.withOpacity(0.15) : Theme.of(context).cardColor.withOpacity(0.8),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  action,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    fontWeight: FontWeight.w700, 
+                    color: isDark ? Colors.white : (iconColor ?? Theme.of(context).iconTheme.color), 
+                    letterSpacing: 0.5, 
+                    fontSize: 10
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
