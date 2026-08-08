@@ -105,11 +105,15 @@ class MyPetsScreen extends StatelessWidget {
                   children: [
                     Text(
                       pet.name, 
-                      style: AppTypography.titleLarge.copyWith(fontSize: 18, fontWeight: FontWeight.w700)
+                      style: AppTypography.titleLarge.copyWith(fontSize: 18, fontWeight: FontWeight.w700),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     Text(
                       pet.breed, 
-                      style: AppTypography.labelSmall.copyWith(fontWeight: FontWeight.w600)
+                      style: AppTypography.labelSmall.copyWith(fontWeight: FontWeight.w600),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 8),
                     StatusChip.health(pet.healthIndex),

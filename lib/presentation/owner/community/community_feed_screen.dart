@@ -2,13 +2,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:animate_do/animate_do.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../data/repositories/app_state_repository.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
 import '../../common_widgets/empty_state.dart';
-import 'package:animate_do/animate_do.dart';
 import 'create_post_screen.dart';
 import 'comments_bottom_sheet.dart';
 
@@ -26,6 +26,7 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
   Widget build(BuildContext context) {
     final state = context.watch<AppStateRepository>();
     final currentUserId = state.currentUser?.uid ?? 'guest';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final posts = state.posts.where((p) {
       if (_selectedTab == 'ALL') return true;
@@ -34,18 +35,14 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
 
     return GlassScaffold(
       appBar: AppBar(
-        title: const Text('Community'),
+        title: const Text('Community', style: TextStyle(fontWeight: FontWeight.w800)),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        systemOverlayStyle: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
         actions: [
           IconButton(
-            icon: const Icon(Icons.add_box_rounded, color: AppColors.primary),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const CreatePostScreen()),
-              );
-            },
+            icon: const Icon(Icons.add_box_rounded, color: AppColors.primary, size: 28),
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CreatePostScreen())),
           ),
           const SizedBox(width: 8),
         ],
@@ -75,7 +72,7 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
             child: posts.isEmpty
                 ? const EmptyState(
                     icon: Icons.chat_bubble_outline_rounded,
-                    title: 'No posts yet',
+                    title: 'No stories yet',
                     message: 'Be the first to share a moment with the community!',
                   )
                 : RefreshIndicator(
@@ -97,7 +94,7 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
                             child: Padding(
                               padding: const EdgeInsets.only(bottom: 24),
                               child: PremiumCard(
-                                opacity: 0.25,
+                                opacity: isDark ? 0.25 : 0.2,
                                 borderRadius: 32,
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -122,8 +119,8 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
                                             child: Column(
                                               crossAxisAlignment: CrossAxisAlignment.start,
                                               children: [
-                                                Text(post.userName, style: AppTypography.titleMedium.copyWith(fontSize: 15, fontWeight: FontWeight.w700)),
-                                                Text('Trending now', style: AppTypography.labelSmall.copyWith(fontSize: 9, fontWeight: FontWeight.w700)),
+                                                Text(post.userName, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+                                                Text('Trending now', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.grey[500])),
                                               ],
                                             ),
                                           ),
@@ -135,7 +132,7 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
                                     // Post text
                                     Padding(
                                       padding: const EdgeInsets.symmetric(horizontal: 20),
-                                      child: Text(post.content, style: AppTypography.bodyLarge.copyWith(height: 1.6, fontSize: 15, fontWeight: FontWeight.w500)),
+                                      child: Text(post.content, style: TextStyle(height: 1.6, fontSize: 14, fontWeight: FontWeight.w500, color: isDark ? Colors.white70 : Colors.black87)),
                                     ),
 
                                     // Post Image
@@ -158,7 +155,7 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
                                           _buildInteractionBtn(
                                             icon: isLiked ? Icons.favorite_rounded : Icons.favorite_outline_rounded,
                                             label: '${post.likesCount}',
-                                            color: isLiked ? AppColors.dangerRed : Theme.of(context).iconTheme.color!,
+                                            color: isLiked ? AppColors.dangerRed : (isDark ? Colors.white70 : Colors.black54),
                                             onTap: () {
                                               HapticFeedback.lightImpact();
                                               state.togglePostLike(post.postId);
@@ -168,7 +165,7 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
                                           _buildInteractionBtn(
                                             icon: Icons.chat_bubble_outline_rounded,
                                             label: '${post.commentsCount}',
-                                            color: Theme.of(context).iconTheme.color!,
+                                            color: isDark ? Colors.white70 : Colors.black54,
                                             onTap: () {
                                               showModalBottomSheet(
                                                 context: context,
@@ -180,7 +177,7 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
                                           ),
                                           const Spacer(),
                                           IconButton(
-                                            icon: Icon(Icons.share_outlined, size: 20, color: Theme.of(context).iconTheme.color),
+                                            icon: Icon(Icons.share_outlined, size: 20, color: isDark ? Colors.white38 : Colors.grey),
                                             onPressed: () {},
                                           ),
                                         ],
@@ -210,7 +207,7 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
           children: [
             Icon(icon, color: color, size: 18),
             const SizedBox(width: 8),
-            Text(label, style: AppTypography.titleMedium.copyWith(fontSize: 14, color: color, fontWeight: FontWeight.w700)),
+            Text(label, style: TextStyle(fontSize: 13, color: color, fontWeight: FontWeight.w800)),
           ],
         ),
       ),
@@ -219,20 +216,25 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
 
   Widget _buildTabChip(String tab, String label) {
     final isSelected = _selectedTab == tab;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
-      padding: const EdgeInsets.only(right: 8),
+      padding: const EdgeInsets.only(right: 12),
       child: PremiumCard(
-        onTap: () => setState(() => _selectedTab = tab),
-        opacity: isSelected ? 0.4 : 0.1,
+        onTap: () {
+          HapticFeedback.selectionClick();
+          setState(() => _selectedTab = tab);
+        },
+        opacity: isSelected ? 0.35 : 0.05,
         borderRadius: 20,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
           child: Text(
             label,
-            style: AppTypography.labelSmall.copyWith(
-              color: isSelected ? AppColors.primary : Theme.of(context).hintColor,
-              fontWeight: FontWeight.w700,
+            style: TextStyle(
+              color: isSelected ? AppColors.primary : (isDark ? Colors.white38 : Colors.grey[600]),
+              fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
               fontSize: 11,
+              letterSpacing: 0.5,
             ),
           ),
         ),
@@ -256,7 +258,7 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
       ),
       child: Text(
         postType,
-        style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 9, letterSpacing: 0.5),
+        style: TextStyle(color: color, fontWeight: FontWeight.w900, fontSize: 8, letterSpacing: 1),
       ),
     );
   }

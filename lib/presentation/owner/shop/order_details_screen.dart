@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:animate_do/animate_do.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../data/models/order_model.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
-import 'package:animate_do/animate_do.dart';
 
 class OrderDetailsScreen extends StatelessWidget {
   final OrderModel order;
@@ -15,70 +16,70 @@ class OrderDetailsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dateStr = DateFormat.yMMMd().add_jm().format(DateTime.fromMillisecondsSinceEpoch(order.timestamp));
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GlassScaffold(
       appBar: AppBar(
-        title: Text('Order ${order.orderId}'),
+        title: Text('Order Details', style: const TextStyle(fontWeight: FontWeight.w800)),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        systemOverlayStyle: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 100, 20, 120),
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(20, 100, 20, 40),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Status Banner
+            // 1. Status Banner
             FadeInDown(
               child: PremiumCard(
-                opacity: 0.25,
-                borderRadius: 32,
+                opacity: 0.2,
+                borderRadius: 36,
+                backgroundColor: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFEDF4F8),
                 child: Padding(
-                  padding: const EdgeInsets.all(28),
+                  padding: const EdgeInsets.all(32),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('ORDER STATUS', style: AppTypography.labelSmall.copyWith(
-                            fontWeight: FontWeight.w700, color: Theme.of(context).colorScheme.outline, letterSpacing: 0.8, fontSize: 10
+                          Text('REFERENCE ID: ${order.orderId}', style: TextStyle(
+                            fontWeight: FontWeight.w900, color: const Color(0xFF006684), letterSpacing: 1.5, fontSize: 10
                           )),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 12),
                           Text(order.status.displayName.toUpperCase(), 
-                            style: AppTypography.titleLarge.copyWith(color: _getStatusColor(order.status), fontWeight: FontWeight.w700, fontSize: 24)),
+                            style: TextStyle(color: _getStatusColor(order.status), fontWeight: FontWeight.w900, fontSize: 28)),
                         ],
                       ),
                       Container(
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(color: _getStatusColor(order.status).withOpacity(0.1), shape: BoxShape.circle),
-                        child: Icon(_getStatusIcon(order.status), color: _getStatusColor(order.status), size: 32),
+                        child: Icon(_getStatusIcon(order.status), color: _getStatusColor(order.status), size: 36),
                       ),
                     ],
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 48),
 
-            // Order Timeline
-            Text('TRACKING TIMELINE', style: AppTypography.labelSmall.copyWith(
-              fontWeight: FontWeight.w700, letterSpacing: 0.8, color: Theme.of(context).colorScheme.outline, fontSize: 10
-            )),
+            // 2. Tracking Timeline
+            _buildSectionHeader('Shipment Tracking'),
             const SizedBox(height: 24),
             _buildTimeline(context, order.status, dateStr),
             const SizedBox(height: 48),
 
-            // Items
-            Text('ITEMS PURCHASED', style: AppTypography.labelSmall.copyWith(
-              fontWeight: FontWeight.w700, letterSpacing: 0.8, color: Theme.of(context).colorScheme.outline, fontSize: 10
-            )),
+            // 3. Items
+            _buildSectionHeader('Package Contents'),
             const SizedBox(height: 20),
             ...order.items.asMap().entries.map((entry) => FadeInUp(
                   delay: Duration(milliseconds: 100 * entry.key),
                   child: Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.only(bottom: 16),
                     child: PremiumCard(
-                      opacity: 0.1,
+                      opacity: 0.15,
                       borderRadius: 24,
                       child: Padding(
                         padding: const EdgeInsets.all(16),
@@ -89,10 +90,10 @@ class OrderDetailsScreen extends StatelessWidget {
                               child: Container(
                                 width: 70,
                                 height: 70,
-                                color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                                color: Theme.of(context).colorScheme.surfaceContainerHighest,
                                 child: entry.value.product.imageUrl != null
                                     ? Image.network(entry.value.product.imageUrl!, fit: BoxFit.contain)
-                                    : const Icon(Icons.shopping_bag_outlined),
+                                    : const Icon(Icons.shopping_bag_rounded, color: Colors.grey),
                               ),
                             ),
                             const SizedBox(width: 16),
@@ -101,16 +102,16 @@ class OrderDetailsScreen extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(entry.value.product.name, 
-                                    style: AppTypography.titleMedium.copyWith(fontSize: 16, fontWeight: FontWeight.w700),
+                                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
                                     maxLines: 1, overflow: TextOverflow.ellipsis),
                                   const SizedBox(height: 4),
-                                  Text('Qty: ${entry.value.quantity}', 
-                                    style: AppTypography.bodyMedium.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant, fontWeight: FontWeight.w600)),
+                                  Text('Quantity: ${entry.value.quantity}', 
+                                    style: TextStyle(color: Colors.grey[500], fontWeight: FontWeight.w700, fontSize: 12)),
                                 ],
                               ),
                             ),
                             Text('\$${entry.value.totalPrice.toStringAsFixed(2)}', 
-                              style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.w700, color: AppColors.primary)),
+                              style: const TextStyle(fontWeight: FontWeight.w900, color: AppColors.primary, fontSize: 16)),
                           ],
                         ),
                       ),
@@ -120,10 +121,8 @@ class OrderDetailsScreen extends StatelessWidget {
             
             const SizedBox(height: 48),
 
-            // Shipping & Payment
-            Text('LOGISTICS & PAYMENT', style: AppTypography.labelSmall.copyWith(
-              fontWeight: FontWeight.w700, letterSpacing: 0.8, color: Theme.of(context).colorScheme.outline, fontSize: 10
-            )),
+            // 4. Logistics & Payment
+            _buildSectionHeader('Logistics & Payment'),
             const SizedBox(height: 20),
             PremiumCard(
               opacity: 0.15,
@@ -132,11 +131,11 @@ class OrderDetailsScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(24),
                 child: Column(
                   children: [
-                    _buildInfoRow(context, Icons.location_on_rounded, 'DELIVERY ADDRESS', order.address),
+                    _buildInfoRow(context, Icons.location_on_rounded, 'DELIVERY DESTINATION', order.address),
                     const Padding(padding: EdgeInsets.symmetric(vertical: 20), child: Divider(height: 1)),
-                    _buildInfoRow(context, Icons.phone_rounded, 'CONTACT PHONE', order.phone),
+                    _buildInfoRow(context, Icons.phone_rounded, 'CONTACT NUMBER', order.phone),
                     const Padding(padding: EdgeInsets.symmetric(vertical: 20), child: Divider(height: 1)),
-                    _buildInfoRow(context, Icons.payment_rounded, 'PAYMENT METHOD', order.paymentMethod.toUpperCase()),
+                    _buildInfoRow(context, Icons.payments_rounded, 'PAYMENT METHOD', order.paymentMethod.toUpperCase()),
                   ],
                 ),
               ),
@@ -144,28 +143,26 @@ class OrderDetailsScreen extends StatelessWidget {
 
             const SizedBox(height: 48),
 
-            // Summary
-            Text('SUMMARY', style: AppTypography.labelSmall.copyWith(
-              fontWeight: FontWeight.w700, letterSpacing: 0.8, color: Theme.of(context).colorScheme.outline, fontSize: 10
-            )),
+            // 5. Financial Summary
+            _buildSectionHeader('Financial Summary'),
             const SizedBox(height: 20),
             PremiumCard(
-              opacity: 0.3,
+              opacity: 0.25,
               borderRadius: 28,
               child: Padding(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(28),
                 child: Column(
                   children: [
-                    _buildSummaryRow('Subtotal', order.subtotal),
-                    const SizedBox(height: 12),
-                    _buildSummaryRow('Shipping', order.shippingCharges),
-                    const Padding(padding: EdgeInsets.symmetric(vertical: 20), child: Divider(height: 1)),
+                    _buildSummaryRow('Cart Subtotal', order.subtotal),
+                    const SizedBox(height: 14),
+                    _buildSummaryRow('Shipping & Handling', order.shippingCharges),
+                    const Padding(padding: EdgeInsets.symmetric(vertical: 24), child: Divider(height: 1)),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Total', style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w700)),
+                        const Text('Total Paid', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
                         Text('\$${order.total.toStringAsFixed(2)}', 
-                          style: AppTypography.displayLarge.copyWith(color: AppColors.primary, fontSize: 28, fontWeight: FontWeight.w700)),
+                          style: const TextStyle(color: AppColors.primary, fontSize: 32, fontWeight: FontWeight.w900)),
                       ],
                     ),
                   ],
@@ -179,33 +176,39 @@ class OrderDetailsScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildSectionHeader(String title) {
+    return Text(title, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 22, letterSpacing: -0.5));
+  }
+
   Widget _buildTimeline(BuildContext context, OrderStatus currentStatus, String orderDate) {
     return Column(
       children: [
         _buildTimelineStep(context, 'Order Placed', orderDate, true),
-        _buildTimelineStep(context, 'Processing', 'Usually within 24 hours', currentStatus.index >= 1),
-        _buildTimelineStep(context, 'Shipped', 'Out for delivery', currentStatus.index >= 2),
-        _buildTimelineStep(context, 'Delivered', 'Enjoy your treats!', currentStatus.index >= 3),
+        _buildTimelineStep(context, 'Processing', 'Validation & QC Check', currentStatus.index >= 1),
+        _buildTimelineStep(context, 'Shipped', 'Handed to Logistics', currentStatus.index >= 2),
+        _buildTimelineStep(context, 'Delivered', 'Completed', currentStatus.index >= 3, isLast: true),
       ],
     );
   }
 
-  Widget _buildTimelineStep(BuildContext context, String title, String subtitle, bool isCompleted) {
+  Widget _buildTimelineStep(BuildContext context, String title, String subtitle, bool isCompleted, {bool isLast = false}) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Column(
           children: [
             Icon(isCompleted ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded, 
-              color: isCompleted ? AppColors.healthGreen : Theme.of(context).dividerColor, size: 20),
-            Container(width: 2, height: 30, color: Theme.of(context).dividerColor),
+              color: isCompleted ? AppColors.healthGreen : Theme.of(context).dividerColor, size: 22),
+            if (!isLast) Container(width: 2, height: 40, color: Theme.of(context).dividerColor.withOpacity(0.3)),
           ],
         ),
-        const SizedBox(width: 16),
+        const SizedBox(width: 20),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: AppTypography.titleMedium.copyWith(fontSize: 14, color: isCompleted ? Theme.of(context).colorScheme.onSurface : Theme.of(context).colorScheme.onSurfaceVariant)),
-            Text(subtitle, style: AppTypography.labelSmall.copyWith(fontSize: 10)),
+            Text(title, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: isCompleted ? Theme.of(context).colorScheme.onSurface : Colors.grey[500])),
+            const SizedBox(height: 4),
+            Text(subtitle, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.grey[500], letterSpacing: 0.2)),
           ],
         ),
       ],
@@ -213,16 +216,22 @@ class OrderDetailsScreen extends StatelessWidget {
   }
 
   Widget _buildInfoRow(BuildContext context, IconData icon, String label, String value) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Row(
       children: [
-        Icon(icon, color: AppColors.primary, size: 20),
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.08), borderRadius: BorderRadius.circular(10)),
+          child: Icon(icon, color: AppColors.primary, size: 20),
+        ),
         const SizedBox(width: 16),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: AppTypography.labelSmall),
-              Text(value, style: AppTypography.bodyMedium.copyWith(color: Theme.of(context).colorScheme.onSurface)),
+              Text(label, style: TextStyle(fontWeight: FontWeight.w900, fontSize: 8, color: Colors.grey[500], letterSpacing: 1)),
+              const SizedBox(height: 4),
+              Text(value, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: isDark ? Colors.white : Colors.black87)),
             ],
           ),
         ),
@@ -230,16 +239,13 @@ class OrderDetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSummaryRow(String label, double value, {bool isTotal = false}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: isTotal ? AppTypography.titleLarge : AppTypography.bodyMedium),
-          Text('\$${value.toStringAsFixed(2)}', style: isTotal ? AppTypography.titleLarge.copyWith(color: AppColors.primary) : AppTypography.titleMedium),
-        ],
-      ),
+  Widget _buildSummaryRow(String label, double value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: TextStyle(fontWeight: FontWeight.w700, color: Colors.grey[600], fontSize: 14)),
+        Text('\$${value.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
+      ],
     );
   }
 

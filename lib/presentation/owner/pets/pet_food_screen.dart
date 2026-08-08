@@ -101,10 +101,10 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('CURRENT DIET', style: TextStyle(color: const Color(0xFF006684), fontWeight: FontWeight.w900, fontSize: 11, letterSpacing: 1)),
+                      Text('CURRENT DIET', style: TextStyle(color: const Color(0xFF006684), fontWeight: FontWeight.w900, fontSize: 11, letterSpacing: 1.5)),
+                      const SizedBox(height: 32),
+                      _buildCleanInput('Food Name / Brand', _foodNameController, hint: 'e.g., Royal Canin'),
                       const SizedBox(height: 24),
-                      _buildPremiumInput('Food Name / Brand', _foodNameController, hint: 'e.g., Royal Canin'),
-                      const SizedBox(height: 20),
                       _buildDropdownField('Food Type', _selectedFoodType, (val) => setState(() => _selectedFoodType = val)),
                       const SizedBox(height: 32),
                       SizedBox(
@@ -115,6 +115,8 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF006684),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            elevation: 8,
+                            shadowColor: const Color(0xFF006684).withOpacity(0.4),
                           ),
                           child: _isSaving 
                             ? const CircularProgressIndicator(color: Colors.white)
@@ -225,28 +227,27 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
     );
   }
 
-  Widget _buildPremiumInput(String label, TextEditingController controller, {String? hint}) {
+  Widget _buildCleanInput(String label, TextEditingController controller, {String? hint}) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: const EdgeInsets.only(left: 4, bottom: 8),
-          child: Text(label.toUpperCase(), style: TextStyle(fontWeight: FontWeight.w800, color: isDark ? Colors.white70 : Colors.black54, fontSize: 10, letterSpacing: 0.5)),
+          child: Text(label.toUpperCase(), style: TextStyle(fontWeight: FontWeight.w900, color: isDark ? Colors.white70 : Colors.black54, fontSize: 10, letterSpacing: 1.2)),
         ),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           decoration: BoxDecoration(
             color: isDark ? Colors.white.withOpacity(0.05) : Colors.white,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: isDark ? Colors.white12 : Colors.grey.withOpacity(0.3)),
           ),
           child: TextField(
             controller: controller,
-            style: TextStyle(fontWeight: FontWeight.w700, color: isDark ? Colors.white : Colors.black87),
+            style: TextStyle(fontWeight: FontWeight.w700, color: isDark ? Colors.white : Colors.black87, fontSize: 15),
             decoration: InputDecoration(
               hintText: hint,
-              hintStyle: TextStyle(fontSize: 14, color: isDark ? Colors.white24 : Colors.grey),
+              hintStyle: TextStyle(fontSize: 14, color: isDark ? Colors.white24 : Colors.grey[400]),
               border: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(vertical: 18),
             ),
@@ -263,21 +264,20 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
       children: [
         Padding(
           padding: const EdgeInsets.only(left: 4, bottom: 8),
-          child: Text(label.toUpperCase(), style: TextStyle(fontWeight: FontWeight.w800, color: isDark ? Colors.white70 : Colors.black54, fontSize: 10, letterSpacing: 0.5)),
+          child: Text(label.toUpperCase(), style: TextStyle(fontWeight: FontWeight.w900, color: isDark ? Colors.white70 : Colors.black54, fontSize: 10, letterSpacing: 1.2)),
         ),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           decoration: BoxDecoration(
             color: isDark ? Colors.white.withOpacity(0.05) : Colors.white,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: isDark ? Colors.white12 : Colors.grey.withOpacity(0.3)),
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
               value: value,
               isExpanded: true,
               dropdownColor: isDark ? const Color(0xFF1A1A1A) : Colors.white,
-              hint: Text('Select Type', style: TextStyle(fontSize: 14, color: isDark ? Colors.white24 : Colors.grey)),
+              hint: Text('Select Type', style: TextStyle(fontSize: 14, color: isDark ? Colors.white24 : Colors.grey[400])),
               items: _foodTypes.map((t) => DropdownMenuItem(value: t, child: Text(t, style: const TextStyle(fontWeight: FontWeight.w700)))).toList(),
               onChanged: onChanged,
             ),
@@ -313,7 +313,7 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14),
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
         decoration: BoxDecoration(
           color: const Color(0xFFD1E6EE),
           borderRadius: BorderRadius.circular(12),
@@ -322,8 +322,15 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, size: 18, color: const Color(0xFF006684)),
-            const SizedBox(width: 8),
-            Text(label, style: const TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF006684), fontSize: 13)),
+            const SizedBox(width: 4),
+            Flexible(
+              child: Text(
+                label, 
+                style: const TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF006684), fontSize: 12),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ],
         ),
       ),

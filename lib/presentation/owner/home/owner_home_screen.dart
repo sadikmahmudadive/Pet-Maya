@@ -451,15 +451,20 @@ class HomeDashboardFragment extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    evt.category.toUpperCase(),
-                    style: const TextStyle(
-                      color: Color(0xFF006684),
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.5,
+                  Flexible(
+                    child: Text(
+                      evt.category.toUpperCase(),
+                      style: const TextStyle(
+                        color: Color(0xFF006684),
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.5,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
+                  const SizedBox(width: 8),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
@@ -649,7 +654,14 @@ class HomeDashboardFragment extends StatelessWidget {
                             const Icon(Icons.star_rounded, size: 14, color: AppColors.accentAmber),
                             const SizedBox(width: 4),
                             Text('${vet.rating}', style: Theme.of(context).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.bold)),
-                            Text(' (${vet.reviewsCount} reviews)', style: Theme.of(context).textTheme.labelSmall),
+                            Flexible(
+                              child: Text(
+                                ' (${vet.reviewsCount} reviews)', 
+                                style: Theme.of(context).textTheme.labelSmall,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
                           ],
                         ),
                       ],

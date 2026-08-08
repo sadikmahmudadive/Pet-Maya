@@ -208,23 +208,27 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           padding: const EdgeInsets.only(left: 4, bottom: 8),
           child: Text(
             label.toUpperCase(),
-            style: TextStyle(fontWeight: FontWeight.w800, color: isDark ? Colors.white70 : Colors.black54, fontSize: 11, letterSpacing: 0.5),
+            style: TextStyle(fontWeight: FontWeight.w900, color: isDark ? Colors.white70 : Colors.black54, fontSize: 10, letterSpacing: 1),
           ),
         ),
-        PremiumCard(
-          opacity: 0.1,
-          borderRadius: 20,
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: isDark ? Colors.white.withOpacity(0.05) : Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: isDark ? Colors.white12 : Colors.grey.withOpacity(0.2)),
+          ),
           child: TextField(
             controller: controller,
             keyboardType: keyboardType,
             onChanged: onChanged,
-            style: TextStyle(fontWeight: FontWeight.w700, color: isDark ? Colors.white : Colors.black87),
+            style: TextStyle(fontWeight: FontWeight.w700, color: isDark ? Colors.white : Colors.black87, fontSize: 15),
             decoration: InputDecoration(
               prefixIcon: Icon(icon, color: AppColors.primary, size: 20),
               hintText: hintText,
-              hintStyle: TextStyle(fontSize: 14, color: isDark ? Colors.white24 : Colors.grey),
+              hintStyle: TextStyle(fontSize: 14, color: isDark ? Colors.white24 : Colors.grey[400]),
               border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+              contentPadding: const EdgeInsets.symmetric(vertical: 20),
             ),
           ),
         ),
@@ -241,12 +245,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           padding: const EdgeInsets.only(left: 4, bottom: 8),
           child: Text(
             'LOCATION',
-            style: TextStyle(fontWeight: FontWeight.w800, color: isDark ? Colors.white70 : Colors.black54, fontSize: 11, letterSpacing: 0.5),
+            style: TextStyle(fontWeight: FontWeight.w900, color: isDark ? Colors.white70 : Colors.black54, fontSize: 10, letterSpacing: 1),
           ),
         ),
-        PremiumCard(
-          opacity: 0.1,
-          borderRadius: 20,
+        GestureDetector(
           onTap: () async {
             final address = await Navigator.push(
               context, 
@@ -256,8 +258,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               setState(() => _addressController.text = address);
             }
           },
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+            decoration: BoxDecoration(
+              color: isDark ? Colors.white.withOpacity(0.05) : Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: isDark ? Colors.white12 : Colors.grey.withOpacity(0.2)),
+            ),
             child: Row(
               children: [
                 const Icon(Icons.location_on_rounded, color: AppColors.primary, size: 20),
@@ -267,7 +274,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     _addressController.text.isEmpty ? 'Select your address' : _addressController.text,
                     style: TextStyle(
                       fontWeight: FontWeight.w700,
-                      color: _addressController.text.isEmpty ? (isDark ? Colors.white24 : Colors.grey) : (isDark ? Colors.white : Colors.black87),
+                      fontSize: 15,
+                      color: _addressController.text.isEmpty ? (isDark ? Colors.white24 : Colors.grey[400]) : (isDark ? Colors.white : Colors.black87),
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

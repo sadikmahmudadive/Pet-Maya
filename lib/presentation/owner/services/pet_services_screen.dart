@@ -92,8 +92,10 @@ class PetServicesScreen extends StatelessWidget {
   }
 
   Widget _buildCategoryGrid() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Wrap(
+      alignment: WrapAlignment.spaceBetween,
+      spacing: 12,
+      runSpacing: 16,
       children: [
         _buildCategoryItem(Icons.medical_services, 'Vet', AppColors.primary),
         _buildCategoryItem(Icons.content_cut_rounded, 'Groom', AppColors.healthGreen),
@@ -108,14 +110,18 @@ class PetServicesScreen extends StatelessWidget {
       children: [
         PremiumCard(
           opacity: 0.1,
-          borderRadius: 20,
+          borderRadius: 24,
           child: Container(
-            padding: const EdgeInsets.all(18),
-            child: Icon(icon, color: color, size: 28),
+            padding: const EdgeInsets.all(22),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: Icon(icon, color: color, size: 30),
           ),
         ),
-        const SizedBox(height: 10),
-        Text(label, style: AppTypography.labelSmall.copyWith(fontWeight: FontWeight.w600, fontSize: 11)),
+        const SizedBox(height: 12),
+        Text(label, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 10, letterSpacing: 0.5)),
       ],
     );
   }

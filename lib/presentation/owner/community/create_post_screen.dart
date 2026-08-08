@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
+import 'package:animate_do/animate_do.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../data/repositories/app_state_repository.dart';
 import '../../../data/models/feed_post_model.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
-import 'package:animate_do/animate_do.dart';
 
 class CreatePostScreen extends StatefulWidget {
   const CreatePostScreen({super.key});
@@ -20,16 +21,18 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   final _contentController = TextEditingController();
   String _postType = 'MOMENT';
   String? _imageUrl = 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=600&auto=format&fit=crop';
+  bool _isPosting = false;
 
   void _submitPost() {
     final content = _contentController.text.trim();
     if (content.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please write something to share')),
+        const SnackBar(content: Text('Please share a story or thought'), behavior: SnackBarBehavior.floating),
       );
       return;
     }
 
+    setState(() => _isPosting = true);
     final repo = context.read<AppStateRepository>();
     final post = FeedPostModel(
       postId: 'post_${const Uuid().v4().substring(0, 6)}',
@@ -43,25 +46,30 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     );
 
     repo.addPost(post);
+    HapticFeedback.mediumImpact();
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Post published to community! 🎉'), backgroundColor: AppColors.healthGreen),
+      const SnackBar(content: Text('Community post published! 🎉'), backgroundColor: AppColors.healthGreen, behavior: SnackBarBehavior.floating),
     );
     Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return GlassScaffold(
       appBar: AppBar(
-        title: const Text('Create Post'),
+        title: const Text('Create Post', style: TextStyle(fontWeight: FontWeight.w800)),
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
-          TextButton(
-            onPressed: _submitPost,
-            child: Text('POST', style: AppTypography.titleMedium.copyWith(color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 14, letterSpacing: 0.8)),
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: TextButton(
+              onPressed: _isPosting ? null : _submitPost,
+              child: Text('PUBLISH', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 0.5)),
+            ),
           ),
-          const SizedBox(width: 8),
         ],
       ),
       body: SingleChildScrollView(
@@ -70,15 +78,13 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Post type chips
+            // Category Chips
             FadeInDown(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('SELECT CATEGORY', style: AppTypography.labelSmall.copyWith(
-                    fontWeight: FontWeight.w700, letterSpacing: 0.8, color: AppColors.textTertiary, fontSize: 10
-                  )),
-                  const SizedBox(height: 16),
+                  _buildSectionLabel('Choose Category'),
+                  const SizedBox(height: 12),
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     physics: const BouncingScrollPhysics(),
@@ -93,27 +99,26 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 32),
 
-            // Content textfield
+            // Content input
             FadeInUp(
+              delay: const Duration(milliseconds: 100),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('POST CONTENT', style: AppTypography.labelSmall.copyWith(
-                    fontWeight: FontWeight.w700, letterSpacing: 0.8, color: AppColors.textTertiary, fontSize: 10
-                  )),
-                  const SizedBox(height: 16),
+                  _buildSectionLabel('Story Content'),
+                  const SizedBox(height: 12),
                   PremiumCard(
-                    opacity: 0.15,
+                    opacity: 0.1,
                     borderRadius: 24,
                     child: TextField(
                       controller: _contentController,
-                      maxLines: 6,
-                      style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.w600, height: 1.6),
+                      maxLines: 8,
+                      style: TextStyle(fontWeight: FontWeight.w600, height: 1.6, color: isDark ? Colors.white : Colors.black87),
                       decoration: InputDecoration(
-                        hintText: 'Share your pet story or ask for advice...',
-                        hintStyle: TextStyle(color: AppColors.textTertiary.withOpacity(0.5)),
+                        hintText: 'What\'s happening with your furry friend?',
+                        hintStyle: TextStyle(color: isDark ? Colors.white24 : Colors.grey, fontSize: 15),
                         border: InputBorder.none,
                         contentPadding: const EdgeInsets.all(20),
                       ),
@@ -122,27 +127,25 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 32),
 
-            // Image Preview / Selector
+            // Image Preview
             FadeInUp(
               delay: const Duration(milliseconds: 200),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('ATTACHMENT', style: AppTypography.labelSmall.copyWith(
-                    fontWeight: FontWeight.w700, letterSpacing: 0.8, color: AppColors.textTertiary, fontSize: 10
-                  )),
-                  const SizedBox(height: 16),
+                  _buildSectionLabel('Attachment'),
+                  const SizedBox(height: 12),
                   if (_imageUrl != null)
                     Stack(
                       children: [
                         PremiumCard(
                           opacity: 0.4,
-                          borderRadius: 24,
+                          borderRadius: 28,
                           child: ClipRRect(
-                            borderRadius: BorderRadius.circular(24),
-                            child: Image.network(_imageUrl!, height: 240, width: double.infinity, fit: BoxFit.cover),
+                            borderRadius: BorderRadius.circular(28),
+                            child: Image.network(_imageUrl!, height: 260, width: double.infinity, fit: BoxFit.cover),
                           ),
                         ),
                         Positioned(
@@ -163,22 +166,26 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     PremiumCard(
                       onTap: () {
                         setState(() {
-                          _imageUrl = 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=600&auto=format&fit=crop';
+                          _imageUrl = 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=800&auto=format&fit=crop';
                         });
                       },
                       opacity: 0.1,
                       borderRadius: 24,
                       child: Container(
-                        height: 120,
+                        height: 140,
                         width: double.infinity,
                         alignment: Alignment.center,
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.add_photo_alternate_rounded, color: AppColors.primary, size: 32),
-                            const SizedBox(height: 8),
-                            Text('Add Photo from Gallery', 
-                              style: AppTypography.labelSmall.copyWith(fontWeight: FontWeight.w600, color: AppColors.primary)),
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), shape: BoxShape.circle),
+                              child: const Icon(Icons.add_photo_alternate_rounded, color: AppColors.primary, size: 28),
+                            ),
+                            const SizedBox(height: 12),
+                            Text('Attach a photo from gallery', 
+                              style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.primary, fontSize: 11, letterSpacing: 0.5)),
                           ],
                         ),
                       ),
@@ -193,22 +200,36 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     );
   }
 
+  Widget _buildSectionLabel(String label) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Padding(
+      padding: const EdgeInsets.only(left: 4),
+      child: Text(
+        label.toUpperCase(),
+        style: TextStyle(fontWeight: FontWeight.w900, color: isDark ? Colors.white70 : Colors.black54, fontSize: 10, letterSpacing: 1.2),
+      ),
+    );
+  }
+
   Widget _buildTypeChip(String type, String label) {
     final isSelected = _postType == type;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Padding(
-      padding: const EdgeInsets.only(right: 10),
+      padding: const EdgeInsets.only(right: 12),
       child: PremiumCard(
         onTap: () => setState(() => _postType = type),
-        opacity: isSelected ? 0.4 : 0.1,
-        borderRadius: 20,
+        opacity: isSelected ? 0.4 : 0.05,
+        borderRadius: 18,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
           child: Text(
             label,
-            style: AppTypography.labelSmall.copyWith(
-              color: isSelected ? AppColors.primary : AppColors.textSecondary,
-              fontWeight: FontWeight.w700,
+            style: TextStyle(
+              color: isSelected ? AppColors.primary : (isDark ? Colors.white60 : AppColors.textSecondary),
+              fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
               fontSize: 11,
+              letterSpacing: 0.5,
             ),
           ),
         ),

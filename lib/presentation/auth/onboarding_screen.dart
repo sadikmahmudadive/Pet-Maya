@@ -303,15 +303,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         child: Container(
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [AppColors.primary, AppColors.primaryDark],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+            color: const Color(0xFF006684),
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: AppColors.primary.withOpacity(isDark ? 0.4 : 0.3),
+                color: const Color(0xFF006684).withOpacity(isDark ? 0.4 : 0.3),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               ),
@@ -344,11 +340,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         height: 70,
         width: screenWidth * 0.8,
         decoration: BoxDecoration(
-          color: AppColors.primaryDark,
+          color: const Color(0xFF006684),
           borderRadius: BorderRadius.circular(35),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primary.withOpacity(isDark ? 0.5 : 0.3),
+              color: const Color(0xFF006684).withOpacity(isDark ? 0.5 : 0.3),
               blurRadius: 30,
               offset: const Offset(0, 15),
             ),

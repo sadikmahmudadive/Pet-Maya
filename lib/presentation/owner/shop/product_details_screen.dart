@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:animate_do/animate_do.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../data/repositories/app_state_repository.dart';
 import '../../../data/models/product_model.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
-import 'package:animate_do/animate_do.dart';
 import 'cart_screen.dart';
 
 class ProductDetailsScreen extends StatelessWidget {
@@ -18,6 +18,7 @@ class ProductDetailsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = context.watch<AppStateRepository>();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GlassScaffold(
       body: CustomScrollView(
@@ -26,16 +27,19 @@ class ProductDetailsScreen extends StatelessWidget {
           SliverAppBar(
             expandedHeight: 400,
             pinned: true,
-            leading: IconButton(
-              icon: Icon(Icons.arrow_back_ios_new_rounded, color: Theme.of(context).colorScheme.onSurface),
-              onPressed: () => Navigator.pop(context),
+            leading: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: CircleAvatar(
+                backgroundColor: isDark ? Colors.white10 : Colors.black12,
+                child: IconButton(
+                  icon: Icon(Icons.arrow_back_ios_new_rounded, color: isDark ? Colors.white : Colors.black87, size: 18),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ),
             ),
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             elevation: 0,
-            systemOverlayStyle: SystemUiOverlayStyle(
-              statusBarColor: Colors.transparent,
-              statusBarIconBrightness: Theme.of(context).brightness == Brightness.dark ? Brightness.light : Brightness.dark,
-            ),
+            systemOverlayStyle: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
                 color: Theme.of(context).scaffoldBackgroundColor,
@@ -56,7 +60,7 @@ class ProductDetailsScreen extends StatelessWidget {
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 color: Theme.of(context).scaffoldBackgroundColor,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(36)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -65,15 +69,15 @@ class ProductDetailsScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       _buildCategoryBadge(context, product.category),
-                      if (product.isLowStock) _buildStockBadge(context, product.stockQuantity),
+                      if (product.stockQuantity < 10) _buildStockBadge(context, product.stockQuantity),
                     ],
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 24),
                   Text(product.name, 
-                    style: Theme.of(context).textTheme.displayLarge?.copyWith(fontSize: 28, fontWeight: FontWeight.w700)),
+                    style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w900, letterSpacing: -0.5)),
                   const SizedBox(height: 8),
                   Text(product.brand.toUpperCase(), 
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700, color: AppColors.primary, letterSpacing: 0.8)),
+                    style: const TextStyle(fontWeight: FontWeight.w900, color: AppColors.primary, letterSpacing: 1.5, fontSize: 10)),
                   
                   const SizedBox(height: 32),
                   Row(
@@ -83,20 +87,20 @@ class ProductDetailsScreen extends StatelessWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('PRICE', style: Theme.of(context).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.outline)),
-                          const SizedBox(height: 4),
+                          Text('PRICE', style: TextStyle(fontWeight: FontWeight.w900, color: Colors.grey[500], fontSize: 9, letterSpacing: 1)),
+                          const SizedBox(height: 6),
                           Text('\$${product.price.toStringAsFixed(2)}', 
-                            style: Theme.of(context).textTheme.displayLarge?.copyWith(fontSize: 34, fontWeight: FontWeight.w700, color: AppColors.primary)),
+                            style: const TextStyle(fontSize: 38, fontWeight: FontWeight.w900, color: AppColors.primary)),
                         ],
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        decoration: BoxDecoration(color: AppColors.accentAmber.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
-                        child: Row(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        decoration: BoxDecoration(color: AppColors.accentAmber.withOpacity(0.1), borderRadius: BorderRadius.circular(16)),
+                        child: const Row(
                           children: [
-                            const Icon(Icons.star_rounded, color: AppColors.accentAmber, size: 18),
-                            const SizedBox(width: 4),
-                            Text('4.8', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700, color: AppColors.accentAmber, fontSize: 15)),
+                            Icon(Icons.star_rounded, color: AppColors.accentAmber, size: 20),
+                            SizedBox(width: 6),
+                            Text('4.8', style: TextStyle(fontWeight: FontWeight.w900, color: AppColors.accentAmber, fontSize: 16)),
                           ],
                         ),
                       ),
@@ -105,20 +109,20 @@ class ProductDetailsScreen extends StatelessWidget {
                   
                   const Padding(padding: EdgeInsets.symmetric(vertical: 32), child: Divider(height: 1)),
 
-                  Text('Description', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+                  const Text('Product Description', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
                   const SizedBox(height: 12),
                   Text(
-                    product.description.isNotEmpty ? product.description : 'Premium care essential for your pet.',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(height: 1.7, color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 15),
+                    product.description.isNotEmpty ? product.description : 'Premium care essential for your pet, crafted with high-quality ingredients for optimal wellness.',
+                    style: TextStyle(height: 1.7, color: isDark ? Colors.white70 : Colors.black87, fontSize: 15, fontWeight: FontWeight.w500),
                   ),
                   
                   const SizedBox(height: 40),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _buildHighlight(context, Icons.verified_user_rounded, 'Authentic'),
-                      _buildHighlight(context, Icons.local_shipping_rounded, 'Fast Ship'),
-                      _buildHighlight(context, Icons.replay_rounded, 'Easy Return'),
+                      _buildHighlight(context, Icons.verified_user_rounded, 'Certified'),
+                      _buildHighlight(context, Icons.local_shipping_rounded, 'Express'),
+                      _buildHighlight(context, Icons.replay_rounded, '7 Day Return'),
                     ],
                   ),
                   const SizedBox(height: 120),
@@ -133,24 +137,25 @@ class ProductDetailsScreen extends StatelessWidget {
   }
 
   Widget _buildCartAction(BuildContext context, AppStateRepository state) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen())),
       child: Container(
         margin: const EdgeInsets.all(8),
-        padding: const EdgeInsets.symmetric(horizontal: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 14),
         decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(16)),
         child: Stack(
           alignment: Alignment.center,
           children: [
-            const Icon(Icons.shopping_bag_outlined, color: AppColors.primary),
+            const Icon(Icons.shopping_bag_rounded, color: AppColors.primary, size: 22),
             if (state.cartCount > 0)
               Positioned(
                 top: 8,
                 right: 0,
                 child: Container(
-                  width: 8,
-                  height: 8,
-                  decoration: const BoxDecoration(color: AppColors.dangerRed, shape: BoxShape.circle),
+                  width: 10,
+                  height: 10,
+                  decoration: BoxDecoration(color: AppColors.accentAmber, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 1.5)),
                 ),
               ),
           ],
@@ -177,15 +182,18 @@ class ProductDetailsScreen extends StatelessWidget {
               state.addToCart(product);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('Added to basket! 🐾'),
+                  content: const Text('Added to your basket! 🐾', style: TextStyle(fontWeight: FontWeight.w800)),
                   backgroundColor: AppColors.primary,
                   behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 ),
               );
             },
-            style: ElevatedButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))),
-            child: const Text('ADD TO BASKET', style: TextStyle(fontWeight: FontWeight.w700, letterSpacing: 0.8)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF006684),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            ),
+            child: const Text('ADD TO BASKET', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 1, fontSize: 13)),
           ),
         ),
       ),
@@ -194,28 +202,32 @@ class ProductDetailsScreen extends StatelessWidget {
 
   Widget _buildCategoryBadge(BuildContext context, String label) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
       child: Text(label.toUpperCase(), 
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 10, letterSpacing: 0.5)),
+        style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w900, fontSize: 9, letterSpacing: 1)),
     );
   }
 
   Widget _buildStockBadge(BuildContext context, int count) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(color: AppColors.dangerRed.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
       child: Text('ONLY $count LEFT', 
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(color: AppColors.dangerRed, fontWeight: FontWeight.w700, fontSize: 10, letterSpacing: 0.5)),
+        style: const TextStyle(color: AppColors.dangerRed, fontWeight: FontWeight.w900, fontSize: 9, letterSpacing: 1)),
     );
   }
 
   Widget _buildHighlight(BuildContext context, IconData icon, String text) {
     return Column(
       children: [
-        Icon(icon, color: AppColors.primary, size: 26),
-        const SizedBox(height: 4),
-        Text(text, style: Theme.of(context).textTheme.labelSmall),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.05), shape: BoxShape.circle),
+          child: Icon(icon, color: AppColors.primary, size: 24),
+        ),
+        const SizedBox(height: 8),
+        Text(text, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Colors.grey)),
       ],
     );
   }

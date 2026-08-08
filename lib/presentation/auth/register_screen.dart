@@ -201,16 +201,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       hintText: 'Referral Code (Optional)',
                       icon: Icons.card_giftcard_rounded,
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 32),
 
-                    Text('CHOOSE YOUR ROLE', style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.8,
-                      fontSize: 10,
-                    )),
-                    const SizedBox(height: 12),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 4),
+                      child: Text('ACCOUNT TYPE', style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.5,
+                        fontSize: 10,
+                        color: Colors.grey[500],
+                      )),
+                    ),
+                    const SizedBox(height: 16),
                     _buildRoleSelector(),
-                    SizedBox(height: size.height * 0.04),
+                    SizedBox(height: size.height * 0.05),
 
                     _buildRegisterButton(),
                     const SizedBox(height: 16),
@@ -346,15 +350,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
         height: 64,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [AppColors.primary, AppColors.primaryDark],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          color: const Color(0xFF006684),
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primary.withOpacity(0.3),
+              color: const Color(0xFF006684).withOpacity(0.3),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),

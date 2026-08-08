@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:animate_do/animate_do.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../data/models/pet_model.dart';
@@ -7,7 +9,7 @@ import '../../../data/repositories/app_state_repository.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
 import '../../common_widgets/status_chip.dart';
-import 'package:animate_do/animate_do.dart';
+import '../../common_widgets/empty_state.dart';
 
 class PetHealthTrackerScreen extends StatelessWidget {
   final String petId;
@@ -20,25 +22,28 @@ class PetHealthTrackerScreen extends StatelessWidget {
       repo.pets.firstWhere((p) => p.petID == petId));
     final records = context.select((AppStateRepository repo) => 
       repo.serviceRecords.where((r) => r.petId == petId).toList());
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GlassScaffold(
       appBar: AppBar(
-        title: Text('${pet.name}\'s Health Vault'),
+        title: Text('${pet.name}\'s Health Vault', style: const TextStyle(fontWeight: FontWeight.w800)),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
       body: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(20, 100, 20, 120),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Vital Stats Summary
+            // 1. Vitality Index Card
             FadeInDown(
               child: PremiumCard(
-                opacity: 0.3,
-                borderRadius: 32,
+                opacity: 0.2,
+                borderRadius: 36,
+                backgroundColor: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFEDF4F8),
                 child: Padding(
-                  padding: const EdgeInsets.all(28),
+                  padding: const EdgeInsets.all(32),
                   child: Column(
                     children: [
                       Row(
@@ -47,23 +52,23 @@ class PetHealthTrackerScreen extends StatelessWidget {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('HEALTH INDEX', style: AppTypography.labelSmall.copyWith(
-                                fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.8, fontSize: 10
+                              Text('OVERALL WELLNESS', style: TextStyle(
+                                fontWeight: FontWeight.w900, color: const Color(0xFF006684), letterSpacing: 1.5, fontSize: 10
                               )),
-                              const SizedBox(height: 4),
-                              Text('${pet.healthIndex}', style: AppTypography.displayLarge.copyWith(fontSize: 48, fontWeight: FontWeight.w700)),
+                              const SizedBox(height: 8),
+                              Text('${pet.healthIndex}', style: const TextStyle(fontSize: 54, fontWeight: FontWeight.w900)),
                             ],
                           ),
                           StatusChip.health(pet.healthIndex),
                         ],
                       ),
-                      const SizedBox(height: 28),
+                      const SizedBox(height: 32),
                       ClipRRect(
                         borderRadius: BorderRadius.circular(10),
                         child: LinearProgressIndicator(
                           value: pet.healthIndex / 100,
-                          minHeight: 14,
-                          backgroundColor: Colors.white.withOpacity(0.3),
+                          minHeight: 12,
+                          backgroundColor: Colors.white.withOpacity(isDark ? 0.05 : 0.4),
                           valueColor: AlwaysStoppedAnimation<Color>(_getHealthColor(pet.healthIndex)),
                         ),
                       ),
@@ -71,9 +76,8 @@ class PetHealthTrackerScreen extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('0', style: AppTypography.labelSmall.copyWith(fontWeight: FontWeight.w700, color: AppColors.textTertiary)),
-                          Text('50', style: AppTypography.labelSmall.copyWith(fontWeight: FontWeight.w700, color: AppColors.textTertiary)),
-                          Text('100', style: AppTypography.labelSmall.copyWith(fontWeight: FontWeight.w700, color: AppColors.textTertiary)),
+                          _buildLegend('POOR', Colors.grey[500]!),
+                          _buildLegend('EXCELLENT', AppColors.healthGreen),
                         ],
                       ),
                     ],
@@ -81,10 +85,10 @@ class PetHealthTrackerScreen extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 48),
 
-            // Wellness Goals
-            Text('Wellness Tracking', style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w700, fontSize: 22)),
+            // 2. Wellness Metrics
+            _buildSectionHeader('Biometric Tracking'),
             const SizedBox(height: 20),
             GridView.count(
               shrinkWrap: true,
@@ -92,21 +96,21 @@ class PetHealthTrackerScreen extends StatelessWidget {
               crossAxisCount: 2,
               mainAxisSpacing: 16,
               crossAxisSpacing: 16,
-              childAspectRatio: 1.3,
+              childAspectRatio: 1.4,
               children: [
                 _buildGoalCard('Weight', pet.weight, Icons.monitor_weight_rounded, AppColors.primary),
-                _buildGoalCard('Daily Mood', pet.mood, Icons.sentiment_satisfied_alt_rounded, AppColors.accentAmber),
-                _buildGoalCard('Activity', 'Active', Icons.directions_run_rounded, AppColors.healthGreen),
-                _buildGoalCard('Sleep', '8.5 hrs', Icons.bedtime_rounded, AppColors.tertiary),
+                _buildGoalCard('Mood', pet.mood, Icons.sentiment_satisfied_alt_rounded, AppColors.accentAmber),
+                _buildGoalCard('Activity', 'Optimal', Icons.directions_run_rounded, AppColors.healthGreen),
+                _buildGoalCard('Hydration', 'Tracked', Icons.water_drop_rounded, AppColors.tertiary),
               ],
             ),
             const SizedBox(height: 48),
 
-            // Medical History List
+            // 3. Clinical Logs
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Medical History', style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w700, fontSize: 22)),
+                _buildSectionHeader('Clinical History'),
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), shape: BoxShape.circle),
@@ -114,55 +118,66 @@ class PetHealthTrackerScreen extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             if (records.isEmpty)
               const Padding(
-                padding: EdgeInsets.symmetric(vertical: 20),
-                child: Center(child: Text('No medical records found.')),
+                padding: EdgeInsets.symmetric(vertical: 40),
+                child: EmptyState(
+                  icon: Icons.history_edu_rounded,
+                  title: 'No medical logs',
+                  message: 'When your vet adds a record, it will appear here in your secure vault.',
+                ),
               )
             else
               ...records.map((rec) => FadeInUp(
                     child: Padding(
                       padding: const EdgeInsets.only(bottom: 16),
                       child: PremiumCard(
-                        opacity: 0.1,
+                        opacity: 0.15,
                         borderRadius: 28,
                         child: Padding(
-                          padding: const EdgeInsets.all(20),
+                          padding: const EdgeInsets.all(24),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text(rec.title, style: AppTypography.titleMedium.copyWith(fontSize: 17, fontWeight: FontWeight.w700)),
-                                  Text(rec.date, style: AppTypography.labelSmall.copyWith(fontWeight: FontWeight.w700, color: AppColors.textTertiary)),
+                                  Text(rec.title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                                  Text(rec.date, style: TextStyle(fontWeight: FontWeight.w800, color: Colors.grey[500], fontSize: 11)),
                                 ],
                               ),
                               const SizedBox(height: 6),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.08), borderRadius: BorderRadius.circular(10)),
-                                child: Text('${rec.serviceType} • ${rec.providerName}', 
-                                  style: AppTypography.labelSmall.copyWith(color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 10)),
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                    decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
+                                    child: Text(rec.serviceType.toUpperCase(), 
+                                      style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w900, fontSize: 8, letterSpacing: 0.5)),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text('by ${rec.providerName}', style: TextStyle(color: Colors.grey[600], fontWeight: FontWeight.w700, fontSize: 11)),
+                                ],
                               ),
-                              const Divider(height: 32),
-                              Text(rec.diagnosis ?? rec.description, style: AppTypography.bodyMedium.copyWith(fontSize: 14, color: AppColors.textPrimary, height: 1.5)),
+                              const Padding(padding: EdgeInsets.symmetric(vertical: 20), child: Divider(height: 1)),
+                              Text(rec.diagnosis ?? rec.description, style: TextStyle(fontSize: 14, color: isDark ? Colors.white70 : Colors.black87, height: 1.5, fontWeight: FontWeight.w500)),
                               if (rec.suggestion != null && rec.suggestion!.isNotEmpty) ...[
-                                const SizedBox(height: 16),
+                                const SizedBox(height: 20),
                                 Container(
                                   padding: const EdgeInsets.all(16),
                                   decoration: BoxDecoration(
-                                    color: AppColors.healthGreen.withOpacity(0.06),
+                                    color: AppColors.healthGreen.withOpacity(0.08),
                                     borderRadius: BorderRadius.circular(16),
                                     border: Border.all(color: AppColors.healthGreen.withOpacity(0.1)),
                                   ),
                                   child: Row(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      const Icon(Icons.lightbulb_outline_rounded, color: AppColors.healthGreen, size: 20),
+                                      const Icon(Icons.lightbulb_outline_rounded, color: AppColors.healthGreen, size: 18),
                                       const SizedBox(width: 12),
-                                      Expanded(child: Text(rec.suggestion!, style: AppTypography.bodyMedium.copyWith(fontSize: 12, fontStyle: FontStyle.italic, color: Colors.green[900], height: 1.5))),
+                                      Expanded(child: Text(rec.suggestion!, 
+                                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: isDark ? AppColors.healthGreenLight : Colors.green[900], height: 1.4))),
                                     ],
                                   ),
                                 ),
@@ -179,6 +194,14 @@ class PetHealthTrackerScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildSectionHeader(String title) {
+    return Text(title, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 22, letterSpacing: -0.5));
+  }
+
+  Widget _buildLegend(String label, Color color) {
+    return Text(label, style: TextStyle(fontWeight: FontWeight.w900, color: color, fontSize: 9, letterSpacing: 1));
+  }
+
   Widget _buildGoalCard(String title, String value, IconData icon, Color color) {
     return PremiumCard(
       opacity: 0.1,
@@ -189,14 +212,14 @@ class PetHealthTrackerScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
-              child: Icon(icon, color: color, size: 20),
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+              child: Icon(icon, color: color, size: 18),
             ),
             const Spacer(),
-            Text(value, style: AppTypography.titleMedium.copyWith(fontSize: 18, fontWeight: FontWeight.w700)),
+            Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
             const SizedBox(height: 2),
-            Text(title.toUpperCase(), style: AppTypography.labelSmall.copyWith(fontSize: 9, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.8)),
+            Text(title.toUpperCase(), style: TextStyle(fontSize: 8, fontWeight: FontWeight.w800, color: Colors.grey[500], letterSpacing: 0.5)),
           ],
         ),
       ),
