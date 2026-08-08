@@ -357,7 +357,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
                       ),
                       child: _isSaving 
                         ? const CircularProgressIndicator(color: Colors.white, strokeWidth: 3)
-                        : Text(isEditing ? 'COMMIT UPDATES' : 'CREATE PROFILE', 
+                        : Text(isEditing ? 'UPDATE' : 'CREATE PROFILE',
                             style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 15, letterSpacing: 1)),
                     ),
                   ),

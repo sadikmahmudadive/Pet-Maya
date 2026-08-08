@@ -69,13 +69,20 @@ class _CommentsBottomSheetState extends State<CommentsBottomSheet> {
                     ),
                   )
                 : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                     physics: const BouncingScrollPhysics(),
                     itemCount: comments.length,
                     itemBuilder: (context, index) {
                       final c = comments[index];
+                      final date = DateTime.fromMillisecondsSinceEpoch(c.timestamp);
+                      final diff = DateTime.now().difference(date);
+                      String timeStr = 'Just now';
+                      if (diff.inMinutes > 0 && diff.inMinutes < 60) timeStr = '${diff.inMinutes}m';
+                      else if (diff.inHours > 0 && diff.inHours < 24) timeStr = '${diff.inHours}h';
+                      else if (diff.inDays > 0) timeStr = '${diff.inDays}d';
+
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: 24),
+                        padding: const EdgeInsets.only(bottom: 16),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -85,14 +92,53 @@ class _CommentsBottomSheetState extends State<CommentsBottomSheet> {
                               backgroundImage: c.userPhoto != null ? NetworkImage(c.userPhoto!) : null,
                               child: c.userPhoto == null ? const Icon(Icons.person, size: 18) : null,
                             ),
-                            const SizedBox(width: 14),
+                            const SizedBox(width: 10),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(c.userName, style: AppTypography.titleMedium.copyWith(fontSize: 14, fontWeight: FontWeight.w800)),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                    decoration: BoxDecoration(
+                                      color: isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.04),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(c.userName, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          c.text,
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            height: 1.4,
+                                            fontWeight: FontWeight.w500,
+                                            color: isDark ? Colors.white.withOpacity(0.9) : Colors.black87,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                   const SizedBox(height: 4),
-                                  Text(c.text, style: AppTypography.bodyMedium.copyWith(height: 1.4, color: isDark ? Colors.white70 : Colors.black87)),
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 12),
+                                    child: Row(
+                                      children: [
+                                        Text(timeStr, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.grey[500])),
+                                        const SizedBox(width: 14),
+                                        GestureDetector(
+                                          onTap: () {},
+                                          child: Text('Like', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.grey[600])),
+                                        ),
+                                        const SizedBox(width: 14),
+                                        GestureDetector(
+                                          onTap: () {},
+                                          child: Text('Reply', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.grey[600])),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
@@ -125,10 +171,10 @@ class _CommentsBottomSheetState extends State<CommentsBottomSheet> {
                       controller: _commentController,
                       style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
                       decoration: const InputDecoration(
-                        hintText: 'Share a kind word...',
-                        hintStyle: TextStyle(fontSize: 14, color: Colors.grey),
+                        hintText: 'Write a public comment...',
+                        hintStyle: TextStyle(fontSize: 13, color: Colors.grey),
                         border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                       ),
                     ),
                   ),

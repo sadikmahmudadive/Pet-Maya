@@ -29,6 +29,14 @@ class NotificationModel {
   }
 
   factory NotificationModel.fromMap(String id, Map<dynamic, dynamic> map) {
+    int parsedTimestamp = DateTime.now().millisecondsSinceEpoch;
+    final rawTs = map['timestamp'];
+    if (rawTs is num) {
+      parsedTimestamp = rawTs.toInt();
+    } else if (rawTs is String) {
+      parsedTimestamp = int.tryParse(rawTs) ?? DateTime.tryParse(rawTs)?.millisecondsSinceEpoch ?? parsedTimestamp;
+    }
+
     return NotificationModel(
       id: id,
       title: map['title'] ?? '',
@@ -37,8 +45,8 @@ class NotificationModel {
         (e) => e.name == map['type'],
         orElse: () => NotificationType.system,
       ),
-      timestamp: map['timestamp'] ?? DateTime.now().millisecondsSinceEpoch,
-      isRead: map['isRead'] ?? false,
+      timestamp: parsedTimestamp,
+      isRead: map['isRead'] == true || map['isRead'] == 'true',
     );
   }
 }

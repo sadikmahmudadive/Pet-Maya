@@ -48,13 +48,15 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     repo.addPost(post);
     HapticFeedback.mediumImpact();
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Community post published! 🎉'), backgroundColor: AppColors.healthGreen, behavior: SnackBarBehavior.floating),
+      const SnackBar(content: Text('Community post published!'), backgroundColor: AppColors.healthGreen, behavior: SnackBarBehavior.floating),
     );
     Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
+    final state = context.watch<AppStateRepository>();
+    final currentUser = state.currentUser;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GlassScaffold(
@@ -67,7 +69,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             padding: const EdgeInsets.only(right: 8),
             child: TextButton(
               onPressed: _isPosting ? null : _submitPost,
-              child: Text('PUBLISH', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 0.5)),
+              child: Text('POST', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 0.5)),
             ),
           ),
         ],
@@ -78,6 +80,47 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Facebook-style Profile Header
+            FadeInDown(
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 22,
+                    backgroundColor: AppColors.primaryLight,
+                    backgroundImage: currentUser?.photoUrl != null ? NetworkImage(currentUser!.photoUrl!) : null,
+                    child: currentUser?.photoUrl == null ? const Icon(Icons.person, size: 22) : null,
+                  ),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(currentUser?.name ?? 'Pet Lover', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                      const SizedBox(height: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: isDark ? Colors.white10 : Colors.black.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: isDark ? Colors.white12 : Colors.black12),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: const [
+                            Icon(Icons.public_rounded, size: 12, color: AppColors.primary),
+                            SizedBox(width: 4),
+                            Text('Public', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.primary)),
+                            SizedBox(width: 2),
+                            Icon(Icons.arrow_drop_down_rounded, size: 16, color: AppColors.primary),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+
             // Category Chips
             FadeInDown(
               child: Column(
@@ -90,9 +133,9 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     physics: const BouncingScrollPhysics(),
                     child: Row(
                       children: [
-                        _buildTypeChip('MOMENT', '📸 Moment'),
-                        _buildTypeChip('ADOPTION', '🏡 Adoption'),
-                        _buildTypeChip('RESCUE', '🚨 Rescue'),
+                        _buildTypeChip('MOMENT', 'Moment', Icons.photo_camera_rounded),
+                        _buildTypeChip('ADOPTION', 'Adoption', Icons.home_rounded),
+                        _buildTypeChip('RESCUE', 'Rescue', Icons.warning_amber_rounded),
                       ],
                     ),
                   ),
@@ -211,9 +254,11 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     );
   }
 
-  Widget _buildTypeChip(String type, String label) {
+  Widget _buildTypeChip(String type, String label, IconData icon) {
     final isSelected = _postType == type;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final activeColor = AppColors.primary;
+    final inactiveColor = isDark ? Colors.white60 : AppColors.textSecondary;
 
     return Padding(
       padding: const EdgeInsets.only(right: 12),
@@ -222,15 +267,22 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         opacity: isSelected ? 0.4 : 0.05,
         borderRadius: 18,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
-          child: Text(
-            label,
-            style: TextStyle(
-              color: isSelected ? AppColors.primary : (isDark ? Colors.white60 : AppColors.textSecondary),
-              fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
-              fontSize: 11,
-              letterSpacing: 0.5,
-            ),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 16, color: isSelected ? activeColor : inactiveColor),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  color: isSelected ? activeColor : inactiveColor,
+                  fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
+                  fontSize: 11,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
           ),
         ),
       ),

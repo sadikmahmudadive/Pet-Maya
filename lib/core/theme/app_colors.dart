@@ -46,4 +46,36 @@ class AppColors {
   static const Color borderLight = Color(0xFFE0E5E8);
   static const Color borderDark = Color(0xFF334155); // Slate 700
   static const Color cardShadow = Color(0x0D000000);
+  static const Color cardShadowSoft = Color(0x14000000);
+
+  // Gradients for Modern Depth
+  static const LinearGradient primaryGradient = LinearGradient(
+    colors: [Color(0xFF006684), Color(0xFF0088B0)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  static const LinearGradient coralGradient = LinearGradient(
+    colors: [Color(0xFFFF8A80), Color(0xFFFF5252)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  static const LinearGradient accentGradient = LinearGradient(
+    colors: [Color(0xFFFEB941), Color(0xFFFF9800)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  static const LinearGradient glassGradientLight = LinearGradient(
+    colors: [Color(0xFAFFFFFF), Color(0xEEF8FAFC)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  static const LinearGradient glassGradientDark = LinearGradient(
+    colors: [Color(0xF01E293B), Color(0xE60F172A)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
 }
