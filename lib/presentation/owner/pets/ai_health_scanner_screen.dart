@@ -7,6 +7,10 @@ import '../../../data/models/pet_model.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import '../../../core/services/connectivity_service.dart';
+import '../../common_widgets/premium_toast.dart';
 
 class AiHealthScannerScreen extends StatefulWidget {
   final PetModel? initialPet;
@@ -22,6 +26,7 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
   PetModel? _selectedPet;
   bool _isLoading = false;
   String? _diagnosisResult;
+  File? _selectedImageFile;
   String _selectedSampleImage = 'https://images.unsplash.com/photo-1548767797-d8c844163c4c?w=600&auto=format&fit=crop';
 
   @override
@@ -31,7 +36,28 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
     _selectedPet = widget.initialPet ?? (pets.isNotEmpty ? pets.first : null);
   }
 
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImageFile = File(pickedFile.path);
+        _diagnosisResult = null; // Clear previous result
+      });
+    }
+  }
+
   void _runDiagnostic() async {
+    // Requirement: AI Scanner strictly requires connectivity
+    final isOnline = await ConnectivityService().isConnected();
+    if (!isOnline) {
+      context.read<AppStateRepository>().showToast(
+        'AI Scanner requires an active internet connection 🌐',
+        type: ToastType.error,
+      );
+      return;
+    }
+
     if (_selectedPet == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select a pet first')),
@@ -48,6 +74,7 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
     final result = await repo.runAiHealthDiagnosis(
       petName: _selectedPet!.name,
       prompt: _issueController.text.trim(),
+      imageFile: _selectedImageFile,
     );
 
     if (mounted) {
@@ -68,12 +95,7 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
       diagnosis: _diagnosisResult!,
       suggestion: 'Check with local veterinarian if symptoms persist after 48 hours.',
     );
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Diagnosis saved to ${_selectedPet!.name}\'s Medical History! ✅'),
-        backgroundColor: AppColors.healthGreen,
-      ),
-    );
+    repo.showToast('Diagnosis saved to ${_selectedPet!.name}\'s Medical History! ✅');
     Navigator.pop(context);
   }
 
@@ -93,19 +115,13 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Upload "Drop-Zone"
             FadeInDown(
-              child: GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _selectedSampleImage = _selectedSampleImage.contains('548767797')
-                        ? 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=600&auto=format&fit=crop'
-                        : 'https://images.unsplash.com/photo-1548767797-d8c844163c4c?w=600&auto=format&fit=crop';
-                  });
-                },
-                child: PremiumCard(
-                  opacity: 0.4,
-                  borderRadius: 32,
+              child: PremiumCard(
+                opacity: 0.4,
+                borderRadius: 32,
+                child: GestureDetector(
+                  onTap: _pickImage,
+                  behavior: HitTestBehavior.opaque,
                   child: Container(
                     height: 260,
                     width: double.infinity,
@@ -117,14 +133,24 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
                       child: Stack(
                         alignment: Alignment.center,
                         children: [
-                          Image.network(
-                            _selectedSampleImage,
-                            width: double.infinity,
-                            height: double.infinity,
-                            fit: BoxFit.cover,
-                            color: _isLoading ? Colors.black.withOpacity(0.4) : null,
-                            colorBlendMode: _isLoading ? BlendMode.darken : null,
-                          ),
+                          if (_selectedImageFile != null)
+                            Image.file(
+                              _selectedImageFile!,
+                              width: double.infinity,
+                              height: double.infinity,
+                              fit: BoxFit.cover,
+                              color: _isLoading ? Colors.black.withValues(alpha: 0.4) : null,
+                              colorBlendMode: _isLoading ? BlendMode.darken : null,
+                            )
+                          else
+                            Image.network(
+                              _selectedSampleImage,
+                              width: double.infinity,
+                              height: double.infinity,
+                              fit: BoxFit.cover,
+                              color: _isLoading ? Colors.black.withValues(alpha: 0.4) : null,
+                              colorBlendMode: _isLoading ? BlendMode.darken : null,
+                            ),
                           if (_isLoading) ...[
                             const CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
                             const _ScanningBeam(),
@@ -133,7 +159,7 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.8),
+                                color: Colors.white.withValues(alpha: 0.8),
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Row(
@@ -141,7 +167,7 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
                                 children: [
                                   const Icon(Icons.add_a_photo_rounded, color: AppColors.primary, size: 20),
                                   const SizedBox(width: 10),
-                                  Text('Change Sample Photo', 
+                                  Text(_selectedImageFile == null ? 'Add Pet Photo' : 'Change Photo',
                                     style: AppTypography.labelSmall.copyWith(fontWeight: FontWeight.w600, color: AppColors.primary)),
                                 ],
                               ),
@@ -245,28 +271,28 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
                           children: [
                             Container(
                               padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), shape: BoxShape.circle),
-                              child: const Icon(Icons.analytics_rounded, color: AppColors.primary, size: 20),
+                              decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.1), shape: BoxShape.circle),
+                              child: const Icon(Icons.auto_awesome_rounded, color: AppColors.primary, size: 20),
                             ),
                             const SizedBox(width: 12),
-                            Text('Report', style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w700)),
-                            const Spacer(),
+                            Expanded(
+                              child: Text('Expert Assessment', 
+                                style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w700),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
                             _buildTonalChip(
-                              _diagnosisResult!.toLowerCase().contains('urgent') ? 'High Risk' : 'Standard',
-                              _diagnosisResult!.toLowerCase().contains('urgent') ? AppColors.dangerRed : AppColors.healthGreen,
+                              _diagnosisResult!.toLowerCase().contains('emergency') ? 'Urgent' : 'Advisory',
+                              _diagnosisResult!.toLowerCase().contains('emergency') ? AppColors.dangerRed : AppColors.primary,
                             ),
                           ],
                         ),
                         const Divider(height: 48),
-                        Text(
-                          'PRIMARY FINDINGS',
-                          style: AppTypography.labelSmall.copyWith(color: AppColors.textTertiary, fontWeight: FontWeight.w700, letterSpacing: 0.8, fontSize: 9),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          _diagnosisResult!,
-                          style: AppTypography.bodyMedium.copyWith(color: AppColors.textPrimary, height: 1.7, fontSize: 15, fontWeight: FontWeight.w500),
-                        ),
+                        _buildHighlightedText(_diagnosisResult!),
+                        const SizedBox(height: 32),
+                        const _ExpertDisclaimer(),
                         const SizedBox(height: 40),
                         Row(
                           children: [
@@ -318,6 +344,43 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
       child: Text(
         label.toUpperCase(),
         style: AppTypography.labelSmall.copyWith(color: color, fontWeight: FontWeight.w700, fontSize: 9, letterSpacing: 0.5),
+      ),
+    );
+  }
+
+  Widget _buildHighlightedText(String text) {
+    List<TextSpan> spans = [];
+    final pattern = RegExp(r'\*\*(.*?)\*\*');
+    int lastMatchEnd = 0;
+
+    for (final match in pattern.allMatches(text)) {
+      if (match.start > lastMatchEnd) {
+        spans.add(TextSpan(text: text.substring(lastMatchEnd, match.start)));
+      }
+      spans.add(TextSpan(
+        text: match.group(1),
+        style: const TextStyle(
+          color: AppColors.primary,
+          fontWeight: FontWeight.w900,
+          backgroundColor: Color(0x15006684),
+        ),
+      ));
+      lastMatchEnd = match.end;
+    }
+
+    if (lastMatchEnd < text.length) {
+      spans.add(TextSpan(text: text.substring(lastMatchEnd)));
+    }
+
+    return RichText(
+      text: TextSpan(
+        style: AppTypography.bodyMedium.copyWith(
+          color: AppColors.textPrimary,
+          height: 1.8,
+          fontSize: 15,
+          fontWeight: FontWeight.w500,
+        ),
+        children: spans,
       ),
     );
   }
@@ -374,6 +437,34 @@ class _ScanningBeamState extends State<_ScanningBeam> with SingleTickerProviderS
           ),
         );
       },
+    );
+  }
+}
+
+class _ExpertDisclaimer extends StatelessWidget {
+  const _ExpertDisclaimer();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.accentAmber.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.accentAmber.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.info_outline_rounded, color: AppColors.accentAmber, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'This AI assessment is for guidance only. Please consult a professional vet for a definitive diagnosis.',
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.accentAmber.withValues(alpha: 0.8), height: 1.4),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

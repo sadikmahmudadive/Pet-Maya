@@ -1,8 +1,10 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:workmanager/workmanager.dart';
 import 'core/theme/app_theme.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/notification_handlers.dart';
@@ -25,6 +27,12 @@ void main() async {
   // Set background messaging handler
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
+  // Initialize Workmanager for battery-optimization-aware tasks
+  Workmanager().initialize(
+    callbackDispatcher,
+    isInDebugMode: false,
+  );
+
   runApp(
     MultiProvider(
       providers: [
@@ -38,9 +46,12 @@ void main() async {
 class TailWaggingApp extends StatelessWidget {
   const TailWaggingApp({super.key});
 
+  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: navigatorKey,
       title: 'Pet Maya',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,

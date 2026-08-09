@@ -9,6 +9,7 @@ class PremiumCard extends StatefulWidget {
   final bool useGlass;
   final double opacity;
   final Color? backgroundColor;
+  final BorderSide? borderSide;
 
   const PremiumCard({
     super.key,
@@ -18,6 +19,7 @@ class PremiumCard extends StatefulWidget {
     this.useGlass = true,
     this.opacity = 0.5,
     this.backgroundColor,
+    this.borderSide,
   });
 
   @override
@@ -68,12 +70,14 @@ class _PremiumCardState extends State<PremiumCard> with SingleTickerProviderStat
             ? GlassCard(
                 borderRadius: widget.borderRadius,
                 opacity: widget.opacity,
+                borderSide: widget.borderSide,
                 child: widget.child,
               )
             : Container(
                 decoration: BoxDecoration(
                   color: widget.backgroundColor ?? Theme.of(context).cardTheme.color,
                   borderRadius: BorderRadius.circular(widget.borderRadius),
+                  border: widget.borderSide != null ? Border.fromBorderSide(widget.borderSide!) : null,
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.2 : 0.05),

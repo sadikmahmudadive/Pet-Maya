@@ -78,7 +78,7 @@ class CartScreen extends StatelessWidget {
                                 children: [
                                   Text(item.product.name, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: 16, fontWeight: FontWeight.w700), maxLines: 1, overflow: TextOverflow.ellipsis),
                                   const SizedBox(height: 4),
-                                  Text('\$${item.product.price.toStringAsFixed(2)}', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                                  Text('৳${item.product.price.toStringAsFixed(2)}', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold)),
                                 ],
                               ),
                             ),
@@ -145,7 +145,7 @@ class CartScreen extends StatelessWidget {
                       children: [
                         Text('Total', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
                         Text(
-                          '\$${state.cartTotal.toStringAsFixed(2)}',
+                          '৳${state.cartTotal.toStringAsFixed(2)}',
                           style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: AppColors.primary, fontWeight: FontWeight.w700),
                         ),
                       ],
@@ -180,7 +180,7 @@ class CartScreen extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(label, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant, fontWeight: FontWeight.w600)),
-        Text('\$${value.toStringAsFixed(2)}', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+        Text('৳${value.toStringAsFixed(2)}', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
       ],
     );
   }

@@ -20,6 +20,7 @@ class AppColors {
   static const Color healthGreen = Color(0xFF66BB6A);
   static const Color healthGreenSoft = Color(0xFF81C784);
   static const Color healthGreenLight = Color(0xFFE8F5E9);
+  static const Color lemonGreen = Color(0xFFD4E157);
   static const Color dangerRed = Color(0xFFFF035F);
   static const Color dangerRedDeep = Color(0xFFBA1A1A);
   static const Color dangerRedLight = Color(0xFFFFEBEE);

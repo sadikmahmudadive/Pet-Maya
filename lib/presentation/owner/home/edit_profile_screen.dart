@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_typography.dart';
 import '../../../data/repositories/app_state_repository.dart';
-import '../../common_widgets/glass_scaffold.dart';
-import '../../common_widgets/premium_card.dart';
-import '../../common_widgets/location_picker_screen.dart';
+import '../../../core/services/cloudinary_service.dart';
+import '../../../core/services/connectivity_service.dart';
+import '../../common_widgets/premium_toast.dart';
+import '../../common_widgets/glass_scaffold.dart';import '../../common_widgets/location_picker_screen.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -19,9 +21,11 @@ class EditProfileScreen extends StatefulWidget {
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
-  final _photoUrlController = TextEditingController();
   final _addressController = TextEditingController();
+  
+  String? _photoUrl;
   bool _isSaving = false;
+  bool _isUploadingPhoto = false;
 
   @override
   void initState() {
@@ -30,8 +34,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (user != null) {
       _nameController.text = user.name;
       _phoneController.text = user.phone ?? '';
-      _photoUrlController.text = user.photoUrl ?? '';
       _addressController.text = user.address ?? '';
+      _photoUrl = user.photoUrl;
     }
   }
 
@@ -39,9 +43,52 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   void dispose() {
     _nameController.dispose();
     _phoneController.dispose();
-    _photoUrlController.dispose();
     _addressController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickAndUploadImage() async {
+    // Requirement: Cloudinary uploads strictly require connectivity
+    final isOnline = await ConnectivityService().isConnected();
+    if (!isOnline) {
+      if (mounted) {
+        context.read<AppStateRepository>().showToast(
+          'Photo upload requires an internet connection 🌐',
+          type: ToastType.error,
+        );
+      }
+      return;
+    }
+
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
+    
+    if (pickedFile != null) {
+      setState(() => _isUploadingPhoto = true);
+      HapticFeedback.mediumImpact();
+      
+      final file = File(pickedFile.path);
+      final uploadedUrl = await CloudinaryService().uploadImage(file, 'profile_pics');
+      
+      if (uploadedUrl != null) {
+        setState(() {
+          _photoUrl = uploadedUrl;
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Photo uploaded! Save changes to apply. ✨'), backgroundColor: AppColors.healthGreen),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to upload photo.'), backgroundColor: AppColors.dangerRed),
+          );
+        }
+      }
+      
+      if (mounted) setState(() => _isUploadingPhoto = false);
+    }
   }
 
   Future<void> _handleSave() async {
@@ -59,7 +106,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       await context.read<AppStateRepository>().updateProfile(
         name: name,
         phone: _phoneController.text.trim(),
-        photoUrl: _photoUrlController.text.trim(),
+        photoUrl: _photoUrl,
         address: _addressController.text.trim(),
       );
       if (!mounted) return;
@@ -80,13 +127,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GlassScaffold(
       appBar: AppBar(
         title: const Text('Edit Profile'),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
@@ -101,26 +151,28 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(color: Colors.white, width: 3),
-                        boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.15), blurRadius: 30, offset: const Offset(0, 15))],
+                        boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.15), blurRadius: 30, offset: const Offset(0, 15))],
                       ),
                       child: CircleAvatar(
                         radius: 64,
-                        backgroundColor: AppColors.primaryLight.withOpacity(0.3),
-                        backgroundImage: _photoUrlController.text.isNotEmpty 
-                          ? NetworkImage(_photoUrlController.text) 
+                        backgroundColor: AppColors.primaryLight.withValues(alpha: 0.3),
+                        backgroundImage: (_photoUrl != null && _photoUrl!.isNotEmpty) 
+                          ? NetworkImage(_photoUrl!) 
                           : null,
-                        child: _photoUrlController.text.isEmpty 
+                        child: (_photoUrl == null || _photoUrl!.isEmpty) 
                           ? const Icon(Icons.person, size: 60, color: AppColors.primary) 
                           : null,
                       ),
                     ),
+                    if (_isUploadingPhoto)
+                      const Positioned.fill(
+                        child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
+                      ),
                     Positioned(
                       bottom: 0,
                       right: 4,
                       child: GestureDetector(
-                        onTap: () {
-                          // TODO: Implement image picker
-                        },
+                        onTap: _isUploadingPhoto ? null : _pickAndUploadImage,
                         child: Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
@@ -147,7 +199,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     hintText: 'Pet Maya User',
                     icon: Icons.person_rounded,
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 24),
                   _buildPremiumField(
                     label: 'Phone Number',
                     controller: _phoneController,
@@ -155,20 +207,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     icon: Icons.phone_rounded,
                     keyboardType: TextInputType.phone,
                   ),
-                  const SizedBox(height: 20),
-                  _buildPremiumField(
-                    label: 'Profile Photo URL',
-                    controller: _photoUrlController,
-                    hintText: 'https://...',
-                    icon: Icons.link_rounded,
-                    onChanged: (_) => setState(() {}),
-                  ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 24),
                   _buildLocationField(),
                 ],
               ),
             ),
-            const SizedBox(height: 48),
+            const SizedBox(height: 60),
             FadeInUp(
               delay: const Duration(milliseconds: 200),
               child: SizedBox(
@@ -179,6 +223,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF006684),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    elevation: 8,
+                    shadowColor: const Color(0xFF006684).withOpacity(0.3),
                   ),
                   child: _isSaving 
                     ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
@@ -198,7 +244,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     required String hintText,
     required IconData icon,
     TextInputType? keyboardType,
-    Function(String)? onChanged,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
@@ -208,27 +253,26 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           padding: const EdgeInsets.only(left: 4, bottom: 8),
           child: Text(
             label.toUpperCase(),
-            style: TextStyle(fontWeight: FontWeight.w900, color: isDark ? Colors.white70 : Colors.black54, fontSize: 10, letterSpacing: 1),
+            style: TextStyle(fontWeight: FontWeight.w900, color: isDark ? Colors.white70 : Colors.black54, fontSize: 10, letterSpacing: 1.5),
           ),
         ),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           decoration: BoxDecoration(
-            color: isDark ? Colors.white.withOpacity(0.05) : Colors.white,
+            color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: isDark ? Colors.white12 : Colors.grey.withOpacity(0.2)),
+            border: Border.all(color: isDark ? Colors.white12 : Colors.grey.withValues(alpha: 0.2)),
           ),
           child: TextField(
             controller: controller,
             keyboardType: keyboardType,
-            onChanged: onChanged,
             style: TextStyle(fontWeight: FontWeight.w700, color: isDark ? Colors.white : Colors.black87, fontSize: 15),
             decoration: InputDecoration(
               prefixIcon: Icon(icon, color: AppColors.primary, size: 20),
               hintText: hintText,
               hintStyle: TextStyle(fontSize: 14, color: isDark ? Colors.white24 : Colors.grey[400]),
               border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(vertical: 20),
+              contentPadding: const EdgeInsets.symmetric(vertical: 22),
             ),
           ),
         ),
@@ -245,7 +289,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           padding: const EdgeInsets.only(left: 4, bottom: 8),
           child: Text(
             'LOCATION',
-            style: TextStyle(fontWeight: FontWeight.w900, color: isDark ? Colors.white70 : Colors.black54, fontSize: 10, letterSpacing: 1),
+            style: TextStyle(fontWeight: FontWeight.w900, color: isDark ? Colors.white70 : Colors.black54, fontSize: 10, letterSpacing: 1.5),
           ),
         ),
         GestureDetector(
@@ -259,11 +303,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             }
           },
           child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+            padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 20),
             decoration: BoxDecoration(
-              color: isDark ? Colors.white.withOpacity(0.05) : Colors.white,
+              color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: isDark ? Colors.white12 : Colors.grey.withOpacity(0.2)),
+              border: Border.all(color: isDark ? Colors.white12 : Colors.grey.withValues(alpha: 0.2)),
             ),
             child: Row(
               children: [
@@ -281,7 +325,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const Icon(Icons.chevron_right_rounded, color: AppColors.textTertiary, size: 20),
+                const Icon(Icons.keyboard_arrow_right_rounded, color: AppColors.textTertiary, size: 20),
               ],
             ),
           ),

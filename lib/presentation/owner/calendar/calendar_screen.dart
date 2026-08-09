@@ -11,6 +11,7 @@ import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
 import '../../common_widgets/empty_state.dart';
 import 'add_event_modal.dart';
+import '../../common_widgets/tail_wagging_loader.dart';
 import 'events_history_screen.dart';
 
 class CalendarScreen extends StatefulWidget {

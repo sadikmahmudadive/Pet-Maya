@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'dart:io';
 
 import '../models/user_model.dart';
 import '../models/pet_model.dart';
@@ -20,6 +21,10 @@ import '../models/review_model.dart';
 import '../services/firebase_service.dart';
 import '../services/realtime_database_service.dart';
 import '../../core/services/notification_service.dart';
+import '../../core/services/native_bridge_service.dart';
+import '../../main.dart';
+import '../../presentation/common_widgets/premium_toast.dart';
+import '../../presentation/common_widgets/premium_notification.dart';
 
 class AppStateRepository extends ChangeNotifier {
   static final AppStateRepository _instance = AppStateRepository._internal();
@@ -162,6 +167,13 @@ class AppStateRepository extends ChangeNotifier {
     notifyListeners();
   }
 
+  void showToast(String message, {ToastType type = ToastType.success}) {
+    final context = TailWaggingApp.navigatorKey.currentContext;
+    if (context != null) {
+      PremiumToast.show(context, message, type: type);
+    }
+  }
+
   // ─── FIREBASE SYNC ENTRY POINT ────────────────────────────────────────────
   /// Called after login to fetch and stream all user data from Realtime Database.
   Future<void> syncFromFirebase(UserModel user) async {
@@ -187,9 +199,11 @@ class AppStateRepository extends ChangeNotifier {
         longitude: user.longitude,
       );
 
-      // Save / update user profile in RTDB
       await _rtdb.saveUserProfile(updatedUser);
       _currentUser = updatedUser;
+
+      // Enable Offline-First Synchronization
+      await _rtdb.enableOfflineSync(user.uid);
 
       // Always load shared data (products, vets)
       await _loadProducts();
@@ -662,7 +676,39 @@ class AppStateRepository extends ChangeNotifier {
     _events.add(event);
     notifyListeners();
     await _rtdb.saveEvent(event);
+    
+    // Tier 1: Local Reminder Engine (AlarmManager)
+    if (event.isReminderEnabled) {
+      final dateTime = event.date;
+      final fromTime = event.fromTime.split(':');
+      final scheduledTime = DateTime(
+        dateTime.year, dateTime.month, dateTime.day,
+        int.parse(fromTime[0]), int.parse(fromTime[1]),
+      );
+
+      await NativeBridgeService.scheduleAlarm(
+        id: event.id,
+        title: event.title,
+        timestamp: scheduledTime.millisecondsSinceEpoch,
+        isFeeding: event.category.toLowerCase() == 'food' || event.category.toLowerCase() == 'feeding',
+      );
+    }
+
     logAudit('Event Scheduled', 'Scheduled ${event.title} for ${event.petName}');
+  }
+
+  Future<void> deleteEvent(String eventId) async {
+    final idx = _events.indexWhere((e) => e.id == eventId);
+    if (idx != -1) {
+      _events.removeAt(idx);
+      notifyListeners();
+      await _rtdb.deleteEvent(eventId);
+      
+      // Cancel Local Alarm
+      await NativeBridgeService.cancelAlarm(eventId);
+      
+      logAudit('Event Removed', 'Event ID $eventId removed from schedule');
+    }
   }
 
   Future<void> toggleEventCompletion(String eventId) async {
@@ -694,10 +740,27 @@ class AppStateRepository extends ChangeNotifier {
   Future<String> runAiHealthDiagnosis({
     required String petName,
     required String prompt,
+    File? imageFile,
   }) async {
     final openAiApiKey = dotenv.env['OPENAI_API_KEY'];
     if (openAiApiKey != null && openAiApiKey.isNotEmpty) {
       try {
+        List<Map<String, dynamic>> content = [
+          {
+            'type': 'text',
+            'text': 'Pet Name: $petName. Issue description: $prompt'
+          }
+        ];
+
+        if (imageFile != null) {
+          final bytes = await imageFile.readAsBytes();
+          final base64Image = base64Encode(bytes);
+          content.add({
+            'type': 'image_url',
+            'image_url': {'url': 'data:image/jpeg;base64,$base64Image'}
+          });
+        }
+
         final response = await http.post(
           Uri.parse('https://api.openai.com/v1/chat/completions'),
           headers: {
@@ -705,41 +768,55 @@ class AppStateRepository extends ChangeNotifier {
             'Authorization': 'Bearer $openAiApiKey',
           },
           body: jsonEncode({
-            'model': 'gpt-4o-mini',
+            'model': 'gpt-4o', // Use full gpt-4o for vision capabilities
             'messages': [
               {
                 'role': 'system',
-                'content': 'You are a compassionate veterinary AI assistant. Analyze pet symptoms described or shown, outline possible causes, severity level, home care tips, and state clearly when to see a veterinarian.'
+                'content': '''You are a highly experienced, compassionate Senior Veterinarian. 
+                
+                IMPORTANT RULES:
+                1. HIGHLIGHT KEY TERMS: Use double asterisks ** around any suspected diseases, medical conditions, symptoms, or specific body parts mentioned (e.g., **ringworm**, **lesion**, **eye area**).
+                2. Use clear, plain text with natural spacing for the rest of the content.
+                3. VISUAL EVIDENCE: Describe exactly what you see in the specific photo provided. Be precise about location and appearance.
+                4. DIAGNOSTIC REASONING: Provide a specific assessment. Do not give the same general advice for every pet.
+                5. TONE: Empathetic and reassuring.
+                6. VET URGENCY: Clearly state if this is an Emergency, Non-Urgent, or Routine concern.
+                7. NO SYMBOLS: Aside from the ** markers for highlighting, do not use hashtags (#) or other markdown symbols.'''
               },
-              {'role': 'user', 'content': 'Pet Name: $petName. Issue description: $prompt'}
+              {'role': 'user', 'content': content}
             ],
-            'temperature': 0.7,
+            'temperature': 0.5, // Lower temperature for more consistent, clinical accuracy
+            'max_tokens': 1000,
           }),
         );
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
-          return data['choices'][0]['message']['content'];
+          final aiResponse = data['choices'][0]['message']['content'].toString();
+          // DO NOT strip asterisks anymore as they are used for highlighting
+          return aiResponse.replaceAll('#', '').trim();
+        } else {
+          final errorData = jsonDecode(response.body);
+          final errorMsg = errorData['error']?['message'] ?? 'Unknown Error';
+          debugPrint('[AI Scanner] API Error (${response.statusCode}): $errorMsg');
+          
+          if (response.statusCode == 401) {
+            return "Authentication Error: Please check the API key configuration. Details: $errorMsg";
+          } else if (response.statusCode == 429) {
+            return "The AI is currently busy (Rate Limit). Please wait a moment and try again. Details: $errorMsg";
+          } else if (response.statusCode == 400) {
+            return "The request was not understood by the AI. This usually happens with very large images. Details: $errorMsg";
+          }
+          
+          return "I'm having trouble connecting to my medical database (Error $errorMsg). Please ensure your internet is stable and try again.";
         }
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('[AI Scanner] Exception: $e');
+        return "I encountered a system error ($e) while analyzing the image. Please try again later.";
+      }
     }
 
-    await Future.delayed(const Duration(milliseconds: 1400));
-    return '''🔍 **AI Health Diagnostic Assessment for $petName**
-
-**1. Observations & Primary Symptoms:**
-• Mild localized skin sensitivity / irritation observed in target area.
-• No deep lacerations or acute purulent discharge visible.
-
-**2. Potential Causes:**
-• Environmental contact allergen (grass, seasonal pollen, or carpet cleaner).
-• Mild flea allergy dermatitis or superficial moisture irritation.
-
-**3. Recommended Action & First Aid:**
-• Gently clean the area with mild saline solution or chlorhexidine wipe.
-• Avoid letting $petName lick or scratch the area (use an Elizabethan collar if needed).
-• Apply soothing organic chamomile / aloe gel.
-
-⚠️ *Severity Level: LOW TO MODERATE. If redness expands, swells, or pain increases within 24-48 hours, please book an in-person veterinary checkup immediately.*''';
+    // Fallback if no API key is found
+    return "AI Diagnostic capability is currently unavailable. Please contact support or check your network settings.";
   }
 
   Future<void> saveAiDiagnosisToPetRecord({
@@ -822,7 +899,7 @@ class AppStateRepository extends ChangeNotifier {
     notifyListeners();
     // Persist to RTDB
     await _rtdb.placeOrder(order);
-    logAudit('Order Placed', 'Order ${order.orderId} created for \$${order.total.toStringAsFixed(2)}');
+    logAudit('Order Placed', 'Order ${order.orderId} created for ৳${order.total.toStringAsFixed(2)}');
     return order;
   }
 
@@ -923,6 +1000,14 @@ class AppStateRepository extends ChangeNotifier {
     return _postComments[postId] ?? [];
   }
 
+  void listenToComments(String postId) {
+    _rtdb.streamComments(postId).listen((fetchedComments) {
+      debugPrint('[AppStateRepository] Received ${fetchedComments.length} comments for post $postId');
+      _postComments[postId] = fetchedComments;
+      notifyListeners();
+    }, onError: (e) => debugPrint('[AppStateRepository] listenToComments error: $e'));
+  }
+
   Future<void> addComment(String postId, String text) async {
     final comment = CommentModel(
       commentId: 'cmt_${_uuid.v4().substring(0, 6)}',
@@ -933,15 +1018,19 @@ class AppStateRepository extends ChangeNotifier {
       text: text,
       timestamp: DateTime.now().millisecondsSinceEpoch,
     );
+
+    // Optimistic UI update
     if (!_postComments.containsKey(postId)) {
       _postComments[postId] = [];
     }
     _postComments[postId]!.add(comment);
+    
     final postIdx = _posts.indexWhere((p) => p.postId == postId);
     if (postIdx != -1) {
       _posts[postIdx].commentsCount += 1;
     }
     notifyListeners();
+
     await _rtdb.addComment(postId, comment);
   }
 
@@ -1020,12 +1109,29 @@ class AppStateRepository extends ChangeNotifier {
     
     if (_currentUser != null) {
       await _rtdb.saveNotification(_currentUser!.uid, notification);
+      
+      // Show Premium In-App Overlay
+      final context = TailWaggingApp.navigatorKey.currentContext;
+      if (context != null) {
+        PremiumNotificationOverlay.show(
+          context,
+          title: title,
+          message: message,
+          type: type,
+        );
+      }
     }
   }
 
   void markNotificationAsRead(String id) async {
     if (_currentUser != null) {
       await _rtdb.markNotificationAsRead(_currentUser!.uid, id);
+    }
+  }
+
+  void removeNotification(String id) async {
+    if (_currentUser != null) {
+      await _rtdb.removeNotification(_currentUser!.uid, id);
     }
   }
 
@@ -1168,7 +1274,7 @@ class AppStateRepository extends ChangeNotifier {
             'Authorization': 'Bearer $openAiApiKey',
           },
           body: jsonEncode({
-            'model': 'gpt-4o-mini',
+            'model': 'gpt-4o',
             'messages': [
               {
                 'role': 'system',
@@ -1212,7 +1318,7 @@ class AppStateRepository extends ChangeNotifier {
             'Authorization': 'Bearer $openAiApiKey',
           },
           body: jsonEncode({
-            'model': 'gpt-4o-mini',
+            'model': 'gpt-4o',
             'messages': [
               {
                 'role': 'system',

@@ -63,7 +63,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               const SizedBox(height: 24),
               Text('Order Confirmed!', style: AppTypography.headlineSmall.copyWith(fontWeight: FontWeight.w800)),
               const SizedBox(height: 12),
-              Text('Order ID: ${order.orderId}\nAmount: \$${order.total.toStringAsFixed(2)}', 
+              Text('Order ID: ${order.orderId}\nAmount: ৳${order.total.toStringAsFixed(2)}', 
                 textAlign: TextAlign.center, style: AppTypography.bodyMedium.copyWith(color: Colors.grey[500], fontWeight: FontWeight.w600)),
               const SizedBox(height: 32),
               SizedBox(
@@ -157,7 +157,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                   children: [
                                     Text('${item.quantity}x ${item.product.name}', 
                                       style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.w600, color: isDark ? Colors.white70 : Colors.black87)),
-                                    Text('\$${item.totalPrice.toStringAsFixed(2)}', 
+                                    Text('৳${item.totalPrice.toStringAsFixed(2)}', 
                                       style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.w800, fontSize: 14)),
                                   ],
                                 ),
@@ -167,7 +167,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text('Total Amount', style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w800)),
-                              Text('\$${state.cartTotal.toStringAsFixed(2)}', 
+                              Text('৳${state.cartTotal.toStringAsFixed(2)}',
                                 style: AppTypography.headlineSmall.copyWith(color: AppColors.primary, fontWeight: FontWeight.w900)),
                             ],
                           ),

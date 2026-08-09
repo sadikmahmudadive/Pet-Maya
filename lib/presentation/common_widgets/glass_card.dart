@@ -8,6 +8,7 @@ class GlassCard extends StatelessWidget {
   final double opacity;
   final double borderRadius;
   final Color? borderColor;
+  final BorderSide? borderSide;
   final Gradient? gradient;
 
   const GlassCard({
@@ -18,6 +19,7 @@ class GlassCard extends StatelessWidget {
     this.opacity = 0.75,
     this.borderRadius = 28,
     this.borderColor,
+    this.borderSide,
     this.gradient,
   });
 
@@ -33,10 +35,12 @@ class GlassCard extends StatelessWidget {
           color: gradient == null ? Theme.of(context).colorScheme.surface.withOpacity(opacity) : null,
           gradient: gradient ?? defaultGradient,
           borderRadius: BorderRadius.circular(borderRadius),
-          border: Border.all(
-            color: borderColor ?? Theme.of(context).dividerColor.withOpacity(isDark ? 0.25 : 0.15),
-            width: 1.2,
-          ),
+          border: borderSide != null 
+            ? Border.fromBorderSide(borderSide!) 
+            : Border.all(
+                color: borderColor ?? Theme.of(context).dividerColor.withOpacity(isDark ? 0.25 : 0.15),
+                width: 1.2,
+              ),
           boxShadow: [
             BoxShadow(
               color: isDark ? Colors.black.withOpacity(0.3) : AppColors.primary.withOpacity(0.04),

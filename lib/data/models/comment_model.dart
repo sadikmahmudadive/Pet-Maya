@@ -17,18 +17,6 @@ class CommentModel {
     required this.timestamp,
   });
 
-  Map<String, dynamic> toMap() {
-    return {
-      'commentId': commentId,
-      'postId': postId,
-      'userId': userId,
-      'userName': userName,
-      'userPhoto': userPhoto,
-      'text': text,
-      'timestamp': timestamp,
-    };
-  }
-
   factory CommentModel.fromMap(String id, Map<dynamic, dynamic> map) {
     return CommentModel(
       commentId: id,
@@ -36,8 +24,20 @@ class CommentModel {
       userId: map['userId'] ?? '',
       userName: map['userName'] ?? 'User',
       userPhoto: map['userPhoto'],
-      text: map['text'] ?? '',
+      text: map['commentText'] ?? map['text'] ?? '',
       timestamp: (map['timestamp'] as num?)?.toInt() ?? DateTime.now().millisecondsSinceEpoch,
     );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'commentId': commentId,
+      'postId': postId,
+      'userId': userId,
+      'userName': userName,
+      'userPhoto': userPhoto,
+      'commentText': text,
+      'timestamp': timestamp,
+    };
   }
 }

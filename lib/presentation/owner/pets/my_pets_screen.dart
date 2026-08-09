@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/cupertino.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../data/repositories/app_state_repository.dart';
@@ -90,11 +92,13 @@ class MyPetsScreen extends StatelessWidget {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(30),
-                  child: Image.network(
-                    pet.photoUrl ?? 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=400',
+                  child: CachedNetworkImage(
+                    imageUrl: pet.photoUrl ?? 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=400',
                     width: 60,
                     height: 60,
                     fit: BoxFit.cover,
+                    placeholder: (c, u) => CupertinoActivityIndicator(),
+                    errorWidget: (c, u, e) => const Icon(Icons.pets, size: 24, color: Colors.grey),
                   ),
                 ),
               ),

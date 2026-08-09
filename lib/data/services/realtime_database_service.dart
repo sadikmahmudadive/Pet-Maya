@@ -29,6 +29,21 @@ class RealtimeDatabaseService {
   DatabaseReference get _appointmentsRef => _db.ref('appointments');
   DatabaseReference get _reviewsRef => _db.ref('reviews');
   DatabaseReference get _notificationsRef => _db.ref('notifications');
+  DatabaseReference get _commentsRef => _db.ref('comments');
+
+  /// Initialize offline capabilities for critical data nodes
+  Future<void> enableOfflineSync(String userId) async {
+    // Enable disk persistence if not already enabled via native code
+    // Note: On some platforms, this must be called before any other DB usage.
+    // _db.setPersistenceEnabled(true); 
+
+    // Requirement: Critical nodes are always available and updated
+    if (userId.isNotEmpty) {
+      await _usersRef.child(userId).keepSynced(true);
+      await _petsRef.orderByChild('ownerID').equalTo(userId).ref.keepSynced(true);
+      await _notificationsRef.child(userId).keepSynced(true);
+    }
+  }
 
   Map<dynamic, dynamic> _parseSnapshot(dynamic value) {
     if (value == null) return {};
@@ -151,6 +166,10 @@ class RealtimeDatabaseService {
 
   Future<void> saveEvent(EventModel event) async {
     await _appointmentsRef.child(event.id).set(event.toMap());
+  }
+
+  Future<void> deleteEvent(String eventId) async {
+    await _appointmentsRef.child(eventId).remove();
   }
 
   // ─── PRODUCTS ────────────────────────────────────────────────────────────
@@ -347,7 +366,26 @@ class RealtimeDatabaseService {
   }
 
   Future<void> addComment(String postId, CommentModel comment) async {
-    await _postsRef.child(postId).child('comments').child(comment.commentId).set(comment.toMap());
+    // Increment commentsCount transactionally in the post node
+    await _postsRef.child(postId).child('commentsCount').runTransaction((Object? count) {
+      if (count == null) return Transaction.success(1);
+      return Transaction.success((count as int) + 1);
+    });
+    
+    // Save to the dedicated top-level comments node (matching your DB structure)
+    await _commentsRef.child(postId).child(comment.commentId).set(comment.toMap());
+  }
+
+  Stream<List<CommentModel>> streamComments(String postId) {
+    return _commentsRef.child(postId).onValue.map((event) {
+      final value = event.snapshot.value;
+      if (value == null) return [];
+      
+      final data = _parseSnapshot(value);
+      return data.entries.where((e) => e.value != null).map((e) {
+        return CommentModel.fromMap(e.key.toString(), Map<String, dynamic>.from(e.value as Map));
+      }).toList()..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    });
   }
 
   // ─── REVIEWS ─────────────────────────────────────────────────────────────
@@ -391,6 +429,10 @@ class RealtimeDatabaseService {
 
   Future<void> markNotificationAsRead(String userId, String id) async {
     await _notificationsRef.child(userId).child(id).update({'isRead': true});
+  }
+
+  Future<void> removeNotification(String userId, String id) async {
+    await _notificationsRef.child(userId).child(id).remove();
   }
 
   Future<void> clearAllNotifications(String userId) async {

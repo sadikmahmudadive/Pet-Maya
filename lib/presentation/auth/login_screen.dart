@@ -13,6 +13,7 @@ import '../owner/home/owner_home_screen.dart';
 import '../provider/vet_dashboard_screen.dart';
 import '../merchant/pet_shop_dashboard_screen.dart';
 import '../admin/admin_dashboard_screen.dart';
+import '../common_widgets/google_logo.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -332,7 +333,7 @@ class _LoginScreenState extends State<LoginScreen> {
           children: [
             isApple 
               ? Icon(Icons.apple_rounded, color: Theme.of(context).iconTheme.color, size: 24)
-              : Image.network(icon, width: 22),
+              : const GoogleLogo(size: 20),
             const SizedBox(width: 12),
             Text(
               label,
@@ -382,7 +383,13 @@ class _LoginScreenState extends State<LoginScreen> {
         decoration: InputDecoration(
           hintText: focusNode.hasFocus ? '' : hintText,
           hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
-          prefixIcon: Icon(icon, color: Theme.of(context).colorScheme.primary, size: 22),
+          prefixIcon: Icon(
+            icon, 
+            color: focusNode.hasFocus 
+              ? Theme.of(context).colorScheme.primary 
+              : AppColors.lemonGreen, 
+            size: 22
+          ),
           suffixIcon: isPassword
               ? IconButton(
                   icon: Icon(

@@ -82,7 +82,7 @@ class OrdersScreen extends StatelessWidget {
                                           children: [
                                             Text('TOTAL AMOUNT', style: AppTypography.labelSmall.copyWith(fontWeight: FontWeight.w700, color: Theme.of(context).colorScheme.outline, fontSize: 9)),
                                             const SizedBox(height: 4),
-                                            Text('\$${order.total.toStringAsFixed(2)}', 
+                                            Text('৳${order.total.toStringAsFixed(2)}',
                                               style: AppTypography.titleLarge.copyWith(color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 18)),
                                           ],
                                         ),

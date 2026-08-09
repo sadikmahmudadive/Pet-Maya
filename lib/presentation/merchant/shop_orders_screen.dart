@@ -147,7 +147,7 @@ class _ShopOrdersScreenState extends State<ShopOrdersScreen> {
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           const Text('TOTAL PAYOUT', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 8, color: Colors.grey)),
-                                          Text('\$${order.total.toStringAsFixed(2)}', 
+                                          Text('৳${order.total.toStringAsFixed(2)}',
                                             style: const TextStyle(fontWeight: FontWeight.w900, color: AppColors.healthGreen, fontSize: 18)),
                                         ],
                                       ),

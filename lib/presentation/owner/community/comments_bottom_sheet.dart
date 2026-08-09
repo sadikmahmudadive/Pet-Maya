@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
@@ -18,14 +19,25 @@ class CommentsBottomSheet extends StatefulWidget {
 class _CommentsBottomSheetState extends State<CommentsBottomSheet> {
   final _commentController = TextEditingController();
 
+  @override
+  void initState() {
+    super.initState();
+    // Start listening to real-time comments for this post
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AppStateRepository>().listenToComments(widget.post.postId);
+    });
+  }
+
   void _submitComment() {
     final text = _commentController.text.trim();
     if (text.isEmpty) return;
 
+    HapticFeedback.lightImpact();
     final repo = context.read<AppStateRepository>();
     repo.addComment(widget.post.postId, text);
     _commentController.clear();
-    FocusScope.of(context).unfocus();
+    // Keep focus for multiple comments if preferred, or unfocus
+    // FocusScope.of(context).unfocus();
   }
 
   @override
@@ -89,8 +101,12 @@ class _CommentsBottomSheetState extends State<CommentsBottomSheet> {
                             CircleAvatar(
                               radius: 18,
                               backgroundColor: AppColors.primaryLight,
-                              backgroundImage: c.userPhoto != null ? NetworkImage(c.userPhoto!) : null,
-                              child: c.userPhoto == null ? const Icon(Icons.person, size: 18) : null,
+                              backgroundImage: (c.userPhoto != null && c.userPhoto!.isNotEmpty)
+                                  ? NetworkImage(c.userPhoto!)
+                                  : null,
+                              child: (c.userPhoto == null || c.userPhoto!.isEmpty)
+                                  ? const Icon(Icons.person, size: 18)
+                                  : null,
                             ),
                             const SizedBox(width: 10),
                             Expanded(

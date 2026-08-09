@@ -6,6 +6,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../data/models/event_model.dart';
 import '../../../data/repositories/app_state_repository.dart';
+import '../../common_widgets/tail_wagging_loader.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
 import '../../common_widgets/empty_state.dart';
@@ -93,6 +94,10 @@ class _EventsHistoryScreenState extends State<EventsHistoryScreen> {
                     message: 'Try adjusting your filters or schedule new care tasks.',
                   )
                 : RefreshIndicator(
+                    displacement: 80,
+                    edgeOffset: 100,
+                    color: AppColors.primary,
+                    backgroundColor: Colors.white,
                     onRefresh: () async {
                       HapticFeedback.mediumImpact();
                       final user = state.currentUser;

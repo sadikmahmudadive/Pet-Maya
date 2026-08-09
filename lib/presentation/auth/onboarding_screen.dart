@@ -99,7 +99,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           Positioned(
             top: -height * 0.1,
             right: -width * 0.2,
-            child: _buildBlob(width * 0.8, AppColors.primary.withOpacity(isDark ? 0.12 : 0.08)),
+            child: _buildBlob(width * 0.8, AppColors.primary.withValues(alpha: isDark ? 0.12 : 0.08)),
           ),
           Positioned(
             bottom: height * 0.1,
@@ -107,86 +107,103 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             child: _buildBlob(width * 0.6, AppColors.secondary.withOpacity(isDark ? 0.08 : 0.05)),
           ),
 
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: width * 0.1),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Spacer(flex: 3),
-                FadeInDown(
-                  duration: const Duration(milliseconds: 800),
-                  child: Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: isDark ? AppColors.surfaceDark : Colors.white,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primary.withOpacity(isDark ? 0.3 : 0.15),
-                          blurRadius: 40,
-                          offset: const Offset(0, 20),
+          Center(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: width * 0.1),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: 60),
+                    FadeInDown(
+                      duration: const Duration(milliseconds: 800),
+                      child: Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: isDark ? AppColors.surfaceDark : Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withValues(alpha: isDark ? 0.3 : 0.15),
+                              blurRadius: 40,
+                              offset: const Offset(0, 20),
+                            ),
+                          ],
                         ),
-                      ],
+                        child: const Icon(Icons.pets_rounded, size: 80, color: AppColors.primary),
+                      ),
                     ),
-                    child: const Icon(Icons.pets_rounded, size: 80, color: AppColors.primary),
-                  ),
-                ),
-                const SizedBox(height: 40),
-                FadeInUp(
-                  duration: const Duration(milliseconds: 800),
-                  child: Column(
-                    children: [
-                      Text(
-                        'Pet Maya',
-                        style: GoogleFonts.fredoka(
-                          fontSize: 48,
-                          fontWeight: FontWeight.w700,
-                          color: isDark ? AppColors.textPrimaryDark : AppColors.primary,
-                        ),
+                    const SizedBox(height: 40),
+                    FadeInUp(
+                      duration: const Duration(milliseconds: 800),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Pet Maya',
+                            style: GoogleFonts.fredoka(
+                              fontSize: 48,
+                              fontWeight: FontWeight.w700,
+                              color: isDark ? AppColors.textPrimaryDark : AppColors.primary,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Professional Care for Your Best Friends',
+                            textAlign: TextAlign.center,
+                            style: AppTypography.bodyMedium.copyWith(
+                              fontSize: 16,
+                              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                              fontWeight: FontWeight.w500,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'Professional Care for Your Best Friends',
-                        textAlign: TextAlign.center,
-                        style: AppTypography.bodyMedium.copyWith(
-                          fontSize: 16,
-                          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
-                          fontWeight: FontWeight.w500,
-                          letterSpacing: 0.2,
-                        ),
+                    ),
+                    const SizedBox(height: 60),
+                    FadeInUp(
+                      delay: const Duration(milliseconds: 400),
+                      child: _buildGetStartedButton(width),
+                    ),
+                    const SizedBox(height: 60),
+                    FadeInUp(
+                      delay: const Duration(milliseconds: 600),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              _buildPartnerSubSection(
+                                isDark: isDark,
+                                label: 'SUPPORTED BY',
+                                logo: Text('VertexHand', 
+                                  style: GoogleFonts.fredoka(
+                                    fontSize: 16, 
+                                    fontWeight: FontWeight.w600,
+                                    color: isDark ? Colors.white : AppColors.primary,
+                                  )),
+                              ),
+                              const SizedBox(width: 40),
+                              _buildPartnerSubSection(
+                                isDark: isDark,
+                                label: 'DEVELOPED BY',
+                                logo: Image.asset(
+                                  'assets/images/masa_logo.png',
+                                  height: 32,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: 40),
+                  ],
                 ),
-                const Spacer(flex: 2),
-                FadeInUp(
-                  delay: const Duration(milliseconds: 400),
-                  child: _buildGetStartedButton(width),
-                ),
-                const SizedBox(height: 40),
-                FadeInUp(
-                  delay: const Duration(milliseconds: 600),
-                  child: Column(
-                    children: [
-                      Text(
-                        'DESIGNED & DEVELOPED BY',
-                        style: AppTypography.labelSmall.copyWith(
-                          fontSize: 9, 
-                          fontWeight: FontWeight.w700, 
-                          letterSpacing: 0.8,
-                          color: isDark ? AppColors.textSecondaryDark.withOpacity(0.5) : AppColors.textTertiary,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Image.asset(
-                        'assets/images/masa_logo.png',
-                        height: 48,
-                      ),
-                    ],
-                  ),
-                ),
-                const Spacer(flex: 1),
-              ],
+              ),
             ),
           ),
         ],
@@ -383,6 +400,24 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildPartnerSubSection({required bool isDark, required String label, required Widget logo}) {
+    return Column(
+      children: [
+        Text(
+          label,
+          style: AppTypography.labelSmall.copyWith(
+            fontSize: 8, 
+            fontWeight: FontWeight.w800, 
+            letterSpacing: 1.2,
+            color: isDark ? AppColors.textSecondaryDark.withValues(alpha: 0.5) : AppColors.textTertiary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        logo,
+      ],
     );
   }
 }

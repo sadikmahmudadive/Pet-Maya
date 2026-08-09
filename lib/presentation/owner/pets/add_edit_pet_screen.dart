@@ -16,6 +16,8 @@ import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
 import 'breed_finder_screen.dart';
 
+import '../../../core/services/cloudinary_service.dart';
+
 class AddEditPetScreen extends StatefulWidget {
   final PetModel? petToEdit;
 
@@ -37,14 +39,16 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
   DateTime? _dob;
   String _gender = 'Male';
   String _selectedImageUrl = 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=500&auto=format&fit=crop';
+  File? _localImage;
   List<String> _feedingTimes = [];
   bool _isSaving = false;
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
     if (pickedFile != null) {
       setState(() {
+        _localImage = File(pickedFile.path);
         _selectedImageUrl = pickedFile.path;
       });
     }
@@ -81,7 +85,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
     return '$years Year${years != 1 ? 's' : ''}, $months Month${months != 1 ? 's' : ''}';
   }
 
-  void _savePet() {
+  void _savePet() async {
     final name = _nameController.text.trim();
     final breed = _breedController.text.trim();
 
@@ -96,6 +100,27 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
     final repo = context.read<AppStateRepository>();
     final isEditing = widget.petToEdit != null;
 
+    String finalPhotoUrl = _selectedImageUrl;
+
+    // Upload to Cloudinary if a new local image was selected
+    if (_localImage != null) {
+      final uploadedUrl = await CloudinaryService().uploadImage(_localImage!, 'pets');
+      if (uploadedUrl != null) {
+        finalPhotoUrl = uploadedUrl;
+      } else {
+        if (!mounted) return;
+        setState(() => _isSaving = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to upload pet photo. Please try again.'),
+            backgroundColor: AppColors.dangerRed,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        return;
+      }
+    }
+
     final pet = PetModel(
       petID: isEditing ? widget.petToEdit!.petID : 'pet_${const Uuid().v4().substring(0, 6)}',
       ownerID: repo.currentUser?.uid ?? 'owner_1',
@@ -108,7 +133,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
       sound: _soundController.text.trim(),
       height: _heightController.text.trim(),
       weight: _weightController.text.trim(),
-      photoUrl: _selectedImageUrl,
+      photoUrl: finalPhotoUrl,
       description: _bioController.text.trim(),
       feedingTimes: _feedingTimes,
     );
@@ -121,14 +146,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
 
     HapticFeedback.mediumImpact();
     Navigator.pop(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(isEditing ? 'Pet profile updated! ✨' : 'Pet added successfully! 🐾'),
-        backgroundColor: AppColors.healthGreen,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      ),
-    );
+    repo.showToast(isEditing ? 'Pet profile updated! ✨' : 'Pet added successfully! 🐾');
   }
 
   @override

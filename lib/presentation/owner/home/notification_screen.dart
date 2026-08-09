@@ -51,74 +51,84 @@ class NotificationScreen extends StatelessWidget {
                 final date = DateTime.fromMillisecondsSinceEpoch(notification.timestamp);
                 final timeStr = DateFormat.jm().format(date);
 
-                return FadeInUp(
-                  delay: Duration(milliseconds: 50 * index),
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: PremiumCard(
-                      opacity: notification.isRead ? 0.1 : 0.25,
-                      borderRadius: 24,
-                      onTap: () => repo.markNotificationAsRead(notification.id),
-                      child: Padding(
-                        padding: const EdgeInsets.all(18),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: _getColor(notification.type).withOpacity(0.1),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                _getIcon(notification.type),
-                                color: _getColor(notification.type),
-                                size: 20,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        notification.title,
-                                        style: AppTypography.titleMedium.copyWith(
-                                          fontSize: 15,
-                                          fontWeight: notification.isRead ? FontWeight.w600 : FontWeight.w700,
-                                          color: notification.isRead ? AppColors.textSecondary : AppColors.textPrimary,
-                                        ),
-                                      ),
-                                      Text(timeStr, style: AppTypography.labelSmall.copyWith(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.textTertiary)),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    notification.message,
-                                    style: AppTypography.bodyMedium.copyWith(
-                                      fontSize: 13,
-                                      height: 1.4,
-                                      color: notification.isRead ? AppColors.textTertiary : AppColors.textSecondary,
-                                      fontWeight: notification.isRead ? FontWeight.w500 : FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            if (!notification.isRead)
+                return Dismissible(
+                  key: Key(notification.id),
+                  direction: DismissDirection.horizontal,
+                  onDismissed: (direction) {
+                    HapticFeedback.lightImpact();
+                    repo.removeNotification(notification.id); 
+                  },
+                  background: _buildDismissBackground(true),
+                  secondaryBackground: _buildDismissBackground(false),
+                  child: FadeInUp(
+                    delay: Duration(milliseconds: 50 * index),
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: PremiumCard(
+                        opacity: notification.isRead ? 0.1 : 0.25,
+                        borderRadius: 24,
+                        onTap: () => repo.markNotificationAsRead(notification.id),
+                        child: Padding(
+                          padding: const EdgeInsets.all(18),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
                               Container(
-                                width: 8,
-                                height: 8,
-                                margin: const EdgeInsets.only(left: 12, top: 4),
-                                decoration: const BoxDecoration(
-                                  color: AppColors.primary,
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: _getColor(notification.type).withOpacity(0.1),
                                   shape: BoxShape.circle,
                                 ),
+                                child: Icon(
+                                  _getIcon(notification.type),
+                                  color: _getColor(notification.type),
+                                  size: 20,
+                                ),
                               ),
-                          ],
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          notification.title,
+                                          style: AppTypography.titleMedium.copyWith(
+                                            fontSize: 15,
+                                            fontWeight: notification.isRead ? FontWeight.w600 : FontWeight.w700,
+                                            color: notification.isRead ? AppColors.textSecondary : AppColors.textPrimary,
+                                          ),
+                                        ),
+                                        Text(timeStr, style: AppTypography.labelSmall.copyWith(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.textTertiary)),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      notification.message,
+                                      style: AppTypography.bodyMedium.copyWith(
+                                        fontSize: 13,
+                                        height: 1.4,
+                                        color: notification.isRead ? AppColors.textTertiary : AppColors.textSecondary,
+                                        fontWeight: notification.isRead ? FontWeight.w500 : FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              if (!notification.isRead)
+                                Container(
+                                  width: 8,
+                                  height: 8,
+                                  margin: const EdgeInsets.only(left: 12, top: 4),
+                                  decoration: const BoxDecoration(
+                                    color: AppColors.primary,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -145,5 +155,18 @@ class NotificationScreen extends StatelessWidget {
       case NotificationType.order: return AppColors.accentAmber;
       case NotificationType.system: return AppColors.tertiary;
     }
+  }
+
+  Widget _buildDismissBackground(bool isStart) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      alignment: isStart ? Alignment.centerLeft : Alignment.centerRight,
+      decoration: BoxDecoration(
+        color: AppColors.dangerRed.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: const Icon(Icons.delete_sweep_rounded, color: AppColors.dangerRed, size: 28),
+    );
   }
 }

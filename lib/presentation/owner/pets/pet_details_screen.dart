@@ -6,6 +6,8 @@ import '../../../core/theme/app_typography.dart';
 import '../../../data/repositories/app_state_repository.dart';
 import '../../../data/models/pet_model.dart';
 import '../../../data/models/service_record_model.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/cupertino.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
 import 'add_edit_pet_screen.dart';
@@ -50,9 +52,11 @@ class PetDetailsScreen extends StatelessWidget {
               background: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Image.network(
-                    pet.photoUrl ?? 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=800',
+                  CachedNetworkImage(
+                    imageUrl: pet.photoUrl ?? 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=800',
                     fit: BoxFit.cover,
+                    placeholder: (c, u) => Center(child: CupertinoActivityIndicator()),
+                    errorWidget: (c, u, e) => Container(color: AppColors.primaryLight, child: const Icon(Icons.pets, size: 50, color: AppColors.primary)),
                   ),
                   // Enhanced Top Gradient for Status Bar Visibility
                   Container(

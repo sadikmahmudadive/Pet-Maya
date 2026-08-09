@@ -21,7 +21,23 @@ class NotificationService {
     // 1. Request permissions for iOS and Android 13+
     await requestPermissions();
 
-    // 2. Setup Local Notifications for Foreground display
+    // 2. Create High Importance Channel for Android
+    const AndroidNotificationChannel channel = AndroidNotificationChannel(
+      'high_importance_channel', // id
+      'Critical Pet Care Alerts', // title
+      description: 'Used for urgent pet health and medication reminders.', // description
+      importance: Importance.max,
+      playSound: true,
+      enableVibration: true,
+      showBadge: true,
+    );
+
+    final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
+        _localNotifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+
+    await androidImplementation?.createNotificationChannel(channel);
+
+    // 3. Setup Local Notifications for Foreground display
     const AndroidInitializationSettings androidSettings = AndroidInitializationSettings('@mipmap/launcher_icon');
     const DarwinInitializationSettings iosSettings = DarwinInitializationSettings(
       requestAlertPermission: true,
@@ -112,19 +128,27 @@ class NotificationService {
     String? payload,
   }) async {
     const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      'pet_maya_main_channel',
-      'Pet Maya Notifications',
-      channelDescription: 'Main notification channel for Pet Maya app updates',
+      'high_importance_channel',
+      'Critical Pet Care Alerts',
+      channelDescription: 'Used for urgent pet health and medication reminders.',
       importance: Importance.max,
       priority: Priority.high,
       showWhen: true,
       enableVibration: true,
       playSound: true,
+      fullScreenIntent: true, // Modern high-priority alert
+      category: AndroidNotificationCategory.alarm, // bypass power optimization
+      visibility: NotificationVisibility.public,
     );
 
     const NotificationDetails platformDetails = NotificationDetails(
       android: androidDetails,
-      iOS: DarwinNotificationDetails(presentAlert: true, presentBadge: true, presentSound: true),
+      iOS: DarwinNotificationDetails(
+        presentAlert: true, 
+        presentBadge: true, 
+        presentSound: true,
+        interruptionLevel: InterruptionLevel.critical, // iOS High Priority
+      ),
     );
 
     await _localNotifications.show(id, title, body, platformDetails, payload: payload);

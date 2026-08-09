@@ -66,7 +66,7 @@ class InventoryManagementScreen extends StatelessWidget {
                           children: [
                             Text(prod.name, style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.w800), maxLines: 1, overflow: TextOverflow.ellipsis),
                             const SizedBox(height: 4),
-                            Text('\$${prod.price.toStringAsFixed(2)} • ${prod.category}', 
+                            Text('৳${prod.price.toStringAsFixed(2)} • ${prod.category}',
                               style: AppTypography.labelSmall.copyWith(color: AppColors.primary, fontWeight: FontWeight.w700)),
                             const SizedBox(height: 8),
                             Container(
@@ -139,7 +139,7 @@ class InventoryManagementScreen extends StatelessWidget {
                   children: [
                     Expanded(child: _buildCategoryDropdown(context, category, (val) => setModalState(() => category = val!))),
                     const SizedBox(width: 12),
-                    Expanded(child: _buildPremiumInput(context, 'Price (\$)', priceController, hint: '19.99', keyboardType: TextInputType.number)),
+                    Expanded(child: _buildPremiumInput(context, 'Price (৳)', priceController, hint: '19.99', keyboardType: TextInputType.number)),
                   ],
                 ),
                 const SizedBox(height: 20),

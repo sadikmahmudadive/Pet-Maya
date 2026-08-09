@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../data/repositories/app_state_repository.dart';
@@ -11,6 +12,7 @@ import '../owner/home/owner_home_screen.dart';
 import '../provider/vet_dashboard_screen.dart';
 import '../merchant/pet_shop_dashboard_screen.dart';
 import '../admin/admin_dashboard_screen.dart';
+import '../common_widgets/tail_wagging_loader.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -119,7 +121,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                 ScaleTransition(
                   scale: _scaleAnimation,
                   child: Container(
-                    padding: const EdgeInsets.all(28),
+                    padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       shape: BoxShape.circle,
@@ -131,11 +133,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                         ),
                       ],
                     ),
-                    child: const Icon(
-                      Icons.pets_rounded,
-                      size: 64,
-                      color: AppColors.primary,
-                    ),
+                    child: const TailWaggingLoader(size: 80, useBottomPosition: false),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -166,18 +164,38 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'DEVELOPED BY',
+                  'SUPPORTED BY',
                   style: AppTypography.labelSmall.copyWith(
-                    color: Colors.white.withOpacity(0.6),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
+                    color: Colors.white.withValues(alpha: 0.6),
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
                     letterSpacing: 2.0,
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
+                Text(
+                  'VertexHand',
+                  style: GoogleFonts.fredoka(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'DEVELOPED BY',
+                  style: AppTypography.labelSmall.copyWith(
+                    color: Colors.white.withValues(alpha: 0.6),
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 2.0,
+                  ),
+                ),
+                const SizedBox(height: 12),
                 Image.asset(
                   'assets/images/masa_logo.png',
-                  height: 90,
+                  height: 60,
                 ),
               ],
             ),

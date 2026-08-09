@@ -110,7 +110,7 @@ class OrderDetailsScreen extends StatelessWidget {
                                 ],
                               ),
                             ),
-                            Text('\$${entry.value.totalPrice.toStringAsFixed(2)}', 
+                            Text('৳${entry.value.totalPrice.toStringAsFixed(2)}', 
                               style: const TextStyle(fontWeight: FontWeight.w900, color: AppColors.primary, fontSize: 16)),
                           ],
                         ),
@@ -161,7 +161,7 @@ class OrderDetailsScreen extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text('Total Paid', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
-                        Text('\$${order.total.toStringAsFixed(2)}', 
+                        Text('৳${order.total.toStringAsFixed(2)}',
                           style: const TextStyle(color: AppColors.primary, fontSize: 32, fontWeight: FontWeight.w900)),
                       ],
                     ),
@@ -244,7 +244,7 @@ class OrderDetailsScreen extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(label, style: TextStyle(fontWeight: FontWeight.w700, color: Colors.grey[600], fontSize: 14)),
-        Text('\$${value.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
+        Text('৳${value.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
       ],
     );
   }

@@ -2,11 +2,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
+import 'package:animate_do/animate_do.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_typography.dart';
 import '../../../data/repositories/app_state_repository.dart';
 import '../../../data/models/user_model.dart';
 import '../../../data/models/pet_model.dart';
@@ -14,7 +13,6 @@ import '../../../data/models/event_model.dart';
 import '../../../data/models/vet_model.dart';
 import '../services/vet_details_screen.dart';
 import '../../common_widgets/floating_navbar.dart';
-import '../../common_widgets/custom_app_bar.dart';
 import '../pets/my_pets_screen.dart';
 import '../pets/pet_details_screen.dart';
 import '../pets/add_edit_pet_screen.dart';
@@ -25,15 +23,10 @@ import '../shop/shop_screen.dart';
 import '../services/pet_services_screen.dart';
 import '../community/community_feed_screen.dart';
 import 'pet_tracker_screen.dart';
-import '../../auth/login_screen.dart';
-
-import '../../common_widgets/status_chip.dart';
-import '../../common_widgets/parallax_header.dart';
-import '../../common_widgets/glass_card.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
-import 'package:animate_do/animate_do.dart';
 import 'user_profile_screen.dart';
+import '../../common_widgets/tail_wagging_loader.dart';
 import 'notification_screen.dart';
 
 class OwnerHomeScreen extends StatefulWidget {
@@ -141,11 +134,6 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
       ),
     );
   }
-
-
-  void _showProfileDialog(BuildContext context, AppStateRepository state) {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => const UserProfileScreen()));
-  }
 }
 
 class HomeDashboardFragment extends StatelessWidget {
@@ -168,6 +156,19 @@ class HomeDashboardFragment extends StatelessWidget {
       physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
       slivers: [
         CupertinoSliverRefreshControl(
+          refreshIndicatorExtent: 80,
+          refreshTriggerPullDistance: 120,
+          builder: (context, refreshState, pulledExtent, refreshTriggerPullDistance, refreshIndicatorExtent) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: const TailWaggingLoader(
+                  size: 350,
+                  useBottomPosition: true,
+                ),
+              ),
+            );
+          },
           onRefresh: () async {
             HapticFeedback.mediumImpact();
             if (user != null) await state.syncFromFirebase(user);
@@ -186,17 +187,19 @@ class HomeDashboardFragment extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // ─── MY PETS ──────────────────────────────────────────────────
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('My Pets', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 20)),
-                    GestureDetector(
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyPetsScreen())),
-                      child: Text('See All', style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold)),
-                    ),
-                  ],
+              FadeInDown(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('My Pets', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 20)),
+                      GestureDetector(
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyPetsScreen())),
+                        child: Text('See All', style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold)),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               SizedBox(
@@ -342,7 +345,10 @@ class HomeDashboardFragment extends StatelessWidget {
                   child: Center(child: Text('No vets found.')),
                 )
               else
-                ...vets.take(3).map((vet) => FadeInUp(child: _buildDetailedVetCard(context, vet))),
+                ...vets
+                    .where((v) => v.tag.toLowerCase().contains('vet'))
+                    .take(3)
+                    .map((vet) => FadeInUp(child: _buildDetailedVetCard(context, vet))),
               
               const SizedBox(height: 160), // standard spacer to clear floating navbar
             ],
@@ -588,24 +594,6 @@ class HomeDashboardFragment extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildPulseIndicator() {
-    return Container(
-      width: 10,
-      height: 10,
-      decoration: BoxDecoration(
-        color: AppColors.healthGreen,
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.healthGreen.withOpacity(0.4),
-            blurRadius: 8,
-            spreadRadius: 2,
-          ),
-        ],
       ),
     );
   }

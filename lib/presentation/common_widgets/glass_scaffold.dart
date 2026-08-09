@@ -7,6 +7,7 @@ class GlassScaffold extends StatelessWidget {
   final PreferredSizeWidget? appBar;
   final Widget? bottomNavigationBar;
   final Widget? floatingActionButton;
+  final FloatingActionButtonLocation? floatingActionButtonLocation;
   final bool extendBodyBehindAppBar;
   final Color backgroundColor;
 
@@ -16,6 +17,7 @@ class GlassScaffold extends StatelessWidget {
     this.appBar,
     this.bottomNavigationBar,
     this.floatingActionButton,
+    this.floatingActionButtonLocation,
     this.extendBodyBehindAppBar = true,
     this.backgroundColor = const Color(0xFFF3F9FF),
   });
@@ -46,6 +48,7 @@ class GlassScaffold extends StatelessWidget {
           ],
         ),
         floatingActionButton: floatingActionButton,
+        floatingActionButtonLocation: floatingActionButtonLocation,
         bottomNavigationBar: bottomNavigationBar,
       ),
     );

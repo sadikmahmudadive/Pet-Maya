@@ -1,7 +1,9 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../data/models/vet_model.dart';
@@ -55,7 +57,12 @@ class VetDetailsScreen extends StatelessWidget {
                 fit: StackFit.expand,
                 children: [
                   vet.photoUrl != null
-                      ? Image.network(vet.photoUrl!, fit: BoxFit.cover)
+                      ? CachedNetworkImage(
+                          imageUrl: vet.photoUrl!,
+                          fit: BoxFit.cover,
+                          placeholder: (c, u) => Center(child: CupertinoActivityIndicator()),
+                          errorWidget: (c, u, e) => Container(color: AppColors.primaryLight, child: const Icon(Icons.person, size: 50, color: AppColors.primary)),
+                        )
                       : Container(color: AppColors.primaryLight),
                   // Top Gradient for Status Bar
                   Container(

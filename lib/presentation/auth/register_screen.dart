@@ -268,6 +268,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Widget _buildRoleCard(UserRole role, IconData icon, String label) {
     final isSelected = _selectedRole == role;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Padding(
       padding: const EdgeInsets.only(right: 12),
       child: PremiumCard(
@@ -281,7 +283,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
             children: [
             Icon(
                 icon,
-                color: isSelected ? Theme.of(context).colorScheme.primary : null,
+                color: isSelected 
+                  ? Theme.of(context).colorScheme.primary 
+                  : AppColors.lemonGreen,
                 size: 26,
               ),
               const SizedBox(height: 8),
@@ -322,7 +326,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
         decoration: InputDecoration(
           hintText: focusNode.hasFocus ? '' : hintText,
           hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
-          prefixIcon: Icon(icon, color: Theme.of(context).colorScheme.primary, size: 22),
+          prefixIcon: Icon(
+            icon, 
+            color: focusNode.hasFocus 
+              ? Theme.of(context).colorScheme.primary 
+              : AppColors.lemonGreen, 
+            size: 22
+          ),
           suffixIcon: isPassword
               ? IconButton(
                   icon: Icon(

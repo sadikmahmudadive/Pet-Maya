@@ -8,7 +8,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.tailwagging"
+    namespace = "com.vertexhand.petmaya"
     compileSdk = 36
     ndkVersion = "28.2.13676358"
 
@@ -24,7 +24,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.tailwagging"
+        applicationId = "com.vertexhand.petmaya"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
@@ -49,6 +49,17 @@ flutter {
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
+    implementation("androidx.core:core:1.13.1")
+    implementation("com.google.firebase:firebase-messaging:24.0.0")
+    implementation("com.google.firebase:firebase-database:21.0.0")
+    // Force a version of browser that is compatible with AGP 8.7.0 globally
+    implementation("androidx.browser:browser:1.8.0")
+}
+
+configurations.all {
+    resolutionStrategy {
+        force("androidx.browser:browser:1.8.0")
+    }
 }
 
 configurations.all {

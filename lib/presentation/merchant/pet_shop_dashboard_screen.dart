@@ -72,7 +72,7 @@ class PetShopDashboardScreen extends StatelessWidget {
                   // KPI Cards
                   Row(
                     children: [
-                      Expanded(child: FadeInLeft(child: _buildKpiCard(context, 'REVENUE', '\$${totalRevenue.toStringAsFixed(0)}', Icons.monetization_on_rounded, AppColors.healthGreen))),
+                      Expanded(child: FadeInLeft(child: _buildKpiCard(context, 'REVENUE', '৳${totalRevenue.toStringAsFixed(0)}', Icons.monetization_on_rounded, AppColors.healthGreen))),
                       const SizedBox(width: 10),
                       Expanded(child: FadeInUp(child: _buildKpiCard(context, 'ORDERS', '${orders.length}', Icons.local_shipping_rounded, AppColors.primary))),
                       const SizedBox(width: 10),
@@ -183,7 +183,7 @@ class PetShopDashboardScreen extends StatelessWidget {
                                       children: [
                                         Text(ord.orderId, style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.w800)),
                                         const SizedBox(height: 4),
-                                        Text('${ord.items.length} items • \$${ord.total.toStringAsFixed(2)}', 
+                                        Text('${ord.items.length} items • ৳${ord.total.toStringAsFixed(2)}',
                                           style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.w600, color: Colors.grey[500])),
                                       ],
                                     ),
@@ -230,7 +230,7 @@ class PetShopDashboardScreen extends StatelessWidget {
                                       ],
                                     ),
                                   ),
-                                  Text('\$${p.price.toStringAsFixed(0)}', style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.primary, fontSize: 16)),
+                                  Text('৳${p.price.toStringAsFixed(0)}', style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.primary, fontSize: 16)),
                                 ],
                               ),
                             ),
