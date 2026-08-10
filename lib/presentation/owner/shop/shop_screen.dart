@@ -185,21 +185,21 @@ class _ShopScreenState extends State<ShopScreen> {
                   : SliverPadding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       sliver: SliverGrid(
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          mainAxisSpacing: 16,
-                          crossAxisSpacing: 16,
-                          childAspectRatio: 0.7,
-                        ),
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) => FadeInUp(
-                            duration: const Duration(milliseconds: 500),
-                            delay: Duration(milliseconds: 50 * index),
-                            child: _buildProductCard(context, products[index]),
-                          ),
-                          childCount: products.length,
-                        ),
+                    gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                      maxCrossAxisExtent: 220,
+                      mainAxisSpacing: 16,
+                      crossAxisSpacing: 16,
+                      childAspectRatio: 0.7,
+                    ),
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) => FadeInUp(
+                        duration: const Duration(milliseconds: 500),
+                        delay: Duration(milliseconds: 50 * index),
+                        child: _buildProductCard(context, products[index]),
                       ),
+                      childCount: products.length,
+                    ),
+                  ),
                     ),
           const SliverToBoxAdapter(child: SizedBox(height: 160)),
         ],
@@ -413,8 +413,8 @@ class _ShopScreenState extends State<ShopScreen> {
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       sliver: SliverGrid(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
+        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+          maxCrossAxisExtent: 220,
           mainAxisSpacing: 16,
           crossAxisSpacing: 16,
           childAspectRatio: 0.7,

@@ -3,14 +3,14 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
-  // Primary Palette
+  // Primary Palette (Deep & Premium)
   static const Color primary = Color(0xFF006684);
-  static const Color primaryDark = Color(0xFF155672);
+  static const Color primaryDark = Color(0xFF004D63);
   static const Color primaryLight = Color(0xFFBFE9FF);
   static const Color onPrimary = Colors.white;
 
-  // Secondary & Neutral
-  static const Color secondary = Color(0xFFFF8A80); // Pawsitive Coral
+  // Secondary & Accents (Vibrant & Warm)
+  static const Color secondary = Color(0xFFFF8A80); // Vibrant Coral
   static const Color secondaryContainer = Color(0xFFFFD8D6);
   static const Color tertiary = Color(0xFF5D5B7D);
   
@@ -25,13 +25,13 @@ class AppColors {
   static const Color dangerRedDeep = Color(0xFFBA1A1A);
   static const Color dangerRedLight = Color(0xFFFFEBEE);
 
-  // Background & Surfaces
+  // Background & Surfaces (Cloud White / Slate Deep)
   static const Color background = Color(0xFFFBFCFE);
-  static const Color backgroundDark = Color(0xFF0F172A); // Slate 900
+  static const Color backgroundDark = Color(0xFF0A0F1E); // Deep Midnight
   static const Color surface = Color(0xFFFFFFFF);
-  static const Color surfaceDark = Color(0xFF1E293B); // Slate 800
-  static const Color surfaceContainer = Color(0xFFF0F0F3);
-  static const Color surfaceContainerDark = Color(0xFF334155); // Slate 700
+  static const Color surfaceDark = Color(0xFF131C2B); // Deep Navy
+  static const Color surfaceContainer = Color(0xFFF3F7FA);
+  static const Color surfaceContainerDark = Color(0xFF1E293B);
   static const Color surfaceContainerLow = Color(0xFFF4F4F7);
   static const Color surfaceGlass = Color(0xF2FFFFFF);
   static const Color surfaceGlassDark = Color(0xE61E293B);

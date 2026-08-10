@@ -274,182 +274,181 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
 
                             return FadeInUp(
                               delay: Duration(milliseconds: 80 * index),
-                              child: Padding(
-                                padding: const EdgeInsets.only(bottom: 20),
-                                child: PremiumCard(
-                                  opacity: isDark ? 0.25 : 0.2,
-                                  borderRadius: 28,
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      // Facebook-style Author Header
-                                      Padding(
-                                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-                                        child: Row(
-                                          children: [
-                                            CircleAvatar(
-                                              radius: 20,
-                                              backgroundColor: AppColors.primaryLight,
-                                              backgroundImage: (post.userPhoto != null && post.userPhoto!.isNotEmpty)
-                                                  ? NetworkImage(post.userPhoto!)
-                                                  : null,
-                                              child: (post.userPhoto == null || post.userPhoto!.isEmpty)
-                                                  ? const Icon(Icons.person, size: 20)
-                                                  : null,
-                                            ),
-                                            const SizedBox(width: 12),
-                                            Expanded(
-                                              child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(post.userName, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
-                                                  const SizedBox(height: 2),
-                                                  Row(
+                              child: Center(
+                                child: ConstrainedBox(
+                                  constraints: const BoxConstraints(maxWidth: 600),
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(bottom: 20),
+                                    child: PremiumCard(
+                                      opacity: isDark ? 0.25 : 0.2,
+                                      borderRadius: 28,
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          // Author Header
+                                          Padding(
+                                            padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+                                            child: Row(
+                                              children: [
+                                                CircleAvatar(
+                                                  radius: 20,
+                                                  backgroundColor: AppColors.primaryLight,
+                                                  backgroundImage: (post.userPhoto != null && post.userPhoto!.isNotEmpty)
+                                                      ? NetworkImage(post.userPhoto!)
+                                                      : null,
+                                                  child: (post.userPhoto == null || post.userPhoto!.isEmpty)
+                                                      ? const Icon(Icons.person, size: 20)
+                                                      : null,
+                                                ),
+                                                const SizedBox(width: 12),
+                                                Expanded(
+                                                  child: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
                                                     children: [
-                                                      Text(
-                                                        formattedTime,
-                                                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: isDark ? Colors.white54 : Colors.grey[600]),
+                                                      Text(post.userName, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+                                                      const SizedBox(height: 2),
+                                                      Row(
+                                                        children: [
+                                                          Text(
+                                                            formattedTime,
+                                                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: isDark ? Colors.white54 : Colors.grey[600]),
+                                                          ),
+                                                          const SizedBox(width: 4),
+                                                          Text('·', style: TextStyle(fontSize: 11, color: isDark ? Colors.white54 : Colors.grey[600])),
+                                                          const SizedBox(width: 4),
+                                                          Icon(Icons.public_rounded, size: 12, color: isDark ? Colors.white54 : Colors.grey[600]),
+                                                        ],
                                                       ),
-                                                      const SizedBox(width: 4),
-                                                      Text('·', style: TextStyle(fontSize: 11, color: isDark ? Colors.white54 : Colors.grey[600])),
-                                                      const SizedBox(width: 4),
-                                                      Icon(Icons.public_rounded, size: 12, color: isDark ? Colors.white54 : Colors.grey[600]),
                                                     ],
                                                   ),
-                                                ],
-                                              ),
-                                            ),
-                                            _buildPostBadge(post.postType),
-                                            IconButton(
-                                              icon: Icon(Icons.more_horiz_rounded, color: isDark ? Colors.white54 : Colors.grey[600]),
-                                              onPressed: () {},
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-
-                                      // Post Content Text
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                                        child: Text(
-                                          post.content,
-                                          maxLines: 4,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                            height: 1.5,
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w500,
-                                            color: isDark ? Colors.white.withOpacity(0.9) : Colors.black87,
-                                          ),
-                                        ),
-                                      ),
-
-                                      // Post Image Attachment
-                                      if (post.imageUrl != null) ...[
-                                        const SizedBox(height: 14),
-                                        Padding(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                                          child: ClipRRect(
-                                            borderRadius: BorderRadius.circular(20),
-                                            child: CachedNetworkImage(
-                                              imageUrl: post.imageUrl!,
-                                              width: double.infinity,
-                                              height: 260,
-                                              fit: BoxFit.cover,
-                                              placeholder: (c, u) => SkeletonLoader(width: double.infinity, height: 260, borderRadius: 20),
-                                              errorWidget: (c, u, e) => const Icon(Icons.error_outline_rounded),
+                                                ),
+                                                _buildPostBadge(post.postType),
+                                              ],
                                             ),
                                           ),
-                                        ),
-                                      ],
 
-                                      const SizedBox(height: 12),
-
-                                      // Facebook-style Social Proof Bar
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                                        child: Row(
-                                          children: [
-                                            Container(
-                                              padding: const EdgeInsets.all(4),
-                                              decoration: const BoxDecoration(
-                                                color: Color(0xFF1877F2),
-                                                shape: BoxShape.circle,
-                                              ),
-                                              child: const Icon(Icons.thumb_up_alt_rounded, size: 10, color: Colors.white),
-                                            ),
-                                            const SizedBox(width: 6),
-                                            Text(
-                                              '${post.likesCount}',
+                                          // Post Content Text
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                                            child: Text(
+                                              post.content,
                                               style: TextStyle(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w700,
-                                                color: isDark ? Colors.white60 : Colors.grey[700],
+                                                height: 1.5,
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w500,
+                                                color: isDark ? Colors.white.withValues(alpha: 0.9) : Colors.black87,
                                               ),
                                             ),
-                                            const Spacer(),
-                                            Text(
-                                              '${post.commentsCount} comments',
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w600,
-                                                color: isDark ? Colors.white60 : Colors.grey[700],
+                                          ),
+
+                                          // Post Image Attachment
+                                          if (post.imageUrl != null) ...[
+                                            const SizedBox(height: 14),
+                                            Padding(
+                                              padding: const EdgeInsets.symmetric(horizontal: 8),
+                                              child: ClipRRect(
+                                                borderRadius: BorderRadius.circular(20),
+                                                child: CachedNetworkImage(
+                                                  imageUrl: post.imageUrl!,
+                                                  width: double.infinity,
+                                                  height: 260,
+                                                  fit: BoxFit.cover,
+                                                  placeholder: (c, u) => SkeletonLoader(width: double.infinity, height: 260, borderRadius: 20),
+                                                  errorWidget: (c, u, e) => const Icon(Icons.error_outline_rounded),
+                                                ),
                                               ),
                                             ),
                                           ],
-                                        ),
-                                      ),
 
-                                      const SizedBox(height: 8),
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                                        child: Divider(height: 1, color: isDark ? Colors.white10 : Colors.black.withOpacity(0.08)),
-                                      ),
+                                          const SizedBox(height: 12),
 
-                                      // Facebook-style 3-Button Action Bar
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                        child: Row(
-                                          children: [
-                                            Expanded(
-                                              child: _buildFacebookActionBtn(
-                                                icon: isLiked ? Icons.thumb_up_alt_rounded : Icons.thumb_up_alt_outlined,
-                                                label: 'Like',
-                                                color: isLiked ? const Color(0xFF1877F2) : (isDark ? Colors.white60 : Colors.grey[700]!),
-                                                onTap: () {
-                                                  HapticFeedback.lightImpact();
-                                                  state.togglePostLike(post.postId);
-                                                },
-                                              ),
+                                          // Social Proof Bar
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                                            child: Row(
+                                              children: [
+                                                Container(
+                                                  padding: const EdgeInsets.all(4),
+                                                  decoration: const BoxDecoration(
+                                                    color: Color(0xFF1877F2),
+                                                    shape: BoxShape.circle,
+                                                  ),
+                                                  child: const Icon(Icons.thumb_up_alt_rounded, size: 10, color: Colors.white),
+                                                ),
+                                                const SizedBox(width: 6),
+                                                Text(
+                                                  '${post.likesCount}',
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: isDark ? Colors.white60 : Colors.grey[700],
+                                                  ),
+                                                ),
+                                                const Spacer(),
+                                                Text(
+                                                  '${post.commentsCount} comments',
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: isDark ? Colors.white60 : Colors.grey[700],
+                                                  ),
+                                                ),
+                                              ],
                                             ),
-                                            Expanded(
-                                              child: _buildFacebookActionBtn(
-                                                icon: Icons.chat_bubble_outline_rounded,
-                                                label: 'Comment',
-                                                color: isDark ? Colors.white60 : Colors.grey[700]!,
-                                                onTap: () {
-                                                  HapticFeedback.lightImpact();
-                                                  showModalBottomSheet(
-                                                    context: context,
-                                                    isScrollControlled: true,
-                                                    backgroundColor: Colors.transparent,
-                                                    builder: (_) => CommentsBottomSheet(post: post),
-                                                  );
-                                                },
-                                              ),
+                                          ),
+
+                                          const SizedBox(height: 8),
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                                            child: Divider(height: 1, color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.08)),
+                                          ),
+
+                                          // Action Bar
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                            child: Row(
+                                              children: [
+                                                Expanded(
+                                                  child: _buildFacebookActionBtn(
+                                                    icon: isLiked ? Icons.thumb_up_alt_rounded : Icons.thumb_up_alt_outlined,
+                                                    label: 'Like',
+                                                    color: isLiked ? const Color(0xFF1877F2) : (isDark ? Colors.white60 : Colors.grey[700]!),
+                                                    onTap: () {
+                                                      HapticFeedback.lightImpact();
+                                                      state.togglePostLike(post.postId);
+                                                    },
+                                                  ),
+                                                ),
+                                                Expanded(
+                                                  child: _buildFacebookActionBtn(
+                                                    icon: Icons.chat_bubble_outline_rounded,
+                                                    label: 'Comment',
+                                                    color: isDark ? Colors.white60 : Colors.grey[700]!,
+                                                    onTap: () {
+                                                      HapticFeedback.lightImpact();
+                                                      showModalBottomSheet(
+                                                        context: context,
+                                                        isScrollControlled: true,
+                                                        backgroundColor: Colors.transparent,
+                                                        builder: (_) => CommentsBottomSheet(post: post),
+                                                      );
+                                                    },
+                                                  ),
+                                                ),
+                                                Expanded(
+                                                  child: _buildFacebookActionBtn(
+                                                    icon: Icons.share_outlined,
+                                                    label: 'Share',
+                                                    color: isDark ? Colors.white60 : Colors.grey[700]!,
+                                                    onTap: () => _showShareModal(context, post),
+                                                  ),
+                                                ),
+                                              ],
                                             ),
-                                            Expanded(
-                                              child: _buildFacebookActionBtn(
-                                                icon: Icons.share_outlined,
-                                                label: 'Share',
-                                                color: isDark ? Colors.white60 : Colors.grey[700]!,
-                                                onTap: () => _showShareModal(context, post),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
+                                          ),
+                                        ],
                                       ),
-                                    ],
+                                    ),
                                   ),
                                 ),
                               ),

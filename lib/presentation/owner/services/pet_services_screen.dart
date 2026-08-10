@@ -120,7 +120,13 @@ class _PetServicesScreenState extends State<PetServicesScreen> {
                     )
                   : SliverPadding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
-                      sliver: SliverList(
+                      sliver: SliverGrid(
+                        gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                          maxCrossAxisExtent: 500, // Two columns on tablet, one on mobile
+                          mainAxisSpacing: 16,
+                          crossAxisSpacing: 16,
+                          mainAxisExtent: 180, // Fixed height for service cards
+                        ),
                         delegate: SliverChildBuilderDelegate(
                           (context, index) => _buildVetCard(context, vets[index]),
                           childCount: vets.length,

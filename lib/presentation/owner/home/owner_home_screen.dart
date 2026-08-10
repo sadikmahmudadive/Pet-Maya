@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/repositories/app_state_repository.dart';
 import '../../../data/models/user_model.dart';
@@ -41,6 +42,9 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final orientation = MediaQuery.of(context).orientation;
+    final isLandscape = orientation == Orientation.landscape;
+
     return GlassScaffold(
       body: Stack(
         children: [
@@ -57,17 +61,58 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
             ],
           ),
           Positioned(
-            left: 0,
+            left: isLandscape ? null : 0,
             right: 0,
-            bottom: 0,
-            child: FloatingNavbar(
-              selectedIndex: _currentNavIndex > 3 ? 1 : _currentNavIndex,
-              onItemTapped: (index) => setState(() => _currentNavIndex = index),
-              onFabTapped: () => _showQuickActionSheet(context),
-            ),
+            bottom: isLandscape ? 24 : 0,
+            top: isLandscape ? 24 : null,
+            child: isLandscape 
+              ? _buildSideNavbar() 
+              : FloatingNavbar(
+                  selectedIndex: _currentNavIndex > 3 ? 1 : _currentNavIndex,
+                  onItemTapped: (index) => setState(() => _currentNavIndex = index),
+                  onFabTapped: () => _showQuickActionSheet(context),
+                ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildSideNavbar() {
+    return Container(
+      width: 80,
+      margin: const EdgeInsets.only(right: 12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 20)],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _buildSideTab(0, Icons.grid_view_rounded),
+          _buildSideTab(1, Icons.explore_rounded),
+          GestureDetector(
+            onTap: () => _showQuickActionSheet(context),
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
+              child: const Icon(Icons.add, color: Colors.white, size: 24),
+            ),
+          ),
+          _buildSideTab(2, Icons.forum_rounded),
+          _buildSideTab(3, Icons.person_rounded),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSideTab(int index, IconData icon) {
+    final isSelected = _currentNavIndex == index;
+    return IconButton(
+      icon: Icon(icon, color: isSelected ? AppColors.primary : Colors.grey, size: 28),
+      onPressed: () => setState(() => _currentNavIndex = index),
     );
   }
 
@@ -229,57 +274,64 @@ class HomeDashboardFragment extends StatelessWidget {
                   children: [
                     Text('Discover More', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 20)),
                     const SizedBox(height: 16),
-                    GridView.count(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 12,
-                      crossAxisSpacing: 12,
-                      childAspectRatio: isSmallScreen ? 0.75 : 0.8,
-                      children: [
-                        _buildDiscoveryCard(
-                          context,
-                          icon: Icons.attach_money_rounded,
-                          color: const Color(0xFFE0F7FA),
-                          iconColor: const Color(0xFF006064),
-                          title: 'Pet Shop',
-                          subtitle: 'Premium treats',
-                          action: 'Shop',
-                          onTap: () => onNavRequested?.call(4),
-                        ),
-                        _buildDiscoveryCard(
-                          context,
-                          icon: Icons.location_on_rounded,
-                          color: const Color(0xFFE3F2FD),
-                          iconColor: const Color(0xFF0D47A1),
-                          title: 'Tracker',
-                          subtitle: 'Live location',
-                          action: 'Locate',
-                          onTap: () {
-                            if (pets.isNotEmpty) Navigator.push(context, MaterialPageRoute(builder: (_) => PetTrackerScreen(pet: pets.first)));
-                          },
-                        ),
-                        _buildDiscoveryCard(
-                          context,
-                          icon: Icons.chat_bubble_outline_rounded,
-                          color: const Color(0xFFF3E5F5),
-                          iconColor: const Color(0xFF4A148C),
-                          title: 'Wellness',
-                          subtitle: 'Health scan',
-                          action: 'Check',
-                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AiHealthScannerScreen())),
-                        ),
-                        _buildDiscoveryCard(
-                          context,
-                          icon: Icons.pets_rounded,
-                          color: const Color(0xFFE8F5E9),
-                          iconColor: const Color(0xFF1B5E20),
-                          title: 'Community',
-                          subtitle: 'Global feed',
-                          action: 'Explore',
-                          onTap: () => onNavRequested?.call(2),
-                        ),
-                      ],
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final crossAxisCount = constraints.maxWidth > 600 ? 4 : 2;
+                        final childAspectRatio = constraints.maxWidth > 600 ? 1.0 : (isSmallScreen ? 0.75 : 0.8);
+                        
+                        return GridView.count(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          crossAxisCount: crossAxisCount,
+                          mainAxisSpacing: 12,
+                          crossAxisSpacing: 12,
+                          childAspectRatio: childAspectRatio,
+                          children: [
+                            _buildDiscoveryCard(
+                              context,
+                              icon: Icons.attach_money_rounded,
+                              color: const Color(0xFFE0F7FA),
+                              iconColor: const Color(0xFF006064),
+                              title: 'Pet Shop',
+                              subtitle: 'Premium treats',
+                              action: 'Shop',
+                              onTap: () => onNavRequested?.call(4),
+                            ),
+                            _buildDiscoveryCard(
+                              context,
+                              icon: Icons.location_on_rounded,
+                              color: const Color(0xFFE3F2FD),
+                              iconColor: const Color(0xFF0D47A1),
+                              title: 'Tracker',
+                              subtitle: 'Live location',
+                              action: 'Locate',
+                              onTap: () {
+                                if (pets.isNotEmpty) Navigator.push(context, MaterialPageRoute(builder: (_) => PetTrackerScreen(pet: pets.first)));
+                              },
+                            ),
+                            _buildDiscoveryCard(
+                              context,
+                              icon: Icons.chat_bubble_outline_rounded,
+                              color: const Color(0xFFF3E5F5),
+                              iconColor: const Color(0xFF4A148C),
+                              title: 'Wellness',
+                              subtitle: 'Health scan',
+                              action: 'Check',
+                              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AiHealthScannerScreen())),
+                            ),
+                            _buildDiscoveryCard(
+                              context,
+                              icon: Icons.pets_rounded,
+                              color: const Color(0xFFE8F5E9),
+                              iconColor: const Color(0xFF1B5E20),
+                              title: 'Community',
+                              subtitle: 'Global feed',
+                              action: 'Explore',
+                              onTap: () => onNavRequested?.call(2),
+                            ),
+                          ],
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -525,29 +577,31 @@ class HomeDashboardFragment extends StatelessWidget {
     if (hour >= 12 && hour < 17) greeting = 'Good Afternoon,';
     if (hour >= 17) greeting = 'Good Evening,';
 
+    final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+
     return PremiumCard(
       opacity: 0.3,
       borderRadius: 32,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: isLandscape ? 12 : 16),
         child: Row(
           children: [
             Container(
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.5), width: 2),
+                border: Border.all(color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.5), width: 2),
                 boxShadow: [
                   BoxShadow(
-                    color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                     blurRadius: 10,
                   ),
                 ],
               ),
               child: CircleAvatar(
-                radius: 24, // Smaller radius for better fit
+                radius: isLandscape ? 20 : 24,
                 backgroundColor: Theme.of(context).cardColor,
                 backgroundImage: user?.photoUrl != null ? CachedNetworkImageProvider(user!.photoUrl!) : null,
-                child: user?.photoUrl == null ? Icon(Icons.person, color: Theme.of(context).colorScheme.primary, size: 20) : null,
+                child: user?.photoUrl == null ? Icon(Icons.person, color: Theme.of(context).colorScheme.primary, size: isLandscape ? 16 : 20) : null,
               ),
             ),
             const SizedBox(width: 12),
@@ -560,33 +614,35 @@ class HomeDashboardFragment extends StatelessWidget {
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w600, fontSize: 10),
                     maxLines: 1, overflow: TextOverflow.ellipsis),
                   Text(user?.name ?? 'Pet Maya User', 
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w700, fontSize: 18),
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w700, fontSize: isLandscape ? 16 : 18),
                     maxLines: 1, overflow: TextOverflow.ellipsis),
                 ],
               ),
             ),
             const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
+            if (!isLandscape) ...[
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.stars_rounded, color: Color(0xFF7B1FA2), size: 14),
+                    const SizedBox(width: 4),
+                    Text('15', style: Theme.of(context).textTheme.labelSmall?.copyWith(color: const Color(0xFF7B1FA2), fontWeight: FontWeight.bold, fontSize: 10)),
+                  ],
+                ),
               ),
-              child: Row(
-                children: [
-                  const Icon(Icons.stars_rounded, color: Color(0xFF7B1FA2), size: 14),
-                  const SizedBox(width: 4),
-                  Text('15', style: Theme.of(context).textTheme.labelSmall?.copyWith(color: const Color(0xFF7B1FA2), fontWeight: FontWeight.bold, fontSize: 10)),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
+              const SizedBox(width: 8),
+            ],
             GestureDetector(
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationScreen())),
               child: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.notifications_rounded, color: Color(0xFF0277BD), size: 18),
@@ -737,75 +793,53 @@ class HomeDashboardFragment extends StatelessWidget {
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
-    // Premium dark mode card background logic: 
-    // Blends the pastel color into the dark background
-    final cardBg = isDark 
-        ? Color.alphaBlend(color.withOpacity(0.12), Theme.of(context).cardColor)
-        : color;
-
     return PremiumCard(
       onTap: onTap,
-      useGlass: false,
+      opacity: isDark ? 0.3 : 0.15,
       borderRadius: 28,
-      child: Container(
-        decoration: BoxDecoration(
-          color: cardBg,
-          borderRadius: BorderRadius.circular(28),
-          boxShadow: [
-            BoxShadow(
-              color: isDark ? Colors.black.withOpacity(0.2) : (iconColor?.withOpacity(0.1) ?? Theme.of(context).shadowColor.withOpacity(0.05)),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
-            ),
-          ],
-        ),
-        padding: const EdgeInsets.all(16),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: isDark ? Colors.white.withOpacity(0.1) : Theme.of(context).cardColor.withOpacity(0.7),
-                borderRadius: BorderRadius.circular(12),
+                color: (iconColor ?? AppColors.primary).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(16),
               ),
-              child: Icon(icon, color: isDark ? Colors.white : (iconColor ?? Theme.of(context).iconTheme.color), size: 20),
+              child: Icon(icon, color: iconColor ?? AppColors.primary, size: 24),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             Text(title, 
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontSize: 15, 
+              style: GoogleFonts.fredoka(
+                fontSize: 16, 
                 fontWeight: FontWeight.w700, 
-                color: isDark ? Colors.white : null,
               ),
               maxLines: 1, overflow: TextOverflow.ellipsis),
             Text(subtitle, 
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                fontSize: 9, 
-                color: isDark ? Colors.white.withOpacity(0.6) : (iconColor ?? Theme.of(context).iconTheme.color)?.withOpacity(0.6), 
-                fontWeight: FontWeight.w600
+              style: TextStyle(
+                fontSize: 10, 
+                color: Colors.grey, 
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.2,
               ),
               maxLines: 1, overflow: TextOverflow.ellipsis),
             const Spacer(),
-            Center(
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                decoration: BoxDecoration(
-                  color: isDark ? Colors.white.withOpacity(0.15) : Theme.of(context).cardColor.withOpacity(0.8),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  action,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    fontWeight: FontWeight.w700, 
-                    color: isDark ? Colors.white : (iconColor ?? Theme.of(context).iconTheme.color), 
-                    letterSpacing: 0.5, 
-                    fontSize: 10
+            Row(
+              children: [
+                Text(
+                  action.toUpperCase(),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900, 
+                    color: iconColor ?? AppColors.primary, 
+                    letterSpacing: 1.0, 
+                    fontSize: 9
                   ),
                 ),
-              ),
+                const SizedBox(width: 4),
+                Icon(Icons.arrow_forward_ios_rounded, size: 8, color: iconColor ?? AppColors.primary),
+              ],
             ),
           ],
         ),

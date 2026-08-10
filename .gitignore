@@ -1,5 +1,5 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# PET MAYA - STRICT SECURITY GITIGNORE
+# PET MAYA - PREMIUM ECOSYSTEM GITIGNORE
 # ─────────────────────────────────────────────────────────────────────────────
 
 # --- SECRETS & CREDENTIALS (CRITICAL) ---
@@ -16,6 +16,13 @@ ios/Runner/GoogleService-Info.plist
 android/app/google-services.json
 ios/Flutter/ephemeral/
 android/local.properties
+
+# --- FIREBASE & CLOUD ---
+.firebase/
+*-debug.log*
+firebase-debug.log*
+firestore-debug.log*
+ui-debug.log*
 
 # --- FLUTTER & DART ---
 .dart_tool/
@@ -59,6 +66,9 @@ ios/Flutter/app.zip
 ios/Flutter/flutter_assets.zip
 ios/Flutter/flutter_export_environment.sh
 ios/ServiceDefinitions.json
+
+# --- WEB ---
+.web/
 
 # --- IDE & TOOLS ---
 .idea/

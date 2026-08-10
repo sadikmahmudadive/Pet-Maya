@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import '../../auth/login_screen.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -232,8 +233,59 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ),
               ),
             ),
+            const SizedBox(height: 48),
+            FadeInUp(
+              delay: const Duration(milliseconds: 300),
+              child: TextButton(
+                onPressed: _showDeleteAccountDialog,
+                style: TextButton.styleFrom(foregroundColor: AppColors.dangerRed),
+                child: const Text('PERMANENTLY DELETE ACCOUNT', 
+                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11, letterSpacing: 1.2)),
+              ),
+            ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showDeleteAccountDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        title: const Text('Delete Account?', style: TextStyle(fontWeight: FontWeight.w800)),
+        content: const Text(
+          'This action is permanent. All your pet profiles, medical records, and posts will be purged from our servers within 30 days.',
+          style: TextStyle(height: 1.5),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('CANCEL')),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              setState(() => _isSaving = true);
+              try {
+                await context.read<AppStateRepository>().deleteAccount();
+                if (!mounted) return;
+                Navigator.pushAndRemoveUntil(
+                  context, 
+                  MaterialPageRoute(builder: (_) => LoginScreen()),
+                  (r) => false
+                );
+              } catch (e) {
+                if (mounted) {
+                  setState(() => _isSaving = false);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Failed to delete account: $e'), backgroundColor: AppColors.dangerRed),
+                  );
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.dangerRed, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+            child: const Text('DELETE PERMANENTLY', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
       ),
     );
   }

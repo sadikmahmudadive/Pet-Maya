@@ -88,6 +88,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Widget _buildWelcomePage() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final orientation = MediaQuery.of(context).orientation;
+    final isLandscape = orientation == Orientation.landscape;
+
     return LayoutBuilder(builder: (context, constraints) {
       final height = constraints.maxHeight;
       final width = constraints.maxWidth;
@@ -112,103 +115,139 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               physics: const BouncingScrollPhysics(),
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: width * 0.1),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const SizedBox(height: 60),
-                    FadeInDown(
-                      duration: const Duration(milliseconds: 800),
-                      child: Container(
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          color: isDark ? AppColors.surfaceDark : Colors.white,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.primary.withValues(alpha: isDark ? 0.3 : 0.15),
-                              blurRadius: 40,
-                              offset: const Offset(0, 20),
-                            ),
-                          ],
+                child: isLandscape 
+                  ? Row(
+                      children: [
+                        Expanded(
+                          flex: 4,
+                          child: _buildWelcomeHero(height, isDark),
                         ),
-                        child: const Icon(Icons.pets_rounded, size: 80, color: AppColors.primary),
-                      ),
-                    ),
-                    const SizedBox(height: 40),
-                    FadeInUp(
-                      duration: const Duration(milliseconds: 800),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            'Pet Maya',
-                            style: GoogleFonts.fredoka(
-                              fontSize: 48,
-                              fontWeight: FontWeight.w700,
-                              color: isDark ? AppColors.textPrimaryDark : AppColors.primary,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            'Professional Care for Your Best Friends',
-                            textAlign: TextAlign.center,
-                            style: AppTypography.bodyMedium.copyWith(
-                              fontSize: 16,
-                              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
-                              fontWeight: FontWeight.w500,
-                              letterSpacing: 0.2,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 60),
-                    FadeInUp(
-                      delay: const Duration(milliseconds: 400),
-                      child: _buildGetStartedButton(width),
-                    ),
-                    const SizedBox(height: 60),
-                    FadeInUp(
-                      delay: const Duration(milliseconds: 600),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Row(
+                        const SizedBox(width: 40),
+                        Expanded(
+                          flex: 6,
+                          child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              _buildPartnerSubSection(
-                                isDark: isDark,
-                                label: 'SUPPORTED BY',
-                                logo: Text('VertexHand', 
-                                  style: GoogleFonts.fredoka(
-                                    fontSize: 16, 
-                                    fontWeight: FontWeight.w600,
-                                    color: isDark ? Colors.white : AppColors.primary,
-                                  )),
-                              ),
-                              const SizedBox(width: 40),
-                              _buildPartnerSubSection(
-                                isDark: isDark,
-                                label: 'DEVELOPED BY',
-                                logo: Image.asset(
-                                  'assets/images/masa_logo.png',
-                                  height: 32,
-                                ),
-                              ),
+                              _buildWelcomeText(isDark),
+                              const SizedBox(height: 40),
+                              _buildGetStartedButton(width),
+                              const SizedBox(height: 40),
+                              _buildPartnerBrandingRow(isDark),
                             ],
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
+                    )
+                  : Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const SizedBox(height: 60),
+                        _buildWelcomeHero(height, isDark),
+                        const SizedBox(height: 50),
+                        _buildWelcomeText(isDark),
+                        const SizedBox(height: 80),
+                        _buildGetStartedButton(width),
+                        const SizedBox(height: 60),
+                        _buildPartnerBrandingRow(isDark),
+                        const SizedBox(height: 40),
+                      ],
                     ),
-                    const SizedBox(height: 40),
-                  ],
-                ),
               ),
             ),
           ),
         ],
       );
     });
+  }
+
+  Widget _buildWelcomeHero(double height, bool isDark) {
+    return FadeInDown(
+      duration: const Duration(milliseconds: 1000),
+      child: Container(
+        padding: const EdgeInsets.all(32),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.surfaceDark : Colors.white,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withValues(alpha: isDark ? 0.4 : 0.2),
+              blurRadius: 50,
+              offset: const Offset(0, 25),
+            ),
+          ],
+        ),
+        child: Icon(Icons.pets_rounded, size: height * 0.12, color: AppColors.primary),
+      ),
+    );
+  }
+
+  Widget _buildWelcomeText(bool isDark) {
+    return FadeInUp(
+      duration: const Duration(milliseconds: 800),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              'Pet Maya',
+              style: GoogleFonts.fredoka(
+                fontSize: 56,
+                fontWeight: FontWeight.w700,
+                color: isDark ? AppColors.textPrimaryDark : AppColors.primary,
+                letterSpacing: -1,
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Professional Care for Your Best Friends',
+            textAlign: TextAlign.center,
+            style: AppTypography.bodyMedium.copyWith(
+              fontSize: 18,
+              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+              fontWeight: FontWeight.w500,
+              letterSpacing: 0.2,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPartnerBrandingRow(bool isDark) {
+    return FadeInUp(
+      delay: const Duration(milliseconds: 600),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildPartnerSubSection(
+                isDark: isDark,
+                label: 'SUPPORTED BY',
+                logo: Text('VertexHand', 
+                  style: GoogleFonts.fredoka(
+                    fontSize: 16, 
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.white : AppColors.primary,
+                  )),
+              ),
+              const SizedBox(width: 40),
+              _buildPartnerSubSection(
+                isDark: isDark,
+                label: 'DEVELOPED BY',
+                logo: Image.asset(
+                  'assets/images/masa_logo.png',
+                  height: 32,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildBlob(double size, Color color) {
@@ -226,59 +265,85 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Widget _buildOnboardingPage(int index) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final orientation = MediaQuery.of(context).orientation;
+    final isLandscape = orientation == Orientation.landscape;
+
     return LayoutBuilder(builder: (context, constraints) {
       final height = constraints.maxHeight;
       final width = constraints.maxWidth;
 
       return Padding(
         padding: EdgeInsets.symmetric(horizontal: width * 0.12),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Spacer(flex: 2),
-            FadeInDown(
-              duration: const Duration(milliseconds: 600),
-              child: Container(
-                padding: EdgeInsets.all(width * 0.1),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(isDark ? 0.12 : 0.05),
-                  borderRadius: BorderRadius.circular(width * 0.2),
+        child: isLandscape 
+          ? Row(
+              children: [
+                Expanded(
+                  flex: 4,
+                  child: _buildOnboardingHero(index, width, height, isDark),
                 ),
-                child: Icon(_pages[index].icon, size: height * 0.12, color: AppColors.primary),
-              ),
+                const SizedBox(width: 40),
+                Expanded(
+                  flex: 6,
+                  child: _buildOnboardingContent(index, isDark),
+                ),
+              ],
+            )
+          : Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Spacer(flex: 2),
+                _buildOnboardingHero(index, width, height, isDark),
+                const SizedBox(height: 60),
+                _buildOnboardingContent(index, isDark),
+                const Spacer(flex: 3),
+              ],
             ),
-            const SizedBox(height: 60),
-            FadeInUp(
-              duration: const Duration(milliseconds: 600),
-              child: Column(
-                children: [
-                  Text(
-                    _pages[index].title,
-                    style: AppTypography.displayLarge.copyWith(
-                      fontSize: 32,
-                      fontWeight: FontWeight.w700,
-                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    _pages[index].description,
-                    style: AppTypography.bodyMedium.copyWith(
-                      fontSize: 16,
-                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
-                      height: 1.6,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
-            const Spacer(flex: 3),
-          ],
-        ),
       );
     });
+  }
+
+  Widget _buildOnboardingHero(int index, double width, double height, bool isDark) {
+    return FadeInDown(
+      duration: const Duration(milliseconds: 600),
+      child: Container(
+        padding: EdgeInsets.all(width * 0.05),
+        decoration: BoxDecoration(
+          color: AppColors.primary.withValues(alpha: isDark ? 0.12 : 0.05),
+          borderRadius: BorderRadius.circular(width * 0.1),
+        ),
+        child: Icon(_pages[index].icon, size: height * 0.12, color: AppColors.primary),
+      ),
+    );
+  }
+
+  Widget _buildOnboardingContent(int index, bool isDark) {
+    return FadeInUp(
+      duration: const Duration(milliseconds: 600),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            _pages[index].title,
+            style: AppTypography.displayLarge.copyWith(
+              fontSize: 32,
+              fontWeight: FontWeight.w700,
+              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 20),
+          Text(
+            _pages[index].description,
+            style: AppTypography.bodyMedium.copyWith(
+              fontSize: 16,
+              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+              height: 1.6,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildPageIndicator() {

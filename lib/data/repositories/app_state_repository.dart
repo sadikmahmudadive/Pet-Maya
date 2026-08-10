@@ -599,6 +599,32 @@ class AppStateRepository extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> deleteAccount() async {
+    if (_currentUser == null) return;
+    
+    final uid = _currentUser!.uid;
+    logAudit('Account Deletion', 'User $uid requested permanent deletion');
+    
+    // 1. Purge Realtime Database data
+    await _rtdb.deleteUserData(uid);
+    
+    // 2. Delete Authentication Account
+    await _firebase.deleteAccount();
+    
+    // 3. Cleanup local state
+    _currentUser = null;
+    _pets.clear();
+    _events.clear();
+    _orders.clear();
+    _serviceRecords.clear();
+    _posts.clear();
+    _postComments.clear();
+    _cartItems.clear();
+    _syncError = null;
+
+    notifyListeners();
+  }
+
   // ─── PET OPERATIONS ──────────────────────────────────────────────────────
 
   Future<void> addPet(PetModel pet) async {

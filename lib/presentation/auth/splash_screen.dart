@@ -13,6 +13,7 @@ import '../provider/vet_dashboard_screen.dart';
 import '../merchant/pet_shop_dashboard_screen.dart';
 import '../admin/admin_dashboard_screen.dart';
 import '../common_widgets/tail_wagging_loader.dart';
+import 'package:animate_do/animate_do.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -113,47 +114,60 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       child: Scaffold(
         backgroundColor: AppColors.primary,
         body: Center(
-          child: FadeTransition(
-            opacity: _fadeAnimation,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ScaleTransition(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              FadeInDown(
+                duration: const Duration(milliseconds: 1000),
+                from: 60,
+                child: ScaleTransition(
                   scale: _scaleAnimation,
                   child: Container(
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.15),
-                          blurRadius: 30,
-                          offset: const Offset(0, 10),
+                          color: Colors.black.withValues(alpha: 0.12),
+                          blurRadius: 40,
+                          offset: const Offset(0, 20),
                         ),
                       ],
                     ),
-                    child: const TailWaggingLoader(size: 80, useBottomPosition: false),
+                    child: const TailWaggingLoader(size: 90, useBottomPosition: false),
                   ),
                 ),
-                const SizedBox(height: 24),
-                Text(
+              ),
+              const SizedBox(height: 40),
+              FadeInUp(
+                duration: const Duration(milliseconds: 800),
+                delay: const Duration(milliseconds: 200),
+                child: Text(
                   'Pet Maya',
-                  style: AppTypography.displayLarge.copyWith(
+                  style: GoogleFonts.fredoka(
                     color: Colors.white,
-                    letterSpacing: 0.5,
+                    fontSize: 48,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.5,
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(
+              ),
+              const SizedBox(height: 8),
+              FadeInUp(
+                duration: const Duration(milliseconds: 800),
+                delay: const Duration(milliseconds: 400),
+                child: Text(
                   'Professional Care for Your Best Friends',
                   style: AppTypography.bodyMedium.copyWith(
-                    color: AppColors.primaryLight,
+                    color: AppColors.primaryLight.withValues(alpha: 0.7),
                     fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 0.2,
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
         bottomNavigationBar: FadeTransition(

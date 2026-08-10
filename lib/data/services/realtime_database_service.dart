@@ -45,6 +45,42 @@ class RealtimeDatabaseService {
     }
   }
 
+  /// Purge all user data from RTDB
+  Future<void> deleteUserData(String userId) async {
+    // 1. Delete user profile
+    await _usersRef.child(userId).remove();
+
+    // 2. Delete user's pets
+    final petsSnapshot = await _petsRef.orderByChild('ownerID').equalTo(userId).get();
+    if (petsSnapshot.exists) {
+      final data = _parseSnapshot(petsSnapshot.value);
+      for (var petId in data.keys) {
+        await _petsRef.child(petId.toString()).remove();
+      }
+    }
+
+    // 3. Delete user's appointments
+    final apptsSnapshot = await _appointmentsRef.orderByChild('userId').equalTo(userId).get();
+    if (apptsSnapshot.exists) {
+      final data = _parseSnapshot(apptsSnapshot.value);
+      for (var apptId in data.keys) {
+        await _appointmentsRef.child(apptId.toString()).remove();
+      }
+    }
+
+    // 4. Delete user's notifications
+    await _notificationsRef.child(userId).remove();
+
+    // 5. Delete user's orders
+    final ordersSnapshot = await _ordersRef.orderByChild('userId').equalTo(userId).get();
+    if (ordersSnapshot.exists) {
+      final data = _parseSnapshot(ordersSnapshot.value);
+      for (var orderId in data.keys) {
+        await _ordersRef.child(orderId.toString()).remove();
+      }
+    }
+  }
+
   Map<dynamic, dynamic> _parseSnapshot(dynamic value) {
     if (value == null) return {};
     if (value is List) return value.asMap();

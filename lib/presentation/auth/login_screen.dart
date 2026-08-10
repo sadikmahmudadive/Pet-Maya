@@ -8,6 +8,7 @@ import '../common_widgets/glass_card.dart';
 import '../common_widgets/glass_scaffold.dart';
 import '../common_widgets/premium_card.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'register_screen.dart';
 import '../owner/home/owner_home_screen.dart';
 import '../provider/vet_dashboard_screen.dart';
@@ -167,151 +168,189 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final orientation = MediaQuery.of(context).orientation;
+    final isLandscape = orientation == Orientation.landscape;
 
     return GlassScaffold(
       body: SafeArea(
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Column(
-            children: [
-              SizedBox(height: size.height * 0.05),
-              // Welcome Header
-              FadeInDown(
-                duration: const Duration(milliseconds: 600),
-                child: Column(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(Icons.pets_rounded, size: size.height * 0.06, color: Theme.of(context).colorScheme.primary),
-                    ),
-                    SizedBox(height: size.height * 0.02),
-                    Text(
-                      'Welcome Back',
-                      style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                        fontSize: 30,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    SizedBox(height: size.height * 0.01),
-                    Text(
-                      'Sign in to continue your journey with Pet Maya',
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontSize: 14,
-                        height: 1.4,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: size.height * 0.04),
-
-              // Login Form
-              FadeInUp(
-                duration: const Duration(milliseconds: 600),
-                delay: const Duration(milliseconds: 200),
-                child: Column(
-                  children: [
-                    _buildStyledTextField(
-                      controller: _emailController,
-                      focusNode: _emailFocus,
-                      hintText: 'Email',
-                      icon: Icons.email_rounded,
-                      keyboardType: TextInputType.emailAddress,
-                    ),
-                    const SizedBox(height: 12),
-                    _buildStyledTextField(
-                      controller: _passwordController,
-                      focusNode: _passwordFocus,
-                      hintText: 'Password',
-                      icon: Icons.lock_rounded,
-                      isPassword: true,
-                      obscureText: _obscurePassword,
-                      onSuffixTap: () => setState(() => _obscurePassword = !_obscurePassword),
-                    ),
-
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: _handleForgotPassword,
-                        style: TextButton.styleFrom(
-                          foregroundColor: Theme.of(context).colorScheme.primary,
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
-                        child: Text(
-                          'Forgot Password?',
-                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: size.height * 0.03),
-
-                    _buildLoginButton(),
-                    const SizedBox(height: 16),
-
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          "Don't have an account? ",
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 13),
-                        ),
-                        GestureDetector(
-                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterScreen())),
-                          child: Text(
-                            'Sign Up',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context).colorScheme.primary,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: size.height * 0.04),
-                    _buildSocialDivider(),
-                    SizedBox(height: size.height * 0.03),
-
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildSocialButton(
-                            label: 'Google',
-                            icon: 'https://cdn-icons-png.flaticon.com/128/300/300221.png',
-                            onTap: _handleGoogleLogin,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildSocialButton(
-                            label: 'Apple',
-                            icon: 'apple_logo',
-                            onTap: () {},
-                            isApple: true,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: size.height * 0.05 + bottomPadding),
-            ],
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 800),
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: isLandscape ? _buildLandscapeLayout(context, size, isDark) : _buildPortraitLayout(context, size, isDark),
+            ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildPortraitLayout(BuildContext context, Size size, bool isDark) {
+    return Column(
+      children: [
+        SizedBox(height: size.height * 0.05),
+        _buildHeader(size, isDark),
+        SizedBox(height: size.height * 0.04),
+        _buildLoginForm(size),
+        SizedBox(height: size.height * 0.05),
+      ],
+    );
+  }
+
+  Widget _buildLandscapeLayout(BuildContext context, Size size, bool isDark) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          flex: 4,
+          child: _buildHeader(size, isDark),
+        ),
+        const SizedBox(width: 48),
+        Expanded(
+          flex: 6,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const SizedBox(height: 24),
+              _buildLoginForm(size),
+              const SizedBox(height: 24),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHeader(Size size, bool isDark) {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.05),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(Icons.pets_rounded, size: size.height * 0.06, color: Theme.of(context).colorScheme.primary),
+        ),
+        SizedBox(height: size.height * 0.02),
+        Text(
+          'Welcome Back',
+          style: GoogleFonts.fredoka(
+            fontSize: 34,
+            fontWeight: FontWeight.w700,
+            color: isDark ? Colors.white : AppColors.primary,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          'Sign in to continue your journey with Pet Maya',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 15,
+            color: isDark ? Colors.white70 : Colors.grey[600],
+            height: 1.5,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLoginForm(Size size) {
+    final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
+    return Column(
+      children: [
+        _buildStyledTextField(
+          controller: _emailController,
+          focusNode: _emailFocus,
+          hintText: 'Email',
+          icon: Icons.email_rounded,
+          keyboardType: TextInputType.emailAddress,
+        ),
+        const SizedBox(height: 12),
+        _buildStyledTextField(
+          controller: _passwordController,
+          focusNode: _passwordFocus,
+          hintText: 'Password',
+          icon: Icons.lock_rounded,
+          isPassword: true,
+          obscureText: _obscurePassword,
+          onSuffixTap: () => setState(() => _obscurePassword = !_obscurePassword),
+        ),
+
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton(
+            onPressed: _handleForgotPassword,
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(context).colorScheme.primary,
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: Text(
+              'Forgot Password?',
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ),
+        SizedBox(height: size.height * 0.03),
+
+        _buildLoginButton(),
+        const SizedBox(height: 16),
+
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              "Don't have an account? ",
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 13),
+            ),
+            GestureDetector(
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterScreen())),
+              child: Text(
+                'Sign Up',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 24),
+        _buildSocialDivider(),
+        const SizedBox(height: 24),
+
+        Row(
+          children: [
+            Expanded(
+              child: _buildSocialButton(
+                label: 'Google',
+                icon: 'https://cdn-icons-png.flaticon.com/128/300/300221.png',
+                onTap: _handleGoogleLogin,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildSocialButton(
+                label: 'Apple',
+                icon: 'apple_logo',
+                onTap: () {},
+                isApple: true,
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: bottomPadding > 0 ? 20 : 0),
+      ],
     );
   }
 

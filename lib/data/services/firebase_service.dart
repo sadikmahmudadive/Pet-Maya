@@ -70,6 +70,13 @@ class FirebaseService {
     await _auth.signOut();
   }
 
+  Future<void> deleteAccount() async {
+    final user = _auth.currentUser;
+    if (user != null) {
+      await user.delete();
+    }
+  }
+
   // ─── USER PROFILE ────────────────────────────────────────────────────────
 
   Future<void> saveUserProfile(app_models.UserModel user) async {
