@@ -77,25 +77,24 @@ class AppStateRepository extends ChangeNotifier {
         try {
           final dob = DateTime.parse(pet.dob);
           final now = DateTime.now();
+          final today = DateTime(now.year, now.month, now.day);
           
-          // Generate birthdays for a 3-year window (past, current, next)
-          for (int yearOffset = -1; yearOffset <= 1; yearOffset++) {
-            final bday = DateTime(now.year + yearOffset, dob.month, dob.day);
-            all.add(EventModel(
-              id: 'bday_${pet.petID}_${bday.year}',
-              userId: _currentUser?.uid ?? '',
-              title: "${pet.name}'s Birthday! 🎂",
-              category: 'Birthday',
-              note: 'Happy Birthday to ${pet.name}!',
-              petName: pet.name,
-              petId: pet.petID,
-              date: bday,
-              fromTime: '08:00 AM',
-              toTime: '11:59 PM',
-              isReminderEnabled: true,
-              isCompleted: bday.isBefore(DateTime(now.year, now.month, now.day)),
-            ));
-          }
+          // Generate birthday for the current year only to avoid duplicate clutter in lists
+          final bday = DateTime(now.year, dob.month, dob.day);
+          all.add(EventModel(
+            id: 'bday_${pet.petID}_${bday.year}',
+            userId: _currentUser?.uid ?? '',
+            title: "${pet.name}'s Birthday! 🎂",
+            category: 'Birthday',
+            note: 'Happy Birthday to ${pet.name}!',
+            petName: pet.name,
+            petId: pet.petID,
+            date: bday,
+            fromTime: '08:00 AM',
+            toTime: '11:59 PM',
+            isReminderEnabled: true,
+            isCompleted: bday.isBefore(today),
+          ));
         } catch (_) {}
       }
     }
@@ -167,48 +166,56 @@ class AppStateRepository extends ChangeNotifier {
     notifyListeners();
   }
 
-  void showToast(String message, {ToastType type = ToastType.success}) {
-    final context = TailWaggingApp.navigatorKey.currentContext;
-    if (context != null) {
-      PremiumToast.show(context, message, type: type);
+  void showToast(String message, {ToastType type = ToastType.success, BuildContext? context}) {
+    final effectiveContext = context ?? TailWaggingApp.navigatorKey.currentContext;
+    if (effectiveContext != null) {
+      PremiumToast.show(effectiveContext, message, type: type);
     }
   }
 
   // ─── FIREBASE SYNC ENTRY POINT ────────────────────────────────────────────
   /// Called after login to fetch and stream all user data from Realtime Database.
   Future<void> syncFromFirebase(UserModel user) async {
-    _setLoading(true);
-    debugPrint('[AppStateRepository] Syncing for UID: ${user.uid} (${user.role.displayName})');
+    // Aggressively load from local cache first to make the app feel instant
+    _setLoading(false); // Don't block UI if cache exists
+    debugPrint('[AppStateRepository] High-Speed Sync for UID: ${user.uid}');
     try {
-      // 1. Refresh FCM Token and update profile
-      final fcmToken = await NotificationService().getToken();
-      final updatedUser = UserModel(
-        uid: user.uid,
-        name: user.name,
-        email: user.email,
-        photoUrl: user.photoUrl,
-        phone: user.phone,
-        address: user.address,
-        role: user.role,
-        isVerified: user.isVerified,
-        favoriteVetIds: user.favoriteVetIds,
-        points: user.points,
-        referralCode: user.referralCode,
-        fcmToken: fcmToken ?? user.fcmToken,
-        latitude: user.latitude,
-        longitude: user.longitude,
-      );
+      // 1. Refresh FCM Token and update profile (Async background)
+      NotificationService().getToken().then((fcmToken) {
+        if (fcmToken != null) {
+          final updatedUser = UserModel(
+            uid: user.uid,
+            name: user.name,
+            email: user.email,
+            photoUrl: user.photoUrl,
+            phone: user.phone,
+            address: user.address,
+            role: user.role,
+            isVerified: user.isVerified,
+            favoriteVetIds: user.favoriteVetIds,
+            points: user.points,
+            referralCode: user.referralCode,
+            fcmToken: fcmToken,
+            latitude: user.latitude,
+            longitude: user.longitude,
+          );
+          _rtdb.saveUserProfile(updatedUser);
+          _currentUser = updatedUser;
+        }
+      });
 
-      await _rtdb.saveUserProfile(updatedUser);
-      _currentUser = updatedUser;
+      _currentUser = user;
 
       // Enable Offline-First Synchronization
       await _rtdb.enableOfflineSync(user.uid);
 
-      // Always load shared data (products, vets)
-      await _loadProducts();
+      // Concurrent Data Loading (Parallel processing for speed)
+      Future.wait([
+        _loadProducts(),
+        _loadCommunityPosts(),
+      ]);
+      
       _listenToVets();
-      await _loadCommunityPosts();
 
       // Role-specific data - Use Streams for real-time sync
       switch (user.role) {
@@ -233,7 +240,7 @@ class AppStateRepository extends ChangeNotifier {
           _listenToEvents('');
           _listenToServiceRecords('');
           _listenToAllOrders();
-          await loadAllUsers();
+          loadAllUsers(); // No await needed for background load
           break;
       }
 
@@ -242,10 +249,7 @@ class AppStateRepository extends ChangeNotifier {
 
       logAudit('Firebase Sync', 'Data loaded for ${user.name} (${user.role.displayName})');
     } catch (e) {
-      _syncError = 'Oops! The treats got lost. Try again?';
       debugPrint('[AppStateRepository] syncFromFirebase error: $e');
-    } finally {
-      _setLoading(false);
     }
   }
 
@@ -726,9 +730,10 @@ class AppStateRepository extends ChangeNotifier {
   Future<void> deleteEvent(String eventId) async {
     final idx = _events.indexWhere((e) => e.id == eventId);
     if (idx != -1) {
+      final old = _events[idx];
       _events.removeAt(idx);
       notifyListeners();
-      await _rtdb.deleteEvent(eventId);
+      await _rtdb.deleteEvent(old.userId, old.date, eventId);
       
       // Cancel Local Alarm
       await NativeBridgeService.cancelAlarm(eventId);
@@ -1383,15 +1388,65 @@ class AppStateRepository extends ChangeNotifier {
 
   // ─── AI BREED FINDER ─────────────────────────────────────────────────────
 
-  Future<String> identifyBreed({required String imagePath}) async {
+  Future<String?> identifyBreed({required String? imagePath, File? imageFile}) async {
     final openAiApiKey = dotenv.env['OPENAI_API_KEY'];
-    if (openAiApiKey != null && openAiApiKey.isNotEmpty) {
-      // Real API implementation would go here (Base64 image to OpenAI Vision)
+    if (openAiApiKey == null || openAiApiKey.isEmpty) {
+      return 'Generic Breed';
     }
 
-    await Future.delayed(const Duration(seconds: 2));
-    // Mock identifying popular breeds for demo parity
-    final breeds = ['Golden Retriever', 'German Shepherd', 'Poodle', 'Persian Cat', 'Maine Coon'];
-    return breeds[DateTime.now().second % breeds.length];
+    try {
+      String base64Image;
+      if (imageFile != null) {
+        base64Image = base64.encode(await imageFile.readAsBytes());
+      } else if (imagePath != null && !imagePath.startsWith('http')) {
+        base64Image = base64.encode(await File(imagePath).readAsBytes());
+      } else if (imagePath != null && imagePath.startsWith('http')) {
+        final response = await http.get(Uri.parse(imagePath));
+        if (response.statusCode == 200) {
+          base64Image = base64.encode(response.bodyBytes);
+        } else {
+          return null;
+        }
+      } else {
+        return null;
+      }
+
+      final response = await http.post(
+        Uri.parse('https://api.openai.com/v1/chat/completions'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $openAiApiKey',
+        },
+        body: jsonEncode({
+          'model': 'gpt-4o',
+          'messages': [
+            {
+              'role': 'system',
+              'content': 'You are a professional veterinarian breed identification expert. Return only the breed name, nothing else. If multiple breeds are visible, identify the most prominent one. If it is a mixed breed, state the two most likely breeds.'
+            },
+            {
+              'role': 'user',
+              'content': [
+                {'type': 'text', 'text': 'Identify the breed of this pet. Return only the name.'},
+                {
+                  'type': 'image_url',
+                  'image_url': {'url': 'data:image/jpeg;base64,$base64Image'}
+                }
+              ]
+            }
+          ],
+          'max_tokens': 50,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['choices'][0]['message']['content'].toString().trim();
+      }
+    } catch (e) {
+      debugPrint('[AI Breed Finder] Exception: $e');
+    }
+
+    return null;
   }
 }

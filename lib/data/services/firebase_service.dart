@@ -141,7 +141,7 @@ class FirebaseService {
     await _db.collection('events').doc(event.id).set(event.toMap(), SetOptions(merge: true));
   }
 
-  Future<void> deleteEvent(String eventId) async {
+  Future<void> deleteEvent(String userId, DateTime date, String eventId) async {
     await _db.collection('events').doc(eventId).delete();
   }
 

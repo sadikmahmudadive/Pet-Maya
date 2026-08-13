@@ -26,7 +26,7 @@ class RealtimeDatabaseService {
   DatabaseReference get _vetsRef => _db.ref('vets');
   DatabaseReference get _recordsRef => _db.ref('service_records');
   DatabaseReference get _postsRef => _db.ref('community_posts');
-  DatabaseReference get _appointmentsRef => _db.ref('appointments');
+  DatabaseReference get _eventsRef => _db.ref('events'); // Corrected path
   DatabaseReference get _reviewsRef => _db.ref('reviews');
   DatabaseReference get _notificationsRef => _db.ref('notifications');
   DatabaseReference get _commentsRef => _db.ref('comments');
@@ -37,9 +37,15 @@ class RealtimeDatabaseService {
     // Note: On some platforms, this must be called before any other DB usage.
     // _db.setPersistenceEnabled(true); 
 
-    // Requirement: Critical nodes are always available and updated
+    // Requirement: Global persistence for shared nodes
+    await _productsRef.keepSynced(true);
+    await _vetsRef.keepSynced(true);
+    await _postsRef.keepSynced(true);
+
+    // Requirement: Critical user nodes are always available and updated
     if (userId.isNotEmpty) {
       await _usersRef.child(userId).keepSynced(true);
+      // Synchronize all pets for this owner explicitly
       await _petsRef.orderByChild('ownerID').equalTo(userId).ref.keepSynced(true);
       await _notificationsRef.child(userId).keepSynced(true);
     }
@@ -59,14 +65,8 @@ class RealtimeDatabaseService {
       }
     }
 
-    // 3. Delete user's appointments
-    final apptsSnapshot = await _appointmentsRef.orderByChild('userId').equalTo(userId).get();
-    if (apptsSnapshot.exists) {
-      final data = _parseSnapshot(apptsSnapshot.value);
-      for (var apptId in data.keys) {
-        await _appointmentsRef.child(apptId.toString()).remove();
-      }
-    }
+    // 3. Delete user's events
+    await _eventsRef.child(userId).remove();
 
     // 4. Delete user's notifications
     await _notificationsRef.child(userId).remove();
@@ -155,57 +155,81 @@ class RealtimeDatabaseService {
     await _petsRef.child(petId).remove();
   }
 
-  // ─── EVENTS ──────────────────────────────────────────────────────────────
+  // ─── EVENTS & CALENDAR ──────────────────────────────────────────────────
 
   Future<List<EventModel>> fetchEvents(String userId) async {
-    DataSnapshot snapshot;
     if (userId.isEmpty) {
-      snapshot = await _appointmentsRef.get();
+      // Admin view: fetch all events
+      final snapshot = await _eventsRef.get();
+      if (!snapshot.exists) return [];
+      return _parseEventsFromDeepMap(snapshot.value);
     } else {
-      snapshot = await _appointmentsRef.orderByChild('userId').equalTo(userId).get();
+      // User view: fetch only their events
+      final snapshot = await _eventsRef.child(userId).get();
+      if (!snapshot.exists) return [];
+      return _parseEventsFromDateNestedMap(snapshot.value);
     }
-    if (!snapshot.exists) return [];
-    
-    final data = _parseSnapshot(snapshot.value);
-    return data.entries.where((e) => e.value != null).map((e) {
-      final key = e.key.toString();
-      final val = Map<String, dynamic>.from(e.value as Map);
-      return EventModel.fromMap(key, val);
-    }).toList();
   }
 
   Stream<List<EventModel>> streamEvents(String userId) {
-    Query query = _appointmentsRef;
-    if (userId.isNotEmpty) {
-      query = _appointmentsRef.orderByChild('userId').equalTo(userId);
-    }
-    return query.onValue.map((event) {
-      final data = _parseSnapshot(event.snapshot.value);
-      return data.entries.where((e) => e.value != null).map((e) {
-        final key = e.key.toString();
-        final val = Map<String, dynamic>.from(e.value as Map);
-        return EventModel.fromMap(key, val);
-      }).toList();
+    if (userId.isEmpty) return Stream.value([]);
+    return _eventsRef.child(userId).onValue.map((event) {
+      return _parseEventsFromDateNestedMap(event.snapshot.value);
     });
   }
 
+  /// Parses events from events/{userId}/{date}/{eventId}
+  List<EventModel> _parseEventsFromDateNestedMap(dynamic value) {
+    if (value == null) return [];
+    final List<EventModel> events = [];
+    final dateMap = _parseSnapshot(value);
+    
+    for (var dateEntry in dateMap.entries) {
+      final eventsForDate = _parseSnapshot(dateEntry.value);
+      for (var eventEntry in eventsForDate.entries) {
+        if (eventEntry.value != null) {
+          events.add(EventModel.fromMap(
+            eventEntry.key.toString(), 
+            Map<String, dynamic>.from(eventEntry.value as Map)
+          ));
+        }
+      }
+    }
+    return events;
+  }
+
+  /// Parses events from events/{userId}/{date}/{eventId} where userId is also a key
+  List<EventModel> _parseEventsFromDeepMap(dynamic value) {
+    if (value == null) return [];
+    final List<EventModel> allEvents = [];
+    final userMap = _parseSnapshot(value);
+    for (var userEntry in userMap.entries) {
+      allEvents.addAll(_parseEventsFromDateNestedMap(userEntry.value));
+    }
+    return allEvents;
+  }
+
   Stream<List<EventModel>> streamEventsForProvider(String providerId) {
-    return _appointmentsRef.orderByChild('providerId').equalTo(providerId).onValue.map((event) {
-      final data = _parseSnapshot(event.snapshot.value);
-      return data.entries.where((e) => e.value != null).map((e) {
-        final key = e.key.toString();
-        final val = Map<String, dynamic>.from(e.value as Map);
-        return EventModel.fromMap(key, val);
-      }).toList();
+    // Note: Cross-user queries are harder with date nesting. 
+    // We stream all for now and filter locally, or would need a flat 'index' node.
+    return _eventsRef.onValue.map((event) {
+      final all = _parseEventsFromDeepMap(event.snapshot.value);
+      return all.where((e) => e.providerId == providerId).toList();
     });
   }
 
   Future<void> saveEvent(EventModel event) async {
-    await _appointmentsRef.child(event.id).set(event.toMap());
+    final dateKey = event.date.toIso8601String().substring(0, 10); // yyyy-MM-dd
+    await _eventsRef
+        .child(event.userId)
+        .child(dateKey)
+        .child(event.id)
+        .set(event.toMap());
   }
 
-  Future<void> deleteEvent(String eventId) async {
-    await _appointmentsRef.child(eventId).remove();
+  Future<void> deleteEvent(String userId, DateTime date, String eventId) async {
+    final dateKey = date.toIso8601String().substring(0, 10);
+    await _eventsRef.child(userId).child(dateKey).child(eventId).remove();
   }
 
   // ─── PRODUCTS ────────────────────────────────────────────────────────────

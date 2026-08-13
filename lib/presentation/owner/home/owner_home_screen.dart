@@ -48,21 +48,26 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
     return GlassScaffold(
       body: Stack(
         children: [
-          IndexedStack(
-            index: _currentNavIndex,
-            children: [
-              HomeDashboardFragment(
-                onNavRequested: (index) => setState(() => _currentNavIndex = index),
-              ), // 0
-              const PetServicesScreen(),     // 1
-              const CommunityFeedScreen(),   // 2
-              const UserProfileScreen(),     // 3
-              const ShopScreen(),            // 4
-            ],
+          Padding(
+            padding: EdgeInsets.only(
+              right: isLandscape ? 100 : 0,
+            ),
+            child: IndexedStack(
+              index: _currentNavIndex,
+              children: [
+                HomeDashboardFragment(
+                  onNavRequested: (index) => setState(() => _currentNavIndex = index),
+                ), // 0
+                const PetServicesScreen(),     // 1
+                const CommunityFeedScreen(),   // 2
+                const UserProfileScreen(),     // 3
+                const ShopScreen(),            // 4
+              ],
+            ),
           ),
           Positioned(
             left: isLandscape ? null : 0,
-            right: 0,
+            right: 12,
             bottom: isLandscape ? 24 : 0,
             top: isLandscape ? 24 : null,
             child: isLandscape 
@@ -80,13 +85,18 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
 
   Widget _buildSideNavbar() {
     return Container(
-      width: 80,
-      margin: const EdgeInsets.only(right: 12),
+      width: 76,
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
-        borderRadius: BorderRadius.circular(24),
+        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
+        borderRadius: BorderRadius.circular(28),
         border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 20)],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.15), 
+            blurRadius: 30,
+            offset: const Offset(-5, 0),
+          )
+        ],
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -96,8 +106,18 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
           GestureDetector(
             onTap: () => _showQuickActionSheet(context),
             child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppColors.primary, 
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.3),
+                    blurRadius: 15,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
               child: const Icon(Icons.add, color: Colors.white, size: 24),
             ),
           ),
@@ -190,7 +210,11 @@ class HomeDashboardFragment extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = context.select((AppStateRepository state) => state.currentUser);
     final pets = context.select((AppStateRepository state) => state.pets);
-    final events = context.select((AppStateRepository state) => state.events);
+    final allEvents = context.select((AppStateRepository state) => state.events);
+    // Filter for truly upcoming events: Not completed, and occurring today or in the future
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final events = allEvents.where((e) => !e.isCompleted && (e.date.isAtSameMomentAs(today) || e.date.isAfter(today))).toList();
     final vets = context.select((AppStateRepository state) => state.vets);
     final state = context.read<AppStateRepository>();
 
@@ -411,8 +435,11 @@ class HomeDashboardFragment extends StatelessWidget {
   }
 
   Widget _buildVerticalPetCard(BuildContext context, PetModel pet) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final cardWidth = screenWidth * 0.4; // Responsive width
+    final size = MediaQuery.of(context).size;
+    final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+    
+    // Cap the card width to prevent massive images on tablets
+    final cardWidth = isLandscape ? 140.0 : size.width * 0.4; 
 
     return Container(
       width: cardWidth,
@@ -421,38 +448,64 @@ class HomeDashboardFragment extends StatelessWidget {
         opacity: 0.2,
         borderRadius: 28,
         onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => PetDetailsScreen(petId: pet.petID))),
-        child: Column(
-          children: [
-            const SizedBox(height: 12),
-            Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Theme.of(context).shadowColor.withOpacity(0.08),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(cardWidth * 0.25),
-                child: CachedNetworkImage(
-                  imageUrl: pet.photoUrl ?? '',
-                  width: cardWidth * 0.6,
-                  height: cardWidth * 0.6,
-                  fit: BoxFit.cover,
-                  errorWidget: (c, u, e) => Container(color: Theme.of(context).dividerColor.withOpacity(0.1), child: Icon(Icons.pets, size: 24, color: Theme.of(context).hintColor)),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 12),
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Theme.of(context).shadowColor.withValues(alpha: 0.08),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(40),
+                  child: pet.photoUrl != null && pet.photoUrl!.isNotEmpty
+                      ? pet.photoUrl!.startsWith('assets')
+                          ? Image.asset(
+                              pet.photoUrl!,
+                              width: isLandscape ? 55 : cardWidth * 0.55,
+                              height: isLandscape ? 55 : cardWidth * 0.55,
+                              fit: BoxFit.cover,
+                            )
+                          : CachedNetworkImage(
+                              imageUrl: pet.photoUrl!,
+                              width: isLandscape ? 55 : cardWidth * 0.55,
+                              height: isLandscape ? 55 : cardWidth * 0.55,
+                              fit: BoxFit.cover,
+                              errorWidget: (c, u, e) => _buildPetErrorIcon(context),
+                            )
+                      : _buildPetErrorIcon(context),
                 ),
               ),
-            ),
-            const Spacer(),
-            Text(pet.name, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 16, fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
-            Text(pet.breed, style: Theme.of(context).textTheme.labelSmall?.copyWith(fontSize: 9), maxLines: 1, overflow: TextOverflow.ellipsis),
-            const SizedBox(height: 16),
-          ],
+              const SizedBox(height: 10),
+              Flexible(
+                child: Text(pet.name, 
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 14, fontWeight: FontWeight.bold), 
+                  maxLines: 1, overflow: TextOverflow.ellipsis),
+              ),
+              Text(pet.breed, 
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(fontSize: 9), 
+                maxLines: 1, overflow: TextOverflow.ellipsis),
+              const SizedBox(height: 12),
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _buildPetErrorIcon(BuildContext context) {
+    return Container(
+      color: Theme.of(context).dividerColor.withValues(alpha: 0.1), 
+      child: Icon(Icons.pets, size: 24, color: Theme.of(context).hintColor)
     );
   }
 

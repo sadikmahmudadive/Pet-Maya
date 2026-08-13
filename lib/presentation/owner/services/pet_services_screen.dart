@@ -125,7 +125,7 @@ class _PetServicesScreenState extends State<PetServicesScreen> {
                           maxCrossAxisExtent: 500, // Two columns on tablet, one on mobile
                           mainAxisSpacing: 16,
                           crossAxisSpacing: 16,
-                          mainAxisExtent: 180, // Fixed height for service cards
+                          mainAxisExtent: 200, // Increased height slightly to accommodate content
                         ),
                         delegate: SliverChildBuilderDelegate(
                           (context, index) => _buildVetCard(context, vets[index]),
@@ -252,7 +252,11 @@ class _PetServicesScreenState extends State<PetServicesScreen> {
                       ],
                     ),
                     const SizedBox(height: 2),
-                    Text(vet.qualification, style: AppTypography.labelSmall.copyWith(color: AppColors.primary, fontWeight: FontWeight.w700)),
+                    Text(vet.qualification, 
+                      style: AppTypography.labelSmall.copyWith(color: AppColors.primary, fontWeight: FontWeight.w700),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                     const SizedBox(height: 8),
                     Row(
                       children: [

@@ -38,10 +38,11 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
 
   DateTime? _dob;
   String _gender = 'Male';
-  String _selectedImageUrl = 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=500&auto=format&fit=crop';
+  String _selectedImageUrl = 'assets/images/Pet_1.jpg';
   File? _localImage;
   List<String> _feedingTimes = [];
   bool _isSaving = false;
+  bool _isScanningBreed = false;
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
@@ -146,7 +147,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
 
     HapticFeedback.mediumImpact();
     Navigator.pop(context);
-    repo.showToast(isEditing ? 'Pet profile updated! ✨' : 'Pet added successfully! 🐾');
+    repo.showToast(isEditing ? 'Pet profile updated! ✨' : 'Pet added successfully! 🐾', context: context);
   }
 
   @override
@@ -217,7 +218,11 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
                             child: CircleAvatar(
                               radius: 28,
                               backgroundColor: AppColors.primary.withOpacity(0.08),
-                              backgroundImage: p.photoUrl != null ? CachedNetworkImageProvider(p.photoUrl!) : null,
+                              backgroundImage: p.photoUrl != null 
+                                ? p.photoUrl!.startsWith('assets')
+                                  ? AssetImage(p.photoUrl!) as ImageProvider
+                                  : CachedNetworkImageProvider(p.photoUrl!)
+                                : null,
                               child: p.photoUrl == null ? const Icon(Icons.pets, color: AppColors.primary, size: 20) : null,
                             ),
                           ),
@@ -268,7 +273,9 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
                                 backgroundColor: Colors.white,
                                 backgroundImage: _selectedImageUrl.startsWith('http')
                                     ? CachedNetworkImageProvider(_selectedImageUrl) as ImageProvider
-                                    : FileImage(File(_selectedImageUrl)),
+                                    : _selectedImageUrl.startsWith('assets') 
+                                        ? AssetImage(_selectedImageUrl) as ImageProvider
+                                        : FileImage(File(_selectedImageUrl)),
                               ),
                             ),
                           ),
@@ -547,24 +554,57 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
 
   Widget _buildScanAction() {
     return GestureDetector(
-      onTap: () async {
+      onTap: _isScanningBreed ? null : () async {
         HapticFeedback.selectionClick();
-        final breed = await Navigator.push(context, MaterialPageRoute(builder: (_) => const BreedFinderScreen()));
-        if (breed != null) setState(() => _breedController.text = breed);
+        
+        final repo = context.read<AppStateRepository>();
+        
+        // 1. Validation: Ensure an image exists
+        if (_selectedImageUrl.isEmpty && _localImage == null) {
+          repo.showToast('Please select a pet photo first 📸', context: context);
+          return;
+        }
+
+        setState(() => _isScanningBreed = true);
+
+        // 2. Perform AI Scan using the already selected image
+        try {
+          final breed = await repo.identifyBreed(
+            imagePath: _localImage == null ? _selectedImageUrl : null,
+            imageFile: _localImage,
+          );
+
+          if (breed != null) {
+            setState(() {
+              _breedController.text = breed;
+              _isScanningBreed = false;
+            });
+            repo.showToast('Breed identified: $breed ✨', context: context);
+          } else {
+            setState(() => _isScanningBreed = false);
+            repo.showToast('AI could not identify the breed. Please try a clearer photo.', context: context);
+          }
+        } catch (e) {
+          setState(() => _isScanningBreed = false);
+          repo.showToast('AI Scan failed. Check your connection.', context: context);
+        }
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
         decoration: BoxDecoration(
           color: const Color(0xFFD1E6EE),
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [BoxShadow(color: const Color(0xFF006684).withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 4))],
+          boxShadow: [BoxShadow(color: const Color(0xFF006684).withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 4))],
         ),
-        child: const Row(
+        child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.auto_awesome_rounded, size: 18, color: Color(0xFF006684)),
-            SizedBox(width: 10),
-            Text('SCAN', style: TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF006684), fontSize: 12, letterSpacing: 1.2)),
+            _isScanningBreed 
+              ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF006684)))
+              : const Icon(Icons.auto_awesome_rounded, size: 18, color: Color(0xFF006684)),
+            const SizedBox(width: 10),
+            Text(_isScanningBreed ? 'SCANNING' : 'SCAN', 
+              style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF006684), fontSize: 12, letterSpacing: 1.2)),
           ],
         ),
       ),

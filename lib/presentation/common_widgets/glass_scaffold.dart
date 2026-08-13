@@ -58,43 +58,100 @@ class GlassScaffold extends StatelessWidget {
     final size = MediaQuery.of(context).size;
     final width = size.width;
 
-    return RepaintBoundary(
-      child: Stack(
-        children: [
-          Positioned(
-            top: -width * 0.1,
-            left: -width * 0.1,
-            child: _buildStaticBlob(
-              width * 0.7, 
-              Theme.of(context).colorScheme.primary.withOpacity(isDark ? 0.08 : 0.05)
-            ),
+    return Stack(
+      children: [
+        Positioned(
+          top: -width * 0.2,
+          left: -width * 0.2,
+          child: _FluidBlob(
+            size: width * 0.9,
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: isDark ? 0.08 : 0.05),
+            duration: const Duration(seconds: 15),
           ),
-          Positioned(
-            bottom: -width * 0.1,
-            right: -width * 0.1,
-            child: _buildStaticBlob(
-              width * 0.8, 
-              Theme.of(context).colorScheme.secondary.withOpacity(isDark ? 0.05 : 0.03)
-            ),
+        ),
+        Positioned(
+          bottom: -width * 0.3,
+          right: -width * 0.2,
+          child: _FluidBlob(
+            size: width * 1.1,
+            color: Theme.of(context).colorScheme.secondary.withValues(alpha: isDark ? 0.05 : 0.04),
+            duration: const Duration(seconds: 20),
+            reverse: true,
           ),
-        ],
-      ),
+        ),
+      ],
+    );
+  }
+}
+
+class _FluidBlob extends StatefulWidget {
+  final double size;
+  final Color color;
+  final Duration duration;
+  final bool reverse;
+
+  const _FluidBlob({
+    required this.size,
+    required this.color,
+    required this.duration,
+    this.reverse = false,
+  });
+
+  @override
+  State<_FluidBlob> createState() => _FluidBlobState();
+}
+
+class _FluidBlobState extends State<_FluidBlob> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<Offset> _moveAnimation;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this, duration: widget.duration)..repeat(reverse: true);
+
+    _moveAnimation = Tween<Offset>(
+      begin: widget.reverse ? const Offset(0.05, 0.05) : Offset.zero,
+      end: widget.reverse ? Offset.zero : const Offset(0.05, 0.05),
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOutSine));
+
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.15).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOutSine)
     );
   }
 
-  Widget _buildStaticBlob(double size, Color color) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: RadialGradient(
-          colors: [
-            color,
-            color.withOpacity(0.0),
-          ],
-        ),
-      ),
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return Transform.translate(
+          offset: Offset(
+            _moveAnimation.value.dx * widget.size,
+            _moveAnimation.value.dy * widget.size,
+          ),
+          child: Transform.scale(
+            scale: _scaleAnimation.value,
+            child: Container(
+              width: widget.size,
+              height: widget.size,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [widget.color, widget.color.withValues(alpha: 0)],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

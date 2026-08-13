@@ -11,12 +11,11 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../../../core/services/connectivity_service.dart';
 import '../../common_widgets/premium_toast.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class AiHealthScannerScreen extends StatefulWidget {
   final PetModel? initialPet;
-
   const AiHealthScannerScreen({super.key, this.initialPet});
-
   @override
   State<AiHealthScannerScreen> createState() => _AiHealthScannerScreenState();
 }
@@ -27,7 +26,7 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
   bool _isLoading = false;
   String? _diagnosisResult;
   File? _selectedImageFile;
-  String _selectedSampleImage = 'https://images.unsplash.com/photo-1548767797-d8c844163c4c?w=600&auto=format&fit=crop';
+  final String _selectedSampleImage = 'assets/images/Pet_2.jpg';
 
   @override
   void initState() {
@@ -36,47 +35,48 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
     _selectedPet = widget.initialPet ?? (pets.isNotEmpty ? pets.first : null);
   }
 
+  @override
+  void dispose() {
+    _issueController.dispose();
+    super.dispose();
+  }
+
   Future<void> _pickImage() async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
     if (pickedFile != null) {
       setState(() {
         _selectedImageFile = File(pickedFile.path);
-        _diagnosisResult = null; // Clear previous result
+        _diagnosisResult = null;
       });
     }
   }
 
   void _runDiagnostic() async {
-    // Requirement: AI Scanner strictly requires connectivity
     final isOnline = await ConnectivityService().isConnected();
     if (!isOnline) {
-      context.read<AppStateRepository>().showToast(
-        'AI Scanner requires an active internet connection 🌐',
-        type: ToastType.error,
-      );
+      if (mounted) {
+        context.read<AppStateRepository>().showToast(
+          'AI Scanner requires an active internet connection 🌐',
+          type: ToastType.error,
+        );
+      }
       return;
     }
-
     if (_selectedPet == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a pet first')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select a pet first')));
       return;
     }
-
     setState(() {
       _isLoading = true;
       _diagnosisResult = null;
     });
-
     final repo = context.read<AppStateRepository>();
     final result = await repo.runAiHealthDiagnosis(
       petName: _selectedPet!.name,
       prompt: _issueController.text.trim(),
       imageFile: _selectedImageFile,
     );
-
     if (mounted) {
       setState(() {
         _isLoading = false;
@@ -102,10 +102,8 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
   @override
   Widget build(BuildContext context) {
     final pets = context.watch<AppStateRepository>().pets;
-
     final orientation = MediaQuery.of(context).orientation;
     final isLandscape = orientation == Orientation.landscape;
-
     return GlassScaffold(
       appBar: AppBar(
         title: const Text('AI Health Scanner'),
@@ -169,7 +167,6 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
   }
 
   Widget _buildImagePicker() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return FadeInDown(
       child: PremiumCard(
         opacity: 0.4,
@@ -180,9 +177,7 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
           child: Container(
             height: 260,
             width: double.infinity,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(32),
-            ),
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(32)),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(32),
               child: Stack(
@@ -198,7 +193,7 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
                       colorBlendMode: _isLoading ? BlendMode.darken : null,
                     )
                   else
-                    Image.network(
+                    Image.asset(
                       _selectedSampleImage,
                       width: double.infinity,
                       height: double.infinity,
@@ -209,8 +204,7 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
                   if (_isLoading) ...[
                     const CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
                     const _ScanningBeam(),
-                  ]
-                  else if (_diagnosisResult == null)
+                  ] else if (_diagnosisResult == null)
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                       decoration: BoxDecoration(
@@ -255,13 +249,14 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
                   value: _selectedPet,
                   isExpanded: true,
                   icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.primary),
-                  style: AppTypography.bodyLarge.copyWith(fontWeight: FontWeight.w700, color: AppColors.textPrimary),
-                  hint: const Text('Who are we scanning?'),
+                  style: AppTypography.bodyLarge.copyWith(
+                    fontWeight: FontWeight.w700, 
+                    color: Theme.of(context).brightness == Brightness.dark ? Colors.white : AppColors.textPrimary
+                  ),
+                  dropdownColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1A1A1A) : Colors.white,
+                  hint: Text('Who are we scanning?', style: TextStyle(color: Theme.of(context).hintColor)),
                   items: pets.map((pet) {
-                    return DropdownMenuItem(
-                      value: pet,
-                      child: Text('${pet.name} (${pet.breed})'),
-                    );
+                    return DropdownMenuItem(value: pet, child: Text('${pet.name} (${pet.breed})'));
                   }).toList(),
                   onChanged: (pet) => setState(() => _selectedPet = pet),
                 ),
@@ -288,10 +283,14 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
             child: TextField(
               controller: _issueController,
               maxLines: 4,
-              style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.w600, height: 1.5),
+              style: AppTypography.bodyMedium.copyWith(
+                fontWeight: FontWeight.w600, 
+                height: 1.5,
+                color: Theme.of(context).brightness == Brightness.dark ? Colors.white : AppColors.textPrimary,
+              ),
               decoration: InputDecoration(
                 hintText: 'e.g. Redness, unusual itching...',
-                hintStyle: TextStyle(color: AppColors.textTertiary.withOpacity(0.5)),
+                hintStyle: TextStyle(color: Theme.of(context).hintColor.withValues(alpha: 0.5)),
                 border: InputBorder.none,
                 contentPadding: const EdgeInsets.all(20),
               ),
@@ -310,9 +309,7 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
         height: 64,
         child: ElevatedButton(
           onPressed: _isLoading ? null : _runDiagnostic,
-          style: ElevatedButton.styleFrom(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          ),
+          style: ElevatedButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))),
           child: _isLoading
               ? const CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
               : const Text('RUN AI DIAGNOSTIC', style: TextStyle(fontWeight: FontWeight.w700, letterSpacing: 0.8)),
@@ -322,7 +319,6 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
   }
 
   Widget _buildResultSection() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return FadeInUp(
       child: PremiumCard(
         opacity: 0.25,
@@ -343,19 +339,18 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
                   Expanded(
                     child: Text('Expert Assessment', 
                       style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w700),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1, overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   const SizedBox(width: 8),
-                  _buildTonalChip(
-                    _diagnosisResult!.toLowerCase().contains('emergency') ? 'Urgent' : 'Advisory',
-                    _diagnosisResult!.toLowerCase().contains('emergency') ? AppColors.dangerRed : AppColors.primary,
+                  _TonalChip(
+                    label: _diagnosisResult!.toLowerCase().contains('emergency') ? 'Urgent' : 'Advisory',
+                    color: _diagnosisResult!.toLowerCase().contains('emergency') ? AppColors.dangerRed : AppColors.primary,
                   ),
                 ],
               ),
               const Divider(height: 48),
-              _buildHighlightedText(_diagnosisResult!),
+              _HighlightedText(text: _diagnosisResult!),
               const SizedBox(height: 32),
               const _ExpertDisclaimer(),
               const SizedBox(height: 40),
@@ -365,7 +360,7 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
                     child: OutlinedButton(
                       onPressed: _saveToMedicalRecords,
                       style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: AppColors.primary.withOpacity(0.5)),
+                        side: BorderSide(color: AppColors.primary.withValues(alpha: 0.5)),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
@@ -391,16 +386,20 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
       ),
     );
   }
-    );
-  }
+}
 
-  Widget _buildTonalChip(String label, Color color) {
+class _TonalChip extends StatelessWidget {
+  final String label;
+  final Color color;
+  const _TonalChip({required this.label, required this.color});
+  @override
+  Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.2)),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Text(
         label.toUpperCase(),
@@ -408,35 +407,38 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
       ),
     );
   }
+}
 
-  Widget _buildHighlightedText(String text) {
+class _HighlightedText extends StatelessWidget {
+  final String text;
+  const _HighlightedText({required this.text});
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     List<TextSpan> spans = [];
     final pattern = RegExp(r'\*\*(.*?)\*\*');
     int lastMatchEnd = 0;
-
     for (final match in pattern.allMatches(text)) {
       if (match.start > lastMatchEnd) {
         spans.add(TextSpan(text: text.substring(lastMatchEnd, match.start)));
       }
       spans.add(TextSpan(
         text: match.group(1),
-        style: const TextStyle(
-          color: AppColors.primary,
+        style: TextStyle(
+          color: isDark ? const Color(0xFF80D8FF) : AppColors.primary,
           fontWeight: FontWeight.w900,
-          backgroundColor: Color(0x15006684),
+          backgroundColor: isDark ? Colors.white.withValues(alpha: 0.1) : const Color(0x15006684),
         ),
       ));
       lastMatchEnd = match.end;
     }
-
     if (lastMatchEnd < text.length) {
       spans.add(TextSpan(text: text.substring(lastMatchEnd)));
     }
-
     return RichText(
       text: TextSpan(
         style: AppTypography.bodyMedium.copyWith(
-          color: AppColors.textPrimary,
+          color: isDark ? Colors.white70 : AppColors.textPrimary,
           height: 1.8,
           fontSize: 15,
           fontWeight: FontWeight.w500,
@@ -449,29 +451,22 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
 
 class _ScanningBeam extends StatefulWidget {
   const _ScanningBeam();
-
   @override
   State<_ScanningBeam> createState() => _ScanningBeamState();
 }
 
 class _ScanningBeamState extends State<_ScanningBeam> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 2),
-    )..repeat(reverse: true);
+    _controller = AnimationController(vsync: this, duration: const Duration(seconds: 2))..repeat(reverse: true);
   }
-
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
   }
-
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
@@ -486,14 +481,12 @@ class _ScanningBeamState extends State<_ScanningBeam> with SingleTickerProviderS
             decoration: BoxDecoration(
               boxShadow: [
                 BoxShadow(
-                  color: Colors.cyanAccent.withOpacity(0.8),
+                  color: Colors.cyanAccent.withValues(alpha: 0.8),
                   blurRadius: 10,
                   spreadRadius: 2,
                 ),
               ],
-              gradient: const LinearGradient(
-                colors: [Colors.transparent, Colors.cyanAccent, Colors.transparent],
-              ),
+              gradient: const LinearGradient(colors: [Colors.transparent, Colors.cyanAccent, Colors.transparent]),
             ),
           ),
         );
@@ -504,7 +497,6 @@ class _ScanningBeamState extends State<_ScanningBeam> with SingleTickerProviderS
 
 class _ExpertDisclaimer extends StatelessWidget {
   const _ExpertDisclaimer();
-
   @override
   Widget build(BuildContext context) {
     return Container(

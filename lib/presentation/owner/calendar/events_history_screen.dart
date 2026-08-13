@@ -26,6 +26,7 @@ class _EventsHistoryScreenState extends State<EventsHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final state = context.watch<AppStateRepository>();
     final allEvents = state.events;
     final pets = state.pets;
@@ -56,7 +57,10 @@ class _EventsHistoryScreenState extends State<EventsHistoryScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('FILTER BY PET', style: AppTypography.labelSmall.copyWith(
-                  fontWeight: FontWeight.w700, color: Theme.of(context).colorScheme.outline, fontSize: 10
+                  fontWeight: FontWeight.w800, 
+                  color: isDark ? Colors.white60 : Colors.black54, 
+                  fontSize: 10,
+                  letterSpacing: 0.8
                 )),
                 const SizedBox(height: 12),
                 _buildHorizontalScroll(
@@ -71,7 +75,10 @@ class _EventsHistoryScreenState extends State<EventsHistoryScreen> {
                 ),
                 const SizedBox(height: 20),
                 Text('FILTER BY CATEGORY', style: AppTypography.labelSmall.copyWith(
-                  fontWeight: FontWeight.w700, color: Theme.of(context).colorScheme.outline, fontSize: 10
+                  fontWeight: FontWeight.w800, 
+                  color: isDark ? Colors.white60 : Colors.black54, 
+                  fontSize: 10,
+                  letterSpacing: 0.8
                 )),
                 const SizedBox(height: 12),
                 _buildHorizontalScroll(
@@ -143,7 +150,11 @@ class _EventsHistoryScreenState extends State<EventsHistoryScreen> {
                                         style: AppTypography.bodyMedium.copyWith(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.primary)),
                                       const SizedBox(height: 2),
                                       Text(dateStr, 
-                                        style: AppTypography.bodyMedium.copyWith(fontSize: 11, fontWeight: FontWeight.w500, color: Theme.of(context).colorScheme.outline)),
+                                        style: AppTypography.bodyMedium.copyWith(
+                                          fontSize: 11, 
+                                          fontWeight: FontWeight.w600, 
+                                          color: isDark ? Colors.white54 : Colors.black45
+                                        )),
                                     ],
                                   ),
                                   trailing: event.category == 'Birthday' 
@@ -178,6 +189,7 @@ class _EventsHistoryScreenState extends State<EventsHistoryScreen> {
   }
 
   Widget _buildChip(String label, bool isSelected, VoidCallback onTap) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(right: 8),
       child: PremiumCard(
@@ -189,7 +201,9 @@ class _EventsHistoryScreenState extends State<EventsHistoryScreen> {
           child: Text(
             label,
             style: AppTypography.labelSmall.copyWith(
-              color: isSelected ? AppColors.primary : Theme.of(context).colorScheme.onSurfaceVariant,
+              color: isSelected 
+                ? AppColors.primary 
+                : (isDark ? Colors.white70 : Colors.black87),
               fontWeight: FontWeight.w800,
               fontSize: 10,
               letterSpacing: 0.5,

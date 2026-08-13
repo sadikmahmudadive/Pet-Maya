@@ -52,12 +52,18 @@ class PetDetailsScreen extends StatelessWidget {
               background: Stack(
                 fit: StackFit.expand,
                 children: [
-                  CachedNetworkImage(
-                    imageUrl: pet.photoUrl ?? 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=800',
-                    fit: BoxFit.cover,
-                    placeholder: (c, u) => Center(child: CupertinoActivityIndicator()),
-                    errorWidget: (c, u, e) => Container(color: AppColors.primaryLight, child: const Icon(Icons.pets, size: 50, color: AppColors.primary)),
-                  ),
+                  pet.photoUrl != null && pet.photoUrl!.isNotEmpty
+                      ? pet.photoUrl!.startsWith('assets')
+                          ? Image.asset(pet.photoUrl!, fit: BoxFit.cover, width: double.infinity, height: 350)
+                          : CachedNetworkImage(
+                              imageUrl: pet.photoUrl!,
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: 350,
+                              placeholder: (c, u) => const Center(child: CupertinoActivityIndicator()),
+                              errorWidget: (c, u, e) => Container(color: AppColors.primaryLight, child: const Icon(Icons.pets, size: 50, color: AppColors.primary)),
+                            )
+                      : Container(color: AppColors.primaryLight, child: const Icon(Icons.pets, size: 50, color: AppColors.primary)),
                   // Enhanced Top Gradient for Status Bar Visibility
                   Container(
                     decoration: BoxDecoration(

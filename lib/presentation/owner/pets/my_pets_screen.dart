@@ -92,14 +92,23 @@ class MyPetsScreen extends StatelessWidget {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(30),
-                  child: CachedNetworkImage(
-                    imageUrl: pet.photoUrl ?? 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=400',
-                    width: 60,
-                    height: 60,
-                    fit: BoxFit.cover,
-                    placeholder: (c, u) => CupertinoActivityIndicator(),
-                    errorWidget: (c, u, e) => const Icon(Icons.pets, size: 24, color: Colors.grey),
-                  ),
+                  child: pet.photoUrl != null && pet.photoUrl!.isNotEmpty
+                      ? pet.photoUrl!.startsWith('assets')
+                          ? Image.asset(
+                              pet.photoUrl!,
+                              width: 60,
+                              height: 60,
+                              fit: BoxFit.cover,
+                            )
+                          : CachedNetworkImage(
+                              imageUrl: pet.photoUrl!,
+                              width: 60,
+                              height: 60,
+                              fit: BoxFit.cover,
+                              placeholder: (c, u) => const CupertinoActivityIndicator(),
+                              errorWidget: (c, u, e) => const Icon(Icons.pets, size: 24, color: Colors.grey),
+                            )
+                      : const Icon(Icons.pets, size: 24, color: Colors.grey),
                 ),
               ),
               const SizedBox(width: 16),

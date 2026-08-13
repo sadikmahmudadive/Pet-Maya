@@ -116,45 +116,74 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final firstDayOfMonth = DateTime(_viewDate.year, _viewDate.month, 1);
     final daysBefore = firstDayOfMonth.weekday - 1;
     final startDate = firstDayOfMonth.subtract(Duration(days: daysBefore));
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: PremiumCard(
-        opacity: 0.3,
-        borderRadius: 32,
+        opacity: isDark ? 0.2 : 0.4,
+        borderRadius: 36,
         child: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(24),
           child: Column(
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(monthStr, style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w800)),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(monthStr, 
+                        style: AppTypography.titleLarge.copyWith(
+                          fontWeight: FontWeight.w900, 
+                          fontSize: 24,
+                          letterSpacing: -0.5
+                        )),
+                      const SizedBox(height: 4),
+                      Text('Your pet\'s health schedule', 
+                        style: TextStyle(
+                          fontSize: 12, 
+                          fontWeight: FontWeight.w600, 
+                          color: isDark ? Colors.white38 : Colors.black38
+                        )),
+                    ],
+                  ),
                   Row(
                     children: [
-                      _buildNavBtn(Icons.chevron_left_rounded, () {
+                      _buildNavBtn(Icons.arrow_back_ios_new_rounded, () {
                         setState(() => _viewDate = DateTime(_viewDate.year, _viewDate.month - 1));
                       }),
-                      const SizedBox(width: 12),
-                      _buildNavBtn(Icons.chevron_right_rounded, () {
+                      const SizedBox(width: 14),
+                      _buildNavBtn(Icons.arrow_forward_ios_rounded, () {
                         setState(() => _viewDate = DateTime(_viewDate.year, _viewDate.month + 1));
                       }),
                     ],
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 12),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: ['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day) => Expanded(
-                  child: Center(child: Text(day, style: AppTypography.labelSmall.copyWith(fontWeight: FontWeight.w800, color: AppColors.primary.withOpacity(0.5))))
+                  child: Center(
+                    child: Text(day, 
+                      style: AppTypography.labelSmall.copyWith(
+                        fontWeight: FontWeight.w900, 
+                        color: AppColors.primary.withValues(alpha: 0.6),
+                        fontSize: 11
+                      ))
+                  )
                 )).toList(),
               ),
               const SizedBox(height: 12),
               GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 7, mainAxisSpacing: 8, crossAxisSpacing: 8),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 7, 
+                  mainAxisSpacing: 10, 
+                  crossAxisSpacing: 10
+                ),
                 itemCount: 42,
                 itemBuilder: (context, index) {
                   final date = startDate.add(Duration(days: index));
@@ -162,21 +191,34 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   final isSelected = date.year == _selectedDate.year && date.month == _selectedDate.month && date.day == _selectedDate.day;
                   final isToday = date.year == DateTime.now().year && date.month == DateTime.now().month && date.day == DateTime.now().day;
                   
-                  final hasEvents = allEvents.any((e) => e.date.year == date.year && e.date.month == date.month && e.date.day == date.day);
+                  final eventsOnDate = allEvents.where((e) => e.date.year == date.year && e.date.month == date.month && e.date.day == date.day).toList();
 
                   return GestureDetector(
                     onTap: () {
-                      HapticFeedback.lightImpact();
+                      HapticFeedback.selectionClick();
                       setState(() {
                         _selectedDate = date;
                         _viewDate = date;
                       });
                     },
-                    child: Container(
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: isSelected ? AppColors.primary : (isToday ? AppColors.primary.withOpacity(0.1) : Colors.transparent),
-                        shape: BoxShape.circle,
+                        color: isSelected 
+                          ? AppColors.primary 
+                          : (isToday ? AppColors.primary.withValues(alpha: 0.15) : Colors.transparent),
+                        borderRadius: BorderRadius.circular(16),
+                        border: isToday && !isSelected 
+                          ? Border.all(color: AppColors.primary.withValues(alpha: 0.3), width: 1.5)
+                          : null,
+                        boxShadow: isSelected ? [
+                          BoxShadow(
+                            color: AppColors.primary.withValues(alpha: 0.3),
+                            blurRadius: 15,
+                            offset: const Offset(0, 8)
+                          )
+                        ] : null,
                       ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -186,17 +228,28 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             style: TextStyle(
                               color: isSelected 
                                   ? Colors.white 
-                                  : (isCurrentMonth ? Theme.of(context).colorScheme.onSurface : Theme.of(context).colorScheme.onSurface.withOpacity(0.2)),
-                              fontWeight: (isSelected || isToday) ? FontWeight.w800 : FontWeight.w600,
-                              fontSize: 14,
+                                  : (isCurrentMonth 
+                                      ? (isDark ? Colors.white70 : Colors.black87)
+                                      : (isDark ? Colors.white10 : Colors.black12)),
+                              fontWeight: (isSelected || isToday) ? FontWeight.w900 : FontWeight.w700,
+                              fontSize: isSelected ? 16 : 14,
                             ),
                           ),
-                          if (hasEvents && !isSelected)
-                            Container(
-                              margin: const EdgeInsets.only(top: 2),
-                              width: 4,
-                              height: 4,
-                              decoration: const BoxDecoration(color: AppColors.accentAmber, shape: BoxShape.circle),
+                          if (eventsOnDate.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 4),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: eventsOnDate.take(3).map((e) => Container(
+                                  margin: const EdgeInsets.symmetric(horizontal: 1),
+                                  width: 4,
+                                  height: 4,
+                                  decoration: BoxDecoration(
+                                    color: isSelected ? Colors.white : _getCategoryColor(e.category),
+                                    shape: BoxShape.circle
+                                  ),
+                                )).toList(),
+                              ),
                             ),
                         ],
                       ),
@@ -212,35 +265,49 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   Widget _buildNavBtn(IconData icon, VoidCallback onTap) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
-      onTap: onTap,
+      onTap: () {
+        HapticFeedback.lightImpact();
+        onTap();
+      },
       child: Container(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: AppColors.primary.withOpacity(0.08),
-          shape: BoxShape.circle,
+          color: isDark ? Colors.white.withValues(alpha: 0.05) : AppColors.primary.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(14),
         ),
-        child: Icon(icon, color: AppColors.primary, size: 20),
+        child: Icon(icon, color: AppColors.primary, size: 18),
       ),
     );
   }
 
   Widget _buildFilterChip(String label) {
     final isSelected = _activeCategory == label;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
-      padding: const EdgeInsets.only(right: 8),
+      padding: const EdgeInsets.only(right: 12),
       child: PremiumCard(
-        onTap: () => setState(() => _activeCategory = label),
-        opacity: isSelected ? 0.4 : 0.1,
-        borderRadius: 20,
+        onTap: () {
+          HapticFeedback.selectionClick();
+          setState(() => _activeCategory = label);
+        },
+        opacity: isSelected ? 0.4 : 0.05,
+        borderRadius: 24,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          decoration: BoxDecoration(
+            border: isSelected ? Border.all(color: AppColors.primary.withValues(alpha: 0.3), width: 1.5) : null,
+            borderRadius: BorderRadius.circular(24),
+          ),
           child: Text(
             label,
             style: AppTypography.labelSmall.copyWith(
-              color: isSelected ? AppColors.primary : Theme.of(context).colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.w700,
-              fontSize: 11,
+              color: isSelected 
+                ? AppColors.primary 
+                : (isDark ? Colors.white54 : Colors.black45),
+              fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
+              fontSize: 12,
               letterSpacing: 0.5,
             ),
           ),
