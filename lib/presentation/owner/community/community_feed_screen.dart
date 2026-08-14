@@ -862,7 +862,7 @@ class _FacebookShareBottomSheetState extends State<FacebookShareBottomSheet> {
                       bgColor: isDark ? Colors.white10 : const Color(0xFFFFF3E0),
                       iconColor: AppColors.accentAmber,
                       onTap: () {
-                        Clipboard.setData(ClipboardData(text: 'https://tail-wagging-d03de.web.app/post/${widget.post.postId}'));
+                        Clipboard.setData(ClipboardData(text: 'https://petmaya.app/post/${widget.post.postId}'));
                         HapticFeedback.lightImpact();
                         Navigator.pop(context);
                         state.showToast('Post link copied to clipboard! 📋');
@@ -889,7 +889,7 @@ class _FacebookShareBottomSheetState extends State<FacebookShareBottomSheet> {
                         Navigator.pop(context);
                         HapticFeedback.mediumImpact();
                         state.incrementPostShares(widget.post.postId);
-                        final shareText = 'Check out this post on Pet Maya by ${widget.post.userName}:\n\n"${widget.post.content}"\n\nhttps://tail-wagging-d03de.web.app/';
+                        final shareText = 'Check out this post on Pet Maya by ${widget.post.userName}:\n\n"${widget.post.content}"\n\nhttps://petmaya.app/';
                         await SharePlus.instance.share(
                           ShareParams(
                             text: shareText,

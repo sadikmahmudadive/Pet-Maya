@@ -568,7 +568,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           onTap: () async {
                             HapticFeedback.mediumImpact();
                             final shareText =
-                                'Join me on Pet Maya, the smart pet care app! 🐾 Use my referral code: $referralCode to unlock pet care rewards.\n\nDownload: https://tail-wagging-d03de.web.app/';
+                                'Join me on Pet Maya, the smart pet care app! 🐾 Use my referral code: $referralCode to unlock pet care rewards.\n\nDownload: https://petmaya.app/';
                             await SharePlus.instance.share(
                               ShareParams(
                                 text: shareText,

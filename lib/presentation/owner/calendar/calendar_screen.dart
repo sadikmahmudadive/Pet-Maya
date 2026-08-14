@@ -181,8 +181,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 7, 
-                  mainAxisSpacing: 10, 
-                  crossAxisSpacing: 10
+                  mainAxisSpacing: 6, 
+                  crossAxisSpacing: 6,
+                  childAspectRatio: 0.9,
                 ),
                 itemCount: 42,
                 itemBuilder: (context, index) {
@@ -208,20 +209,20 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         color: isSelected 
                           ? AppColors.primary 
                           : (isToday ? AppColors.primary.withValues(alpha: 0.15) : Colors.transparent),
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(14),
                         border: isToday && !isSelected 
                           ? Border.all(color: AppColors.primary.withValues(alpha: 0.3), width: 1.5)
                           : null,
                         boxShadow: isSelected ? [
                           BoxShadow(
                             color: AppColors.primary.withValues(alpha: 0.3),
-                            blurRadius: 15,
-                            offset: const Offset(0, 8)
+                            blurRadius: 12,
+                            offset: const Offset(0, 4)
                           )
                         ] : null,
                       ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                      child: Stack(
+                        alignment: Alignment.center,
                         children: [
                           Text(
                             '${date.day}',
@@ -232,18 +233,18 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                       ? (isDark ? Colors.white70 : Colors.black87)
                                       : (isDark ? Colors.white10 : Colors.black12)),
                               fontWeight: (isSelected || isToday) ? FontWeight.w900 : FontWeight.w700,
-                              fontSize: isSelected ? 16 : 14,
+                              fontSize: isSelected ? 15 : 13.5,
                             ),
                           ),
                           if (eventsOnDate.isNotEmpty)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 4),
+                            Positioned(
+                              bottom: 3,
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: eventsOnDate.take(3).map((e) => Container(
                                   margin: const EdgeInsets.symmetric(horizontal: 1),
-                                  width: 4,
-                                  height: 4,
+                                  width: 3.5,
+                                  height: 3.5,
                                   decoration: BoxDecoration(
                                     color: isSelected ? Colors.white : _getCategoryColor(e.category),
                                     shape: BoxShape.circle
