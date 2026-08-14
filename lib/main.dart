@@ -47,21 +47,25 @@ class TailWaggingApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      navigatorKey: navigatorKey,
-      title: 'Pet Maya',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system,
-      // Ensure platform-specific scroll physics (Bouncing on iOS)
-      scrollBehavior: const MaterialScrollBehavior().copyWith(
-        physics: const BouncingScrollPhysics(),
-      ),
-      builder: (context, child) {
-        return GlobalOfflineBanner(child: child ?? const SizedBox.shrink());
+    return Consumer<AppStateRepository>(
+      builder: (context, state, _) {
+        return MaterialApp(
+          navigatorKey: navigatorKey,
+          title: 'Pet Maya',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: state.themeMode,
+          // Ensure platform-specific scroll physics (Bouncing on iOS)
+          scrollBehavior: const MaterialScrollBehavior().copyWith(
+            physics: const BouncingScrollPhysics(),
+          ),
+          builder: (context, child) {
+            return GlobalOfflineBanner(child: child ?? const SizedBox.shrink());
+          },
+          home: const SplashScreen(),
+        );
       },
-      home: const SplashScreen(),
     );
   }
 }

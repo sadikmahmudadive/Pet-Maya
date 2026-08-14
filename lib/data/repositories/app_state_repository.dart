@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 
 import '../models/user_model.dart';
@@ -31,6 +32,11 @@ class AppStateRepository extends ChangeNotifier {
 
   final _uuid = const Uuid();
   final _firebase = FirebaseService();
+
+  // Theme Mode State & Persistence
+  ThemeMode _themeMode = ThemeMode.system;
+  ThemeMode get themeMode => _themeMode;
+  static const String _themeModeKey = 'app_theme_mode';
 
   // Current User Session
   UserModel? _currentUser;
@@ -120,9 +126,50 @@ class AppStateRepository extends ChangeNotifier {
   int get cartCount => _cartItems.fold(0, (sum, item) => sum + item.quantity);
 
   AppStateRepository._internal() {
+    _loadSavedThemeMode();
     // Attempt to restore session on initialization
     _restoreExistingSession();
     _setupNotificationListener();
+  }
+
+  Future<void> _loadSavedThemeMode() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final saved = prefs.getString(_themeModeKey);
+      if (saved == 'light') {
+        _themeMode = ThemeMode.light;
+      } else if (saved == 'dark') {
+        _themeMode = ThemeMode.dark;
+      } else {
+        _themeMode = ThemeMode.system;
+      }
+      notifyListeners();
+    } catch (e) {
+      debugPrint('[AppStateRepository] Error loading theme mode: $e');
+    }
+  }
+
+  Future<void> setThemeMode(ThemeMode mode) async {
+    if (_themeMode == mode) return;
+    _themeMode = mode;
+    notifyListeners();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final modeStr = mode == ThemeMode.light
+          ? 'light'
+          : mode == ThemeMode.dark
+              ? 'dark'
+              : 'system';
+      await prefs.setString(_themeModeKey, modeStr);
+    } catch (e) {
+      debugPrint('[AppStateRepository] Error saving theme mode: $e');
+    }
+  }
+
+  Future<void> toggleThemeMode(BuildContext context) async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final nextMode = isDark ? ThemeMode.light : ThemeMode.dark;
+    await setThemeMode(nextMode);
   }
 
   void _setupNotificationListener() {

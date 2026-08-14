@@ -39,6 +39,103 @@
       --radius-full: 9999px;
     }
 
+    [data-theme="dark"] {
+      --bg-light: #0B131B;
+      --bg-card: #132230;
+      --text-dark: #F1F5F9;
+      --text-muted: #94A3B8;
+      --border-color: rgba(26, 182, 128, 0.2);
+      --shadow-sm: 0 4px 20px rgba(0, 0, 0, 0.3);
+      --shadow-md: 0 12px 36px rgba(0, 0, 0, 0.4);
+      --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.5);
+    }
+
+    [data-theme="dark"] .navbar {
+      background: rgba(11, 19, 27, 0.92);
+      border-bottom-color: rgba(255, 255, 255, 0.08);
+    }
+
+    [data-theme="dark"] .mobile-drawer,
+    [data-theme="dark"] .feature-card,
+    [data-theme="dark"] .interactive-tool-box,
+    [data-theme="dark"] .showcase-section,
+    [data-theme="dark"] .community-post-box,
+    [data-theme="dark"] .faq-item,
+    [data-theme="dark"] .data-section,
+    [data-theme="dark"] .testimonial-card,
+    [data-theme="dark"] footer,
+    [data-theme="dark"] .modal-box {
+      background: #121E28;
+      color: #F1F5F9;
+      border-color: rgba(255, 255, 255, 0.08);
+    }
+
+    [data-theme="dark"] .drawer-links a {
+      color: #F1F5F9;
+      border-bottom-color: rgba(255, 255, 255, 0.06);
+    }
+
+    [data-theme="dark"] .vet-item-card,
+    [data-theme="dark"] .chip,
+    [data-theme="dark"] .data-card,
+    [data-theme="dark"] .input-field,
+    [data-theme="dark"] .scan-status-container {
+      background: #172736;
+      color: #F1F5F9;
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    [data-theme="dark"] .chip.active {
+      background: var(--primary);
+      color: white;
+    }
+
+    [data-theme="dark"] .triage-result-card {
+      background: #121E28;
+    }
+
+    [data-theme="dark"] .schedule-table th {
+      background: #172736;
+      color: #F1F5F9;
+    }
+
+    [data-theme="dark"] .faq-question,
+    [data-theme="dark"] .hero-title {
+      color: #F1F5F9;
+    }
+
+    [data-theme="dark"] .privacy-link-btn.secondary,
+    [data-theme="dark"] .btn-secondary {
+      background: #172736;
+      color: #F1F5F9;
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    [data-theme="dark"] .back-to-top {
+      background: #121E28;
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .theme-toggle-btn {
+      background: var(--bg-light);
+      border: 1.5px solid var(--border-color);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text-dark);
+      font-size: 18px;
+      transition: all 0.25s ease;
+    }
+
+    .theme-toggle-btn:hover {
+      border-color: var(--primary);
+      transform: scale(1.08);
+    }
+
     * {
       box-sizing: border-box;
       margin: 0;
@@ -56,6 +153,7 @@
       color: var(--text-dark);
       line-height: 1.6;
       overflow-x: hidden;
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
 
     /* ─── NAVIGATION ─── */
@@ -1378,6 +1476,9 @@
       </ul>
 
       <div class="nav-actions">
+        <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" aria-label="Toggle dark/light theme" title="Toggle dark/light theme">
+          🌙
+        </button>
         <button class="btn btn-primary" onclick="openAppModal()">
           <svg width="20" height="20" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
             <path fill="#00D7FF" d="M47.7 20.3C40.6 28 36.6 40 36.6 55.4v401.2c0 15.4 4 27.4 11.1 35.1l1.9 1.9 224.7-224.7v-5.8L49.6 18.4l-1.9 1.9z"/>
@@ -2322,8 +2423,41 @@
 
   <!-- ─── INTERACTIVE JAVASCRIPT ENGINE ─── -->
   <script>
+    // ── Dark / Light Theme Engine ──
+    function initTheme() {
+      const saved = localStorage.getItem('petmaya_theme');
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const isDark = saved === 'dark' || (!saved && prefersDark);
+      applyTheme(isDark);
+    }
+
+    function applyTheme(isDark) {
+      if (isDark) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        const btn = document.getElementById('themeToggleBtn');
+        if (btn) btn.textContent = '☀️';
+      } else {
+        document.documentElement.removeAttribute('data-theme');
+        const btn = document.getElementById('themeToggleBtn');
+        if (btn) btn.textContent = '🌙';
+      }
+    }
+
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme');
+      const isDark = current === 'dark';
+      const newDark = !isDark;
+      applyTheme(newDark);
+      localStorage.setItem('petmaya_theme', newDark ? 'dark' : 'light');
+      showToast(newDark ? '🌙 Switched to Dark Theme' : '☀️ Switched to Light Theme');
+    }
+
+    // Initialize theme immediately on load
+    initTheme();
+
     // Set default date for booking picker (tomorrow)
     document.addEventListener('DOMContentLoaded', () => {
+      initTheme();
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
       const dateStr = tomorrow.toISOString().split('T')[0];

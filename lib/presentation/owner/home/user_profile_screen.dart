@@ -411,6 +411,22 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 
   Widget _buildSettingsGrid(BuildContext context) {
+    final state = context.watch<AppStateRepository>();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    IconData themeIcon;
+    String themeLabel;
+    if (state.themeMode == ThemeMode.dark) {
+      themeIcon = Icons.dark_mode_rounded;
+      themeLabel = 'Dark Mode';
+    } else if (state.themeMode == ThemeMode.light) {
+      themeIcon = Icons.light_mode_rounded;
+      themeLabel = 'Light Mode';
+    } else {
+      themeIcon = Icons.brightness_auto_rounded;
+      themeLabel = isDark ? 'System (Dark)' : 'System (Light)';
+    }
+
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -423,7 +439,177 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         _buildSettingsCard(context, Icons.history_rounded, 'My Orders', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const OrdersScreen()))),
         _buildSettingsCard(context, Icons.favorite_rounded, 'Favorite Vets', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FavoriteVetsScreen()))),
         _buildSettingsCard(context, Icons.notifications_active_rounded, 'Notifications', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationScreen()))),
+        _buildSettingsCard(context, themeIcon, themeLabel, () => _showThemeModeDialog(context, state)),
+        _buildSettingsCard(context, Icons.security_rounded, 'Privacy & Terms', () async {
+          final url = Uri.parse('https://petmaya.app/privacy-policy');
+          try {
+            await launchUrl(url, mode: LaunchMode.externalApplication);
+          } catch (e) {
+            debugPrint('[PrivacyLink] Error launching url: $e');
+          }
+        }),
       ],
+    );
+  }
+
+  void _showThemeModeDialog(BuildContext context, AppStateRepository state) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: isDark ? AppColors.surfaceDark : Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'Choose App Appearance',
+                  style: GoogleFonts.fredoka(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? Colors.white : AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Select your preferred visual mode for Pet Maya',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: isDark ? Colors.white60 : Colors.grey[600],
+                  ),
+                ),
+                const SizedBox(height: 20),
+                _buildThemeOptionTile(
+                  context: ctx,
+                  title: 'Light Theme',
+                  subtitle: 'Clean, bright interface',
+                  icon: Icons.light_mode_rounded,
+                  iconColor: Colors.amber[700]!,
+                  isSelected: state.themeMode == ThemeMode.light,
+                  onTap: () {
+                    state.setThemeMode(ThemeMode.light);
+                    Navigator.pop(ctx);
+                  },
+                ),
+                const SizedBox(height: 10),
+                _buildThemeOptionTile(
+                  context: ctx,
+                  title: 'Dark Theme',
+                  subtitle: 'Gentle on the eyes in low light',
+                  icon: Icons.dark_mode_rounded,
+                  iconColor: Colors.indigo[300]!,
+                  isSelected: state.themeMode == ThemeMode.dark,
+                  onTap: () {
+                    state.setThemeMode(ThemeMode.dark);
+                    Navigator.pop(ctx);
+                  },
+                ),
+                const SizedBox(height: 10),
+                _buildThemeOptionTile(
+                  context: ctx,
+                  title: 'System Default',
+                  subtitle: 'Automatically sync with device settings',
+                  icon: Icons.brightness_auto_rounded,
+                  iconColor: AppColors.primary,
+                  isSelected: state.themeMode == ThemeMode.system,
+                  onTap: () {
+                    state.setThemeMode(ThemeMode.system);
+                    Navigator.pop(ctx);
+                  },
+                ),
+                const SizedBox(height: 12),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildThemeOptionTile({
+    required BuildContext context,
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color iconColor,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Material(
+      color: isSelected
+          ? AppColors.primary.withValues(alpha: isDark ? 0.2 : 0.1)
+          : (isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey[100]),
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isSelected ? AppColors.primary : Colors.transparent,
+              width: 1.5,
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: iconColor.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: iconColor, size: 22),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 15,
+                        color: isDark ? Colors.white : AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark ? Colors.white60 : Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (isSelected)
+                const Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 22),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

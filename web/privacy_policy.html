@@ -10,9 +10,20 @@
             --primary: #1AB680;
             --primary-dark: #004d63;
             --bg-color: #fbfcfe;
+            --container-bg: #ffffff;
             --text-primary: #1a1a1a;
             --text-secondary: #555;
             --shadow: 0 20px 50px rgba(26, 182, 128, 0.08);
+            --border-subtle: rgba(26, 182, 128, 0.05);
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #0B131B;
+            --container-bg: #121E28;
+            --text-primary: #F1F5F9;
+            --text-secondary: #94A3B8;
+            --shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+            --border-subtle: rgba(255, 255, 255, 0.08);
         }
 
         * {
@@ -27,16 +38,17 @@
             margin: 0;
             color: var(--text-primary);
             background-color: var(--bg-color);
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         .container {
-            background: white;
+            background: var(--container-bg);
             padding: 60px;
             border-radius: 40px;
             box-shadow: var(--shadow);
             max-width: 900px;
             margin: auto;
-            border: 1px solid rgba(26, 182, 128, 0.05);
+            border: 1px solid var(--border-subtle);
         }
 
         header {
@@ -210,5 +222,15 @@
             &copy; 2026 Pet Maya Ecosystem. All rights reserved.
         </div>
     </div>
+
+    <script>
+        (function() {
+            const saved = localStorage.getItem('petmaya_theme');
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (saved === 'dark' || (!saved && prefersDark)) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
 </body>
 </html>
