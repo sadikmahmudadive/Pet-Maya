@@ -634,6 +634,153 @@
       margin: 0 auto 36px;
     }
 
+    /* ─── DATA TRANSPARENCY SECTION ─── */
+    .data-section {
+      background: white;
+      padding: 100px 24px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .data-section-inner {
+      max-width: 1240px;
+      margin: 0 auto;
+    }
+
+    .data-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 28px;
+      margin-top: 56px;
+    }
+
+    .data-card {
+      background: var(--bg-light);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 36px 28px;
+      transition: box-shadow 0.25s ease, transform 0.25s ease;
+    }
+
+    .data-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-4px);
+    }
+
+    .data-card-icon {
+      width: 52px;
+      height: 52px;
+      background: linear-gradient(135deg, rgba(26,182,128,0.12) 0%, rgba(0,182,210,0.08) 100%);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+
+    .data-card h3 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 10px;
+    }
+
+    .data-card p {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.65;
+    }
+
+    .data-card .data-purpose {
+      display: inline-block;
+      margin-top: 14px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--primary);
+      background: rgba(26,182,128,0.08);
+      padding: 4px 12px;
+      border-radius: var(--radius-full);
+      border: 1px solid rgba(26,182,128,0.2);
+    }
+
+    .privacy-cta-box {
+      margin-top: 64px;
+      background: linear-gradient(135deg, rgba(26,182,128,0.05) 0%, rgba(0,182,210,0.05) 100%);
+      border: 1.5px solid rgba(26,182,128,0.2);
+      border-radius: var(--radius-md);
+      padding: 48px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 32px;
+      flex-wrap: wrap;
+    }
+
+    .privacy-cta-box h3 {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--text-dark);
+      margin-bottom: 8px;
+    }
+
+    .privacy-cta-box p {
+      font-size: 15px;
+      color: var(--text-muted);
+      max-width: 560px;
+    }
+
+    .privacy-cta-links {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      flex-shrink: 0;
+    }
+
+    .privacy-link-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 24px;
+      border-radius: var(--radius-full);
+      font-weight: 700;
+      font-size: 14px;
+      text-decoration: none;
+      transition: all 0.25s ease;
+    }
+
+    .privacy-link-btn.primary {
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 6px 20px rgba(26,182,128,0.3);
+    }
+
+    .privacy-link-btn.primary:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+
+    .privacy-link-btn.secondary {
+      background: white;
+      color: var(--text-dark);
+      border: 1.5px solid var(--border-color);
+    }
+
+    .privacy-link-btn.secondary:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      transform: translateY(-2px);
+    }
+
+    @media (max-width: 960px) {
+      .data-grid { grid-template-columns: 1fr 1fr; }
+      .privacy-cta-box { flex-direction: column; text-align: center; }
+      .privacy-cta-links { justify-content: center; }
+    }
+
+    @media (max-width: 600px) {
+      .data-grid { grid-template-columns: 1fr; }
+    }
+
     /* ─── FOOTER ─── */
     footer {
       background: white;
@@ -733,8 +880,9 @@
         <li><a href="#ai-scanner">AI Scanner</a></li>
         <li><a href="#vets">Veterinarians</a></li>
         <li><a href="#community">Community</a></li>
-        <li><a href="privacy_policy.html">Privacy</a></li>
-        <li><a href="terms_of_service.html">Terms</a></li>
+        <li><a href="#privacy" style="color: var(--primary); font-weight: 700;">🛡️ Privacy</a></li>
+        <li><a href="/privacy-policy">Privacy Policy</a></li>
+        <li><a href="/terms">Terms</a></li>
       </ul>
 
       <div class="nav-actions">
@@ -755,7 +903,7 @@
         Everything Your Pet Needs, <span>All in One Place.</span>
       </h1>
       <p class="hero-subtitle">
-        Pet Maya connects caring pet parents with certified veterinarians, intelligent AI health symptom diagnostics, a vibrant pet community feed, and doorstep supplies.
+        Pet Maya connects caring pet parents with certified veterinarians, intelligent AI health symptom diagnostics, a vibrant pet community feed, and doorstep supplies. We use Google Sign-In to securely authenticate your account — your data is never sold or used for advertising.
       </p>
 
       <div class="hero-cta-group">
@@ -982,6 +1130,74 @@
         <strong>Google Play Store</strong>
       </div>
     </a>
+  </section>
+
+  <!-- ─── DATA TRANSPARENCY SECTION ─── -->
+  <section id="privacy" class="data-section">
+    <div class="data-section-inner">
+      <div class="section-header">
+        <span class="section-tag">Transparency &amp; Trust</span>
+        <h2 class="section-title">Your Privacy Is Our Priority</h2>
+        <p class="section-desc">Pet Maya is built on a foundation of transparency. Here is exactly what data we request, why we need it, and how it protects your pet.</p>
+      </div>
+
+      <div class="data-grid">
+
+        <div class="data-card">
+          <div class="data-card-icon">🔐</div>
+          <h3>Google Account (Sign-In)</h3>
+          <p>We use Google Sign-In via Firebase Authentication to create and secure your account. We access your name, email address, and profile photo only to identify you within the app.</p>
+          <span class="data-purpose">Purpose: Secure account creation &amp; login</span>
+        </div>
+
+        <div class="data-card">
+          <div class="data-card-icon">📍</div>
+          <h3>Location Access</h3>
+          <p>High-accuracy location is used solely to display nearby certified veterinary clinics on our interactive map. Location data is processed in real-time and never stored on our servers after your session ends.</p>
+          <span class="data-purpose">Purpose: Find nearby vets &amp; clinics</span>
+        </div>
+
+        <div class="data-card">
+          <div class="data-card-icon">📸</div>
+          <h3>Camera &amp; Photos</h3>
+          <p>When you use the AI Health Scanner, photos of your pet are uploaded securely for computer vision analysis. These images are used solely to provide diagnostic insights and are never shared with advertisers.</p>
+          <span class="data-purpose">Purpose: AI symptom analysis</span>
+        </div>
+
+        <div class="data-card">
+          <div class="data-card-icon">🔔</div>
+          <h3>Push Notifications</h3>
+          <p>We send timely reminders for upcoming veterinary appointments, vaccination schedules, and medicine doses. You can manage or disable notifications at any time from your device settings.</p>
+          <span class="data-purpose">Purpose: Health reminders &amp; alerts</span>
+        </div>
+
+        <div class="data-card">
+          <div class="data-card-icon">🐾</div>
+          <h3>Pet Profile Data</h3>
+          <p>Pet name, breed, age, weight, and medical history are stored securely in Firebase Firestore with AES-256 encryption. This data powers your pet's health dashboard, vaccine tracker, and vet appointment history.</p>
+          <span class="data-purpose">Purpose: Pet health management</span>
+        </div>
+
+        <div class="data-card">
+          <div class="data-card-icon">🚫</div>
+          <h3>What We Never Do</h3>
+          <p>We <strong>never</strong> sell your personal data. We <strong>never</strong> use your information for advertising profiling. We <strong>never</strong> share your pet's medical records with third parties without your explicit consent.</p>
+          <span class="data-purpose">Our commitment to you</span>
+        </div>
+
+      </div>
+
+      <div class="privacy-cta-box">
+        <div>
+          <h3>🛡️ Read Our Full Privacy Policy</h3>
+          <p>Our complete Privacy Policy explains every data practice in full detail — including how to delete your account and all associated data at any time. We comply with global privacy regulations.</p>
+        </div>
+        <div class="privacy-cta-links">
+          <a href="/privacy-policy" class="privacy-link-btn primary">📄 Privacy Policy</a>
+          <a href="/terms" class="privacy-link-btn secondary">📋 Terms of Service</a>
+        </div>
+      </div>
+    </div>
   </section>
 
   <!-- ─── FOOTER ─── -->
