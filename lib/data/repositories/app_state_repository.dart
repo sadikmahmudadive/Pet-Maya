@@ -328,16 +328,7 @@ class AppStateRepository extends ChangeNotifier {
       _notifications
         ..clear()
         ..addAll(fetched);
-
-      if (_notifications.isEmpty) {
-        addNotification(
-          title: 'Welcome to Pet Maya! 🐾',
-          message: 'Explore veterinary services, shopping, community stories, and schedule appointments with ease.',
-          type: NotificationType.system,
-        );
-      } else {
-        notifyListeners();
-      }
+      notifyListeners();
     }, onError: (e) => debugPrint('[AppStateRepository] _listenToNotifications error: $e'));
   }
 
@@ -1214,6 +1205,10 @@ class AppStateRepository extends ChangeNotifier {
       timestamp: DateTime.now().millisecondsSinceEpoch,
     );
     
+    _notifications.removeWhere((n) => n.id == notification.id);
+    _notifications.insert(0, notification);
+    notifyListeners();
+
     if (_currentUser != null) {
       await _rtdb.saveNotification(_currentUser!.uid, notification);
       
@@ -1228,28 +1223,39 @@ class AppStateRepository extends ChangeNotifier {
   }
 
   void markNotificationAsRead(String id) async {
+    final idx = _notifications.indexWhere((n) => n.id == id);
+    if (idx != -1) {
+      _notifications[idx].isRead = true;
+      notifyListeners();
+    }
     if (_currentUser != null) {
       await _rtdb.markNotificationAsRead(_currentUser!.uid, id);
     }
   }
 
   void removeNotification(String id) async {
+    _notifications.removeWhere((n) => n.id == id);
+    notifyListeners();
     if (_currentUser != null) {
       await _rtdb.removeNotification(_currentUser!.uid, id);
     }
   }
 
   void markAllNotificationsAsRead() async {
+    for (var n in _notifications) {
+      n.isRead = true;
+    }
+    notifyListeners();
     if (_currentUser != null) {
       for (var n in _notifications) {
-        if (!n.isRead) {
-          await _rtdb.markNotificationAsRead(_currentUser!.uid, n.id);
-        }
+        await _rtdb.markNotificationAsRead(_currentUser!.uid, n.id);
       }
     }
   }
 
   void clearNotifications() async {
+    _notifications.clear();
+    notifyListeners();
     if (_currentUser != null) {
       await _rtdb.clearAllNotifications(_currentUser!.uid);
     }

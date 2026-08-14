@@ -7,7 +7,6 @@ import '../../core/theme/app_typography.dart';
 import '../../data/repositories/app_state_repository.dart';
 import '../../data/models/user_model.dart';
 import 'onboarding_screen.dart';
-import 'login_screen.dart';
 import '../owner/home/owner_home_screen.dart';
 import '../provider/vet_dashboard_screen.dart';
 import '../merchant/pet_shop_dashboard_screen.dart';
@@ -123,7 +122,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                 child: ScaleTransition(
                   scale: _scaleAnimation,
                   child: Container(
-                    padding: const EdgeInsets.all(24),
+                    padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       shape: BoxShape.circle,
@@ -135,7 +134,15 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                         ),
                       ],
                     ),
-                    child: const TailWaggingLoader(size: 90, useBottomPosition: false),
+                    child: ClipOval(
+                      child: Image.asset(
+                        'assets/images/tail_wagging_logo.png',
+                        width: 90,
+                        height: 90,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => const TailWaggingLoader(size: 90, useBottomPosition: false),
+                      ),
+                    ),
                   ),
                 ),
               ),

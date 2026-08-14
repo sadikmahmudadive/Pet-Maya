@@ -13,6 +13,10 @@
       {
         "source": "/privacy-policy",
         "destination": "/privacy_policy.html"
+      },
+      {
+        "source": "/terms-of-service",
+        "destination": "/terms_of_service.html"
       }
     ]
   },

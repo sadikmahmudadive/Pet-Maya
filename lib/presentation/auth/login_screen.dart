@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_typography.dart';
 import '../../data/repositories/app_state_repository.dart';
 import '../../data/models/user_model.dart';
-import '../common_widgets/glass_card.dart';
 import '../common_widgets/glass_scaffold.dart';
 import '../common_widgets/premium_card.dart';
-import 'package:animate_do/animate_do.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'register_screen.dart';
 import '../owner/home/owner_home_screen.dart';
@@ -228,12 +225,24 @@ class _LoginScreenState extends State<LoginScreen> {
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.05),
             shape: BoxShape.circle,
           ),
-          child: Icon(Icons.pets_rounded, size: size.height * 0.06, color: Theme.of(context).colorScheme.primary),
+          child: ClipOval(
+            child: Image.asset(
+              'assets/images/tail_wagging_logo.png',
+              height: size.height * 0.07,
+              width: size.height * 0.07,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => Icon(
+                Icons.pets_rounded,
+                size: size.height * 0.06,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+          ),
         ),
         SizedBox(height: size.height * 0.02),
         Text(
@@ -460,7 +469,7 @@ class _LoginScreenState extends State<LoginScreen> {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF006684).withOpacity(0.3),
+              color: const Color(0xFF006684).withValues(alpha: 0.3),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
