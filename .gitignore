@@ -1,8 +1,8 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# PET MAYA - PREMIUM SECURITY & CLEANLINESS
+# PET MAYA - FLUTTER & FIREBASE GITIGNORE
 # ─────────────────────────────────────────────────────────────────────────────
 
-# --- SECRETS & CREDENTIALS (CRITICAL) ---
+# --- ENVIRONMENT & SECRETS ---
 .env
 .env.*
 !.env.example
@@ -12,17 +12,10 @@
 *.pfx
 *.pem
 android/key.properties
-ios/Runner/GoogleService-Info.plist
-android/app/google-services.json
-ios/Flutter/ephemeral/
 android/local.properties
-
-# --- FIREBASE & CLOUD ---
-.firebase/
-*-debug.log*
-firebase-debug.log*
-firestore-debug.log*
-ui-debug.log*
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+ios/Flutter/ephemeral/
 
 # --- FLUTTER & DART ---
 .dart_tool/
@@ -48,13 +41,12 @@ android/*/build/
 *.aab
 *.aar
 
-# --- IOS ---
+# --- IOS & MACOS ---
 *.xcworkspace
 xcuserdata/
 DerivedData/
 *.moved-aside
 *.xcuserstate
-ios/Podfile.lock
 ios/Pods/
 ios/.res/
 ios/Flutter/App.framework
@@ -66,11 +58,24 @@ ios/Flutter/app.zip
 ios/Flutter/flutter_assets.zip
 ios/Flutter/flutter_export_environment.sh
 ios/ServiceDefinitions.json
+macos/Pods/
+macos/Flutter/ephemeral/
+
+# --- WINDOWS & LINUX DESKTOP ---
+windows/flutter/ephemeral/
+linux/flutter/ephemeral/
 
 # --- WEB ---
 .web/
 
-# --- IDE & TOOLS ---
+# --- FIREBASE & CLOUD ---
+.firebase/
+*-debug.log*
+firebase-debug.log*
+firestore-debug.log*
+ui-debug.log*
+
+# --- IDE & EDITORS ---
 .idea/
 *.iml
 *.ipr
@@ -80,8 +85,18 @@ ios/ServiceDefinitions.json
 *.log
 doc/api/
 node_modules/
+firebase.json
 
-# --- OS JUNK ---
+# --- SYSTEM & OS FILES ---
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
 desktop.ini
+*.swp
+*~
+*.tmp
+*.bak

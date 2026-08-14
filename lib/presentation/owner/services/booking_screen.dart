@@ -53,6 +53,28 @@ class _BookingScreenState extends State<BookingScreen> {
       return;
     }
 
+    String calculatedToTime = '10:00 AM';
+    try {
+      final isPM = _selectedTimeSlot.toLowerCase().contains('pm');
+      final isAM = _selectedTimeSlot.toLowerCase().contains('am');
+      final clean = _selectedTimeSlot.replaceAll(RegExp(r'[^0-9:]'), '');
+      final parts = clean.split(':');
+      if (parts.isNotEmpty) {
+        int hour = int.tryParse(parts[0]) ?? 9;
+        int minute = parts.length > 1 ? (int.tryParse(parts[1]) ?? 0) : 0;
+        minute += 45;
+        if (minute >= 60) {
+          minute -= 60;
+          hour += 1;
+        }
+        String period = isPM ? 'PM' : (isAM ? 'AM' : '');
+        if (hour >= 12 && isAM && hour != 12) period = 'PM';
+        final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
+        final minStr = minute.toString().padLeft(2, '0');
+        calculatedToTime = period.isNotEmpty ? '${displayHour.toString().padLeft(2, '0')}:$minStr $period' : '${displayHour.toString().padLeft(2, '0')}:$minStr';
+      }
+    } catch (_) {}
+
     final repo = context.read<AppStateRepository>();
     final event = EventModel(
       id: 'apt_${const Uuid().v4().substring(0, 6)}',
@@ -65,7 +87,7 @@ class _BookingScreenState extends State<BookingScreen> {
       providerId: widget.vet.id,
       date: _selectedDate,
       fromTime: _selectedTimeSlot,
-      toTime: '${_selectedTimeSlot.split(':')[0]}:45 ${_selectedTimeSlot.split(' ')[1]}',
+      toTime: calculatedToTime,
       isReminderEnabled: true,
     );
 

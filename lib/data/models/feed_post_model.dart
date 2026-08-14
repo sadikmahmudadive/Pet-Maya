@@ -9,6 +9,11 @@ class FeedPostModel {
   final int timestamp;
   int likesCount;
   int commentsCount;
+  int sharesCount;
+  final String? sharedPostId;
+  final String? sharedPostAuthor;
+  final String? sharedPostContent;
+  final String? sharedPostImageUrl;
   Map<String, bool> likedBy;
 
   FeedPostModel({
@@ -22,6 +27,11 @@ class FeedPostModel {
     required this.timestamp,
     this.likesCount = 0,
     this.commentsCount = 0,
+    this.sharesCount = 0,
+    this.sharedPostId,
+    this.sharedPostAuthor,
+    this.sharedPostContent,
+    this.sharedPostImageUrl,
     Map<String, bool>? likedBy,
   }) : likedBy = likedBy ?? {};
 
@@ -51,6 +61,11 @@ class FeedPostModel {
       'timestamp': timestamp,
       'likesCount': likesCount,
       'commentsCount': commentsCount,
+      'sharesCount': sharesCount,
+      'sharedPostId': sharedPostId,
+      'sharedPostAuthor': sharedPostAuthor,
+      'sharedPostContent': sharedPostContent,
+      'sharedPostImageUrl': sharedPostImageUrl,
       'likedBy': likedBy,
     };
   }
@@ -73,6 +88,11 @@ class FeedPostModel {
       timestamp: (map['timestamp'] as num?)?.toInt() ?? DateTime.now().millisecondsSinceEpoch,
       likesCount: (map['likesCount'] as num?)?.toInt() ?? likesMap.length,
       commentsCount: (map['commentsCount'] as num?)?.toInt() ?? 0,
+      sharesCount: (map['sharesCount'] as num?)?.toInt() ?? 0,
+      sharedPostId: map['sharedPostId'],
+      sharedPostAuthor: map['sharedPostAuthor'],
+      sharedPostContent: map['sharedPostContent'],
+      sharedPostImageUrl: map['sharedPostImageUrl'],
       likedBy: likesMap,
     );
   }

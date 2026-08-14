@@ -1,9 +1,9 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../../data/models/notification_model.dart';
+import '../../main.dart';
 
 class PremiumNotificationOverlay extends StatefulWidget {
   final String title;
@@ -19,21 +19,36 @@ class PremiumNotificationOverlay extends StatefulWidget {
     required this.onDismiss,
   });
 
-  static void show(BuildContext context, {
+  static void show(BuildContext? context, {
     required String title,
     required String message,
     required NotificationType type,
   }) {
+    OverlayState? overlayState;
+    if (context != null) {
+      overlayState = Overlay.maybeOf(context);
+    }
+    overlayState ??= TailWaggingApp.navigatorKey.currentState?.overlay;
+
+    if (overlayState == null) {
+      debugPrint('[PremiumNotificationOverlay] No OverlayState found to display notification.');
+      return;
+    }
+
     late OverlayEntry entry;
     entry = OverlayEntry(
-      builder: (context) => PremiumNotificationOverlay(
+      builder: (ctx) => PremiumNotificationOverlay(
         title: title,
         message: message,
         type: type,
-        onDismiss: () => entry.remove(),
+        onDismiss: () {
+          if (entry.mounted) {
+            entry.remove();
+          }
+        },
       ),
     );
-    Overlay.of(context).insert(entry);
+    overlayState.insert(entry);
   }
 
   @override
@@ -77,16 +92,16 @@ class _PremiumNotificationOverlayState extends State<PremiumNotificationOverlay>
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
             child: Material(
-              color: Colors.white.withOpacity(0.15),
+              color: Colors.white.withValues(alpha: 0.15),
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.7),
+                  color: Colors.white.withValues(alpha: 0.7),
                   borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: Colors.white.withOpacity(0.3), width: 1.5),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 1.5),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withValues(alpha: 0.05),
                       blurRadius: 20,
                       offset: const Offset(0, 10),
                     ),
@@ -97,7 +112,7 @@ class _PremiumNotificationOverlayState extends State<PremiumNotificationOverlay>
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: _getColor(widget.type).withOpacity(0.12),
+                        color: _getColor(widget.type).withValues(alpha: 0.12),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(_getIcon(widget.type), color: _getColor(widget.type), size: 22),

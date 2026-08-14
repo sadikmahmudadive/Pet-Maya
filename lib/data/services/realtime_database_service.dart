@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:firebase_database/firebase_database.dart';
 import '../models/pet_model.dart';
 import '../models/event_model.dart';
@@ -33,21 +34,19 @@ class RealtimeDatabaseService {
 
   /// Initialize offline capabilities for critical data nodes
   Future<void> enableOfflineSync(String userId) async {
-    // Enable disk persistence if not already enabled via native code
-    // Note: On some platforms, this must be called before any other DB usage.
-    // _db.setPersistenceEnabled(true); 
+    try {
+      // Requirement: Global persistence for shared nodes
+      await _productsRef.keepSynced(true);
+      await _vetsRef.keepSynced(true);
+      await _postsRef.keepSynced(true);
 
-    // Requirement: Global persistence for shared nodes
-    await _productsRef.keepSynced(true);
-    await _vetsRef.keepSynced(true);
-    await _postsRef.keepSynced(true);
-
-    // Requirement: Critical user nodes are always available and updated
-    if (userId.isNotEmpty) {
-      await _usersRef.child(userId).keepSynced(true);
-      // Synchronize all pets for this owner explicitly
-      await _petsRef.orderByChild('ownerID').equalTo(userId).ref.keepSynced(true);
-      await _notificationsRef.child(userId).keepSynced(true);
+      // Requirement: Critical user nodes are always available and updated
+      if (userId.isNotEmpty) {
+        await _usersRef.child(userId).keepSynced(true);
+        await _notificationsRef.child(userId).keepSynced(true);
+      }
+    } catch (e) {
+      debugPrint('[RTDB] enableOfflineSync notice: $e');
     }
   }
 
@@ -423,6 +422,13 @@ class RealtimeDatabaseService {
       likedIds.remove(userId);
     }
     await ref.set(likedIds);
+  }
+
+  Future<void> incrementPostShares(String postId) async {
+    await _postsRef.child(postId).child('sharesCount').runTransaction((Object? count) {
+      if (count == null) return Transaction.success(1);
+      return Transaction.success((count as int) + 1);
+    });
   }
 
   Future<void> addComment(String postId, CommentModel comment) async {

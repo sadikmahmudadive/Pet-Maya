@@ -76,7 +76,7 @@ class NotificationScreen extends StatelessWidget {
                               Container(
                                 padding: const EdgeInsets.all(10),
                                 decoration: BoxDecoration(
-                                  color: _getColor(notification.type).withOpacity(0.1),
+                                  color: _getColor(notification.type).withValues(alpha: 0.1),
                                   shape: BoxShape.circle,
                                 ),
                                 child: Icon(
@@ -91,16 +91,21 @@ class NotificationScreen extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      crossAxisAlignment: CrossAxisAlignment.center,
                                       children: [
-                                        Text(
-                                          notification.title,
-                                          style: AppTypography.titleMedium.copyWith(
-                                            fontSize: 15,
-                                            fontWeight: notification.isRead ? FontWeight.w600 : FontWeight.w700,
-                                            color: notification.isRead ? AppColors.textSecondary : AppColors.textPrimary,
+                                        Expanded(
+                                          child: Text(
+                                            notification.title,
+                                            style: AppTypography.titleMedium.copyWith(
+                                              fontSize: 15,
+                                              fontWeight: notification.isRead ? FontWeight.w600 : FontWeight.w700,
+                                              color: notification.isRead ? AppColors.textSecondary : AppColors.textPrimary,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
+                                        const SizedBox(width: 8),
                                         Text(timeStr, style: AppTypography.labelSmall.copyWith(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.textTertiary)),
                                       ],
                                     ),
@@ -163,7 +168,7 @@ class NotificationScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 20),
       alignment: isStart ? Alignment.centerLeft : Alignment.centerRight,
       decoration: BoxDecoration(
-        color: AppColors.dangerRed.withOpacity(0.1),
+        color: AppColors.dangerRed.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(24),
       ),
       child: const Icon(Icons.delete_sweep_rounded, color: AppColors.dangerRed, size: 28),

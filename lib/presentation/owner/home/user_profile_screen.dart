@@ -17,6 +17,7 @@ import '../shop/orders_screen.dart';
 import '../pets/my_pets_screen.dart';
 import '../../common_widgets/tail_wagging_loader.dart';
 import 'edit_profile_screen.dart';
+import 'notification_screen.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -421,7 +422,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         _buildSettingsCard(context, Icons.edit_note_rounded, 'Edit Profile', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EditProfileScreen()))),
         _buildSettingsCard(context, Icons.history_rounded, 'My Orders', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const OrdersScreen()))),
         _buildSettingsCard(context, Icons.favorite_rounded, 'Favorite Vets', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FavoriteVetsScreen()))),
-        _buildSettingsCard(context, Icons.notifications_active_rounded, 'Notifications', () {}),
+        _buildSettingsCard(context, Icons.notifications_active_rounded, 'Notifications', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationScreen()))),
       ],
     );
   }

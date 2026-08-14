@@ -37,16 +37,25 @@ class NotificationModel {
       parsedTimestamp = int.tryParse(rawTs) ?? DateTime.tryParse(rawTs)?.millisecondsSinceEpoch ?? parsedTimestamp;
     }
 
+    final rawType = (map['type'] ?? '').toString().toLowerCase();
+    NotificationType parsedType = NotificationType.system;
+    if (rawType.contains('health')) {
+      parsedType = NotificationType.health;
+    } else if (rawType.contains('social')) {
+      parsedType = NotificationType.social;
+    } else if (rawType.contains('order')) {
+      parsedType = NotificationType.order;
+    } else {
+      parsedType = NotificationType.system;
+    }
+
     return NotificationModel(
       id: id,
-      title: map['title'] ?? '',
-      message: map['message'] ?? '',
-      type: NotificationType.values.firstWhere(
-        (e) => e.name == map['type'],
-        orElse: () => NotificationType.system,
-      ),
+      title: map['title']?.toString() ?? '',
+      message: map['message']?.toString() ?? '',
+      type: parsedType,
       timestamp: parsedTimestamp,
-      isRead: map['isRead'] == true || map['isRead'] == 'true',
+      isRead: map['isRead'] == true || map['isRead']?.toString().toLowerCase() == 'true',
     );
   }
 }

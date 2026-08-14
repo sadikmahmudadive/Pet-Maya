@@ -328,7 +328,16 @@ class AppStateRepository extends ChangeNotifier {
       _notifications
         ..clear()
         ..addAll(fetched);
-      notifyListeners();
+
+      if (_notifications.isEmpty) {
+        addNotification(
+          title: 'Welcome to Pet Maya! 🐾',
+          message: 'Explore veterinary services, shopping, community stories, and schedule appointments with ease.',
+          type: NotificationType.system,
+        );
+      } else {
+        notifyListeners();
+      }
     }, onError: (e) => debugPrint('[AppStateRepository] _listenToNotifications error: $e'));
   }
 
@@ -636,6 +645,11 @@ class AppStateRepository extends ChangeNotifier {
     notifyListeners();
     await _rtdb.savePet(pet);
     logAudit('Pet Added', 'Added pet: ${pet.name} (${pet.breed})');
+    addNotification(
+      title: 'New Pet Added! 🐾',
+      message: '${pet.name} has been added to your profile.',
+      type: NotificationType.health,
+    );
   }
 
   Future<void> updatePet(PetModel updatedPet) async {
@@ -700,6 +714,36 @@ class AppStateRepository extends ChangeNotifier {
     }
   }
 
+  DateTime _parseScheduledTime(DateTime baseDate, String timeStr) {
+    int hour = 9;
+    int minute = 0;
+    try {
+      final cleanStr = timeStr.trim();
+      final isPM = cleanStr.toLowerCase().contains('pm');
+      final isAM = cleanStr.toLowerCase().contains('am');
+      
+      final digitsAndColons = cleanStr.replaceAll(RegExp(r'[^0-9:]'), '');
+      final parts = digitsAndColons.split(':');
+      
+      if (parts.isNotEmpty) {
+        hour = int.tryParse(parts[0]) ?? 9;
+      }
+      if (parts.length > 1) {
+        minute = int.tryParse(parts[1]) ?? 0;
+      }
+
+      if (isPM && hour < 12) {
+        hour += 12;
+      } else if (isAM && hour == 12) {
+        hour = 0;
+      }
+    } catch (e) {
+      debugPrint('[AppStateRepository] _parseScheduledTime notice: $e');
+    }
+
+    return DateTime(baseDate.year, baseDate.month, baseDate.day, hour, minute);
+  }
+
   // ─── CALENDAR & REMINDERS ────────────────────────────────────────────────
 
   Future<void> addEvent(EventModel event) async {
@@ -709,12 +753,7 @@ class AppStateRepository extends ChangeNotifier {
     
     // Tier 1: Local Reminder Engine (AlarmManager)
     if (event.isReminderEnabled) {
-      final dateTime = event.date;
-      final fromTime = event.fromTime.split(':');
-      final scheduledTime = DateTime(
-        dateTime.year, dateTime.month, dateTime.day,
-        int.parse(fromTime[0]), int.parse(fromTime[1]),
-      );
+      final scheduledTime = _parseScheduledTime(event.date, event.fromTime);
 
       await NativeBridgeService.scheduleAlarm(
         id: event.id,
@@ -931,6 +970,11 @@ class AppStateRepository extends ChangeNotifier {
     // Persist to RTDB
     await _rtdb.placeOrder(order);
     logAudit('Order Placed', 'Order ${order.orderId} created for ৳${order.total.toStringAsFixed(2)}');
+    addNotification(
+      title: 'Order Confirmed! 🛍️',
+      message: 'Your order #${order.orderId} for ৳${order.total.toStringAsFixed(2)} has been placed successfully.',
+      type: NotificationType.order,
+    );
     return order;
   }
 
@@ -1009,13 +1053,45 @@ class AppStateRepository extends ChangeNotifier {
     await _rtdb.deleteProduct(productId);
   }
 
-  // ─── COMMUNITY INTERACTIONS ──────────────────────────────────────────────
-
   Future<void> addPost(FeedPostModel post) async {
     _posts.insert(0, post);
     notifyListeners();
     await _rtdb.savePost(post);
     logAudit('Community Post', 'User ${_currentUser?.name} created a post');
+  }
+
+  Future<void> sharePost({
+    required FeedPostModel originalPost,
+    String caption = '',
+  }) async {
+    final newPost = FeedPostModel(
+      postId: 'post_${const Uuid().v4().substring(0, 8)}',
+      userId: _currentUser?.uid ?? 'user_1',
+      userName: _currentUser?.name ?? 'Pet Lover',
+      userPhoto: _currentUser?.photoUrl,
+      postType: originalPost.postType,
+      content: caption.isNotEmpty ? caption : 'Shared a story by ${originalPost.userName}',
+      imageUrl: null,
+      timestamp: DateTime.now().millisecondsSinceEpoch,
+      sharedPostId: originalPost.postId,
+      sharedPostAuthor: originalPost.userName,
+      sharedPostContent: originalPost.content,
+      sharedPostImageUrl: originalPost.imageUrl,
+    );
+
+    _posts.insert(0, newPost);
+    originalPost.sharesCount += 1;
+    notifyListeners();
+
+    await _rtdb.savePost(newPost);
+    await _rtdb.incrementPostShares(originalPost.postId);
+
+    addNotification(
+      title: 'Post Shared! 🚀',
+      message: 'You shared ${originalPost.userName}\'s post with the community.',
+      type: NotificationType.social,
+    );
+    logAudit('Post Shared', '${_currentUser?.name} shared post ${originalPost.postId}');
   }
 
   Future<void> togglePostLike(String postId) async {
@@ -1141,16 +1217,13 @@ class AppStateRepository extends ChangeNotifier {
     if (_currentUser != null) {
       await _rtdb.saveNotification(_currentUser!.uid, notification);
       
-      // Show Premium In-App Overlay
-      final context = TailWaggingApp.navigatorKey.currentContext;
-      if (context != null) {
-        PremiumNotificationOverlay.show(
-          context,
-          title: title,
-          message: message,
-          type: type,
-        );
-      }
+      // Show Premium In-App Overlay safely
+      PremiumNotificationOverlay.show(
+        TailWaggingApp.navigatorKey.currentContext,
+        title: title,
+        message: message,
+        type: type,
+      );
     }
   }
 

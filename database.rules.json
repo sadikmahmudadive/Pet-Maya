@@ -1,0 +1,76 @@
+{
+  "rules": {
+    ".read": "auth != null",
+    ".write": "auth != null",
+    "users": {
+      ".indexOn": ["role", "email"],
+      "$uid": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
+    },
+    "pets": {
+      ".indexOn": ["ownerID"],
+      "$petId": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
+    },
+    "events": {
+      "$uid": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
+    },
+    "appointments": {
+      ".indexOn": ["userId", "ownerId", "vetId"],
+      "$apptId": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
+    },
+    "notifications": {
+      "$uid": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
+    },
+    "orders": {
+      ".indexOn": ["userId"],
+      "$orderId": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
+    },
+    "service_records": {
+      ".indexOn": ["petId", "providerId"],
+      "$recordId": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
+    },
+    "community_posts": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "comments": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "reviews": {
+      ".indexOn": ["targetId"],
+      "$reviewId": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
+    },
+    "products": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "vets": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    }
+  }
+}
