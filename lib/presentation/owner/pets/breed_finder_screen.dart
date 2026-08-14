@@ -153,7 +153,7 @@ class _BreedFinderScreenState extends State<BreedFinderScreen> {
                   child: ElevatedButton.icon(
                     onPressed: _isIdentifying ? null : _runIdentification,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF006684),
+                      backgroundColor: const Color(0xFF1AB680),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
                     ),
                     icon: const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 22),
@@ -175,7 +175,7 @@ class _BreedFinderScreenState extends State<BreedFinderScreen> {
                       child: ElevatedButton(
                         onPressed: () => Navigator.pop(context, _identifiedBreed),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF006684),
+                          backgroundColor: const Color(0xFF1AB680),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
                         ),
                         child: const Text('CONFIRM BREED TYPE', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 1)),

@@ -23,6 +23,7 @@ import '../calendar/add_event_modal.dart';
 import '../shop/shop_screen.dart';
 import '../services/pet_services_screen.dart';
 import '../community/community_feed_screen.dart';
+import '../community/create_post_screen.dart';
 import 'pet_tracker_screen.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
@@ -137,39 +138,96 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
   }
 
   void _showQuickActionSheet(BuildContext context) {
+    HapticFeedback.mediumImpact();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(32))),
+      backgroundColor: isDark ? const Color(0xFF1B232E) : Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+      ),
       builder: (ctx) {
         return Container(
-          padding: const EdgeInsets.fromLTRB(24, 20, 24, 40),
+          padding: const EdgeInsets.fromLTRB(24, 16, 24, 36),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(width: 40, height: 4, decoration: BoxDecoration(color: Theme.of(context).dividerColor, borderRadius: BorderRadius.circular(2))),
-              const SizedBox(height: 24),
-              Text('Quick Actions', style: Theme.of(ctx).textTheme.headlineMedium),
-              const SizedBox(height: 24),
+              Container(
+                width: 44,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.white24 : Colors.black12,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Quick Actions ⚡',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      color: isDark ? Colors.white : AppColors.textPrimary,
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.close_rounded, color: isDark ? Colors.white54 : Colors.grey[600]),
+                    onPressed: () => Navigator.pop(ctx),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _buildQuickActionBtn(ctx, Icons.auto_awesome_rounded, 'AI Scanner', AppColors.primary, () {
-                    Navigator.pop(ctx);
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const AiHealthScannerScreen()));
-                  }),
-                  _buildQuickActionBtn(ctx, Icons.pets_rounded, 'Add Pet', AppColors.healthGreen, () {
-                    Navigator.pop(ctx);
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const AddEditPetScreen()));
-                  }),
-                  _buildQuickActionBtn(ctx, Icons.event_note_rounded, 'Add Event', AppColors.accentAmber, () {
-                    Navigator.pop(ctx);
-                    showModalBottomSheet(
-                      context: context,
-                      isScrollControlled: true,
-                      backgroundColor: Colors.transparent,
-                      builder: (_) => const AddEventModal(),
-                    );
-                  }),
+                  _buildQuickActionBtn(
+                    ctx,
+                    Icons.auto_awesome_rounded,
+                    'AI Scanner',
+                    AppColors.primary,
+                    () {
+                      Navigator.pop(ctx);
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const AiHealthScannerScreen()));
+                    },
+                  ),
+                  _buildQuickActionBtn(
+                    ctx,
+                    Icons.pets_rounded,
+                    'Add Pet',
+                    AppColors.healthGreen,
+                    () {
+                      Navigator.pop(ctx);
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const AddEditPetScreen()));
+                    },
+                  ),
+                  _buildQuickActionBtn(
+                    ctx,
+                    Icons.edit_note_rounded,
+                    'Create Post',
+                    const Color(0xFF1877F2),
+                    () {
+                      Navigator.pop(ctx);
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const CreatePostScreen()));
+                    },
+                  ),
+                  _buildQuickActionBtn(
+                    ctx,
+                    Icons.event_note_rounded,
+                    'Add Event',
+                    AppColors.accentAmber,
+                    () {
+                      Navigator.pop(ctx);
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                        builder: (_) => const AddEventModal(),
+                      );
+                    },
+                  ),
                 ],
               ),
             ],
@@ -180,21 +238,38 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
   }
 
   Widget _buildQuickActionBtn(BuildContext ctx, IconData icon, String label, Color color, VoidCallback onTap) {
+    final isDark = Theme.of(ctx).brightness == Brightness.dark;
+
     return GestureDetector(
-      onTap: onTap,
+      onTap: () {
+        HapticFeedback.lightImpact();
+        onTap();
+      },
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            padding: const EdgeInsets.all(18),
+            width: 58,
+            height: 58,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.12),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: color.withOpacity(0.2)),
+              color: color.withValues(alpha: isDark ? 0.22 : 0.12),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: color.withValues(alpha: isDark ? 0.35 : 0.25),
+                width: 1.5,
+              ),
             ),
-            child: Icon(icon, color: color, size: 28),
+            child: Icon(icon, color: color, size: 26),
           ),
-          const SizedBox(height: 10),
-          Text(label, style: Theme.of(ctx).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: isDark ? Colors.white70 : AppColors.textPrimary,
+            ),
+          ),
         ],
       ),
     );
@@ -521,7 +596,7 @@ class HomeDashboardFragment extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.pets_rounded, color: Theme.of(context).hintColor.withOpacity(0.2), size: 48),
+          Icon(Icons.pets_rounded, color: Theme.of(context).hintColor.withValues(alpha: 0.2), size: 48),
           const SizedBox(height: 12),
           Text('No pets added yet', style: Theme.of(context).textTheme.titleMedium),
           TextButton(
@@ -566,7 +641,7 @@ class HomeDashboardFragment extends StatelessWidget {
                     child: Text(
                       evt.category.toUpperCase(),
                       style: const TextStyle(
-                        color: Color(0xFF006684),
+                        color: Color(0xFF1AB680),
                         fontSize: 10,
                         fontWeight: FontWeight.w800,
                         letterSpacing: 0.5,
@@ -753,7 +828,7 @@ class HomeDashboardFragment extends StatelessWidget {
                   Container(
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.5), width: 2),
+                      border: Border.all(color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.5), width: 2),
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(24),
@@ -762,7 +837,7 @@ class HomeDashboardFragment extends StatelessWidget {
                         width: 70,
                         height: 70,
                         fit: BoxFit.cover,
-                        errorWidget: (c, u, e) => Container(color: Theme.of(context).dividerColor.withOpacity(0.1), child: Icon(Icons.person, color: Theme.of(context).hintColor)),
+                        errorWidget: (c, u, e) => Container(color: Theme.of(context).dividerColor.withValues(alpha: 0.1), child: Icon(Icons.person, color: Theme.of(context).hintColor)),
                       ),
                     ),
                   ),
@@ -799,7 +874,7 @@ class HomeDashboardFragment extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor.withOpacity(0.6),
+                  color: Theme.of(context).cardColor.withValues(alpha: 0.6),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Column(
@@ -849,7 +924,7 @@ class HomeDashboardFragment extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(

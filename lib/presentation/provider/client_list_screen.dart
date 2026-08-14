@@ -79,7 +79,7 @@ class ClientListScreen extends StatelessWidget {
                       IconButton(
                         icon: Container(
                           padding: const EdgeInsets.all(10),
-                          decoration: const BoxDecoration(color: Color(0xFF006684), shape: BoxShape.circle),
+                          decoration: const BoxDecoration(color: Color(0xFF1AB680), shape: BoxShape.circle),
                           child: const Icon(Icons.note_add_rounded, color: Colors.white, size: 18),
                         ),
                         onPressed: () {

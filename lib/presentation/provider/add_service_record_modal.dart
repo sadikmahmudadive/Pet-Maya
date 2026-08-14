@@ -136,7 +136,7 @@ class _AddServiceRecordModalState extends State<AddServiceRecordModal> {
               child: ElevatedButton(
                 onPressed: _isSaving ? null : _saveRecord,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF006684), 
+                  backgroundColor: const Color(0xFF1AB680), 
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 ),
                 child: _isSaving

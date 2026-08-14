@@ -113,7 +113,7 @@ class _AdminBroadcastScreenState extends State<AdminBroadcastScreen> {
                 child: ElevatedButton.icon(
                   onPressed: _sendBroadcast,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF006684),
+                    backgroundColor: const Color(0xFF1AB680),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                   ),
                   icon: const Icon(Icons.campaign_rounded, color: Colors.white, size: 24),

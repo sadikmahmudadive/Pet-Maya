@@ -2,7 +2,6 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_typography.dart';
 
 class FloatingNavbar extends StatelessWidget {
   final int selectedIndex;
@@ -20,140 +19,249 @@ class FloatingNavbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final bottomPadding = MediaQuery.of(context).padding.bottom;
-    const double barHeight = 72;
-    final double containerHeight = 85 + (bottomPadding > 0 ? 0 : 15); // Adjust for pop-out
+    const double barHeight = 68;
+    final double containerHeight = 84 + (bottomPadding > 0 ? 0 : 10);
 
     return Container(
       height: containerHeight,
-      margin: EdgeInsets.fromLTRB(24, 0, 24, bottomPadding > 0 ? bottomPadding : 16),
+      margin: EdgeInsets.fromLTRB(16, 0, 16, bottomPadding > 0 ? bottomPadding : 12),
       child: Stack(
         alignment: Alignment.bottomCenter,
         clipBehavior: Clip.none,
         children: [
-          // 1. The Ultra-Premium Frosted Glass Dock
+          // ─── 1. Ultra-Premium Glass Dock ───
           ClipRRect(
-            borderRadius: BorderRadius.circular(36),
+            borderRadius: BorderRadius.circular(34),
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
               child: Container(
                 height: barHeight,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface.withOpacity(0.9),
-                  borderRadius: BorderRadius.circular(36),
+                  color: isDark
+                      ? const Color(0xFF161E28).withValues(alpha: 0.88)
+                      : Colors.white.withValues(alpha: 0.90),
+                  borderRadius: BorderRadius.circular(34),
                   border: Border.all(
-                    color: Theme.of(context).dividerColor.withOpacity(0.2),
-                    width: 1.5,
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.12)
+                        : AppColors.primary.withValues(alpha: 0.15),
+                    width: 1.2,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.2 : 0.04),
-                      blurRadius: 30,
-                      offset: const Offset(0, 10),
+                      color: isDark
+                          ? Colors.black.withValues(alpha: 0.45)
+                          : AppColors.primary.withValues(alpha: 0.12),
+                      blurRadius: 28,
+                      offset: const Offset(0, 8),
+                      spreadRadius: 1,
+                    ),
+                    BoxShadow(
+                      color: isDark
+                          ? Colors.black.withValues(alpha: 0.25)
+                          : Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
                     ),
                   ],
                 ),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _buildTabItem(context, 0, Icons.grid_view_rounded, 'Home'),
-                    _buildTabItem(context, 1, Icons.explore_rounded, 'Explore'),
-                    const SizedBox(width: 65), // Reduced width to prevent overflow
-                    _buildTabItem(context, 2, Icons.forum_rounded, 'Social'),
-                    _buildTabItem(context, 3, Icons.person_rounded, 'Me'),
+                    _buildNavItem(
+                      context: context,
+                      index: 0,
+                      selectedIcon: Icons.grid_view_rounded,
+                      unselectedIcon: Icons.grid_view_outlined,
+                      label: 'Home',
+                    ),
+                    _buildNavItem(
+                      context: context,
+                      index: 1,
+                      selectedIcon: Icons.explore_rounded,
+                      unselectedIcon: Icons.explore_outlined,
+                      label: 'Explore',
+                    ),
+                    const SizedBox(width: 58), // Center spacing for the Jewel FAB
+                    _buildNavItem(
+                      context: context,
+                      index: 2,
+                      selectedIcon: Icons.pets_rounded,
+                      unselectedIcon: Icons.pets_outlined,
+                      label: 'Community',
+                    ),
+                    _buildNavItem(
+                      context: context,
+                      index: 3,
+                      selectedIcon: Icons.person_rounded,
+                      unselectedIcon: Icons.person_outline_rounded,
+                      label: 'Profile',
+                    ),
                   ],
                 ),
               ),
             ),
           ),
 
-          // 2. Center Action Button (The "Jewel")
+          // ─── 2. Center "Jewel" Action Button ───
           Positioned(
-            top: 0, // Perfectly sits on the top edge of the pill
-            child: _buildCenterAction(context),
+            top: 0,
+            child: _buildCenterJewel(context, isDark),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildTabItem(BuildContext context, int index, IconData icon, String label) {
+  Widget _buildNavItem({
+    required BuildContext context,
+    required int index,
+    required IconData selectedIcon,
+    required IconData unselectedIcon,
+    required String label,
+  }) {
     final bool isSelected = selectedIndex == index;
-    final Color activeColor = Theme.of(context).colorScheme.primary;
-    final Color inactiveColor = Theme.of(context).hintColor;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final Color activeColor = AppColors.primary;
+    final Color inactiveColor = isDark ? Colors.white54 : Colors.grey[600]!;
 
     return Expanded(
       child: GestureDetector(
         onTap: () {
           if (!isSelected) {
-            HapticFeedback.selectionClick();
+            HapticFeedback.lightImpact();
             onItemTapped(index);
           }
         },
         behavior: HitTestBehavior.opaque,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              color: isSelected ? activeColor : inactiveColor,
-              size: 24,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                fontSize: 10,
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-                color: isSelected ? activeColor : inactiveColor,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 260),
+          curve: Curves.easeOutCubic,
+          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? (isDark
+                    ? AppColors.primary.withValues(alpha: 0.18)
+                    : AppColors.primaryLight.withValues(alpha: 0.65))
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(22),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AnimatedScale(
+                scale: isSelected ? 1.12 : 1.0,
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOutBack,
+                child: Icon(
+                  isSelected ? selectedIcon : unselectedIcon,
+                  color: isSelected ? activeColor : inactiveColor,
+                  size: 22,
+                ),
               ),
-            ),
-            // Minimalist dot indicator
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              margin: const EdgeInsets.only(top: 4),
-              height: 3,
-              width: isSelected ? 3 : 0,
-              decoration: BoxDecoration(
-                color: activeColor,
-                shape: BoxShape.circle,
+              const SizedBox(height: 3),
+              AnimatedDefaultTextStyle(
+                duration: const Duration(milliseconds: 200),
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                  color: isSelected ? activeColor : inactiveColor,
+                  letterSpacing: isSelected ? 0.2 : 0,
+                ),
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 2),
+              // Micro Indicator Pill
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeOutCubic,
+                height: 3,
+                width: isSelected ? 12 : 0,
+                decoration: BoxDecoration(
+                  gradient: isSelected
+                      ? const LinearGradient(
+                          colors: [AppColors.primary, AppColors.secondary],
+                        )
+                      : null,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildCenterAction(BuildContext context) {
+  Widget _buildCenterJewel(BuildContext context, bool isDark) {
     return GestureDetector(
       onTap: () {
-        HapticFeedback.heavyImpact();
+        HapticFeedback.mediumImpact();
         onFabTapped();
       },
-      child: Container(
-        width: 62, // Reduced size slightly
-        height: 62,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: Theme.of(context).colorScheme.primary, 
-          border: Border.all(
-            color: Theme.of(context).colorScheme.surface, 
-            width: 3,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.4),
-              blurRadius: 15,
-              offset: const Offset(0, 6),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Soft Ambient Glow Behind FAB
+          Container(
+            width: 66,
+            height: 66,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withValues(alpha: isDark ? 0.45 : 0.35),
+                  blurRadius: 18,
+                  offset: const Offset(0, 6),
+                  spreadRadius: 2,
+                ),
+              ],
             ),
-          ],
-        ),
-        child: const Icon(
-          Icons.add, 
-          color: Colors.white,
-          size: 34,
-        ),
+          ),
+
+          // Main Jewel Sphere with Mint ➔ Turquoise Gradient
+          Container(
+            width: 58,
+            height: 58,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFF1AB680),
+                  Color(0xFF00B6D2),
+                ],
+              ),
+              border: Border.all(
+                color: isDark ? const Color(0xFF161E28) : Colors.white,
+                width: 3.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.18),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: const Center(
+              child: Icon(
+                Icons.add_rounded,
+                color: Colors.white,
+                size: 32,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

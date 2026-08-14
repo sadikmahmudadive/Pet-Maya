@@ -160,7 +160,7 @@ class _ShopOrdersScreenState extends State<ShopOrdersScreen> {
                                               HapticFeedback.mediumImpact();
                                               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Dispatched successfully! 🚚'), behavior: SnackBarBehavior.floating, backgroundColor: AppColors.healthGreen));
                                             },
-                                            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF006684), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                                            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1AB680), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                                             child: const Text('DISPATCH', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 0.5, fontSize: 11)),
                                           ),
                                         )

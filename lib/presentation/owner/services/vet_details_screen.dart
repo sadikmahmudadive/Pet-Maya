@@ -265,7 +265,7 @@ class VetDetailsScreen extends StatelessWidget {
               Navigator.push(context, MaterialPageRoute(builder: (_) => BookingScreen(vet: vet)));
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF006684),
+              backgroundColor: const Color(0xFF1AB680),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             ),
             child: Text('SCHEDULE APPOINTMENT • ${vet.price.toUpperCase()}', 

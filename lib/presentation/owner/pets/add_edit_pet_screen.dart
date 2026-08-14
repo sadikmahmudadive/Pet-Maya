@@ -211,7 +211,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: isCurrent ? const Color(0xFF006684) : Colors.transparent, 
+                                color: isCurrent ? const Color(0xFF1AB680) : Colors.transparent, 
                                 width: 2
                               ),
                             ),
@@ -249,7 +249,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('PET DETAILS', 
-                    style: TextStyle(color: const Color(0xFF006684).withOpacity(0.7), fontWeight: FontWeight.w900, fontSize: 11, letterSpacing: 1.5)),
+                    style: TextStyle(color: const Color(0xFF1AB680).withOpacity(0.7), fontWeight: FontWeight.w900, fontSize: 11, letterSpacing: 1.5)),
                   const SizedBox(height: 32),
 
                   // Center Avatar Section
@@ -290,7 +290,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
                             },
                             child: Container(
                               padding: const EdgeInsets.all(10),
-                              decoration: const BoxDecoration(color: Color(0xFF006684), shape: BoxShape.circle),
+                              decoration: const BoxDecoration(color: Color(0xFF1AB680), shape: BoxShape.circle),
                               child: const Icon(Icons.edit_rounded, color: Colors.white, size: 16),
                             ),
                           ),
@@ -375,10 +375,10 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
                     child: ElevatedButton(
                       onPressed: _isSaving ? null : _savePet,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF006684),
+                        backgroundColor: const Color(0xFF1AB680),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                         elevation: 8,
-                        shadowColor: const Color(0xFF006684).withOpacity(0.4),
+                        shadowColor: const Color(0xFF1AB680).withOpacity(0.4),
                       ),
                       child: _isSaving 
                         ? const CircularProgressIndicator(color: Colors.white, strokeWidth: 3)
@@ -413,9 +413,9 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: TextStyle(color: isDark ? Colors.white24 : Colors.grey[400], fontSize: 14),
-            prefixIcon: icon != null ? Icon(icon, size: 20, color: const Color(0xFF006684)) : null,
+            prefixIcon: icon != null ? Icon(icon, size: 20, color: const Color(0xFF1AB680)) : null,
             suffixText: suffix,
-            suffixStyle: TextStyle(color: const Color(0xFF006684).withOpacity(0.6), fontWeight: FontWeight.w800, fontSize: 12),
+            suffixStyle: TextStyle(color: const Color(0xFF1AB680).withOpacity(0.6), fontWeight: FontWeight.w800, fontSize: 12),
             filled: true,
             fillColor: isDark ? const Color(0xFF1A222D) : Colors.white,
             contentPadding: const EdgeInsets.symmetric(vertical: 22, horizontal: 16),
@@ -429,7 +429,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(color: Color(0xFF006684), width: 2),
+              borderSide: const BorderSide(color: Color(0xFF1AB680), width: 2),
             ),
           ),
         ),
@@ -457,7 +457,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
           ),
           child: Row(
             children: [
-              const Icon(Icons.history_rounded, size: 20, color: Color(0xFF006684)),
+              const Icon(Icons.history_rounded, size: 20, color: Color(0xFF1AB680)),
               const SizedBox(width: 14),
               Text(value, style: TextStyle(color: isDark ? Colors.white70 : Colors.grey[600], fontWeight: FontWeight.w800, fontSize: 15)),
             ],
@@ -489,7 +489,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
               value: _gender,
               isExpanded: true,
               dropdownColor: isDark ? const Color(0xFF1A1A1A) : Colors.white,
-              icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF006684)),
+              icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF1AB680)),
               style: TextStyle(fontSize: 15, color: isDark ? Colors.white : Colors.black87, fontWeight: FontWeight.w700),
               items: ['Male', 'Female'].map((g) => DropdownMenuItem(value: g, child: Text(g))).toList(),
               onChanged: (val) => setState(() => _gender = val!),
@@ -530,7 +530,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
             ),
             child: Row(
               children: [
-                const Icon(Icons.calendar_month_rounded, size: 20, color: Color(0xFF006684)),
+                const Icon(Icons.calendar_month_rounded, size: 20, color: Color(0xFF1AB680)),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
@@ -594,17 +594,17 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
         decoration: BoxDecoration(
           color: const Color(0xFFD1E6EE),
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [BoxShadow(color: const Color(0xFF006684).withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 4))],
+          boxShadow: [BoxShadow(color: const Color(0xFF1AB680).withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 4))],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             _isScanningBreed 
-              ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF006684)))
-              : const Icon(Icons.auto_awesome_rounded, size: 18, color: Color(0xFF006684)),
+              ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF1AB680)))
+              : const Icon(Icons.auto_awesome_rounded, size: 18, color: Color(0xFF1AB680)),
             const SizedBox(width: 10),
             Text(_isScanningBreed ? 'SCANNING' : 'SCAN', 
-              style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF006684), fontSize: 12, letterSpacing: 1.2)),
+              style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF1AB680), fontSize: 12, letterSpacing: 1.2)),
           ],
         ),
       ),
@@ -651,12 +651,12 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 20, color: const Color(0xFF006684)),
+            Icon(icon, size: 20, color: const Color(0xFF1AB680)),
             const SizedBox(width: 10),
             Flexible(
               child: Text(
                 label.toUpperCase(), 
-                style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF006684), fontSize: 11, letterSpacing: 0.8),
+                style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF1AB680), fontSize: 11, letterSpacing: 0.8),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),

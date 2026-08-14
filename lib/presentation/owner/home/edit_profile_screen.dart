@@ -222,10 +222,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 child: ElevatedButton(
                   onPressed: _isSaving ? null : _handleSave,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF006684),
+                    backgroundColor: const Color(0xFF1AB680),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                     elevation: 8,
-                    shadowColor: const Color(0xFF006684).withOpacity(0.3),
+                    shadowColor: const Color(0xFF1AB680).withOpacity(0.3),
                   ),
                   child: _isSaving 
                     ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))

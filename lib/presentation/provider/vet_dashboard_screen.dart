@@ -103,9 +103,9 @@ class VetDashboardScreen extends StatelessWidget {
                             child: Container(
                               padding: const EdgeInsets.symmetric(vertical: 22),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF006684), 
+                                color: const Color(0xFF1AB680), 
                                 borderRadius: BorderRadius.circular(24),
-                                boxShadow: [BoxShadow(color: const Color(0xFF006684).withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10))],
+                                boxShadow: [BoxShadow(color: const Color(0xFF1AB680).withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10))],
                               ),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,

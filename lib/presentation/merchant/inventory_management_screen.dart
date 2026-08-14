@@ -176,7 +176,7 @@ class InventoryManagementScreen extends StatelessWidget {
                       Navigator.pop(ctx);
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Product added to catalog! 📦'), backgroundColor: AppColors.healthGreen));
                     },
-                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF006684), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18))),
+                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1AB680), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18))),
                     child: const Text('CREATE LISTING', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, letterSpacing: 1)),
                   ),
                 ),
@@ -224,7 +224,7 @@ class InventoryManagementScreen extends StatelessWidget {
                   HapticFeedback.mediumImpact();
                   Navigator.pop(ctx);
                 },
-                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF006684), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
+                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1AB680), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
                 child: const Text('SAVE STOCK LEVEL', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
               ),
             ),

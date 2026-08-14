@@ -465,11 +465,11 @@ class _LoginScreenState extends State<LoginScreen> {
         height: 64,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: const Color(0xFF006684),
+          color: const Color(0xFF1AB680),
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF006684).withValues(alpha: 0.3),
+              color: const Color(0xFF1AB680).withValues(alpha: 0.3),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),

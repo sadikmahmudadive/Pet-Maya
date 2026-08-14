@@ -19,7 +19,7 @@ class AppTheme {
         secondary: AppColors.secondary,
         onSecondary: Colors.white,
         secondaryContainer: AppColors.secondaryContainer,
-        onSecondaryContainer: AppColors.primaryDark,
+        onSecondaryContainer: AppColors.secondaryDark,
         tertiary: AppColors.tertiary,
         onTertiary: Colors.white,
         error: AppColors.dangerRed,
@@ -115,8 +115,8 @@ class AppTheme {
       platform: TargetPlatform.iOS,
       colorScheme: const ColorScheme(
         brightness: Brightness.dark,
-        primary: AppColors.primaryLight,
-        onPrimary: AppColors.primaryDark,
+        primary: AppColors.primary,
+        onPrimary: Colors.white,
         primaryContainer: AppColors.primaryDark,
         onPrimaryContainer: AppColors.primaryLight,
         secondary: AppColors.secondary,
@@ -147,7 +147,7 @@ class AppTheme {
         bodyLarge: AppTypography.bodyLarge.copyWith(color: AppColors.textPrimaryDark),
         bodyMedium: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondaryDark),
         bodySmall: AppTypography.bodySmall.copyWith(color: AppColors.textSecondaryDark),
-        labelLarge: AppTypography.labelLarge.copyWith(color: AppColors.primaryLight),
+        labelLarge: AppTypography.labelLarge.copyWith(color: AppColors.primary),
         labelMedium: AppTypography.labelMedium.copyWith(color: AppColors.textSecondaryDark),
         labelSmall: AppTypography.labelSmall.copyWith(color: AppColors.textSecondaryDark),
       ),
@@ -170,7 +170,7 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.surfaceContainerDark.withOpacity(0.5),
+        fillColor: AppColors.surfaceContainerDark.withValues(alpha: 0.5),
         contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
@@ -182,26 +182,26 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.primaryLight, width: 1.5),
+          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
         ),
         hintStyle: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondaryDark),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primaryLight,
-          foregroundColor: AppColors.primaryDark,
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
-          textStyle: AppTypography.titleMedium.copyWith(color: AppColors.primaryDark, fontWeight: FontWeight.bold),
+          textStyle: AppTypography.titleMedium.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.primaryLight,
-          side: const BorderSide(color: AppColors.primaryLight, width: 1.5),
+          foregroundColor: AppColors.primary,
+          side: const BorderSide(color: AppColors.primary, width: 1.5),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),

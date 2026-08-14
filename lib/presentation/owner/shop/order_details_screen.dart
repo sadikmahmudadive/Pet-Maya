@@ -46,7 +46,7 @@ class OrderDetailsScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text('REFERENCE ID: ${order.orderId}', style: TextStyle(
-                            fontWeight: FontWeight.w900, color: const Color(0xFF006684), letterSpacing: 1.5, fontSize: 10
+                            fontWeight: FontWeight.w900, color: const Color(0xFF1AB680), letterSpacing: 1.5, fontSize: 10
                           )),
                           const SizedBox(height: 12),
                           Text(order.status.displayName.toUpperCase(), 

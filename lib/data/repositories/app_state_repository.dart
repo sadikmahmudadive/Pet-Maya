@@ -1085,6 +1085,15 @@ class AppStateRepository extends ChangeNotifier {
     logAudit('Post Shared', '${_currentUser?.name} shared post ${originalPost.postId}');
   }
 
+  Future<void> incrementPostShares(String postId) async {
+    final idx = _posts.indexWhere((p) => p.postId == postId);
+    if (idx != -1) {
+      _posts[idx].sharesCount += 1;
+      notifyListeners();
+    }
+    await _rtdb.incrementPostShares(postId);
+  }
+
   Future<void> togglePostLike(String postId) async {
     final post = _posts.firstWhere((p) => p.postId == postId);
     final userId = _currentUser?.uid ?? 'usr_guest';

@@ -5,9 +5,10 @@ import 'package:provider/provider.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/feed_post_model.dart';
+import '../../../data/models/notification_model.dart';
 import '../../../data/repositories/app_state_repository.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
@@ -591,6 +592,19 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
   }
 }
 
+class _ShareContact {
+  final String id;
+  final String name;
+  final String role;
+  final String? avatar;
+  const _ShareContact({
+    required this.id,
+    required this.name,
+    required this.role,
+    this.avatar,
+  });
+}
+
 class FacebookShareBottomSheet extends StatefulWidget {
   final FeedPostModel post;
   const FacebookShareBottomSheet({super.key, required this.post});
@@ -601,15 +615,75 @@ class FacebookShareBottomSheet extends StatefulWidget {
 
 class _FacebookShareBottomSheetState extends State<FacebookShareBottomSheet> {
   final Set<String> _sentRecipients = {};
-  final String _selectedAudience = 'Public';
+  String _selectedAudience = 'Public';
+  String _searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
 
-  final List<Map<String, dynamic>> _quickRecipients = [
-    {'name': 'Dr. Sarah', 'role': 'Veterinarian', 'avatar': 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150'},
-    {'name': 'Happy Paws Club', 'role': 'Group', 'avatar': 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=150'},
-    {'name': 'Pet Shelter SOS', 'role': 'Rescue NGO', 'avatar': 'https://images.unsplash.com/photo-1534361960057-19889db9621e?w=150'},
-    {'name': 'Vet Care Helpline', 'role': '24/7 Support', 'avatar': 'https://images.unsplash.com/photo-1628009368231-7bb7cfcb0def?w=150'},
-    {'name': 'Puppy Adoptions', 'role': 'Community Hub', 'avatar': 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=150'},
-  ];
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _showAudienceSelector(BuildContext context, Color cardBg) {
+    HapticFeedback.selectionClick();
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: cardBg,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text('Who can see this post?', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+            const SizedBox(height: 12),
+            ListTile(
+              leading: const Icon(Icons.public_rounded, color: AppColors.primary),
+              title: const Text('Public', style: TextStyle(fontWeight: FontWeight.w700)),
+              subtitle: const Text('Anyone on Pet Maya can view this post'),
+              trailing: _selectedAudience == 'Public' ? const Icon(Icons.check_circle_rounded, color: AppColors.primary) : null,
+              onTap: () {
+                setState(() => _selectedAudience = 'Public');
+                Navigator.pop(ctx);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.people_alt_rounded, color: AppColors.primary),
+              title: const Text('Friends & Community', style: TextStyle(fontWeight: FontWeight.w700)),
+              subtitle: const Text('Only your pet friends and clinic connections'),
+              trailing: _selectedAudience == 'Friends' ? const Icon(Icons.check_circle_rounded, color: AppColors.primary) : null,
+              onTap: () {
+                setState(() => _selectedAudience = 'Friends');
+                Navigator.pop(ctx);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.lock_outline_rounded, color: AppColors.primary),
+              title: const Text('Only Me', style: TextStyle(fontWeight: FontWeight.w700)),
+              subtitle: const Text('Only you can view this post on your profile'),
+              trailing: _selectedAudience == 'Only Me' ? const Icon(Icons.check_circle_rounded, color: AppColors.primary) : null,
+              onTap: () {
+                setState(() => _selectedAudience = 'Only Me');
+                Navigator.pop(ctx);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -617,6 +691,45 @@ class _FacebookShareBottomSheetState extends State<FacebookShareBottomSheet> {
     final currentUser = state.currentUser;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBg = isDark ? const Color(0xFF1E2430) : Colors.white;
+
+    // Dynamically build recipient list from real vets and active community authors
+    final currentUid = currentUser?.uid;
+    final List<_ShareContact> dynamicContacts = [];
+    final Set<String> addedIds = {};
+
+    for (final vet in state.vets) {
+      if (vet.id != currentUid && !addedIds.contains(vet.id)) {
+        addedIds.add(vet.id);
+        dynamicContacts.add(
+          _ShareContact(
+            id: vet.id,
+            name: vet.name,
+            role: '${vet.tag} • ${vet.qualification}',
+            avatar: vet.photoUrl,
+          ),
+        );
+      }
+    }
+
+    for (final post in state.posts) {
+      if (post.userId != currentUid && !addedIds.contains(post.userId) && post.userName.isNotEmpty) {
+        addedIds.add(post.userId);
+        dynamicContacts.add(
+          _ShareContact(
+            id: post.userId,
+            name: post.userName,
+            role: 'Pet Parent • Pet Maya Community',
+            avatar: post.userPhoto,
+          ),
+        );
+      }
+    }
+
+    final filteredContacts = _searchQuery.isEmpty
+        ? dynamicContacts
+        : dynamicContacts.where((c) =>
+            c.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+            c.role.toLowerCase().contains(_searchQuery.toLowerCase())).toList();
 
     return Container(
       decoration: BoxDecoration(
@@ -675,23 +788,26 @@ class _FacebookShareBottomSheetState extends State<FacebookShareBottomSheet> {
                           style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
                         ),
                         const SizedBox(height: 3),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: isDark ? Colors.white10 : Colors.grey.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: isDark ? Colors.white12 : Colors.black12),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.public_rounded, size: 12, color: AppColors.primary),
-                              const SizedBox(width: 4),
-                              Text(
-                                '$_selectedAudience ▾',
-                                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.primary),
-                              ),
-                            ],
+                        GestureDetector(
+                          onTap: () => _showAudienceSelector(context, cardBg),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: isDark ? Colors.white10 : Colors.grey.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: isDark ? Colors.white12 : Colors.black12),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.public_rounded, size: 12, color: AppColors.primary),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '$_selectedAudience ▾',
+                                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.primary),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ],
@@ -720,7 +836,7 @@ class _FacebookShareBottomSheetState extends State<FacebookShareBottomSheet> {
                         Navigator.pop(context);
                         HapticFeedback.mediumImpact();
                         state.sharePost(originalPost: widget.post);
-                        state.showToast('Shared to your Feed! 🚀');
+                        state.showToast('Shared to your Community Feed! 🚀');
                       },
                     ),
                     const SizedBox(width: 16),
@@ -746,7 +862,7 @@ class _FacebookShareBottomSheetState extends State<FacebookShareBottomSheet> {
                       bgColor: isDark ? Colors.white10 : const Color(0xFFFFF3E0),
                       iconColor: AppColors.accentAmber,
                       onTap: () {
-                        Clipboard.setData(ClipboardData(text: 'https://petmaya.app/post/${widget.post.postId}'));
+                        Clipboard.setData(ClipboardData(text: 'https://tail-wagging-d03de.web.app/post/${widget.post.postId}'));
                         HapticFeedback.lightImpact();
                         Navigator.pop(context);
                         state.showToast('Post link copied to clipboard! 📋');
@@ -760,7 +876,7 @@ class _FacebookShareBottomSheetState extends State<FacebookShareBottomSheet> {
                       iconColor: AppColors.healthGreen,
                       onTap: () {
                         HapticFeedback.lightImpact();
-                        state.showToast('Select a pet friend below to share! 💬');
+                        state.showToast('Select a pet friend or vet below to share! 💬');
                       },
                     ),
                     const SizedBox(width: 16),
@@ -771,12 +887,15 @@ class _FacebookShareBottomSheetState extends State<FacebookShareBottomSheet> {
                       iconColor: isDark ? Colors.white70 : Colors.black87,
                       onTap: () async {
                         Navigator.pop(context);
-                        HapticFeedback.lightImpact();
-                        final shareText = 'Check out this post on Pet Maya by ${widget.post.userName}: "${widget.post.content}"';
-                        final uri = Uri.parse('mailto:?subject=Pet Maya Story&body=${Uri.encodeComponent(shareText)}');
-                        if (await canLaunchUrl(uri)) {
-                          await launchUrl(uri);
-                        }
+                        HapticFeedback.mediumImpact();
+                        state.incrementPostShares(widget.post.postId);
+                        final shareText = 'Check out this post on Pet Maya by ${widget.post.userName}:\n\n"${widget.post.content}"\n\nhttps://tail-wagging-d03de.web.app/';
+                        await SharePlus.instance.share(
+                          ShareParams(
+                            text: shareText,
+                            subject: 'Pet Maya Post by ${widget.post.userName}',
+                          ),
+                        );
                       },
                     ),
                   ],
@@ -787,78 +906,166 @@ class _FacebookShareBottomSheetState extends State<FacebookShareBottomSheet> {
               Divider(height: 1, color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.08)),
               const SizedBox(height: 16),
 
-              // Facebook Send in Messenger / Direct section
-              Text(
-                'Send in Direct Message',
-                style: TextStyle(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 13,
-                  color: isDark ? Colors.white70 : Colors.grey[800],
-                  letterSpacing: 0.2,
-                ),
-              ),
-              const SizedBox(height: 14),
-
-              Column(
-                children: _quickRecipients.map((recipient) {
-                  final name = recipient['name'] as String;
-                  final role = recipient['role'] as String;
-                  final avatar = recipient['avatar'] as String;
-                  final isSent = _sentRecipients.contains(name);
-
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 10),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: isDark ? Colors.white.withValues(alpha: 0.03) : Colors.grey.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: isDark ? Colors.white.withValues(alpha: 0.06) : Colors.black.withValues(alpha: 0.04),
+              // Facebook Send in Direct Message section
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Send in Direct Message',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 13,
+                      color: isDark ? Colors.white70 : Colors.grey[800],
+                      letterSpacing: 0.2,
+                    ),
+                  ),
+                  if (dynamicContacts.isNotEmpty)
+                    Text(
+                      '${dynamicContacts.length} contacts',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: isDark ? Colors.white38 : Colors.grey[500],
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 18,
-                          backgroundColor: AppColors.primaryLight,
-                          backgroundImage: NetworkImage(avatar),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
-                              Text(role, style: TextStyle(fontSize: 10, color: isDark ? Colors.white54 : Colors.grey[600])),
-                            ],
-                          ),
-                        ),
-                        ElevatedButton(
-                          onPressed: isSent
-                              ? null
-                              : () {
-                                  HapticFeedback.lightImpact();
-                                  setState(() => _sentRecipients.add(name));
-                                  state.showToast('Sent to $name! 🐾');
-                                },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: isSent ? AppColors.healthGreen : const Color(0xFF1877F2),
-                            foregroundColor: Colors.white,
-                            elevation: 0,
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                            minimumSize: const Size(64, 32),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                          ),
-                          child: Text(
-                            isSent ? 'Sent ✓' : 'Send',
-                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }).toList(),
+                ],
               ),
+              const SizedBox(height: 12),
+
+              // Search Bar for Contacts
+              if (dynamicContacts.length > 3) ...[
+                Container(
+                  height: 40,
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.search_rounded, size: 18, color: isDark ? Colors.white38 : Colors.grey[500]),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: TextField(
+                          controller: _searchController,
+                          onChanged: (val) => setState(() => _searchQuery = val.trim()),
+                          style: const TextStyle(fontSize: 12),
+                          decoration: const InputDecoration(
+                            hintText: 'Search pet friends and vets...',
+                            hintStyle: TextStyle(fontSize: 12, color: Colors.grey),
+                            border: InputBorder.none,
+                            isDense: true,
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                        ),
+                      ),
+                      if (_searchQuery.isNotEmpty)
+                        GestureDetector(
+                          onTap: () {
+                            _searchController.clear();
+                            setState(() => _searchQuery = '');
+                          },
+                          child: const Icon(Icons.close_rounded, size: 16, color: Colors.grey),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+
+              if (filteredContacts.isEmpty)
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+                  alignment: Alignment.center,
+                  child: Column(
+                    children: [
+                      Icon(Icons.people_outline_rounded, size: 36, color: isDark ? Colors.white24 : Colors.grey[400]),
+                      const SizedBox(height: 8),
+                      Text(
+                        _searchQuery.isNotEmpty ? 'No contacts match "$_searchQuery"' : 'No other active contacts found yet',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark ? Colors.white38 : Colors.grey[600],
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              else
+                Column(
+                  children: filteredContacts.map((contact) {
+                    final isSent = _sentRecipients.contains(contact.id);
+
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 10),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.white.withValues(alpha: 0.03) : Colors.grey.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isDark ? Colors.white.withValues(alpha: 0.06) : Colors.black.withValues(alpha: 0.04),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 18,
+                            backgroundColor: AppColors.primaryLight,
+                            backgroundImage: (contact.avatar != null && contact.avatar!.isNotEmpty)
+                                ? CachedNetworkImageProvider(contact.avatar!)
+                                : null,
+                            child: (contact.avatar == null || contact.avatar!.isEmpty)
+                                ? const Icon(Icons.person, size: 18, color: AppColors.primary)
+                                : null,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(contact.name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                                Text(
+                                  contact.role,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(fontSize: 10, color: isDark ? Colors.white54 : Colors.grey[600]),
+                                ),
+                              ],
+                            ),
+                          ),
+                          ElevatedButton(
+                            onPressed: isSent
+                                ? null
+                                : () {
+                                    HapticFeedback.lightImpact();
+                                    setState(() => _sentRecipients.add(contact.id));
+                                    state.incrementPostShares(widget.post.postId);
+                                    state.addNotification(
+                                      title: 'Post Shared 🐾',
+                                      message: 'You sent ${widget.post.userName}\'s story to ${contact.name}',
+                                      type: NotificationType.system,
+                                    );
+                                    state.showToast('Sent to ${contact.name}! 🐾');
+                                  },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: isSent ? AppColors.healthGreen : const Color(0xFF1877F2),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                              minimumSize: const Size(64, 32),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            ),
+                            child: Text(
+                              isSent ? 'Sent ✓' : 'Send',
+                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
             ],
           ),
         ),

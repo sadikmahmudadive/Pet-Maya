@@ -366,7 +366,7 @@ class _BookingScreenState extends State<BookingScreen> {
               _confirmBooking();
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF006684),
+              backgroundColor: const Color(0xFF1AB680),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             ),
             child: const Text('CONFIRM BOOKING', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 1.2, fontSize: 13)),

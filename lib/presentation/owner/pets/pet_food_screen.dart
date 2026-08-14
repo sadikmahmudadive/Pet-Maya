@@ -101,7 +101,7 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('CURRENT DIET', style: TextStyle(color: const Color(0xFF006684), fontWeight: FontWeight.w900, fontSize: 11, letterSpacing: 1.5)),
+                      Text('CURRENT DIET', style: TextStyle(color: const Color(0xFF1AB680), fontWeight: FontWeight.w900, fontSize: 11, letterSpacing: 1.5)),
                       const SizedBox(height: 32),
                       _buildCleanInput('Food Name / Brand', _foodNameController, hint: 'e.g., Royal Canin'),
                       const SizedBox(height: 24),
@@ -113,10 +113,10 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
                         child: ElevatedButton(
                           onPressed: _isSaving ? null : _saveDietDetails,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF006684),
+                            backgroundColor: const Color(0xFF1AB680),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                             elevation: 8,
-                            shadowColor: const Color(0xFF006684).withOpacity(0.4),
+                            shadowColor: const Color(0xFF1AB680).withOpacity(0.4),
                           ),
                           child: _isSaving 
                             ? const CircularProgressIndicator(color: Colors.white)
@@ -200,7 +200,7 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
                             child: ElevatedButton.icon(
                               onPressed: _runAiRecommendation,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF006684),
+                                backgroundColor: const Color(0xFF1AB680),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                               ),
                               icon: const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 20),
@@ -321,12 +321,12 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 18, color: const Color(0xFF006684)),
+            Icon(icon, size: 18, color: const Color(0xFF1AB680)),
             const SizedBox(width: 4),
             Flexible(
               child: Text(
                 label, 
-                style: const TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF006684), fontSize: 12),
+                style: const TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF1AB680), fontSize: 12),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -451,7 +451,7 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
               height: 64,
               child: ElevatedButton(
                 onPressed: () => Navigator.pop(context),
-                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF006684), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18))),
+                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1AB680), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18))),
                 child: const Text('GOT IT, THANKS!', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 0.5)),
               ),
             ),

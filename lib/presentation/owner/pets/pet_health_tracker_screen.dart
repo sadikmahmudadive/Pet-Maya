@@ -53,7 +53,7 @@ class PetHealthTrackerScreen extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text('OVERALL WELLNESS', style: TextStyle(
-                                fontWeight: FontWeight.w900, color: const Color(0xFF006684), letterSpacing: 1.5, fontSize: 10
+                                fontWeight: FontWeight.w900, color: const Color(0xFF1AB680), letterSpacing: 1.5, fontSize: 10
                               )),
                               const SizedBox(height: 8),
                               Text('${pet.healthIndex}', style: const TextStyle(fontSize: 54, fontWeight: FontWeight.w900)),
