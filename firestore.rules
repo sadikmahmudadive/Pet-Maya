@@ -1,0 +1,84 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user owns the document
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // User Profiles
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId);
+    }
+
+    // Pets
+    match /pets/{petId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // Calendar & Reminders
+    match /events/{eventId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // Shop Catalog & Inventory
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+
+    // Orders
+    match /orders/{orderId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // Veterinarians & Clinics
+    match /vets/{vetId} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+
+    // Veterinary Service Records & AI Diagnoses
+    match /service_records/{recordId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // Community Posts & Comments
+    match /community_posts/{postId} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+      
+      match /comments/{commentId} {
+        allow read: if true;
+        allow write: if isAuthenticated();
+      }
+    }
+
+    // Reviews & Ratings
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+
+    // Notifications (Supports subcollections like notifications/{userId}/items/{id})
+    match /notifications/{userId} {
+      allow read, write: if isOwner(userId);
+      
+      match /{allSubcollections=**} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // Default fallback rule for authenticated users
+    match /{document=**} {
+      allow read, write: if isAuthenticated();
+    }
+  }
+}

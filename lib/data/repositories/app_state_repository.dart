@@ -19,7 +19,6 @@ import '../models/comment_model.dart';
 import '../models/notification_model.dart';
 import '../models/review_model.dart';
 import '../services/firebase_service.dart';
-import '../services/realtime_database_service.dart';
 import '../../core/services/notification_service.dart';
 import '../../core/services/native_bridge_service.dart';
 import '../../main.dart';
@@ -32,7 +31,6 @@ class AppStateRepository extends ChangeNotifier {
 
   final _uuid = const Uuid();
   final _firebase = FirebaseService();
-  final _rtdb = RealtimeDatabaseService();
 
   // Current User Session
   UserModel? _currentUser;
@@ -152,7 +150,7 @@ class AppStateRepository extends ChangeNotifier {
     final fUser = _firebase.currentFirebaseUser;
     if (fUser != null) {
       try {
-        final profile = await _rtdb.fetchUserProfile(fUser.uid);
+        final profile = await _firebase.fetchUserProfile(fUser.uid);
         if (profile != null) {
           _currentUser = profile;
           await syncFromFirebase(_currentUser!);
@@ -174,7 +172,7 @@ class AppStateRepository extends ChangeNotifier {
   }
 
   // ─── FIREBASE SYNC ENTRY POINT ────────────────────────────────────────────
-  /// Called after login to fetch and stream all user data from Realtime Database.
+  /// Called after login to fetch and stream all user data from Cloud Firestore.
   Future<void> syncFromFirebase(UserModel user) async {
     // Aggressively load from local cache first to make the app feel instant
     _setLoading(false); // Don't block UI if cache exists
@@ -199,15 +197,12 @@ class AppStateRepository extends ChangeNotifier {
             latitude: user.latitude,
             longitude: user.longitude,
           );
-          _rtdb.saveUserProfile(updatedUser);
+          _firebase.saveUserProfile(updatedUser);
           _currentUser = updatedUser;
         }
       });
 
       _currentUser = user;
-
-      // Enable Offline-First Synchronization
-      await _rtdb.enableOfflineSync(user.uid);
 
       // Concurrent Data Loading (Parallel processing for speed)
       Future.wait([
@@ -261,7 +256,7 @@ class AppStateRepository extends ChangeNotifier {
   // ─── DATA LOADERS & STREAMERS ─────────────────────────────────────────────
 
   void _listenToPets(String ownerUID) {
-    _rtdb.streamPets(ownerUID).listen((fetched) {
+    _firebase.streamPets(ownerUID).listen((fetched) {
       _pets
         ..clear()
         ..addAll(fetched);
@@ -270,7 +265,7 @@ class AppStateRepository extends ChangeNotifier {
   }
 
   void _listenToVets() {
-    _rtdb.streamVets().listen((fetched) {
+    _firebase.streamVets().listen((fetched) {
       _vets
         ..clear()
         ..addAll(fetched);
@@ -279,7 +274,7 @@ class AppStateRepository extends ChangeNotifier {
   }
 
   void _listenToEvents(String userId) {
-    _rtdb.streamEvents(userId).listen((fetched) {
+    _firebase.streamEvents(userId).listen((fetched) {
       _events
         ..clear()
         ..addAll(fetched);
@@ -288,7 +283,7 @@ class AppStateRepository extends ChangeNotifier {
   }
 
   void _listenToEventsForProvider(String providerId) {
-    _rtdb.streamEventsForProvider(providerId).listen((fetched) {
+    _firebase.streamEventsForProvider(providerId).listen((fetched) {
       _events
         ..clear()
         ..addAll(fetched);
@@ -297,7 +292,7 @@ class AppStateRepository extends ChangeNotifier {
   }
 
   void _listenToServiceRecords(String petId) {
-    _rtdb.streamServiceRecords(petId).listen((fetched) {
+    _firebase.streamServiceRecords(petId).listen((fetched) {
       _serviceRecords
         ..clear()
         ..addAll(fetched);
@@ -306,7 +301,7 @@ class AppStateRepository extends ChangeNotifier {
   }
 
   void _listenToAllOrders() {
-    _rtdb.streamAllOrders().listen((fetched) {
+    _firebase.streamAllOrders().listen((fetched) {
       _orders
         ..clear()
         ..addAll(fetched);
@@ -315,7 +310,7 @@ class AppStateRepository extends ChangeNotifier {
   }
 
   void _listenToUserOrders(String userId) {
-    _rtdb.streamUserOrders(userId).listen((fetched) {
+    _firebase.streamUserOrders(userId).listen((fetched) {
       _orders
         ..clear()
         ..addAll(fetched);
@@ -324,7 +319,7 @@ class AppStateRepository extends ChangeNotifier {
   }
 
   void _listenToNotifications(String userId) {
-    _rtdb.streamNotifications(userId).listen((fetched) {
+    _firebase.streamNotifications(userId).listen((fetched) {
       _notifications
         ..clear()
         ..addAll(fetched);
@@ -334,7 +329,7 @@ class AppStateRepository extends ChangeNotifier {
 
   Future<void> _loadEvents(String userId) async {
     try {
-      final fetched = await _rtdb.fetchEvents(userId);
+      final fetched = await _firebase.fetchEvents(userId);
       _events
         ..clear()
         ..addAll(fetched);
@@ -345,7 +340,7 @@ class AppStateRepository extends ChangeNotifier {
 
   Future<void> _loadAllEvents() async {
     try {
-      final fetched = await _rtdb.fetchEvents('');
+      final fetched = await _firebase.fetchEvents('');
       _events
         ..clear()
         ..addAll(fetched);
@@ -356,7 +351,7 @@ class AppStateRepository extends ChangeNotifier {
 
   Future<void> _loadProducts() async {
     try {
-      final fetched = await _rtdb.fetchProducts();
+      final fetched = await _firebase.fetchProducts();
       _products
         ..clear()
         ..addAll(fetched);
@@ -367,7 +362,7 @@ class AppStateRepository extends ChangeNotifier {
 
   Future<void> _loadUserOrders(String userId) async {
     try {
-      final fetched = await _rtdb.fetchOrders(userId);
+      final fetched = await _firebase.fetchOrders(userId);
       _orders
         ..clear()
         ..addAll(fetched);
@@ -378,7 +373,7 @@ class AppStateRepository extends ChangeNotifier {
 
   Future<void> _loadAllOrders() async {
     try {
-      final fetched = await _rtdb.fetchAllOrders();
+      final fetched = await _firebase.fetchAllOrders();
       _orders
         ..clear()
         ..addAll(fetched);
@@ -389,7 +384,7 @@ class AppStateRepository extends ChangeNotifier {
 
   Future<void> _loadAllServiceRecords() async {
     try {
-      final fetched = await _rtdb.fetchAllServiceRecords();
+      final fetched = await _firebase.fetchAllServiceRecords();
       _serviceRecords
         ..clear()
         ..addAll(fetched);
@@ -400,7 +395,7 @@ class AppStateRepository extends ChangeNotifier {
 
   Future<void> loadAllUsers() async {
     try {
-      final fetched = await _rtdb.fetchUsers();
+      final fetched = await _firebase.fetchUsers();
       _allUsers
         ..clear()
         ..addAll(fetched);
@@ -412,7 +407,7 @@ class AppStateRepository extends ChangeNotifier {
 
   Future<void> _loadCommunityPosts() async {
     try {
-      _rtdb.streamPosts().listen((fetchedPosts) {
+      _firebase.streamPosts().listen((fetchedPosts) {
         _posts
           ..clear()
           ..addAll(fetchedPosts);
@@ -440,8 +435,8 @@ class AppStateRepository extends ChangeNotifier {
       UserRole effectiveRole = role;
       if (email.toLowerCase() == 'admin@mail.com') effectiveRole = UserRole.admin;
 
-      // Check if user already exists in RTDB to keep their role
-      final existingProfile = await _rtdb.fetchUserProfile(firebaseUID);
+      // Check if user already exists in Firestore to keep their role
+      final existingProfile = await _firebase.fetchUserProfile(firebaseUID);
       
       _currentUser = UserModel(
         uid: firebaseUID,
@@ -453,7 +448,7 @@ class AppStateRepository extends ChangeNotifier {
         isVerified: existingProfile?.isVerified ?? (effectiveRole == UserRole.veterinarian),
       );
 
-      // Sync data from RTDB based on the user's role
+      // Sync data from Firestore based on the user's role
       await syncFromFirebase(_currentUser!);
       logAudit('User Login', 'User $name logged in as ${_currentUser!.role.displayName}');
     } catch (e) {
@@ -473,8 +468,8 @@ class AppStateRepository extends ChangeNotifier {
       final userCredential = await _firebase.signIn(email, password);
       final firebaseUID = userCredential.user!.uid;
 
-      // Fetch profile from RTDB to get the role
-      final profile = await _rtdb.fetchUserProfile(firebaseUID);
+      // Fetch profile from Firestore to get the role
+      final profile = await _firebase.fetchUserProfile(firebaseUID);
       
       if (profile == null) {
         throw 'User profile not found. Please register first.';
@@ -482,7 +477,7 @@ class AppStateRepository extends ChangeNotifier {
 
       _currentUser = profile;
 
-      // Sync data from RTDB based on the user's role
+      // Sync data from Firestore based on the user's role
       await syncFromFirebase(_currentUser!);
       logAudit('User Login', 'User ${_currentUser!.name} logged in via Email');
     } catch (e) {
@@ -502,7 +497,7 @@ class AppStateRepository extends ChangeNotifier {
         final fUser = userCredential.user!;
         
         // Check if profile exists
-        var profile = await _rtdb.fetchUserProfile(fUser.uid);
+        var profile = await _firebase.fetchUserProfile(fUser.uid);
         
         if (profile == null) {
           // New Google User - create profile with default role (usually petOwner)
@@ -514,7 +509,7 @@ class AppStateRepository extends ChangeNotifier {
             role: defaultRole ?? UserRole.petOwner,
             isVerified: false,
           );
-          await _rtdb.saveUserProfile(profile);
+          await _firebase.saveUserProfile(profile);
         }
 
         _currentUser = profile;
@@ -560,7 +555,7 @@ class AppStateRepository extends ChangeNotifier {
         isVerified: role == UserRole.veterinarian,
       );
 
-      // Save to RTDB and sync
+      // Save to Firestore and sync
       await syncFromFirebase(_currentUser!);
 
       // If they are a service provider, also add them to the public directory
@@ -573,7 +568,7 @@ class AppStateRepository extends ChangeNotifier {
           phone: phone ?? '',
           isVerified: role == UserRole.veterinarian, // Admin manually verifies usually, but we set true for demo
         );
-        await _rtdb.saveVet(vetEntry);
+        await _firebase.saveVet(vetEntry);
       }
 
       logAudit('User Signup', 'User $name registered as ${role.displayName}');
@@ -609,8 +604,8 @@ class AppStateRepository extends ChangeNotifier {
     final uid = _currentUser!.uid;
     logAudit('Account Deletion', 'User $uid requested permanent deletion');
     
-    // 1. Purge Realtime Database data
-    await _rtdb.deleteUserData(uid);
+    // 1. Purge Firestore user data
+    await _firebase.deleteUserData(uid);
     
     // 2. Delete Authentication Account
     await _firebase.deleteAccount();
@@ -634,7 +629,7 @@ class AppStateRepository extends ChangeNotifier {
   Future<void> addPet(PetModel pet) async {
     _pets.add(pet);
     notifyListeners();
-    await _rtdb.savePet(pet);
+    await _firebase.savePet(pet);
     logAudit('Pet Added', 'Added pet: ${pet.name} (${pet.breed})');
     addNotification(
       title: 'New Pet Added! 🐾',
@@ -648,7 +643,7 @@ class AppStateRepository extends ChangeNotifier {
     if (idx != -1) {
       _pets[idx] = updatedPet;
       notifyListeners();
-      await _rtdb.savePet(updatedPet);
+      await _firebase.savePet(updatedPet);
       logAudit('Pet Updated', 'Updated details for ${updatedPet.name}');
     }
   }
@@ -657,7 +652,7 @@ class AppStateRepository extends ChangeNotifier {
     final pet = _pets.firstWhere((p) => p.petID == petId, orElse: () => _pets.first);
     _pets.removeWhere((p) => p.petID == petId);
     notifyListeners();
-    await _rtdb.deletePet(petId);
+    await _firebase.deletePet(petId);
     logAudit('Pet Deleted', 'Removed pet: ${pet.name}');
   }
 
@@ -701,7 +696,7 @@ class AppStateRepository extends ChangeNotifier {
       );
       _pets[idx] = updated;
       notifyListeners();
-      await _rtdb.savePet(updated);
+      await _firebase.savePet(updated);
     }
   }
 
@@ -740,7 +735,7 @@ class AppStateRepository extends ChangeNotifier {
   Future<void> addEvent(EventModel event) async {
     _events.add(event);
     notifyListeners();
-    await _rtdb.saveEvent(event);
+    await _firebase.saveEvent(event);
     
     // Tier 1: Local Reminder Engine (AlarmManager)
     if (event.isReminderEnabled) {
@@ -763,7 +758,7 @@ class AppStateRepository extends ChangeNotifier {
       final old = _events[idx];
       _events.removeAt(idx);
       notifyListeners();
-      await _rtdb.deleteEvent(old.userId, old.date, eventId);
+      await _firebase.deleteEvent(old.userId, old.date, eventId);
       
       // Cancel Local Alarm
       await NativeBridgeService.cancelAlarm(eventId);
@@ -792,7 +787,7 @@ class AppStateRepository extends ChangeNotifier {
       );
       _events[idx] = updated;
       notifyListeners();
-      await _rtdb.saveEvent(updated);
+      await _firebase.saveEvent(updated);
     }
   }
 
@@ -904,7 +899,7 @@ class AppStateRepository extends ChangeNotifier {
     );
     _serviceRecords.insert(0, record);
     notifyListeners();
-    await _rtdb.saveServiceRecord(record);
+    await _firebase.saveServiceRecord(record);
     logAudit('Medical Record Saved', 'Saved AI diagnosis to $petName record');
   }
 
@@ -958,8 +953,8 @@ class AppStateRepository extends ChangeNotifier {
     _orders.insert(0, order);
     _cartItems.clear();
     notifyListeners();
-    // Persist to RTDB
-    await _rtdb.placeOrder(order);
+    // Persist to Firestore
+    await _firebase.placeOrder(order);
     logAudit('Order Placed', 'Order ${order.orderId} created for ৳${order.total.toStringAsFixed(2)}');
     addNotification(
       title: 'Order Confirmed! 🛍️',
@@ -970,8 +965,6 @@ class AppStateRepository extends ChangeNotifier {
   }
 
   Future<void> updateOrderStatus(String orderId, OrderStatus newStatus) async {
-    // This would need a specific update in rtdb service if we want to be surgical, 
-    // but we can just save the whole order again for now if needed or add an update method.
     final idx = _orders.indexWhere((o) => o.orderId == orderId);
     if (idx != -1) {
       final old = _orders[idx];
@@ -991,7 +984,7 @@ class AppStateRepository extends ChangeNotifier {
       );
       _orders[idx] = updated;
       notifyListeners();
-      await _rtdb.placeOrder(updated);
+      await _firebase.updateOrderStatus(orderId, newStatus.displayName);
       logAudit('Order Updated', 'Order $orderId status changed to ${newStatus.displayName}');
     }
   }
@@ -1001,7 +994,7 @@ class AppStateRepository extends ChangeNotifier {
   Future<void> addProduct(ProductModel product) async {
     _products.insert(0, product);
     notifyListeners();
-    await _rtdb.saveProduct(product);
+    await _firebase.saveProduct(product);
     logAudit('Product Added', 'Added product ${product.name} to shop');
   }
 
@@ -1010,7 +1003,7 @@ class AppStateRepository extends ChangeNotifier {
     if (idx != -1) {
       _products[idx] = updatedProduct;
       notifyListeners();
-      await _rtdb.saveProduct(updatedProduct);
+      await _firebase.saveProduct(updatedProduct);
       logAudit('Product Updated', 'Updated inventory for ${updatedProduct.name}');
     }
   }
@@ -1033,7 +1026,7 @@ class AppStateRepository extends ChangeNotifier {
       );
       _products[idx] = updated;
       notifyListeners();
-      await _rtdb.saveProduct(updated);
+      await _firebase.saveProduct(updated);
       logAudit('Stock Updated', 'Stock for ${p.name} updated to $newStock');
     }
   }
@@ -1041,13 +1034,13 @@ class AppStateRepository extends ChangeNotifier {
   Future<void> deleteProduct(String productId) async {
     _products.removeWhere((p) => p.id == productId);
     notifyListeners();
-    await _rtdb.deleteProduct(productId);
+    await _firebase.deleteProduct(productId);
   }
 
   Future<void> addPost(FeedPostModel post) async {
     _posts.insert(0, post);
     notifyListeners();
-    await _rtdb.savePost(post);
+    await _firebase.savePost(post);
     logAudit('Community Post', 'User ${_currentUser?.name} created a post');
   }
 
@@ -1074,8 +1067,8 @@ class AppStateRepository extends ChangeNotifier {
     originalPost.sharesCount += 1;
     notifyListeners();
 
-    await _rtdb.savePost(newPost);
-    await _rtdb.incrementPostShares(originalPost.postId);
+    await _firebase.savePost(newPost);
+    await _firebase.incrementPostShares(originalPost.postId);
 
     addNotification(
       title: 'Post Shared! 🚀',
@@ -1091,7 +1084,7 @@ class AppStateRepository extends ChangeNotifier {
       _posts[idx].sharesCount += 1;
       notifyListeners();
     }
-    await _rtdb.incrementPostShares(postId);
+    await _firebase.incrementPostShares(postId);
   }
 
   Future<void> togglePostLike(String postId) async {
@@ -1100,7 +1093,7 @@ class AppStateRepository extends ChangeNotifier {
     final wasLiked = post.isLikedByUser(userId);
     post.toggleLike(userId);
     notifyListeners();
-    await _rtdb.togglePostLike(postId, userId, !wasLiked);
+    await _firebase.togglePostLike(postId, userId, !wasLiked);
   }
 
   List<CommentModel> getCommentsForPost(String postId) {
@@ -1108,7 +1101,7 @@ class AppStateRepository extends ChangeNotifier {
   }
 
   void listenToComments(String postId) {
-    _rtdb.streamComments(postId).listen((fetchedComments) {
+    _firebase.streamComments(postId).listen((fetchedComments) {
       debugPrint('[AppStateRepository] Received ${fetchedComments.length} comments for post $postId');
       _postComments[postId] = fetchedComments;
       notifyListeners();
@@ -1138,7 +1131,7 @@ class AppStateRepository extends ChangeNotifier {
     }
     notifyListeners();
 
-    await _rtdb.addComment(postId, comment);
+    await _firebase.addComment(postId, comment);
   }
 
   // ─── SERVICE RECORDS ─────────────────────────────────────────────────────
@@ -1146,7 +1139,7 @@ class AppStateRepository extends ChangeNotifier {
   Future<void> addServiceRecord(ServiceRecordModel record) async {
     _serviceRecords.insert(0, record);
     notifyListeners();
-    await _rtdb.saveServiceRecord(record);
+    await _firebase.saveServiceRecord(record);
     logAudit('Medical Record Saved', 'Clinical chart saved for ${record.petName}');
   }
 
@@ -1175,7 +1168,7 @@ class AppStateRepository extends ChangeNotifier {
       );
       _vets[idx] = updated;
       notifyListeners();
-      await _rtdb.saveVet(updated);
+      await _firebase.toggleVetVerification(vetId, newVerified);
       logAudit('Vet Verification', 'Toggled verified status for ${old.name}');
     }
   }
@@ -1219,7 +1212,7 @@ class AppStateRepository extends ChangeNotifier {
     notifyListeners();
 
     if (_currentUser != null) {
-      await _rtdb.saveNotification(_currentUser!.uid, notification);
+      await _firebase.saveNotification(_currentUser!.uid, notification);
       
       // Show Premium In-App Overlay safely
       PremiumNotificationOverlay.show(
@@ -1238,7 +1231,7 @@ class AppStateRepository extends ChangeNotifier {
       notifyListeners();
     }
     if (_currentUser != null) {
-      await _rtdb.markNotificationAsRead(_currentUser!.uid, id);
+      await _firebase.markNotificationAsRead(_currentUser!.uid, id);
     }
   }
 
@@ -1246,7 +1239,7 @@ class AppStateRepository extends ChangeNotifier {
     _notifications.removeWhere((n) => n.id == id);
     notifyListeners();
     if (_currentUser != null) {
-      await _rtdb.removeNotification(_currentUser!.uid, id);
+      await _firebase.removeNotification(_currentUser!.uid, id);
     }
   }
 
@@ -1257,7 +1250,7 @@ class AppStateRepository extends ChangeNotifier {
     notifyListeners();
     if (_currentUser != null) {
       for (var n in _notifications) {
-        await _rtdb.markNotificationAsRead(_currentUser!.uid, n.id);
+        await _firebase.markNotificationAsRead(_currentUser!.uid, n.id);
       }
     }
   }
@@ -1266,7 +1259,7 @@ class AppStateRepository extends ChangeNotifier {
     _notifications.clear();
     notifyListeners();
     if (_currentUser != null) {
-      await _rtdb.clearAllNotifications(_currentUser!.uid);
+      await _firebase.clearAllNotifications(_currentUser!.uid);
     }
   }
 
@@ -1301,7 +1294,7 @@ class AppStateRepository extends ChangeNotifier {
 
     _currentUser = updatedUser;
     notifyListeners();
-    await _rtdb.saveUserProfile(updatedUser);
+    await _firebase.saveUserProfile(updatedUser);
   }
 
   Future<void> updateProfile({
@@ -1333,7 +1326,7 @@ class AppStateRepository extends ChangeNotifier {
 
     _currentUser = updatedUser;
     notifyListeners();
-    await _rtdb.saveUserProfile(updatedUser);
+    await _firebase.saveUserProfile(updatedUser);
     logAudit('Profile Updated', 'User ${updatedUser.name} updated their profile info');
   }
 
@@ -1341,7 +1334,7 @@ class AppStateRepository extends ChangeNotifier {
 
   Future<void> loadReviews(String targetId) async {
     try {
-      final fetched = await _rtdb.fetchReviews(targetId);
+      final fetched = await _firebase.fetchReviews(targetId);
       _reviews
         ..clear()
         ..addAll(fetched);
@@ -1371,7 +1364,7 @@ class AppStateRepository extends ChangeNotifier {
 
     _reviews.insert(0, review);
     notifyListeners();
-    await _rtdb.saveReview(review);
+    await _firebase.saveReview(review);
     logAudit('Review Added', 'User ${_currentUser!.name} reviewed provider (ID: $targetId)');
   }
 

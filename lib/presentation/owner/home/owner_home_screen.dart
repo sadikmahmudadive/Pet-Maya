@@ -50,19 +50,18 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
       body: Stack(
         children: [
           Padding(
-            padding: EdgeInsets.only(
-              right: isLandscape ? 100 : 0,
-            ),
+            padding: EdgeInsets.only(right: isLandscape ? 100 : 0),
             child: IndexedStack(
               index: _currentNavIndex,
               children: [
                 HomeDashboardFragment(
-                  onNavRequested: (index) => setState(() => _currentNavIndex = index),
+                  onNavRequested: (index) =>
+                      setState(() => _currentNavIndex = index),
                 ), // 0
-                const PetServicesScreen(),     // 1
-                const CommunityFeedScreen(),   // 2
-                const UserProfileScreen(),     // 3
-                const ShopScreen(),            // 4
+                const PetServicesScreen(), // 1
+                const CommunityFeedScreen(), // 2
+                const UserProfileScreen(), // 3
+                const ShopScreen(), // 4
               ],
             ),
           ),
@@ -71,13 +70,14 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
             right: 12,
             bottom: isLandscape ? 24 : 0,
             top: isLandscape ? 24 : null,
-            child: isLandscape 
-              ? _buildSideNavbar() 
-              : FloatingNavbar(
-                  selectedIndex: _currentNavIndex > 3 ? 1 : _currentNavIndex,
-                  onItemTapped: (index) => setState(() => _currentNavIndex = index),
-                  onFabTapped: () => _showQuickActionSheet(context),
-                ),
+            child: isLandscape
+                ? _buildSideNavbar()
+                : FloatingNavbar(
+                    selectedIndex: _currentNavIndex > 3 ? 1 : _currentNavIndex,
+                    onItemTapped: (index) =>
+                        setState(() => _currentNavIndex = index),
+                    onFabTapped: () => _showQuickActionSheet(context),
+                  ),
           ),
         ],
       ),
@@ -90,13 +90,15 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
+        border: Border.all(
+          color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.15), 
+            color: Colors.black.withValues(alpha: 0.15),
             blurRadius: 30,
             offset: const Offset(-5, 0),
-          )
+          ),
         ],
       ),
       child: Column(
@@ -109,7 +111,7 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
             child: Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: AppColors.primary, 
+                color: AppColors.primary,
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
@@ -132,7 +134,11 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
   Widget _buildSideTab(int index, IconData icon) {
     final isSelected = _currentNavIndex == index;
     return IconButton(
-      icon: Icon(icon, color: isSelected ? AppColors.primary : Colors.grey, size: 28),
+      icon: Icon(
+        icon,
+        color: isSelected ? AppColors.primary : Colors.grey,
+        size: 28,
+      ),
       onPressed: () => setState(() => _currentNavIndex = index),
     );
   }
@@ -174,7 +180,10 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
                     ),
                   ),
                   IconButton(
-                    icon: Icon(Icons.close_rounded, color: isDark ? Colors.white54 : Colors.grey[600]),
+                    icon: Icon(
+                      Icons.close_rounded,
+                      color: isDark ? Colors.white54 : Colors.grey[600],
+                    ),
                     onPressed: () => Navigator.pop(ctx),
                   ),
                 ],
@@ -190,7 +199,12 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
                     AppColors.primary,
                     () {
                       Navigator.pop(ctx);
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const AiHealthScannerScreen()));
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const AiHealthScannerScreen(),
+                        ),
+                      );
                     },
                   ),
                   _buildQuickActionBtn(
@@ -200,7 +214,12 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
                     AppColors.healthGreen,
                     () {
                       Navigator.pop(ctx);
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const AddEditPetScreen()));
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const AddEditPetScreen(),
+                        ),
+                      );
                     },
                   ),
                   _buildQuickActionBtn(
@@ -210,7 +229,12 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
                     const Color(0xFF1877F2),
                     () {
                       Navigator.pop(ctx);
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const CreatePostScreen()));
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const CreatePostScreen(),
+                        ),
+                      );
                     },
                   ),
                   _buildQuickActionBtn(
@@ -237,7 +261,13 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
     );
   }
 
-  Widget _buildQuickActionBtn(BuildContext ctx, IconData icon, String label, Color color, VoidCallback onTap) {
+  Widget _buildQuickActionBtn(
+    BuildContext ctx,
+    IconData icon,
+    String label,
+    Color color,
+    VoidCallback onTap,
+  ) {
     final isDark = Theme.of(ctx).brightness == Brightness.dark;
 
     return GestureDetector(
@@ -283,13 +313,23 @@ class HomeDashboardFragment extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user = context.select((AppStateRepository state) => state.currentUser);
+    final user = context.select(
+      (AppStateRepository state) => state.currentUser,
+    );
     final pets = context.select((AppStateRepository state) => state.pets);
-    final allEvents = context.select((AppStateRepository state) => state.events);
+    final allEvents = context.select(
+      (AppStateRepository state) => state.events,
+    );
     // Filter for truly upcoming events: Not completed, and occurring today or in the future
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final events = allEvents.where((e) => !e.isCompleted && (e.date.isAtSameMomentAs(today) || e.date.isAfter(today))).toList();
+    final events = allEvents
+        .where(
+          (e) =>
+              !e.isCompleted &&
+              (e.date.isAtSameMomentAs(today) || e.date.isAfter(today)),
+        )
+        .toList();
     final vets = context.select((AppStateRepository state) => state.vets);
     final state = context.read<AppStateRepository>();
 
@@ -297,22 +337,31 @@ class HomeDashboardFragment extends StatelessWidget {
     final isSmallScreen = size.width < 360;
 
     return CustomScrollView(
-      physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+      physics: const BouncingScrollPhysics(
+        parent: AlwaysScrollableScrollPhysics(),
+      ),
       slivers: [
         CupertinoSliverRefreshControl(
           refreshIndicatorExtent: 80,
           refreshTriggerPullDistance: 120,
-          builder: (context, refreshState, pulledExtent, refreshTriggerPullDistance, refreshIndicatorExtent) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 16),
-                child: const TailWaggingLoader(
-                  size: 350,
-                  useBottomPosition: true,
-                ),
-              ),
-            );
-          },
+          builder:
+              (
+                context,
+                refreshState,
+                pulledExtent,
+                refreshTriggerPullDistance,
+                refreshIndicatorExtent,
+              ) {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 16),
+                    child: const TailWaggingLoader(
+                      size: 350,
+                      useBottomPosition: true,
+                    ),
+                  ),
+                );
+              },
           onRefresh: () async {
             HapticFeedback.mediumImpact();
             if (user != null) await state.syncFromFirebase(user);
@@ -333,14 +382,34 @@ class HomeDashboardFragment extends StatelessWidget {
               // ─── MY PETS ──────────────────────────────────────────────────
               FadeInDown(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 8,
+                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('My Pets', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 20)),
+                      Text(
+                        'My Pets',
+                        style: Theme.of(
+                          context,
+                        ).textTheme.titleLarge?.copyWith(fontSize: 20),
+                      ),
                       GestureDetector(
-                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyPetsScreen())),
-                        child: Text('See All', style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold)),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const MyPetsScreen(),
+                          ),
+                        ),
+                        child: Text(
+                          'See All',
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
                       ),
                     ],
                   ),
@@ -371,13 +440,22 @@ class HomeDashboardFragment extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Discover More', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 20)),
+                    Text(
+                      'Discover More',
+                      style: Theme.of(
+                        context,
+                      ).textTheme.titleLarge?.copyWith(fontSize: 20),
+                    ),
                     const SizedBox(height: 16),
                     LayoutBuilder(
                       builder: (context, constraints) {
-                        final crossAxisCount = constraints.maxWidth > 600 ? 4 : 2;
-                        final childAspectRatio = constraints.maxWidth > 600 ? 1.0 : (isSmallScreen ? 0.75 : 0.8);
-                        
+                        final crossAxisCount = constraints.maxWidth > 600
+                            ? 4
+                            : 2;
+                        final childAspectRatio = constraints.maxWidth > 600
+                            ? 1.0
+                            : (isSmallScreen ? 0.75 : 0.8);
+
                         return GridView.count(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
@@ -405,7 +483,14 @@ class HomeDashboardFragment extends StatelessWidget {
                               subtitle: 'Live location',
                               action: 'Locate',
                               onTap: () {
-                                if (pets.isNotEmpty) Navigator.push(context, MaterialPageRoute(builder: (_) => PetTrackerScreen(pet: pets.first)));
+                                if (pets.isNotEmpty)
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          PetTrackerScreen(pet: pets.first),
+                                    ),
+                                  );
                               },
                             ),
                             _buildDiscoveryCard(
@@ -416,7 +501,12 @@ class HomeDashboardFragment extends StatelessWidget {
                               title: 'Wellness',
                               subtitle: 'Health scan',
                               action: 'Check',
-                              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AiHealthScannerScreen())),
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const AiHealthScannerScreen(),
+                                ),
+                              ),
                             ),
                             _buildDiscoveryCard(
                               context,
@@ -443,10 +533,26 @@ class HomeDashboardFragment extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Upcoming Events', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 20)),
+                    Text(
+                      'Upcoming Events',
+                      style: Theme.of(
+                        context,
+                      ).textTheme.titleLarge?.copyWith(fontSize: 20),
+                    ),
                     GestureDetector(
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CalendarScreen())),
-                      child: Text('See All', style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold)),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const CalendarScreen(),
+                        ),
+                      ),
+                      child: Text(
+                        'See All',
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -464,11 +570,17 @@ class HomeDashboardFragment extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     scrollDirection: Axis.horizontal,
                     physics: const BouncingScrollPhysics(),
-                    itemCount: events.length > 5 ? 5 : events.length, // Show up to 5 horizontal cards
+                    itemCount: events.length > 5
+                        ? 5
+                        : events.length, // Show up to 5 horizontal cards
                     itemBuilder: (context, index) {
                       return FadeInRight(
                         delay: Duration(milliseconds: 50 * index),
-                        child: _buildUpcomingEventCard(context, events[index], state),
+                        child: _buildUpcomingEventCard(
+                          context,
+                          events[index],
+                          state,
+                        ),
                       );
                     },
                   ),
@@ -481,10 +593,21 @@ class HomeDashboardFragment extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Top Veterinarians', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 20)),
+                    Text(
+                      'Top Veterinarians',
+                      style: Theme.of(
+                        context,
+                      ).textTheme.titleLarge?.copyWith(fontSize: 20),
+                    ),
                     GestureDetector(
                       onTap: () => onNavRequested?.call(1),
-                      child: Text('See All', style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold)),
+                      child: Text(
+                        'See All',
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -499,9 +622,14 @@ class HomeDashboardFragment extends StatelessWidget {
                 ...vets
                     .where((v) => v.tag.toLowerCase().contains('vet'))
                     .take(3)
-                    .map((vet) => FadeInUp(child: _buildDetailedVetCard(context, vet))),
-              
-              const SizedBox(height: 160), // standard spacer to clear floating navbar
+                    .map(
+                      (vet) =>
+                          FadeInUp(child: _buildDetailedVetCard(context, vet)),
+                    ),
+
+              const SizedBox(
+                height: 160,
+              ), // standard spacer to clear floating navbar
             ],
           ),
         ),
@@ -511,10 +639,11 @@ class HomeDashboardFragment extends StatelessWidget {
 
   Widget _buildVerticalPetCard(BuildContext context, PetModel pet) {
     final size = MediaQuery.of(context).size;
-    final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
-    
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+
     // Cap the card width to prevent massive images on tablets
-    final cardWidth = isLandscape ? 140.0 : size.width * 0.4; 
+    final cardWidth = isLandscape ? 140.0 : size.width * 0.4;
 
     return Container(
       width: cardWidth,
@@ -522,7 +651,10 @@ class HomeDashboardFragment extends StatelessWidget {
       child: PremiumCard(
         opacity: 0.2,
         borderRadius: 28,
-        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => PetDetailsScreen(petId: pet.petID))),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => PetDetailsScreen(petId: pet.petID)),
+        ),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Column(
@@ -534,7 +666,9 @@ class HomeDashboardFragment extends StatelessWidget {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: Theme.of(context).shadowColor.withValues(alpha: 0.08),
+                      color: Theme.of(
+                        context,
+                      ).shadowColor.withValues(alpha: 0.08),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -544,31 +678,43 @@ class HomeDashboardFragment extends StatelessWidget {
                   borderRadius: BorderRadius.circular(40),
                   child: pet.photoUrl != null && pet.photoUrl!.isNotEmpty
                       ? pet.photoUrl!.startsWith('assets')
-                          ? Image.asset(
-                              pet.photoUrl!,
-                              width: isLandscape ? 55 : cardWidth * 0.55,
-                              height: isLandscape ? 55 : cardWidth * 0.55,
-                              fit: BoxFit.cover,
-                            )
-                          : CachedNetworkImage(
-                              imageUrl: pet.photoUrl!,
-                              width: isLandscape ? 55 : cardWidth * 0.55,
-                              height: isLandscape ? 55 : cardWidth * 0.55,
-                              fit: BoxFit.cover,
-                              errorWidget: (c, u, e) => _buildPetErrorIcon(context),
-                            )
+                            ? Image.asset(
+                                pet.photoUrl!,
+                                width: isLandscape ? 55 : cardWidth * 0.55,
+                                height: isLandscape ? 55 : cardWidth * 0.55,
+                                fit: BoxFit.cover,
+                              )
+                            : CachedNetworkImage(
+                                imageUrl: pet.photoUrl!,
+                                width: isLandscape ? 55 : cardWidth * 0.55,
+                                height: isLandscape ? 55 : cardWidth * 0.55,
+                                fit: BoxFit.cover,
+                                errorWidget: (c, u, e) =>
+                                    _buildPetErrorIcon(context),
+                              )
                       : _buildPetErrorIcon(context),
                 ),
               ),
               const SizedBox(height: 10),
               Flexible(
-                child: Text(pet.name, 
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 14, fontWeight: FontWeight.bold), 
-                  maxLines: 1, overflow: TextOverflow.ellipsis),
+                child: Text(
+                  pet.name,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-              Text(pet.breed, 
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(fontSize: 9), 
-                maxLines: 1, overflow: TextOverflow.ellipsis),
+              Text(
+                pet.breed,
+                style: Theme.of(
+                  context,
+                ).textTheme.labelSmall?.copyWith(fontSize: 9),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
               const SizedBox(height: 12),
             ],
           ),
@@ -579,8 +725,8 @@ class HomeDashboardFragment extends StatelessWidget {
 
   Widget _buildPetErrorIcon(BuildContext context) {
     return Container(
-      color: Theme.of(context).dividerColor.withValues(alpha: 0.1), 
-      child: Icon(Icons.pets, size: 24, color: Theme.of(context).hintColor)
+      color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
+      child: Icon(Icons.pets, size: 24, color: Theme.of(context).hintColor),
     );
   }
 
@@ -591,16 +737,29 @@ class HomeDashboardFragment extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: Theme.of(context).dividerColor, style: BorderStyle.solid),
+        border: Border.all(
+          color: Theme.of(context).dividerColor,
+          style: BorderStyle.solid,
+        ),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.pets_rounded, color: Theme.of(context).hintColor.withValues(alpha: 0.2), size: 48),
+          Icon(
+            Icons.pets_rounded,
+            color: Theme.of(context).hintColor.withValues(alpha: 0.2),
+            size: 48,
+          ),
           const SizedBox(height: 12),
-          Text('No pets added yet', style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            'No pets added yet',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           TextButton(
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AddEditPetScreen())),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const AddEditPetScreen()),
+            ),
             child: const Text('Add your first pet'),
           ),
         ],
@@ -608,17 +767,25 @@ class HomeDashboardFragment extends StatelessWidget {
     );
   }
 
-  Widget _buildUpcomingEventCard(BuildContext context, EventModel evt, AppStateRepository state) {
+  Widget _buildUpcomingEventCard(
+    BuildContext context,
+    EventModel evt,
+    AppStateRepository state,
+  ) {
     final dateStr = DateFormat('MMM d, yyyy').format(evt.date);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Container(
-      width: screenWidth * 0.75, // Take 75% of screen width to show peek of next card
+      width:
+          screenWidth *
+          0.75, // Take 75% of screen width to show peek of next card
       margin: const EdgeInsets.only(left: 4, right: 12, bottom: 12, top: 4),
       child: PremiumCard(
         useGlass: false,
-        backgroundColor: isDark ? Theme.of(context).cardColor : const Color(0xFFEDF4F8),
+        backgroundColor: isDark
+            ? Theme.of(context).cardColor
+            : const Color(0xFFEDF4F8),
         borderRadius: 24,
         onTap: () {
           HapticFeedback.lightImpact();
@@ -656,11 +823,19 @@ class HomeDashboardFragment extends StatelessWidget {
                     children: [
                       Text(
                         dateStr,
-                        style: const TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.w600),
+                        style: const TextStyle(
+                          fontSize: 10,
+                          color: Colors.grey,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                       Text(
                         '${evt.fromTime} - ${evt.toTime}',
-                        style: const TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.w600),
+                        style: const TextStyle(
+                          fontSize: 10,
+                          color: Colors.grey,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ],
                   ),
@@ -680,14 +855,18 @@ class HomeDashboardFragment extends StatelessWidget {
               const SizedBox(height: 10),
               Row(
                 children: [
-                  Icon(Icons.pets_rounded, size: 14, color: isDark ? Colors.white70 : Colors.grey),
+                  Icon(
+                    Icons.pets_rounded,
+                    size: 14,
+                    color: isDark ? Colors.white70 : Colors.grey,
+                  ),
                   const SizedBox(width: 6),
                   Text(
                     evt.petName,
                     style: TextStyle(
-                      fontSize: 12, 
-                      color: isDark ? Colors.white70 : Colors.grey, 
-                      fontWeight: FontWeight.w700
+                      fontSize: 12,
+                      color: isDark ? Colors.white70 : Colors.grey,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ],
@@ -705,22 +884,33 @@ class HomeDashboardFragment extends StatelessWidget {
     if (hour >= 12 && hour < 17) greeting = 'Good Afternoon,';
     if (hour >= 17) greeting = 'Good Evening,';
 
-    final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
 
     return PremiumCard(
       opacity: 0.3,
       borderRadius: 32,
       child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: isLandscape ? 12 : 16),
+        padding: EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: isLandscape ? 12 : 16,
+        ),
         child: Row(
           children: [
             Container(
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.5), width: 2),
+                border: Border.all(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onPrimary.withValues(alpha: 0.5),
+                  width: 2,
+                ),
                 boxShadow: [
                   BoxShadow(
-                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: 0.1),
                     blurRadius: 10,
                   ),
                 ],
@@ -728,8 +918,16 @@ class HomeDashboardFragment extends StatelessWidget {
               child: CircleAvatar(
                 radius: isLandscape ? 20 : 24,
                 backgroundColor: Theme.of(context).cardColor,
-                backgroundImage: user?.photoUrl != null ? CachedNetworkImageProvider(user!.photoUrl!) : null,
-                child: user?.photoUrl == null ? Icon(Icons.person, color: Theme.of(context).colorScheme.primary, size: isLandscape ? 16 : 20) : null,
+                backgroundImage: user?.photoUrl != null
+                    ? CachedNetworkImageProvider(user!.photoUrl!)
+                    : null,
+                child: user?.photoUrl == null
+                    ? Icon(
+                        Icons.person,
+                        color: Theme.of(context).colorScheme.primary,
+                        size: isLandscape ? 16 : 20,
+                      )
+                    : null,
               ),
             ),
             const SizedBox(width: 12),
@@ -738,12 +936,24 @@ class HomeDashboardFragment extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(greeting, 
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w600, fontSize: 10),
-                    maxLines: 1, overflow: TextOverflow.ellipsis),
-                  Text(user?.name ?? 'Pet Maya User', 
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w700, fontSize: isLandscape ? 16 : 18),
-                    maxLines: 1, overflow: TextOverflow.ellipsis),
+                  Text(
+                    greeting,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 10,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    user?.name ?? 'Pet Maya User',
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      fontSize: isLandscape ? 16 : 18,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ],
               ),
             ),
@@ -752,14 +962,27 @@ class HomeDashboardFragment extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.stars_rounded, color: Color(0xFF7B1FA2), size: 14),
+                    const Icon(
+                      Icons.stars_rounded,
+                      color: Color(0xFF7B1FA2),
+                      size: 14,
+                    ),
                     const SizedBox(width: 4),
-                    Text('15', style: Theme.of(context).textTheme.labelSmall?.copyWith(color: const Color(0xFF7B1FA2), fontWeight: FontWeight.bold, fontSize: 10)),
+                    Text(
+                      '15',
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: const Color(0xFF7B1FA2),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 10,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -767,26 +990,42 @@ class HomeDashboardFragment extends StatelessWidget {
             ],
             Consumer<AppStateRepository>(
               builder: (context, repo, _) {
-                final unreadCount = repo.notifications.where((n) => !n.isRead).length;
+                final unreadCount = repo.notifications
+                    .where((n) => !n.isRead)
+                    .length;
                 return GestureDetector(
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationScreen())),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const NotificationScreen(),
+                    ),
+                  ),
                   child: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     child: Stack(
                       clipBehavior: Clip.none,
                       children: [
-                        const Icon(Icons.notifications_rounded, color: Color(0xFF0277BD), size: 18),
+                        const Icon(
+                          Icons.notifications_rounded,
+                          color: Color(0xFF0277BD),
+                          size: 18,
+                        ),
                         if (unreadCount > 0)
                           Positioned(
                             top: -4,
                             right: -4,
                             child: Container(
                               padding: const EdgeInsets.all(3),
-                              constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
+                              constraints: const BoxConstraints(
+                                minWidth: 14,
+                                minHeight: 14,
+                              ),
                               decoration: const BoxDecoration(
                                 color: AppColors.dangerRed,
                                 shape: BoxShape.circle,
@@ -794,7 +1033,12 @@ class HomeDashboardFragment extends StatelessWidget {
                               alignment: Alignment.center,
                               child: Text(
                                 unreadCount > 9 ? '9+' : '$unreadCount',
-                                style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold, height: 1),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 8,
+                                  fontWeight: FontWeight.bold,
+                                  height: 1,
+                                ),
                               ),
                             ),
                           ),
@@ -816,7 +1060,10 @@ class HomeDashboardFragment extends StatelessWidget {
       child: PremiumCard(
         opacity: 0.15,
         borderRadius: 32,
-        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => VetDetailsScreen(vet: vet))),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => VetDetailsScreen(vet: vet)),
+        ),
         child: Padding(
           padding: const EdgeInsets.all(18),
           child: Column(
@@ -828,7 +1075,12 @@ class HomeDashboardFragment extends StatelessWidget {
                   Container(
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.5), width: 2),
+                      border: Border.all(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onPrimary.withValues(alpha: 0.5),
+                        width: 2,
+                      ),
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(24),
@@ -837,7 +1089,15 @@ class HomeDashboardFragment extends StatelessWidget {
                         width: 70,
                         height: 70,
                         fit: BoxFit.cover,
-                        errorWidget: (c, u, e) => Container(color: Theme.of(context).dividerColor.withValues(alpha: 0.1), child: Icon(Icons.person, color: Theme.of(context).hintColor)),
+                        errorWidget: (c, u, e) => Container(
+                          color: Theme.of(
+                            context,
+                          ).dividerColor.withValues(alpha: 0.1),
+                          child: Icon(
+                            Icons.person,
+                            color: Theme.of(context).hintColor,
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -846,17 +1106,39 @@ class HomeDashboardFragment extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(vet.name, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 18, fontWeight: FontWeight.w700)),
-                        Text(vet.qualification, style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w600)),
+                        Text(
+                          vet.name,
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                              ),
+                        ),
+                        Text(
+                          vet.qualification,
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.primary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                        ),
                         const SizedBox(height: 6),
                         Row(
                           children: [
-                            const Icon(Icons.star_rounded, size: 14, color: AppColors.accentAmber),
+                            const Icon(
+                              Icons.star_rounded,
+                              size: 14,
+                              color: AppColors.accentAmber,
+                            ),
                             const SizedBox(width: 4),
-                            Text('${vet.rating}', style: Theme.of(context).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.bold)),
+                            Text(
+                              '${vet.rating}',
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(fontWeight: FontWeight.bold),
+                            ),
                             Flexible(
                               child: Text(
-                                ' (${vet.reviewsCount} reviews)', 
+                                ' (${vet.reviewsCount} reviews)',
                                 style: Theme.of(context).textTheme.labelSmall,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -880,9 +1162,22 @@ class HomeDashboardFragment extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('PROFESSIONAL PROFILE', style: Theme.of(context).textTheme.labelSmall?.copyWith(fontSize: 9, fontWeight: FontWeight.w700, letterSpacing: 0.8)),
+                    Text(
+                      'PROFESSIONAL PROFILE',
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.8,
+                      ),
+                    ),
                     const SizedBox(height: 8),
-                    Text('Experienced in complex surgeries and preventive care for small animals.', style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 12, height: 1.4)),
+                    Text(
+                      'Experienced in complex surgeries and preventive care for small animals.',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontSize: 12,
+                        height: 1.4,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -892,22 +1187,44 @@ class HomeDashboardFragment extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      _buildMiniBadge(context, Icons.work_rounded, '${vet.experience} Exp'),
+                      _buildMiniBadge(
+                        context,
+                        Icons.work_rounded,
+                        '${vet.experience} Exp',
+                      ),
                       const SizedBox(width: 8),
-                      _buildMiniBadge(context, Icons.history_rounded, 'N/A Last'),
+                      _buildMiniBadge(
+                        context,
+                        Icons.history_rounded,
+                        'N/A Last',
+                      ),
                     ],
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.primary,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Row(
                       children: [
-                        Text('Start', style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Theme.of(context).colorScheme.onPrimary, fontWeight: FontWeight.w700)),
+                        Text(
+                          'Start',
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.onPrimary,
+                                fontWeight: FontWeight.w700,
+                              ),
+                        ),
                         const SizedBox(width: 4),
-                        Icon(Icons.chevron_right_rounded, size: 14, color: Theme.of(context).colorScheme.onPrimary),
+                        Icon(
+                          Icons.chevron_right_rounded,
+                          size: 14,
+                          color: Theme.of(context).colorScheme.onPrimary,
+                        ),
                       ],
                     ),
                   ),
@@ -931,7 +1248,12 @@ class HomeDashboardFragment extends StatelessWidget {
         children: [
           Icon(icon, size: 10, color: Theme.of(context).iconTheme.color),
           const SizedBox(width: 4),
-          Text(label, style: Theme.of(context).textTheme.labelSmall?.copyWith(fontSize: 9)),
+          Text(
+            label,
+            style: Theme.of(
+              context,
+            ).textTheme.labelSmall?.copyWith(fontSize: 9),
+          ),
         ],
       ),
     );
@@ -948,7 +1270,7 @@ class HomeDashboardFragment extends StatelessWidget {
     required VoidCallback onTap,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return PremiumCard(
       onTap: onTap,
       opacity: isDark ? 0.3 : 0.15,
@@ -964,37 +1286,51 @@ class HomeDashboardFragment extends StatelessWidget {
                 color: (iconColor ?? AppColors.primary).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Icon(icon, color: iconColor ?? AppColors.primary, size: 24),
+              child: Icon(
+                icon,
+                color: iconColor ?? AppColors.primary,
+                size: 24,
+              ),
             ),
             const SizedBox(height: 16),
-            Text(title, 
+            Text(
+              title,
               style: GoogleFonts.fredoka(
-                fontSize: 16, 
-                fontWeight: FontWeight.w700, 
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
               ),
-              maxLines: 1, overflow: TextOverflow.ellipsis),
-            Text(subtitle, 
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            Text(
+              subtitle,
               style: TextStyle(
-                fontSize: 10, 
-                color: Colors.grey, 
+                fontSize: 10,
+                color: Colors.grey,
                 fontWeight: FontWeight.w600,
                 letterSpacing: 0.2,
               ),
-              maxLines: 1, overflow: TextOverflow.ellipsis),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
             const Spacer(),
             Row(
               children: [
                 Text(
                   action.toUpperCase(),
                   style: TextStyle(
-                    fontWeight: FontWeight.w900, 
-                    color: iconColor ?? AppColors.primary, 
-                    letterSpacing: 1.0, 
-                    fontSize: 9
+                    fontWeight: FontWeight.w900,
+                    color: iconColor ?? AppColors.primary,
+                    letterSpacing: 1.0,
+                    fontSize: 9,
                   ),
                 ),
                 const SizedBox(width: 4),
-                Icon(Icons.arrow_forward_ios_rounded, size: 8, color: iconColor ?? AppColors.primary),
+                Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 8,
+                  color: iconColor ?? AppColors.primary,
+                ),
               ],
             ),
           ],
