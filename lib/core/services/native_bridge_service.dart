@@ -6,6 +6,8 @@ class NativeBridgeService {
   static Future<void> scheduleAlarm({
     required String id,
     required String title,
+    String body = '',
+    String category = 'event',
     required int timestamp,
     bool isFeeding = false,
   }) async {
@@ -13,6 +15,8 @@ class NativeBridgeService {
       await _channel.invokeMethod('scheduleAlarm', {
         'id': id,
         'title': title,
+        'body': body,
+        'category': category,
         'timestamp': timestamp,
         'isFeeding': isFeeding,
       });

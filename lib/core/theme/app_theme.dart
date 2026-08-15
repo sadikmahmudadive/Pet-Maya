@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'app_colors.dart';
@@ -10,6 +11,14 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       platform: TargetPlatform.iOS,
+      splashFactory: NoSplash.splashFactory,
+      highlightColor: Colors.black.withValues(alpha: 0.04),
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+        },
+      ),
       colorScheme: const ColorScheme(
         brightness: Brightness.light,
         primary: AppColors.primary,
@@ -28,7 +37,7 @@ class AppTheme {
         onSurface: AppColors.textPrimary,
         surfaceContainer: AppColors.surfaceContainer,
         onSurfaceVariant: AppColors.textSecondary,
-        outline: AppColors.borderLight,
+        outline: AppColors.iosBorder,
         shadow: AppColors.cardShadow,
       ),
       textTheme: TextTheme(
@@ -57,25 +66,30 @@ class AppTheme {
         titleTextStyle: AppTypography.titleLarge.copyWith(color: AppColors.textPrimary),
         systemOverlayStyle: SystemUiOverlayStyle.dark,
       ),
+      dividerTheme: const DividerThemeData(
+        color: AppColors.iosDivider,
+        thickness: 0.5,
+        space: 1,
+      ),
       cardTheme: CardThemeData(
         color: AppColors.surface,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(28),
-          side: const BorderSide(color: AppColors.borderLight, width: 1),
+          borderRadius: BorderRadius.circular(22),
+          side: const BorderSide(color: AppColors.iosBorder, width: 0.8),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.surfaceContainerLow,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 15),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.borderLight, width: 1),
+          borderSide: const BorderSide(color: AppColors.iosBorder, width: 0.8),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
@@ -90,9 +104,9 @@ class AppTheme {
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(18),
           ),
-          textStyle: AppTypography.titleMedium.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+          textStyle: AppTypography.titleMedium.copyWith(color: Colors.white, fontWeight: FontWeight.w700),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -101,9 +115,9 @@ class AppTheme {
           side: const BorderSide(color: AppColors.primary, width: 1.5),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(18),
           ),
-          textStyle: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.bold),
+          textStyle: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.w700),
         ),
       ),
     );
@@ -113,6 +127,14 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       platform: TargetPlatform.iOS,
+      splashFactory: NoSplash.splashFactory,
+      highlightColor: Colors.white.withValues(alpha: 0.05),
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+        },
+      ),
       colorScheme: const ColorScheme(
         brightness: Brightness.dark,
         primary: AppColors.primary,
@@ -131,7 +153,7 @@ class AppTheme {
         onSurface: AppColors.textPrimaryDark,
         surfaceContainer: AppColors.surfaceContainerDark,
         onSurfaceVariant: AppColors.textSecondaryDark,
-        outline: AppColors.borderDark,
+        outline: AppColors.iosBorderDark,
         shadow: Colors.black,
       ),
       textTheme: TextTheme(
@@ -160,25 +182,30 @@ class AppTheme {
         titleTextStyle: AppTypography.titleLarge.copyWith(color: AppColors.textPrimaryDark),
         systemOverlayStyle: SystemUiOverlayStyle.light,
       ),
+      dividerTheme: const DividerThemeData(
+        color: AppColors.iosDividerDark,
+        thickness: 0.5,
+        space: 1,
+      ),
       cardTheme: CardThemeData(
         color: AppColors.surfaceDark,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(28),
-          side: const BorderSide(color: AppColors.borderDark, width: 1),
+          borderRadius: BorderRadius.circular(22),
+          side: const BorderSide(color: AppColors.iosBorderDark, width: 0.8),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.surfaceContainerDark.withValues(alpha: 0.5),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+        fillColor: AppColors.surfaceContainerDark,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 15),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.borderDark, width: 1),
+          borderSide: const BorderSide(color: AppColors.iosBorderDark, width: 0.8),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
@@ -193,9 +220,9 @@ class AppTheme {
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(18),
           ),
-          textStyle: AppTypography.titleMedium.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+          textStyle: AppTypography.titleMedium.copyWith(color: Colors.white, fontWeight: FontWeight.w700),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -204,9 +231,9 @@ class AppTheme {
           side: const BorderSide(color: AppColors.primary, width: 1.5),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(18),
           ),
-          textStyle: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.bold),
+          textStyle: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.w700),
         ),
       ),
     );

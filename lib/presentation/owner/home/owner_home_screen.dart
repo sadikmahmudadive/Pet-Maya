@@ -1295,7 +1295,7 @@ class HomeDashboardFragment extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               title,
-              style: GoogleFonts.fredoka(
+              style: GoogleFonts.plusJakartaSans(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
               ),
@@ -1339,3 +1339,4 @@ class HomeDashboardFragment extends StatelessWidget {
     );
   }
 }
+

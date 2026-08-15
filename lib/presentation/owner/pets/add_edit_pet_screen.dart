@@ -159,7 +159,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
     return GlassScaffold(
       appBar: AppBar(
         title: Text(isEditing ? 'Edit Profile' : 'Add New Pet', 
-          style: GoogleFonts.fredoka(fontWeight: FontWeight.w700, fontSize: 20)),
+          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 20)),
         backgroundColor: Colors.transparent,
         foregroundColor: isDark ? Colors.white : Colors.black87,
         elevation: 0,
@@ -181,7 +181,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Text('Your Pets', 
-                style: GoogleFonts.fredoka(
+                style: GoogleFonts.plusJakartaSans(
                   fontWeight: FontWeight.w600, 
                   fontSize: 18,
                   color: isDark ? Colors.white : Colors.black87
@@ -703,3 +703,4 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
     } catch (_) {}
   }
 }
+

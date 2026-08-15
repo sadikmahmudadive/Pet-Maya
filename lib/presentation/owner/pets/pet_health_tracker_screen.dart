@@ -96,7 +96,7 @@ class PetHealthTrackerScreen extends StatelessWidget {
               crossAxisCount: 2,
               mainAxisSpacing: 16,
               crossAxisSpacing: 16,
-              childAspectRatio: 1.4,
+              childAspectRatio: 1.15,
               children: [
                 _buildGoalCard('Weight', pet.weight, Icons.monitor_weight_rounded, AppColors.primary),
                 _buildGoalCard('Mood', pet.mood, Icons.sentiment_satisfied_alt_rounded, AppColors.accentAmber),
@@ -207,7 +207,7 @@ class PetHealthTrackerScreen extends StatelessWidget {
       opacity: 0.1,
       borderRadius: 24,
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -217,9 +217,9 @@ class PetHealthTrackerScreen extends StatelessWidget {
               child: Icon(icon, color: color, size: 18),
             ),
             const Spacer(),
-            Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+            Text(value.isEmpty ? 'N/A' : value, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
             const SizedBox(height: 2),
-            Text(title.toUpperCase(), style: TextStyle(fontSize: 8, fontWeight: FontWeight.w800, color: Colors.grey[500], letterSpacing: 0.5)),
+            Text(title.toUpperCase(), maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.grey[500], letterSpacing: 0.5)),
           ],
         ),
       ),

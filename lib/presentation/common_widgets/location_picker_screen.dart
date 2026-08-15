@@ -219,7 +219,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> with Single
                           child: TextField(
                             controller: _searchController,
                             onSubmitted: _searchLocation,
-                            style: GoogleFonts.fredoka(fontWeight: FontWeight.w600, fontSize: 15),
+                            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600, fontSize: 15),
                             decoration: InputDecoration(
                               hintText: 'Search for your area...',
                               hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
@@ -285,7 +285,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> with Single
                                 Text(_address, 
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: GoogleFonts.fredoka(fontWeight: FontWeight.w700, fontSize: 17)),
+                                  style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 17)),
                               ],
                             ),
                           ),
@@ -321,3 +321,4 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> with Single
     );
   }
 }
+

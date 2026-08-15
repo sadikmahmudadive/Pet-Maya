@@ -671,12 +671,60 @@ class AppStateRepository extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ─── PET OPERATIONS ──────────────────────────────────────────────────────
+  // ─── PET OPERATIONS & MULTI-CATEGORY NOTIFICATIONS ────────────────────────
+
+  Future<void> _schedulePetReminders(PetModel pet) async {
+    // 1. Schedule Feeding Reminders
+    if (pet.feedingTimes.isNotEmpty) {
+      final now = DateTime.now();
+      for (int i = 0; i < pet.feedingTimes.length; i++) {
+        final timeStr = pet.feedingTimes[i];
+        final alarmId = 'feed_${pet.petID}_$i';
+        
+        DateTime scheduledDate = _parseScheduledTime(now, timeStr);
+        if (scheduledDate.isBefore(now)) {
+          scheduledDate = scheduledDate.add(const Duration(days: 1));
+        }
+
+        final foodDesc = (pet.currentFoodName != null && pet.currentFoodName!.isNotEmpty)
+            ? pet.currentFoodName!
+            : 'healthy meal';
+
+        await NativeBridgeService.scheduleAlarm(
+          id: alarmId,
+          title: 'Meal Time for ${pet.name}! 🍲',
+          body: 'Time for ${pet.name}\'s scheduled meal ($foodDesc).',
+          category: 'feeding',
+          timestamp: scheduledDate.millisecondsSinceEpoch,
+          isFeeding: true,
+        );
+      }
+    }
+
+    // 2. Schedule Health & Medication Reminders
+    if (pet.medicationTime != null && pet.medicationTime!.trim().isNotEmpty) {
+      final now = DateTime.now();
+      DateTime scheduledMedDate = _parseScheduledTime(now, pet.medicationTime!);
+      if (scheduledMedDate.isBefore(now)) {
+        scheduledMedDate = scheduledMedDate.add(const Duration(days: 1));
+      }
+
+      await NativeBridgeService.scheduleAlarm(
+        id: 'med_${pet.petID}',
+        title: 'Medication Alert: ${pet.name} 💊',
+        body: 'Time to administer scheduled medication for ${pet.name}.',
+        category: 'health',
+        timestamp: scheduledMedDate.millisecondsSinceEpoch,
+        isFeeding: false,
+      );
+    }
+  }
 
   Future<void> addPet(PetModel pet) async {
     _pets.add(pet);
     notifyListeners();
     await _firebase.savePet(pet);
+    await _schedulePetReminders(pet);
     logAudit('Pet Added', 'Added pet: ${pet.name} (${pet.breed})');
     addNotification(
       title: 'New Pet Added! 🐾',
@@ -691,6 +739,7 @@ class AppStateRepository extends ChangeNotifier {
       _pets[idx] = updatedPet;
       notifyListeners();
       await _firebase.savePet(updatedPet);
+      await _schedulePetReminders(updatedPet);
       logAudit('Pet Updated', 'Updated details for ${updatedPet.name}');
     }
   }
@@ -700,6 +749,13 @@ class AppStateRepository extends ChangeNotifier {
     _pets.removeWhere((p) => p.petID == petId);
     notifyListeners();
     await _firebase.deletePet(petId);
+
+    // Cancel related alarms
+    for (int i = 0; i < 10; i++) {
+      await NativeBridgeService.cancelAlarm('feed_${petId}_$i');
+    }
+    await NativeBridgeService.cancelAlarm('med_$petId');
+
     logAudit('Pet Deleted', 'Removed pet: ${pet.name}');
   }
 
@@ -744,6 +800,7 @@ class AppStateRepository extends ChangeNotifier {
       _pets[idx] = updated;
       notifyListeners();
       await _firebase.savePet(updated);
+      await _schedulePetReminders(updated);
     }
   }
 
@@ -784,15 +841,24 @@ class AppStateRepository extends ChangeNotifier {
     notifyListeners();
     await _firebase.saveEvent(event);
     
-    // Tier 1: Local Reminder Engine (AlarmManager)
+    // Multi-Category Local Reminder Engine (AlarmManager)
     if (event.isReminderEnabled) {
       final scheduledTime = _parseScheduledTime(event.date, event.fromTime);
+      final cat = event.category.toLowerCase();
+      String alarmCategory = 'event';
+      if (cat == 'food' || cat == 'feeding') {
+        alarmCategory = 'feeding';
+      } else if (cat.contains('med') || cat.contains('vaccin') || cat.contains('vet') || cat.contains('health')) {
+        alarmCategory = 'health';
+      }
 
       await NativeBridgeService.scheduleAlarm(
         id: event.id,
         title: event.title,
+        body: '${event.category} reminder for ${event.petName} (${event.fromTime})',
+        category: alarmCategory,
         timestamp: scheduledTime.millisecondsSinceEpoch,
-        isFeeding: event.category.toLowerCase() == 'food' || event.category.toLowerCase() == 'feeding',
+        isFeeding: alarmCategory == 'feeding',
       );
     }
 
@@ -948,6 +1014,17 @@ class AppStateRepository extends ChangeNotifier {
     notifyListeners();
     await _firebase.saveServiceRecord(record);
     logAudit('Medical Record Saved', 'Saved AI diagnosis to $petName record');
+
+    // Trigger Push / Health Notification
+    await NotificationService().showHealthAlert(
+      title: 'Health Vault: $petName 🩺',
+      body: 'New medical record saved: $title',
+    );
+    addNotification(
+      title: 'New Health Record: $petName 🩺',
+      message: '$title has been archived in the Health Vault.',
+      type: NotificationType.health,
+    );
   }
 
   // ─── SHOPPING CART & ORDERS ──────────────────────────────────────────────
@@ -1578,3 +1655,5 @@ class AppStateRepository extends ChangeNotifier {
     return null;
   }
 }
+
+

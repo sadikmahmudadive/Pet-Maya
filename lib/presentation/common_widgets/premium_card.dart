@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'glass_card.dart';
+import '../../core/theme/app_colors.dart';
 
 class PremiumCard extends StatefulWidget {
   final Widget child;
@@ -15,9 +16,9 @@ class PremiumCard extends StatefulWidget {
     super.key,
     required this.child,
     this.onTap,
-    this.borderRadius = 28,
+    this.borderRadius = 22,
     this.useGlass = true,
-    this.opacity = 0.5,
+    this.opacity = 0.85,
     this.backgroundColor,
     this.borderSide,
   });
@@ -35,10 +36,10 @@ class _PremiumCardState extends State<PremiumCard> with SingleTickerProviderStat
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 150),
+      duration: const Duration(milliseconds: 140),
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.96).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.97).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
     );
   }
 
@@ -50,11 +51,13 @@ class _PremiumCardState extends State<PremiumCard> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return GestureDetector(
       onTapDown: (_) {
         if (widget.onTap != null) {
           _controller.forward();
-          HapticFeedback.lightImpact();
+          HapticFeedback.selectionClick();
         }
       },
       onTapUp: (_) {
@@ -75,14 +78,19 @@ class _PremiumCardState extends State<PremiumCard> with SingleTickerProviderStat
               )
             : Container(
                 decoration: BoxDecoration(
-                  color: widget.backgroundColor ?? Theme.of(context).cardTheme.color,
+                  color: widget.backgroundColor ?? (isDark ? AppColors.iosCardDark : AppColors.iosCard),
                   borderRadius: BorderRadius.circular(widget.borderRadius),
-                  border: widget.borderSide != null ? Border.fromBorderSide(widget.borderSide!) : null,
+                  border: widget.borderSide != null 
+                      ? Border.fromBorderSide(widget.borderSide!) 
+                      : Border.all(
+                          color: isDark ? AppColors.iosBorderDark : AppColors.iosBorder,
+                          width: 0.8,
+                        ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.2 : 0.05),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
+                      color: isDark ? Colors.black.withValues(alpha: 0.35) : Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 18,
+                      offset: const Offset(0, 6),
                     ),
                   ],
                 ),

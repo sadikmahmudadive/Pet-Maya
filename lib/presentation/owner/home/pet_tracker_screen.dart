@@ -224,7 +224,7 @@ class _PetTrackerScreenState extends State<PetTrackerScreen> with SingleTickerPr
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text('${widget.pet.name}\'s Radar', 
-                      style: GoogleFonts.fredoka(fontWeight: FontWeight.w700, fontSize: 16)),
+                      style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 16)),
                     Row(
                       children: [
                         Container(
@@ -401,7 +401,7 @@ class _PetTrackerScreenState extends State<PetTrackerScreen> with SingleTickerPr
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('CURRENT ACTIVITY', style: TextStyle(fontWeight: FontWeight.w800, color: Colors.grey[500], fontSize: 9, letterSpacing: 1)),
-                      Text(_currentActivity, style: GoogleFonts.fredoka(fontWeight: FontWeight.w700, fontSize: 18)),
+                      Text(_currentActivity, style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 18)),
                     ],
                   ),
                 ),
@@ -504,3 +504,4 @@ class _PetTrackerScreenState extends State<PetTrackerScreen> with SingleTickerPr
     );
   }
 }
+

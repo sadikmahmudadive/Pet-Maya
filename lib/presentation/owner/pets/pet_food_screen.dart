@@ -21,13 +21,21 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
   String? _selectedFoodType;
   bool _isSaving = false;
 
-  final List<String> _foodTypes = ['Dry Food', 'Wet Food', 'Raw Food', 'Mixed', 'Prescription Diet'];
+  final List<String> _foodTypes = [
+    'Dry Food',
+    'Wet Food',
+    'Raw Food',
+    'Mixed',
+    'Prescription Diet',
+  ];
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final pet = context.read<AppStateRepository>().pets.firstWhere((p) => p.petID == widget.petId);
+      final pet = context.read<AppStateRepository>().pets.firstWhere(
+        (p) => p.petID == widget.petId,
+      );
       setState(() {
         _foodNameController.text = pet.currentFoodName ?? '';
         _selectedFoodType = pet.foodType;
@@ -52,36 +60,59 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
       setState(() => _isSaving = false);
       HapticFeedback.mediumImpact();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Diet details saved! ✨'), backgroundColor: AppColors.healthGreen, behavior: SnackBarBehavior.floating),
+        const SnackBar(
+          content: Text('Diet details saved! ✨'),
+          backgroundColor: AppColors.healthGreen,
+          behavior: SnackBarBehavior.floating,
+        ),
       );
     }
   }
 
   void _addMeal() async {
-    final time = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+    final time = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
     if (time != null && mounted) {
-      final pet = context.read<AppStateRepository>().pets.firstWhere((p) => p.petID == widget.petId);
-      final formattedTime = '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+      final pet = context.read<AppStateRepository>().pets.firstWhere(
+        (p) => p.petID == widget.petId,
+      );
+      final formattedTime =
+          '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
       final newTimes = List<String>.from(pet.feedingTimes)..add(formattedTime);
       newTimes.sort();
-      context.read<AppStateRepository>().updatePetNutrition(petId: widget.petId, feedingTimes: newTimes);
+      context.read<AppStateRepository>().updatePetNutrition(
+        petId: widget.petId,
+        feedingTimes: newTimes,
+      );
     }
   }
 
   void _removeMeal(String time) {
-    final pet = context.read<AppStateRepository>().pets.firstWhere((p) => p.petID == widget.petId);
+    final pet = context.read<AppStateRepository>().pets.firstWhere(
+      (p) => p.petID == widget.petId,
+    );
     final newTimes = List<String>.from(pet.feedingTimes)..remove(time);
-    context.read<AppStateRepository>().updatePetNutrition(petId: widget.petId, feedingTimes: newTimes);
+    context.read<AppStateRepository>().updatePetNutrition(
+      petId: widget.petId,
+      feedingTimes: newTimes,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final pet = context.watch<AppStateRepository>().pets.firstWhere((p) => p.petID == widget.petId);
+    final pet = context.watch<AppStateRepository>().pets.firstWhere(
+      (p) => p.petID == widget.petId,
+    );
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GlassScaffold(
       appBar: AppBar(
-        title: Text('${pet.name}\'s Nutrition', style: const TextStyle(fontWeight: FontWeight.w800)),
+        title: Text(
+          '${pet.name}\'s Nutrition',
+          style: const TextStyle(fontWeight: FontWeight.w800),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -95,17 +126,35 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
               child: PremiumCard(
                 opacity: 0.1,
                 borderRadius: 32,
-                backgroundColor: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFEDF4F8),
+                backgroundColor: isDark
+                    ? const Color(0xFF1A1A1A)
+                    : const Color(0xFFEDF4F8),
                 child: Padding(
                   padding: const EdgeInsets.all(24),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('CURRENT DIET', style: TextStyle(color: const Color(0xFF1AB680), fontWeight: FontWeight.w900, fontSize: 11, letterSpacing: 1.5)),
+                      Text(
+                        'CURRENT DIET',
+                        style: TextStyle(
+                          color: const Color(0xFF1AB680),
+                          fontWeight: FontWeight.w900,
+                          fontSize: 11,
+                          letterSpacing: 1.5,
+                        ),
+                      ),
                       const SizedBox(height: 32),
-                      _buildCleanInput('Food Name / Brand', _foodNameController, hint: 'e.g., Royal Canin'),
+                      _buildCleanInput(
+                        'Food Name / Brand',
+                        _foodNameController,
+                        hint: 'e.g., Royal Canin',
+                      ),
                       const SizedBox(height: 24),
-                      _buildDropdownField('Food Type', _selectedFoodType, (val) => setState(() => _selectedFoodType = val)),
+                      _buildDropdownField(
+                        'Food Type',
+                        _selectedFoodType,
+                        (val) => setState(() => _selectedFoodType = val),
+                      ),
                       const SizedBox(height: 32),
                       SizedBox(
                         width: double.infinity,
@@ -114,13 +163,26 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
                           onPressed: _isSaving ? null : _saveDietDetails,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF1AB680),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
                             elevation: 8,
-                            shadowColor: const Color(0xFF1AB680).withOpacity(0.4),
+                            shadowColor: const Color(
+                              0xFF1AB680,
+                            ).withOpacity(0.4),
                           ),
-                          child: _isSaving 
-                            ? const CircularProgressIndicator(color: Colors.white)
-                            : const Text('SAVE DIET DETAILS', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, letterSpacing: 0.5)),
+                          child: _isSaving
+                              ? const CircularProgressIndicator(
+                                  color: Colors.white,
+                                )
+                              : const Text(
+                                  'SAVE DIET DETAILS',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
                         ),
                       ),
                     ],
@@ -137,13 +199,20 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
                 children: [
                   Padding(
                     padding: const EdgeInsets.only(left: 4),
-                    child: Text('Meal Schedule', style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w800)),
+                    child: Text(
+                      'Meal Schedule',
+                      style: AppTypography.titleLarge.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 16),
                   PremiumCard(
                     opacity: 0.1,
                     borderRadius: 32,
-                    backgroundColor: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFF9F5FB),
+                    backgroundColor: isDark
+                        ? const Color(0xFF1A1A1A)
+                        : const Color(0xFFF9F5FB),
                     child: Padding(
                       padding: const EdgeInsets.all(24),
                       child: Column(
@@ -152,19 +221,41 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
                           Wrap(
                             spacing: 10,
                             runSpacing: 12,
-                            children: pet.feedingTimes.map((time) => _buildMealChip(time)).toList(),
+                            children: pet.feedingTimes
+                                .map((time) => _buildMealChip(time))
+                                .toList(),
                           ),
                           if (pet.feedingTimes.isEmpty)
                             Padding(
                               padding: const EdgeInsets.symmetric(vertical: 24),
-                              child: Center(child: Text('No meals scheduled', style: TextStyle(color: Colors.grey[500], fontWeight: FontWeight.w600))),
+                              child: Center(
+                                child: Text(
+                                  'No meals scheduled',
+                                  style: TextStyle(
+                                    color: Colors.grey[500],
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
                             ),
                           const SizedBox(height: 24),
                           Row(
                             children: [
-                              Expanded(child: _buildActionButton(Icons.add_rounded, 'Add Time', _addMeal)),
+                              Expanded(
+                                child: _buildActionButton(
+                                  Icons.add_rounded,
+                                  'Add Time',
+                                  _addMeal,
+                                ),
+                              ),
                               const SizedBox(width: 12),
-                              Expanded(child: _buildActionButton(Icons.auto_awesome_rounded, 'AI Suggest', _aiSuggest)),
+                              Expanded(
+                                child: _buildActionButton(
+                                  Icons.auto_awesome_rounded,
+                                  'AI Suggest',
+                                  _aiSuggest,
+                                ),
+                              ),
                             ],
                           ),
                         ],
@@ -183,13 +274,20 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
                 children: [
                   Padding(
                     padding: const EdgeInsets.only(left: 4),
-                    child: Text('AI Nutritional Recommendation', style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w800)),
+                    child: Text(
+                      'AI Nutritional Recommendation',
+                      style: AppTypography.titleLarge.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 16),
                   PremiumCard(
                     opacity: 0.1,
                     borderRadius: 32,
-                    backgroundColor: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFEDF4F8),
+                    backgroundColor: isDark
+                        ? const Color(0xFF1A1A1A)
+                        : const Color(0xFFEDF4F8),
                     child: Padding(
                       padding: const EdgeInsets.all(24),
                       child: Column(
@@ -201,17 +299,34 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
                               onPressed: _runAiRecommendation,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF1AB680),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
                               ),
-                              icon: const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 20),
-                              label: const Text('GENERATE EXPERT GUIDE', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, letterSpacing: 0.5)),
+                              icon: const Icon(
+                                Icons.auto_awesome_rounded,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                              label: const Text(
+                                'Ask AI Expert',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
                             ),
                           ),
                           const SizedBox(height: 16),
                           Text(
                             'Tap above to get a professional dietary plan based on your pet\'s profile.',
                             textAlign: TextAlign.center,
-                            style: AppTypography.bodySmall.copyWith(color: Colors.grey[500], height: 1.4, fontWeight: FontWeight.w600),
+                            style: AppTypography.bodySmall.copyWith(
+                              color: Colors.grey[500],
+                              height: 1.4,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ],
                       ),
@@ -227,14 +342,26 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
     );
   }
 
-  Widget _buildCleanInput(String label, TextEditingController controller, {String? hint}) {
+  Widget _buildCleanInput(
+    String label,
+    TextEditingController controller, {
+    String? hint,
+  }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: const EdgeInsets.only(left: 4, bottom: 8),
-          child: Text(label.toUpperCase(), style: TextStyle(fontWeight: FontWeight.w900, color: isDark ? Colors.white70 : Colors.black54, fontSize: 10, letterSpacing: 1.2)),
+          child: Text(
+            label.toUpperCase(),
+            style: TextStyle(
+              fontWeight: FontWeight.w900,
+              color: isDark ? Colors.white70 : Colors.black54,
+              fontSize: 10,
+              letterSpacing: 1.2,
+            ),
+          ),
         ),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -244,10 +371,17 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
           ),
           child: TextField(
             controller: controller,
-            style: TextStyle(fontWeight: FontWeight.w700, color: isDark ? Colors.white : Colors.black87, fontSize: 15),
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+              color: isDark ? Colors.white : Colors.black87,
+              fontSize: 15,
+            ),
             decoration: InputDecoration(
               hintText: hint,
-              hintStyle: TextStyle(fontSize: 14, color: isDark ? Colors.white24 : Colors.grey[400]),
+              hintStyle: TextStyle(
+                fontSize: 14,
+                color: isDark ? Colors.white24 : Colors.grey[400],
+              ),
               border: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(vertical: 18),
             ),
@@ -257,14 +391,26 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
     );
   }
 
-  Widget _buildDropdownField(String label, String? value, Function(String?) onChanged) {
+  Widget _buildDropdownField(
+    String label,
+    String? value,
+    Function(String?) onChanged,
+  ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: const EdgeInsets.only(left: 4, bottom: 8),
-          child: Text(label.toUpperCase(), style: TextStyle(fontWeight: FontWeight.w900, color: isDark ? Colors.white70 : Colors.black54, fontSize: 10, letterSpacing: 1.2)),
+          child: Text(
+            label.toUpperCase(),
+            style: TextStyle(
+              fontWeight: FontWeight.w900,
+              color: isDark ? Colors.white70 : Colors.black54,
+              fontSize: 10,
+              letterSpacing: 1.2,
+            ),
+          ),
         ),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -277,8 +423,24 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
               value: value,
               isExpanded: true,
               dropdownColor: isDark ? const Color(0xFF1A1A1A) : Colors.white,
-              hint: Text('Select Type', style: TextStyle(fontSize: 14, color: isDark ? Colors.white24 : Colors.grey[400])),
-              items: _foodTypes.map((t) => DropdownMenuItem(value: t, child: Text(t, style: const TextStyle(fontWeight: FontWeight.w700)))).toList(),
+              hint: Text(
+                'Select Type',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: isDark ? Colors.white24 : Colors.grey[400],
+                ),
+              ),
+              items: _foodTypes
+                  .map(
+                    (t) => DropdownMenuItem(
+                      value: t,
+                      child: Text(
+                        t,
+                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  )
+                  .toList(),
               onChanged: onChanged,
             ),
           ),
@@ -298,11 +460,22 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(time, style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF2D8C69), fontSize: 12)),
+          Text(
+            time,
+            style: const TextStyle(
+              fontWeight: FontWeight.w900,
+              color: Color(0xFF2D8C69),
+              fontSize: 12,
+            ),
+          ),
           const SizedBox(width: 8),
           GestureDetector(
             onTap: () => _removeMeal(time),
-            child: const Icon(Icons.close_rounded, size: 16, color: Color(0xFF2D8C69)),
+            child: const Icon(
+              Icons.close_rounded,
+              size: 16,
+              color: Color(0xFF2D8C69),
+            ),
           ),
         ],
       ),
@@ -325,8 +498,12 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
             const SizedBox(width: 4),
             Flexible(
               child: Text(
-                label, 
-                style: const TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF1AB680), fontSize: 12),
+                label,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF1AB680),
+                  fontSize: 12,
+                ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -340,23 +517,43 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
   void _aiSuggest() async {
     final repo = context.read<AppStateRepository>();
     final pet = repo.pets.firstWhere((p) => p.petID == widget.petId);
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Consulting AI Nutritionist... 🪄'), behavior: SnackBarBehavior.floating));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Consulting AI Nutritionist... 🪄'),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
     try {
-      final suggested = await repo.runAiNutritionSchedule(petName: pet.name, breed: pet.breed, age: pet.age, weight: pet.weight);
+      final suggested = await repo.runAiNutritionSchedule(
+        petName: pet.name,
+        breed: pet.breed,
+        age: pet.age,
+        weight: pet.weight,
+      );
       if (mounted) {
         showDialog(
           context: context,
           builder: (ctx) => AlertDialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
             title: const Text('AI Suggested Schedule'),
-            content: Text('The AI suggests feeding times at: ${suggested.join(', ')}. Would you like to apply this?'),
+            content: Text(
+              'The AI suggests feeding times at: ${suggested.join(', ')}. Would you like to apply this?',
+            ),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel'),
+              ),
               ElevatedButton(
                 onPressed: () {
-                  repo.updatePetNutrition(petId: widget.petId, feedingTimes: suggested);
+                  repo.updatePetNutrition(
+                    petId: widget.petId,
+                    feedingTimes: suggested,
+                  );
                   Navigator.pop(ctx);
-                }, 
+                },
                 child: const Text('Apply'),
               ),
             ],
@@ -369,17 +566,32 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
   void _runAiRecommendation() async {
     final repo = context.read<AppStateRepository>();
     final pet = repo.pets.firstWhere((p) => p.petID == widget.petId);
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Analyzing nutritional needs... 🧠'), behavior: SnackBarBehavior.floating));
-    
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Analyzing nutritional needs... 🧠'),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+
     try {
-      final guide = await repo.runAiNutritionRecommendation(petName: pet.name, breed: pet.breed, age: pet.age, weight: pet.weight, currentDiet: pet.currentFoodName);
+      final guide = await repo.runAiNutritionRecommendation(
+        petName: pet.name,
+        breed: pet.breed,
+        age: pet.age,
+        weight: pet.weight,
+        currentDiet: pet.currentFoodName,
+      );
       if (mounted) {
         _showExpertGuideSheet(context, pet.name, guide);
       }
     } catch (_) {}
   }
 
-  void _showExpertGuideSheet(BuildContext context, String petName, Map<String, dynamic> guide) {
+  void _showExpertGuideSheet(
+    BuildContext context,
+    String petName,
+    Map<String, dynamic> guide,
+  ) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -388,9 +600,28 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
     );
   }
 
-  Widget _buildExpertGuideSheet(BuildContext context, String petName, Map<String, dynamic> guide) {
-    final nutrients = List<String>.from(guide['nutrients'] ?? []);
-    final recommendations = List<String>.from(guide['recommendations'] ?? []);
+  Widget _buildExpertGuideSheet(
+    BuildContext context,
+    String petName,
+    Map<String, dynamic> guide,
+  ) {
+    final nutrients =
+        (guide['nutrients'] as List<dynamic>?)
+            ?.map((e) => e.toString())
+            .toList() ??
+        [];
+    final recommendations =
+        (guide['recommendations'] as List<dynamic>?)
+            ?.map((e) => e.toString())
+            .toList() ??
+        [];
+    final rawCalories = guide['calories']?.toString() ?? 'N/A';
+    final caloriesStr =
+        (rawCalories.toLowerCase().contains('kcal') ||
+            rawCalories.toLowerCase().contains('cal') ||
+            rawCalories == 'N/A')
+        ? rawCalories
+        : '$rawCalories kcal/day';
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.85,
@@ -402,22 +633,48 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
       child: Column(
         children: [
           const SizedBox(height: 12),
-          Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.withOpacity(0.2), borderRadius: BorderRadius.circular(2))),
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.grey.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
           const SizedBox(height: 24),
           Row(
             children: [
               Container(
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(16)),
-                child: const Icon(Icons.auto_awesome_rounded, color: AppColors.primary, size: 24),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Icon(
+                  Icons.auto_awesome_rounded,
+                  color: AppColors.primary,
+                  size: 24,
+                ),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Expert Nutrition Guide', style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w900, fontSize: 22)),
-                    Text('Tailored for $petName', style: AppTypography.bodyMedium.copyWith(color: Colors.grey[500], fontWeight: FontWeight.w700)),
+                    Text(
+                      'Expert Nutrition Guide',
+                      style: AppTypography.titleLarge.copyWith(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 22,
+                      ),
+                    ),
+                    Text(
+                      'Tailored for $petName',
+                      style: AppTypography.bodyMedium.copyWith(
+                        color: Colors.grey[500],
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -430,15 +687,33 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildGuideSection(context, 'Daily Caloric Goal', guide['calories'] ?? 'N/A', Icons.bolt_rounded, const Color(0xFFD98C4F)),
+                  _buildGuideSection(
+                    context,
+                    'Daily Caloric Goal',
+                    caloriesStr,
+                    Icons.bolt_rounded,
+                    const Color(0xFFD98C4F),
+                  ),
                   const SizedBox(height: 32),
                   _buildSectionHeader('Essential Nutrients'),
                   const SizedBox(height: 16),
-                  ...nutrients.map((n) => _buildBulletPoint(n, Icons.check_circle_outline_rounded, AppColors.healthGreen)),
+                  ...nutrients.map(
+                    (n) => _buildBulletPoint(
+                      n,
+                      Icons.check_circle_outline_rounded,
+                      AppColors.healthGreen,
+                    ),
+                  ),
                   const SizedBox(height: 32),
                   _buildSectionHeader('Expert Recommendations'),
                   const SizedBox(height: 16),
-                  ...recommendations.map((r) => _buildBulletPoint(r, Icons.lightbulb_outline_rounded, AppColors.accentAmber)),
+                  ...recommendations.map(
+                    (r) => _buildBulletPoint(
+                      r,
+                      Icons.lightbulb_outline_rounded,
+                      AppColors.accentAmber,
+                    ),
+                  ),
                   const SizedBox(height: 40),
                 ],
               ),
@@ -451,8 +726,20 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
               height: 64,
               child: ElevatedButton(
                 onPressed: () => Navigator.pop(context),
-                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1AB680), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18))),
-                child: const Text('GOT IT, THANKS!', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 0.5)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1AB680),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                ),
+                child: const Text(
+                  'GOT IT, THANKS!',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.5,
+                  ),
+                ),
               ),
             ),
           ),
@@ -462,10 +749,24 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
   }
 
   Widget _buildSectionHeader(String title) {
-    return Text(title.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 11, color: AppColors.primary, letterSpacing: 1.5));
+    return Text(
+      title.toUpperCase(),
+      style: const TextStyle(
+        fontWeight: FontWeight.w900,
+        fontSize: 11,
+        color: AppColors.primary,
+        letterSpacing: 1.5,
+      ),
+    );
   }
 
-  Widget _buildGuideSection(BuildContext context, String title, String content, IconData icon, Color color) {
+  Widget _buildGuideSection(
+    BuildContext context,
+    String title,
+    String content,
+    IconData icon,
+    Color color,
+  ) {
     return PremiumCard(
       opacity: 0.1,
       borderRadius: 24,
@@ -475,7 +776,10 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
           children: [
             Container(
               padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(16)),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(16),
+              ),
               child: Icon(icon, color: color, size: 24),
             ),
             const SizedBox(width: 20),
@@ -483,9 +787,22 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 14,
+                    ),
+                  ),
                   const SizedBox(height: 4),
-                  Text(content, style: AppTypography.bodyMedium.copyWith(color: Colors.grey[600], height: 1.4, fontWeight: FontWeight.w600)),
+                  Text(
+                    content,
+                    style: AppTypography.bodyMedium.copyWith(
+                      color: Colors.grey[600],
+                      height: 1.4,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -503,7 +820,16 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
         children: [
           Icon(icon, color: color, size: 20),
           const SizedBox(width: 16),
-          Expanded(child: Text(text, style: const TextStyle(height: 1.5, fontWeight: FontWeight.w700, fontSize: 14))),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(
+                height: 1.5,
+                fontWeight: FontWeight.w700,
+                fontSize: 14,
+              ),
+            ),
+          ),
         ],
       ),
     );

@@ -123,7 +123,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         const SizedBox(height: 16),
                         FadeInDown(
                           child: Text(user.name, 
-                            style: GoogleFonts.fredoka(
+                            style: GoogleFonts.plusJakartaSans(
                               color: Colors.white, 
                               fontSize: 26, 
                               fontWeight: FontWeight.w700
@@ -307,7 +307,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           children: [
             Icon(icon, color: color, size: 22),
             const SizedBox(height: 8),
-            Text(value, style: GoogleFonts.fredoka(fontWeight: FontWeight.w700, fontSize: 18)),
+            Text(value, style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 18)),
             Text(label.toUpperCase(), style: const TextStyle(fontSize: 8, fontWeight: FontWeight.w800, color: Colors.grey, letterSpacing: 0.5)),
           ],
         ),
@@ -481,7 +481,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 const SizedBox(height: 20),
                 Text(
                   'Choose App Appearance',
-                  style: GoogleFonts.fredoka(
+                  style: GoogleFonts.plusJakartaSans(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
                     color: isDark ? Colors.white : AppColors.textPrimary,
@@ -694,7 +694,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     const SizedBox(height: 8),
                     Text(
                       'Invite friends & earn rewards!',
-                      style: GoogleFonts.fredoka(
+                      style: GoogleFonts.plusJakartaSans(
                         fontWeight: FontWeight.w700,
                         fontSize: 16,
                         color: isDark ? Colors.white : AppColors.textPrimary,
@@ -822,7 +822,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        title: Text('Sign Out', style: GoogleFonts.fredoka(fontWeight: FontWeight.w700)),
+        title: Text('Sign Out', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700)),
         content: const Text('Are you sure you want to exit your pet care portal?'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('CANCEL')),
@@ -839,3 +839,4 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 }
+

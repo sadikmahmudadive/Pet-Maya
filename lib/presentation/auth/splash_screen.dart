@@ -152,7 +152,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                 delay: const Duration(milliseconds: 200),
                 child: Text(
                   'Pet Maya',
-                  style: GoogleFonts.fredoka(
+                  style: GoogleFonts.plusJakartaSans(
                     color: Colors.white,
                     fontSize: 48,
                     fontWeight: FontWeight.w700,
@@ -196,7 +196,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                 const SizedBox(height: 8),
                 Text(
                   'VertexHand',
-                  style: GoogleFonts.fredoka(
+                  style: GoogleFonts.plusJakartaSans(
                     color: Colors.white,
                     fontSize: 20,
                     fontWeight: FontWeight.w600,
@@ -226,3 +226,4 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     );
   }
 }
+

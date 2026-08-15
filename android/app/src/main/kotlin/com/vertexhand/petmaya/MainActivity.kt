@@ -1,5 +1,5 @@
 package com.vertexhand.petmaya
-
+ 
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -17,11 +17,12 @@ class MainActivity: FlutterActivity() {
                 "scheduleAlarm" -> {
                     val id = call.argument<String>("id")
                     val title = call.argument<String>("title")
+                    val body = call.argument<String>("body") ?: ""
+                    val category = call.argument<String>("category") ?: (if (call.argument<Boolean>("isFeeding") == true) "feeding" else "event")
                     val timestamp = call.argument<Long>("timestamp")
-                    val isFeeding = call.argument<Boolean>("isFeeding") ?: false
                     
                     if (id != null && title != null && timestamp != null) {
-                        AlarmHelper.scheduleEventAlarm(this, id, title, timestamp, isFeeding)
+                        AlarmHelper.scheduleNotificationAlarm(this, id, title, body, category, timestamp)
                         result.success(null)
                     } else {
                         result.error("INVALID_ARGS", "Missing alarm parameters", null)

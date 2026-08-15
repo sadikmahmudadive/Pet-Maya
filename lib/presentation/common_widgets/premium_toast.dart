@@ -91,7 +91,7 @@ class _PremiumToastState extends State<PremiumToast> {
                     Flexible(
                       child: Text(
                         widget.message,
-                        style: GoogleFonts.fredoka(
+                        style: GoogleFonts.plusJakartaSans(
                           color: Colors.white,
                           fontWeight: FontWeight.w600,
                           fontSize: 13,
@@ -126,3 +126,4 @@ class _PremiumToastState extends State<PremiumToast> {
     }
   }
 }
+

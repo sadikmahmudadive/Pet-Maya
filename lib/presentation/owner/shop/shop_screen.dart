@@ -6,7 +6,7 @@ import 'package:animate_do/animate_do.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_typography.dart';
+//
 import '../../../data/repositories/app_state_repository.dart';
 import '../../../data/models/product_model.dart';
 import '../../common_widgets/glass_scaffold.dart';
@@ -38,7 +38,7 @@ class _ShopScreenState extends State<ShopScreen> {
   @override
   Widget build(BuildContext context) {
     final state = context.watch<AppStateRepository>();
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
 
     final products = state.products.where((p) {
       final matchesCategory = _selectedCategory == 'All' || p.category.toLowerCase() == _selectedCategory.toLowerCase();
@@ -105,7 +105,7 @@ class _ShopScreenState extends State<ShopScreen> {
                         FadeInLeft(
                           duration: const Duration(milliseconds: 600),
                           child: Text('Pet Marketplace', 
-                            style: GoogleFonts.fredoka(
+                            style: GoogleFonts.plusJakartaSans(
                               color: Colors.white, 
                               fontSize: 34, 
                               fontWeight: FontWeight.w700, 
@@ -212,7 +212,7 @@ class _ShopScreenState extends State<ShopScreen> {
   }
 
   Widget _buildSectionHeader(String title) {
-    return Text(title, style: GoogleFonts.fredoka(fontWeight: FontWeight.w700, fontSize: 24, letterSpacing: -0.2));
+    return Text(title, style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 24, letterSpacing: -0.2));
   }
 
   Widget _buildSearchBar(BuildContext context) {
@@ -223,7 +223,7 @@ class _ShopScreenState extends State<ShopScreen> {
       child: TextField(
         controller: _searchController,
         onChanged: (val) => setState(() => _searchQuery = val),
-        style: GoogleFonts.fredoka(color: AppColors.primary, fontWeight: FontWeight.w600, fontSize: 15),
+        style: GoogleFonts.plusJakartaSans(color: AppColors.primary, fontWeight: FontWeight.w600, fontSize: 15),
         decoration: InputDecoration(
           hintText: 'Search treats, toys, meds...',
           hintStyle: TextStyle(color: AppColors.primary.withValues(alpha: 0.4), fontWeight: FontWeight.w500),
@@ -247,6 +247,7 @@ class _ShopScreenState extends State<ShopScreen> {
   Widget _buildCategoryChip(String category) {
     final isSelected = _selectedCategory == category;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    
 
     return Padding(
       padding: const EdgeInsets.only(right: 12),
@@ -276,6 +277,7 @@ class _ShopScreenState extends State<ShopScreen> {
 
   Widget _buildProductCard(BuildContext context, ProductModel product) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    
 
     return PremiumCard(
       opacity: 0.15,
@@ -319,7 +321,7 @@ class _ShopScreenState extends State<ShopScreen> {
                           color: AppColors.dangerRed.withValues(alpha: 0.8),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Text('LIMITED', style: GoogleFonts.fredoka(color: Colors.white, fontSize: 8, fontWeight: FontWeight.w700, letterSpacing: 0.5)),
+                        child: Text('LIMITED', style: GoogleFonts.plusJakartaSans(color: Colors.white, fontSize: 8, fontWeight: FontWeight.w700, letterSpacing: 0.5)),
                       ),
                     ),
                 ],
@@ -334,7 +336,7 @@ class _ShopScreenState extends State<ShopScreen> {
               children: [
                 Text(
                   product.name,
-                  style: GoogleFonts.fredoka(fontSize: 15, fontWeight: FontWeight.w600),
+                  style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w600),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -348,7 +350,7 @@ class _ShopScreenState extends State<ShopScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('৳${product.price.toStringAsFixed(0)}',
-                          style: GoogleFonts.fredoka(color: AppColors.primary, fontSize: 20, fontWeight: FontWeight.w700)),
+                          style: GoogleFonts.plusJakartaSans(color: AppColors.primary, fontSize: 20, fontWeight: FontWeight.w700)),
                       ],
                     ),
                     _buildAddButton(context, product),
@@ -447,3 +449,6 @@ class _ShopScreenState extends State<ShopScreen> {
     );
   }
 }
+
+
+

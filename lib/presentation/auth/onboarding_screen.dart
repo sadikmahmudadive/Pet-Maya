@@ -191,7 +191,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             fit: BoxFit.scaleDown,
             child: Text(
               'Pet Maya',
-              style: GoogleFonts.fredoka(
+              style: GoogleFonts.plusJakartaSans(
                 fontSize: 56,
                 fontWeight: FontWeight.w700,
                 color: isDark ? AppColors.textPrimaryDark : AppColors.primary,
@@ -228,7 +228,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 isDark: isDark,
                 label: 'SUPPORTED BY',
                 logo: Text('VertexHand', 
-                  style: GoogleFonts.fredoka(
+                  style: GoogleFonts.plusJakartaSans(
                     fontSize: 16, 
                     fontWeight: FontWeight.w600,
                     color: isDark ? Colors.white : AppColors.primary,
@@ -494,3 +494,4 @@ class OnboardingData {
 
   OnboardingData({required this.title, required this.description, required this.icon});
 }
+

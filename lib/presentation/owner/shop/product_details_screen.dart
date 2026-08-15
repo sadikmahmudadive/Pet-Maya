@@ -4,11 +4,11 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:animate_do/animate_do.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_typography.dart';
+//
 import '../../../data/repositories/app_state_repository.dart';
 import '../../../data/models/product_model.dart';
 import '../../common_widgets/glass_scaffold.dart';
-import '../../common_widgets/premium_card.dart';
+//
 import 'cart_screen.dart';
 
 class ProductDetailsScreen extends StatelessWidget {

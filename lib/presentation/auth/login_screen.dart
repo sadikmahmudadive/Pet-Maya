@@ -247,7 +247,7 @@ class _LoginScreenState extends State<LoginScreen> {
         SizedBox(height: size.height * 0.02),
         Text(
           'Welcome Back',
-          style: GoogleFonts.fredoka(
+          style: GoogleFonts.plusJakartaSans(
             fontSize: 34,
             fontWeight: FontWeight.w700,
             color: isDark ? Colors.white : AppColors.primary,
@@ -490,3 +490,4 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
+
