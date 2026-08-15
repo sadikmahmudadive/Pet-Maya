@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.vertexhand.petmaya",
+      "sha256_cert_fingerprints": [
+        "CB:E3:36:EC:91:D3:A2:A9:89:C7:7C:30:A4:3B:B7:A5:E9:49:97:BC:53:4D:40:15:3B:9B:DE:E5:74:89:46:83"
+      ]
+    }
+  }
+]

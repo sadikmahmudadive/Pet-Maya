@@ -65,8 +65,10 @@ macos/Flutter/ephemeral/
 windows/flutter/ephemeral/
 linux/flutter/ephemeral/
 
-# --- WEB ---
+# --- WEB & DIGITAL ASSET LINKS ---
 .web/
+!web/.well-known/
+!web/.well-known/**
 
 # --- FIREBASE & CLOUD ---
 .firebase/
@@ -74,6 +76,11 @@ linux/flutter/ephemeral/
 firebase-debug.log*
 firestore-debug.log*
 ui-debug.log*
+
+# --- AGENT & AI TOOLS ---
+.agents/
+.claude/
+.gemini/
 
 # --- IDE & EDITORS ---
 .idea/
@@ -85,7 +92,6 @@ ui-debug.log*
 *.log
 doc/api/
 node_modules/
-firebase.json
 
 # --- SYSTEM & OS FILES ---
 .DS_Store
