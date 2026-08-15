@@ -67,7 +67,7 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
           ),
           Positioned(
             left: isLandscape ? null : 0,
-            right: 12,
+            right: isLandscape ? 12 : 0,
             bottom: isLandscape ? 24 : 0,
             top: isLandscape ? 24 : null,
             child: isLandscape
@@ -1339,4 +1339,5 @@ class HomeDashboardFragment extends StatelessWidget {
     );
   }
 }
+
 
