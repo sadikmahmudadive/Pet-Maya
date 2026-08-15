@@ -9,12 +9,15 @@ plugins {
 
 import java.util.Properties
 import java.io.FileInputStream
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val keystoreProperties = Properties()
 val keystorePropertiesFile = rootProject.file("key.properties")
 if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
+
 android {
     namespace = "com.vertexhand.petmaya"
     compileSdk = 36
@@ -26,15 +29,8 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
-    }
-
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.vertexhand.petmaya"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = 36
         versionCode = flutter.versionCode
@@ -53,10 +49,14 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("release")
         }
+    }
+}
+
+tasks.withType<KotlinCompile>().configureEach {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
     }
 }
 
@@ -69,18 +69,12 @@ dependencies {
     implementation("androidx.core:core:1.13.1")
     implementation("com.google.firebase:firebase-messaging:24.0.0")
     implementation("com.google.firebase:firebase-database:21.0.0")
-    // Force a version of browser that is compatible with AGP 8.7.0 globally
     implementation("androidx.browser:browser:1.8.0")
 }
 
 configurations.all {
     resolutionStrategy {
         force("androidx.browser:browser:1.8.0")
-    }
-}
-
-configurations.all {
-    resolutionStrategy {
         force("androidx.activity:activity:1.9.3")
         force("androidx.activity:activity-ktx:1.9.3")
         force("androidx.core:core:1.13.1")

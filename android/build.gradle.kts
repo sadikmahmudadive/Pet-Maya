@@ -17,7 +17,21 @@ subprojects {
     project.evaluationDependsOn(":app")
 }
 
+subprojects {
+    val configureCompileSdk: Project.() -> Unit = {
+        extensions.findByType(com.android.build.api.dsl.CommonExtension::class.java)?.apply {
+            compileSdk = 36
+        }
+    }
+    if (state.executed) {
+        configureCompileSdk()
+    } else {
+        afterEvaluate {
+            configureCompileSdk()
+        }
+    }
+}
+
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
 }
-
