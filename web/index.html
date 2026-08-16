@@ -1493,10 +1493,11 @@
     /* ─── BACK TO TOP ─── */
     .back-to-top {
       position: fixed;
-      bottom: 24px;
-      left: 24px;
-      width: 46px;
-      height: 46px;
+      bottom: 20px;
+      right: 20px;
+      left: auto;
+      width: 44px;
+      height: 44px;
       background: white;
       border-radius: 50%;
       box-shadow: var(--shadow-md);
@@ -2247,19 +2248,21 @@
         </div>
       </div>
 
-      <table class="schedule-table">
-        <thead>
-          <tr>
-            <th>Milestone</th>
-            <th>Recommended Care</th>
-            <th>Cycle Frequency</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody id="scheduleTableBody">
-          <!-- Dynamically populated by JS -->
-        </tbody>
-      </table>
+      <div class="table-container">
+        <table class="schedule-table">
+          <thead>
+            <tr>
+              <th>Milestone</th>
+              <th>Recommended Care</th>
+              <th>Cycle Frequency</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="scheduleTableBody">
+            <!-- Dynamically populated by JS -->
+          </tbody>
+        </table>
+      </div>
 
       <div style="margin-top:24px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
         <span style="font-size:13px; color:var(--text-muted);">
@@ -3193,6 +3196,7 @@ END:VCALENDAR`;
 </body>
 
 </html>
+
 
 
 
