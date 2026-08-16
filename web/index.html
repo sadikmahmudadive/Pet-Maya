@@ -43,19 +43,58 @@
     }
 
     [data-theme="dark"] {
-      --bg-light: #0B131B;
-      --bg-card: #132230;
-      --text-dark: #F1F5F9;
-      --text-muted: #94A3B8;
-      --border-color: rgba(26, 182, 128, 0.2);
-      --shadow-sm: 0 4px 20px rgba(0, 0, 0, 0.3);
-      --shadow-md: 0 12px 36px rgba(0, 0, 0, 0.4);
-      --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.5);
+      --bg-light: #091018;
+      --bg-card: #111C27;
+      --text-dark: #FFFFFF;
+      --text-muted: #CBD5E1;
+      --border-color: rgba(26, 182, 128, 0.25);
+      --shadow-sm: 0 4px 20px rgba(0, 0, 0, 0.4);
+      --shadow-md: 0 12px 36px rgba(0, 0, 0, 0.5);
+      --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.65);
+    }
+
+    [data-theme="dark"] body {
+      color: #E2E8F0;
+      background-color: #091018;
     }
 
     [data-theme="dark"] .navbar {
-      background: rgba(11, 19, 27, 0.92);
-      border-bottom-color: rgba(255, 255, 255, 0.08);
+      background: rgba(9, 16, 24, 0.94);
+      border-bottom-color: rgba(255, 255, 255, 0.1);
+    }
+
+    [data-theme="dark"] .nav-links a {
+      color: #CBD5E1;
+    }
+
+    [data-theme="dark"] .nav-links a:hover,
+    [data-theme="dark"] .nav-links a.active {
+      color: #34D399;
+    }
+
+    [data-theme="dark"] .hero-title,
+    [data-theme="dark"] .section-title,
+    [data-theme="dark"] h1, 
+    [data-theme="dark"] h2, 
+    [data-theme="dark"] h3, 
+    [data-theme="dark"] h4 {
+      color: #FFFFFF;
+    }
+
+    [data-theme="dark"] .hero-subtitle,
+    [data-theme="dark"] .section-desc,
+    [data-theme="dark"] p,
+    [data-theme="dark"] .feature-card p,
+    [data-theme="dark"] .faq-answer {
+      color: #CBD5E1;
+    }
+
+    [data-theme="dark"] .social-proof-text {
+      color: #94A3B8;
+    }
+
+    [data-theme="dark"] .social-proof-text strong {
+      color: #FFFFFF;
     }
 
     [data-theme="dark"] .mobile-drawer,
@@ -68,14 +107,14 @@
     [data-theme="dark"] .testimonial-card,
     [data-theme="dark"] footer,
     [data-theme="dark"] .modal-box {
-      background: #121E28;
+      background: #111C27;
       color: #F1F5F9;
-      border-color: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.1);
     }
 
     [data-theme="dark"] .drawer-links a {
       color: #F1F5F9;
-      border-bottom-color: rgba(255, 255, 255, 0.06);
+      border-bottom-color: rgba(255, 255, 255, 0.08);
     }
 
     [data-theme="dark"] .vet-item-card,
@@ -83,40 +122,89 @@
     [data-theme="dark"] .data-card,
     [data-theme="dark"] .input-field,
     [data-theme="dark"] .scan-status-container {
-      background: #172736;
-      color: #F1F5F9;
-      border-color: rgba(255, 255, 255, 0.1);
+      background: #162433;
+      color: #F8FAFC;
+      border-color: rgba(255, 255, 255, 0.14);
     }
 
     [data-theme="dark"] .chip.active {
       background: var(--primary);
       color: white;
+      border-color: var(--primary);
+    }
+
+    [data-theme="dark"] .floating-pill {
+      background: #162433;
+      color: #F8FAFC;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6);
+    }
+
+    [data-theme="dark"] .floating-pill span,
+    [data-theme="dark"] .floating-pill strong {
+      color: #F8FAFC;
+    }
+
+    [data-theme="dark"] .phone-screen {
+      background: #0D1722;
+      color: #F1F5F9;
+    }
+
+    [data-theme="dark"] .mockup-app-bar {
+      background: #132230;
+      border-bottom-color: rgba(255, 255, 255, 0.08);
+    }
+
+    [data-theme="dark"] .mockup-card {
+      background: #172736;
+      border-color: rgba(255, 255, 255, 0.1);
+      color: #F1F5F9;
+    }
+
+    [data-theme="dark"] .mockup-card p,
+    [data-theme="dark"] .mockup-card h4,
+    [data-theme="dark"] .mockup-card div {
+      color: #F1F5F9;
     }
 
     [data-theme="dark"] .triage-result-card {
-      background: #121E28;
+      background: #132230;
+      color: #F8FAFC;
     }
 
     [data-theme="dark"] .schedule-table th {
-      background: #172736;
-      color: #F1F5F9;
+      background: #162433;
+      color: #F8FAFC;
     }
 
-    [data-theme="dark"] .faq-question,
-    [data-theme="dark"] .hero-title {
-      color: #F1F5F9;
+    [data-theme="dark"] .schedule-table td {
+      color: #CBD5E1;
+      border-bottom-color: rgba(255, 255, 255, 0.08);
     }
 
     [data-theme="dark"] .privacy-link-btn.secondary,
     [data-theme="dark"] .btn-secondary {
-      background: #172736;
-      color: #F1F5F9;
-      border-color: rgba(255, 255, 255, 0.15);
+      background: #162433;
+      color: #F8FAFC;
+      border-color: rgba(255, 255, 255, 0.18);
+    }
+
+    [data-theme="dark"] .btn-secondary:hover {
+      background: #1C2E40;
+      border-color: var(--primary);
+      color: #FFFFFF;
     }
 
     [data-theme="dark"] .back-to-top {
-      background: #121E28;
-      border-color: rgba(255, 255, 255, 0.1);
+      background: #162433;
+      border-color: rgba(255, 255, 255, 0.15);
+      color: #34D399;
+    }
+
+    [data-theme="dark"] .comment-item {
+      background: #162433;
+      color: #CBD5E1;
+      border-color: rgba(255, 255, 255, 0.08);
     }
 
     .theme-toggle-btn {
@@ -3110,6 +3198,7 @@ END:VCALENDAR`;
 </body>
 
 </html>
+
 
 
 
