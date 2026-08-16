@@ -70,23 +70,43 @@ class FirebaseService {
 
   Future<UserCredential?> signInWithGoogle() async {
     try {
-      // Clear any stale cached session to ensure fresh account selection
+      // 1. Primary Attempt: Standard Google Play Services Native Sign-In
+      GoogleSignInAccount? googleUser;
       try {
-        await _googleSignIn.signOut();
-      } catch (_) {}
+        try {
+          await _googleSignIn.signOut();
+        } catch (_) {}
+        googleUser = await _googleSignIn.signIn();
+      } catch (playServicesError) {
+        debugPrint("[FirebaseService] Google Play Services sign-in attempt failed: $playServicesError");
+        // Secondary Attempt: Auto-configured GoogleSignIn without hardcoded serverClientId
+        try {
+          final fallbackSignIn = GoogleSignIn();
+          await fallbackSignIn.signOut().catchError((_) => null);
+          googleUser = await fallbackSignIn.signIn();
+        } catch (fallbackError) {
+          debugPrint("[FirebaseService] Fallback GoogleSignIn also failed: $fallbackError");
+        }
+      }
 
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) return null;
+      if (googleUser != null) {
+        final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+        final OAuthCredential credential = GoogleAuthProvider.credential(
+          accessToken: googleAuth.accessToken,
+          idToken: googleAuth.idToken,
+        );
+        return await _auth.signInWithCredential(credential);
+      }
 
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-      final OAuthCredential credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-
-      return await _auth.signInWithCredential(credential);
+      // 2. Resilient Fallback: Direct Firebase Google Auth Provider
+      // This bypasses Google Play Services SHA-1 signature mismatch errors on Closed Testing builds
+      debugPrint("[FirebaseService] Attempting Firebase OAuth Provider flow for Google...");
+      final googleProvider = GoogleAuthProvider();
+      googleProvider.addScope('email');
+      googleProvider.addScope('profile');
+      return await _auth.signInWithProvider(googleProvider);
     } catch (e) {
-      debugPrint("[FirebaseService] Google Sign-In error: $e");
+      debugPrint("[FirebaseService] Google Sign-In ultimate error: $e");
       rethrow;
     }
   }
@@ -495,5 +515,6 @@ class FirebaseService {
     }
   }
 }
+
 
 
