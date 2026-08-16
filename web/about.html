@@ -1,24 +1,403 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pet Maya</title>
+  <title>About Us — Pet Maya | Intelligent Pet Care Platform</title>
   <meta name="application-name" content="Pet Maya">
   <meta name="apple-mobile-web-app-title" content="Pet Maya">
-  <meta property="og:title" content="Pet Maya">
+  <meta property="og:title" content="About Pet Maya">
+  <meta name="description"
+    content="Learn about Pet Maya, our mission to advance veterinary access, AI pet diagnostics, and the VertexHand team behind the platform.">
+  <link rel="icon" type="image/png" href="assets/images/tail_wagging_logo.png" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
   <style>
-    body { font-family: sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; line-height: 1.6; }
-    h1 { color: #1AB680; }
-    a { color: #1AB680; text-decoration: none; font-weight: bold; }
-    a:hover { text-decoration: underline; }
+    :root {
+      --primary: #1AB680;
+      --primary-dark: #138A61;
+      --primary-light: #e6f4f8;
+      --accent: #FF6B6B;
+      --bg-light: #F8FBFD;
+      --bg-card: #FFFFFF;
+      --text-dark: #121E28;
+      --text-muted: #5C6E7E;
+      --border-color: rgba(26, 182, 128, 0.12);
+      --shadow-sm: 0 4px 20px rgba(26, 182, 128, 0.06);
+      --shadow-md: 0 12px 36px rgba(26, 182, 128, 0.1);
+      --shadow-lg: 0 24px 60px rgba(26, 182, 128, 0.16);
+      --radius-sm: 12px;
+      --radius-md: 20px;
+      --radius-lg: 32px;
+      --radius-full: 9999px;
+    }
+
+    [data-theme="dark"] {
+      --bg-light: #0B131B;
+      --bg-card: #132230;
+      --text-dark: #F1F5F9;
+      --text-muted: #94A3B8;
+      --border-color: rgba(26, 182, 128, 0.2);
+      --shadow-sm: 0 4px 20px rgba(0, 0, 0, 0.3);
+      --shadow-md: 0 12px 36px rgba(0, 0, 0, 0.4);
+      --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.5);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: var(--bg-light);
+      color: var(--text-dark);
+      line-height: 1.7;
+      overflow-x: hidden;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* ─── NAVIGATION ─── */
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-color);
+      transition: all 0.3s ease;
+    }
+
+    [data-theme="dark"] .navbar {
+      background: rgba(11, 19, 27, 0.92);
+      border-bottom-color: rgba(255, 255, 255, 0.08);
+    }
+
+    .nav-container {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .brand img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+    }
+
+    .brand-text {
+      font-family: 'Fredoka', cursive, sans-serif;
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .theme-toggle-btn {
+      background: var(--bg-light);
+      border: 1.5px solid var(--border-color);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text-dark);
+      font-size: 18px;
+      transition: all 0.25s ease;
+    }
+
+    .theme-toggle-btn:hover {
+      border-color: var(--primary);
+      transform: scale(1.08);
+    }
+
+    .btn-nav {
+      padding: 10px 20px;
+      border-radius: var(--radius-full);
+      font-weight: 700;
+      font-size: 14px;
+      text-decoration: none;
+      background: var(--primary-light);
+      color: var(--primary);
+      border: 1px solid var(--border-color);
+      transition: all 0.2s ease;
+    }
+
+    .btn-nav:hover {
+      background: var(--primary);
+      color: white;
+    }
+
+    /* ─── HERO HEADER ─── */
+    .about-hero {
+      padding: 140px 24px 70px;
+      max-width: 960px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--primary);
+      background: var(--primary-light);
+      padding: 6px 16px;
+      border-radius: var(--radius-full);
+      margin-bottom: 20px;
+    }
+
+    .about-hero h1 {
+      font-size: clamp(32px, 5vw, 52px);
+      font-weight: 800;
+      letter-spacing: -1px;
+      line-height: 1.2;
+      margin-bottom: 20px;
+    }
+
+    .about-hero p {
+      font-size: clamp(16px, 2.5vw, 19px);
+      color: var(--text-muted);
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    /* ─── CONTENT CONTAINER ─── */
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 0 24px 100px;
+    }
+
+    .about-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: clamp(28px, 5vw, 48px);
+      box-shadow: var(--shadow-md);
+      margin-bottom: 36px;
+      transition: transform 0.3s ease;
+    }
+
+    .about-card h2 {
+      font-size: 26px;
+      font-weight: 800;
+      margin-bottom: 16px;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      margin-top: 24px;
+    }
+
+    .pillar-card {
+      background: var(--bg-light);
+      padding: 24px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+    }
+
+    .pillar-card h3 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--text-dark);
+    }
+
+    .pillar-card p {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .highlight-box {
+      background: rgba(26, 182, 128, 0.08);
+      border-left: 4px solid var(--primary);
+      padding: 20px 24px;
+      border-radius: 0 var(--radius-md) var(--radius-md) 0;
+      margin: 24px 0;
+    }
+
+    .highlight-box strong {
+      color: var(--text-dark);
+    }
+
+    /* ─── FOOTER ─── */
+    footer {
+      background: var(--bg-card);
+      border-top: 1px solid var(--border-color);
+      padding: 40px 24px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover {
+      color: var(--primary);
+    }
   </style>
 </head>
+
 <body>
-  <h1>Pet Maya</h1>
-  <p><strong>Pet Maya</strong> is a platform that helps pet owners track their pet's health records—like skin conditions or fungal infections—and easily find local veterinary doctors.</p>
-  <p><strong>Why we need your Google account:</strong> We use your Google account to securely authenticate you, manage your pet's profile, and sync your upcoming vet appointments directly to your calendar.</p>
-  <p><a href="/privacy-policy">Privacy Policy</a></p>
-  <p><a href="/">Back to Home</a></p>
+  <!-- ─── NAVBAR ─── -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="/" class="brand">
+        <img src="assets/images/tail_wagging_logo.png" alt="Pet Maya Logo">
+        <span class="brand-text">Pet Maya</span>
+      </a>
+
+      <div class="nav-actions">
+        <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" aria-label="Toggle theme">
+          🌙
+        </button>
+        <a href="/" class="btn-nav">← Back to Home</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ─── HERO ─── -->
+  <header class="about-hero">
+    <span class="badge">About Pet Maya & VertexHand</span>
+    <h1>Transforming Daily Pet Care Through Smart Innovation</h1>
+    <p>We are on a mission to empower pet parents, veterinary doctors, and pet service providers with a unified, intelligent mobile healthcare ecosystem.</p>
+  </header>
+
+  <!-- ─── MAIN CONTENT ─── -->
+  <main class="container">
+    <section class="about-card">
+      <h2>🐾 Our Story & Mission</h2>
+      <p>
+        <strong>Pet Maya</strong> was founded with a single driving principle: pet care should be seamless, proactive, and compassionate. Pets are family, yet tracking immunizations, deciphering health symptoms, and connecting with certified veterinarians often remains fragmented and stressful.
+      </p>
+      <p style="margin-top: 14px;">
+        Developed by <strong>VertexHand & MASA</strong>, Pet Maya merges cutting-edge mobile engineering with veterinary best practices, giving pet parents real-time diagnostic tools, verified doctor bookings, and a safe, engaging community.
+      </p>
+    </section>
+
+    <section class="about-card">
+      <h2>✨ Core Platform Pillars</h2>
+      <div class="grid-2">
+        <div class="pillar-card">
+          <h3>🩺 Certified Vet Teleconsults</h3>
+          <p>Instantly find and book verified veterinarians in your area for in-clinic visits or remote video consultations.</p>
+        </div>
+        <div class="pillar-card">
+          <h3>🤖 AI Health Symptom Scanner</h3>
+          <p>Analyze pet symptoms and skin abnormalities in seconds with smart triage assistance and urgency classification.</p>
+        </div>
+        <div class="pillar-card">
+          <h3>📅 Smart Vaccine & Meal Planner</h3>
+          <p>Never miss a booster shot or meal with proactive multi-channel alarms, push alerts, and calendar sync.</p>
+        </div>
+        <div class="pillar-card">
+          <h3>🐾 Verified Pet Community</h3>
+          <p>Share adorable moments, connect with nearby pet owners, discover reputable pet shops, and adopt safely.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="about-card">
+      <h2>🔒 Data Privacy & Google Authentication</h2>
+      <p>
+        We believe that your trust and your pet's health information must be protected with the highest industry standards.
+      </p>
+      
+      <div class="highlight-box">
+        <strong>Why We Use Google Sign-In:</strong><br>
+        We use Google OAuth 2.0 to provide frictionless, enterprise-grade authentication. Your Google account securely identifies you across devices, preserves your pet's medical histories, and enables 1-tap calendar synchronization for upcoming veterinary appointments.
+      </div>
+
+      <p>
+        We <strong>never sell or monetize your personal data</strong>. All medical records, photos, and messages are encrypted in transit and at rest via Firebase Cloud Architecture.
+      </p>
+    </section>
+  </main>
+
+  <!-- ─── FOOTER ─── -->
+  <footer>
+    <div class="footer-links">
+      <a href="/">Home</a>
+      <a href="/about">About</a>
+      <a href="/privacy-policy">Privacy Policy</a>
+      <a href="/terms-of-service">Terms of Service</a>
+    </div>
+    <p>© 2026 Pet Maya by VertexHand & MASA. All rights reserved.</p>
+  </footer>
+
+  <script>
+    function toggleTheme() {
+      const isDark = document.body.getAttribute('data-theme') === 'dark';
+      document.body.setAttribute('data-theme', isDark ? 'light' : 'dark');
+      document.getElementById('themeToggleBtn').textContent = isDark ? '🌙' : '☀️';
+      localStorage.setItem('petmaya_theme', isDark ? 'light' : 'dark');
+    }
+
+    // Auto-detect theme
+    (function () {
+      const saved = localStorage.getItem('petmaya_theme');
+      if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.body.setAttribute('data-theme', 'dark');
+        const btn = document.getElementById('themeToggleBtn');
+        if (btn) btn.textContent = '☀️';
+      }
+    })();
+  </script>
 </body>
+
 </html>

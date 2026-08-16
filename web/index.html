@@ -1428,31 +1428,257 @@
       transform: translateY(-3px);
     }
 
-    /* ─── RESPONSIVE ─── */
-    @media (max-width: 960px) {
-      .hero {
-        grid-template-columns: 1fr;
-        padding-top: 120px;
-        text-align: center;
-      }
-      .hero-title { font-size: 38px; }
-      .hero-cta-group { justify-content: center; }
-      .social-proof { justify-content: center; }
-      .showcase-inner { grid-template-columns: 1fr; text-align: center; }
-      .data-grid { grid-template-columns: 1fr 1fr; }
-      .footer-container { grid-template-columns: 1fr 1fr; }
-      .nav-links { display: none; }
-      .hamburger-btn { display: block; }
-      .calc-row { grid-template-columns: 1fr; }
+    /* ─── ULTRA-MODERN FLUID RESPONSIVE SYSTEM ─── */
+    
+    /* Smooth Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-light);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(26, 182, 128, 0.25);
+      border-radius: 999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--primary);
     }
 
-    @media (max-width: 600px) {
-      .hero-title { font-size: 30px; }
-      .data-grid { grid-template-columns: 1fr; }
-      .footer-container { grid-template-columns: 1fr; }
-      .cta-banner { padding: 50px 20px; }
-      .cta-banner h2 { font-size: 28px; }
-      .interactive-tool-box { padding: 24px 18px; }
+    /* Container constraints */
+    .hero, .section, .nav-container, .footer-container {
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .hero-phone-wrapper {
+      max-width: 100%;
+      overflow: visible;
+    }
+
+    /* Table horizontal scrolling container on mobile */
+    .schedule-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border-radius: var(--radius-sm);
+      margin-top: 16px;
+    }
+
+    /* ── Breakpoint: Large Desktop (min-width: 1280px) ── */
+    @media (min-width: 1280px) {
+      .section-title { font-size: 42px; }
+      .hero-title { font-size: 54px; }
+    }
+
+    /* ── Breakpoint: Tablet & Small Laptop (max-width: 1080px) ── */
+    @media (max-width: 1080px) {
+      .nav-links { gap: 18px; }
+      .nav-links a { font-size: 14px; }
+      .hero {
+        padding: 130px 20px 60px;
+        gap: 40px;
+      }
+      .showcase-inner {
+        gap: 36px;
+      }
+      .features-grid {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      }
+    }
+
+    /* ── Breakpoint: Tablet Portrait (max-width: 960px) ── */
+    @media (max-width: 960px) {
+      .nav-links { display: none; }
+      .hamburger-btn { display: flex; align-items: center; justify-content: center; }
+      
+      .hero {
+        grid-template-columns: 1fr;
+        padding-top: 110px;
+        padding-bottom: 50px;
+        text-align: center;
+      }
+      .hero-title {
+        font-size: clamp(32px, 5vw, 44px);
+        margin: 0 auto 16px;
+        max-width: 650px;
+      }
+      .hero-subtitle {
+        margin: 0 auto 28px;
+        max-width: 580px;
+      }
+      .hero-cta-group {
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .social-proof {
+        justify-content: center;
+      }
+      
+      .showcase-inner {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+      .showcase-text {
+        margin: 0 auto;
+        max-width: 600px;
+      }
+      .showcase-points {
+        text-align: left;
+      }
+      
+      .calc-row {
+        grid-template-columns: 1fr;
+      }
+      .data-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .footer-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 36px;
+      }
+    }
+
+    /* ── Breakpoint: Mobile Landscape & Phablet (max-width: 768px) ── */
+    @media (max-width: 768px) {
+      .section {
+        padding: 60px 16px;
+      }
+      .section-header {
+        margin-bottom: 36px;
+      }
+      .section-title {
+        font-size: clamp(26px, 5vw, 34px);
+      }
+      .section-desc {
+        font-size: 15px;
+      }
+
+      .interactive-tool-box {
+        padding: 24px 16px;
+        border-radius: var(--radius-md);
+      }
+
+      .triage-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .vet-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .chip-group {
+        justify-content: center;
+      }
+
+      .cta-banner {
+        padding: 48px 20px;
+        border-radius: var(--radius-md);
+      }
+      .cta-banner h2 {
+        font-size: clamp(24px, 5vw, 32px);
+      }
+
+      .pill-1 {
+        top: 10%;
+        left: 0;
+        transform: scale(0.9);
+      }
+      .pill-2 {
+        bottom: 15%;
+        right: 0;
+        transform: scale(0.9);
+      }
+    }
+
+    /* ── Breakpoint: Mobile Portrait (max-width: 480px) ── */
+    @media (max-width: 480px) {
+      .nav-container {
+        padding: 12px 16px;
+      }
+      .brand-text {
+        font-size: 22px;
+      }
+      .brand img {
+        width: 36px;
+        height: 36px;
+      }
+
+      .hero {
+        padding-top: 96px;
+        padding-bottom: 40px;
+      }
+      .hero-title {
+        font-size: 28px;
+        line-height: 1.25;
+      }
+      .hero-subtitle {
+        font-size: 15px;
+      }
+
+      .hero-cta-group {
+        flex-direction: column;
+        width: 100%;
+      }
+      .hero-cta-group .btn {
+        width: 100%;
+      }
+
+      .phone-mockup {
+        width: 270px;
+        height: 530px;
+        border-radius: 38px;
+        padding: 9px;
+      }
+      .phone-screen {
+        border-radius: 30px;
+      }
+
+      .pill-1, .pill-2 {
+        display: none; /* Hide floating badges on very small phones to prevent any clipping */
+      }
+
+      .features-grid {
+        grid-template-columns: 1fr;
+        gap: 18px;
+      }
+      .feature-card {
+        padding: 26px 20px;
+      }
+
+      .data-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+
+      .footer-container {
+        grid-template-columns: 1fr;
+        gap: 30px;
+      }
+      .footer-bottom {
+        flex-direction: column;
+        gap: 12px;
+        text-align: center;
+      }
+
+      .modal-box {
+        padding: 24px 18px;
+        width: 95vw;
+        border-radius: var(--radius-md);
+      }
+
+      .toast {
+        max-width: 90vw;
+        font-size: 13px;
+        padding: 12px 18px;
+      }
     }
   </style>
 </head>
@@ -2884,5 +3110,6 @@ END:VCALENDAR`;
 </body>
 
 </html>
+
 
 
