@@ -26,6 +26,10 @@ class FirebaseService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn(
+    scopes: [
+      'email',
+      'profile',
+    ],
     serverClientId: '335402911476-29mje5mt1utr9ttpkecf1gc8dsev2rgu.apps.googleusercontent.com',
   );
 
@@ -66,6 +70,11 @@ class FirebaseService {
 
   Future<UserCredential?> signInWithGoogle() async {
     try {
+      // Clear any stale cached session to ensure fresh account selection
+      try {
+        await _googleSignIn.signOut();
+      } catch (_) {}
+
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) return null;
 
@@ -77,7 +86,7 @@ class FirebaseService {
 
       return await _auth.signInWithCredential(credential);
     } catch (e) {
-      debugPrint("Error signing in with Google: $e");
+      debugPrint("[FirebaseService] Google Sign-In error: $e");
       rethrow;
     }
   }
@@ -486,3 +495,5 @@ class FirebaseService {
     }
   }
 }
+
+
