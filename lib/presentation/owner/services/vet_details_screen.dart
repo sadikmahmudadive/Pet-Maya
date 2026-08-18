@@ -71,7 +71,7 @@ class VetDetailsScreen extends StatelessWidget {
                         begin: Alignment.topCenter,
                         end: const Alignment(0, -0.4),
                         colors: [
-                          Colors.black.withOpacity(isDark ? 0.5 : 0.3),
+                          Colors.black.withValues(alpha: isDark ? 0.5 : 0.3),
                           Colors.transparent,
                         ],
                       ),
@@ -83,7 +83,7 @@ class VetDetailsScreen extends StatelessWidget {
                       gradient: LinearGradient(
                         begin: Alignment.center,
                         end: Alignment.bottomCenter,
-                        colors: [Colors.transparent, Colors.black.withOpacity(0.6)],
+                        colors: [Colors.transparent, Colors.black.withValues(alpha: 0.6)],
                       ),
                     ),
                   ),
@@ -161,7 +161,7 @@ class VetDetailsScreen extends StatelessWidget {
                         children: [
                           Container(
                             padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), shape: BoxShape.circle),
+                            decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.1), shape: BoxShape.circle),
                             child: const Icon(Icons.access_time_filled_rounded, color: AppColors.primary, size: 20),
                           ),
                           const SizedBox(width: 16),
@@ -236,7 +236,7 @@ class VetDetailsScreen extends StatelessWidget {
               child: LinearProgressIndicator(
                 value: ratio,
                 minHeight: 8,
-                backgroundColor: Colors.grey.withOpacity(0.1),
+                backgroundColor: Colors.grey.withValues(alpha: 0.1),
                 valueColor: const AlwaysStoppedAnimation<Color>(AppColors.accentAmber),
               ),
             ),
@@ -252,9 +252,9 @@ class VetDetailsScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface.withOpacity(0.95),
+        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.95),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 40, offset: const Offset(0, -10))],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 40, offset: const Offset(0, -10))],
       ),
       child: SafeArea(
         child: SizedBox(
