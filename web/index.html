@@ -2179,39 +2179,6 @@
         </div>
       </div>
 
-      <!-- Role Experience Switcher -->
-      <div class="card-box" style="margin-bottom:24px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
-          <div>
-            <h3 style="font-size:18px;font-weight:800;letter-spacing:-0.3px;">Portal Experience &amp; Role</h3>
-            <p style="font-size:13px;color:var(--label-3);">Switch your account role to experience tailored dashboards and workflows.</p>
-          </div>
-          <span class="badge badge-blue" id="currentRoleBadge" style="font-size:12px;padding:5px 12px;">Pet Owner</span>
-        </div>
-        <div class="role-switcher-grid">
-          <button class="role-btn-tile active" id="roleTile-owner" onclick="switchUserRoleMode('Pet Owner')">
-            <span style="font-size:22px;">🐾</span>
-            <span>Pet Owner</span>
-          </button>
-          <button class="role-btn-tile" id="roleTile-vet" onclick="switchUserRoleMode('Veterinarian')">
-            <span style="font-size:22px;">🩺</span>
-            <span>Veterinarian</span>
-          </button>
-          <button class="role-btn-tile" id="roleTile-shop" onclick="switchUserRoleMode('Pet Shop')">
-            <span style="font-size:22px;">🛍️</span>
-            <span>Pet Shop</span>
-          </button>
-          <button class="role-btn-tile" id="roleTile-grooming" onclick="switchUserRoleMode('Grooming')">
-            <span style="font-size:22px;">✂️</span>
-            <span>Care Provider</span>
-          </button>
-          <button class="role-btn-tile" id="roleTile-admin" onclick="switchUserRoleMode('Admin')">
-            <span style="font-size:22px;">🛡️</span>
-            <span>Admin</span>
-          </button>
-        </div>
-      </div>
-
       <!-- Referral & Loyalty Program -->
       <div class="card-box" style="margin-bottom:24px;background:linear-gradient(135deg, rgba(26,182,128,0.08) 0%, rgba(59,130,246,0.06) 100%);border:1.5px solid rgba(26,182,128,0.25);">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px;">
@@ -3113,24 +3080,8 @@
     const pr = document.getElementById('profileRole');
     if (pr) pr.textContent = role;
 
-    // Update Role Switcher Tiles in Profile
+    // Render Role-Tailored Navigation Header automatically from Firestore role
     const roleLower = (role || 'Pet Owner').toLowerCase();
-    ['owner','vet','shop','grooming','admin'].forEach(k => {
-      const btn = document.getElementById('roleTile-' + k);
-      if (btn) {
-        let isMatch = false;
-        if (k === 'owner' && (roleLower.includes('owner') || roleLower === 'user')) isMatch = true;
-        else if (k === 'vet' && (roleLower.includes('vet') || roleLower.includes('doctor'))) isMatch = true;
-        else if (k === 'shop' && roleLower.includes('shop')) isMatch = true;
-        else if (k === 'grooming' && (roleLower.includes('groom') || roleLower.includes('board'))) isMatch = true;
-        else if (k === 'admin' && roleLower.includes('admin')) isMatch = true;
-        btn.classList.toggle('active', isMatch);
-      }
-    });
-    const crb = document.getElementById('currentRoleBadge');
-    if (crb) crb.textContent = role;
-
-    // Render Role-Tailored Navigation Header
     renderNavbarForRole(role);
 
     // Initial role console triggers
