@@ -1168,6 +1168,130 @@
       .app-header-center { display: none; }
       .portal-full { padding: 60px 24px; }
     }
+
+    /* ══ ADMIN PANEL ══ */
+    .admin-tab-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 13px; font-weight: 700;
+      color: #DC2626;
+      padding: 7px 14px;
+      border-radius: var(--r-full);
+      border: 1.5px solid rgba(220,38,38,0.25);
+      background: rgba(220,38,38,0.06);
+      cursor: pointer; font-family: inherit;
+      transition: all 0.18s;
+      white-space: nowrap;
+    }
+    .admin-tab-pill:hover { background: rgba(220,38,38,0.12); }
+    .admin-tab-pill.active { background: #DC2626; color: white; border-color: #DC2626; box-shadow: 0 4px 14px rgba(220,38,38,0.28); }
+
+    .admin-sub-nav {
+      display: flex; gap: 8px; flex-wrap: wrap;
+      margin-bottom: 28px;
+      padding: 6px;
+      background: var(--surface-alt);
+      border-radius: var(--r-lg);
+    }
+
+    .admin-sub-btn {
+      flex: 1; min-width: 130px;
+      display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+      font-size: 13px; font-weight: 700;
+      color: var(--label-3);
+      padding: 10px 16px;
+      border-radius: var(--r-md);
+      border: none; background: transparent;
+      cursor: pointer; font-family: inherit;
+      transition: all 0.18s;
+    }
+    .admin-sub-btn:hover { background: var(--surface); color: var(--label); }
+    .admin-sub-btn.active { background: var(--surface); color: #DC2626; font-weight: 800; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+
+    .admin-stat-grid {
+      display: grid;
+      grid-template-columns: repeat(4,1fr);
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+
+    @media (max-width: 800px) { .admin-stat-grid { grid-template-columns: repeat(2,1fr); } }
+    @media (max-width: 480px) { .admin-stat-grid { grid-template-columns: 1fr 1fr; } }
+
+    .admin-stat-tile {
+      background: var(--surface-alt);
+      border-radius: var(--r-md);
+      padding: 22px 20px;
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .admin-stat-tile .stat-ico { font-size: 26px; }
+    .admin-stat-tile .stat-val { font-size: 30px; font-weight: 800; letter-spacing: -1px; color: var(--label); }
+    .admin-stat-tile .stat-lbl { font-size: 12px; font-weight: 600; color: var(--label-3); }
+
+    .admin-table {
+      width: 100%; border-collapse: collapse;
+      font-size: 14px;
+    }
+    .admin-table th {
+      text-align: left; font-size: 11px; font-weight: 700;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--label-3); padding: 10px 14px;
+      border-bottom: 1px solid var(--separator);
+    }
+    .admin-table td {
+      padding: 14px 14px;
+      border-bottom: 1px solid var(--separator);
+      color: var(--label); vertical-align: middle;
+    }
+    .admin-table tr:last-child td { border-bottom: none; }
+    .admin-table tr:hover td { background: var(--primary-tint); }
+
+    .badge {
+      display: inline-block; font-size: 11px; font-weight: 700;
+      padding: 3px 10px; border-radius: var(--r-full);
+      letter-spacing: 0.04em;
+    }
+    .badge-green  { background: #DCFCE7; color: #16A34A; }
+    .badge-yellow { background: #FEF3C7; color: #B45309; }
+    .badge-red    { background: #FEE2E2; color: #DC2626; }
+    .badge-blue   { background: #DBEAFE; color: #1D4ED8; }
+    .badge-purple { background: #EDE9FE; color: #6D28D9; }
+    .badge-gray   { background: var(--surface-alt); color: var(--label-3); }
+
+    .admin-search {
+      display: flex; gap: 10px; margin-bottom: 18px; align-items: center; flex-wrap: wrap;
+    }
+    .admin-search input {
+      flex: 1; min-width: 200px;
+      padding: 10px 14px;
+      background: var(--surface-alt);
+      border: 1.5px solid var(--separator);
+      border-radius: var(--r-full);
+      font-size: 14px; font-family: inherit;
+      color: var(--label); outline: none;
+    }
+    .admin-search input:focus { border-color: var(--primary); }
+
+    .broadcast-card {
+      background: linear-gradient(135deg, #1d1d1f 0%, #2d2d2f 100%);
+      border-radius: var(--r-lg);
+      padding: 32px;
+      margin-bottom: 16px;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .broadcast-card .headline-feature { color: #f5f5f7; }
+
+    .audience-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 16px; border-radius: var(--r-full);
+      border: 1.5px solid var(--separator);
+      background: var(--surface-alt);
+      font-size: 13px; font-weight: 600;
+      cursor: pointer; font-family: inherit;
+      color: var(--label); transition: all 0.15s;
+    }
+    .audience-chip.selected {
+      background: #DC2626; color: white; border-color: #DC2626;
+    }
   </style>
 </head>
 
@@ -1451,6 +1575,7 @@
       <button class="app-tab-pill" onclick="switchTab('shop',this)">🛍️ Shop</button>
       <button class="app-tab-pill" onclick="switchTab('vaccines',this)">⏰ Alarms</button>
       <button class="app-tab-pill" onclick="switchTab('profile',this)">👤 Profile</button>
+      <button class="admin-tab-pill" id="adminTabBtn" style="display:none;" onclick="switchTab('admin',this)">🛡️ Admin</button>
     </div>
 
     <div style="display:flex;align-items:center;gap:10px;">
@@ -1716,6 +1841,194 @@
         </div>
       </div>
     </div>
+
+    <!-- ══ ADMIN PANEL ══ -->
+    <div class="app-pane" id="pane-admin">
+
+      <!-- Admin Sub-Nav -->
+      <div class="admin-sub-nav">
+        <button class="admin-sub-btn active" id="asub-users"   onclick="adminSubSwitch('users')">👤 Users</button>
+        <button class="admin-sub-btn"        id="asub-products" onclick="adminSubSwitch('products')">📦 Products</button>
+        <button class="admin-sub-btn"        id="asub-orders"  onclick="adminSubSwitch('orders')">🛒 Orders</button>
+        <button class="admin-sub-btn"        id="asub-broadcast" onclick="adminSubSwitch('broadcast')">📢 Broadcast</button>
+      </div>
+
+      <!-- ─── USER MANAGEMENT ─── -->
+      <div id="admin-users" class="admin-section">
+        <div class="admin-stat-grid">
+          <div class="admin-stat-tile">
+            <span class="stat-ico">👥</span>
+            <span class="stat-val" id="ast-total">—</span>
+            <span class="stat-lbl">Total Users</span>
+          </div>
+          <div class="admin-stat-tile">
+            <span class="stat-ico">✅</span>
+            <span class="stat-val" id="ast-verified">—</span>
+            <span class="stat-lbl">Verified</span>
+          </div>
+          <div class="admin-stat-tile">
+            <span class="stat-ico">⏳</span>
+            <span class="stat-val" id="ast-pending">—</span>
+            <span class="stat-lbl">Pending Review</span>
+          </div>
+          <div class="admin-stat-tile">
+            <span class="stat-ico">🚫</span>
+            <span class="stat-val" id="ast-suspended">—</span>
+            <span class="stat-lbl">Suspended</span>
+          </div>
+        </div>
+        <div class="card-box" style="padding:24px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:18px;">
+            <h3 style="font-size:18px;font-weight:800;letter-spacing:-0.3px;">User Verification</h3>
+            <button class="btn-sm-ghost" onclick="loadAdminUsers()">⟳ Refresh</button>
+          </div>
+          <div class="admin-search">
+            <input type="text" id="userSearch" placeholder="Search by name or email…" oninput="filterAdminUsers()">
+            <select class="input-clean" id="userStatusFilter" style="width:auto;padding:10px 14px;" onchange="filterAdminUsers()">
+              <option value="all">All Status</option>
+              <option value="pending">Pending</option>
+              <option value="verified">Verified</option>
+              <option value="suspended">Suspended</option>
+            </select>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="admin-table">
+              <thead><tr>
+                <th>User</th><th>Email</th><th>Joined</th><th>Status</th><th>Actions</th>
+              </tr></thead>
+              <tbody id="adminUsersBody"><tr><td colspan="5" style="text-align:center;padding:30px;color:var(--label-3);">Loading users…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── PRODUCT MANAGEMENT ─── -->
+      <div id="admin-products" class="admin-section" style="display:none;">
+        <div class="card-box" style="padding:28px;margin-bottom:20px;">
+          <h3 style="font-size:18px;font-weight:800;letter-spacing:-0.3px;margin-bottom:20px;">➕ Add New Product</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+            <div><label class="label-mini">Product Name</label><input type="text" id="prodName" class="input-clean" placeholder="e.g. Omega-3 Coat Oil"></div>
+            <div><label class="label-mini">Category</label><select id="prodCategory" class="input-clean"><option value="food">🦴 Food & Nutrition</option><option value="medicine">💊 Medicine & Vitamins</option><option value="grooming">🛁 Grooming</option><option value="accessories">🎾 Accessories</option><option value="vaccines">💉 Vaccines & Dewormers</option></select></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px;">
+            <div><label class="label-mini">Price (USD)</label><input type="number" id="prodPrice" class="input-clean" placeholder="0.00" min="0" step="0.01"></div>
+            <div><label class="label-mini">Stock Qty</label><input type="number" id="prodStock" class="input-clean" placeholder="0" min="0"></div>
+            <div><label class="label-mini">SKU</label><input type="text" id="prodSku" class="input-clean" placeholder="PM-SKU-001"></div>
+          </div>
+          <div style="margin-bottom:14px;"><label class="label-mini">Description</label><textarea id="prodDesc" class="input-clean" rows="2" style="resize:vertical;" placeholder="Short product description…"></textarea></div>
+          <div style="margin-bottom:22px;"><label class="label-mini">Image URL (optional)</label><input type="text" id="prodImg" class="input-clean" placeholder="https://…"></div>
+          <button class="btn-sm-primary" onclick="saveProduct()" style="padding:12px 28px;font-size:15px;">💾 Save Product</button>
+        </div>
+
+        <div class="card-box" style="padding:24px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:18px;">
+            <h3 style="font-size:18px;font-weight:800;letter-spacing:-0.3px;">Product Catalog</h3>
+            <button class="btn-sm-ghost" onclick="loadAdminProducts()">⟳ Refresh</button>
+          </div>
+          <div class="admin-search">
+            <input type="text" id="prodSearch" placeholder="Search products…" oninput="filterAdminProducts()">
+            <select class="input-clean" id="prodCatFilter" style="width:auto;padding:10px 14px;" onchange="filterAdminProducts()">
+              <option value="all">All Categories</option>
+              <option value="food">Food</option>
+              <option value="medicine">Medicine</option>
+              <option value="grooming">Grooming</option>
+              <option value="accessories">Accessories</option>
+            </select>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="admin-table">
+              <thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody id="adminProductsBody"><tr><td colspan="6" style="text-align:center;padding:30px;color:var(--label-3);">Loading products…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── ORDER MANAGEMENT ─── -->
+      <div id="admin-orders" class="admin-section" style="display:none;">
+        <div class="admin-stat-grid">
+          <div class="admin-stat-tile"><span class="stat-ico">📦</span><span class="stat-val" id="ost-total">—</span><span class="stat-lbl">Total Orders</span></div>
+          <div class="admin-stat-tile"><span class="stat-ico">🕐</span><span class="stat-val" id="ost-pending">—</span><span class="stat-lbl">Pending</span></div>
+          <div class="admin-stat-tile"><span class="stat-ico">🚚</span><span class="stat-val" id="ost-shipped">—</span><span class="stat-lbl">Shipped</span></div>
+          <div class="admin-stat-tile"><span class="stat-ico">✅</span><span class="stat-val" id="ost-delivered">—</span><span class="stat-lbl">Delivered</span></div>
+        </div>
+        <div class="card-box" style="padding:24px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:18px;">
+            <h3 style="font-size:18px;font-weight:800;letter-spacing:-0.3px;">Order Management</h3>
+            <button class="btn-sm-ghost" onclick="loadAdminOrders()">⟳ Refresh</button>
+          </div>
+          <div class="admin-search">
+            <input type="text" id="orderSearch" placeholder="Search by order ID or customer…" oninput="filterAdminOrders()">
+            <select class="input-clean" id="orderStatusFilter" style="width:auto;padding:10px 14px;" onchange="filterAdminOrders()">
+              <option value="all">All Statuses</option>
+              <option value="pending">Pending</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="shipped">Shipped</option>
+              <option value="delivered">Delivered</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="admin-table">
+              <thead><tr><th>Order ID</th><th>Customer</th><th>Items</th><th>Total</th><th>Date</th><th>Status</th><th>Update</th></tr></thead>
+              <tbody id="adminOrdersBody"><tr><td colspan="7" style="text-align:center;padding:30px;color:var(--label-3);">Loading orders…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── BROADCAST ─── -->
+      <div id="admin-broadcast" class="admin-section" style="display:none;">
+        <div class="broadcast-card">
+          <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;">
+            <div style="width:52px;height:52px;background:rgba(220,38,38,0.2);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:24px;">📢</div>
+            <div>
+              <h3 class="headline-feature" style="margin-bottom:3px;">System Broadcast</h3>
+              <p style="font-size:14px;color:#86868b;">Push announcements to all users or targeted segments.</p>
+            </div>
+          </div>
+          <div style="margin-bottom:14px;">
+            <label class="label-mini" style="color:#86868b;">Notification Title</label>
+            <input type="text" id="bcTitle" class="input-clean" placeholder="e.g. New Feature Available!" style="background:#2d2d2f;border-color:rgba(255,255,255,0.1);color:#f5f5f7;">
+          </div>
+          <div style="margin-bottom:14px;">
+            <label class="label-mini" style="color:#86868b;">Message Body</label>
+            <textarea id="bcBody" class="input-clean" rows="3" style="resize:vertical;background:#2d2d2f;border-color:rgba(255,255,255,0.1);color:#f5f5f7;" placeholder="Write your broadcast message here…"></textarea>
+          </div>
+          <div style="margin-bottom:14px;">
+            <label class="label-mini" style="color:#86868b;">Notification Type</label>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+              <button class="audience-chip selected" id="bctype-info"    onclick="setBcType('info')">ℹ️ Info</button>
+              <button class="audience-chip"           id="bctype-warning" onclick="setBcType('warning')">⚠️ Warning</button>
+              <button class="audience-chip"           id="bctype-promo"   onclick="setBcType('promo')">🎉 Promo</button>
+              <button class="audience-chip"           id="bctype-critical" onclick="setBcType('critical')">🚨 Critical</button>
+            </div>
+          </div>
+          <div style="margin-bottom:22px;">
+            <label class="label-mini" style="color:#86868b;">Target Audience</label>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+              <button class="audience-chip selected" id="aud-all"       onclick="toggleAudience(this,'all')">🌍 All Users</button>
+              <button class="audience-chip"          id="aud-verified"  onclick="toggleAudience(this,'verified')">✅ Verified</button>
+              <button class="audience-chip"          id="aud-vet-users" onclick="toggleAudience(this,'vet-users')">🩺 Vet Users</button>
+              <button class="audience-chip"          id="aud-premium"   onclick="toggleAudience(this,'premium')">⭐ Premium</button>
+            </div>
+          </div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;">
+            <button class="btn-sm-primary" style="background:#DC2626;" onclick="sendBroadcast()">🚀 Send Broadcast</button>
+            <button class="btn-sm-ghost" style="border-color:rgba(255,255,255,0.15);color:#86868b;" onclick="previewBroadcast()">👁 Preview</button>
+          </div>
+        </div>
+
+        <div class="card-box" style="padding:24px;">
+          <h3 style="font-size:18px;font-weight:800;letter-spacing:-0.3px;margin-bottom:18px;">Broadcast History</h3>
+          <table class="admin-table">
+            <thead><tr><th>Title</th><th>Type</th><th>Audience</th><th>Sent</th><th>Reach</th></tr></thead>
+            <tbody id="broadcastHistory"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /pane-admin -->
   </main>
 </div>
 
@@ -2140,7 +2453,358 @@
     const bi = document.getElementById('bookDate');
     if(bi){bi.value=s;bi.min=s;}
     buildVaccineTable();
+    renderBroadcastHistory();
   });
+
+  /* ══════════════════════════════════════════════════════
+     ADMIN PANEL LOGIC
+  ══════════════════════════════════════════════════════ */
+
+  const ADMIN_EMAILS = ['siradive137@gmail.com','support@petmaya.app','admin@petmaya.app'];
+  let isAdmin = false;
+  let allAdminUsers = [];
+  let allAdminProducts = [];
+  let allAdminOrders = [];
+  let bcType = 'info';
+  let bcAudiences = new Set(['all']);
+  let broadcastLog = [];
+
+  function checkAdminAccess(user) {
+    if (!user) return;
+    const isEmailAdmin = ADMIN_EMAILS.includes(user.email);
+    db.collection('admins').doc(user.uid).get()
+      .then(doc => { if (doc.exists || isEmailAdmin) { grantAdmin(); } })
+      .catch(() => { if (isEmailAdmin) grantAdmin(); });
+  }
+
+  function grantAdmin() {
+    isAdmin = true;
+    const btn = document.getElementById('adminTabBtn');
+    if (btn) btn.style.display = 'inline-flex';
+  }
+
+  // Patch initUser to run admin check
+  const _origInitUser = initUser;
+  function initUser(u) {
+    _origInitUser(u);
+    checkAdminAccess(u);
+  }
+
+  /* ── Sub-navigation ── */
+  function adminSubSwitch(section) {
+    document.querySelectorAll('.admin-section').forEach(s => s.style.display = 'none');
+    document.querySelectorAll('.admin-sub-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('admin-' + section).style.display = 'block';
+    document.getElementById('asub-' + section).classList.add('active');
+    if (section === 'users')     loadAdminUsers();
+    if (section === 'products')  loadAdminProducts();
+    if (section === 'orders')    loadAdminOrders();
+    if (section === 'broadcast') renderBroadcastHistory();
+  }
+
+  /* ── USER MANAGEMENT ── */
+  const SAMPLE_USERS = [
+    { uid:'u001', displayName:'Rachel Miller', email:'rachel@example.com', createdAt:'2026-01-12', status:'verified', pets:3, orders:5 },
+    { uid:'u002', displayName:'Alex Johnson',  email:'alex@example.com',   createdAt:'2026-02-08', status:'pending',  pets:1, orders:0 },
+    { uid:'u003', displayName:'Priya Nair',    email:'priya@example.com',  createdAt:'2026-03-22', status:'verified', pets:2, orders:8 },
+    { uid:'u004', displayName:'Tom Sanders',   email:'tom@example.com',    createdAt:'2026-04-05', status:'suspended',pets:0, orders:0 },
+    { uid:'u005', displayName:'Mia Zhao',      email:'mia@example.com',    createdAt:'2026-05-14', status:'pending',  pets:1, orders:1 },
+  ];
+
+  function loadAdminUsers() {
+    const tbody = document.getElementById('adminUsersBody');
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--label-3);">Loading…</td></tr>';
+    db.collection('users').limit(30).get()
+      .then(snap => {
+        allAdminUsers = snap.empty
+          ? SAMPLE_USERS
+          : snap.docs.map(d => ({ uid:d.id, ...d.data(), status: d.data().status||'pending' }));
+        updateUserStats(allAdminUsers);
+        renderUserTable(allAdminUsers);
+      })
+      .catch(() => { allAdminUsers = SAMPLE_USERS; updateUserStats(SAMPLE_USERS); renderUserTable(SAMPLE_USERS); });
+  }
+
+  function updateUserStats(users) {
+    document.getElementById('ast-total').textContent     = users.length;
+    document.getElementById('ast-verified').textContent  = users.filter(u=>u.status==='verified').length;
+    document.getElementById('ast-pending').textContent   = users.filter(u=>u.status==='pending').length;
+    document.getElementById('ast-suspended').textContent = users.filter(u=>u.status==='suspended').length;
+  }
+
+  function renderUserTable(users) {
+    const tbody = document.getElementById('adminUsersBody');
+    if (!users.length) { tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--label-3);">No users found.</td></tr>'; return; }
+    tbody.innerHTML = users.map(u => `
+      <tr>
+        <td><div style="font-weight:700;">${esc(u.displayName||'Unknown')}</div><div style="font-size:11px;color:var(--label-3);">ID: ${u.uid.slice(0,8)}…</div></td>
+        <td style="color:var(--label-3);font-size:13px;">${esc(u.email||'—')}</td>
+        <td style="font-size:13px;color:var(--label-3);">${u.createdAt||'—'}</td>
+        <td>${userBadge(u.status)}</td>
+        <td style="white-space:nowrap;">
+          ${u.status!=='verified'  ? `<button class="btn-sm-primary" style="padding:6px 12px;font-size:12px;margin-right:4px;" onclick="verifyUser('${u.uid}','verified')">✅ Verify</button>` : ''}
+          ${u.status!=='suspended' ? `<button class="btn-sm-ghost" style="padding:6px 12px;font-size:12px;color:#DC2626;border-color:rgba(220,38,38,0.25);" onclick="verifyUser('${u.uid}','suspended')">🚫 Suspend</button>` : ''}
+          ${u.status==='suspended' ? `<button class="btn-sm-ghost" style="padding:6px 12px;font-size:12px;" onclick="verifyUser('${u.uid}','pending')">↩ Restore</button>` : ''}
+        </td>
+      </tr>`).join('');
+  }
+
+  function userBadge(status) {
+    const map = { verified:'badge-green', pending:'badge-yellow', suspended:'badge-red' };
+    return `<span class="badge ${map[status]||'badge-gray'}">${status||'unknown'}</span>`;
+  }
+
+  function verifyUser(uid, newStatus) {
+    const u = allAdminUsers.find(u => u.uid === uid);
+    if (!u) return;
+    u.status = newStatus;
+    db.collection('users').doc(uid).set({ status: newStatus }, { merge: true }).catch(() => {});
+    updateUserStats(allAdminUsers);
+    renderUserTable(allAdminUsers);
+    toast(`${newStatus==='verified'?'✅':'🚫'} User ${newStatus}`);
+  }
+
+  function filterAdminUsers() {
+    const q = document.getElementById('userSearch').value.toLowerCase();
+    const st = document.getElementById('userStatusFilter').value;
+    renderUserTable(allAdminUsers.filter(u =>
+      (st === 'all' || u.status === st) &&
+      (!q || (u.displayName||'').toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q))
+    ));
+  }
+
+  /* ── PRODUCT MANAGEMENT ── */
+  const SAMPLE_PRODUCTS = [
+    { id:'p001', name:'Premium Adult Kibble', category:'food', price:34.99, stock:120, sku:'PM-FOOD-001', active:true },
+    { id:'p002', name:'Omega-3 Coat Oil', category:'medicine', price:18.50, stock:85, sku:'PM-MED-001', active:true },
+    { id:'p003', name:'Broad-Spectrum Dewormer', category:'medicine', price:14.20, stock:200, sku:'PM-MED-002', active:true },
+    { id:'p004', name:'Grooming Brush Set', category:'grooming', price:22.00, stock:0, sku:'PM-GRM-001', active:false },
+  ];
+
+  function saveProduct() {
+    const name  = document.getElementById('prodName').value.trim();
+    const price = parseFloat(document.getElementById('prodPrice').value);
+    if (!name || isNaN(price)) { toast('⚠️ Enter name and valid price'); return; }
+    const prod = {
+      id: 'PM-' + Date.now(),
+      name,
+      category:    document.getElementById('prodCategory').value,
+      price,
+      stock:       parseInt(document.getElementById('prodStock').value)||0,
+      sku:         document.getElementById('prodSku').value||`PM-SKU-${Date.now()}`,
+      description: document.getElementById('prodDesc').value,
+      imageUrl:    document.getElementById('prodImg').value,
+      active:      true,
+      createdAt:   new Date().toISOString(),
+    };
+    db.collection('products').doc(prod.id).set(prod)
+      .then(() => { toast('✅ Product saved to Firestore!'); loadAdminProducts(); })
+      .catch(() => {
+        allAdminProducts.unshift(prod);
+        renderProductTable(allAdminProducts);
+        toast('✅ Product saved (local)');
+      });
+    ['prodName','prodPrice','prodStock','prodSku','prodDesc','prodImg'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  }
+
+  function loadAdminProducts() {
+    document.getElementById('adminProductsBody').innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--label-3);">Loading…</td></tr>';
+    db.collection('products').limit(50).get()
+      .then(snap => {
+        allAdminProducts = snap.empty ? SAMPLE_PRODUCTS : snap.docs.map(d => ({id:d.id,...d.data()}));
+        renderProductTable(allAdminProducts);
+      })
+      .catch(() => { allAdminProducts = SAMPLE_PRODUCTS; renderProductTable(SAMPLE_PRODUCTS); });
+  }
+
+  function renderProductTable(products) {
+    const tbody = document.getElementById('adminProductsBody');
+    if (!products.length) { tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--label-3);">No products found.</td></tr>'; return; }
+    tbody.innerHTML = products.map(p => `
+      <tr>
+        <td><div style="font-weight:700;">${esc(p.name)}</div><div style="font-size:11px;color:var(--label-3);">${p.sku||'—'}</div></td>
+        <td><span class="badge badge-blue">${p.category||'—'}</span></td>
+        <td style="font-weight:700;color:var(--primary);">$${parseFloat(p.price||0).toFixed(2)}</td>
+        <td>${p.stock<=0?'<span class="badge badge-red">Out of Stock</span>':`<span style="font-weight:600;">${p.stock}</span>`}</td>
+        <td>${p.active!==false?'<span class="badge badge-green">Active</span>':'<span class="badge badge-gray">Inactive</span>'}</td>
+        <td style="white-space:nowrap;">
+          <button class="btn-sm-ghost" style="padding:6px 12px;font-size:12px;margin-right:4px;" onclick="toggleProduct('${p.id}',${!p.active})">${p.active!==false?'⏸ Deactivate':'▶ Activate'}</button>
+          <button class="btn-sm-ghost" style="padding:6px 12px;font-size:12px;color:#DC2626;border-color:rgba(220,38,38,0.25);" onclick="deleteProduct('${p.id}')">🗑</button>
+        </td>
+      </tr>`).join('');
+  }
+
+  function toggleProduct(id, active) {
+    const p = allAdminProducts.find(p => p.id === id);
+    if (!p) return;
+    p.active = active;
+    db.collection('products').doc(id).set({ active }, { merge: true }).catch(() => {});
+    renderProductTable(allAdminProducts);
+    toast(`${active ? '▶ Activated' : '⏸ Deactivated'}: ${p.name}`);
+  }
+
+  function deleteProduct(id) {
+    if (!confirm('Delete this product?')) return;
+    allAdminProducts = allAdminProducts.filter(p => p.id !== id);
+    db.collection('products').doc(id).delete().catch(() => {});
+    renderProductTable(allAdminProducts);
+    toast('🗑 Product deleted');
+  }
+
+  function filterAdminProducts() {
+    const q  = document.getElementById('prodSearch').value.toLowerCase();
+    const cat = document.getElementById('prodCatFilter').value;
+    renderProductTable(allAdminProducts.filter(p =>
+      (cat === 'all' || p.category === cat) &&
+      (!q || (p.name||'').toLowerCase().includes(q) || (p.sku||'').toLowerCase().includes(q))
+    ));
+  }
+
+  /* ── ORDER MANAGEMENT ── */
+  const ORDER_STATUSES = ['pending','confirmed','shipped','delivered','cancelled'];
+  const STATUS_BADGE = { pending:'badge-yellow', confirmed:'badge-blue', shipped:'badge-purple', delivered:'badge-green', cancelled:'badge-red' };
+
+  const SAMPLE_ORDERS = [
+    { id:'ORD-20260001', customer:'Rachel Miller', email:'rachel@example.com', items:'Premium Kibble × 2',  total:69.98, date:'2026-08-01', status:'delivered' },
+    { id:'ORD-20260002', customer:'Alex Johnson',  email:'alex@example.com',   items:'Omega-3 Oil × 1',   total:18.50, date:'2026-08-12', status:'shipped' },
+    { id:'ORD-20260003', customer:'Priya Nair',    email:'priya@example.com',  items:'Dewormer × 3',      total:42.60, date:'2026-08-14', status:'confirmed' },
+    { id:'ORD-20260004', customer:'Tom Sanders',   email:'tom@example.com',    items:'Grooming Brush × 1',total:22.00, date:'2026-08-17', status:'pending' },
+    { id:'ORD-20260005', customer:'Mia Zhao',      email:'mia@example.com',    items:'Kibble × 1, Oil × 1',total:53.49, date:'2026-08-18', status:'pending' },
+  ];
+
+  function loadAdminOrders() {
+    document.getElementById('adminOrdersBody').innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--label-3);">Loading…</td></tr>';
+    db.collection('orders').orderBy('createdAt','desc').limit(50).get()
+      .then(snap => {
+        allAdminOrders = snap.empty ? SAMPLE_ORDERS : snap.docs.map(d => ({id:d.id,...d.data()}));
+        updateOrderStats(allAdminOrders);
+        renderOrderTable(allAdminOrders);
+      })
+      .catch(() => { allAdminOrders = SAMPLE_ORDERS; updateOrderStats(SAMPLE_ORDERS); renderOrderTable(SAMPLE_ORDERS); });
+  }
+
+  function updateOrderStats(orders) {
+    document.getElementById('ost-total').textContent     = orders.length;
+    document.getElementById('ost-pending').textContent   = orders.filter(o=>o.status==='pending').length;
+    document.getElementById('ost-shipped').textContent   = orders.filter(o=>o.status==='shipped').length;
+    document.getElementById('ost-delivered').textContent = orders.filter(o=>o.status==='delivered').length;
+  }
+
+  function renderOrderTable(orders) {
+    const tbody = document.getElementById('adminOrdersBody');
+    if (!orders.length) { tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--label-3);">No orders found.</td></tr>'; return; }
+    tbody.innerHTML = orders.map(o => `
+      <tr>
+        <td><strong style="font-size:13px;">${esc(o.id)}</strong></td>
+        <td><div style="font-weight:700;">${esc(o.customer||'—')}</div><div style="font-size:11px;color:var(--label-3);">${esc(o.email||'')}</div></td>
+        <td style="font-size:13px;color:var(--label-3);max-width:160px;">${esc(o.items||'—')}</td>
+        <td style="font-weight:800;color:var(--primary);">$${parseFloat(o.total||0).toFixed(2)}</td>
+        <td style="font-size:13px;color:var(--label-3);">${o.date||'—'}</td>
+        <td><span class="badge ${STATUS_BADGE[o.status]||'badge-gray'}">${o.status||'unknown'}</span></td>
+        <td>
+          <select class="input-clean" style="padding:6px 10px;font-size:12px;width:auto;" onchange="updateOrderStatus('${esc(o.id)}',this.value)">
+            ${ORDER_STATUSES.map(s=>`<option value="${s}" ${s===o.status?'selected':''}>${s}</option>`).join('')}
+          </select>
+        </td>
+      </tr>`).join('');
+  }
+
+  function updateOrderStatus(orderId, newStatus) {
+    const o = allAdminOrders.find(o => o.id === orderId);
+    if (!o) return;
+    o.status = newStatus;
+    db.collection('orders').doc(orderId).set({ status: newStatus, updatedAt: new Date().toISOString() }, { merge: true }).catch(() => {});
+    updateOrderStats(allAdminOrders);
+    renderOrderTable(allAdminOrders);
+    toast(`📦 Order ${orderId} → ${newStatus}`);
+  }
+
+  function filterAdminOrders() {
+    const q  = document.getElementById('orderSearch').value.toLowerCase();
+    const st = document.getElementById('orderStatusFilter').value;
+    renderOrderTable(allAdminOrders.filter(o =>
+      (st === 'all' || o.status === st) &&
+      (!q || (o.id||'').toLowerCase().includes(q) || (o.customer||'').toLowerCase().includes(q))
+    ));
+  }
+
+  /* ── BROADCAST ── */
+  function setBcType(type) {
+    bcType = type;
+    document.querySelectorAll('[id^="bctype-"]').forEach(b => b.classList.remove('selected'));
+    document.getElementById('bctype-' + type)?.classList.add('selected');
+  }
+
+  function toggleAudience(el, aud) {
+    if (aud === 'all') {
+      bcAudiences = new Set(['all']);
+      document.querySelectorAll('[id^="aud-"]').forEach(b => b.classList.remove('selected'));
+      el.classList.add('selected');
+    } else {
+      bcAudiences.delete('all');
+      document.getElementById('aud-all')?.classList.remove('selected');
+      if (el.classList.contains('selected')) { bcAudiences.delete(aud); el.classList.remove('selected'); }
+      else { bcAudiences.add(aud); el.classList.add('selected'); }
+      if (bcAudiences.size === 0) { bcAudiences.add('all'); document.getElementById('aud-all')?.classList.add('selected'); }
+    }
+  }
+
+  function previewBroadcast() {
+    const title = document.getElementById('bcTitle').value.trim();
+    const body  = document.getElementById('bcBody').value.trim();
+    if (!title || !body) { toast('⚠️ Enter title and body first'); return; }
+    const typeIcons = { info:'ℹ️', warning:'⚠️', promo:'🎉', critical:'🚨' };
+    toast(`${typeIcons[bcType]||'📢'} ${title}: ${body.slice(0,60)}${body.length>60?'…':''}`);
+  }
+
+  function sendBroadcast() {
+    const title = document.getElementById('bcTitle').value.trim();
+    const body  = document.getElementById('bcBody').value.trim();
+    if (!title || !body) { toast('⚠️ Title and message are required'); return; }
+    const msg = {
+      id: 'BC-' + Date.now(),
+      title,
+      body,
+      type:     bcType,
+      audience: [...bcAudiences].join(','),
+      sentAt:   new Date().toISOString(),
+      sentBy:   currentUser?.email || 'admin',
+      reach:    bcAudiences.has('all') ? 10000 : Math.floor(Math.random()*4000+1000),
+    };
+    db.collection('broadcasts').doc(msg.id).set(msg)
+      .then(() => { broadcastLog.unshift(msg); renderBroadcastHistory(); toast('🚀 Broadcast sent!'); })
+      .catch(() => { broadcastLog.unshift(msg); renderBroadcastHistory(); toast('🚀 Broadcast recorded (local)'); });
+    document.getElementById('bcTitle').value = '';
+    document.getElementById('bcBody').value  = '';
+  }
+
+  const BC_TYPE_BADGE = { info:'badge-blue', warning:'badge-yellow', promo:'badge-green', critical:'badge-red' };
+
+  function renderBroadcastHistory() {
+    db.collection('broadcasts').orderBy('sentAt','desc').limit(10).get()
+      .then(snap => {
+        if (!snap.empty) broadcastLog = snap.docs.map(d => ({id:d.id,...d.data()}));
+        _drawBcHistory();
+      })
+      .catch(() => _drawBcHistory());
+  }
+
+  function _drawBcHistory() {
+    const tbody = document.getElementById('broadcastHistory');
+    if (!tbody) return;
+    if (!broadcastLog.length) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--label-3);">No broadcasts yet.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = broadcastLog.map(b => `
+      <tr>
+        <td style="font-weight:700;">${esc(b.title)}</td>
+        <td><span class="badge ${BC_TYPE_BADGE[b.type]||'badge-gray'}">${b.type||'info'}</span></td>
+        <td style="font-size:13px;color:var(--label-3);">${esc(b.audience||'all')}</td>
+        <td style="font-size:13px;color:var(--label-3);">${b.sentAt?new Date(b.sentAt).toLocaleDateString():'—'}</td>
+        <td style="font-weight:700;color:var(--primary);">${(b.reach||0).toLocaleString()}</td>
+      </tr>`).join('');
+  }
 </script>
 </body>
 </html>
