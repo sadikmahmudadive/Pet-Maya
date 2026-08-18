@@ -1449,6 +1449,10 @@ class AppStateRepository extends ChangeNotifier {
     String? address,
     double? latitude,
     double? longitude,
+    String? bio,
+    String? specialization,
+    String? clinicName,
+    int? yearsExperience,
   }) async {
     if (_currentUser == null) return;
 
@@ -1467,6 +1471,10 @@ class AppStateRepository extends ChangeNotifier {
       points: _currentUser!.points,
       referralCode: _currentUser!.referralCode,
       fcmToken: _currentUser!.fcmToken,
+      bio: bio ?? _currentUser!.bio,
+      specialization: specialization ?? _currentUser!.specialization,
+      clinicName: clinicName ?? _currentUser!.clinicName,
+      yearsExperience: yearsExperience ?? _currentUser!.yearsExperience,
     );
 
     _currentUser = updatedUser;

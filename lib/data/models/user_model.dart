@@ -43,6 +43,11 @@ class UserModel {
   final String? fcmToken;
   final double? latitude;
   final double? longitude;
+  // Provider-only profile fields
+  final String? bio;
+  final String? specialization;
+  final String? clinicName;
+  final int? yearsExperience;
 
   UserModel({
     required this.uid,
@@ -60,6 +65,10 @@ class UserModel {
     this.fcmToken,
     this.latitude,
     this.longitude,
+    this.bio,
+    this.specialization,
+    this.clinicName,
+    this.yearsExperience,
   });
 
   static String generateReferralCode(String uid) {
@@ -86,6 +95,10 @@ class UserModel {
     String? fcmToken,
     double? latitude,
     double? longitude,
+    String? bio,
+    String? specialization,
+    String? clinicName,
+    int? yearsExperience,
   }) {
     return UserModel(
       uid: uid ?? this.uid,
@@ -103,6 +116,10 @@ class UserModel {
       fcmToken: fcmToken ?? this.fcmToken,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
+      bio: bio ?? this.bio,
+      specialization: specialization ?? this.specialization,
+      clinicName: clinicName ?? this.clinicName,
+      yearsExperience: yearsExperience ?? this.yearsExperience,
     );
   }
 
@@ -123,6 +140,10 @@ class UserModel {
       'fcmToken': fcmToken,
       'latitude': latitude,
       'longitude': longitude,
+      'bio': bio,
+      'specialization': specialization,
+      'clinicName': clinicName,
+      'yearsExperience': yearsExperience,
     };
   }
 
@@ -143,6 +164,10 @@ class UserModel {
       fcmToken: map['fcmToken'],
       latitude: (map['latitude'] as num?)?.toDouble(),
       longitude: (map['longitude'] as num?)?.toDouble(),
+      bio: map['bio'],
+      specialization: map['specialization'],
+      clinicName: map['clinicName'],
+      yearsExperience: (map['yearsExperience'] as num?)?.toInt(),
     );
   }
 }

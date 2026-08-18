@@ -6,11 +6,13 @@ import 'package:animate_do/animate_do.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../../../core/theme/app_colors.dart';
+import '../../../data/models/user_model.dart';
 import '../../../data/repositories/app_state_repository.dart';
 import '../../../core/services/cloudinary_service.dart';
 import '../../../core/services/connectivity_service.dart';
 import '../../common_widgets/premium_toast.dart';
-import '../../common_widgets/glass_scaffold.dart';import '../../common_widgets/location_picker_screen.dart';
+import '../../common_widgets/glass_scaffold.dart';
+import '../../common_widgets/location_picker_screen.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -23,6 +25,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _addressController = TextEditingController();
+  final _bioController = TextEditingController();
+  final _specializationController = TextEditingController();
+  final _clinicNameController = TextEditingController();
+  final _yearsExpController = TextEditingController();
   
   String? _photoUrl;
   bool _isSaving = false;
@@ -36,6 +42,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       _nameController.text = user.name;
       _phoneController.text = user.phone ?? '';
       _addressController.text = user.address ?? '';
+      _bioController.text = user.bio ?? '';
+      _specializationController.text = user.specialization ?? '';
+      _clinicNameController.text = user.clinicName ?? '';
+      _yearsExpController.text = user.yearsExperience?.toString() ?? '';
       _photoUrl = user.photoUrl;
     }
   }
@@ -45,6 +55,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _nameController.dispose();
     _phoneController.dispose();
     _addressController.dispose();
+    _bioController.dispose();
+    _specializationController.dispose();
+    _clinicNameController.dispose();
+    _yearsExpController.dispose();
     super.dispose();
   }
 
@@ -104,11 +118,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     setState(() => _isSaving = true);
     
     try {
+      final yrs = int.tryParse(_yearsExpController.text.trim());
       await context.read<AppStateRepository>().updateProfile(
         name: name,
         phone: _phoneController.text.trim(),
         photoUrl: _photoUrl,
         address: _addressController.text.trim(),
+        bio: _bioController.text.trim().isEmpty ? null : _bioController.text.trim(),
+        specialization: _specializationController.text.trim().isEmpty ? null : _specializationController.text.trim(),
+        clinicName: _clinicNameController.text.trim().isEmpty ? null : _clinicNameController.text.trim(),
+        yearsExperience: yrs,
       );
       if (!mounted) return;
       HapticFeedback.mediumImpact();
@@ -210,6 +229,80 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ),
                   const SizedBox(height: 24),
                   _buildLocationField(),
+                  // ── Provider-only fields ──
+                  Consumer<AppStateRepository>(
+                    builder: (_, state, _) {
+                      final role = state.currentUser?.role;
+                      final isProvider = role != null && role != UserRole.petOwner && role != UserRole.admin;
+                      if (!isProvider) return const SizedBox.shrink();
+
+                      final roleLabel = role == UserRole.veterinarian ? 'Veterinarian'
+                          : role == UserRole.grooming ? 'Grooming Specialist'
+                          : role == UserRole.boarding ? 'Boarding Provider'
+                          : 'Service Provider';
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 36),
+                          // Section header
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.medical_services_rounded, color: AppColors.primary, size: 18),
+                                const SizedBox(width: 10),
+                                Text(
+                                  '$roleLabel Profile',
+                                  style: const TextStyle(
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 13,
+                                    letterSpacing: 0.3,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          _buildPremiumField(
+                            label: role == UserRole.veterinarian ? 'Clinic / Practice Name' : 'Business Name',
+                            controller: _clinicNameController,
+                            hintText: role == UserRole.veterinarian ? 'e.g. Happy Paws Clinic' : 'e.g. Fluffy Grooming Studio',
+                            icon: Icons.business_rounded,
+                          ),
+                          const SizedBox(height: 24),
+                          if (role == UserRole.veterinarian) ...[
+                            _buildPremiumField(
+                              label: 'Specialization',
+                              controller: _specializationController,
+                              hintText: 'e.g. Small Animal Surgery, Dermatology',
+                              icon: Icons.science_rounded,
+                            ),
+                            const SizedBox(height: 24),
+                          ],
+                          _buildPremiumField(
+                            label: 'Years of Experience',
+                            controller: _yearsExpController,
+                            hintText: 'e.g. 5',
+                            icon: Icons.workspace_premium_rounded,
+                            keyboardType: TextInputType.number,
+                          ),
+                          const SizedBox(height: 24),
+                          _buildTextAreaField(
+                            label: 'Professional Bio',
+                            controller: _bioController,
+                            hintText: 'Tell pet owners about your experience, services, and approach to care...',
+                          ),
+                        ],
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
@@ -362,9 +455,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 20),
             decoration: BoxDecoration(
-              color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
+              color: isDark ? Colors.white.withValues(alpha: 0.06) : Colors.black.withValues(alpha: 0.04),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: isDark ? Colors.white12 : Colors.grey.withValues(alpha: 0.2)),
+              border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.12) : Colors.black.withValues(alpha: 0.08)),
             ),
             child: Row(
               children: [
@@ -376,7 +469,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     style: TextStyle(
                       fontWeight: FontWeight.w700,
                       fontSize: 15,
-                      color: _addressController.text.isEmpty ? (isDark ? Colors.white24 : Colors.grey[400]) : (isDark ? Colors.white : Colors.black87),
+                      color: _addressController.text.isEmpty ? (isDark ? Colors.white38 : Colors.grey[400]) : (isDark ? Colors.white : Colors.black87),
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -390,4 +483,50 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       ],
     );
   }
+
+  Widget _buildTextAreaField({
+    required String label,
+    required TextEditingController controller,
+    required String hintText,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text(
+            label.toUpperCase(),
+            style: TextStyle(fontWeight: FontWeight.w900, color: isDark ? Colors.white70 : Colors.black54, fontSize: 10, letterSpacing: 1.5),
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          decoration: BoxDecoration(
+            color: isDark ? Colors.white.withValues(alpha: 0.06) : Colors.black.withValues(alpha: 0.04),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.12) : Colors.black.withValues(alpha: 0.08)),
+          ),
+          child: TextField(
+            controller: controller,
+            maxLines: 5,
+            minLines: 3,
+            style: TextStyle(fontWeight: FontWeight.w600, color: isDark ? Colors.white : Colors.black87, fontSize: 14, height: 1.6),
+            decoration: InputDecoration(
+              filled: false,
+              hintText: hintText,
+              hintStyle: TextStyle(fontSize: 14, color: isDark ? Colors.white38 : Colors.grey[400], height: 1.6),
+              border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              errorBorder: InputBorder.none,
+              disabledBorder: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(vertical: 14),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }
+

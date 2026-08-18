@@ -60,39 +60,40 @@ class _PetServicesScreenState extends State<PetServicesScreen> {
     }).toList();
 
     return GlassScaffold(
-      appBar: AppBar(
-        title: const Text('Veterinary & Care', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: -0.5)),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        actions: [
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.favorite_rounded, color: AppColors.dangerRed),
-                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FavoriteVetsScreen())),
-              ),
-              if (favoriteIds.isNotEmpty)
-                Positioned(
-                  top: 10,
-                  right: 8,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
-                    child: Text(
-                      '${favoriteIds.length}',
-                      style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
         slivers: [
+          SliverAppBar(
+            title: const Text('Veterinary & Care', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: -0.5)),
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            floating: true,
+            actions: [
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.favorite_rounded, color: AppColors.dangerRed),
+                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FavoriteVetsScreen())),
+                  ),
+                  if (favoriteIds.isNotEmpty)
+                    Positioned(
+                      top: 10,
+                      right: 8,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
+                        child: Text(
+                          '${favoriteIds.length}',
+                          style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(width: 8),
+            ],
+          ),
           CupertinoSliverRefreshControl(
             refreshIndicatorExtent: 80,
             refreshTriggerPullDistance: 120,
@@ -111,10 +112,11 @@ class _PetServicesScreenState extends State<PetServicesScreen> {
           ),
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+
                   // Search Bar
                   FadeInDown(
                     child: Container(
