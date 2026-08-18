@@ -27,8 +27,10 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> with Single
   String _address = "Fetching your location...";
   bool _isLoading = true;
   bool _isSearching = false;
-
   Timer? _debounce;
+  
+  // High-Efficiency Map Layers
+  String _mapStyle = 'streets'; // 'streets', 'satellite', 'terrain'
   late AnimationController _pinController;
 
   @override
@@ -145,11 +147,27 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> with Single
                 },
               ),
               children: [
-                TileLayer(
-                  urlTemplate: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-                  subdomains: const ['a', 'b', 'c', 'd'],
-                  tileDisplay: const TileDisplay.fadeIn(duration: Duration(milliseconds: 300)),
-                ),
+                if (_mapStyle == 'streets')
+                  TileLayer(
+                    urlTemplate: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+                    subdomains: const ['a', 'b', 'c', 'd'],
+                    tileDisplay: const TileDisplay.fadeIn(duration: Duration(milliseconds: 300)),
+                    userAgentPackageName: 'com.vertexhand.petmaya',
+                  )
+                else if (_mapStyle == 'satellite')
+                  TileLayer(
+                    urlTemplate: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+                    tileDisplay: const TileDisplay.fadeIn(duration: Duration(milliseconds: 300)),
+                    userAgentPackageName: 'com.vertexhand.petmaya',
+                  )
+                else if (_mapStyle == 'terrain')
+                  TileLayer(
+                    urlTemplate: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+                    subdomains: const ['a', 'b', 'c'],
+                    tileDisplay: const TileDisplay.fadeIn(duration: Duration(milliseconds: 300)),
+                    userAgentPackageName: 'com.vertexhand.petmaya',
+                  ),
+
                 MarkerLayer(
                   markers: [
                     Marker(
@@ -245,6 +263,23 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> with Single
             ),
           ),
 
+          // ─── MAP STYLE CONTROLS ─────────────────────────────────────────────
+          Positioned(
+            right: 20,
+            top: 140,
+            child: FadeInRight(
+              child: Column(
+                children: [
+                  _buildStyleBtn(Icons.map_outlined, 'streets'),
+                  const SizedBox(height: 12),
+                  _buildStyleBtn(Icons.satellite_alt_rounded, 'satellite'),
+                  const SizedBox(height: 12),
+                  _buildStyleBtn(Icons.terrain_rounded, 'terrain'),
+                ],
+              ),
+            ),
+          ),
+
           // ─── ACTION PANEL ───────────────────────────────────────────────────
           Positioned(
             bottom: 40,
@@ -316,6 +351,23 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> with Single
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildStyleBtn(IconData icon, String style) {
+    final isSelected = _mapStyle == style;
+    return PremiumCard(
+      onTap: () => setState(() => _mapStyle = style),
+      opacity: isSelected ? 0.9 : 0.6,
+      borderRadius: 12,
+      child: Container(
+        width: 44, height: 44,
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primary : Colors.white.withValues(alpha: 0.9),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(icon, color: isSelected ? Colors.white : AppColors.primary, size: 20),
       ),
     );
   }

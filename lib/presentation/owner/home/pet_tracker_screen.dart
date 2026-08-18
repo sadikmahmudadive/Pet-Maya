@@ -31,6 +31,8 @@ class _PetTrackerScreenState extends State<PetTrackerScreen> with SingleTickerPr
   final int _batteryLevel = 88;
   final String _currentActivity = 'Resting in Backyard';
   
+  String _mapStyle = 'streets'; // 'streets', 'satellite', 'terrain'
+
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
   StreamSubscription<Position>? _positionSubscription;
@@ -122,11 +124,23 @@ class _PetTrackerScreenState extends State<PetTrackerScreen> with SingleTickerPr
                 minZoom: 12,
               ),
               children: [
-                TileLayer(
-                  urlTemplate: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-                  subdomains: const ['a', 'b', 'c', 'd'],
-                  userAgentPackageName: 'com.vertexhand.petmaya',
-                ),
+                if (_mapStyle == 'streets')
+                  TileLayer(
+                    urlTemplate: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+                    subdomains: const ['a', 'b', 'c', 'd'],
+                    userAgentPackageName: 'com.vertexhand.petmaya',
+                  )
+                else if (_mapStyle == 'satellite')
+                  TileLayer(
+                    urlTemplate: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+                    userAgentPackageName: 'com.vertexhand.petmaya',
+                  )
+                else if (_mapStyle == 'terrain')
+                  TileLayer(
+                    urlTemplate: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+                    subdomains: const ['a', 'b', 'c'],
+                    userAgentPackageName: 'com.vertexhand.petmaya',
+                  ),
                 
                 // Safe Zone Circle
                 CircleLayer(
@@ -352,8 +366,64 @@ class _PetTrackerScreenState extends State<PetTrackerScreen> with SingleTickerPr
         const SizedBox(height: 12),
         _buildControlBtn(Icons.pets_rounded, () => _mapController.move(_petLocation, 16)),
         const SizedBox(height: 12),
-        _buildControlBtn(Icons.layers_rounded, () {}),
+        _buildControlBtn(Icons.layers_rounded, _showMapStylePicker),
       ],
+    );
+  }
+
+  void _showMapStylePicker() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        margin: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.95),
+          borderRadius: BorderRadius.circular(32),
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 20)],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('MAP STYLE', style: TextStyle(fontWeight: FontWeight.w900, color: Colors.grey[500], fontSize: 10, letterSpacing: 1.2)),
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildStyleOption(Icons.map_outlined, 'Streets', 'streets'),
+                _buildStyleOption(Icons.satellite_alt_rounded, 'Satellite', 'satellite'),
+                _buildStyleOption(Icons.terrain_rounded, 'Terrain', 'terrain'),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStyleOption(IconData icon, String label, String style) {
+    final isSelected = _mapStyle == style;
+    return GestureDetector(
+      onTap: () {
+        setState(() => _mapStyle = style);
+        Navigator.pop(context);
+      },
+      child: Column(
+        children: [
+          Container(
+            width: 60, height: 60,
+            decoration: BoxDecoration(
+              color: isSelected ? AppColors.primary : Colors.black.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: Icon(icon, color: isSelected ? Colors.white : AppColors.primary, size: 28),
+          ),
+          const SizedBox(height: 8),
+          Text(label, style: TextStyle(fontSize: 10, fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600)),
+        ],
+      ),
     );
   }
 

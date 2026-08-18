@@ -576,7 +576,6 @@ class AppStateRepository extends ChangeNotifier {
         );
       }
 
-      // If they are a service provider, also add them to the public directory
       if (role == UserRole.veterinarian || role == UserRole.grooming || role == UserRole.boarding) {
         final vetEntry = VetModel(
           id: firebaseUID,
@@ -584,6 +583,7 @@ class AppStateRepository extends ChangeNotifier {
           qualification: role == UserRole.veterinarian ? 'Verified Veterinarian' : 'Pet Care Professional',
           tag: role.displayName,
           phone: phone ?? '',
+          photoUrl: null, // Initial photo
           isVerified: role == UserRole.veterinarian, // Admin manually verifies usually, but we set true for demo
         );
         await _firebase.saveVet(vetEntry);
@@ -1480,6 +1480,23 @@ class AppStateRepository extends ChangeNotifier {
     _currentUser = updatedUser;
     notifyListeners();
     await _firebase.saveUserProfile(updatedUser);
+
+    // DUAL SYNC: If they are a service provider, also update their professional public profile
+    if (updatedUser.role != UserRole.petOwner && updatedUser.role != UserRole.admin) {
+      final vetProfile = VetModel(
+        id: updatedUser.uid,
+        name: updatedUser.name,
+        qualification: updatedUser.specialization ?? (updatedUser.role == UserRole.veterinarian ? 'Verified Veterinarian' : 'Pet Care Professional'),
+        tag: updatedUser.role.displayName,
+        phone: updatedUser.phone ?? '',
+        photoUrl: updatedUser.photoUrl,
+        bio: updatedUser.bio ?? 'Experienced pet care professional dedicated to your pet\'s health.',
+        experience: updatedUser.yearsExperience != null ? '${updatedUser.yearsExperience} Years' : '5 Years',
+        isVerified: updatedUser.isVerified,
+      );
+      await _firebase.saveVet(vetProfile);
+    }
+
     logAudit('Profile Updated', 'User ${updatedUser.name} updated their profile info');
   }
 

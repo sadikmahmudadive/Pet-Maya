@@ -381,41 +381,15 @@ class FirebaseService {
   // ─── VETS / SERVICE PROVIDERS ────────────────────────────────────────────
 
   Future<List<VetModel>> fetchVets() async {
-    final snap = await _usersCol.get();
+    final snap = await _vetsCol.get();
     return snap.docs
-        .where((doc) {
-          final data = doc.data() as Map<String, dynamic>?;
-          if (data == null) return false;
-          final role = data['role']?.toString().toLowerCase() ?? '';
-          final email = data['email']?.toString().toLowerCase() ?? '';
-          final name = data['name']?.toString().toLowerCase() ?? '';
-          if (email.contains('test') || email.contains('example') ||
-              name.contains('test') || name.contains('demo')) {
-            return false;
-          }
-          return role.contains('veterinarian') || role.contains('vet') ||
-                 role.contains('grooming') || role.contains('boarding');
-        })
         .map((doc) => VetModel.fromMap(doc.id, doc.data()! as Map<String, dynamic>))
         .toList();
   }
 
   Stream<List<VetModel>> streamVets() {
-    return _usersCol.snapshots().map((snap) {
+    return _vetsCol.snapshots().map((snap) {
       return snap.docs
-          .where((doc) {
-            final data = doc.data() as Map<String, dynamic>?;
-            if (data == null) return false;
-            final role = data['role']?.toString().toLowerCase() ?? '';
-            final email = data['email']?.toString().toLowerCase() ?? '';
-            final name = data['name']?.toString().toLowerCase() ?? '';
-            if (email.contains('test') || email.contains('example') ||
-                name.contains('test') || name.contains('demo')) {
-              return false;
-            }
-            return role.contains('veterinarian') || role.contains('vet') ||
-                   role.contains('grooming') || role.contains('boarding');
-          })
           .map((doc) => VetModel.fromMap(doc.id, doc.data()! as Map<String, dynamic>))
           .toList();
     });
