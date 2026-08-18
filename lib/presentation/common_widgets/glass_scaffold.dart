@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../core/theme/app_colors.dart';
 
 class GlassScaffold extends StatelessWidget {
   final Widget body;
@@ -40,10 +39,12 @@ class GlassScaffold extends StatelessWidget {
         appBar: appBar,
         body: Stack(
           children: [
-            // Background abstract shapes (Hard Optimized: Only 2 static shapes)
-            _buildBackgroundDecorations(context, isDark),
+            // Static, hardware-accelerated ambient glowing background (0% CPU / 0% GPU idle overhead)
+            RepaintBoundary(
+              child: _buildStaticBackground(context, isDark),
+            ),
             
-            // Main Body
+            // Main Content
             body,
           ],
         ),
@@ -54,104 +55,52 @@ class GlassScaffold extends StatelessWidget {
     );
   }
 
-  Widget _buildBackgroundDecorations(BuildContext context, bool isDark) {
+  Widget _buildStaticBackground(BuildContext context, bool isDark) {
     final size = MediaQuery.of(context).size;
     final width = size.width;
 
     return Stack(
+      fit: StackFit.expand,
       children: [
+        // Top-left soft ambient glow
         Positioned(
-          top: -width * 0.2,
-          left: -width * 0.2,
-          child: _FluidBlob(
-            size: width * 0.9,
-            color: Theme.of(context).colorScheme.primary.withValues(alpha: isDark ? 0.08 : 0.05),
-            duration: const Duration(seconds: 15),
-          ),
-        ),
-        Positioned(
-          bottom: -width * 0.3,
-          right: -width * 0.2,
-          child: _FluidBlob(
-            size: width * 1.1,
-            color: Theme.of(context).colorScheme.secondary.withValues(alpha: isDark ? 0.05 : 0.04),
-            duration: const Duration(seconds: 20),
-            reverse: true,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _FluidBlob extends StatefulWidget {
-  final double size;
-  final Color color;
-  final Duration duration;
-  final bool reverse;
-
-  const _FluidBlob({
-    required this.size,
-    required this.color,
-    required this.duration,
-    this.reverse = false,
-  });
-
-  @override
-  State<_FluidBlob> createState() => _FluidBlobState();
-}
-
-class _FluidBlobState extends State<_FluidBlob> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<Offset> _moveAnimation;
-  late Animation<double> _scaleAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(vsync: this, duration: widget.duration)..repeat(reverse: true);
-
-    _moveAnimation = Tween<Offset>(
-      begin: widget.reverse ? const Offset(0.05, 0.05) : Offset.zero,
-      end: widget.reverse ? Offset.zero : const Offset(0.05, 0.05),
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOutSine));
-
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.15).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOutSine)
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return Transform.translate(
-          offset: Offset(
-            _moveAnimation.value.dx * widget.size,
-            _moveAnimation.value.dy * widget.size,
-          ),
-          child: Transform.scale(
-            scale: _scaleAnimation.value,
-            child: Container(
-              width: widget.size,
-              height: widget.size,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [widget.color, widget.color.withValues(alpha: 0)],
-                ),
+          top: -width * 0.25,
+          left: -width * 0.25,
+          child: Container(
+            width: width * 0.9,
+            height: width * 0.9,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  Theme.of(context).colorScheme.primary.withValues(alpha: isDark ? 0.12 : 0.08),
+                  Colors.transparent,
+                ],
+                stops: const [0.0, 0.7],
               ),
             ),
           ),
-        );
-      },
+        ),
+        // Bottom-right soft ambient glow
+        Positioned(
+          bottom: -width * 0.35,
+          right: -width * 0.25,
+          child: Container(
+            width: width * 1.1,
+            height: width * 1.1,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  Theme.of(context).colorScheme.secondary.withValues(alpha: isDark ? 0.08 : 0.06),
+                  Colors.transparent,
+                ],
+                stops: const [0.0, 0.75],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

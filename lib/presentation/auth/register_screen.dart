@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_typography.dart';
 import '../../data/repositories/app_state_repository.dart';
 import '../../data/models/user_model.dart';
-import '../common_widgets/glass_card.dart';
 import '../common_widgets/glass_scaffold.dart';
 import '../common_widgets/premium_card.dart';
 import 'package:animate_do/animate_do.dart';
@@ -138,7 +136,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
+                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.05),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(Icons.person_add_rounded, size: size.height * 0.05, color: Theme.of(context).colorScheme.primary),
@@ -365,7 +363,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF1AB680).withOpacity(0.3),
+              color: const Color(0xFF1AB680).withValues(alpha: 0.3),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),

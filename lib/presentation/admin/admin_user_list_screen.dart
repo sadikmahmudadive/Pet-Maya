@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:animate_do/animate_do.dart';
 import '../../core/theme/app_colors.dart';
@@ -88,7 +87,7 @@ class _AdminUserListScreenState extends State<AdminUserListScreen> {
                                 children: [
                                   CircleAvatar(
                                     radius: 26,
-                                    backgroundColor: _getRoleColor(user.role).withOpacity(0.1),
+                                    backgroundColor: _getRoleColor(user.role).withValues(alpha: 0.1),
                                     child: Icon(_getRoleIcon(user.role), color: _getRoleColor(user.role), size: 22),
                                   ),
                                   const SizedBox(width: 16),
@@ -107,7 +106,7 @@ class _AdminUserListScreenState extends State<AdminUserListScreen> {
                                     children: [
                                       Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                        decoration: BoxDecoration(color: _getRoleColor(user.role).withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+                                        decoration: BoxDecoration(color: _getRoleColor(user.role).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
                                         child: Text(user.role.displayName.toUpperCase(), 
                                           style: TextStyle(color: _getRoleColor(user.role), fontWeight: FontWeight.w900, fontSize: 8)),
                                       ),

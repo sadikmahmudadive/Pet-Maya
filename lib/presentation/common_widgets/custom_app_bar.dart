@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_typography.dart';
 
 class CustomDashboardHeader extends StatelessWidget {
   final String userName;
@@ -36,7 +34,7 @@ class CustomDashboardHeader extends StatelessWidget {
                   padding: const EdgeInsets.all(2),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(color: Theme.of(context).colorScheme.primary.withOpacity(0.3), width: 2),
+                    border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3), width: 2),
                   ),
                   child: CircleAvatar(
                     radius: 22,
@@ -80,7 +78,7 @@ class CustomDashboardHeader extends StatelessWidget {
                 border: Border.all(color: Theme.of(context).dividerColor, width: 1),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),

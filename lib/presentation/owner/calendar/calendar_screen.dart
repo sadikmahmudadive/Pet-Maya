@@ -11,7 +11,6 @@ import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
 import '../../common_widgets/empty_state.dart';
 import 'add_event_modal.dart';
-import '../../common_widgets/tail_wagging_loader.dart';
 import 'events_history_screen.dart';
 
 class CalendarScreen extends StatefulWidget {
@@ -331,7 +330,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: _getCategoryColor(event.category).withOpacity(0.1),
+                  color: _getCategoryColor(event.category).withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(_getCategoryIcon(event.category), color: _getCategoryColor(event.category), size: 24),

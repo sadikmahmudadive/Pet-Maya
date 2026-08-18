@@ -11,7 +11,6 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../../../core/services/connectivity_service.dart';
 import '../../common_widgets/premium_toast.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class AiHealthScannerScreen extends StatefulWidget {
   final PetModel? initialPet;

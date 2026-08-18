@@ -88,7 +88,7 @@ class OrdersScreen extends StatelessWidget {
                                         ),
                                         Container(
                                           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                                          decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.05), borderRadius: BorderRadius.circular(12)),
+                                          decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(12)),
                                           child: Row(
                                             children: [
                                               Text('View Details', style: AppTypography.labelSmall.copyWith(color: AppColors.primary, fontWeight: FontWeight.w700)),
@@ -128,9 +128,9 @@ class OrdersScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withOpacity(0.2)),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Text(
         status.displayName.toUpperCase(),

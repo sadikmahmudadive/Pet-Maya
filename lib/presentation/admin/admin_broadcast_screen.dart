@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:animate_do/animate_do.dart';
-import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_typography.dart';
 import '../common_widgets/glass_scaffold.dart';
 import '../common_widgets/premium_card.dart';
 

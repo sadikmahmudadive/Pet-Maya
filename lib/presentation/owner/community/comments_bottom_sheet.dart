@@ -55,7 +55,7 @@ class _CommentsBottomSheetState extends State<CommentsBottomSheet> {
       child: Column(
         children: [
           const SizedBox(height: 12),
-          Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.withOpacity(0.2), borderRadius: BorderRadius.circular(2))),
+          Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(2))),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             child: Row(
@@ -89,8 +89,9 @@ class _CommentsBottomSheetState extends State<CommentsBottomSheet> {
                       final date = DateTime.fromMillisecondsSinceEpoch(c.timestamp);
                       final diff = DateTime.now().difference(date);
                       String timeStr = 'Just now';
-                      if (diff.inMinutes > 0 && diff.inMinutes < 60) timeStr = '${diff.inMinutes}m';
-                      else if (diff.inHours > 0 && diff.inHours < 24) timeStr = '${diff.inHours}h';
+                      if (diff.inMinutes > 0 && diff.inMinutes < 60) {
+                        timeStr = '${diff.inMinutes}m';
+                      } else if (diff.inHours > 0 && diff.inHours < 24) timeStr = '${diff.inHours}h';
                       else if (diff.inDays > 0) timeStr = '${diff.inDays}d';
 
                       return Padding(
@@ -116,7 +117,7 @@ class _CommentsBottomSheetState extends State<CommentsBottomSheet> {
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                     decoration: BoxDecoration(
-                                      color: isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.04),
+                                      color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.04),
                                       borderRadius: BorderRadius.circular(20),
                                     ),
                                     child: Column(
@@ -130,7 +131,7 @@ class _CommentsBottomSheetState extends State<CommentsBottomSheet> {
                                             fontSize: 13,
                                             height: 1.4,
                                             fontWeight: FontWeight.w500,
-                                            color: isDark ? Colors.white.withOpacity(0.9) : Colors.black87,
+                                            color: isDark ? Colors.white.withValues(alpha: 0.9) : Colors.black87,
                                           ),
                                         ),
                                       ],
@@ -175,7 +176,7 @@ class _CommentsBottomSheetState extends State<CommentsBottomSheet> {
             ),
             decoration: BoxDecoration(
               color: Theme.of(context).scaffoldBackgroundColor,
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20, offset: const Offset(0, -10))],
+              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 20, offset: const Offset(0, -10))],
             ),
             child: Row(
               children: [

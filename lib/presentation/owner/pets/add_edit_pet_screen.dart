@@ -5,16 +5,12 @@ import 'package:uuid/uuid.dart';
 import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:animate_do/animate_do.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_typography.dart';
 import '../../../data/repositories/app_state_repository.dart';
 import '../../../data/models/pet_model.dart';
 import '../../common_widgets/glass_scaffold.dart';
-import '../../common_widgets/premium_card.dart';
-import 'breed_finder_screen.dart';
 
 import '../../../core/services/cloudinary_service.dart';
 
@@ -217,7 +213,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
                             ),
                             child: CircleAvatar(
                               radius: 28,
-                              backgroundColor: AppColors.primary.withOpacity(0.08),
+                              backgroundColor: AppColors.primary.withValues(alpha: 0.08),
                               backgroundImage: p.photoUrl != null 
                                 ? p.photoUrl!.startsWith('assets')
                                   ? AssetImage(p.photoUrl!) as ImageProvider
@@ -249,7 +245,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('PET DETAILS', 
-                    style: TextStyle(color: const Color(0xFF1AB680).withOpacity(0.7), fontWeight: FontWeight.w900, fontSize: 11, letterSpacing: 1.5)),
+                    style: TextStyle(color: const Color(0xFF1AB680).withValues(alpha: 0.7), fontWeight: FontWeight.w900, fontSize: 11, letterSpacing: 1.5)),
                   const SizedBox(height: 32),
 
                   // Center Avatar Section
@@ -266,7 +262,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 border: Border.all(color: Colors.white, width: 4),
-                                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20, offset: const Offset(0, 10))],
+                                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 20, offset: const Offset(0, 10))],
                               ),
                               child: CircleAvatar(
                                 radius: 64,
@@ -378,7 +374,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
                         backgroundColor: const Color(0xFF1AB680),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                         elevation: 8,
-                        shadowColor: const Color(0xFF1AB680).withOpacity(0.4),
+                        shadowColor: const Color(0xFF1AB680).withValues(alpha: 0.4),
                       ),
                       child: _isSaving 
                         ? const CircularProgressIndicator(color: Colors.white, strokeWidth: 3)
@@ -415,17 +411,17 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
             hintStyle: TextStyle(color: isDark ? Colors.white24 : Colors.grey[400], fontSize: 14),
             prefixIcon: icon != null ? Icon(icon, size: 20, color: const Color(0xFF1AB680)) : null,
             suffixText: suffix,
-            suffixStyle: TextStyle(color: const Color(0xFF1AB680).withOpacity(0.6), fontWeight: FontWeight.w800, fontSize: 12),
+            suffixStyle: TextStyle(color: const Color(0xFF1AB680).withValues(alpha: 0.6), fontWeight: FontWeight.w800, fontSize: 12),
             filled: true,
             fillColor: isDark ? const Color(0xFF1A222D) : Colors.white,
             contentPadding: const EdgeInsets.symmetric(vertical: 22, horizontal: 16),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(color: isDark ? Colors.white.withOpacity(0.1) : Colors.grey.withOpacity(0.2), width: 1.5),
+              borderSide: BorderSide(color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.grey.withValues(alpha: 0.2), width: 1.5),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(color: isDark ? Colors.white.withOpacity(0.1) : Colors.grey.withOpacity(0.2), width: 1.5),
+              borderSide: BorderSide(color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.grey.withValues(alpha: 0.2), width: 1.5),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
@@ -453,7 +449,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
           decoration: BoxDecoration(
             color: isDark ? const Color(0xFF131921) : Colors.grey[100],
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.withOpacity(0.1), width: 1.5),
+            border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey.withValues(alpha: 0.1), width: 1.5),
           ),
           child: Row(
             children: [
@@ -482,7 +478,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
           decoration: BoxDecoration(
             color: isDark ? const Color(0xFF1A222D) : Colors.white,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: isDark ? Colors.white.withOpacity(0.1) : Colors.grey.withOpacity(0.2), width: 1.5),
+            border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.grey.withValues(alpha: 0.2), width: 1.5),
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
@@ -526,7 +522,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF1A222D) : Colors.white,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: isDark ? Colors.white.withOpacity(0.1) : Colors.grey.withOpacity(0.2), width: 1.5),
+              border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.grey.withValues(alpha: 0.2), width: 1.5),
             ),
             child: Row(
               children: [
@@ -615,9 +611,9 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFFA8D5BA).withOpacity(0.4),
+        color: const Color(0xFFA8D5BA).withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFF2D8C69).withOpacity(0.3), width: 1.5),
+        border: Border.all(color: const Color(0xFF2D8C69).withValues(alpha: 0.3), width: 1.5),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

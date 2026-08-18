@@ -9,7 +9,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'dart:ui';
 import 'dart:async';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_typography.dart';
 import 'glass_scaffold.dart';
 import 'premium_card.dart';
 

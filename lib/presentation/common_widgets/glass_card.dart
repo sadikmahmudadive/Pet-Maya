@@ -16,7 +16,7 @@ class GlassCard extends StatelessWidget {
     super.key,
     required this.child,
     this.padding,
-    this.blur = 16,
+    this.blur = 6, // Optimized from 16 to 6 for maximum GPU performance & zero heat
     this.opacity = 0.85,
     this.borderRadius = 24,
     this.borderColor,
@@ -33,7 +33,7 @@ class GlassCard extends StatelessWidget {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: blur > 0 ? blur : 12, sigmaY: blur > 0 ? blur : 12),
+          filter: ImageFilter.blur(sigmaX: blur > 0 ? blur : 4, sigmaY: blur > 0 ? blur : 4),
           child: Container(
             padding: padding,
             decoration: BoxDecoration(
@@ -50,10 +50,10 @@ class GlassCard extends StatelessWidget {
                   ),
               boxShadow: [
                 BoxShadow(
-                  color: isDark ? Colors.black.withValues(alpha: 0.35) : Colors.black.withValues(alpha: 0.04),
-                  blurRadius: 20,
+                  color: isDark ? Colors.black.withValues(alpha: 0.25) : Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 14,
                   spreadRadius: 0,
-                  offset: const Offset(0, 8),
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),

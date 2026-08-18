@@ -57,7 +57,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               const SizedBox(height: 12),
               Container(
                 padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(color: AppColors.healthGreen.withOpacity(0.1), shape: BoxShape.circle),
+                decoration: BoxDecoration(color: AppColors.healthGreen.withValues(alpha: 0.1), shape: BoxShape.circle),
                 child: const Icon(Icons.check_circle_rounded, color: AppColors.healthGreen, size: 54),
               ),
               const SizedBox(height: 24),
@@ -232,7 +232,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           children: [
             Container(
               padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+              decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
               child: Icon(icon, color: AppColors.primary, size: 20),
             ),
             const SizedBox(width: 16),
@@ -261,9 +261,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface.withOpacity(0.95),
+        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.95),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 40, offset: const Offset(0, -10))],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 40, offset: const Offset(0, -10))],
       ),
       child: SafeArea(
         child: SizedBox(

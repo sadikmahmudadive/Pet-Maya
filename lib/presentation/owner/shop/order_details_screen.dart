@@ -55,7 +55,7 @@ class OrderDetailsScreen extends StatelessWidget {
                       ),
                       Container(
                         padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(color: _getStatusColor(order.status).withOpacity(0.1), shape: BoxShape.circle),
+                        decoration: BoxDecoration(color: _getStatusColor(order.status).withValues(alpha: 0.1), shape: BoxShape.circle),
                         child: Icon(_getStatusIcon(order.status), color: _getStatusColor(order.status), size: 36),
                       ),
                     ],
@@ -199,7 +199,7 @@ class OrderDetailsScreen extends StatelessWidget {
           children: [
             Icon(isCompleted ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded, 
               color: isCompleted ? AppColors.healthGreen : Theme.of(context).dividerColor, size: 22),
-            if (!isLast) Container(width: 2, height: 40, color: Theme.of(context).dividerColor.withOpacity(0.3)),
+            if (!isLast) Container(width: 2, height: 40, color: Theme.of(context).dividerColor.withValues(alpha: 0.3)),
           ],
         ),
         const SizedBox(width: 20),
@@ -221,7 +221,7 @@ class OrderDetailsScreen extends StatelessWidget {
       children: [
         Container(
           padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.08), borderRadius: BorderRadius.circular(10)),
+          decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(10)),
           child: Icon(icon, color: AppColors.primary, size: 20),
         ),
         const SizedBox(width: 16),

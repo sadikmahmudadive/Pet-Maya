@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:animate_do/animate_do.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_typography.dart';
-import '../../../data/models/pet_model.dart';
 import '../../../data/repositories/app_state_repository.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
@@ -68,7 +65,7 @@ class PetHealthTrackerScreen extends StatelessWidget {
                         child: LinearProgressIndicator(
                           value: pet.healthIndex / 100,
                           minHeight: 12,
-                          backgroundColor: Colors.white.withOpacity(isDark ? 0.05 : 0.4),
+                          backgroundColor: Colors.white.withValues(alpha: isDark ? 0.05 : 0.4),
                           valueColor: AlwaysStoppedAnimation<Color>(_getHealthColor(pet.healthIndex)),
                         ),
                       ),
@@ -113,7 +110,7 @@ class PetHealthTrackerScreen extends StatelessWidget {
                 _buildSectionHeader('Clinical History'),
                 Container(
                   padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), shape: BoxShape.circle),
+                  decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.1), shape: BoxShape.circle),
                   child: const Icon(Icons.history_edu_rounded, color: AppColors.primary, size: 20),
                 ),
               ],
@@ -152,7 +149,7 @@ class PetHealthTrackerScreen extends StatelessWidget {
                                 children: [
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                    decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
+                                    decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(6)),
                                     child: Text(rec.serviceType.toUpperCase(), 
                                       style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w900, fontSize: 8, letterSpacing: 0.5)),
                                   ),
@@ -167,9 +164,9 @@ class PetHealthTrackerScreen extends StatelessWidget {
                                 Container(
                                   padding: const EdgeInsets.all(16),
                                   decoration: BoxDecoration(
-                                    color: AppColors.healthGreen.withOpacity(0.08),
+                                    color: AppColors.healthGreen.withValues(alpha: 0.08),
                                     borderRadius: BorderRadius.circular(16),
-                                    border: Border.all(color: AppColors.healthGreen.withOpacity(0.1)),
+                                    border: Border.all(color: AppColors.healthGreen.withValues(alpha: 0.1)),
                                   ),
                                   child: Row(
                                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -213,7 +210,7 @@ class PetHealthTrackerScreen extends StatelessWidget {
           children: [
             Container(
               padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+              decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
               child: Icon(icon, color: color, size: 18),
             ),
             const Spacer(),

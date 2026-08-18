@@ -390,7 +390,9 @@ class FirebaseService {
           final email = data['email']?.toString().toLowerCase() ?? '';
           final name = data['name']?.toString().toLowerCase() ?? '';
           if (email.contains('test') || email.contains('example') ||
-              name.contains('test') || name.contains('demo')) return false;
+              name.contains('test') || name.contains('demo')) {
+            return false;
+          }
           return role.contains('veterinarian') || role.contains('vet') ||
                  role.contains('grooming') || role.contains('boarding');
         })
@@ -408,7 +410,9 @@ class FirebaseService {
             final email = data['email']?.toString().toLowerCase() ?? '';
             final name = data['name']?.toString().toLowerCase() ?? '';
             if (email.contains('test') || email.contains('example') ||
-                name.contains('test') || name.contains('demo')) return false;
+                name.contains('test') || name.contains('demo')) {
+              return false;
+            }
             return role.contains('veterinarian') || role.contains('vet') ||
                    role.contains('grooming') || role.contains('boarding');
           })
@@ -499,7 +503,7 @@ class FirebaseService {
         .collection('comments')
         .snapshots()
         .map((snap) {
-          final list = snap.docs.map((d) => CommentModel.fromMap(d.id, d.data() as Map<String, dynamic>)).toList();
+          final list = snap.docs.map((d) => CommentModel.fromMap(d.id, d.data())).toList();
           list.sort((a, b) => a.timestamp.compareTo(b.timestamp));
           return list;
         });
@@ -548,7 +552,7 @@ class FirebaseService {
         .collection('items')
         .snapshots()
         .map((snap) {
-          final list = snap.docs.map((d) => NotificationModel.fromMap(d.id, d.data() as Map<String, dynamic>)).toList();
+          final list = snap.docs.map((d) => NotificationModel.fromMap(d.id, d.data())).toList();
           list.sort((a, b) => b.timestamp.compareTo(a.timestamp));
           return list;
         });

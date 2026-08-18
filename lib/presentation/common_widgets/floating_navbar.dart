@@ -42,14 +42,15 @@ class FloatingNavbar extends StatelessWidget {
     final double totalHeight = barHeight + (bottomPadding > 0 ? bottomPadding : 10);
     final activeSlot = _getSlotIndex(selectedIndex > 3 ? 1 : selectedIndex);
 
-    return Container(
-      height: totalHeight,
-      margin: EdgeInsets.fromLTRB(14, 0, 14, bottomPadding > 0 ? bottomPadding : 10),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(28),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 28, sigmaY: 28),
-          child: Container(
+    return RepaintBoundary(
+      child: Container(
+        height: totalHeight,
+        margin: EdgeInsets.fromLTRB(14, 0, 14, bottomPadding > 0 ? bottomPadding : 10),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(28),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+            child: Container(
             height: barHeight,
             padding: const EdgeInsets.symmetric(horizontal: 4),
             decoration: BoxDecoration(
@@ -170,7 +171,7 @@ class FloatingNavbar extends StatelessWidget {
           ),
         ),
       ),
-    );
+    ));
   }
 
   Widget _buildNavItem({

@@ -65,7 +65,7 @@ class CartScreen extends StatelessWidget {
                               child: Container(
                                 width: 80,
                                 height: 80,
-                                color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                                color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                                 child: item.product.imageUrl != null
                                     ? Image.network(item.product.imageUrl!, fit: BoxFit.contain)
                                     : const Icon(Icons.inventory_2_outlined),
@@ -85,7 +85,7 @@ class CartScreen extends StatelessWidget {
                             // Quantity selector
                             Container(
                               decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.05),
+                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Row(
@@ -123,10 +123,10 @@ class CartScreen extends StatelessWidget {
           : Container(
               padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface.withOpacity(0.95),
+                color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.95),
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
                 boxShadow: [
-                  BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 40, offset: const Offset(0, -10)),
+                  BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 40, offset: const Offset(0, -10)),
                 ],
               ),
               child: SafeArea(

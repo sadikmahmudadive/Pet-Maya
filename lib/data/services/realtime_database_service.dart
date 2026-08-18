@@ -322,7 +322,9 @@ class RealtimeDatabaseService {
           
           // Filter out test/dummy profiles
           if (email.contains('test') || email.contains('example') || 
-              name.contains('test') || name.contains('demo')) return false;
+              name.contains('test') || name.contains('demo')) {
+            return false;
+          }
 
           return role.contains('veterinarian') || role.contains('vet') || 
                  role.contains('grooming') || role.contains('boarding');
@@ -344,7 +346,9 @@ class RealtimeDatabaseService {
 
             // Filter out test/dummy profiles
             if (email.contains('test') || email.contains('example') || 
-                name.contains('test') || name.contains('demo')) return false;
+                name.contains('test') || name.contains('demo')) {
+              return false;
+            }
 
             return role.contains('veterinarian') || role.contains('vet') || 
                    role.contains('grooming') || role.contains('boarding');

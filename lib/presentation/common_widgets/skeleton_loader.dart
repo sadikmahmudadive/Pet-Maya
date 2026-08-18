@@ -39,8 +39,8 @@ class _SkeletonLoaderState extends State<SkeletonLoader> with SingleTickerProvid
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final baseColor = isDark ? Colors.white.withOpacity(0.05) : Colors.grey[300]!;
-    final highlightColor = isDark ? Colors.white.withOpacity(0.12) : Colors.white.withOpacity(0.5);
+    final baseColor = isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey[300]!;
+    final highlightColor = isDark ? Colors.white.withValues(alpha: 0.12) : Colors.white.withValues(alpha: 0.5);
 
     return RepaintBoundary(
       child: AnimatedBuilder(

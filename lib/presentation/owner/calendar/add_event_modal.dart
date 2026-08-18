@@ -148,7 +148,7 @@ class _AddEventModalState extends State<AddEventModal> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey.withOpacity(0.2),
+                  color: Colors.grey.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
@@ -224,7 +224,7 @@ class _AddEventModalState extends State<AddEventModal> {
                       label: Text(cat),
                       selected: isSelected,
                       onSelected: (val) => setState(() => _category = cat),
-                      backgroundColor: AppColors.primary.withOpacity(0.05),
+                      backgroundColor: AppColors.primary.withValues(alpha: 0.05),
                       selectedColor: const Color(0xFFFFC145), 
                       labelStyle: TextStyle(
                         fontSize: 12,
@@ -257,7 +257,7 @@ class _AddEventModalState extends State<AddEventModal> {
                 Switch(
                   value: _isReminderEnabled,
                   onChanged: (val) => setState(() => _isReminderEnabled = val),
-                  activeColor: AppColors.primary,
+                  activeThumbColor: AppColors.primary,
                 ),
               ],
             ),

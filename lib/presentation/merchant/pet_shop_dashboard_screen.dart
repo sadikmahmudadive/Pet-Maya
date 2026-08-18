@@ -95,7 +95,7 @@ class PetShopDashboardScreen extends StatelessWidget {
                               decoration: BoxDecoration(
                                 color: const Color(0xFF1AB680), 
                                 borderRadius: BorderRadius.circular(24),
-                                boxShadow: [BoxShadow(color: const Color(0xFF1AB680).withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10))],
+                                boxShadow: [BoxShadow(color: const Color(0xFF1AB680).withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 10))],
                               ),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -140,9 +140,9 @@ class PetShopDashboardScreen extends StatelessWidget {
                       child: Container(
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          color: AppColors.dangerRed.withOpacity(0.05),
+                          color: AppColors.dangerRed.withValues(alpha: 0.05),
                           borderRadius: BorderRadius.circular(24),
-                          border: Border.all(color: AppColors.dangerRed.withOpacity(0.1)),
+                          border: Border.all(color: AppColors.dangerRed.withValues(alpha: 0.1)),
                         ),
                         child: Row(
                           children: [
@@ -253,7 +253,7 @@ class PetShopDashboardScreen extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+      decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
       child: Text(status.displayName.toUpperCase(), 
         style: TextStyle(color: color, fontWeight: FontWeight.w900, fontSize: 8, letterSpacing: 0.8)),
     );
@@ -264,9 +264,9 @@ class PetShopDashboardScreen extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface.withOpacity(0.05),
+        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.grey.withOpacity(0.1)),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
       ),
       child: Center(child: Text(msg, style: AppTypography.bodyMedium)),
     );
@@ -284,7 +284,7 @@ class PetShopDashboardScreen extends StatelessWidget {
           children: [
             Container(
               padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
+              decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
               child: Icon(icon, color: color, size: 18),
             ),
             const SizedBox(height: 14),

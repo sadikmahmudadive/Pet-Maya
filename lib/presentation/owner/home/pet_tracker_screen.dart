@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -8,7 +9,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:ui';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_typography.dart';
 import '../../../data/models/pet_model.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
@@ -28,11 +28,12 @@ class _PetTrackerScreenState extends State<PetTrackerScreen> with SingleTickerPr
   LatLng _userLocation = const LatLng(23.8120, 90.4150);
   
   bool _isSafeZone = true;
-  int _batteryLevel = 88;
-  String _currentActivity = 'Resting in Backyard';
+  final int _batteryLevel = 88;
+  final String _currentActivity = 'Resting in Backyard';
   
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
+  StreamSubscription<Position>? _positionSubscription;
 
   @override
   void initState() {
@@ -51,6 +52,7 @@ class _PetTrackerScreenState extends State<PetTrackerScreen> with SingleTickerPr
 
   @override
   void dispose() {
+    _positionSubscription?.cancel();
     _pulseController.dispose();
     _mapController.dispose();
     super.dispose();
@@ -65,10 +67,10 @@ class _PetTrackerScreenState extends State<PetTrackerScreen> with SingleTickerPr
 
     if (permission == LocationPermission.whileInUse || permission == LocationPermission.always) {
       // 2. Stream user location with high precision
-      Geolocator.getPositionStream(
+      _positionSubscription = Geolocator.getPositionStream(
         locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-          distanceFilter: 5,
+          accuracy: LocationAccuracy.medium,
+          distanceFilter: 10,
         ),
       ).listen((Position position) {
         if (mounted) {
@@ -106,8 +108,6 @@ class _PetTrackerScreenState extends State<PetTrackerScreen> with SingleTickerPr
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return GlassScaffold(
       body: Stack(
         children: [

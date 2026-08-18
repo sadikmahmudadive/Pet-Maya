@@ -72,7 +72,7 @@ class InventoryManagementScreen extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
-                                color: (prod.stockQuantity > 5 ? AppColors.healthGreen : AppColors.dangerRed).withOpacity(0.1),
+                                color: (prod.stockQuantity > 5 ? AppColors.healthGreen : AppColors.dangerRed).withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: Text(
@@ -127,7 +127,7 @@ class InventoryManagementScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.withOpacity(0.2), borderRadius: BorderRadius.circular(10)))),
+                Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(10)))),
                 const SizedBox(height: 24),
                 Text('Add Product', style: AppTypography.headlineSmall.copyWith(fontWeight: FontWeight.w800)),
                 const SizedBox(height: 32),
@@ -204,7 +204,7 @@ class InventoryManagementScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.withOpacity(0.2), borderRadius: BorderRadius.circular(10)))),
+            Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(10)))),
             const SizedBox(height: 24),
             Text('Update Stock', style: AppTypography.headlineSmall.copyWith(fontWeight: FontWeight.w800)),
             const SizedBox(height: 8),

@@ -483,7 +483,7 @@ class HomeDashboardFragment extends StatelessWidget {
                               subtitle: 'Live location',
                               action: 'Locate',
                               onTap: () {
-                                if (pets.isNotEmpty)
+                                if (pets.isNotEmpty) {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
@@ -491,6 +491,7 @@ class HomeDashboardFragment extends StatelessWidget {
                                           PetTrackerScreen(pet: pets.first),
                                     ),
                                   );
+                                }
                               },
                             ),
                             _buildDiscoveryCard(

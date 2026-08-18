@@ -48,9 +48,9 @@ class _ShopOrdersScreenState extends State<ShopOrdersScreen> {
             margin: const EdgeInsets.symmetric(horizontal: 20),
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: isDark ? Colors.white.withOpacity(0.05) : Colors.white.withOpacity(0.4),
+              color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white.withValues(alpha: 0.4),
               borderRadius: BorderRadius.circular(27),
-              border: Border.all(color: Colors.white.withOpacity(0.1)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
             ),
             child: Row(
               children: List.generate(_tabs.length, (index) {
@@ -68,7 +68,7 @@ class _ShopOrdersScreenState extends State<ShopOrdersScreen> {
                       decoration: BoxDecoration(
                         color: isSelected ? AppColors.primary : Colors.transparent,
                         borderRadius: BorderRadius.circular(22),
-                        boxShadow: isSelected ? [BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 4))] : null,
+                        boxShadow: isSelected ? [BoxShadow(color: AppColors.primary.withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 4))] : null,
                       ),
                       child: Text(
                         _tabs[index],
@@ -199,7 +199,7 @@ class _ShopOrdersScreenState extends State<ShopOrdersScreen> {
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+      decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
       child: Text(status.displayName.toUpperCase(), 
         style: TextStyle(color: color, fontWeight: FontWeight.w900, fontSize: 8, letterSpacing: 0.8)),
     );

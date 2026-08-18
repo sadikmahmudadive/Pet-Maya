@@ -2,7 +2,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
-import '../owner/home/notification_screen.dart';
 
 class ParallaxHeader extends SliverPersistentHeaderDelegate {
   final double expandedHeight;
@@ -33,7 +32,7 @@ class ParallaxHeader extends SliverPersistentHeaderDelegate {
         CachedNetworkImage(
           imageUrl: 'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=800&q=80',
           fit: BoxFit.cover,
-          color: Colors.black.withOpacity(0.4 * opacity),
+          color: Colors.black.withValues(alpha: 0.4 * opacity),
           colorBlendMode: BlendMode.darken,
           placeholder: (c, url) => Container(color: Colors.grey[300]),
           errorWidget: (c, url, e) => Container(color: AppColors.primary),
@@ -47,7 +46,7 @@ class ParallaxHeader extends SliverPersistentHeaderDelegate {
               end: Alignment.bottomCenter,
               colors: [
                 Colors.transparent,
-                AppColors.background.withOpacity(percent.clamp(0, 1)),
+                AppColors.background.withValues(alpha: percent.clamp(0, 1)),
               ],
             ),
           ),
@@ -85,7 +84,7 @@ class ParallaxHeader extends SliverPersistentHeaderDelegate {
                     child: Text(
                       'Hi, $userName',
                       style: AppTypography.titleMedium.copyWith(
-                        color: AppColors.textPrimary.withOpacity(percent),
+                        color: AppColors.textPrimary.withValues(alpha: percent),
                       ),
                     ),
                   ),
@@ -106,14 +105,14 @@ class ParallaxHeader extends SliverPersistentHeaderDelegate {
               Text(
                 _getGreeting(),
                 style: AppTypography.titleMedium.copyWith(
-                  color: Colors.white.withOpacity(opacity), 
+                  color: Colors.white.withValues(alpha: opacity), 
                   fontWeight: FontWeight.w500,
                 ),
               ),
               Text(
                 '$userName!',
                 style: AppTypography.displayLarge.copyWith(
-                  color: Colors.white.withOpacity(opacity), 
+                  color: Colors.white.withValues(alpha: opacity), 
                   fontSize: 32,
                 ),
               ),

@@ -135,7 +135,7 @@ class AdminDashboardScreen extends StatelessWidget {
                             end: Alignment.bottomRight,
                           ),
                           borderRadius: BorderRadius.circular(24),
-                          boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10))],
+                          boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 10))],
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -178,7 +178,7 @@ class AdminDashboardScreen extends StatelessWidget {
                                   children: [
                                     Container(
                                       padding: const EdgeInsets.all(10),
-                                      decoration: BoxDecoration(color: AppColors.accentAmber.withOpacity(0.1), shape: BoxShape.circle),
+                                      decoration: BoxDecoration(color: AppColors.accentAmber.withValues(alpha: 0.1), shape: BoxShape.circle),
                                       child: const Icon(Icons.assignment_ind_rounded, color: AppColors.accentAmber, size: 20),
                                     ),
                                     const SizedBox(width: 16),
@@ -243,9 +243,9 @@ class AdminDashboardScreen extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface.withOpacity(0.4),
+        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant.withOpacity(0.5)),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5)),
       ),
       child: Center(child: Text(msg, style: Theme.of(context).textTheme.bodyMedium)),
     );
@@ -263,7 +263,7 @@ class AdminDashboardScreen extends StatelessWidget {
           children: [
             Container(
               padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
+              decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
               child: Icon(icon, color: color, size: 16),
             ),
             const SizedBox(height: 12),

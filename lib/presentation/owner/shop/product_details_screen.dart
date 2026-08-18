@@ -117,7 +117,7 @@ class ProductDetailsScreen extends StatelessWidget {
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                        decoration: BoxDecoration(color: AppColors.accentAmber.withOpacity(0.1), borderRadius: BorderRadius.circular(16)),
+                        decoration: BoxDecoration(color: AppColors.accentAmber.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(16)),
                         child: const Row(
                           children: [
                             Icon(Icons.star_rounded, color: AppColors.accentAmber, size: 20),

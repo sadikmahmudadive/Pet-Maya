@@ -63,7 +63,7 @@ class AdminVerifyVetsScreen extends StatelessWidget {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
-                              color: (vet.isVerified ? AppColors.healthGreen : AppColors.accentAmber).withOpacity(0.1),
+                              color: (vet.isVerified ? AppColors.healthGreen : AppColors.accentAmber).withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Text(
@@ -100,7 +100,7 @@ class AdminVerifyVetsScreen extends StatelessWidget {
                             );
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: vet.isVerified ? const Color(0xFFFF0055).withOpacity(0.1) : AppColors.healthGreen,
+                            backgroundColor: vet.isVerified ? const Color(0xFFFF0055).withValues(alpha: 0.1) : AppColors.healthGreen,
                             foregroundColor: vet.isVerified ? const Color(0xFFFF0055) : Colors.white,
                             elevation: 0,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

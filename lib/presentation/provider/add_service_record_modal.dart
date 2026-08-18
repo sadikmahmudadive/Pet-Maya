@@ -95,7 +95,7 @@ class _AddServiceRecordModalState extends State<AddServiceRecordModal> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.withOpacity(0.2), borderRadius: BorderRadius.circular(10)))),
+            Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(10)))),
             const SizedBox(height: 24),
             Text('Medical Log', style: AppTypography.headlineSmall.copyWith(fontWeight: FontWeight.w800)),
             const SizedBox(height: 24),

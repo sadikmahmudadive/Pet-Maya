@@ -18,7 +18,7 @@ class BreedFinderScreen extends StatefulWidget {
 class _BreedFinderScreenState extends State<BreedFinderScreen> {
   bool _isIdentifying = false;
   String? _identifiedBreed;
-  String _sampleImage = 'https://images.unsplash.com/photo-1548767797-d8c844163c4c?w=800&auto=format&fit=crop';
+  final String _sampleImage = 'https://images.unsplash.com/photo-1548767797-d8c844163c4c?w=800&auto=format&fit=crop';
 
   void _runIdentification() async {
     setState(() {
@@ -91,14 +91,14 @@ class _BreedFinderScreenState extends State<BreedFinderScreen> {
                             height: 240,
                             width: double.infinity,
                             decoration: BoxDecoration(
-                              color: isDark ? Colors.white.withOpacity(0.05) : Colors.white,
+                              color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
                               borderRadius: BorderRadius.circular(28),
-                              border: Border.all(color: AppColors.primary.withOpacity(0.1), width: 2),
+                              border: Border.all(color: AppColors.primary.withValues(alpha: 0.1), width: 2),
                             ),
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.add_a_photo_rounded, size: 54, color: AppColors.primary.withOpacity(0.4)),
+                                Icon(Icons.add_a_photo_rounded, size: 54, color: AppColors.primary.withValues(alpha: 0.4)),
                                 const SizedBox(height: 16),
                                 Text('Tap to capture or upload', 
                                   style: AppTypography.labelSmall.copyWith(fontWeight: FontWeight.w800, color: AppColors.primary)),
@@ -123,7 +123,7 @@ class _BreedFinderScreenState extends State<BreedFinderScreen> {
                             children: [
                               Container(
                                 padding: const EdgeInsets.all(20),
-                                decoration: BoxDecoration(color: AppColors.healthGreen.withOpacity(0.1), shape: BoxShape.circle),
+                                decoration: BoxDecoration(color: AppColors.healthGreen.withValues(alpha: 0.1), shape: BoxShape.circle),
                                 child: const Icon(Icons.verified_rounded, size: 60, color: AppColors.healthGreen),
                               ),
                               const SizedBox(height: 24),

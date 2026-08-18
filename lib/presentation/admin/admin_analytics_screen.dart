@@ -95,7 +95,7 @@ class AdminAnalyticsScreen extends StatelessWidget {
           children: [
             Container(
               padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
+              decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
               child: Icon(icon, color: color, size: 20),
             ),
             const SizedBox(height: 20),
@@ -127,7 +127,7 @@ class AdminAnalyticsScreen extends StatelessWidget {
           child: LinearProgressIndicator(
             value: progress,
             minHeight: 10,
-            backgroundColor: color.withOpacity(0.1),
+            backgroundColor: color.withValues(alpha: 0.1),
             valueColor: AlwaysStoppedAnimation<Color>(color),
           ),
         ),

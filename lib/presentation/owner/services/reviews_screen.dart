@@ -4,8 +4,6 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:animate_do/animate_do.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_typography.dart';
-import '../../../data/models/review_model.dart';
 import '../../../data/repositories/app_state_repository.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
@@ -57,7 +55,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                 Text('User Experience', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 22, letterSpacing: -0.5)),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(color: AppColors.healthGreen.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+                  decoration: BoxDecoration(color: AppColors.healthGreen.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
                   child: const Text('VERIFIED', style: TextStyle(color: AppColors.healthGreen, fontWeight: FontWeight.w900, fontSize: 8, letterSpacing: 1)),
                 ),
               ],
@@ -105,7 +103,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                                       child: Icon(
                                         Icons.star_rounded, 
                                         size: 16, 
-                                        color: i < review.rating ? AppColors.accentAmber : (isDark ? Colors.white10 : Colors.black.withOpacity(0.05)),
+                                        color: i < review.rating ? AppColors.accentAmber : (isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05)),
                                       ),
                                     )),
                                   ),
@@ -137,9 +135,9 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
         bottom: MediaQuery.of(context).viewInsets.bottom + 32,
       ),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface.withOpacity(0.95),
+        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.95),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(36)),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 40, offset: const Offset(0, -10))],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 40, offset: const Offset(0, -10))],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,

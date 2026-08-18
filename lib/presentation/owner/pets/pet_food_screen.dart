@@ -169,7 +169,7 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
                             elevation: 8,
                             shadowColor: const Color(
                               0xFF1AB680,
-                            ).withOpacity(0.4),
+                            ).withValues(alpha: 0.4),
                           ),
                           child: _isSaving
                               ? const CircularProgressIndicator(
@@ -366,7 +366,7 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           decoration: BoxDecoration(
-            color: isDark ? Colors.white.withOpacity(0.05) : Colors.white,
+            color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
             borderRadius: BorderRadius.circular(16),
           ),
           child: TextField(
@@ -415,7 +415,7 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           decoration: BoxDecoration(
-            color: isDark ? Colors.white.withOpacity(0.05) : Colors.white,
+            color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
             borderRadius: BorderRadius.circular(16),
           ),
           child: DropdownButtonHideUnderline(
@@ -453,9 +453,9 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFFA8D5BA).withOpacity(0.4),
+        color: const Color(0xFFA8D5BA).withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF2D8C69).withOpacity(0.3)),
+        border: Border.all(color: const Color(0xFF2D8C69).withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -637,7 +637,7 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: Colors.grey.withOpacity(0.2),
+              color: Colors.grey.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -647,7 +647,7 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
+                  color: AppColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: const Icon(
@@ -777,7 +777,7 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Icon(icon, color: color, size: 24),

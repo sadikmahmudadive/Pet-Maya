@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:animate_do/animate_do.dart';
 import '../../core/theme/app_colors.dart';
@@ -59,7 +58,7 @@ class AdminLogsScreen extends StatelessWidget {
                               decoration: BoxDecoration(
                                 color: _getLogColor(title),
                                 borderRadius: BorderRadius.circular(10),
-                                boxShadow: [BoxShadow(color: _getLogColor(title).withOpacity(0.3), blurRadius: 8)],
+                                boxShadow: [BoxShadow(color: _getLogColor(title).withValues(alpha: 0.3), blurRadius: 8)],
                               ),
                             ),
                             const SizedBox(width: 16),
