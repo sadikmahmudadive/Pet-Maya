@@ -1481,6 +1481,153 @@
       from { transform: translateY(-20px) scale(0.95); opacity: 0; }
       to   { transform: translateY(0) scale(1); opacity: 1; }
     }
+
+    /* ══ CLINIC & VET DASHBOARD ══ */
+    .clinic-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .clinic-kpi-tile {
+      background: var(--surface);
+      border: 1px solid var(--separator);
+      border-radius: var(--r-md);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .clinic-kpi-tile:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--primary);
+    }
+    .clinic-kpi-tile .kpi-ico { font-size: 24px; margin-bottom: 4px; }
+    .clinic-kpi-tile .kpi-val { font-size: 28px; font-weight: 900; letter-spacing: -1px; color: var(--label); }
+    .clinic-kpi-tile .kpi-lbl { font-size: 12px; font-weight: 700; color: var(--label-3); text-transform: uppercase; letter-spacing: 0.05em; }
+
+    .patient-queue-card {
+      background: var(--surface);
+      border: 1px solid var(--separator);
+      border-radius: var(--r-md);
+      padding: 18px 22px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      transition: all 0.18s ease;
+    }
+    .patient-queue-card:hover {
+      border-color: var(--primary);
+      box-shadow: var(--shadow-sm);
+    }
+    .patient-avatar-box {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2.5px solid var(--primary);
+    }
+    .consult-video-room {
+      background: #0f172a;
+      color: #f8fafc;
+      border-radius: var(--r-lg);
+      padding: 28px;
+      margin-bottom: 24px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+    }
+    .video-mockup-screen {
+      width: 100%;
+      height: 300px;
+      background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+      border-radius: var(--r-md);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 18px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .video-call-timer {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      background: rgba(0,0,0,0.65);
+      backdrop-filter: blur(8px);
+      padding: 4px 12px;
+      border-radius: var(--r-full);
+      font-size: 12px;
+      font-weight: 700;
+      color: #4ade80;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .video-controls-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 14px;
+      margin-top: 12px;
+    }
+    .ctrl-circle-btn {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: white;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .ctrl-circle-btn:hover { background: rgba(255,255,255,0.25); transform: scale(1.05); }
+    .ctrl-circle-btn.end-call { background: #ef4444; border-color: #ef4444; }
+    .ctrl-circle-btn.end-call:hover { background: #dc2626; }
+
+    /* Role switcher bar in Profile */
+    .role-switcher-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .role-btn-tile {
+      padding: 12px 14px;
+      border-radius: var(--r-sm);
+      border: 1.5px solid var(--separator);
+      background: var(--surface);
+      cursor: pointer;
+      text-align: center;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--label);
+      transition: all 0.18s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .role-btn-tile:hover {
+      border-color: var(--primary);
+      background: var(--primary-tint);
+    }
+    .role-btn-tile.active {
+      border-color: var(--primary);
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 4px 14px rgba(26,182,128,0.3);
+    }
   </style>
 </head>
 
@@ -1755,7 +1902,7 @@
       </a>
     </div>
 
-    <div class="app-header-center">
+    <div class="app-header-center" id="appHeaderCenter">
       <button class="app-tab-pill active" onclick="switchTab('dashboard',this)">🏠 Home</button>
       <button class="app-tab-pill" onclick="switchTab('vets',this)">🩺 Vets</button>
       <button class="app-tab-pill" onclick="switchTab('ai',this)">🤖 AI Scan</button>
@@ -2032,6 +2179,39 @@
         </div>
       </div>
 
+      <!-- Role Experience Switcher -->
+      <div class="card-box" style="margin-bottom:24px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
+          <div>
+            <h3 style="font-size:18px;font-weight:800;letter-spacing:-0.3px;">Portal Experience &amp; Role</h3>
+            <p style="font-size:13px;color:var(--label-3);">Switch your account role to experience tailored dashboards and workflows.</p>
+          </div>
+          <span class="badge badge-blue" id="currentRoleBadge" style="font-size:12px;padding:5px 12px;">Pet Owner</span>
+        </div>
+        <div class="role-switcher-grid">
+          <button class="role-btn-tile active" id="roleTile-owner" onclick="switchUserRoleMode('Pet Owner')">
+            <span style="font-size:22px;">🐾</span>
+            <span>Pet Owner</span>
+          </button>
+          <button class="role-btn-tile" id="roleTile-vet" onclick="switchUserRoleMode('Veterinarian')">
+            <span style="font-size:22px;">🩺</span>
+            <span>Veterinarian</span>
+          </button>
+          <button class="role-btn-tile" id="roleTile-shop" onclick="switchUserRoleMode('Pet Shop')">
+            <span style="font-size:22px;">🛍️</span>
+            <span>Pet Shop</span>
+          </button>
+          <button class="role-btn-tile" id="roleTile-grooming" onclick="switchUserRoleMode('Grooming')">
+            <span style="font-size:22px;">✂️</span>
+            <span>Care Provider</span>
+          </button>
+          <button class="role-btn-tile" id="roleTile-admin" onclick="switchUserRoleMode('Admin')">
+            <span style="font-size:22px;">🛡️</span>
+            <span>Admin</span>
+          </button>
+        </div>
+      </div>
+
       <!-- Referral & Loyalty Program -->
       <div class="card-box" style="margin-bottom:24px;background:linear-gradient(135deg, rgba(26,182,128,0.08) 0%, rgba(59,130,246,0.06) 100%);border:1.5px solid rgba(26,182,128,0.25);">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px;">
@@ -2077,6 +2257,245 @@
         <h3 style="font-size:19px;font-weight:800;letter-spacing:-0.3px;margin-bottom:16px;">📦 My Orders History</h3>
         <div id="userOrdersList">
           <div style="text-align:center;padding:24px;color:var(--label-3);">No orders placed yet. Visit the Shop to order pet essentials!</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!-- ══ VETERINARIAN CLINIC CONSOLE ══                      -->
+    <!-- ══════════════════════════════════════════════════════ -->
+    <div class="app-pane" id="pane-vet-console">
+      <!-- Clinic Header Banner -->
+      <div class="card-box" style="margin-bottom:24px;background:linear-gradient(135deg, rgba(26,182,128,0.12) 0%, rgba(59,130,246,0.08) 100%);border:1.5px solid rgba(26,182,128,0.3);">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
+          <div>
+            <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(26,182,128,0.2);color:#0D9488;padding:4px 12px;border-radius:var(--r-full);font-size:11px;font-weight:800;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:6px;">
+              🩺 Clinical Practice Suite
+            </div>
+            <h2 style="font-size:26px;font-weight:800;letter-spacing:-0.5px;" id="vetConsoleGreet">Dr. Sarah Jenkins Console</h2>
+            <p style="font-size:14px;color:var(--label-3);">Veterinary Electronic Health Records, Live Consultations &amp; Patient Queue.</p>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <button class="btn-sm-primary" onclick="openAddServiceRecordModal()">📝 New Clinical Log</button>
+            <button class="btn-sm-ghost" onclick="switchTab('vet-consult')">📹 Start Tele-Consult</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Clinic KPIs -->
+      <div class="clinic-kpi-grid">
+        <div class="clinic-kpi-tile">
+          <span class="kpi-ico">📅</span>
+          <span class="kpi-val" id="vetKpiToday">4</span>
+          <span class="kpi-lbl">Appointments Today</span>
+        </div>
+        <div class="clinic-kpi-tile">
+          <span class="kpi-ico">📋</span>
+          <span class="kpi-val" id="vetKpiRecords">28</span>
+          <span class="kpi-lbl">Total Patient Records</span>
+        </div>
+        <div class="clinic-kpi-tile">
+          <span class="kpi-ico">💻</span>
+          <span class="kpi-val" id="vetKpiTele">6</span>
+          <span class="kpi-lbl">Tele-Health Consults</span>
+        </div>
+        <div class="clinic-kpi-tile">
+          <span class="kpi-ico">⭐</span>
+          <span class="kpi-val">4.9 ★</span>
+          <span class="kpi-lbl">Patient Satisfaction</span>
+        </div>
+      </div>
+
+      <!-- Today's Patient Queue -->
+      <div class="card-box" style="margin-bottom:24px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+          <div>
+            <h3 style="font-size:19px;font-weight:800;letter-spacing:-0.3px;">Today's Patient Queue</h3>
+            <p style="font-size:13px;color:var(--label-3);">Scheduled consultations and triage for today.</p>
+          </div>
+          <button class="btn-sm-ghost" onclick="loadVetConsoleData()">⟳ Refresh Queue</button>
+        </div>
+        <div id="vetTodayQueue">
+          <div style="text-align:center;padding:30px;color:var(--label-3);">Loading today's clinical queue…</div>
+        </div>
+      </div>
+
+      <!-- Quick Patient Directory & Prescriptions -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(300px, 1fr));gap:20px;">
+        <div class="card-box">
+          <h3 style="font-size:18px;font-weight:800;margin-bottom:12px;">🏥 In-Clinic Quick Triage</h3>
+          <p style="font-size:13px;color:var(--label-3);margin-bottom:14px;">Instant vital signs check and diagnosis notes recording.</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+            <div><label class="label-mini">Pet Weight (kg)</label><input type="text" id="quickWeight" class="input-clean" placeholder="e.g. 14.2 kg"></div>
+            <div><label class="label-mini">Temp (°C)</label><input type="text" id="quickTemp" class="input-clean" placeholder="e.g. 38.6 °C"></div>
+          </div>
+          <div style="margin-bottom:14px;"><label class="label-mini">Chief Diagnosis</label><input type="text" id="quickDiag" class="input-clean" placeholder="e.g. Mild ear canal infection, Otitis Externa"></div>
+          <button class="btn-sm-primary" style="width:100%;padding:12px;" onclick="saveQuickTriage()">Record Vitals &amp; Diagnosis</button>
+        </div>
+
+        <div class="card-box">
+          <h3 style="font-size:18px;font-weight:800;margin-bottom:12px;">💊 Instant Prescription Dispenser</h3>
+          <p style="font-size:13px;color:var(--label-3);margin-bottom:14px;">Create structured prescription sent directly to the pet owner's app.</p>
+          <div style="margin-bottom:10px;"><label class="label-mini">Medicine / Drug Name</label><input type="text" id="rxDrug" class="input-clean" placeholder="e.g. Amoxicillin Trihydrate 250mg"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+            <div><label class="label-mini">Dosage</label><input type="text" id="rxDosage" class="input-clean" placeholder="1 tablet 2x daily"></div>
+            <div><label class="label-mini">Duration</label><input type="text" id="rxDuration" class="input-clean" placeholder="7 days"></div>
+          </div>
+          <button class="btn-sm-primary" style="width:100%;padding:12px;" onclick="dispenseRx()">Send Digital Prescription 🚀</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!-- ══ VET APPOINTMENTS MANAGER ══                         -->
+    <!-- ══════════════════════════════════════════════════════ -->
+    <div class="app-pane" id="pane-vet-appointments">
+      <div class="card-box" style="margin-bottom:20px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+          <div>
+            <h2 style="font-size:24px;font-weight:800;letter-spacing:-0.4px;">📅 Clinical Appointments Schedule</h2>
+            <p style="font-size:14px;color:var(--label-3);">Review, confirm, or start video consultations with pet owners.</p>
+          </div>
+          <button class="btn-sm-ghost" onclick="loadVetConsoleData()">⟳ Refresh Schedule</button>
+        </div>
+
+        <!-- Filter chips -->
+        <div class="chip-row" style="margin-bottom:18px;">
+          <button class="chip-pill active" onclick="filterVetAppts(this, 'all')">All Bookings</button>
+          <button class="chip-pill" onclick="filterVetAppts(this, 'today')">Today Only</button>
+          <button class="chip-pill" onclick="filterVetAppts(this, 'video')">💻 Tele-Health Video</button>
+          <button class="chip-pill" onclick="filterVetAppts(this, 'clinic')">🏥 Clinic Visits</button>
+          <button class="chip-pill" onclick="filterVetAppts(this, 'completed')">✓ Completed</button>
+        </div>
+
+        <div id="vetAppointmentsList">
+          <div style="text-align:center;padding:30px;color:var(--label-3);">Loading appointment schedule…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!-- ══ VET PATIENT RECORDS & EHR ══                        -->
+    <!-- ══════════════════════════════════════════════════════ -->
+    <div class="app-pane" id="pane-vet-records">
+      <div class="card-box" style="margin-bottom:20px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:18px;">
+          <div>
+            <h2 style="font-size:24px;font-weight:800;letter-spacing:-0.4px;">📋 Electronic Health Records (EHR)</h2>
+            <p style="font-size:14px;color:var(--label-3);">Comprehensive medical logs, vaccination history, and clinical diagnosis records.</p>
+          </div>
+          <button class="btn-sm-primary" onclick="openAddServiceRecordModal()">➕ New Patient Log</button>
+        </div>
+
+        <div class="admin-search" style="margin-bottom:20px;">
+          <input type="text" id="ehrSearch" placeholder="Search patient by pet name, breed, or owner…" oninput="filterEHRRecords()">
+        </div>
+
+        <div id="vetRecordsList">
+          <div style="text-align:center;padding:30px;color:var(--label-3);">Loading medical records…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!-- ══ VET TELE-HEALTH & VIDEO CONSULT ══                  -->
+    <!-- ══════════════════════════════════════════════════════ -->
+    <div class="app-pane" id="pane-vet-consult">
+      <div class="consult-video-room">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
+          <div>
+            <div style="font-size:12px;color:#4ade80;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;">🟢 Live Tele-Health Room Active</div>
+            <h2 style="font-size:24px;font-weight:800;color:white;margin-top:2px;" id="activeConsultTitle">Video Consultation with Bella (Dog)</h2>
+          </div>
+          <span class="badge badge-green" style="font-size:13px;padding:6px 14px;">Encrypted HD Video</span>
+        </div>
+
+        <div class="video-mockup-screen">
+          <div class="video-call-timer">
+            <span style="width:8px;height:8px;background:#4ade80;border-radius:50%;display:inline-block;animation:pulse 1.5s infinite;"></span>
+            <span id="callDurationLabel">09:24</span>
+          </div>
+          <div style="text-align:center;">
+            <img src="assets/images/Pet_1.jpg" alt="Patient" style="width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid #1AB680;box-shadow:0 0 25px rgba(26,182,128,0.5);margin:0 auto 12px;">
+            <h4 style="font-size:18px;font-weight:800;color:white;margin-bottom:2px;" id="activeCallPet">Bella 🐕</h4>
+            <div style="font-size:13px;color:#94a3b8;">Parent: Alex Johnson • Golden Retriever (3 yrs)</div>
+          </div>
+        </div>
+
+        <!-- Video Controls -->
+        <div class="video-controls-row">
+          <button class="ctrl-circle-btn" onclick="toggleConsultMic(this)" title="Toggle Mic">🎤</button>
+          <button class="ctrl-circle-btn" onclick="toggleConsultCam(this)" title="Toggle Camera">📹</button>
+          <button class="ctrl-circle-btn" onclick="toast('🖥️ Screen sharing active')" title="Share Screen">🖥️</button>
+          <button class="ctrl-circle-btn" onclick="openAddServiceRecordModal()" title="Write Prescription">📝</button>
+          <button class="ctrl-circle-btn end-call" onclick="endConsultCall()" title="End Consultation">📞</button>
+        </div>
+      </div>
+
+      <!-- Live Clinical Notes & Prescription during Call -->
+      <div class="card-box">
+        <h3 style="font-size:18px;font-weight:800;margin-bottom:12px;">📝 Live Clinical Consultation Notes</h3>
+        <textarea id="liveConsultNotes" class="input-clean" rows="4" placeholder="Type clinical observations, symptoms reported by owner, temperature, and diagnosis…" style="margin-bottom:14px;resize:vertical;"></textarea>
+        <div style="display:flex;justify-content:flex-end;gap:10px;">
+          <button class="btn-sm-ghost" onclick="document.getElementById('liveConsultNotes').value=''">Clear</button>
+          <button class="btn-sm-primary" onclick="saveLiveConsultNotes()">Save Notes to Patient Record ✓</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!-- ══ PET SHOP INVENTORY & STOCK ══                       -->
+    <!-- ══════════════════════════════════════════════════════ -->
+    <div class="app-pane" id="pane-shop-inventory">
+      <div class="card-box" style="margin-bottom:24px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+          <div>
+            <h2 style="font-size:24px;font-weight:800;letter-spacing:-0.4px;">📦 Store Inventory &amp; Stock Manager</h2>
+            <p style="font-size:14px;color:var(--label-3);">Manage catalog products, update live quantities, and restock supplies.</p>
+          </div>
+          <button class="btn-sm-primary" onclick="switchTab('admin'); adminSubSwitch('products');">➕ Add New Product</button>
+        </div>
+
+        <div id="merchantInventoryContainer">
+          <div style="text-align:center;padding:30px;color:var(--label-3);">Loading store products…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!-- ══ PET SHOP ORDERS FULFILLMENT ══                      -->
+    <!-- ══════════════════════════════════════════════════════ -->
+    <div class="app-pane" id="pane-shop-orders">
+      <div class="card-box" style="margin-bottom:24px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+          <div>
+            <h2 style="font-size:24px;font-weight:800;letter-spacing:-0.4px;">🛒 Customer Orders &amp; Fulfillment</h2>
+            <p style="font-size:14px;color:var(--label-3);">Process incoming customer orders and update dispatch status.</p>
+          </div>
+          <button class="btn-sm-ghost" onclick="loadShopMerchantData()">⟳ Refresh Orders</button>
+        </div>
+
+        <div id="merchantOrdersContainer">
+          <div style="text-align:center;padding:30px;color:var(--label-3);">Loading incoming orders…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!-- ══ GROOMING & BOARDING SCHEDULE ══                     -->
+    <!-- ══════════════════════════════════════════════════════ -->
+    <div class="app-pane" id="pane-service-bookings">
+      <div class="card-box" style="margin-bottom:24px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+          <div>
+            <h2 style="font-size:24px;font-weight:800;letter-spacing:-0.4px;">✂️ Grooming &amp; Boarding Care Schedule</h2>
+            <p style="font-size:14px;color:var(--label-3);">Daily pet grooming sessions, spa appointments, and boarding stays.</p>
+          </div>
+          <button class="btn-sm-primary" onclick="openBookingModal()">➕ Book In-Store Service</button>
+        </div>
+
+        <div id="careServiceBookingsContainer">
+          <div style="text-align:center;padding:30px;color:var(--label-3);">Loading care appointments…</div>
         </div>
       </div>
     </div>
@@ -2499,6 +2918,50 @@
   </div>
 </div>
 
+<!-- ── ADD CLINICAL SERVICE RECORD & EHR MODAL ── -->
+<div class="modal-veil" id="addServiceRecordModal">
+  <div class="modal-sheet" style="max-width:560px;">
+    <button class="modal-close" onclick="closeModal('addServiceRecordModal')">✕</button>
+    <h2 style="font-size:22px;font-weight:800;letter-spacing:-0.3px;margin-bottom:6px;">📝 New Clinical EHR Record</h2>
+    <p style="font-size:14px;color:var(--label-3);margin-bottom:20px;">Record veterinary diagnosis, patient vitals, medications, and follow-up plans.</p>
+    
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+      <div><label class="label-mini">Pet Name &amp; Breed</label><input type="text" id="srPetName" class="input-clean" placeholder="e.g. Bella (Golden Retriever)"></div>
+      <div><label class="label-mini">Pet Owner Name</label><input type="text" id="srOwnerName" class="input-clean" placeholder="e.g. Alex Johnson"></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+      <div><label class="label-mini">Service / Treatment Type</label>
+        <select id="srServiceType" class="input-clean">
+          <option value="Consultation">🩺 Clinical Consultation</option>
+          <option value="Vaccination">💉 Vaccination &amp; Booster</option>
+          <option value="Surgery">🔬 Minor Surgery / Dental</option>
+          <option value="Diagnostics">🧪 Bloodwork &amp; Lab Triage</option>
+          <option value="Grooming">✂️ Medicated Bath &amp; Grooming</option>
+        </select>
+      </div>
+      <div><label class="label-mini">Patient Weight</label><input type="text" id="srWeight" class="input-clean" placeholder="e.g. 14.5 kg"></div>
+    </div>
+
+    <div style="margin-bottom:14px;">
+      <label class="label-mini">Clinical Diagnosis / Chief Complaint</label>
+      <input type="text" id="srDiagnosis" class="input-clean" placeholder="e.g. Acute allergic dermatitis, mild ear erythema">
+    </div>
+
+    <div style="margin-bottom:14px;">
+      <label class="label-mini">Prescription &amp; Dosage Instructions</label>
+      <textarea id="srPrescription" class="input-clean" rows="2" placeholder="e.g. Apoquel 16mg: 1 tablet daily for 14 days. Topical Otomax ear drops 2x daily." style="resize:vertical;"></textarea>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:22px;">
+      <div><label class="label-mini">Treatment Cost ($)</label><input type="number" id="srCost" class="input-clean" placeholder="50.00" min="0" step="1"></div>
+      <div><label class="label-mini">Next Booster / Checkup Date</label><input type="date" id="srNextDate" class="input-clean"></div>
+    </div>
+
+    <button class="btn-sm-primary" style="width:100%;padding:14px;font-size:16px;" onclick="saveServiceRecord()">Save to Patient Records &amp; Push to Owner ✓</button>
+  </div>
+</div>
+
 <div class="toast-stack" id="toastStack"></div>
 
 <!-- ── MAIN SCRIPT ── -->
@@ -2649,6 +3112,37 @@
 
     const pr = document.getElementById('profileRole');
     if (pr) pr.textContent = role;
+
+    // Update Role Switcher Tiles in Profile
+    const roleLower = (role || 'Pet Owner').toLowerCase();
+    ['owner','vet','shop','grooming','admin'].forEach(k => {
+      const btn = document.getElementById('roleTile-' + k);
+      if (btn) {
+        let isMatch = false;
+        if (k === 'owner' && (roleLower.includes('owner') || roleLower === 'user')) isMatch = true;
+        else if (k === 'vet' && (roleLower.includes('vet') || roleLower.includes('doctor'))) isMatch = true;
+        else if (k === 'shop' && roleLower.includes('shop')) isMatch = true;
+        else if (k === 'grooming' && (roleLower.includes('groom') || roleLower.includes('board'))) isMatch = true;
+        else if (k === 'admin' && roleLower.includes('admin')) isMatch = true;
+        btn.classList.toggle('active', isMatch);
+      }
+    });
+    const crb = document.getElementById('currentRoleBadge');
+    if (crb) crb.textContent = role;
+
+    // Render Role-Tailored Navigation Header
+    renderNavbarForRole(role);
+
+    // Initial role console triggers
+    if (roleLower.includes('vet') || roleLower.includes('doctor')) {
+      const vcg = document.getElementById('vetConsoleGreet');
+      if (vcg) vcg.textContent = (name.startsWith('Dr.') ? name : `Dr. ${name}`) + ' Console';
+      loadVetConsoleData();
+    } else if (roleLower.includes('shop')) {
+      loadShopMerchantData();
+    } else if (roleLower.includes('groom') || roleLower.includes('board')) {
+      loadCareServiceData();
+    }
 
     buildVaccineTable();
     checkAdminAccess(u);
@@ -4247,6 +4741,468 @@
       if (match) match.classList.add('active');
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  /* ══════════════════════════════════════════════════════
+     ROLE-BASED PORTAL & NAVIGATION ENGINE
+  ══════════════════════════════════════════════════════ */
+  function renderNavbarForRole(role) {
+    const nav = document.getElementById('appHeaderCenter');
+    if (!nav) return;
+    const r = (role || 'Pet Owner').toLowerCase();
+
+    if (r.includes('vet') || r.includes('veterinarian') || r.includes('doctor')) {
+      nav.innerHTML = `
+        <button class="app-tab-pill active" onclick="switchTab('vet-console',this)">🩺 Console</button>
+        <button class="app-tab-pill" onclick="switchTab('vet-appointments',this)">📅 Appointments</button>
+        <button class="app-tab-pill" onclick="switchTab('vet-records',this)">📋 Patient EHR</button>
+        <button class="app-tab-pill" onclick="switchTab('vet-consult',this)">📹 Tele-Consult</button>
+        <button class="app-tab-pill" onclick="switchTab('shop',this)">🛍️ Supplies</button>
+        <button class="app-tab-pill" onclick="switchTab('community',this)">🐾 Community</button>
+        <button class="app-tab-pill" onclick="switchTab('profile',this)">👤 Clinic Profile</button>
+        <button class="admin-tab-pill" id="adminTabBtn" style="display:none;" onclick="switchTab('admin',this)">🛡️ Admin</button>
+      `;
+    } else if (r.includes('shop') || r.includes('merchant')) {
+      nav.innerHTML = `
+        <button class="app-tab-pill active" onclick="switchTab('shop-inventory',this)">📦 Inventory</button>
+        <button class="app-tab-pill" onclick="switchTab('shop-orders',this)">🛒 Store Orders</button>
+        <button class="app-tab-pill" onclick="switchTab('shop',this)">🛍️ Catalog View</button>
+        <button class="app-tab-pill" onclick="switchTab('community',this)">🐾 Community</button>
+        <button class="app-tab-pill" onclick="switchTab('profile',this)">👤 Store Profile</button>
+        <button class="admin-tab-pill" id="adminTabBtn" style="display:none;" onclick="switchTab('admin',this)">🛡️ Admin</button>
+      `;
+    } else if (r.includes('grooming') || r.includes('boarding') || r.includes('provider')) {
+      nav.innerHTML = `
+        <button class="app-tab-pill active" onclick="switchTab('service-bookings',this)">✂️ Service Queue</button>
+        <button class="app-tab-pill" onclick="switchTab('vet-records',this)">🐾 Guest Pets</button>
+        <button class="app-tab-pill" onclick="switchTab('shop',this)">🛍️ Supplies</button>
+        <button class="app-tab-pill" onclick="switchTab('community',this)">🐾 Community</button>
+        <button class="app-tab-pill" onclick="switchTab('profile',this)">👤 Provider Profile</button>
+        <button class="admin-tab-pill" id="adminTabBtn" style="display:none;" onclick="switchTab('admin',this)">🛡️ Admin</button>
+      `;
+    } else {
+      // Default: Pet Owner / Admin
+      nav.innerHTML = `
+        <button class="app-tab-pill active" onclick="switchTab('dashboard',this)">🏠 Home</button>
+        <button class="app-tab-pill" onclick="switchTab('vets',this)">🩺 Vets</button>
+        <button class="app-tab-pill" onclick="switchTab('ai',this)">🤖 AI Scan</button>
+        <button class="app-tab-pill" onclick="switchTab('community',this)">🐾 Community</button>
+        <button class="app-tab-pill" onclick="switchTab('shop',this)">🛍️ Shop</button>
+        <button class="app-tab-pill" onclick="switchTab('vaccines',this)">⏰ Alarms</button>
+        <button class="app-tab-pill" onclick="switchTab('profile',this)">👤 Profile</button>
+        <button class="admin-tab-pill" id="adminTabBtn" style="display:none;" onclick="switchTab('admin',this)">🛡️ Admin</button>
+      `;
+    }
+  }
+
+  function switchUserRoleMode(newRole) {
+    if (!currentUser) return;
+    currentUser.role = newRole;
+    if (currentUser.uid === 'demo_001') {
+      localStorage.setItem('pm_demo', JSON.stringify(currentUser));
+    } else {
+      db.collection('users').doc(currentUser.uid).set({ role: newRole }, { merge: true }).catch(() => {});
+    }
+    initUser(currentUser);
+
+    const r = (newRole || '').toLowerCase();
+    if (r.includes('vet') || r.includes('doctor')) {
+      switchTab('vet-console');
+    } else if (r.includes('shop')) {
+      switchTab('shop-inventory');
+    } else if (r.includes('groom') || r.includes('board')) {
+      switchTab('service-bookings');
+    } else if (r.includes('admin')) {
+      switchTab('admin');
+    } else {
+      switchTab('dashboard');
+    }
+    toast(`✨ Switched active portal to: ${newRole}`);
+  }
+
+  /* ══════════════════════════════════════════════════════
+     VETERINARY CLINICAL CONSOLE & EHR ENGINE
+  ══════════════════════════════════════════════════════ */
+  let activeClinicQueue = [
+    { id:'q1', petName:'Bella', breed:'Golden Retriever', age:'3 yrs', ownerName:'Alex Johnson', time:'10:30 AM', mode:'tele', reason:'Ear erythema & frequent scratching', photo:'assets/images/Pet_1.jpg' },
+    { id:'q2', petName:'Milo', breed:'British Shorthair', age:'2 yrs', ownerName:'Elena Vance', time:'11:15 AM', mode:'clinic', reason:'Annual DHPP Booster & checkup', photo:'assets/images/Pet_2.jpg' },
+    { id:'q3', petName:'Rocky', breed:'German Shepherd', age:'4 yrs', ownerName:'David Kim', time:'02:30 PM', mode:'clinic', reason:'Post-operative hip joint check', photo:'assets/images/Pet_1.jpg' },
+    { id:'q4', petName:'Luna', breed:'Persian Cat', age:'1 yr', ownerName:'Sophie Turner', time:'04:45 PM', mode:'tele', reason:'Dietary refusal & mild lethargy', photo:'assets/images/Pet_2.jpg' },
+  ];
+
+  let activeServiceRecords = [
+    { id:'sr1', petName:'Bella', ownerName:'Alex Johnson', serviceType:'Consultation', weight:'14.2 kg', diagnosis:'Otitis Externa (mild fungal ear canal infection)', prescription:'Otomax Drops 4 drops 2x daily (7 days). Apoquel 16mg daily.', cost:45, date:'2026-08-15', nextBooster:'2026-08-25' },
+    { id:'sr2', petName:'Max', ownerName:'John Doe', serviceType:'Vaccination', weight:'8.5 kg', diagnosis:'Routine Annual Immunization', prescription:'Nobivac DHPP + Rabies 1ml SC administered.', cost:35, date:'2026-08-10', nextBooster:'2027-08-10' },
+    { id:'sr3', petName:'Coco', ownerName:'Maria Garcia', serviceType:'Diagnostics', weight:'4.1 kg', diagnosis:'Routine Blood Panel & Urinalysis', prescription:'All parameters within normal clinical limits. Probiotics added.', cost:60, date:'2026-08-05', nextBooster:'2027-02-05' },
+  ];
+
+  function loadVetConsoleData() {
+    renderVetQueue();
+    renderVetAppointments(activeEvents.length ? activeEvents : activeClinicQueue);
+    renderVetRecords(activeServiceRecords);
+  }
+
+  function renderVetQueue() {
+    const qDiv = document.getElementById('vetTodayQueue');
+    if (!qDiv) return;
+    if (!activeClinicQueue.length) {
+      qDiv.innerHTML = '<div style="text-align:center;padding:24px;color:var(--label-3);">No more patients in today’s queue. All set! 🎉</div>';
+      return;
+    }
+    qDiv.innerHTML = activeClinicQueue.map(q => `
+      <div class="patient-queue-card">
+        <div style="display:flex;align-items:center;gap:14px;">
+          <img src="${q.photo||'assets/images/Pet_1.jpg'}" alt="${esc(q.petName)}" class="patient-avatar-box">
+          <div>
+            <div style="font-size:16px;font-weight:800;letter-spacing:-0.2px;">
+              ${esc(q.petName)} <span style="font-size:13px;font-weight:600;color:var(--label-3);">(${esc(q.breed||'Pet')}, ${esc(q.age||'—')})</span>
+            </div>
+            <div style="font-size:13px;color:var(--label-3);margin-top:2px;">
+              Parent: <strong>${esc(q.ownerName||'Alex')}</strong> • <span style="color:var(--primary);font-weight:700;">⏰ ${esc(q.time||'10:00 AM')}</span>
+            </div>
+            <div style="font-size:12px;color:var(--label);margin-top:4px;background:var(--surface-alt);padding:4px 10px;border-radius:var(--r-sm);display:inline-block;">
+              <strong>Chief Complaint:</strong> ${esc(q.reason||'Routine Consultation')}
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span class="badge ${q.mode==='tele'?'badge-blue':'badge-green'}">${q.mode==='tele'?'💻 Tele-Health Video':'🏥 In-Clinic'}</span>
+          ${q.mode==='tele' ? `<button class="btn-sm-primary" style="padding:6px 12px;font-size:12px;" onclick="startVideoConsult('${esc(q.petName)}','${esc(q.breed)}','${esc(q.ownerName)}')">📹 Start Video</button>` : ''}
+          <button class="btn-sm-ghost" style="padding:6px 12px;font-size:12px;" onclick="openAddServiceRecordModal('${esc(q.petName)}','${esc(q.ownerName)}')">📝 Log EHR</button>
+          <button class="btn-sm-ghost" style="padding:6px 10px;font-size:12px;color:#16A34A;" onclick="completeQueuePatient('${q.id}')">✓ Done</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function completeQueuePatient(qid) {
+    activeClinicQueue = activeClinicQueue.filter(q => q.id !== qid);
+    renderVetQueue();
+    const countEl = document.getElementById('vetKpiToday');
+    if (countEl) countEl.textContent = activeClinicQueue.length;
+    toast('✅ Patient consultation completed & marked done.');
+  }
+
+  let activeVetApptFilter = 'all';
+  function filterVetAppts(btn, filter) {
+    document.querySelectorAll('#pane-vet-appointments .chip-pill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeVetApptFilter = filter;
+    renderVetAppointments();
+  }
+
+  function renderVetAppointments() {
+    const div = document.getElementById('vetAppointmentsList');
+    if (!div) return;
+    let list = activeClinicQueue;
+    if (activeVetApptFilter === 'video') list = list.filter(a => a.mode === 'tele');
+    else if (activeVetApptFilter === 'clinic') list = list.filter(a => a.mode === 'clinic');
+    else if (activeVetApptFilter === 'completed') list = [];
+
+    if (!list.length) {
+      div.innerHTML = '<div style="text-align:center;padding:30px;color:var(--label-3);">No appointments in this category.</div>';
+      return;
+    }
+
+    div.innerHTML = list.map(a => `
+      <div class="patient-queue-card">
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div style="width:44px;height:44px;background:var(--primary-tint);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--primary);">
+            ${a.mode==='tele'?'💻':'🏥'}
+          </div>
+          <div>
+            <div style="font-weight:800;font-size:16px;">${esc(a.petName)} • ${esc(a.ownerName)}</div>
+            <div style="font-size:13px;color:var(--label-3);">Time: <strong>${esc(a.time)}</strong> • Reason: ${esc(a.reason)}</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          ${a.mode==='tele' ? `<button class="btn-sm-primary" onclick="startVideoConsult('${esc(a.petName)}','${esc(a.breed)}','${esc(a.ownerName)}')">📹 Start Consult</button>` : ''}
+          <button class="btn-sm-ghost" onclick="toast('🗓️ Booking confirmed for ' + '${esc(a.petName)}')">Confirm</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function renderVetRecords(records) {
+    const listDiv = document.getElementById('vetRecordsList');
+    if (!listDiv) return;
+    const list = records || activeServiceRecords;
+    if (!list.length) {
+      listDiv.innerHTML = '<div style="text-align:center;padding:30px;color:var(--label-3);">No electronic health records found.</div>';
+      return;
+    }
+    listDiv.innerHTML = list.map(r => `
+      <div class="card-box" style="margin-bottom:14px;padding:20px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:10px;">
+          <div>
+            <div style="display:inline-block;margin-bottom:4px;"><span class="badge badge-green">${esc(r.serviceType||'Consultation')}</span></div>
+            <h3 style="font-size:18px;font-weight:800;">${esc(r.petName)} <span style="font-size:13px;font-weight:500;color:var(--label-3);">• Owner: ${esc(r.ownerName)}</span></h3>
+            <div style="font-size:13px;color:var(--label-3);margin-top:2px;">Weight: <strong>${esc(r.weight||'—')}</strong> • Treated Date: ${esc(r.date||'Recent')}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:18px;font-weight:900;color:var(--primary);">$${r.cost||'45'}</div>
+            <div style="font-size:11px;color:var(--label-3);">Next Booster: ${esc(r.nextBooster||'None')}</div>
+          </div>
+        </div>
+        <div style="background:var(--surface-alt);border-radius:var(--r-sm);padding:12px 14px;font-size:13px;line-height:1.5;">
+          <div style="font-weight:700;color:var(--label);margin-bottom:4px;">📋 Diagnosis: ${esc(r.diagnosis||'Clinical Evaluation')}</div>
+          <div style="color:var(--label-2);">💊 <strong>Rx:</strong> ${esc(r.prescription||'None prescribed.')}</div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function filterEHRRecords() {
+    const q = (document.getElementById('ehrSearch')?.value || '').toLowerCase();
+    const filtered = activeServiceRecords.filter(r => 
+      (r.petName||'').toLowerCase().includes(q) || 
+      (r.ownerName||'').toLowerCase().includes(q) || 
+      (r.diagnosis||'').toLowerCase().includes(q)
+    );
+    renderVetRecords(filtered);
+  }
+
+  function openAddServiceRecordModal(petName, ownerName) {
+    if (petName && document.getElementById('srPetName')) document.getElementById('srPetName').value = petName;
+    if (ownerName && document.getElementById('srOwnerName')) document.getElementById('srOwnerName').value = ownerName;
+    document.getElementById('addServiceRecordModal')?.classList.add('open');
+  }
+
+  function saveServiceRecord() {
+    const petName   = (document.getElementById('srPetName')?.value || '').trim();
+    const ownerName = (document.getElementById('srOwnerName')?.value || '').trim();
+    const sType     = document.getElementById('srServiceType')?.value || 'Consultation';
+    const weight    = (document.getElementById('srWeight')?.value || '').trim();
+    const diag      = (document.getElementById('srDiagnosis')?.value || '').trim();
+    const rx        = (document.getElementById('srPrescription')?.value || '').trim();
+    const cost      = parseFloat(document.getElementById('srCost')?.value) || 45;
+    const nextDate  = document.getElementById('srNextDate')?.value || '';
+
+    if (!petName || !diag) {
+      toast('⚠️ Please enter pet name and clinical diagnosis.');
+      return;
+    }
+
+    const rec = {
+      id: 'sr_' + Date.now(),
+      petName, ownerName,
+      serviceType: sType,
+      weight, diagnosis: diag,
+      prescription: rx,
+      cost,
+      date: new Date().toISOString().split('T')[0],
+      nextBooster: nextDate,
+      vetUid: currentUser?.uid || 'demo_vet',
+      vetName: currentUser?.displayName || 'Dr. Sarah Jenkins'
+    };
+
+    activeServiceRecords.unshift(rec);
+    if (currentUser?.uid && currentUser.uid !== 'demo_001') {
+      db.collection('serviceRecords').doc(rec.id).set(rec).catch(() => {});
+    }
+
+    renderVetRecords(activeServiceRecords);
+    const countEl = document.getElementById('vetKpiRecords');
+    if (countEl) countEl.textContent = activeServiceRecords.length;
+
+    closeModal('addServiceRecordModal');
+    toast(`✅ EHR Record saved for ${petName} & synced to owner!`);
+  }
+
+  let consultTimerInterval = null;
+  let consultSeconds = 564;
+  function startVideoConsult(pet, breed, owner) {
+    switchTab('vet-consult');
+    const title = document.getElementById('activeConsultTitle');
+    const petLabel = document.getElementById('activeCallPet');
+    if (title) title.textContent = `Video Consultation with ${pet||'Bella'} (${breed||'Dog'})`;
+    if (petLabel) petLabel.textContent = `${pet||'Bella'} 🐕`;
+
+    consultSeconds = 0;
+    if (consultTimerInterval) clearInterval(consultTimerInterval);
+    consultTimerInterval = setInterval(() => {
+      consultSeconds++;
+      const m = String(Math.floor(consultSeconds / 60)).padStart(2, '0');
+      const s = String(consultSeconds % 60).padStart(2, '0');
+      const timeLbl = document.getElementById('callDurationLabel');
+      if (timeLbl) timeLbl.textContent = `${m}:${s}`;
+    }, 1000);
+
+    toast(`📹 Connecting encrypted HD tele-health video consult with ${owner||'Pet Parent'}...`);
+  }
+
+  function endConsultCall() {
+    if (consultTimerInterval) clearInterval(consultTimerInterval);
+    toast('📞 Consultation call ended. Notes saved to archive.');
+    switchTab('vet-console');
+  }
+
+  function toggleConsultMic(btn) {
+    const isMuted = btn.textContent === '🔇';
+    btn.textContent = isMuted ? '🎤' : '🔇';
+    toast(isMuted ? '🎤 Microphone unmuted' : '🔇 Microphone muted');
+  }
+
+  function toggleConsultCam(btn) {
+    const isOff = btn.textContent === '🚫';
+    btn.textContent = isOff ? '📹' : '🚫';
+    toast(isOff ? '📹 Camera on' : '🚫 Camera paused');
+  }
+
+  function saveLiveConsultNotes() {
+    const notes = document.getElementById('liveConsultNotes')?.value || '';
+    if (!notes.trim()) { toast('⚠️ Please enter consultation notes first.'); return; }
+    toast('✅ Clinical observations saved to patient medical record.');
+  }
+
+  function saveQuickTriage() {
+    const w = document.getElementById('quickWeight')?.value || '';
+    const t = document.getElementById('quickTemp')?.value || '';
+    const d = document.getElementById('quickDiag')?.value || '';
+    if (!d) { toast('⚠️ Please enter diagnosis'); return; }
+    toast(`✅ Vitals (Wt: ${w||'14kg'}, Temp: ${t||'38.6°C'}) & Diagnosis recorded!`);
+    document.getElementById('quickDiag').value = '';
+  }
+
+  function dispenseRx() {
+    const drug = document.getElementById('rxDrug')?.value || '';
+    const dosage = document.getElementById('rxDosage')?.value || '';
+    const dur = document.getElementById('rxDuration')?.value || '';
+    if (!drug) { toast('⚠️ Enter drug name'); return; }
+    toast(`🚀 Digital prescription for ${drug} (${dosage}, ${dur}) pushed to owner's app!`);
+    document.getElementById('rxDrug').value = '';
+  }
+
+  /* ══════════════════════════════════════════════════════
+     PET SHOP & MERCHANT INVENTORY ENGINE
+  ══════════════════════════════════════════════════════ */
+  function loadShopMerchantData() {
+    renderMerchantInventory();
+    renderMerchantOrders();
+  }
+
+  function renderMerchantInventory() {
+    const c = document.getElementById('merchantInventoryContainer');
+    if (!c) return;
+    const list = activeProducts.length ? activeProducts : SAMPLE_PRODUCTS_CATALOG;
+    c.innerHTML = `
+      <table class="admin-table">
+        <thead><tr><th>Item / Brand</th><th>Category</th><th>Price</th><th>Stock Status</th><th>Adjust Stock</th><th>Action</th></tr></thead>
+        <tbody>
+          ${list.map(p => {
+            const stock = p.stockQuantity || p.stock || 0;
+            const isLow = stock <= 15;
+            return `
+              <tr>
+                <td>
+                  <div style="font-weight:700;">${esc(p.name)}</div>
+                  <div style="font-size:11px;color:var(--label-3);">${esc(p.brand||'Pet Maya')}</div>
+                </td>
+                <td><span class="badge badge-blue">${esc(p.category||'Care')}</span></td>
+                <td style="font-weight:800;color:var(--primary);">$${parseFloat(p.price||0).toFixed(2)}</td>
+                <td><span class="badge ${stock<=0?'badge-red':(isLow?'badge-yellow':'badge-green')}">${stock<=0?'Out of Stock':(isLow?`Low (${stock})`:`In Stock (${stock})`)}</span></td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:6px;">
+                    <button class="btn-sm-ghost" style="padding:2px 8px;" onclick="adjustMerchantStock('${p.id}', -5)">-5</button>
+                    <span style="font-weight:700;width:32px;text-align:center;">${stock}</span>
+                    <button class="btn-sm-ghost" style="padding:2px 8px;" onclick="adjustMerchantStock('${p.id}', 10)">+10</button>
+                  </div>
+                </td>
+                <td>
+                  <button class="btn-sm-ghost" style="color:#DC2626;padding:4px 8px;font-size:11px;" onclick="deleteProduct('${p.id}')">🗑 Remove</button>
+                </td>
+              </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+
+  function adjustMerchantStock(pid, delta) {
+    const p = (activeProducts.length ? activeProducts : SAMPLE_PRODUCTS_CATALOG).find(x => x.id === pid);
+    if (!p) return;
+    const newStock = Math.max(0, (p.stockQuantity || p.stock || 0) + delta);
+    p.stockQuantity = newStock;
+    if (currentUser?.uid && currentUser.uid !== 'demo_001') {
+      db.collection('products').doc(pid).set({ stockQuantity: newStock }, { merge: true }).catch(() => {});
+    }
+    renderMerchantInventory();
+    toast(`📦 Stock updated to: ${newStock}`);
+  }
+
+  let sampleMerchantOrders = [
+    { id:'ORD-9841', customerName:'Alex Johnson', phone:'+1 555-0199', items:'Premium Adult Kibble (x2)', total:69.98, status:'Processing', date:'Today, 10:45 AM' },
+    { id:'ORD-9840', customerName:'Sophie Turner', phone:'+1 555-0842', items:'Omega-3 Coat Oil, Furminator Brush', total:40.50, status:'Shipped', date:'Yesterday' },
+    { id:'ORD-9839', customerName:'David Kim', phone:'+1 555-0371', items:'Broad-Spectrum Dewormer', total:14.20, status:'Delivered', date:'Aug 16' },
+  ];
+
+  function renderMerchantOrders() {
+    const c = document.getElementById('merchantOrdersContainer');
+    if (!c) return;
+    c.innerHTML = `
+      <table class="admin-table">
+        <thead><tr><th>Order Ref</th><th>Customer Details</th><th>Ordered Items</th><th>Total</th><th>Status</th><th>Update Status</th></tr></thead>
+        <tbody>
+          ${sampleMerchantOrders.map(o => `
+            <tr>
+              <td style="font-weight:800;color:var(--primary);">${esc(o.id)}</td>
+              <td>
+                <div style="font-weight:700;">${esc(o.customerName)}</div>
+                <div style="font-size:11px;color:var(--label-3);">${esc(o.phone)}</div>
+              </td>
+              <td style="font-size:13px;">${esc(o.items)}</td>
+              <td style="font-weight:800;">$${parseFloat(o.total||0).toFixed(2)}</td>
+              <td><span class="badge ${o.status==='Delivered'?'badge-green':(o.status==='Shipped'?'badge-blue':'badge-yellow')}">${esc(o.status)}</span></td>
+              <td>
+                <select class="input-clean" style="padding:4px 8px;font-size:12px;width:auto;" onchange="changeMerchantOrderStatus('${o.id}', this.value)">
+                  <option value="Pending" ${o.status==='Pending'?'selected':''}>Pending</option>
+                  <option value="Processing" ${o.status==='Processing'?'selected':''}>Processing</option>
+                  <option value="Shipped" ${o.status==='Shipped'?'selected':''}>Shipped</option>
+                  <option value="Delivered" ${o.status==='Delivered'?'selected':''}>Delivered</option>
+                </select>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+
+  function changeMerchantOrderStatus(oid, newStatus) {
+    const o = sampleMerchantOrders.find(x => x.id === oid);
+    if (o) o.status = newStatus;
+    renderMerchantOrders();
+    toast(`🚚 Order ${oid} status updated to: ${newStatus}`);
+  }
+
+  /* ══════════════════════════════════════════════════════
+     GROOMING & CARE PROVIDER ENGINE
+  ══════════════════════════════════════════════════════ */
+  let careSchedule = [
+    { id:'cs1', petName:'Bella', breed:'Golden Retriever', service:'Full Spa & Hair Styling', time:'09:00 AM', status:'In Progress' },
+    { id:'cs2', petName:'Milo', breed:'British Shorthair', service:'Medicated Bath & Nail Trim', time:'11:30 AM', status:'Booked' },
+    { id:'cs3', petName:'Charlie', breed:'Poodle', service:'Deluxe Boarding Suite Check-in', time:'02:00 PM', status:'Confirmed' },
+  ];
+
+  function loadCareServiceData() {
+    const c = document.getElementById('careServiceBookingsContainer');
+    if (!c) return;
+    c.innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:16px;">
+        ${careSchedule.map(s => `
+          <div class="card-box" style="padding:18px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <span class="badge ${s.status==='In Progress'?'badge-green':'badge-blue'}">${esc(s.status)}</span>
+              <strong style="color:var(--primary);font-size:13px;">⏰ ${esc(s.time)}</strong>
+            </div>
+            <h3 style="font-size:17px;font-weight:800;margin-bottom:2px;">${esc(s.petName)}</h3>
+            <div style="font-size:13px;color:var(--label-3);margin-bottom:8px;">${esc(s.breed)} • ${esc(s.service)}</div>
+            <button class="btn-sm-ghost" style="width:100%;font-size:12px;" onclick="toast('✓ Marked check-in for ' + '${esc(s.petName)}')">Update Check-in Status</button>
+          </div>
+        `).join('')}
+      </div>
+    `;
   }
 
   function setMode(m) {

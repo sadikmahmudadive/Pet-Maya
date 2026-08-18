@@ -131,16 +131,16 @@ class FloatingNavbar extends StatelessWidget {
                         _buildNavItem(
                           context: context,
                           index: 0,
-                          selectedIcon: CupertinoIcons.house_fill,
-                          unselectedIcon: CupertinoIcons.house,
-                          label: 'Home',
+                          selectedIcon: isProvider ? Icons.medical_services_rounded : CupertinoIcons.house_fill,
+                          unselectedIcon: isProvider ? Icons.medical_services_outlined : CupertinoIcons.house,
+                          label: isProvider ? 'Console' : 'Home',
                         ),
                         _buildNavItem(
                           context: context,
                           index: 1,
-                          selectedIcon: CupertinoIcons.compass_fill,
-                          unselectedIcon: CupertinoIcons.compass,
-                          label: 'Explore',
+                          selectedIcon: isProvider ? Icons.pets_rounded : CupertinoIcons.compass_fill,
+                          unselectedIcon: isProvider ? Icons.pets_outlined : CupertinoIcons.compass,
+                          label: isProvider ? 'Patients' : 'Explore',
                         ),
                         Expanded(
                           child: Center(
@@ -150,8 +150,8 @@ class FloatingNavbar extends StatelessWidget {
                         _buildNavItem(
                           context: context,
                           index: 2,
-                          selectedIcon: Icons.pets_rounded,
-                          unselectedIcon: Icons.pets_outlined,
+                          selectedIcon: isProvider ? Icons.forum_rounded : Icons.pets_rounded,
+                          unselectedIcon: isProvider ? Icons.forum_outlined : Icons.pets_outlined,
                           label: 'Community',
                         ),
                         _buildNavItem(
@@ -159,7 +159,7 @@ class FloatingNavbar extends StatelessWidget {
                           index: 3,
                           selectedIcon: CupertinoIcons.person_crop_circle_fill,
                           unselectedIcon: CupertinoIcons.person_crop_circle,
-                          label: 'Profile',
+                          label: isProvider ? 'Profile' : 'Profile',
                         ),
                       ],
                     ),
