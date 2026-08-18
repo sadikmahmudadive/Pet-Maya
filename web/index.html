@@ -3010,6 +3010,195 @@
         <td style="font-weight:700;color:var(--primary);">${(b.reach||0).toLocaleString()}</td>
       </tr>`).join('');
   }
+
+  /* ══════════════════════════════════════════════════════
+     EMAIL / PASSWORD AUTH
+  ══════════════════════════════════════════════════════ */
+
+  // Tab switcher
+  function switchAuthTab(tab) {
+    ['signin','signup'].forEach(t => {
+      document.getElementById('atab-'  + t)?.classList.toggle('active', t === tab);
+      document.getElementById('apane-' + t)?.classList.toggle('active', t === tab);
+    });
+    clearAuthMessages();
+  }
+
+  function clearAuthMessages() {
+    ['siErr','siOk','suErr'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.style.display = 'none'; el.textContent = ''; }
+    });
+  }
+
+  function showAuthErr(id, msg) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+
+  function showAuthOk(id, msg) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+
+  // Forgot-password toggle
+  function showForgot(show) {
+    const sv = document.getElementById('signinView');
+    const fv = document.getElementById('forgotView');
+    if (sv) sv.style.display = show ? 'none' : 'block';
+    if (fv) fv.style.display = show ? 'block' : 'none';
+    clearAuthMessages();
+  }
+
+  // Eye toggle (show / hide password)
+  function toggleEye(inputId, btn) {
+    const inp = document.getElementById(inputId);
+    if (!inp) return;
+    const isText = inp.type === 'text';
+    inp.type      = isText ? 'password' : 'text';
+    btn.textContent = isText ? '👁' : '🙈';
+  }
+
+  // Live password strength meter
+  function checkStrength() {
+    const pw    = document.getElementById('suPass')?.value || '';
+    const fill  = document.getElementById('strengthFill');
+    const label = document.getElementById('strengthLabel');
+    if (!fill || !label) return;
+    let score = 0;
+    if (pw.length >= 8)            score++;
+    if (pw.length >= 12)           score++;
+    if (/[A-Z]/.test(pw))         score++;
+    if (/[0-9]/.test(pw))         score++;
+    if (/[^A-Za-z0-9]/.test(pw)) score++;
+    const levels = [
+      { pct:'0%',   color:'transparent', text:'' },
+      { pct:'25%',  color:'#EF4444',     text:'Weak' },
+      { pct:'50%',  color:'#F97316',     text:'Fair' },
+      { pct:'75%',  color:'#EAB308',     text:'Good' },
+      { pct:'90%',  color:'#22C55E',     text:'Strong' },
+      { pct:'100%', color:'#16A34A',     text:'Excellent 🔒' },
+    ];
+    const lvl = levels[Math.min(score, 5)];
+    fill.style.width      = lvl.pct;
+    fill.style.background = lvl.color;
+    label.textContent     = lvl.text;
+    label.style.color     = lvl.color;
+  }
+
+  // Map Firebase error codes → user-friendly messages
+  function authErrMsg(code) {
+    const map = {
+      'auth/email-already-in-use':   'This email is already registered. Try signing in instead.',
+      'auth/user-not-found':         'No account found with this email address.',
+      'auth/wrong-password':         'Incorrect password. Try again or reset it.',
+      'auth/invalid-email':          'Please enter a valid email address.',
+      'auth/weak-password':          'Password must be at least 6 characters.',
+      'auth/too-many-requests':      'Too many attempts. Please wait a moment and try again.',
+      'auth/network-request-failed': 'Network error. Please check your connection.',
+      'auth/popup-closed-by-user':   'Sign-in popup was closed. Please try again.',
+      'auth/invalid-credential':     'Invalid email or password. Please check and retry.',
+      'auth/operation-not-allowed':  'Email/password sign-in is not enabled. Contact support.',
+    };
+    return map[code] || 'Something went wrong. Please try again.';
+  }
+
+  // Sign In with Email + Password
+  function emailSignIn() {
+    const email = (document.getElementById('siEmail')?.value || '').trim();
+    const pass  =  document.getElementById('siPass')?.value || '';
+    clearAuthMessages();
+    if (!email || !pass) { showAuthErr('siErr', '⚠️ Please enter your email and password.'); return; }
+    const btn = document.getElementById('siBtn');
+    if (btn) { btn.innerHTML = '<span class="auth-spinner"></span> Signing in…'; btn.disabled = true; }
+    auth.signInWithEmailAndPassword(email, pass)
+      .then(() => { closeModal('loginModal'); })
+      .catch(err => {
+        if (btn) { btn.innerHTML = 'Sign In'; btn.disabled = false; }
+        showAuthErr('siErr', '🚨 ' + authErrMsg(err.code));
+      });
+  }
+
+  // Create Account with Email + Password
+  function emailSignUp() {
+    const name  = (document.getElementById('suName')?.value  || '').trim();
+    const email = (document.getElementById('suEmail')?.value || '').trim();
+    const pass  =  document.getElementById('suPass')?.value  || '';
+    const pass2 =  document.getElementById('suPass2')?.value || '';
+    clearAuthMessages();
+    if (!name)                  { showAuthErr('suErr', '⚠️ Please enter your full name.');         return; }
+    if (!email)                 { showAuthErr('suErr', '⚠️ Please enter your email address.');      return; }
+    if (pass.length < 8)        { showAuthErr('suErr', '⚠️ Password must be at least 8 characters.'); return; }
+    if (pass !== pass2)         { showAuthErr('suErr', '⚠️ Passwords do not match.');               return; }
+    const btn = document.getElementById('suBtn');
+    if (btn) { btn.innerHTML = '<span class="auth-spinner"></span> Creating account…'; btn.disabled = true; }
+    auth.createUserWithEmailAndPassword(email, pass)
+      .then(cred => cred.user.updateProfile({ displayName: name }))
+      .then(() => {
+        const u = auth.currentUser;
+        db.collection('users').doc(u.uid).set({
+          uid: u.uid,
+          displayName: name,
+          email: email,
+          photoURL: '',
+          status: 'pending',
+          createdAt: new Date().toISOString(),
+        }, { merge: true }).catch(() => {});
+        closeModal('loginModal');
+        toast('🎉 Account created! Welcome, ' + name.split(' ')[0] + '!');
+      })
+      .catch(err => {
+        if (btn) { btn.innerHTML = 'Create Account'; btn.disabled = false; }
+        showAuthErr('suErr', '🚨 ' + authErrMsg(err.code));
+      });
+  }
+
+  // Send password-reset email
+  function sendPasswordReset() {
+    const email = (document.getElementById('fpEmail')?.value || '').trim();
+    clearAuthMessages();
+    if (!email) { showAuthErr('siErr', '⚠️ Enter your email address.'); return; }
+    const btn = document.getElementById('fpBtn');
+    if (btn) { btn.innerHTML = '<span class="auth-spinner"></span> Sending…'; btn.disabled = true; }
+    auth.sendPasswordResetEmail(email)
+      .then(() => {
+        if (btn) { btn.innerHTML = 'Send Reset Link'; btn.disabled = false; }
+        showAuthOk('siOk', '✅ Reset link sent! Check your inbox (and spam folder).');
+        if (document.getElementById('fpEmail')) document.getElementById('fpEmail').value = '';
+      })
+      .catch(err => {
+        if (btn) { btn.innerHTML = 'Send Reset Link'; btn.disabled = false; }
+        showAuthErr('siErr', '🚨 ' + authErrMsg(err.code));
+      });
+  }
+
+  // Override openLoginModal so it resets form state on every open
+  function openLoginModal(tab) {
+    clearAuthMessages();
+    showForgot(false);
+    switchAuthTab(tab || 'signin');
+    // Clear all inputs
+    ['siEmail','siPass','suName','suEmail','suPass','suPass2','fpEmail'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.value = '';
+    });
+    // Reset strength meter
+    const sf = document.getElementById('strengthFill');
+    const sl = document.getElementById('strengthLabel');
+    if (sf) { sf.style.width = '0%'; sf.style.background = 'transparent'; }
+    if (sl) sl.textContent = '';
+    // Reset button labels
+    const siBtn = document.getElementById('siBtn');
+    const suBtn = document.getElementById('suBtn');
+    const fpBtn = document.getElementById('fpBtn');
+    if (siBtn) { siBtn.innerHTML = 'Sign In';        siBtn.disabled = false; }
+    if (suBtn) { suBtn.innerHTML = 'Create Account'; suBtn.disabled = false; }
+    if (fpBtn) { fpBtn.innerHTML = 'Send Reset Link'; fpBtn.disabled = false; }
+    document.getElementById('loginModal')?.classList.add('open');
+  }
 </script>
 </body>
 </html>
