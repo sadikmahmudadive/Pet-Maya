@@ -2339,6 +2339,8 @@
 
   function initUser(u) {
     currentUser = u;
+    // ─ Reset admin state FIRST so a normal user never inherits a previous session's access
+    revokeAdmin();
     document.getElementById('publicView').style.display = 'none';
     document.getElementById('appView').style.display = 'block';
     document.getElementById('userAvatar').src = u.photoURL || 'assets/images/Pet_2.jpg';
@@ -2349,12 +2351,13 @@
     document.getElementById('profileEmail').textContent = u.email || 'petparent@petmaya.app';
     buildVaccineTable();
     toast(`👋 Signed in as ${(u.displayName||'Pet Parent').split(' ')[0]}`);
-    // Admin check — runs after UI is ready
+    // Admin check — runs AFTER UI is ready; only grants access if truly admin
     checkAdminAccess(u);
   }
 
   function showPublic() {
     currentUser = null;
+    revokeAdmin();                                          // always hide admin tab on sign-out
     document.getElementById('appView').style.display = 'none';
     document.getElementById('publicView').style.display = 'block';
   }
@@ -2503,6 +2506,7 @@
   }
 
   function doSignOut() {
+    revokeAdmin();
     localStorage.removeItem('pm_demo');
     auth.signOut().then(() => { showPublic(); toast('🔒 Signed out'); });
   }
@@ -2707,6 +2711,18 @@
     isAdmin = true;
     const btn = document.getElementById('adminTabBtn');
     if (btn) btn.style.display = 'inline-flex';
+  }
+
+  // Revoke admin — hides the tab and resets flag (called on every new login & sign-out)
+  function revokeAdmin() {
+    isAdmin = false;
+    const btn = document.getElementById('adminTabBtn');
+    if (btn) btn.style.display = 'none';
+    // If user is currently on the admin pane, redirect to dashboard
+    const adminPane = document.getElementById('pane-admin');
+    if (adminPane && adminPane.classList.contains('active')) {
+      switchTab('dashboard');
+    }
   }
 
   // ── Admin access — called from initUser (see above) ──
