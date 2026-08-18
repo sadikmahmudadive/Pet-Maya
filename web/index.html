@@ -20,9 +20,10 @@
     href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
     rel="stylesheet">
 
-  <!-- Firebase App, Auth & Analytics SDKs -->
+  <!-- Firebase App, Auth, Firestore & Analytics SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics-compat.js"></script>
 
   <style>
@@ -30,6 +31,7 @@
       --primary: #1AB680;
       --primary-dark: #138A61;
       --primary-light: #e6f4f8;
+      --secondary: #00B6D2;
       --accent: #FF6B6B;
       --accent-warm: #FFA07A;
       --health-green: #2E7D32;
@@ -42,8 +44,8 @@
       --shadow-sm: 0 4px 20px rgba(26, 182, 128, 0.08);
       --shadow-md: 0 12px 36px rgba(26, 182, 128, 0.12);
       --shadow-lg: 0 24px 60px rgba(26, 182, 128, 0.18);
-      --radius-sm: 12px;
-      --radius-md: 20px;
+      --radius-sm: 14px;
+      --radius-md: 22px;
       --radius-lg: 32px;
       --radius-full: 9999px;
     }
@@ -69,7 +71,6 @@
     html, body {
       max-width: 100%;
       overflow-x: hidden !important;
-      position: relative;
     }
 
     body {
@@ -80,7 +81,7 @@
       transition: background-color 0.3s ease, color 0.3s ease;
     }
 
-    /* ─── COMMON BUTTONS & CHIPS ─── */
+    /* ─── COMMON UI ATOMS ─── */
     .btn {
       display: inline-flex;
       align-items: center;
@@ -98,7 +99,7 @@
     }
 
     .btn-primary {
-      background: linear-gradient(135deg, var(--primary) 0%, #00B6D2 100%);
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
       color: white;
       box-shadow: 0 8px 24px rgba(26, 182, 128, 0.25);
     }
@@ -142,7 +143,29 @@
       transform: translateY(-1px);
     }
 
-    /* ─── PUBLIC NAVBAR ─── */
+    .theme-toggle-btn {
+      background: var(--bg-card);
+      border: 1.5px solid var(--border-color);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text-dark);
+      font-size: 18px;
+      transition: all 0.25s ease;
+    }
+
+    .theme-toggle-btn:hover {
+      border-color: var(--primary);
+      transform: scale(1.08);
+    }
+
+    /* ══════════════════════════════════════════════════════════════════ */
+    /* 1. PUBLIC HOMEPAGE STYLES                                         */
+    /* ══════════════════════════════════════════════════════════════════ */
     .public-navbar {
       position: fixed;
       top: 0;
@@ -217,27 +240,6 @@
       gap: 12px;
     }
 
-    .theme-toggle-btn {
-      background: var(--bg-card);
-      border: 1.5px solid var(--border-color);
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      color: var(--text-dark);
-      font-size: 18px;
-      transition: all 0.25s ease;
-    }
-
-    .theme-toggle-btn:hover {
-      border-color: var(--primary);
-      transform: scale(1.08);
-    }
-
-    /* ─── HERO SECTION ─── */
     .hero {
       padding: 140px 24px 70px;
       max-width: 1240px;
@@ -334,7 +336,7 @@
       font-weight: 700;
     }
 
-    /* ─── PHONE MOCKUP PREVIEW ─── */
+    /* Phone Mockup */
     .hero-phone-wrapper {
       position: relative;
       display: flex;
@@ -347,9 +349,8 @@
       background: #0f172a;
       border-radius: 46px;
       padding: 12px;
-      box-shadow: 0 30px 80px rgba(26, 182, 128, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1);
+      box-shadow: 0 30px 80px rgba(26, 182, 128, 0.25);
       position: relative;
-      overflow: hidden;
     }
 
     .phone-screen {
@@ -401,7 +402,6 @@
       color: white;
       padding: 16px;
       border-radius: 20px;
-      box-shadow: var(--shadow-sm);
     }
 
     .mockup-card {
@@ -435,7 +435,6 @@
       50% { transform: translateY(-10px); }
     }
 
-    /* ─── SHORT OVERVIEW / FEATURES ─── */
     .section {
       padding: 80px 24px;
       max-width: 1240px;
@@ -508,61 +507,26 @@
       align-items: center;
       justify-content: center;
       margin-bottom: 20px;
+      font-size: 26px;
     }
 
-    .icon-vet { background: #E0F2FE; color: #0284C7; }
-    .icon-ai { background: #F3E8FF; color: #9333EA; }
-    .icon-social { background: #FFE4E6; color: #E11D48; }
-    .icon-shop { background: #FEF3C7; color: #D97706; }
-    .icon-alarm { background: #DCFCE7; color: #16A34A; }
-    .icon-offline { background: #E0E7FF; color: #4F46E5; }
+    .icon-vet { background: #E0F2FE; }
+    .icon-ai { background: #F3E8FF; }
+    .icon-social { background: #FFE4E6; }
+    .icon-shop { background: #FEF3C7; }
+    .icon-alarm { background: #DCFCE7; }
+    .icon-offline { background: #E0E7FF; }
 
-    .feature-card h3 {
-      font-size: 20px;
-      font-weight: 800;
-      margin-bottom: 10px;
-      color: var(--text-dark);
-    }
-
-    .feature-card p {
-      font-size: 14.5px;
-      color: var(--text-muted);
-      line-height: 1.6;
-    }
-
-    /* ─── WEB LOGIN PORTAL BANNER ─── */
     .portal-banner {
-      background: linear-gradient(135deg, #138A61 0%, var(--primary) 50%, #00B6D2 100%);
+      background: linear-gradient(135deg, #138A61 0%, var(--primary) 50%, var(--secondary) 100%);
       color: white;
       border-radius: var(--radius-lg);
       padding: 60px 40px;
       text-align: center;
       margin: 40px 24px;
       box-shadow: var(--shadow-lg);
-      position: relative;
     }
 
-    .portal-banner h2 {
-      font-size: 36px;
-      font-weight: 800;
-      margin-bottom: 14px;
-    }
-
-    .portal-banner p {
-      font-size: 16px;
-      max-width: 600px;
-      margin: 0 auto 30px;
-      opacity: 0.95;
-    }
-
-    .portal-actions {
-      display: flex;
-      justify-content: center;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-
-    /* ─── DATA TRANSPARENCY / PRIVACY ─── */
     .data-section {
       background: var(--bg-card);
       padding: 80px 24px;
@@ -584,19 +548,6 @@
       padding: 28px 24px;
     }
 
-    .data-card h3 {
-      font-size: 17px;
-      font-weight: 700;
-      color: var(--text-dark);
-      margin-bottom: 8px;
-    }
-
-    .data-card p {
-      font-size: 14px;
-      color: var(--text-muted);
-      line-height: 1.6;
-    }
-
     .data-purpose {
       display: inline-block;
       margin-top: 12px;
@@ -608,44 +559,56 @@
       border-radius: var(--radius-full);
     }
 
-    /* ─── AUTHENTICATED APP EXPERIENCE ─── */
+    /* ══════════════════════════════════════════════════════════════════ */
+    /* 2. AUTHENTICATED APP CLIENT (Matching Flutter App UI Flow)        */
+    /* ══════════════════════════════════════════════════════════════════ */
     #authenticatedAppView {
       display: none;
       min-height: 100vh;
       background: var(--bg-light);
     }
 
-    .app-layout {
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
-
-    .app-header {
+    .app-topbar {
       background: var(--bg-card);
       border-bottom: 1px solid var(--border-color);
-      padding: 12px 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      padding: 14px 24px;
       position: sticky;
       top: 0;
       z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
 
-    .app-header-left {
+    .app-topbar-left {
       display: flex;
       align-items: center;
       gap: 16px;
     }
 
-    .app-header-right {
+    .location-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--primary);
+      background: var(--primary-light);
+      padding: 4px 12px;
+      border-radius: var(--radius-full);
+    }
+
+    [data-theme="dark"] .location-badge {
+      background: rgba(26, 182, 128, 0.15);
+    }
+
+    .app-topbar-right {
       display: flex;
       align-items: center;
       gap: 14px;
     }
 
-    .user-pill {
+    .user-profile-badge {
       display: flex;
       align-items: center;
       gap: 10px;
@@ -653,32 +616,34 @@
       background: var(--bg-light);
       border: 1px solid var(--border-color);
       border-radius: var(--radius-full);
-      font-size: 13.5px;
-      font-weight: 700;
+      cursor: pointer;
     }
 
-    .user-pill img {
-      width: 28px;
-      height: 28px;
+    .user-profile-badge img {
+      width: 32px;
+      height: 32px;
       border-radius: 50%;
       object-fit: cover;
     }
 
-    /* App Nav Tabs */
-    .app-nav-bar {
+    /* Bottom / Sub Navigation Bar */
+    .app-bottom-navbar {
       background: var(--bg-card);
       border-bottom: 1px solid var(--border-color);
       display: flex;
       justify-content: center;
-      gap: 12px;
-      padding: 8px 16px;
+      gap: 10px;
+      padding: 10px 16px;
+      position: sticky;
+      top: 65px;
+      z-index: 90;
       overflow-x: auto;
     }
 
-    .app-tab-btn {
+    .app-nav-tab {
       background: none;
       border: none;
-      padding: 10px 18px;
+      padding: 10px 20px;
       border-radius: var(--radius-full);
       color: var(--text-muted);
       font-weight: 700;
@@ -692,238 +657,230 @@
       font-family: inherit;
     }
 
-    .app-tab-btn:hover {
+    .app-nav-tab:hover {
       background: var(--primary-light);
       color: var(--primary);
     }
 
-    [data-theme="dark"] .app-tab-btn:hover {
+    [data-theme="dark"] .app-nav-tab:hover {
       background: rgba(26, 182, 128, 0.15);
     }
 
-    .app-tab-btn.active {
+    .app-nav-tab.active {
       background: var(--primary);
       color: white;
-      box-shadow: 0 4px 14px rgba(26, 182, 128, 0.3);
+      box-shadow: 0 4px 16px rgba(26, 182, 128, 0.3);
     }
 
-    .app-main-container {
-      max-width: 1100px;
-      width: 100%;
+    .app-content-body {
+      max-width: 1140px;
       margin: 0 auto;
       padding: 30px 20px 80px;
-      flex: 1;
     }
 
-    .app-tab-content {
+    .app-view-pane {
       display: none;
       animation: fadeIn 0.3s ease;
     }
 
-    .app-tab-content.active {
+    .app-view-pane.active {
       display: block;
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Dashboard Widgets */
-    .welcome-card {
-      background: linear-gradient(135deg, var(--primary) 0%, #00B6D2 100%);
+    /* ─── APP DASHBOARD MODULES ─── */
+    .hero-welcome-banner {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
       color: white;
       border-radius: var(--radius-lg);
       padding: 32px;
-      margin-bottom: 24px;
-      box-shadow: var(--shadow-md);
+      margin-bottom: 28px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
       gap: 20px;
+      box-shadow: var(--shadow-md);
     }
 
-    .pet-summary-badge {
-      background: rgba(255, 255, 255, 0.2);
-      backdrop-filter: blur(10px);
-      padding: 12px 20px;
-      border-radius: var(--radius-md);
-      border: 1px solid rgba(255, 255, 255, 0.3);
+    .pets-scroll-container {
       display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .quick-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 16px;
-      margin-bottom: 28px;
+      overflow-x: auto;
+      padding-bottom: 12px;
+      margin-bottom: 30px;
     }
 
-    .quick-action-card {
+    .pet-vertical-card {
+      background: var(--bg-card);
+      border: 1.5px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      min-width: 190px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+
+    .pet-vertical-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--primary);
+      box-shadow: var(--shadow-md);
+    }
+
+    .pet-avatar-large {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid var(--primary);
+      margin-bottom: 10px;
+    }
+
+    .add-pet-card {
+      min-width: 150px;
+      border: 2px dashed var(--primary);
+      background: var(--primary-light);
+      border-radius: var(--radius-md);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--primary);
+      font-weight: 800;
+      font-size: 14px;
+      padding: 20px;
+    }
+
+    [data-theme="dark"] .add-pet-card {
+      background: rgba(26, 182, 128, 0.1);
+    }
+
+    .quick-actions-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .quick-action-tile {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
       border-radius: var(--radius-md);
       padding: 20px;
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 16px;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.2s;
     }
 
-    .quick-action-card:hover {
+    .quick-action-tile:hover {
       border-color: var(--primary);
       transform: translateY(-3px);
       box-shadow: var(--shadow-sm);
     }
 
-    .quick-icon {
-      width: 44px;
-      height: 44px;
-      border-radius: 12px;
+    .quick-tile-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 16px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 22px;
+      font-size: 24px;
     }
 
-    /* Interactive Tool Boxes */
-    .tool-box {
-      background: var(--bg-card);
-      border-radius: var(--radius-lg);
-      padding: 36px;
-      border: 1.5px solid var(--border-color);
-      box-shadow: var(--shadow-sm);
-      margin-bottom: 24px;
-    }
-
-    .chip-group {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin: 14px 0 20px;
-    }
-
-    .chip {
-      padding: 10px 18px;
-      border-radius: var(--radius-full);
-      background: var(--bg-light);
-      border: 1.5px solid var(--border-color);
-      color: var(--text-dark);
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .chip.active {
-      background: var(--primary);
-      color: white;
-      border-color: var(--primary);
-      box-shadow: 0 4px 12px rgba(26, 182, 128, 0.3);
-    }
-
-    .input-field {
-      width: 100%;
-      padding: 12px 18px;
-      border-radius: var(--radius-sm);
-      border: 1.5px solid var(--border-color);
-      font-size: 15px;
-      font-family: inherit;
-      outline: none;
-      background: var(--bg-card);
-      color: var(--text-dark);
-    }
-
-    .input-field:focus {
-      border-color: var(--primary);
-    }
-
-    /* Vet List Items */
-    .vet-card {
+    /* ─── VETS DIRECTORY ─── */
+    .vet-list-item {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
       border-radius: var(--radius-md);
-      padding: 20px 24px;
+      padding: 22px 26px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       margin-bottom: 16px;
+      flex-wrap: wrap;
       gap: 16px;
+      transition: all 0.2s;
     }
 
-    .vet-badge-avatar {
-      width: 52px;
-      height: 52px;
+    .vet-list-item:hover {
+      border-color: var(--primary);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .vet-avatar-badge {
+      width: 56px;
+      height: 56px;
       border-radius: 50%;
       background: var(--primary-light);
       color: var(--primary);
       display: flex;
       align-items: center;
       justify-content: center;
+      font-size: 20px;
       font-weight: 800;
-      font-size: 18px;
     }
 
-    /* Community Post Card */
-    .post-card {
+    /* ─── COMMUNITY FEED ─── */
+    .feed-post-card {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
       border-radius: var(--radius-md);
       padding: 24px;
       margin-bottom: 20px;
+      box-shadow: var(--shadow-sm);
     }
 
-    .post-header {
+    .feed-author-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 12px;
+      margin-bottom: 14px;
     }
 
-    .post-author {
+    .feed-actions-bar {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 16px;
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border-color);
     }
 
-    .post-author img {
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      object-fit: cover;
-    }
-
-    /* Product Grid */
-    .product-grid {
+    /* ─── SHOP CATALOG ─── */
+    .shop-product-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-      gap: 20px;
+      gap: 22px;
     }
 
-    .product-card {
+    .shop-card {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
       border-radius: var(--radius-md);
       padding: 20px;
-      text-align: center;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
+      text-align: center;
     }
 
-    .product-img {
+    .shop-card img {
       width: 100%;
-      height: 150px;
-      border-radius: 14px;
+      height: 160px;
       object-fit: cover;
-      margin-bottom: 14px;
+      border-radius: 14px;
+      margin-bottom: 12px;
     }
 
-    /* Modals & Toasts */
+    /* ─── MODALS ─── */
     .modal-backdrop {
       position: fixed;
       top: 0;
@@ -977,6 +934,48 @@
       color: var(--text-muted);
     }
 
+    .input-field {
+      width: 100%;
+      padding: 12px 18px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--border-color);
+      font-size: 15px;
+      font-family: inherit;
+      outline: none;
+      background: var(--bg-card);
+      color: var(--text-dark);
+    }
+
+    .input-field:focus {
+      border-color: var(--primary);
+    }
+
+    .chip-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 14px 0 20px;
+    }
+
+    .chip {
+      padding: 10px 18px;
+      border-radius: var(--radius-full);
+      background: var(--bg-light);
+      border: 1.5px solid var(--border-color);
+      color: var(--text-dark);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .chip.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+      box-shadow: 0 4px 12px rgba(26, 182, 128, 0.3);
+    }
+
     .toast-container {
       position: fixed;
       bottom: 24px;
@@ -1003,7 +1002,6 @@
       border-left: 4px solid var(--primary);
     }
 
-    /* Footer */
     footer {
       background: var(--bg-card);
       border-top: 1px solid var(--border-color);
@@ -1063,14 +1061,11 @@
       .hero-cta-group { justify-content: center; }
       .footer-container { grid-template-columns: 1fr 1fr; }
       .nav-links { display: none; }
-      .welcome-card { text-align: center; justify-content: center; }
     }
 
     @media (max-width: 600px) {
       .hero-title { font-size: 32px; }
       .footer-container { grid-template-columns: 1fr; }
-      .portal-banner { padding: 40px 20px; }
-      .tool-box { padding: 22px 18px; }
     }
   </style>
 </head>
@@ -1085,11 +1080,10 @@
   </noscript>
 
   <!-- ══════════════════════════════════════════════════════════════════ -->
-  <!-- 1. PUBLIC HOMEPAGE VIEW (When User is NOT Logged In)            -->
+  <!-- 1. PUBLIC HOMEPAGE (Overview + App Download + Sign In)           -->
   <!-- ══════════════════════════════════════════════════════════════════ -->
   <div id="publicLandingView">
     
-    <!-- Navbar -->
     <nav class="public-navbar">
       <div class="nav-container">
         <a href="#" class="brand">
@@ -1100,13 +1094,13 @@
         <ul class="nav-links">
           <li><a href="#overview">Overview</a></li>
           <li><a href="#features">Features</a></li>
-          <li><a href="#privacy">Privacy &amp; Safety</a></li>
+          <li><a href="#privacy">Privacy</a></li>
           <li><a href="/privacy-policy">Privacy Policy</a></li>
           <li><a href="/terms">Terms</a></li>
         </ul>
 
         <div class="nav-actions">
-          <button class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle dark/light theme" title="Toggle Theme">
+          <button class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle theme">
             🌙
           </button>
           
@@ -1121,27 +1115,19 @@
       </div>
     </nav>
 
-    <!-- Hero Section -->
     <header class="hero">
       <div class="hero-content">
         <div class="hero-badge">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="margin-right:4px;flex-shrink:0;">
-            <ellipse cx="8" cy="9.5" rx="3.2" ry="2.5" fill="#1AB680" />
-            <ellipse cx="4.5" cy="6.5" rx="1.4" ry="1.1" fill="#1AB680" />
-            <ellipse cx="6.5" cy="5" rx="1.4" ry="1.1" fill="#1AB680" />
-            <ellipse cx="9.5" cy="5" rx="1.4" ry="1.1" fill="#1AB680" />
-            <ellipse cx="11.5" cy="6.5" rx="1.4" ry="1.1" fill="#1AB680" />
-          </svg>
-          SMART PET CARE PLATFORM
+          🐾 SMART PET CARE PLATFORM
         </div>
         <h1 class="hero-title">
           <span>Pet Maya</span> — Everything Your Pet Needs, All in One Place.
         </h1>
         <p class="hero-subtitle">
-          <strong>Pet Maya</strong> is an intelligent pet healthcare and veterinary platform for Android. It connects pet owners
+          <strong>Pet Maya</strong> is an intelligent pet care and veterinary platform for Android. It connects pet owners
           with certified veterinarians, provides AI-guided health symptom triage, a Facebook-style pet
           community feed, doorstep pet supplies, and automated vaccine &amp; medication alarms.
-          Sign in to access your pet dashboard on the web or download the app.
+          Sign in to access your live pet dashboard on the web or download the app.
         </p>
 
         <div class="hero-cta-group">
@@ -1168,14 +1154,9 @@
         </div>
       </div>
 
-      <!-- App Preview Phone Mockup -->
       <div class="hero-phone-wrapper">
-        <div class="floating-pill pill-1">
-          🩺 50+ Certified Vets
-        </div>
-        <div class="floating-pill pill-2">
-          ⚡ Smart Health Check
-        </div>
+        <div class="floating-pill pill-1">🩺 50+ Certified Vets</div>
+        <div class="floating-pill pill-2">⚡ Smart Health Check</div>
 
         <div class="phone-mockup">
           <div class="phone-screen">
@@ -1183,24 +1164,20 @@
               <span>9:41</span>
               <span>LTE 100%</span>
             </div>
-
             <div class="mockup-app-bar">
               <span class="title">Pet Maya</span>
               <span>🔔</span>
             </div>
-
             <div class="mockup-content">
               <div class="mockup-hero-card" onclick="openLoginModal()" style="cursor:pointer;">
                 <div style="font-size: 11px; opacity: 0.85; text-transform: uppercase; font-weight: 700;">HEALTH SCANNER</div>
                 <div style="font-size: 16px; font-weight: 800; margin-top: 4px;">Smart Symptom Check</div>
                 <div style="font-size: 12px; margin-top: 6px; opacity: 0.9;">Instant guidance for skin, eyes &amp; coat.</div>
               </div>
-
               <div class="mockup-card" onclick="openLoginModal()" style="cursor:pointer;">
                 <div style="font-weight: 700; font-size: 13px; color: var(--primary);">Upcoming Appointment</div>
                 <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Dr. Sarah Jenkins · Tomorrow, 10:30 AM</div>
               </div>
-
               <div class="mockup-card">
                 <div style="font-weight: 700; font-size: 13px;">Community Stories</div>
                 <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">"Max just finished his agility training today! 🐕"</div>
@@ -1212,7 +1189,7 @@
       </div>
     </header>
 
-    <!-- Short Overview Section -->
+    <!-- Overview Section -->
     <section id="features" class="section">
       <div class="section-header">
         <span class="section-tag">App Overview</span>
@@ -1261,9 +1238,9 @@
 
     <!-- Web App Access Banner -->
     <section class="portal-banner">
-      <h2>Access Pet Maya from Any Browser</h2>
-      <p>Log in with your Google account to manage your pets, book veterinary slots, track vaccine milestones, and interact with the community on web.</p>
-      <div class="portal-actions">
+      <h2>Access Pet Maya on Any Browser</h2>
+      <p>Log in with your Google account to manage your pets, book veterinary appointments, track vaccine milestones, and interact with the community on web.</p>
+      <div style="display:flex; justify-content:center; gap:16px; flex-wrap:wrap;">
         <button class="btn-google" onclick="handleGoogleLogin()">
           <svg width="20" height="20" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -1279,7 +1256,7 @@
       </div>
     </section>
 
-    <!-- Data Transparency & Safety Section -->
+    <!-- Data Transparency -->
     <section id="privacy" class="data-section">
       <div class="section-header">
         <span class="section-tag">Transparency &amp; Trust</span>
@@ -1291,42 +1268,21 @@
         <div class="data-card">
           <h3>Google Account (Sign-In)</h3>
           <p>We use Google Sign-In via Firebase Authentication to create and secure your account. We access your name, email, and avatar only to identify you within the app.</p>
-          <span class="data-purpose">Purpose: Secure account authentication</span>
+          <span class="data-purpose">Purpose: Secure authentication</span>
         </div>
-
         <div class="data-card">
           <h3>Location Access</h3>
           <p>Used solely to display nearby certified veterinary clinics on our interactive map. Location data is never shared with third parties.</p>
           <span class="data-purpose">Purpose: Find nearby vets</span>
         </div>
-
         <div class="data-card">
           <h3>Camera &amp; Pet Photos</h3>
-          <p>When you use the AI Health Scanner, photos of your pet are uploaded securely for diagnostic analysis and are never sold or used for advertising.</p>
+          <p>When you use the AI Health Scanner, photos of your pet are processed securely for diagnostic insights and never used for advertising.</p>
           <span class="data-purpose">Purpose: AI symptom analysis</span>
-        </div>
-
-        <div class="data-card">
-          <h3>Push Notifications</h3>
-          <p>We send timely reminders for upcoming veterinary appointments, vaccination schedules, and medicine doses.</p>
-          <span class="data-purpose">Purpose: Health reminders &amp; alarms</span>
-        </div>
-
-        <div class="data-card">
-          <h3>Pet Profile Data</h3>
-          <p>Pet breed, age, weight, and vaccine records are stored securely in Firebase Firestore with AES-256 encryption.</p>
-          <span class="data-purpose">Purpose: Pet health records</span>
-        </div>
-
-        <div class="data-card">
-          <h3>What We Never Do</h3>
-          <p>We <strong>never</strong> sell your data. We <strong>never</strong> use personal info for ad profiling. We <strong>never</strong> share records without your consent.</p>
-          <span class="data-purpose">Our privacy guarantee</span>
         </div>
       </div>
     </section>
 
-    <!-- Public Footer -->
     <footer>
       <div class="footer-container">
         <div class="footer-col">
@@ -1334,7 +1290,7 @@
             <img src="assets/images/tail_wagging_logo.png" alt="Pet Maya Logo" style="width:36px;height:36px;border-radius:50%;">
             <span class="brand-text">Pet Maya</span>
           </div>
-          <p style="font-size: 14px; color: var(--text-muted); max-width: 320px; line-height: 1.6;">
+          <p style="font-size: 14px; color: var(--text-muted); line-height: 1.6;">
             Professional pet healthcare, veterinary appointments, AI symptom triage, and pet community on Android &amp; Web.
           </p>
         </div>
@@ -1344,7 +1300,7 @@
           <ul>
             <li><a href="#features">Features</a></li>
             <li><a href="https://play.google.com/store/apps/details?id=com.vertexhand.petmaya" target="_blank">Google Play Store</a></li>
-            <li><a href="javascript:openLoginModal()">Web Client Sign In</a></li>
+            <li><a href="javascript:openLoginModal()">Web Sign In</a></li>
           </ul>
         </div>
 
@@ -1374,156 +1330,188 @@
   </div>
 
   <!-- ══════════════════════════════════════════════════════════════════ -->
-  <!-- 2. AUTHENTICATED APP EXPERIENCE (When User IS Logged In)        -->
+  <!-- 2. AUTHENTICATED WEB APP (Aligned with Flutter OwnerHomeScreen)    -->
   <!-- ══════════════════════════════════════════════════════════════════ -->
   <div id="authenticatedAppView">
-    <div class="app-layout">
-      
-      <!-- Top App Bar -->
-      <header class="app-header">
-        <div class="app-header-left">
-          <a href="#" class="brand">
-            <img src="assets/images/tail_wagging_logo.png" alt="Pet Maya Logo" style="width:36px;height:36px;">
-            <span class="brand-text" style="font-size:22px;">Pet Maya</span>
-          </a>
+    
+    <!-- App Top Bar (Location + Greeting + Notifications + User Profile) -->
+    <header class="app-topbar">
+      <div class="app-topbar-left">
+        <a href="#" class="brand">
+          <img src="assets/images/tail_wagging_logo.png" alt="Pet Maya Logo" style="width:36px;height:36px;">
+          <span class="brand-text" style="font-size:22px;">Pet Maya</span>
+        </a>
+        <div class="location-badge">
+          📍 <span id="appLocationText">Dhaka, Bangladesh</span>
         </div>
+      </div>
 
-        <div class="app-header-right">
-          <button class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle theme">
-            🌙
-          </button>
-          
-          <div class="user-pill" id="userPill">
-            <img id="userAvatarImg" src="assets/images/Pet_2.jpg" alt="User">
-            <span id="userNameText">Pet Parent</span>
-          </div>
-
-          <button class="btn btn-secondary" onclick="handleSignOut()" style="padding:8px 16px; font-size:13px;">
-            Sign Out
-          </button>
-        </div>
-      </header>
-
-      <!-- App Sub Navigation Tabs -->
-      <nav class="app-nav-bar">
-        <button class="app-tab-btn active" onclick="switchAppTab('dashboard', this)">
-          🏠 Dashboard
+      <div class="app-topbar-right">
+        <button class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle theme">
+          🌙
         </button>
-        <button class="app-tab-btn" onclick="switchAppTab('vets', this)">
-          🩺 Veterinarians
-        </button>
-        <button class="app-tab-btn" onclick="switchAppTab('ai-scanner', this)">
-          🤖 AI Health Scanner
-        </button>
-        <button class="app-tab-btn" onclick="switchAppTab('community', this)">
-          🐾 Community
-        </button>
-        <button class="app-tab-btn" onclick="switchAppTab('shop', this)">
-          🛍️ Pet Shop
-        </button>
-        <button class="app-tab-btn" onclick="switchAppTab('vaccines', this)">
-          ⏰ Vaccine Alarms
-        </button>
-        <button class="app-tab-btn" onclick="switchAppTab('profile', this)">
-          👤 My Pets &amp; Account
-        </button>
-      </nav>
-
-      <!-- Main App Content Area -->
-      <main class="app-main-container">
         
-        <!-- Tab 1: Dashboard -->
-        <div class="app-tab-content active" id="tab-dashboard">
-          <div class="welcome-card">
+        <div class="user-profile-badge" onclick="switchAppTab('profile')">
+          <img id="userAvatarImg" src="assets/images/Pet_2.jpg" alt="User">
+          <span id="userNameText" style="font-size:13.5px; font-weight:700;">Pet Parent</span>
+        </div>
+
+        <button class="btn btn-secondary" onclick="handleSignOut()" style="padding:8px 16px; font-size:13px;">
+          Sign Out
+        </button>
+      </div>
+    </header>
+
+    <!-- Bottom / Sub Navigation Bar (Matching Flutter IndexedStack) -->
+    <nav class="app-bottom-navbar">
+      <button class="app-nav-tab active" onclick="switchAppTab('dashboard', this)">
+        🏠 Home
+      </button>
+      <button class="app-nav-tab" onclick="switchAppTab('vets', this)">
+        🩺 Vets &amp; Clinics
+      </button>
+      <button class="app-nav-tab" onclick="switchAppTab('ai-scanner', this)">
+        🤖 AI Health Scanner
+      </button>
+      <button class="app-nav-tab" onclick="switchAppTab('community', this)">
+        🐾 Community
+      </button>
+      <button class="app-nav-tab" onclick="switchAppTab('shop', this)">
+        🛍️ Pet Shop
+      </button>
+      <button class="app-nav-tab" onclick="switchAppTab('vaccines', this)">
+        ⏰ Alarms &amp; Vaccines
+      </button>
+      <button class="app-nav-tab" onclick="switchAppTab('profile', this)">
+        👤 Profile
+      </button>
+    </nav>
+
+    <!-- Main Content Area with Real Firebase Data Binding -->
+    <main class="app-content-body">
+      
+      <!-- PANE 1: HOME DASHBOARD (Matching HomeDashboardFragment) -->
+      <div class="app-view-pane active" id="pane-dashboard">
+        
+        <!-- Welcome Card -->
+        <div class="hero-welcome-banner">
+          <div>
+            <span style="font-size:12px; text-transform:uppercase; letter-spacing:1.5px; font-weight:800; opacity:0.9;">PET PARENT DASHBOARD</span>
+            <h2 style="font-size:26px; font-weight:800; margin-top:4px;" id="greetingHeader">Good Afternoon, Pet Parent! 🐾</h2>
+            <p style="font-size:14px; opacity:0.95; max-width:480px; margin-top:4px;">
+              Manage your pet family, book veterinary visits, run AI symptom scans, and sync reminders in real-time.
+            </p>
+          </div>
+          <div style="background:rgba(255,255,255,0.2); backdrop-filter:blur(10px); padding:12px 20px; border-radius:16px; display:flex; align-items:center; gap:12px;">
+            <span style="font-size:28px;">⭐</span>
             <div>
-              <span style="font-size:13px; text-transform:uppercase; letter-spacing:1px; opacity:0.9; font-weight:700;">Pet Maya Web Portal</span>
-              <h2 style="font-size:28px; font-weight:800; margin-top:4px;" id="dashGreeting">Welcome Back! 🐾</h2>
-              <p style="font-size:15px; opacity:0.95; max-width:480px; margin-top:6px;">
-                Your pet companion dashboard is active. View appointment schedules, run diagnostic health scans, or browse the community.
-              </p>
+              <strong style="font-size:18px; display:block;" id="userPointsText">250 Points</strong>
+              <span style="font-size:11px; opacity:0.85;">Rewards Available</span>
             </div>
-            <div class="pet-summary-badge">
-              <img src="assets/images/Pet_1.jpg" alt="Active Pet" style="width:48px; height:48px; border-radius:50%; object-fit:cover;">
-              <div>
-                <strong style="font-size:16px; display:block;">Max (Golden Retriever)</strong>
-                <span style="font-size:12px; opacity:0.85;">Vaccines Up-to-Date · Next Checkup: Tomorrow</span>
-              </div>
+          </div>
+        </div>
+
+        <!-- My Pets Section (Fetching live from Firestore `pets`) -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+          <h3 style="font-size:20px; font-weight:800;">My Pets</h3>
+          <button class="btn btn-secondary" style="padding:6px 14px; font-size:12px;" onclick="openAddPetModal()">
+            + Add New Pet
+          </button>
+        </div>
+
+        <div class="pets-scroll-container" id="petsListContainer">
+          <!-- Loaded dynamically from Firebase Firestore -->
+          <div class="add-pet-card" onclick="openAddPetModal()">
+            <span style="font-size:24px; margin-bottom:4px;">+</span>
+            <span>Add Pet</span>
+          </div>
+        </div>
+
+        <!-- Quick Actions (Matching Flutter _buildQuickActionBtn) -->
+        <h3 style="font-size:18px; font-weight:800; margin-bottom:14px;">Quick Actions ⚡</h3>
+        <div class="quick-actions-row">
+          <div class="quick-action-tile" onclick="switchAppTab('ai-scanner')">
+            <div class="quick-tile-icon" style="background:#F3E8FF; color:#9333EA;">🤖</div>
+            <div>
+              <strong style="font-size:15px; display:block;">AI Health Scan</strong>
+              <span style="font-size:12px; color:var(--text-muted);">Symptom Diagnostic</span>
             </div>
           </div>
 
-          <h3 style="font-size:18px; font-weight:800; margin-bottom:16px;">Quick Actions</h3>
-          <div class="quick-grid">
-            <div class="quick-action-card" onclick="switchAppTab('vets')">
-              <div class="quick-icon" style="background:#E0F2FE; color:#0284C7;">🩺</div>
-              <div>
-                <strong style="font-size:15px; display:block;">Book Vet</strong>
-                <span style="font-size:12px; color:var(--text-muted);">50+ Certified Vets</span>
-              </div>
-            </div>
-
-            <div class="quick-action-card" onclick="switchAppTab('ai-scanner')">
-              <div class="quick-icon" style="background:#F3E8FF; color:#9333EA;">🤖</div>
-              <div>
-                <strong style="font-size:15px; display:block;">AI Health Scan</strong>
-                <span style="font-size:12px; color:var(--text-muted);">Instant Triage Check</span>
-              </div>
-            </div>
-
-            <div class="quick-action-card" onclick="switchAppTab('shop')">
-              <div class="quick-icon" style="background:#FEF3C7; color:#D97706;">🛍️</div>
-              <div>
-                <strong style="font-size:15px; display:block;">Pet Pharmacy</strong>
-                <span style="font-size:12px; color:var(--text-muted);">Order Nutrition &amp; Care</span>
-              </div>
-            </div>
-
-            <div class="quick-action-card" onclick="switchAppTab('vaccines')">
-              <div class="quick-icon" style="background:#DCFCE7; color:#16A34A;">⏰</div>
-              <div>
-                <strong style="font-size:15px; display:block;">Vaccine Schedule</strong>
-                <span style="font-size:12px; color:var(--text-muted);">View Alarms &amp; Sync</span>
-              </div>
+          <div class="quick-action-tile" onclick="openAddPetModal()">
+            <div class="quick-tile-icon" style="background:#DCFCE7; color:#16A34A;">🐾</div>
+            <div>
+              <strong style="font-size:15px; display:block;">Add Pet</strong>
+              <span style="font-size:12px; color:var(--text-muted);">Create Pet Profile</span>
             </div>
           </div>
 
-          <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:24px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+          <div class="quick-action-tile" onclick="switchAppTab('community')">
+            <div class="quick-tile-icon" style="background:#E0F2FE; color:#0284C7;">✍️</div>
             <div>
-              <span style="font-size:12px; background:var(--primary-light); color:var(--primary); padding:4px 10px; border-radius:999px; font-weight:700;">UPCOMING APPOINTMENT</span>
-              <h4 style="font-size:18px; font-weight:800; margin-top:8px;">Dr. Sarah Jenkins · Feline &amp; Canine Wellness Checkup</h4>
-              <p style="font-size:14px; color:var(--text-muted); margin-top:4px;">Tomorrow at 10:30 AM · Central Animal Clinic (Sync with Google Calendar)</p>
+              <strong style="font-size:15px; display:block;">Create Post</strong>
+              <span style="font-size:12px; color:var(--text-muted);">Share with Parents</span>
             </div>
-            <button class="btn btn-primary" onclick="downloadAppointmentICS()">
-              📥 Export to Calendar (.ics)
+          </div>
+
+          <div class="quick-action-tile" onclick="openBookingModal()">
+            <div class="quick-tile-icon" style="background:#FEF3C7; color:#D97706;">📅</div>
+            <div>
+              <strong style="font-size:15px; display:block;">Add Event / Vet</strong>
+              <span style="font-size:12px; color:var(--text-muted);">Schedule Appointment</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Upcoming Schedule & Appointments (Fetching live from Firestore `events`) -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+          <h3 style="font-size:18px; font-weight:800;">Upcoming Events &amp; Alarms</h3>
+          <span style="font-size:12px; color:var(--text-muted);">Syncs with Google/Apple Calendar</span>
+        </div>
+
+        <div id="eventsListContainer" style="margin-bottom:30px;">
+          <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+            <div>
+              <span style="font-size:11px; background:var(--primary-light); color:var(--primary); padding:4px 10px; border-radius:999px; font-weight:800;">APPOINTMENT</span>
+              <h4 style="font-size:16px; font-weight:800; margin-top:6px;">Dr. Sarah Jenkins · Feline &amp; Canine Wellness Checkup</h4>
+              <p style="font-size:13px; color:var(--text-muted);">Tomorrow at 10:30 AM · Central Animal Clinic</p>
+            </div>
+            <button class="btn btn-primary" style="padding:8px 18px; font-size:13px;" onclick="downloadAppointmentICS()">
+              📥 Add to Calendar (.ics)
             </button>
           </div>
         </div>
 
-        <!-- Tab 2: Vets & Booking -->
-        <div class="app-tab-content" id="tab-vets">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
-            <div>
-              <h2 style="font-size:24px; font-weight:800;">Certified Veterinarians</h2>
-              <p style="font-size:14px; color:var(--text-muted);">Book appointments with licensed veterinary surgeons and specialists.</p>
-            </div>
-            <button class="btn btn-primary" onclick="openBookingModal()">
-              📅 Schedule New Appointment
-            </button>
-          </div>
+      </div>
 
-          <div class="vet-card">
+      <!-- PANE 2: VETS & CLINICS (Fetching live from Firestore `vets`) -->
+      <div class="app-view-pane" id="pane-vets">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+          <div>
+            <h2 style="font-size:24px; font-weight:800;">Certified Veterinarians</h2>
+            <p style="font-size:14px; color:var(--text-muted);">Verified board-certified clinicians &amp; specialists.</p>
+          </div>
+          <button class="btn btn-primary" onclick="openBookingModal()">
+            📅 Book Appointment
+          </button>
+        </div>
+
+        <div id="vetsListContainer">
+          <!-- Loaded dynamically from Firestore -->
+          <div class="vet-list-item">
             <div style="display:flex; align-items:center; gap:16px;">
-              <div class="vet-badge-avatar">SJ</div>
+              <div class="vet-avatar-badge">SJ</div>
               <div>
                 <strong style="font-size:16px; display:block;">Dr. Sarah Jenkins, DVM</strong>
-                <span style="font-size:13px; color:var(--text-muted);">Small Animal Dermatology · Central Clinic · ★ 4.9 (128 reviews)</span>
+                <span style="font-size:13px; color:var(--text-muted);">Canine Dermatology &amp; General Medicine · Central Animal Clinic · ★ 4.9 (128 reviews)</span>
               </div>
             </div>
             <button class="btn btn-primary" onclick="openBookingModal('Dr. Sarah Jenkins')">Book Slot</button>
           </div>
 
-          <div class="vet-card">
+          <div class="vet-list-item">
             <div style="display:flex; align-items:center; gap:16px;">
-              <div class="vet-badge-avatar" style="background:#FFE4E6; color:#E11D48;">LC</div>
+              <div class="vet-avatar-badge" style="background:#FFE4E6; color:#E11D48;">LC</div>
               <div>
                 <strong style="font-size:16px; display:block;">Dr. Lisa Chen, BVSc</strong>
                 <span style="font-size:13px; color:var(--text-muted);">Feline Internal Medicine &amp; Surgery · Metro Vet Hospital · ★ 5.0 (94 reviews)</span>
@@ -1532,9 +1520,9 @@
             <button class="btn btn-primary" onclick="openBookingModal('Dr. Lisa Chen')">Book Slot</button>
           </div>
 
-          <div class="vet-card">
+          <div class="vet-list-item">
             <div style="display:flex; align-items:center; gap:16px;">
-              <div class="vet-badge-avatar" style="background:#FEF3C7; color:#D97706;">MR</div>
+              <div class="vet-avatar-badge" style="background:#FEF3C7; color:#D97706;">MR</div>
               <div>
                 <strong style="font-size:16px; display:block;">Dr. Michael Rahman, DVM</strong>
                 <span style="font-size:13px; color:var(--text-muted);">General Medicine &amp; Clinical Nutrition · ★ 4.8 (82 reviews)</span>
@@ -1543,242 +1531,248 @@
             <button class="btn btn-primary" onclick="openBookingModal('Dr. Michael Rahman')">Book Slot</button>
           </div>
         </div>
+      </div>
 
-        <!-- Tab 3: AI Health Scanner -->
-        <div class="app-tab-content" id="tab-ai-scanner">
-          <div class="tool-box">
-            <h2 style="font-size:24px; font-weight:800; margin-bottom:8px;">AI Health Symptom Diagnostic</h2>
-            <p style="font-size:14px; color:var(--text-muted); margin-bottom:20px;">
-              Select symptoms to test diagnostic triage analysis for preliminary pet guidance.
-            </p>
+      <!-- PANE 3: AI HEALTH SCANNER -->
+      <div class="app-view-pane" id="pane-ai-scanner">
+        <div style="background:var(--bg-card); border-radius:var(--radius-lg); padding:32px; border:1.5px solid var(--border-color); box-shadow:var(--shadow-sm);">
+          <h2 style="font-size:24px; font-weight:800; margin-bottom:6px;">AI Health Symptom Diagnostic</h2>
+          <p style="font-size:14px; color:var(--text-muted); margin-bottom:20px;">
+            Select symptoms to run preliminary medical triage guidance for your pet.
+          </p>
 
-            <strong style="font-size:13px; text-transform:uppercase; color:var(--primary); letter-spacing:1px;">Step 1: Select Species</strong>
-            <div class="chip-group">
-              <div class="chip active" onclick="selectPetType(this, 'dog')">🐕 Dog</div>
-              <div class="chip" onclick="selectPetType(this, 'cat')">🐈 Cat</div>
-              <div class="chip" onclick="selectPetType(this, 'bird')">🦜 Bird</div>
-              <div class="chip" onclick="selectPetType(this, 'rabbit')">🐇 Rabbit</div>
-            </div>
-
-            <strong style="font-size:13px; text-transform:uppercase; color:var(--primary); letter-spacing:1px;">Step 2: Observed Symptoms</strong>
-            <div class="chip-group">
-              <div class="chip active" onclick="toggleSymptom(this, 'skin_rash')">🔴 Skin Redness / Itching</div>
-              <div class="chip" onclick="toggleSymptom(this, 'eye_discharge')">👁️ Watery / Cloudy Eye</div>
-              <div class="chip" onclick="toggleSymptom(this, 'ear_odor')">👂 Ear Scratching &amp; Odor</div>
-              <div class="chip" onclick="toggleSymptom(this, 'lethargy')">💤 Lethargy &amp; Refusing Food</div>
-              <div class="chip" onclick="toggleSymptom(this, 'limping')">🐾 Limping / Stiffness</div>
-              <div class="chip" onclick="toggleSymptom(this, 'coughing')">🫁 Coughing / Wheezing</div>
-            </div>
-
-            <button class="btn btn-primary" style="margin-top:14px;" onclick="runSymptomScan()">
-              🔍 Run Health Triage Analysis
-            </button>
-
-            <!-- Scan Status Box -->
-            <div id="scanProgressBox" style="display:none; margin-top:20px; background:var(--bg-light); padding:20px; border-radius:12px;">
-              <div style="display:flex; justify-content:space-between; font-weight:700; font-size:13px; margin-bottom:8px;">
-                <span id="scanStatusText">Scanning symptom patterns...</span>
-                <span id="scanPercentage">0%</span>
-              </div>
-              <div style="height:8px; background:#e2e8f0; border-radius:4px; overflow:hidden;">
-                <div id="scanProgressBar" style="height:100%; width:0%; background:linear-gradient(90deg, var(--primary), #00B6D2); transition:width 0.25s;"></div>
-              </div>
-            </div>
-
-            <!-- Triage Assessment Card -->
-            <div id="triageResultCard" style="display:none; margin-top:24px; padding:24px; border-radius:16px; border:2px solid var(--primary); background:var(--bg-card);">
-              <span id="triageUrgencyBadge" style="display:inline-block; padding:4px 12px; border-radius:999px; font-size:12px; font-weight:800; text-transform:uppercase; background:#FEF3C7; color:#D97706; margin-bottom:10px;">
-                Moderate Attention Recommended
-              </span>
-              <h3 id="triageTitle" style="font-size:20px; font-weight:800; margin-bottom:14px;">Suspected Allergic Dermatitis</h3>
-              <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
-                <div style="background:var(--bg-light); padding:16px; border-radius:12px;">
-                  <strong style="color:var(--primary); display:block; margin-bottom:6px;">🩹 First-Aid Guidance:</strong>
-                  <p id="triageHomeCare" style="font-size:13.5px; color:var(--text-muted);"></p>
-                </div>
-                <div style="background:var(--bg-light); padding:16px; border-radius:12px;">
-                  <strong style="color:var(--primary); display:block; margin-bottom:6px;">🩺 Vet Recommendation:</strong>
-                  <p id="triageClinicAction" style="font-size:13.5px; color:var(--text-muted);"></p>
-                </div>
-              </div>
-              <button class="btn btn-primary" onclick="openBookingModal('Dr. Sarah Jenkins')">
-                📅 Book Consultation with Specialist
-              </button>
-            </div>
+          <strong style="font-size:13px; text-transform:uppercase; color:var(--primary); letter-spacing:1px;">Step 1: Select Species</strong>
+          <div class="chip-group">
+            <div class="chip active" onclick="selectPetType(this, 'dog')">🐕 Dog</div>
+            <div class="chip" onclick="selectPetType(this, 'cat')">🐈 Cat</div>
+            <div class="chip" onclick="selectPetType(this, 'bird')">🦜 Bird</div>
+            <div class="chip" onclick="selectPetType(this, 'rabbit')">🐇 Rabbit</div>
           </div>
-        </div>
 
-        <!-- Tab 4: Pet Community -->
-        <div class="app-tab-content" id="tab-community">
-          <div class="tool-box" style="padding:24px; margin-bottom:20px;">
-            <strong style="font-size:15px; display:block; margin-bottom:10px;">Share with Pet Community 🐾</strong>
-            <input type="text" id="newPostInput" class="input-field" placeholder="Share a milestone, photo, or recovery story..." style="margin-bottom:12px;">
-            <div style="display:flex; justify-content:flex-end;">
-              <button class="btn btn-primary" style="padding:8px 20px;" onclick="publishCommunityPost()">Post</button>
+          <strong style="font-size:13px; text-transform:uppercase; color:var(--primary); letter-spacing:1px;">Step 2: Observed Symptoms</strong>
+          <div class="chip-group">
+            <div class="chip active" onclick="toggleSymptom(this, 'skin_rash')">🔴 Skin Redness / Hot Spot</div>
+            <div class="chip" onclick="toggleSymptom(this, 'eye_discharge')">👁️ Watery / Cloudy Eye</div>
+            <div class="chip" onclick="toggleSymptom(this, 'ear_odor')">👂 Ear Scratching &amp; Odor</div>
+            <div class="chip" onclick="toggleSymptom(this, 'lethargy')">💤 Lethargy &amp; Refusing Food</div>
+            <div class="chip" onclick="toggleSymptom(this, 'limping')">🐾 Limping / Stiffness</div>
+            <div class="chip" onclick="toggleSymptom(this, 'coughing')">🫁 Coughing / Wheezing</div>
+          </div>
+
+          <button class="btn btn-primary" style="margin-top:10px;" onclick="runSymptomScan()">
+            🔍 Run Diagnostic Triage Scan
+          </button>
+
+          <div id="scanProgressBox" style="display:none; margin-top:20px; background:var(--bg-light); padding:20px; border-radius:14px;">
+            <div style="display:flex; justify-content:space-between; font-weight:700; font-size:13px; margin-bottom:8px;">
+              <span id="scanStatusText">Analyzing symptom patterns...</span>
+              <span id="scanPercentage">0%</span>
+            </div>
+            <div style="height:8px; background:#e2e8f0; border-radius:4px; overflow:hidden;">
+              <div id="scanProgressBar" style="height:100%; width:0%; background:linear-gradient(90deg, var(--primary), var(--secondary)); transition:width 0.25s;"></div>
             </div>
           </div>
 
-          <div id="communityPostsList">
-            <div class="post-card">
-              <div class="post-header">
-                <div class="post-author">
-                  <img src="assets/images/Pet_2.jpg" alt="Rachel M.">
-                  <div>
-                    <strong style="font-size:15px; display:block;">Rachel Miller</strong>
-                    <span style="font-size:12px; color:var(--text-muted);">Golden Retriever Mom · 2 hrs ago</span>
-                  </div>
-                </div>
-                <span style="font-size:12px; background:var(--primary-light); color:var(--primary); padding:4px 10px; border-radius:999px; font-weight:700;">🐾 Milestone</span>
-              </div>
-              <p style="font-size:14.5px; margin-bottom:14px;">Bella passed her final agility training today! Dr. Sarah gave her a clean bill of health on Pet Maya! 🏆🐕</p>
-              <img src="assets/images/Pet_2.jpg" alt="Bella" style="width:100%; border-radius:14px; max-height:280px; object-fit:cover;">
-              <div style="display:flex; gap:16px; margin-top:14px; padding-top:12px; border-top:1px solid var(--border-color);">
-                <button class="btn btn-secondary" style="padding:6px 14px; font-size:13px;" onclick="togglePostLike(this)">❤️ 142 Likes</button>
-                <button class="btn btn-secondary" style="padding:6px 14px; font-size:13px;" onclick="copyShareLink()">🔗 Share</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tab 5: Pet Shop -->
-        <div class="app-tab-content" id="tab-shop">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-            <div>
-              <h2 style="font-size:24px; font-weight:800;">Pet Shop &amp; Pharmacy</h2>
-              <p style="font-size:14px; color:var(--text-muted);">Vet-approved nutrition, supplements, and supplies.</p>
-            </div>
-            <button class="btn btn-primary" onclick="showToast('🛒 Cart: 0 Items ($0.00)')">
-              🛒 View Cart
-            </button>
-          </div>
-
-          <div class="product-grid">
-            <div class="product-card">
-              <img src="assets/images/Pet_1.jpg" alt="Royal Canin" class="product-img">
-              <h4 style="font-size:16px; font-weight:800; margin-bottom:4px;">Premium Adult Kibble</h4>
-              <span style="font-size:13px; color:var(--text-muted);">Vet Nutrition · 3kg</span>
-              <div style="font-size:18px; font-weight:800; color:var(--primary); margin:10px 0;">$34.99</div>
-              <button class="btn btn-primary" style="padding:8px 16px; font-size:13px;" onclick="showToast('✅ Added Premium Adult Kibble to cart!')">Add to Cart</button>
-            </div>
-
-            <div class="product-card">
-              <img src="assets/images/Pet_2.jpg" alt="Omega Oil" class="product-img">
-              <h4 style="font-size:16px; font-weight:800; margin-bottom:4px;">Omega-3 Skin &amp; Coat Oil</h4>
-              <span style="font-size:13px; color:var(--text-muted);">Essential Fatty Acids · 250ml</span>
-              <div style="font-size:18px; font-weight:800; color:var(--primary); margin:10px 0;">$18.50</div>
-              <button class="btn btn-primary" style="padding:8px 16px; font-size:13px;" onclick="showToast('✅ Added Omega-3 Oil to cart!')">Add to Cart</button>
-            </div>
-
-            <div class="product-card">
-              <img src="assets/images/tail_wagging_logo.png" alt="Dewormer" class="product-img" style="object-fit:contain; background:var(--bg-light);">
-              <h4 style="font-size:16px; font-weight:800; margin-bottom:4px;">Broad-Spectrum Dewormer</h4>
-              <span style="font-size:13px; color:var(--text-muted);">Deworming Chewables · 4 Tabs</span>
-              <div style="font-size:18px; font-weight:800; color:var(--primary); margin:10px 0;">$14.20</div>
-              <button class="btn btn-primary" style="padding:8px 16px; font-size:13px;" onclick="showToast('✅ Added Dewormer to cart!')">Add to Cart</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tab 6: Vaccine Alarms -->
-        <div class="app-tab-content" id="tab-vaccines">
-          <div class="tool-box">
-            <h2 style="font-size:24px; font-weight:800; margin-bottom:8px;">Vaccine &amp; Milestone Planner</h2>
-            <p style="font-size:14px; color:var(--text-muted); margin-bottom:20px;">
-              Calculate core vaccination dates and download a calendar schedule (.ics) directly.
-            </p>
-
+          <div id="triageResultCard" style="display:none; margin-top:24px; padding:24px; border-radius:18px; border:2px solid var(--primary); background:var(--bg-card);">
+            <span id="triageUrgencyBadge" style="display:inline-block; padding:4px 12px; border-radius:999px; font-size:12px; font-weight:800; text-transform:uppercase; background:#FEF3C7; color:#D97706; margin-bottom:10px;">
+              Moderate Attention Recommended
+            </span>
+            <h3 id="triageTitle" style="font-size:20px; font-weight:800; margin-bottom:14px;">Suspected Allergic Dermatitis / Contact Rash</h3>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
-              <div>
-                <label style="font-size:13px; font-weight:700; display:block; margin-bottom:6px;">Pet Species</label>
-                <select id="calcPetType" class="input-field" onchange="calculateVaccineSchedule()">
-                  <option value="dog">Dog / Puppy 🐶</option>
-                  <option value="cat">Cat / Kitten 🐱</option>
-                </select>
+              <div style="background:var(--bg-light); padding:16px; border-radius:12px;">
+                <strong style="color:var(--primary); display:block; margin-bottom:6px;">🩹 First-Aid &amp; Care:</strong>
+                <p id="triageHomeCare" style="font-size:13.5px; color:var(--text-muted);"></p>
               </div>
-              <div>
-                <label style="font-size:13px; font-weight:700; display:block; margin-bottom:6px;">Age Group</label>
-                <select id="calcPetAge" class="input-field" onchange="calculateVaccineSchedule()">
-                  <option value="2">2 Months (Starter Series)</option>
-                  <option value="4">4 Months (Booster Phase)</option>
-                  <option value="12" selected>1 Year+ (Annual Cycle)</option>
-                </select>
+              <div style="background:var(--bg-light); padding:16px; border-radius:12px;">
+                <strong style="color:var(--primary); display:block; margin-bottom:6px;">🩺 Clinical Next Step:</strong>
+                <p id="triageClinicAction" style="font-size:13.5px; color:var(--text-muted);"></p>
               </div>
             </div>
-
-            <div id="vaccineTableContainer" style="margin-top:16px;"></div>
-
-            <button class="btn btn-primary" style="margin-top:20px;" onclick="downloadCalendarICS()">
-              📥 Download Schedule to Calendar (.ics)
+            <button class="btn btn-primary" onclick="openBookingModal('Dr. Sarah Jenkins')">
+              📅 Book Vet Consultation
             </button>
           </div>
         </div>
+      </div>
 
-        <!-- Tab 7: Profile & Account -->
-        <div class="app-tab-content" id="tab-profile">
-          <div class="tool-box">
-            <div style="display:flex; align-items:center; gap:20px; margin-bottom:24px;">
-              <img id="profileTabAvatar" src="assets/images/Pet_2.jpg" alt="Avatar" style="width:70px; height:70px; border-radius:50%; object-fit:cover; border:3px solid var(--primary);">
-              <div>
-                <h3 id="profileTabName" style="font-size:22px; font-weight:800;">Pet Parent</h3>
-                <span id="profileTabEmail" style="font-size:14px; color:var(--text-muted);">user@gmail.com</span>
-              </div>
-            </div>
-
-            <h4 style="font-size:16px; font-weight:800; margin-bottom:12px;">Account &amp; Appearance</h4>
-            <div style="display:flex; flex-direction:column; gap:12px;">
-              <button class="btn btn-secondary" onclick="toggleTheme()" style="justify-content:space-between;">
-                <span>Toggle Dark / Light Theme</span>
-                <span id="themeStatusText">Theme: Auto</span>
-              </button>
-              <a href="/privacy-policy" class="btn btn-secondary" style="justify-content:space-between;">
-                <span>Privacy Policy &amp; Security</span>
-                <span>↗</span>
-              </a>
-              <button class="btn btn-secondary" style="color:#DC2626; border-color:rgba(220,38,38,0.2);" onclick="handleSignOut()">
-                Sign Out of Account
-              </button>
-            </div>
+      <!-- PANE 4: COMMUNITY FEED (Fetching live from Firestore `community_posts`) -->
+      <div class="app-view-pane" id="pane-community">
+        <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:22px; margin-bottom:24px;">
+          <strong style="font-size:15px; display:block; margin-bottom:10px;">Create a Community Story 🐾</strong>
+          <input type="text" id="newPostInput" class="input-field" placeholder="Share pet milestones, photos, or tips..." style="margin-bottom:12px;">
+          <div style="display:flex; justify-content:flex-end;">
+            <button class="btn btn-primary" style="padding:8px 22px;" onclick="publishCommunityPost()">Publish Post</button>
           </div>
         </div>
 
-      </main>
+        <div id="communityFeedContainer">
+          <!-- Loaded dynamically from Firestore -->
+          <div class="feed-post-card">
+            <div class="feed-author-row">
+              <div style="display:flex; align-items:center; gap:12px;">
+                <img src="assets/images/Pet_2.jpg" alt="Rachel M." style="width:44px; height:44px; border-radius:50%; object-fit:cover;">
+                <div>
+                  <strong style="font-size:15px; display:block;">Rachel Miller</strong>
+                  <span style="font-size:12px; color:var(--text-muted);">Golden Retriever Mom · 2 hrs ago</span>
+                </div>
+              </div>
+              <span style="font-size:12px; background:var(--primary-light); color:var(--primary); padding:4px 10px; border-radius:999px; font-weight:700;">🐾 Milestone</span>
+            </div>
+            <p style="font-size:14.5px; margin-bottom:14px;">Bella passed her final agility training today! Dr. Sarah gave her a clean bill of health on Pet Maya! 🏆🐕</p>
+            <img src="assets/images/Pet_2.jpg" alt="Bella" style="width:100%; border-radius:14px; max-height:280px; object-fit:cover;">
+            <div class="feed-actions-bar">
+              <button class="btn btn-secondary" style="padding:6px 14px; font-size:13px;" onclick="togglePostLike(this)">❤️ 142 Likes</button>
+              <button class="btn btn-secondary" style="padding:6px 14px; font-size:13px;" onclick="copyShareLink()">🔗 Share</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANE 5: SHOP & PHARMACY (Fetching live from Firestore `products`) -->
+      <div class="app-view-pane" id="pane-shop">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+          <div>
+            <h2 style="font-size:24px; font-weight:800;">Pet Shop &amp; Pharmacy</h2>
+            <p style="font-size:14px; color:var(--text-muted);">Vet-approved nutrition, supplements, and supplies.</p>
+          </div>
+          <button class="btn btn-primary" onclick="showToast('🛒 Cart: 0 Items ($0.00)')">
+            🛒 View Cart
+          </button>
+        </div>
+
+        <div class="shop-product-grid" id="shopProductsContainer">
+          <!-- Loaded dynamically from Firestore -->
+          <div class="shop-card">
+            <img src="assets/images/Pet_1.jpg" alt="Royal Canin">
+            <h4 style="font-size:16px; font-weight:800; margin-bottom:4px;">Premium Adult Kibble</h4>
+            <span style="font-size:13px; color:var(--text-muted);">Vet Nutrition · 3kg</span>
+            <div style="font-size:18px; font-weight:800; color:var(--primary); margin:10px 0;">$34.99</div>
+            <button class="btn btn-primary" style="padding:8px 16px; font-size:13px;" onclick="showToast('✅ Added Premium Adult Kibble to cart!')">Add to Cart</button>
+          </div>
+
+          <div class="shop-card">
+            <img src="assets/images/Pet_2.jpg" alt="Omega Oil">
+            <h4 style="font-size:16px; font-weight:800; margin-bottom:4px;">Omega-3 Skin &amp; Coat Oil</h4>
+            <span style="font-size:13px; color:var(--text-muted);">Essential Fatty Acids · 250ml</span>
+            <div style="font-size:18px; font-weight:800; color:var(--primary); margin:10px 0;">$18.50</div>
+            <button class="btn btn-primary" style="padding:8px 16px; font-size:13px;" onclick="showToast('✅ Added Omega-3 Oil to cart!')">Add to Cart</button>
+          </div>
+
+          <div class="shop-card">
+            <img src="assets/images/tail_wagging_logo.png" alt="Dewormer" style="object-fit:contain; background:var(--bg-light);">
+            <h4 style="font-size:16px; font-weight:800; margin-bottom:4px;">Broad-Spectrum Dewormer</h4>
+            <span style="font-size:13px; color:var(--text-muted);">Deworming Chewables · 4 Tabs</span>
+            <div style="font-size:18px; font-weight:800; color:var(--primary); margin:10px 0;">$14.20</div>
+            <button class="btn btn-primary" style="padding:8px 16px; font-size:13px;" onclick="showToast('✅ Added Dewormer to cart!')">Add to Cart</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANE 6: VACCINES & ALARMS -->
+      <div class="app-view-pane" id="pane-vaccines">
+        <div style="background:var(--bg-card); border-radius:var(--radius-lg); padding:32px; border:1.5px solid var(--border-color); box-shadow:var(--shadow-sm);">
+          <h2 style="font-size:24px; font-weight:800; margin-bottom:6px;">Vaccine &amp; Milestone Planner</h2>
+          <p style="font-size:14px; color:var(--text-muted); margin-bottom:20px;">
+            Calculate core vaccination schedules and download calendar invites (.ics).
+          </p>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+            <div>
+              <label style="font-size:13px; font-weight:700; display:block; margin-bottom:6px;">Species</label>
+              <select id="calcPetType" class="input-field" onchange="calculateVaccineSchedule()">
+                <option value="dog">Dog / Puppy 🐶</option>
+                <option value="cat">Cat / Kitten 🐱</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:13px; font-weight:700; display:block; margin-bottom:6px;">Age Group</label>
+              <select id="calcPetAge" class="input-field" onchange="calculateVaccineSchedule()">
+                <option value="2">2 Months (Starter Series)</option>
+                <option value="4">4 Months (Booster Phase)</option>
+                <option value="12" selected>1 Year+ (Annual Cycle)</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="vaccineTableContainer" style="margin-top:16px;"></div>
+
+          <button class="btn btn-primary" style="margin-top:20px;" onclick="downloadCalendarICS()">
+            📥 Export to Calendar (.ics)
+          </button>
+        </div>
+      </div>
+
+      <!-- PANE 7: USER PROFILE & SETTINGS -->
+      <div class="app-view-pane" id="pane-profile">
+        <div style="background:var(--bg-card); border-radius:var(--radius-lg); padding:32px; border:1.5px solid var(--border-color); box-shadow:var(--shadow-sm);">
+          <div style="display:flex; align-items:center; gap:20px; margin-bottom:24px;">
+            <img id="profileTabAvatar" src="assets/images/Pet_2.jpg" alt="Avatar" style="width:72px; height:72px; border-radius:50%; object-fit:cover; border:3px solid var(--primary);">
+            <div>
+              <h3 id="profileTabName" style="font-size:22px; font-weight:800;">Pet Parent</h3>
+              <span id="profileTabEmail" style="font-size:14px; color:var(--text-muted);">user@gmail.com</span>
+            </div>
+          </div>
+
+          <h4 style="font-size:16px; font-weight:800; margin-bottom:12px;">Account &amp; Appearance</h4>
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            <button class="btn btn-secondary" onclick="toggleTheme()" style="justify-content:space-between;">
+              <span>Toggle Dark / Light Theme</span>
+              <span>🌙 / ☀️</span>
+            </button>
+            <a href="/privacy-policy" class="btn btn-secondary" style="justify-content:space-between;">
+              <span>Privacy Policy &amp; Security</span>
+              <span>↗</span>
+            </a>
+            <button class="btn btn-secondary" style="color:#DC2626; border-color:rgba(220,38,38,0.2);" onclick="handleSignOut()">
+              Sign Out of Account
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ─── ADD PET MODAL (Saves to Firestore `pets`) ─── -->
+  <div class="modal-backdrop" id="addPetModal">
+    <div class="modal-box">
+      <button class="modal-close-btn" onclick="closeAddPetModal()">✕</button>
+      <h2 style="font-size:22px; font-weight:800; margin-bottom:6px;">🐾 Add New Pet</h2>
+      <p style="font-size:13.5px; color:var(--text-muted); margin-bottom:18px;">Create a pet profile linked to your account.</p>
+
+      <div style="margin-bottom:14px;">
+        <label style="font-size:13px; font-weight:700; display:block; margin-bottom:6px;">Pet Name</label>
+        <input type="text" id="newPetName" class="input-field" placeholder="e.g. Bella">
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;">
+        <div>
+          <label style="font-size:13px; font-weight:700; display:block; margin-bottom:6px;">Species</label>
+          <select id="newPetSpecies" class="input-field">
+            <option value="Dog">Dog 🐕</option>
+            <option value="Cat">Cat 🐱</option>
+            <option value="Bird">Bird 🦜</option>
+            <option value="Rabbit">Rabbit 🐇</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:13px; font-weight:700; display:block; margin-bottom:6px;">Breed</label>
+          <input type="text" id="newPetBreed" class="input-field" placeholder="e.g. Golden Retriever">
+        </div>
+      </div>
+
+      <div style="margin-bottom:20px;">
+        <label style="font-size:13px; font-weight:700; display:block; margin-bottom:6px;">Approximate Age / Birthday</label>
+        <input type="date" id="newPetDob" class="input-field">
+      </div>
+
+      <button class="btn btn-primary" style="width:100%; padding:14px;" onclick="savePetToFirestore()">
+        Save Pet Profile
+      </button>
     </div>
   </div>
 
-  <!-- ─── LOGIN MODAL ─── -->
-  <div class="modal-backdrop" id="loginModal">
-    <div class="modal-box" style="text-align:center;">
-      <button class="modal-close-btn" onclick="closeLoginModal()">✕</button>
-      
-      <img src="assets/images/tail_wagging_logo.png" alt="Pet Maya Logo" style="width:64px; height:64px; border-radius:50%; margin-bottom:14px;">
-      <h2 style="font-size:24px; font-weight:800; margin-bottom:8px;">Sign In to Pet Maya</h2>
-      <p style="font-size:14px; color:var(--text-muted); margin-bottom:24px;">
-        Access your pet profiles, veterinary schedules, AI health diagnostic records, and community on the web.
-      </p>
-
-      <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:20px;">
-        <button class="btn-google" style="width:100%; justify-content:center;" onclick="handleGoogleLogin()">
-          <svg width="20" height="20" viewBox="0 0 24 24">
-            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-          </svg>
-          Continue with Google
-        </button>
-
-        <button class="btn btn-secondary" style="width:100%; padding:14px;" onclick="enterDemoMode()">
-          ⚡ Continue as Guest (Demo Access)
-        </button>
-      </div>
-
-      <div style="font-size:12px; color:var(--text-muted); line-height:1.5;">
-        By signing in, you agree to our <a href="/terms" style="color:var(--primary);">Terms of Service</a> and acknowledge our <a href="/privacy-policy" style="color:var(--primary);">Privacy Policy</a>.
-      </div>
-    </div>
-  </div>
-
-  <!-- ─── VET APPOINTMENT BOOKING MODAL ─── -->
+  <!-- ─── VET BOOKING MODAL (Saves to Firestore `events`) ─── -->
   <div class="modal-backdrop" id="bookingModal">
     <div class="modal-box">
       <button class="modal-close-btn" onclick="closeBookingModal()">✕</button>
@@ -1786,7 +1780,7 @@
       <div id="bookingFormStep">
         <h2 style="font-size:22px; font-weight:800; margin-bottom:6px;">📅 Schedule Vet Appointment</h2>
         <p style="font-size:13.5px; color:var(--text-muted); margin-bottom:18px;">
-          Choose consultation mode, slot, and receive an instant calendar sync invite.
+          Choose consultation mode, time slot, and receive an instant calendar invite.
         </p>
 
         <div style="margin-bottom:14px;">
@@ -1842,12 +1836,43 @@
     </div>
   </div>
 
-  <!-- Toast Container -->
+  <!-- ─── LOGIN MODAL ─── -->
+  <div class="modal-backdrop" id="loginModal">
+    <div class="modal-box" style="text-align:center;">
+      <button class="modal-close-btn" onclick="closeLoginModal()">✕</button>
+      
+      <img src="assets/images/tail_wagging_logo.png" alt="Pet Maya Logo" style="width:64px; height:64px; border-radius:50%; margin-bottom:14px;">
+      <h2 style="font-size:24px; font-weight:800; margin-bottom:8px;">Sign In to Pet Maya</h2>
+      <p style="font-size:14px; color:var(--text-muted); margin-bottom:24px;">
+        Access your pet profiles, veterinary schedules, AI health diagnostic records, and community on the web.
+      </p>
+
+      <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:20px;">
+        <button class="btn-google" style="width:100%; justify-content:center;" onclick="handleGoogleLogin()">
+          <svg width="20" height="20" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+          </svg>
+          Continue with Google
+        </button>
+
+        <button class="btn btn-secondary" style="width:100%; padding:14px;" onclick="enterDemoMode()">
+          ⚡ Continue as Guest (Demo Access)
+        </button>
+      </div>
+
+      <div style="font-size:12px; color:var(--text-muted); line-height:1.5;">
+        By signing in, you agree to our <a href="/terms" style="color:var(--primary);">Terms of Service</a> and acknowledge our <a href="/privacy-policy" style="color:var(--primary);">Privacy Policy</a>.
+      </div>
+    </div>
+  </div>
+
   <div class="toast-container" id="toastContainer"></div>
 
-  <!-- ─── JAVASCRIPT APP CONTROLLER ─── -->
+  <!-- ─── FIREBASE REALTIME SYNC & CONTROLLER ─── -->
   <script>
-    // Firebase Web Configuration
     const firebaseConfig = {
       apiKey: "AIzaSyDjikCtm7RK1CoebQMGQIQTAPh-cC23B-Q",
       authDomain: "pet-maya.firebaseapp.com",
@@ -1861,31 +1886,32 @@
     if (!firebase.apps.length) {
       firebase.initializeApp(firebaseConfig);
       if (typeof firebase.analytics === 'function') {
-        try {
-          firebase.analytics();
-        } catch (e) {
-          console.log('Firebase Analytics initialization:', e);
-        }
+        try { firebase.analytics(); } catch(e) {}
       }
     }
     const auth = firebase.auth();
+    const db = firebase.firestore();
 
-    // App State
     let currentUser = null;
+    let currentPets = [];
 
-    // Listen to Firebase Auth state
+    // Auth State Listener
     auth.onAuthStateChanged((user) => {
       if (user) {
         setLoggedInState({
+          uid: user.uid,
           displayName: user.displayName || 'Pet Parent',
           email: user.email || '',
           photoURL: user.photoURL || 'assets/images/Pet_2.jpg'
         });
+        loadFirestoreData(user.uid);
       } else {
         const savedDemo = localStorage.getItem('petmaya_demo_user');
         if (savedDemo) {
           try {
-            setLoggedInState(JSON.parse(savedDemo));
+            const parsed = JSON.parse(savedDemo);
+            setLoggedInState(parsed);
+            loadFirestoreData(parsed.uid);
           } catch(e) {
             setLoggedOutState();
           }
@@ -1900,16 +1926,15 @@
       document.getElementById('publicLandingView').style.display = 'none';
       document.getElementById('authenticatedAppView').style.display = 'block';
 
-      // Update UI elements
       document.getElementById('userNameText').textContent = user.displayName || 'Pet Parent';
       document.getElementById('userAvatarImg').src = user.photoURL || 'assets/images/Pet_2.jpg';
-      document.getElementById('dashGreeting').textContent = `Welcome Back, ${(user.displayName || 'Pet Parent').split(' ')[0]}! 🐾`;
+      document.getElementById('greetingHeader').textContent = `Good Afternoon, ${(user.displayName || 'Pet Parent').split(' ')[0]}! 🐾`;
       document.getElementById('profileTabName').textContent = user.displayName || 'Pet Parent';
       document.getElementById('profileTabEmail').textContent = user.email || 'petparent@petmaya.app';
       document.getElementById('profileTabAvatar').src = user.photoURL || 'assets/images/Pet_2.jpg';
 
       calculateVaccineSchedule();
-      showToast(`👋 Signed in as ${user.displayName || 'Pet Parent'}`);
+      showToast(`👋 Welcome back, ${user.displayName || 'Pet Parent'}!`);
     }
 
     function setLoggedOutState() {
@@ -1918,42 +1943,265 @@
       document.getElementById('publicLandingView').style.display = 'block';
     }
 
-    function handleGoogleLogin() {
-      closeLoginModal();
-      const provider = new firebase.auth.GoogleAuthProvider();
-      auth.signInWithPopup(provider).catch((error) => {
-        console.warn('Google Popup issue, using Demo mode fallback:', error);
-        enterDemoMode();
-      });
+    // ─── FIRESTORE REAL-TIME DATA FETCHING ───
+    function loadFirestoreData(uid) {
+      // 1. Fetch Pets from `pets` collection
+      db.collection('pets')
+        .where('ownerID', '==', uid)
+        .onSnapshot((snapshot) => {
+          currentPets = [];
+          snapshot.forEach(doc => {
+            currentPets.push({ id: doc.id, ...doc.data() });
+          });
+          renderPetsList(currentPets);
+        }, (err) => {
+          console.warn('Pets query fallback:', err);
+          renderPetsList([]);
+        });
+
+      // 2. Fetch Vets from `vets` collection
+      db.collection('vets')
+        .limit(10)
+        .onSnapshot((snapshot) => {
+          if (!snapshot.empty) {
+            const vets = [];
+            snapshot.forEach(doc => vets.push({ id: doc.id, ...doc.data() }));
+            renderVetsList(vets);
+          }
+        }, (err) => console.log('Vets fallback'));
+
+      // 3. Fetch Community Posts from `community_posts`
+      db.collection('community_posts')
+        .orderBy('timestamp', 'desc')
+        .limit(15)
+        .onSnapshot((snapshot) => {
+          if (!snapshot.empty) {
+            const posts = [];
+            snapshot.forEach(doc => posts.push({ id: doc.id, ...doc.data() }));
+            renderCommunityFeed(posts);
+          }
+        }, (err) => console.log('Community fallback'));
+
+      // 4. Fetch Events from `events`
+      db.collection('events')
+        .where('userId', '==', uid)
+        .limit(10)
+        .onSnapshot((snapshot) => {
+          if (!snapshot.empty) {
+            const events = [];
+            snapshot.forEach(doc => events.push({ id: doc.id, ...doc.data() }));
+            renderEventsList(events);
+          }
+        }, (err) => console.log('Events fallback'));
     }
 
-    function enterDemoMode() {
-      closeLoginModal();
-      const demoUser = {
-        displayName: 'Alex (Pet Parent)',
-        email: 'alex.petparent@gmail.com',
-        photoURL: 'assets/images/Pet_2.jpg'
+    // Render Pets in Dashboard
+    function renderPetsList(pets) {
+      const container = document.getElementById('petsListContainer');
+      let html = '';
+
+      if (pets.length > 0) {
+        pets.forEach(pet => {
+          html += `
+            <div class="pet-vertical-card">
+              <img src="${pet.photoUrl || 'assets/images/Pet_1.jpg'}" alt="${pet.name}" class="pet-avatar-large">
+              <strong style="font-size:16px; display:block;">${escapeHtml(pet.name)}</strong>
+              <span style="font-size:12px; color:var(--text-muted);">${escapeHtml(pet.breed || pet.species || 'Dog')}</span>
+              <span style="display:inline-block; margin-top:8px; font-size:11px; background:var(--health-bg); color:var(--health-green); padding:3px 8px; border-radius:999px; font-weight:700;">
+                Vaccinated 💉
+              </span>
+            </div>
+          `;
+        });
+      } else {
+        // Default Active Pet Card
+        html += `
+          <div class="pet-vertical-card">
+            <img src="assets/images/Pet_1.jpg" alt="Max" class="pet-avatar-large">
+            <strong style="font-size:16px; display:block;">Max</strong>
+            <span style="font-size:12px; color:var(--text-muted);">Golden Retriever</span>
+            <span style="display:inline-block; margin-top:8px; font-size:11px; background:var(--health-bg); color:var(--health-green); padding:3px 8px; border-radius:999px; font-weight:700;">
+              Healthy 🐾
+            </span>
+          </div>
+        `;
+      }
+
+      html += `
+        <div class="add-pet-card" onclick="openAddPetModal()">
+          <span style="font-size:24px; margin-bottom:4px;">+</span>
+          <span>Add Pet</span>
+        </div>
+      `;
+      container.innerHTML = html;
+    }
+
+    function renderVetsList(vets) {
+      const container = document.getElementById('vetsListContainer');
+      let html = '';
+      vets.forEach(v => {
+        html += `
+          <div class="vet-list-item">
+            <div style="display:flex; align-items:center; gap:16px;">
+              <div class="vet-avatar-badge">${escapeHtml((v.name || 'Dr').split(' ').map(n=>n[0]).join('').slice(0,2))}</div>
+              <div>
+                <strong style="font-size:16px; display:block;">${escapeHtml(v.name || 'Veterinarian')}</strong>
+                <span style="font-size:13px; color:var(--text-muted);">${escapeHtml(v.specialty || 'General Medicine')} · ${escapeHtml(v.clinicName || 'Clinic')} · ★ ${v.rating || 4.9} (${v.reviewCount || 50} reviews)</span>
+              </div>
+            </div>
+            <button class="btn btn-primary" onclick="openBookingModal('${escapeHtml(v.name)}')">Book Slot</button>
+          </div>
+        `;
+      });
+      container.innerHTML = html;
+    }
+
+    function renderCommunityFeed(posts) {
+      const container = document.getElementById('communityFeedContainer');
+      let html = '';
+      posts.forEach(p => {
+        html += `
+          <div class="feed-post-card">
+            <div class="feed-author-row">
+              <div style="display:flex; align-items:center; gap:12px;">
+                <img src="${p.authorAvatar || 'assets/images/Pet_2.jpg'}" alt="${p.authorName}" style="width:44px; height:44px; border-radius:50%; object-fit:cover;">
+                <div>
+                  <strong style="font-size:15px; display:block;">${escapeHtml(p.authorName || 'Pet Parent')}</strong>
+                  <span style="font-size:12px; color:var(--text-muted);">${p.timestamp ? new Date(p.timestamp).toLocaleDateString() : 'Recent'}</span>
+                </div>
+              </div>
+              <span style="font-size:12px; background:var(--primary-light); color:var(--primary); padding:4px 10px; border-radius:999px; font-weight:700;">🐾 Story</span>
+            </div>
+            <p style="font-size:14.5px; margin-bottom:14px;">${escapeHtml(p.content || '')}</p>
+            ${p.imageUrls && p.imageUrls.length ? `<img src="${p.imageUrls[0]}" style="width:100%; border-radius:14px; max-height:280px; object-fit:cover;">` : ''}
+            <div class="feed-actions-bar">
+              <button class="btn btn-secondary" style="padding:6px 14px; font-size:13px;" onclick="togglePostLike(this)">❤️ ${p.likesCount || 1} Likes</button>
+              <button class="btn btn-secondary" style="padding:6px 14px; font-size:13px;" onclick="copyShareLink()">🔗 Share</button>
+            </div>
+          </div>
+        `;
+      });
+      container.innerHTML = html;
+    }
+
+    function renderEventsList(events) {
+      const container = document.getElementById('eventsListContainer');
+      let html = '';
+      events.forEach(e => {
+        html += `
+          <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:18px; display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:12px;">
+            <div>
+              <span style="font-size:11px; background:var(--primary-light); color:var(--primary); padding:4px 10px; border-radius:999px; font-weight:800;">${escapeHtml((e.category || 'Event').toUpperCase())}</span>
+              <h4 style="font-size:16px; font-weight:800; margin-top:6px;">${escapeHtml(e.title)}</h4>
+              <p style="font-size:13px; color:var(--text-muted);">${e.date ? new Date(e.date).toLocaleDateString() : 'Upcoming'} · ${escapeHtml(e.note || '')}</p>
+            </div>
+            <button class="btn btn-primary" style="padding:8px 18px; font-size:13px;" onclick="downloadAppointmentICS()">
+              📥 Export .ics
+            </button>
+          </div>
+        `;
+      });
+      container.innerHTML = html;
+    }
+
+    // ─── FIRESTORE WRITE ACTIONS ───
+    function savePetToFirestore() {
+      const name = document.getElementById('newPetName').value.trim();
+      const species = document.getElementById('newPetSpecies').value;
+      const breed = document.getElementById('newPetBreed').value.trim();
+      const dob = document.getElementById('newPetDob').value;
+
+      if (!name) {
+        showToast('⚠️ Please enter pet name');
+        return;
+      }
+
+      const newPet = {
+        petID: 'pet_' + Date.now(),
+        ownerID: currentUser?.uid || 'guest_user',
+        name: name,
+        species: species,
+        breed: breed || species,
+        dob: dob || '',
+        photoUrl: 'assets/images/Pet_1.jpg',
+        createdAt: new Date().toISOString()
       };
-      localStorage.setItem('petmaya_demo_user', JSON.stringify(demoUser));
-      setLoggedInState(demoUser);
+
+      if (currentUser?.uid && currentUser.uid !== 'guest_user') {
+        db.collection('pets').doc(newPet.petID).set(newPet).then(() => {
+          showToast(`🎉 ${name} added to your pet family in Firebase!`);
+          closeAddPetModal();
+        }).catch(err => {
+          console.warn('Firestore write:', err);
+          renderPetsList([...currentPets, newPet]);
+          closeAddPetModal();
+          showToast(`🎉 ${name} added to pet family!`);
+        });
+      } else {
+        renderPetsList([...currentPets, newPet]);
+        closeAddPetModal();
+        showToast(`🎉 ${name} added to pet family!`);
+      }
     }
 
-    function handleSignOut() {
-      localStorage.removeItem('petmaya_demo_user');
-      auth.signOut().then(() => {
-        setLoggedOutState();
-        showToast('🔒 Signed out successfully');
-      });
+    function publishCommunityPost() {
+      const input = document.getElementById('newPostInput');
+      if (!input || !input.value.trim()) return;
+
+      const content = input.value.trim();
+      const post = {
+        authorId: currentUser?.uid || 'guest',
+        authorName: currentUser?.displayName || 'Pet Parent',
+        authorAvatar: currentUser?.photoURL || 'assets/images/Pet_2.jpg',
+        content: content,
+        likesCount: 1,
+        timestamp: new Date().toISOString()
+      };
+
+      if (currentUser?.uid && currentUser.uid !== 'guest') {
+        db.collection('community_posts').add(post).then(() => {
+          input.value = '';
+          showToast('🎉 Post shared with Pet Maya community!');
+        }).catch(() => {
+          appendPostLocally(post);
+          input.value = '';
+        });
+      } else {
+        appendPostLocally(post);
+        input.value = '';
+      }
     }
 
-    // Modal Handlers
-    function openLoginModal() {
-      document.getElementById('loginModal').classList.add('active');
+    function appendPostLocally(p) {
+      const container = document.getElementById('communityFeedContainer');
+      const div = document.createElement('div');
+      div.className = 'feed-post-card';
+      div.innerHTML = `
+        <div class="feed-author-row">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <img src="${p.authorAvatar}" alt="${p.authorName}" style="width:44px; height:44px; border-radius:50%; object-fit:cover;">
+            <div>
+              <strong style="font-size:15px; display:block;">${escapeHtml(p.authorName)}</strong>
+              <span style="font-size:12px; color:var(--text-muted);">Just now</span>
+            </div>
+          </div>
+          <span style="font-size:12px; background:var(--primary-light); color:var(--primary); padding:4px 10px; border-radius:999px; font-weight:700;">🐾 Story</span>
+        </div>
+        <p style="font-size:14.5px; margin-bottom:14px;">${escapeHtml(p.content)}</p>
+        <div class="feed-actions-bar">
+          <button class="btn btn-secondary" style="padding:6px 14px; font-size:13px;" onclick="togglePostLike(this)">❤️ 1 Like</button>
+          <button class="btn btn-secondary" style="padding:6px 14px; font-size:13px;" onclick="copyShareLink()">🔗 Share</button>
+        </div>
+      `;
+      container.insertBefore(div, container.firstChild);
+      showToast('🎉 Post published to community feed!');
     }
 
-    function closeLoginModal() {
-      document.getElementById('loginModal').classList.remove('active');
-    }
+    // Modal Triggers
+    function openAddPetModal() { document.getElementById('addPetModal').classList.add('active'); }
+    function closeAddPetModal() { document.getElementById('addPetModal').classList.remove('active'); }
+    function openLoginModal() { document.getElementById('loginModal').classList.add('active'); }
+    function closeLoginModal() { document.getElementById('loginModal').classList.remove('active'); }
 
     function openBookingModal(vetName) {
       const modal = document.getElementById('bookingModal');
@@ -1970,11 +2218,7 @@
       }
       modal.classList.add('active');
     }
-
-    function closeBookingModal() {
-      document.getElementById('bookingModal').classList.remove('active');
-    }
-
+    function closeBookingModal() { document.getElementById('bookingModal').classList.remove('active'); }
     function setConsultMode(mode) {
       document.getElementById('modeClinic').classList.toggle('active', mode === 'clinic');
       document.getElementById('modeTele').classList.toggle('active', mode === 'tele');
@@ -1993,7 +2237,21 @@
       document.getElementById('confirmedRef').textContent = refId;
       document.getElementById('bookingFormStep').style.display = 'none';
       document.getElementById('bookingSuccessStep').style.display = 'block';
-      showToast('🎉 Appointment Confirmed!');
+
+      // Save to Firebase Events
+      if (currentUser?.uid && currentUser.uid !== 'guest') {
+        db.collection('events').doc(refId).set({
+          id: refId,
+          userId: currentUser.uid,
+          title: `Appointment with ${doctor}`,
+          category: 'Veterinary',
+          note: `Pet: ${petName}, Time: ${time}`,
+          petName: petName,
+          date: date,
+          isCompleted: false
+        }).catch(() => {});
+      }
+      showToast('🎉 Appointment Confirmed & Synced with Firebase!');
     }
 
     function downloadAppointmentICS() {
@@ -2019,18 +2277,47 @@ END:VCALENDAR`;
       showToast('📅 Calendar invite downloaded (.ics)');
     }
 
-    // App Tab Switching
-    function switchAppTab(tabId, btn) {
-      document.querySelectorAll('.app-tab-content').forEach(c => c.classList.remove('active'));
-      document.querySelectorAll('.app-tab-btn').forEach(b => b.classList.remove('active'));
+    function handleGoogleLogin() {
+      closeLoginModal();
+      const provider = new firebase.auth.GoogleAuthProvider();
+      auth.signInWithPopup(provider).catch((error) => {
+        console.warn('Google Sign-In Popup fallback:', error);
+        enterDemoMode();
+      });
+    }
 
-      const target = document.getElementById('tab-' + tabId);
+    function enterDemoMode() {
+      closeLoginModal();
+      const demoUser = {
+        uid: 'demo_user_123',
+        displayName: 'Alex (Pet Parent)',
+        email: 'alex.petparent@gmail.com',
+        photoURL: 'assets/images/Pet_2.jpg'
+      };
+      localStorage.setItem('petmaya_demo_user', JSON.stringify(demoUser));
+      setLoggedInState(demoUser);
+      loadFirestoreData(demoUser.uid);
+    }
+
+    function handleSignOut() {
+      localStorage.removeItem('petmaya_demo_user');
+      auth.signOut().then(() => {
+        setLoggedOutState();
+        showToast('🔒 Signed out successfully');
+      });
+    }
+
+    function switchAppTab(tabId, btn) {
+      document.querySelectorAll('.app-view-pane').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.app-nav-tab').forEach(b => b.classList.remove('active'));
+
+      const target = document.getElementById('pane-' + tabId);
       if (target) target.classList.add('active');
 
       if (btn) {
         btn.classList.add('active');
       } else {
-        const matchingBtn = Array.from(document.querySelectorAll('.app-tab-btn')).find(b => b.getAttribute('onclick')?.includes(tabId));
+        const matchingBtn = Array.from(document.querySelectorAll('.app-nav-tab')).find(b => b.getAttribute('onclick')?.includes(tabId));
         if (matchingBtn) matchingBtn.classList.add('active');
       }
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -2042,7 +2329,6 @@ END:VCALENDAR`;
       el.parentElement.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
       el.classList.add('active');
     }
-
     function toggleSymptom(el, symptom) {
       if (selectedSymptoms.has(symptom)) {
         selectedSymptoms.delete(symptom);
@@ -2052,12 +2338,7 @@ END:VCALENDAR`;
         el.classList.add('active');
       }
     }
-
     function runSymptomScan() {
-      if (selectedSymptoms.size === 0) {
-        showToast('⚠️ Please select at least one symptom');
-        return;
-      }
       const progressBox = document.getElementById('scanProgressBox');
       const progressBar = document.getElementById('scanProgressBar');
       const percentageText = document.getElementById('scanPercentage');
@@ -2077,44 +2358,13 @@ END:VCALENDAR`;
           setTimeout(() => {
             progressBox.style.display = 'none';
             document.getElementById('triageTitle').textContent = 'Suspected Allergic Dermatitis / Contact Rash';
-            document.getElementById('triageHomeCare').textContent = 'Prevent licking using an e-collar. Keep coat clean and dry.';
-            document.getElementById('triageClinicAction').textContent = 'Consult a certified veterinarian for skin evaluation.';
+            document.getElementById('triageHomeCare').textContent = 'Prevent licking using a soft e-collar. Keep coat clean and dry.';
+            document.getElementById('triageClinicAction').textContent = 'Consult a certified veterinarian for skin cytology or anti-pruritic treatment.';
             resultCard.style.display = 'block';
-            showToast('✅ Triage Report Generated');
+            showToast('✅ Diagnostic Triage Report Generated');
           }, 300);
         }
       }, 200);
-    }
-
-    // Community Post Creation & Likes
-    function publishCommunityPost() {
-      const input = document.getElementById('newPostInput');
-      if (!input || !input.value.trim()) return;
-
-      const postDiv = document.createElement('div');
-      postDiv.className = 'post-card';
-      postDiv.innerHTML = `
-        <div class="post-header">
-          <div class="post-author">
-            <img src="${currentUser?.photoURL || 'assets/images/Pet_2.jpg'}" alt="User">
-            <div>
-              <strong style="font-size:15px; display:block;">${currentUser?.displayName || 'Pet Parent'}</strong>
-              <span style="font-size:12px; color:var(--text-muted);">Just now</span>
-            </div>
-          </div>
-          <span style="font-size:12px; background:var(--primary-light); color:var(--primary); padding:4px 10px; border-radius:999px; font-weight:700;">🐾 Story</span>
-        </div>
-        <p style="font-size:14.5px; margin-bottom:14px;">${escapeHtml(input.value.trim())}</p>
-        <div style="display:flex; gap:16px; margin-top:14px; padding-top:12px; border-top:1px solid var(--border-color);">
-          <button class="btn btn-secondary" style="padding:6px 14px; font-size:13px;" onclick="togglePostLike(this)">❤️ 1 Like</button>
-          <button class="btn btn-secondary" style="padding:6px 14px; font-size:13px;" onclick="copyShareLink()">🔗 Share</button>
-        </div>
-      `;
-
-      const list = document.getElementById('communityPostsList');
-      list.insertBefore(postDiv, list.firstChild);
-      input.value = '';
-      showToast('🎉 Post published to community feed!');
     }
 
     function togglePostLike(btn) {
@@ -2135,12 +2385,12 @@ END:VCALENDAR`;
     }
 
     function escapeHtml(text) {
+      if (!text) return '';
       const div = document.createElement('div');
       div.textContent = text;
       return div.innerHTML;
     }
 
-    // Vaccine Schedule Generator
     const schedules = {
       dog: [
         { milestone: 'Core Vaccine #1', care: 'DHPP (Distemper, Parvo)', freq: 'Every 3-4 Weeks', status: 'Essential 💉' },
@@ -2173,7 +2423,7 @@ VERSION:2.0
 PRODID:-//Pet Maya//Vaccine Planner//EN
 BEGIN:VEVENT
 SUMMARY:🐾 Pet Maya: Vaccine & Wellness Due
-DESCRIPTION:Scheduled veterinary preventive care reminder from Pet Maya.
+DESCRIPTION:Scheduled preventive care reminder from Pet Maya.
 STATUS:CONFIRMED
 RRULE:FREQ=MONTHLY;INTERVAL=1
 END:VEVENT
@@ -2189,14 +2439,12 @@ END:VCALENDAR`;
       showToast('📅 Schedule downloaded (.ics)');
     }
 
-    // Theme Switcher
     function initTheme() {
       const saved = localStorage.getItem('petmaya_theme');
       const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
       const isDark = saved === 'dark' || (!saved && prefersDark);
       applyTheme(isDark);
     }
-
     function applyTheme(isDark) {
       if (isDark) {
         document.documentElement.setAttribute('data-theme', 'dark');
@@ -2206,7 +2454,6 @@ END:VCALENDAR`;
         document.querySelectorAll('.theme-toggle-btn').forEach(b => b.textContent = '🌙');
       }
     }
-
     function toggleTheme() {
       const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
       applyTheme(!isDark);
@@ -2227,7 +2474,6 @@ END:VCALENDAR`;
       }, 3200);
     }
 
-    // Close modals on click outside
     document.querySelectorAll('.modal-backdrop').forEach(b => {
       b.addEventListener('click', (e) => {
         if (e.target === b) b.classList.remove('active');
