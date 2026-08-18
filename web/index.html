@@ -4,12 +4,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-  <title>Pet Maya — The All-in-One Intelligent Pet Care & Healthcare Platform</title>
+  <title>Pet Maya — Smart Pet Care & Veterinary Platform</title>
   <meta name="application-name" content="Pet Maya">
   <meta name="apple-mobile-web-app-title" content="Pet Maya">
   <meta property="og:title" content="Pet Maya — Smart Pet Healthcare, Certified Vets & AI Diagnostics">
   <meta name="description"
-    content="Pet Maya is the all-in-one platform for pet parents. Book certified veterinary teleconsultations, run instant AI health scans for skin & eyes, track pet health vitals, and connect with a loving community.">
+    content="Pet Maya is the all-in-one Android platform for pet parents. Book certified veterinary teleconsultations, run instant AI health scans for skin & eyes, track pet health vitals, and connect with a loving community.">
   <link rel="canonical" href="https://www.petmaya.app/">
   <link rel="icon" type="image/png" href="assets/images/tail_wagging_logo.png" />
 
@@ -20,12 +20,19 @@
     href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
     rel="stylesheet">
 
+  <!-- Firebase App & Auth SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
   <style>
     :root {
       --primary: #1AB680;
       --primary-dark: #138A61;
       --primary-light: #e6f4f8;
       --accent: #FF6B6B;
+      --accent-warm: #FFA07A;
+      --health-green: #2E7D32;
+      --health-bg: #E8F5E9;
       --bg-light: #F8FBFD;
       --bg-card: #FFFFFF;
       --text-dark: #121E28;
@@ -72,153 +79,32 @@
       transition: background-color 0.3s ease, color 0.3s ease;
     }
 
-    [data-theme="dark"] body {
-      background-color: #091018;
-      color: #E2E8F0;
-    }
-
-    /* ─── NAVIGATION ─── */
-    .navbar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 1000;
-      background: rgba(255, 255, 255, 0.92);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border-bottom: 1px solid var(--border-color);
-      transition: all 0.3s ease;
-    }
-
-    [data-theme="dark"] .navbar {
-      background: rgba(9, 16, 24, 0.94);
-      border-bottom-color: rgba(255, 255, 255, 0.1);
-    }
-
-    .nav-container {
-      max-width: 1240px;
-      margin: 0 auto;
-      padding: 14px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      width: 100%;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      text-decoration: none;
-    }
-
-    .brand-text {
-      font-family: 'Fredoka', cursive, sans-serif;
-      font-size: 24px;
-      font-weight: 700;
-      color: var(--primary);
-    }
-
-    .nav-links {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-      list-style: none;
-    }
-
-    .nav-links a {
-      color: var(--text-dark);
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 14px;
-      transition: color 0.2s ease;
-    }
-
-    .nav-links a:hover {
-      color: var(--primary);
-    }
-
-    [data-theme="dark"] .nav-links a {
-      color: #CBD5E1;
-    }
-
-    [data-theme="dark"] .nav-links a:hover {
-      color: #34D399;
-    }
-
-    .nav-actions {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .theme-toggle-btn, .cart-nav-btn {
-      background: var(--bg-card);
-      border: 1.5px solid var(--border-color);
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      color: var(--text-dark);
-      font-size: 17px;
-      position: relative;
-      transition: all 0.2s ease;
-    }
-
-    .cart-badge-count {
-      position: absolute;
-      top: -4px;
-      right: -4px;
-      background: var(--accent);
-      color: white;
-      font-size: 10px;
-      font-weight: 800;
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      display: none;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .hamburger-btn {
-      display: none;
-      background: none;
-      border: none;
-      cursor: pointer;
-      color: var(--text-dark);
-      padding: 6px;
-    }
-
-    /* ─── BUTTONS ─── */
+    /* ─── COMMON BUTTONS & CHIPS ─── */
     .btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
-      padding: 10px 22px;
+      padding: 12px 24px;
       border-radius: var(--radius-full);
-      font-size: 14px;
       font-weight: 700;
+      font-size: 15px;
       text-decoration: none;
-      cursor: pointer;
       transition: all 0.25s ease;
+      cursor: pointer;
       border: none;
+      font-family: inherit;
     }
 
     .btn-primary {
-      background: var(--primary);
+      background: linear-gradient(135deg, var(--primary) 0%, #00B6D2 100%);
       color: white;
-      box-shadow: 0 4px 14px rgba(26, 182, 128, 0.3);
+      box-shadow: 0 8px 24px rgba(26, 182, 128, 0.25);
     }
 
     .btn-primary:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(26, 182, 128, 0.4);
+      box-shadow: 0 12px 30px rgba(26, 182, 128, 0.35);
     }
 
     .btn-secondary {
@@ -230,22 +116,135 @@
     .btn-secondary:hover {
       background: var(--primary-light);
       border-color: var(--primary);
+      transform: translateY(-2px);
     }
 
-    .btn-sm {
-      padding: 6px 14px;
-      font-size: 12px;
+    .btn-google {
+      background: white;
+      color: #3c4043;
+      border: 1px solid #dadce0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      font-weight: 700;
+      font-size: 15px;
+      padding: 12px 22px;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-google:hover {
+      box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+      background: #f8fafd;
+      transform: translateY(-1px);
+    }
+
+    /* ─── PUBLIC NAVBAR ─── */
+    .public-navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-color);
+      transition: all 0.3s ease;
+    }
+
+    [data-theme="dark"] .public-navbar {
+      background: rgba(9, 16, 24, 0.94);
+      border-bottom-color: rgba(255, 255, 255, 0.08);
+    }
+
+    .nav-container {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .brand img {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .brand-text {
+      font-family: 'Fredoka', cursive, sans-serif;
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--primary);
+      letter-spacing: -0.5px;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 15px;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover {
+      color: var(--primary);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .theme-toggle-btn {
+      background: var(--bg-card);
+      border: 1.5px solid var(--border-color);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text-dark);
+      font-size: 18px;
+      transition: all 0.25s ease;
+    }
+
+    .theme-toggle-btn:hover {
+      border-color: var(--primary);
+      transform: scale(1.08);
     }
 
     /* ─── HERO SECTION ─── */
     .hero {
-      padding: 130px 24px 70px;
+      padding: 140px 24px 70px;
       max-width: 1240px;
       margin: 0 auto;
       display: grid;
       grid-template-columns: 1.15fr 0.85fr;
       align-items: center;
-      gap: 50px;
+      gap: 60px;
       position: relative;
     }
 
@@ -253,24 +252,28 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 6px 16px;
+      padding: 8px 18px;
       background: var(--primary-light);
       border-radius: var(--radius-full);
       color: var(--primary);
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 800;
       letter-spacing: 0.5px;
-      margin-bottom: 20px;
+      margin-bottom: 24px;
       border: 1px solid rgba(26, 182, 128, 0.2);
     }
 
+    [data-theme="dark"] .hero-badge {
+      background: rgba(26, 182, 128, 0.15);
+    }
+
     .hero-title {
-      font-size: clamp(32px, 5vw, 54px);
+      font-size: 50px;
       font-weight: 800;
       line-height: 1.15;
       letter-spacing: -1.5px;
       color: var(--text-dark);
-      margin-bottom: 20px;
+      margin-bottom: 22px;
     }
 
     .hero-title span {
@@ -280,21 +283,57 @@
     }
 
     .hero-subtitle {
-      font-size: 17px;
+      font-size: 18px;
       color: var(--text-muted);
-      margin-bottom: 30px;
+      margin-bottom: 34px;
       line-height: 1.65;
     }
 
     .hero-cta-group {
       display: flex;
       flex-wrap: wrap;
-      gap: 14px;
+      gap: 16px;
       align-items: center;
       margin-bottom: 36px;
     }
 
-    /* ─── PHONE MOCKUP ─── */
+    .store-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: #111;
+      color: white;
+      padding: 10px 22px;
+      border-radius: 14px;
+      text-decoration: none;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+      transition: all 0.25s ease;
+      cursor: pointer;
+    }
+
+    .store-badge:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 14px 30px rgba(0, 0, 0, 0.25);
+    }
+
+    .store-badge-text {
+      display: flex;
+      flex-direction: column;
+      text-align: left;
+    }
+
+    .store-badge-text small {
+      font-size: 10px;
+      letter-spacing: 0.5px;
+      opacity: 0.85;
+    }
+
+    .store-badge-text strong {
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    /* ─── PHONE MOCKUP PREVIEW ─── */
     .hero-phone-wrapper {
       position: relative;
       display: flex;
@@ -302,11 +341,11 @@
     }
 
     .phone-mockup {
-      width: 290px;
-      height: 580px;
+      width: 300px;
+      height: 590px;
       background: #0f172a;
-      border-radius: 44px;
-      padding: 10px;
+      border-radius: 46px;
+      padding: 12px;
       box-shadow: 0 30px 80px rgba(26, 182, 128, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1);
       position: relative;
       overflow: hidden;
@@ -315,20 +354,16 @@
     .phone-screen {
       width: 100%;
       height: 100%;
-      background: #F8FBFD;
-      border-radius: 34px;
+      background: var(--bg-light);
+      border-radius: 36px;
       overflow: hidden;
       display: flex;
       flex-direction: column;
       font-size: 12px;
     }
 
-    [data-theme="dark"] .phone-screen {
-      background: #0D1722;
-    }
-
     .mockup-status-bar {
-      padding: 10px 16px 4px;
+      padding: 12px 18px 6px;
       display: flex;
       justify-content: space-between;
       color: #94a3b8;
@@ -337,47 +372,69 @@
     }
 
     .mockup-app-bar {
-      padding: 8px 16px;
+      padding: 10px 18px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: white;
-      border-bottom: 1px solid rgba(0,0,0,0.05);
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border-color);
     }
 
-    [data-theme="dark"] .mockup-app-bar {
-      background: #132230;
-      border-bottom-color: rgba(255, 255, 255, 0.08);
+    .mockup-app-bar .title {
+      font-weight: 800;
+      font-size: 16px;
+      color: var(--primary);
+      font-family: 'Fredoka', sans-serif;
     }
 
     .mockup-content {
-      padding: 12px;
+      padding: 14px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 12px;
       overflow-y: auto;
     }
 
     .mockup-hero-card {
       background: linear-gradient(135deg, var(--primary) 0%, #00B6D2 100%);
       color: white;
-      padding: 14px;
-      border-radius: 18px;
+      padding: 16px;
+      border-radius: 20px;
+      box-shadow: var(--shadow-sm);
     }
 
     .mockup-card {
-      background: white;
-      padding: 12px;
-      border-radius: 14px;
+      background: var(--bg-card);
+      padding: 14px;
+      border-radius: 16px;
       border: 1px solid var(--border-color);
     }
 
-    [data-theme="dark"] .mockup-card {
-      background: #172736;
-      border-color: rgba(255, 255, 255, 0.1);
+    .floating-pill {
+      position: absolute;
+      background: var(--bg-card);
+      padding: 10px 18px;
+      border-radius: var(--radius-full);
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.12);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 13px;
+      z-index: 10;
+      border: 1px solid rgba(26, 182, 128, 0.15);
+      animation: float 4s ease-in-out infinite;
     }
 
-    /* ─── SECTIONS & CONTAINERS ─── */
+    .pill-1 { top: 15%; left: -20px; animation-delay: 0s; }
+    .pill-2 { bottom: 20%; right: -25px; animation-delay: 2s; }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+
+    /* ─── SHORT OVERVIEW / FEATURES ─── */
     .section {
       padding: 80px 24px;
       max-width: 1240px;
@@ -386,303 +443,566 @@
 
     .section-header {
       text-align: center;
-      margin-bottom: 48px;
+      max-width: 680px;
+      margin: 0 auto 50px;
     }
 
     .section-tag {
+      display: inline-block;
       font-size: 12px;
       font-weight: 800;
       letter-spacing: 1.5px;
       text-transform: uppercase;
       color: var(--primary);
       background: var(--primary-light);
-      padding: 4px 14px;
+      padding: 6px 14px;
       border-radius: var(--radius-full);
-      display: inline-block;
-      margin-bottom: 12px;
+      margin-bottom: 14px;
+    }
+
+    [data-theme="dark"] .section-tag {
+      background: rgba(26, 182, 128, 0.15);
     }
 
     .section-title {
-      font-size: clamp(28px, 4vw, 38px);
+      font-size: 38px;
       font-weight: 800;
       letter-spacing: -1px;
       color: var(--text-dark);
-      margin-bottom: 12px;
+      margin-bottom: 16px;
     }
 
     .section-desc {
       font-size: 16px;
       color: var(--text-muted);
-      max-width: 650px;
-      margin: 0 auto;
+      line-height: 1.6;
     }
 
-    /* ─── INTERACTIVE BOX & CARDS ─── */
-    .interactive-tool-box {
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 28px;
+    }
+
+    .feature-card {
       background: var(--bg-card);
+      border-radius: var(--radius-md);
+      padding: 34px 28px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border-color);
+      transition: all 0.3s ease;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-lg);
+      border-color: rgba(26, 182, 128, 0.3);
+    }
+
+    .feature-icon-box {
+      width: 56px;
+      height: 56px;
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .icon-vet { background: #E0F2FE; color: #0284C7; }
+    .icon-ai { background: #F3E8FF; color: #9333EA; }
+    .icon-social { background: #FFE4E6; color: #E11D48; }
+    .icon-shop { background: #FEF3C7; color: #D97706; }
+    .icon-alarm { background: #DCFCE7; color: #16A34A; }
+    .icon-offline { background: #E0E7FF; color: #4F46E5; }
+
+    .feature-card h3 {
+      font-size: 20px;
+      font-weight: 800;
+      margin-bottom: 10px;
+      color: var(--text-dark);
+    }
+
+    .feature-card p {
+      font-size: 14.5px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* ─── WEB LOGIN PORTAL BANNER ─── */
+    .portal-banner {
+      background: linear-gradient(135deg, #138A61 0%, var(--primary) 50%, #00B6D2 100%);
+      color: white;
       border-radius: var(--radius-lg);
-      padding: 36px;
-      box-shadow: var(--shadow-md);
-      border: 1.5px solid var(--border-color);
-      margin: 0 auto;
-      max-width: 1000px;
+      padding: 60px 40px;
+      text-align: center;
+      margin: 40px 24px;
+      box-shadow: var(--shadow-lg);
+      position: relative;
     }
 
-    .grid-2 {
+    .portal-banner h2 {
+      font-size: 36px;
+      font-weight: 800;
+      margin-bottom: 14px;
+    }
+
+    .portal-banner p {
+      font-size: 16px;
+      max-width: 600px;
+      margin: 0 auto 30px;
+      opacity: 0.95;
+    }
+
+    .portal-actions {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    /* ─── DATA TRANSPARENCY / PRIVACY ─── */
+    .data-section {
+      background: var(--bg-card);
+      padding: 80px 24px;
+      border-top: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .data-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 24px;
+      margin-top: 40px;
     }
 
-    .grid-3 {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    .data-card {
+      background: var(--bg-light);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 28px 24px;
+    }
+
+    .data-card h3 {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 8px;
+    }
+
+    .data-card p {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .data-purpose {
+      display: inline-block;
+      margin-top: 12px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--primary);
+      background: rgba(26, 182, 128, 0.1);
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+    }
+
+    /* ─── AUTHENTICATED APP EXPERIENCE ─── */
+    #authenticatedAppView {
+      display: none;
+      min-height: 100vh;
+      background: var(--bg-light);
+    }
+
+    .app-layout {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    .app-header {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border-color);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .app-header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .app-header-right {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 14px;
+      background: var(--bg-light);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-full);
+      font-size: 13.5px;
+      font-weight: 700;
+    }
+
+    .user-pill img {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    /* App Nav Tabs */
+    .app-nav-bar {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      padding: 8px 16px;
+      overflow-x: auto;
+    }
+
+    .app-tab-btn {
+      background: none;
+      border: none;
+      padding: 10px 18px;
+      border-radius: var(--radius-full);
+      color: var(--text-muted);
+      font-weight: 700;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+      font-family: inherit;
+    }
+
+    .app-tab-btn:hover {
+      background: var(--primary-light);
+      color: var(--primary);
+    }
+
+    [data-theme="dark"] .app-tab-btn:hover {
+      background: rgba(26, 182, 128, 0.15);
+    }
+
+    .app-tab-btn.active {
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 4px 14px rgba(26, 182, 128, 0.3);
+    }
+
+    .app-main-container {
+      max-width: 1100px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 30px 20px 80px;
+      flex: 1;
+    }
+
+    .app-tab-content {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .app-tab-content.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Dashboard Widgets */
+    .welcome-card {
+      background: linear-gradient(135deg, var(--primary) 0%, #00B6D2 100%);
+      color: white;
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-md);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
       gap: 20px;
     }
 
-    .grid-4 {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 18px;
-    }
-
-    /* ─── PET PROFILE CARDS ─── */
-    .pet-profile-card {
-      background: var(--bg-light);
-      border: 1.5px solid var(--border-color);
+    .pet-summary-badge {
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      padding: 12px 20px;
       border-radius: var(--radius-md);
-      padding: 18px;
-      transition: all 0.25s ease;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
 
-    .active-pet-border {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 2px var(--primary-light);
+    .quick-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
     }
 
-    .pet-card-avatar {
-      width: 64px;
-      height: 64px;
-      border-radius: 18px;
-      object-fit: cover;
-      border: 2px solid var(--primary);
-    }
-
-    /* ─── VET DIRECTORY CARDS ─── */
-    .vet-item-card {
+    .quick-action-card {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
       border-radius: var(--radius-md);
       padding: 20px;
-      box-shadow: var(--shadow-sm);
       display: flex;
-      flex-direction: column;
-      gap: 12px;
+      align-items: center;
+      gap: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
     }
 
-    .vet-avatar {
-      width: 60px;
-      height: 60px;
-      border-radius: 16px;
-      object-fit: cover;
-    }
-
-    /* ─── COMMUNITY FEED ─── */
-    .community-post-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-md);
-      padding: 24px;
-      margin-bottom: 20px;
+    .quick-action-card:hover {
+      border-color: var(--primary);
+      transform: translateY(-3px);
       box-shadow: var(--shadow-sm);
     }
 
-    /* ─── INPUTS & CHIPS ─── */
-    .input-field {
-      width: 100%;
-      padding: 12px 16px;
-      border-radius: var(--radius-sm);
-      border: 1.5px solid var(--border-color);
-      background: var(--bg-light);
-      color: var(--text-dark);
-      font-size: 14px;
-      font-family: inherit;
-      outline: none;
+    .quick-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
     }
 
-    .input-field:focus {
-      border-color: var(--primary);
+    /* Interactive Tool Boxes */
+    .tool-box {
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      padding: 36px;
+      border: 1.5px solid var(--border-color);
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 24px;
     }
 
     .chip-group {
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
-      margin-bottom: 20px;
+      margin: 14px 0 20px;
     }
 
-    .chip, .vet-filter-btn, .shop-filter-btn {
-      padding: 8px 18px;
+    .chip {
+      padding: 10px 18px;
       border-radius: var(--radius-full);
       background: var(--bg-light);
       border: 1.5px solid var(--border-color);
       color: var(--text-dark);
-      font-size: 13px;
-      font-weight: 700;
+      font-size: 14px;
+      font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.2s;
     }
 
-    .chip.active, .vet-filter-btn.active, .shop-filter-btn.active {
+    .chip.active {
       background: var(--primary);
       color: white;
       border-color: var(--primary);
+      box-shadow: 0 4px 12px rgba(26, 182, 128, 0.3);
     }
 
-    /* ─── TABLE ─── */
-    .table-container {
+    .input-field {
       width: 100%;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
+      padding: 12px 18px;
       border-radius: var(--radius-sm);
-      margin-top: 16px;
-      border: 1px solid var(--border-color);
+      border: 1.5px solid var(--border-color);
+      font-size: 15px;
+      font-family: inherit;
+      outline: none;
       background: var(--bg-card);
-    }
-
-    .schedule-table {
-      width: 100%;
-      min-width: 520px;
-      border-collapse: collapse;
-    }
-
-    .schedule-table th,
-    .schedule-table td {
-      padding: 12px 14px;
-      text-align: left;
-      border-bottom: 1px solid var(--border-color);
-      font-size: 13px;
-    }
-
-    .schedule-table th {
-      background: var(--bg-light);
       color: var(--text-dark);
-      font-weight: 700;
-      white-space: nowrap;
     }
 
-    /* ─── MODALS & DRAWERS ─── */
-    .modal-overlay {
+    .input-field:focus {
+      border-color: var(--primary);
+    }
+
+    /* Vet List Items */
+    .vet-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      gap: 16px;
+    }
+
+    .vet-badge-avatar {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: var(--primary-light);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 18px;
+    }
+
+    /* Community Post Card */
+    .post-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .post-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .post-author {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .post-author img {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    /* Product Grid */
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 20px;
+    }
+
+    .product-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .product-img {
+      width: 100%;
+      height: 150px;
+      border-radius: 14px;
+      object-fit: cover;
+      margin-bottom: 14px;
+    }
+
+    /* Modals & Toasts */
+    .modal-backdrop {
       position: fixed;
       top: 0;
       left: 0;
       width: 100vw;
       height: 100vh;
-      background: rgba(0,0,0,0.6);
-      backdrop-filter: blur(6px);
-      z-index: 10000;
+      background: rgba(18, 30, 40, 0.65);
+      backdrop-filter: blur(8px);
+      z-index: 2000;
       display: none;
       align-items: center;
       justify-content: center;
-      padding: 16px;
+      padding: 20px;
+    }
+
+    .modal-backdrop.active {
+      display: flex;
     }
 
     .modal-box {
       background: var(--bg-card);
-      border-radius: var(--radius-md);
-      padding: 30px;
-      width: min(520px, 94vw);
+      color: var(--text-dark);
+      border-radius: var(--radius-lg);
+      max-width: 520px;
+      width: 100%;
       max-height: 90vh;
       overflow-y: auto;
-      border: 1px solid var(--border-color);
-      box-shadow: var(--shadow-lg);
+      padding: 34px;
       position: relative;
+      animation: modalPop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes modalPop {
+      from { transform: scale(0.94); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
     }
 
     .modal-close-btn {
       position: absolute;
-      top: 16px;
-      right: 16px;
-      background: none;
-      border: none;
-      font-size: 20px;
+      top: 20px;
+      right: 20px;
+      background: var(--bg-light);
+      border: 1px solid var(--border-color);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       color: var(--text-muted);
     }
 
-    .cart-drawer, .mobile-drawer {
+    .toast-container {
       position: fixed;
-      top: 0;
-      right: -100%;
-      width: min(360px, 85vw);
-      height: 100vh;
-      background: var(--bg-card);
-      z-index: 11000;
-      box-shadow: -10px 0 30px rgba(0,0,0,0.2);
-      transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      bottom: 24px;
+      right: 24px;
+      z-index: 3000;
       display: flex;
       flex-direction: column;
-      padding: 24px;
-    }
-
-    .cart-drawer.open, .mobile-drawer.open {
-      right: 0;
-    }
-
-    .drawer-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0,0,0,0.5);
-      z-index: 10500;
-      opacity: 0;
+      gap: 10px;
       pointer-events: none;
-      transition: opacity 0.3s ease;
     }
 
-    .drawer-overlay.active {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    /* ─── TOAST ─── */
     .toast {
-      padding: 12px 20px;
-      border-radius: var(--radius-sm);
-      font-weight: 700;
-      font-size: 14px;
-      box-shadow: var(--shadow-md);
-      transition: all 0.3s ease;
-      background: #111C27;
+      background: #121E28;
       color: white;
-      border: 1px solid rgba(255,255,255,0.1);
-    }
-
-    .toast-success { border-left: 4px solid var(--primary); }
-    .toast-error { border-left: 4px solid var(--accent); }
-
-    /* ─── BACK TO TOP ─── */
-    .back-to-top {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      width: 44px;
-      height: 44px;
-      background: var(--bg-card);
-      border-radius: 50%;
-      box-shadow: var(--shadow-md);
-      display: none;
+      padding: 14px 22px;
+      border-radius: var(--radius-full);
+      font-size: 14px;
+      font-weight: 600;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+      display: flex;
       align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      border: 1px solid var(--border-color);
-      z-index: 990;
-      color: var(--primary);
+      gap: 10px;
+      pointer-events: auto;
+      border-left: 4px solid var(--primary);
     }
 
-    /* ─── FOOTER ─── */
+    /* Footer */
     footer {
       background: var(--bg-card);
       border-top: 1px solid var(--border-color);
@@ -698,813 +1018,1224 @@
       margin-bottom: 40px;
     }
 
-    /* ─── RESPONSIVE BREAKPOINTS ─── */
-    @media (max-width: 860px) {
-      .nav-links { display: none !important; }
-      .hamburger-btn { display: flex !important; }
-      .nav-actions .btn-primary { display: none !important; }
+    .footer-col h4 {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 18px;
+      color: var(--text-dark);
+    }
 
-      .hero {
-        padding-top: 96px !important;
-        padding-bottom: 40px !important;
-        grid-template-columns: 1fr !important;
-        text-align: center !important;
-        gap: 32px !important;
-      }
-      .hero-cta-group {
-        justify-content: center !important;
-        flex-direction: column !important;
-      }
-      .hero-cta-group .btn {
-        width: 100% !important;
-        max-width: 300px !important;
-      }
+    .footer-col ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
 
-      .phone-mockup {
-        width: 100% !important;
-        max-width: 270px !important;
-        height: auto !important;
-        aspect-ratio: 9 / 18 !important;
-        max-height: 530px !important;
-      }
+    .footer-col a {
+      text-decoration: none;
+      color: var(--text-muted);
+      font-size: 14px;
+      transition: color 0.2s;
+    }
 
-      .grid-2, .grid-3, .grid-4, .footer-container {
-        grid-template-columns: 1fr !important;
-      }
+    .footer-col a:hover {
+      color: var(--primary);
+    }
 
-      .interactive-tool-box {
-        padding: 20px 14px !important;
-        border-radius: var(--radius-md) !important;
-      }
+    .footer-bottom {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding-top: 24px;
+      border-top: 1px solid rgba(0,0,0,0.06);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
 
-      .section {
-        padding: 50px 16px !important;
-      }
+    @media (max-width: 960px) {
+      .hero { grid-template-columns: 1fr; padding-top: 110px; text-align: center; }
+      .hero-cta-group { justify-content: center; }
+      .footer-container { grid-template-columns: 1fr 1fr; }
+      .nav-links { display: none; }
+      .welcome-card { text-align: center; justify-content: center; }
+    }
+
+    @media (max-width: 600px) {
+      .hero-title { font-size: 32px; }
+      .footer-container { grid-template-columns: 1fr; }
+      .portal-banner { padding: 40px 20px; }
+      .tool-box { padding: 22px 18px; }
     }
   </style>
 </head>
 
 <body>
-  <!-- ─── NAVBAR ─── -->
-  <nav class="navbar">
-    <div class="nav-container">
-      <a href="#" class="brand">
-        <img src="assets/images/tail_wagging_logo.png" alt="Pet Maya Logo" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">
-        <span class="brand-text">Pet Maya</span>
-      </a>
-
-      <ul class="nav-links">
-        <li><a href="#pets">My Pets</a></li>
-        <li><a href="#scanner">AI Health Scanner</a></li>
-        <li><a href="#vets">Find & Book Vets</a></li>
-        <li><a href="#shop">Pet Store</a></li>
-        <li><a href="#calculator">Vaccine Planner</a></li>
-        <li><a href="#community">Community</a></li>
-        <li><a href="#privacy">Privacy</a></li>
-      </ul>
-
-      <div class="nav-actions">
-        <button class="cart-nav-btn" onclick="toggleCartDrawer(true)" aria-label="View Shopping Cart">
-          🛒
-          <span class="cart-badge-count">0</span>
-        </button>
-
-        <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" aria-label="Toggle Theme">
-          🌙
-        </button>
-
-        <button class="btn btn-primary" onclick="openAppModal()">
-          📲 Get App
-        </button>
-
-        <button class="hamburger-btn" id="mobileMenuBtn" onclick="toggleDrawer(true)" aria-label="Toggle Navigation">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="3" y1="12" x2="21" y2="12" />
-            <line x1="3" y1="6" x2="21" y2="6" />
-            <line x1="3" y1="18" x2="21" y2="18" />
-          </svg>
-        </button>
-      </div>
+  <!-- Fallback noscript for crawlers -->
+  <noscript>
+    <div style="background:#1AB680; color:white; padding:16px 24px; text-align:center; font-family:sans-serif;">
+      <strong>Pet Maya</strong> is an Android pet care platform for certified vet bookings, health symptom diagnostics, pet community, and vaccine reminders.
+      <a href="/privacy-policy" style="color:white; text-decoration:underline; margin-left:12px; font-weight:bold;">Privacy Policy</a>
     </div>
-  </nav>
+  </noscript>
 
-  <!-- ─── MOBILE DRAWER ─── -->
-  <div class="drawer-overlay" id="drawerOverlay" onclick="toggleDrawer(false)"></div>
-  <div class="mobile-drawer" id="mobileDrawer">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
-      <div class="brand">
-        <img src="assets/images/tail_wagging_logo.png" alt="Pet Maya Logo" style="width:36px;height:36px;border-radius:50%;">
-        <span class="brand-text" style="font-size:20px;">Pet Maya</span>
-      </div>
-      <button class="modal-close-btn" onclick="toggleDrawer(false)" style="position:static;">✕</button>
-    </div>
-    <ul style="list-style:none; display:flex; flex-direction:column; gap:16px;">
-      <li><a href="#pets" onclick="toggleDrawer(false)" style="font-size:16px; font-weight:700; color:var(--text-dark); text-decoration:none;">🐾 My Pets Dashboard</a></li>
-      <li><a href="#scanner" onclick="toggleDrawer(false)" style="font-size:16px; font-weight:700; color:var(--text-dark); text-decoration:none;">🔬 AI Health Scanner</a></li>
-      <li><a href="#vets" onclick="toggleDrawer(false)" style="font-size:16px; font-weight:700; color:var(--text-dark); text-decoration:none;">🩺 Find & Book Vets</a></li>
-      <li><a href="#shop" onclick="toggleDrawer(false)" style="font-size:16px; font-weight:700; color:var(--text-dark); text-decoration:none;">🛍️ Pet Supplies Store</a></li>
-      <li><a href="#calculator" onclick="toggleDrawer(false)" style="font-size:16px; font-weight:700; color:var(--text-dark); text-decoration:none;">📅 Vaccine Milestone Planner</a></li>
-      <li><a href="#community" onclick="toggleDrawer(false)" style="font-size:16px; font-weight:700; color:var(--text-dark); text-decoration:none;">💬 Pet Community</a></li>
-      <li><a href="/about" style="font-size:16px; font-weight:700; color:var(--text-dark); text-decoration:none;">ℹ️ About Us</a></li>
-      <li><a href="/privacy-policy" style="font-size:16px; font-weight:700; color:var(--text-dark); text-decoration:none;">🔒 Privacy Policy</a></li>
-    </ul>
-    <div style="margin-top:auto; padding-top:20px;">
-      <button class="btn btn-primary" style="width:100%;" onclick="toggleDrawer(false); openAppModal();">
-        Download Android App
-      </button>
-    </div>
-  </div>
-
-  <!-- ─── CART DRAWER ─── -->
-  <div class="drawer-overlay" id="cartOverlay" onclick="toggleCartDrawer(false)"></div>
-  <div class="cart-drawer" id="cartDrawer">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid var(--border-color); padding-bottom:14px;">
-      <h3 style="font-size:18px; font-weight:800; color:var(--text-dark); margin:0;">🛒 Your Pet Care Cart</h3>
-      <button class="modal-close-btn" onclick="toggleCartDrawer(false)" style="position:static;">✕</button>
-    </div>
+  <!-- ══════════════════════════════════════════════════════════════════ -->
+  <!-- 1. PUBLIC HOMEPAGE VIEW (When User is NOT Logged In)            -->
+  <!-- ══════════════════════════════════════════════════════════════════ -->
+  <div id="publicLandingView">
     
-    <div id="cartItemsList" style="flex:1; overflow-y:auto;">
-      <!-- Dynamic cart items rendered by app.js -->
-    </div>
+    <!-- Navbar -->
+    <nav class="public-navbar">
+      <div class="nav-container">
+        <a href="#" class="brand">
+          <img src="assets/images/tail_wagging_logo.png" alt="Pet Maya Logo">
+          <span class="brand-text">Pet Maya</span>
+        </a>
 
-    <div style="padding-top:16px; border-top:1px solid var(--border-color); margin-top:auto;">
-      <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:13px; color:var(--text-muted);">
-        <span>Subtotal:</span>
-        <strong id="cartSubtotal" style="color:var(--text-dark);">$0.00</strong>
+        <ul class="nav-links">
+          <li><a href="#overview">Overview</a></li>
+          <li><a href="#features">Features</a></li>
+          <li><a href="#privacy">Privacy &amp; Safety</a></li>
+          <li><a href="/privacy-policy">Privacy Policy</a></li>
+          <li><a href="/terms">Terms</a></li>
+        </ul>
+
+        <div class="nav-actions">
+          <button class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle dark/light theme" title="Toggle Theme">
+            🌙
+          </button>
+          
+          <button class="btn btn-secondary" onclick="openLoginModal()" style="padding:10px 20px;">
+            Sign In
+          </button>
+
+          <a href="https://play.google.com/store/apps/details?id=com.vertexhand.petmaya" target="_blank" class="btn btn-primary" style="padding:10px 20px;">
+            Get App
+          </a>
+        </div>
       </div>
-      <div style="display:flex; justify-content:space-between; margin-bottom:12px; font-size:15px;">
-        <span style="font-weight:800; color:var(--text-dark);">Total (incl. tax):</span>
-        <strong id="cartTotal" style="color:var(--primary); font-size:18px;">$0.00</strong>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="hero">
+      <div class="hero-content">
+        <div class="hero-badge">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="margin-right:4px;flex-shrink:0;">
+            <ellipse cx="8" cy="9.5" rx="3.2" ry="2.5" fill="#1AB680" />
+            <ellipse cx="4.5" cy="6.5" rx="1.4" ry="1.1" fill="#1AB680" />
+            <ellipse cx="6.5" cy="5" rx="1.4" ry="1.1" fill="#1AB680" />
+            <ellipse cx="9.5" cy="5" rx="1.4" ry="1.1" fill="#1AB680" />
+            <ellipse cx="11.5" cy="6.5" rx="1.4" ry="1.1" fill="#1AB680" />
+          </svg>
+          SMART PET CARE PLATFORM
+        </div>
+        <h1 class="hero-title">
+          <span>Pet Maya</span> — Everything Your Pet Needs, All in One Place.
+        </h1>
+        <p class="hero-subtitle">
+          <strong>Pet Maya</strong> is an intelligent pet healthcare and veterinary platform for Android. It connects pet owners
+          with certified veterinarians, provides AI-guided health symptom triage, a Facebook-style pet
+          community feed, doorstep pet supplies, and automated vaccine &amp; medication alarms.
+          Sign in to access your pet dashboard on the web or download the app.
+        </p>
+
+        <div class="hero-cta-group">
+          <a href="https://play.google.com/store/apps/details?id=com.vertexhand.petmaya" target="_blank" class="store-badge">
+            <svg width="28" height="28" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+              <path fill="#00D7FF" d="M47.7 20.3C40.6 28 36.6 40 36.6 55.4v401.2c0 15.4 4 27.4 11.1 35.1l1.9 1.9 224.7-224.7v-5.8L49.6 18.4l-1.9 1.9z"/>
+              <path fill="#00EB7B" d="M349.5 324.4l-75.2-75.2v-5.8l75.2-75.2 1.7 1 89 50.6c25.4 14.4 25.4 38.1 0 52.6l-89 50.6-1.7 1.4z"/>
+              <path fill="#FF3A44" d="M274.3 249.2L47.7 475.8c8.3 8.8 22 9.9 37.4 1.1l266.1-151.1-76.9-76.6z"/>
+              <path fill="#FFD400" d="M274.3 262.8l76.9-76.6L85.1 35.1C69.7 26.4 56 27.4 47.7 36.2l226.6 226.6z"/>
+            </svg>
+            <div class="store-badge-text">
+              <small>GET IT ON</small>
+              <strong>Google Play</strong>
+            </div>
+          </a>
+
+          <button class="btn btn-primary" onclick="openLoginModal()">
+            🐾 Launch Web App →
+          </button>
+        </div>
+
+        <div style="font-size:14px; color:var(--text-muted);">
+          ⭐ Trusted by <strong>10,000+ loving pet parents</strong> &amp; certified veterinarians.
+        </div>
       </div>
-      <button class="btn btn-primary" style="width:100%;" onclick="openCheckoutModal()">
-        Proceed to Checkout →
-      </button>
+
+      <!-- App Preview Phone Mockup -->
+      <div class="hero-phone-wrapper">
+        <div class="floating-pill pill-1">
+          🩺 50+ Certified Vets
+        </div>
+        <div class="floating-pill pill-2">
+          ⚡ Smart Health Check
+        </div>
+
+        <div class="phone-mockup">
+          <div class="phone-screen">
+            <div class="mockup-status-bar">
+              <span>9:41</span>
+              <span>LTE 100%</span>
+            </div>
+
+            <div class="mockup-app-bar">
+              <span class="title">Pet Maya</span>
+              <span>🔔</span>
+            </div>
+
+            <div class="mockup-content">
+              <div class="mockup-hero-card" onclick="openLoginModal()" style="cursor:pointer;">
+                <div style="font-size: 11px; opacity: 0.85; text-transform: uppercase; font-weight: 700;">HEALTH SCANNER</div>
+                <div style="font-size: 16px; font-weight: 800; margin-top: 4px;">Smart Symptom Check</div>
+                <div style="font-size: 12px; margin-top: 6px; opacity: 0.9;">Instant guidance for skin, eyes &amp; coat.</div>
+              </div>
+
+              <div class="mockup-card" onclick="openLoginModal()" style="cursor:pointer;">
+                <div style="font-weight: 700; font-size: 13px; color: var(--primary);">Upcoming Appointment</div>
+                <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Dr. Sarah Jenkins · Tomorrow, 10:30 AM</div>
+              </div>
+
+              <div class="mockup-card">
+                <div style="font-weight: 700; font-size: 13px;">Community Stories</div>
+                <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">"Max just finished his agility training today! 🐕"</div>
+                <div style="font-size: 11px; color: var(--accent); font-weight: 700; margin-top: 6px;">❤️ 142 Likes · 💬 28 Comments</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Short Overview Section -->
+    <section id="features" class="section">
+      <div class="section-header">
+        <span class="section-tag">App Overview</span>
+        <h2 class="section-title">Everything Built for Modern Pet Care</h2>
+        <p class="section-desc">A brief overview of the tools available in Pet Maya for dogs, cats, birds, and rabbits.</p>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon-box icon-vet">🩺</div>
+          <h3>Veterinary Appointments &amp; Telehealth</h3>
+          <p>Find licensed local veterinarians, view verified reviews, and schedule in-clinic appointments or video consultations.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-box icon-ai">🤖</div>
+          <h3>AI Health Symptom Diagnostic</h3>
+          <p>Check preliminary symptoms for skin rashes, eye infections, or joint discomfort with instant clinical first-aid recommendations.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-box icon-social">🐾</div>
+          <h3>Pet Social Community</h3>
+          <p>Share pet milestones, photos, and recovery stories with fellow pet parents. Like, comment, and discover pet tips.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-box icon-shop">🛍️</div>
+          <h3>Pet Shop &amp; Pharmacy</h3>
+          <p>Order vet-approved premium nutrition, vitamins, grooming accessories, and flea/tick preventatives with doorstep tracking.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-box icon-alarm">⏰</div>
+          <h3>Vaccine &amp; Alarm Reminders</h3>
+          <p>Automated reminders for vaccine boosters, deworming cycles, and medication doses with direct calendar sync.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-box icon-offline">🔒</div>
+          <h3>Offline Records &amp; AES-256 Cloud</h3>
+          <p>Medical history, vaccine passports, and emergency contacts are encrypted and accessible even without active internet.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Web App Access Banner -->
+    <section class="portal-banner">
+      <h2>Access Pet Maya from Any Browser</h2>
+      <p>Log in with your Google account to manage your pets, book veterinary slots, track vaccine milestones, and interact with the community on web.</p>
+      <div class="portal-actions">
+        <button class="btn-google" onclick="handleGoogleLogin()">
+          <svg width="20" height="20" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+          </svg>
+          Sign In with Google
+        </button>
+        <button class="btn btn-secondary" onclick="enterDemoMode()">
+          ⚡ Quick Demo Access
+        </button>
+      </div>
+    </section>
+
+    <!-- Data Transparency & Safety Section -->
+    <section id="privacy" class="data-section">
+      <div class="section-header">
+        <span class="section-tag">Transparency &amp; Trust</span>
+        <h2 class="section-title">Your Privacy Is Our Priority</h2>
+        <p class="section-desc">Pet Maya is built on a foundation of transparency. Here is exactly what data we request, why we need it, and how it protects your pet.</p>
+      </div>
+
+      <div class="data-grid">
+        <div class="data-card">
+          <h3>Google Account (Sign-In)</h3>
+          <p>We use Google Sign-In via Firebase Authentication to create and secure your account. We access your name, email, and avatar only to identify you within the app.</p>
+          <span class="data-purpose">Purpose: Secure account authentication</span>
+        </div>
+
+        <div class="data-card">
+          <h3>Location Access</h3>
+          <p>Used solely to display nearby certified veterinary clinics on our interactive map. Location data is never shared with third parties.</p>
+          <span class="data-purpose">Purpose: Find nearby vets</span>
+        </div>
+
+        <div class="data-card">
+          <h3>Camera &amp; Pet Photos</h3>
+          <p>When you use the AI Health Scanner, photos of your pet are uploaded securely for diagnostic analysis and are never sold or used for advertising.</p>
+          <span class="data-purpose">Purpose: AI symptom analysis</span>
+        </div>
+
+        <div class="data-card">
+          <h3>Push Notifications</h3>
+          <p>We send timely reminders for upcoming veterinary appointments, vaccination schedules, and medicine doses.</p>
+          <span class="data-purpose">Purpose: Health reminders &amp; alarms</span>
+        </div>
+
+        <div class="data-card">
+          <h3>Pet Profile Data</h3>
+          <p>Pet breed, age, weight, and vaccine records are stored securely in Firebase Firestore with AES-256 encryption.</p>
+          <span class="data-purpose">Purpose: Pet health records</span>
+        </div>
+
+        <div class="data-card">
+          <h3>What We Never Do</h3>
+          <p>We <strong>never</strong> sell your data. We <strong>never</strong> use personal info for ad profiling. We <strong>never</strong> share records without your consent.</p>
+          <span class="data-purpose">Our privacy guarantee</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Public Footer -->
+    <footer>
+      <div class="footer-container">
+        <div class="footer-col">
+          <div class="brand" style="margin-bottom: 16px;">
+            <img src="assets/images/tail_wagging_logo.png" alt="Pet Maya Logo" style="width:36px;height:36px;border-radius:50%;">
+            <span class="brand-text">Pet Maya</span>
+          </div>
+          <p style="font-size: 14px; color: var(--text-muted); max-width: 320px; line-height: 1.6;">
+            Professional pet healthcare, veterinary appointments, AI symptom triage, and pet community on Android &amp; Web.
+          </p>
+        </div>
+
+        <div class="footer-col">
+          <h4>Platform</h4>
+          <ul>
+            <li><a href="#features">Features</a></li>
+            <li><a href="https://play.google.com/store/apps/details?id=com.vertexhand.petmaya" target="_blank">Google Play Store</a></li>
+            <li><a href="javascript:openLoginModal()">Web Client Sign In</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Legal &amp; Policy</h4>
+          <ul>
+            <li><a href="/privacy-policy">Privacy Policy</a></li>
+            <li><a href="/terms">Terms of Service</a></li>
+            <li><a href="/privacy-policy#deletion">Account Deletion</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Contact &amp; Support</h4>
+          <ul>
+            <li><a href="mailto:siradive137@gmail.com">siradive137@gmail.com</a></li>
+            <li><a href="mailto:support@petmaya.app">support@petmaya.app</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>© 2026 Pet Maya. All rights reserved.</div>
+        <div>Supported by <strong>VertexHand</strong> &amp; <strong>Masa Ecosystem</strong></div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════ -->
+  <!-- 2. AUTHENTICATED APP EXPERIENCE (When User IS Logged In)        -->
+  <!-- ══════════════════════════════════════════════════════════════════ -->
+  <div id="authenticatedAppView">
+    <div class="app-layout">
+      
+      <!-- Top App Bar -->
+      <header class="app-header">
+        <div class="app-header-left">
+          <a href="#" class="brand">
+            <img src="assets/images/tail_wagging_logo.png" alt="Pet Maya Logo" style="width:36px;height:36px;">
+            <span class="brand-text" style="font-size:22px;">Pet Maya</span>
+          </a>
+        </div>
+
+        <div class="app-header-right">
+          <button class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle theme">
+            🌙
+          </button>
+          
+          <div class="user-pill" id="userPill">
+            <img id="userAvatarImg" src="assets/images/Pet_2.jpg" alt="User">
+            <span id="userNameText">Pet Parent</span>
+          </div>
+
+          <button class="btn btn-secondary" onclick="handleSignOut()" style="padding:8px 16px; font-size:13px;">
+            Sign Out
+          </button>
+        </div>
+      </header>
+
+      <!-- App Sub Navigation Tabs -->
+      <nav class="app-nav-bar">
+        <button class="app-tab-btn active" onclick="switchAppTab('dashboard', this)">
+          🏠 Dashboard
+        </button>
+        <button class="app-tab-btn" onclick="switchAppTab('vets', this)">
+          🩺 Veterinarians
+        </button>
+        <button class="app-tab-btn" onclick="switchAppTab('ai-scanner', this)">
+          🤖 AI Health Scanner
+        </button>
+        <button class="app-tab-btn" onclick="switchAppTab('community', this)">
+          🐾 Community
+        </button>
+        <button class="app-tab-btn" onclick="switchAppTab('shop', this)">
+          🛍️ Pet Shop
+        </button>
+        <button class="app-tab-btn" onclick="switchAppTab('vaccines', this)">
+          ⏰ Vaccine Alarms
+        </button>
+        <button class="app-tab-btn" onclick="switchAppTab('profile', this)">
+          👤 My Pets &amp; Account
+        </button>
+      </nav>
+
+      <!-- Main App Content Area -->
+      <main class="app-main-container">
+        
+        <!-- Tab 1: Dashboard -->
+        <div class="app-tab-content active" id="tab-dashboard">
+          <div class="welcome-card">
+            <div>
+              <span style="font-size:13px; text-transform:uppercase; letter-spacing:1px; opacity:0.9; font-weight:700;">Pet Maya Web Portal</span>
+              <h2 style="font-size:28px; font-weight:800; margin-top:4px;" id="dashGreeting">Welcome Back! 🐾</h2>
+              <p style="font-size:15px; opacity:0.95; max-width:480px; margin-top:6px;">
+                Your pet companion dashboard is active. View appointment schedules, run diagnostic health scans, or browse the community.
+              </p>
+            </div>
+            <div class="pet-summary-badge">
+              <img src="assets/images/Pet_1.jpg" alt="Active Pet" style="width:48px; height:48px; border-radius:50%; object-fit:cover;">
+              <div>
+                <strong style="font-size:16px; display:block;">Max (Golden Retriever)</strong>
+                <span style="font-size:12px; opacity:0.85;">Vaccines Up-to-Date · Next Checkup: Tomorrow</span>
+              </div>
+            </div>
+          </div>
+
+          <h3 style="font-size:18px; font-weight:800; margin-bottom:16px;">Quick Actions</h3>
+          <div class="quick-grid">
+            <div class="quick-action-card" onclick="switchAppTab('vets')">
+              <div class="quick-icon" style="background:#E0F2FE; color:#0284C7;">🩺</div>
+              <div>
+                <strong style="font-size:15px; display:block;">Book Vet</strong>
+                <span style="font-size:12px; color:var(--text-muted);">50+ Certified Vets</span>
+              </div>
+            </div>
+
+            <div class="quick-action-card" onclick="switchAppTab('ai-scanner')">
+              <div class="quick-icon" style="background:#F3E8FF; color:#9333EA;">🤖</div>
+              <div>
+                <strong style="font-size:15px; display:block;">AI Health Scan</strong>
+                <span style="font-size:12px; color:var(--text-muted);">Instant Triage Check</span>
+              </div>
+            </div>
+
+            <div class="quick-action-card" onclick="switchAppTab('shop')">
+              <div class="quick-icon" style="background:#FEF3C7; color:#D97706;">🛍️</div>
+              <div>
+                <strong style="font-size:15px; display:block;">Pet Pharmacy</strong>
+                <span style="font-size:12px; color:var(--text-muted);">Order Nutrition &amp; Care</span>
+              </div>
+            </div>
+
+            <div class="quick-action-card" onclick="switchAppTab('vaccines')">
+              <div class="quick-icon" style="background:#DCFCE7; color:#16A34A;">⏰</div>
+              <div>
+                <strong style="font-size:15px; display:block;">Vaccine Schedule</strong>
+                <span style="font-size:12px; color:var(--text-muted);">View Alarms &amp; Sync</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:24px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+            <div>
+              <span style="font-size:12px; background:var(--primary-light); color:var(--primary); padding:4px 10px; border-radius:999px; font-weight:700;">UPCOMING APPOINTMENT</span>
+              <h4 style="font-size:18px; font-weight:800; margin-top:8px;">Dr. Sarah Jenkins · Feline &amp; Canine Wellness Checkup</h4>
+              <p style="font-size:14px; color:var(--text-muted); margin-top:4px;">Tomorrow at 10:30 AM · Central Animal Clinic (Sync with Google Calendar)</p>
+            </div>
+            <button class="btn btn-primary" onclick="downloadAppointmentICS()">
+              📥 Export to Calendar (.ics)
+            </button>
+          </div>
+        </div>
+
+        <!-- Tab 2: Vets & Booking -->
+        <div class="app-tab-content" id="tab-vets">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+            <div>
+              <h2 style="font-size:24px; font-weight:800;">Certified Veterinarians</h2>
+              <p style="font-size:14px; color:var(--text-muted);">Book appointments with licensed veterinary surgeons and specialists.</p>
+            </div>
+            <button class="btn btn-primary" onclick="openBookingModal()">
+              📅 Schedule New Appointment
+            </button>
+          </div>
+
+          <div class="vet-card">
+            <div style="display:flex; align-items:center; gap:16px;">
+              <div class="vet-badge-avatar">SJ</div>
+              <div>
+                <strong style="font-size:16px; display:block;">Dr. Sarah Jenkins, DVM</strong>
+                <span style="font-size:13px; color:var(--text-muted);">Small Animal Dermatology · Central Clinic · ★ 4.9 (128 reviews)</span>
+              </div>
+            </div>
+            <button class="btn btn-primary" onclick="openBookingModal('Dr. Sarah Jenkins')">Book Slot</button>
+          </div>
+
+          <div class="vet-card">
+            <div style="display:flex; align-items:center; gap:16px;">
+              <div class="vet-badge-avatar" style="background:#FFE4E6; color:#E11D48;">LC</div>
+              <div>
+                <strong style="font-size:16px; display:block;">Dr. Lisa Chen, BVSc</strong>
+                <span style="font-size:13px; color:var(--text-muted);">Feline Internal Medicine &amp; Surgery · Metro Vet Hospital · ★ 5.0 (94 reviews)</span>
+              </div>
+            </div>
+            <button class="btn btn-primary" onclick="openBookingModal('Dr. Lisa Chen')">Book Slot</button>
+          </div>
+
+          <div class="vet-card">
+            <div style="display:flex; align-items:center; gap:16px;">
+              <div class="vet-badge-avatar" style="background:#FEF3C7; color:#D97706;">MR</div>
+              <div>
+                <strong style="font-size:16px; display:block;">Dr. Michael Rahman, DVM</strong>
+                <span style="font-size:13px; color:var(--text-muted);">General Medicine &amp; Clinical Nutrition · ★ 4.8 (82 reviews)</span>
+              </div>
+            </div>
+            <button class="btn btn-primary" onclick="openBookingModal('Dr. Michael Rahman')">Book Slot</button>
+          </div>
+        </div>
+
+        <!-- Tab 3: AI Health Scanner -->
+        <div class="app-tab-content" id="tab-ai-scanner">
+          <div class="tool-box">
+            <h2 style="font-size:24px; font-weight:800; margin-bottom:8px;">AI Health Symptom Diagnostic</h2>
+            <p style="font-size:14px; color:var(--text-muted); margin-bottom:20px;">
+              Select symptoms to test diagnostic triage analysis for preliminary pet guidance.
+            </p>
+
+            <strong style="font-size:13px; text-transform:uppercase; color:var(--primary); letter-spacing:1px;">Step 1: Select Species</strong>
+            <div class="chip-group">
+              <div class="chip active" onclick="selectPetType(this, 'dog')">🐕 Dog</div>
+              <div class="chip" onclick="selectPetType(this, 'cat')">🐈 Cat</div>
+              <div class="chip" onclick="selectPetType(this, 'bird')">🦜 Bird</div>
+              <div class="chip" onclick="selectPetType(this, 'rabbit')">🐇 Rabbit</div>
+            </div>
+
+            <strong style="font-size:13px; text-transform:uppercase; color:var(--primary); letter-spacing:1px;">Step 2: Observed Symptoms</strong>
+            <div class="chip-group">
+              <div class="chip active" onclick="toggleSymptom(this, 'skin_rash')">🔴 Skin Redness / Itching</div>
+              <div class="chip" onclick="toggleSymptom(this, 'eye_discharge')">👁️ Watery / Cloudy Eye</div>
+              <div class="chip" onclick="toggleSymptom(this, 'ear_odor')">👂 Ear Scratching &amp; Odor</div>
+              <div class="chip" onclick="toggleSymptom(this, 'lethargy')">💤 Lethargy &amp; Refusing Food</div>
+              <div class="chip" onclick="toggleSymptom(this, 'limping')">🐾 Limping / Stiffness</div>
+              <div class="chip" onclick="toggleSymptom(this, 'coughing')">🫁 Coughing / Wheezing</div>
+            </div>
+
+            <button class="btn btn-primary" style="margin-top:14px;" onclick="runSymptomScan()">
+              🔍 Run Health Triage Analysis
+            </button>
+
+            <!-- Scan Status Box -->
+            <div id="scanProgressBox" style="display:none; margin-top:20px; background:var(--bg-light); padding:20px; border-radius:12px;">
+              <div style="display:flex; justify-content:space-between; font-weight:700; font-size:13px; margin-bottom:8px;">
+                <span id="scanStatusText">Scanning symptom patterns...</span>
+                <span id="scanPercentage">0%</span>
+              </div>
+              <div style="height:8px; background:#e2e8f0; border-radius:4px; overflow:hidden;">
+                <div id="scanProgressBar" style="height:100%; width:0%; background:linear-gradient(90deg, var(--primary), #00B6D2); transition:width 0.25s;"></div>
+              </div>
+            </div>
+
+            <!-- Triage Assessment Card -->
+            <div id="triageResultCard" style="display:none; margin-top:24px; padding:24px; border-radius:16px; border:2px solid var(--primary); background:var(--bg-card);">
+              <span id="triageUrgencyBadge" style="display:inline-block; padding:4px 12px; border-radius:999px; font-size:12px; font-weight:800; text-transform:uppercase; background:#FEF3C7; color:#D97706; margin-bottom:10px;">
+                Moderate Attention Recommended
+              </span>
+              <h3 id="triageTitle" style="font-size:20px; font-weight:800; margin-bottom:14px;">Suspected Allergic Dermatitis</h3>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+                <div style="background:var(--bg-light); padding:16px; border-radius:12px;">
+                  <strong style="color:var(--primary); display:block; margin-bottom:6px;">🩹 First-Aid Guidance:</strong>
+                  <p id="triageHomeCare" style="font-size:13.5px; color:var(--text-muted);"></p>
+                </div>
+                <div style="background:var(--bg-light); padding:16px; border-radius:12px;">
+                  <strong style="color:var(--primary); display:block; margin-bottom:6px;">🩺 Vet Recommendation:</strong>
+                  <p id="triageClinicAction" style="font-size:13.5px; color:var(--text-muted);"></p>
+                </div>
+              </div>
+              <button class="btn btn-primary" onclick="openBookingModal('Dr. Sarah Jenkins')">
+                📅 Book Consultation with Specialist
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 4: Pet Community -->
+        <div class="app-tab-content" id="tab-community">
+          <div class="tool-box" style="padding:24px; margin-bottom:20px;">
+            <strong style="font-size:15px; display:block; margin-bottom:10px;">Share with Pet Community 🐾</strong>
+            <input type="text" id="newPostInput" class="input-field" placeholder="Share a milestone, photo, or recovery story..." style="margin-bottom:12px;">
+            <div style="display:flex; justify-content:flex-end;">
+              <button class="btn btn-primary" style="padding:8px 20px;" onclick="publishCommunityPost()">Post</button>
+            </div>
+          </div>
+
+          <div id="communityPostsList">
+            <div class="post-card">
+              <div class="post-header">
+                <div class="post-author">
+                  <img src="assets/images/Pet_2.jpg" alt="Rachel M.">
+                  <div>
+                    <strong style="font-size:15px; display:block;">Rachel Miller</strong>
+                    <span style="font-size:12px; color:var(--text-muted);">Golden Retriever Mom · 2 hrs ago</span>
+                  </div>
+                </div>
+                <span style="font-size:12px; background:var(--primary-light); color:var(--primary); padding:4px 10px; border-radius:999px; font-weight:700;">🐾 Milestone</span>
+              </div>
+              <p style="font-size:14.5px; margin-bottom:14px;">Bella passed her final agility training today! Dr. Sarah gave her a clean bill of health on Pet Maya! 🏆🐕</p>
+              <img src="assets/images/Pet_2.jpg" alt="Bella" style="width:100%; border-radius:14px; max-height:280px; object-fit:cover;">
+              <div style="display:flex; gap:16px; margin-top:14px; padding-top:12px; border-top:1px solid var(--border-color);">
+                <button class="btn btn-secondary" style="padding:6px 14px; font-size:13px;" onclick="togglePostLike(this)">❤️ 142 Likes</button>
+                <button class="btn btn-secondary" style="padding:6px 14px; font-size:13px;" onclick="copyShareLink()">🔗 Share</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 5: Pet Shop -->
+        <div class="app-tab-content" id="tab-shop">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <div>
+              <h2 style="font-size:24px; font-weight:800;">Pet Shop &amp; Pharmacy</h2>
+              <p style="font-size:14px; color:var(--text-muted);">Vet-approved nutrition, supplements, and supplies.</p>
+            </div>
+            <button class="btn btn-primary" onclick="showToast('🛒 Cart: 0 Items ($0.00)')">
+              🛒 View Cart
+            </button>
+          </div>
+
+          <div class="product-grid">
+            <div class="product-card">
+              <img src="assets/images/Pet_1.jpg" alt="Royal Canin" class="product-img">
+              <h4 style="font-size:16px; font-weight:800; margin-bottom:4px;">Premium Adult Kibble</h4>
+              <span style="font-size:13px; color:var(--text-muted);">Vet Nutrition · 3kg</span>
+              <div style="font-size:18px; font-weight:800; color:var(--primary); margin:10px 0;">$34.99</div>
+              <button class="btn btn-primary" style="padding:8px 16px; font-size:13px;" onclick="showToast('✅ Added Premium Adult Kibble to cart!')">Add to Cart</button>
+            </div>
+
+            <div class="product-card">
+              <img src="assets/images/Pet_2.jpg" alt="Omega Oil" class="product-img">
+              <h4 style="font-size:16px; font-weight:800; margin-bottom:4px;">Omega-3 Skin &amp; Coat Oil</h4>
+              <span style="font-size:13px; color:var(--text-muted);">Essential Fatty Acids · 250ml</span>
+              <div style="font-size:18px; font-weight:800; color:var(--primary); margin:10px 0;">$18.50</div>
+              <button class="btn btn-primary" style="padding:8px 16px; font-size:13px;" onclick="showToast('✅ Added Omega-3 Oil to cart!')">Add to Cart</button>
+            </div>
+
+            <div class="product-card">
+              <img src="assets/images/tail_wagging_logo.png" alt="Dewormer" class="product-img" style="object-fit:contain; background:var(--bg-light);">
+              <h4 style="font-size:16px; font-weight:800; margin-bottom:4px;">Broad-Spectrum Dewormer</h4>
+              <span style="font-size:13px; color:var(--text-muted);">Deworming Chewables · 4 Tabs</span>
+              <div style="font-size:18px; font-weight:800; color:var(--primary); margin:10px 0;">$14.20</div>
+              <button class="btn btn-primary" style="padding:8px 16px; font-size:13px;" onclick="showToast('✅ Added Dewormer to cart!')">Add to Cart</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 6: Vaccine Alarms -->
+        <div class="app-tab-content" id="tab-vaccines">
+          <div class="tool-box">
+            <h2 style="font-size:24px; font-weight:800; margin-bottom:8px;">Vaccine &amp; Milestone Planner</h2>
+            <p style="font-size:14px; color:var(--text-muted); margin-bottom:20px;">
+              Calculate core vaccination dates and download a calendar schedule (.ics) directly.
+            </p>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+              <div>
+                <label style="font-size:13px; font-weight:700; display:block; margin-bottom:6px;">Pet Species</label>
+                <select id="calcPetType" class="input-field" onchange="calculateVaccineSchedule()">
+                  <option value="dog">Dog / Puppy 🐶</option>
+                  <option value="cat">Cat / Kitten 🐱</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size:13px; font-weight:700; display:block; margin-bottom:6px;">Age Group</label>
+                <select id="calcPetAge" class="input-field" onchange="calculateVaccineSchedule()">
+                  <option value="2">2 Months (Starter Series)</option>
+                  <option value="4">4 Months (Booster Phase)</option>
+                  <option value="12" selected>1 Year+ (Annual Cycle)</option>
+                </select>
+              </div>
+            </div>
+
+            <div id="vaccineTableContainer" style="margin-top:16px;"></div>
+
+            <button class="btn btn-primary" style="margin-top:20px;" onclick="downloadCalendarICS()">
+              📥 Download Schedule to Calendar (.ics)
+            </button>
+          </div>
+        </div>
+
+        <!-- Tab 7: Profile & Account -->
+        <div class="app-tab-content" id="tab-profile">
+          <div class="tool-box">
+            <div style="display:flex; align-items:center; gap:20px; margin-bottom:24px;">
+              <img id="profileTabAvatar" src="assets/images/Pet_2.jpg" alt="Avatar" style="width:70px; height:70px; border-radius:50%; object-fit:cover; border:3px solid var(--primary);">
+              <div>
+                <h3 id="profileTabName" style="font-size:22px; font-weight:800;">Pet Parent</h3>
+                <span id="profileTabEmail" style="font-size:14px; color:var(--text-muted);">user@gmail.com</span>
+              </div>
+            </div>
+
+            <h4 style="font-size:16px; font-weight:800; margin-bottom:12px;">Account &amp; Appearance</h4>
+            <div style="display:flex; flex-direction:column; gap:12px;">
+              <button class="btn btn-secondary" onclick="toggleTheme()" style="justify-content:space-between;">
+                <span>Toggle Dark / Light Theme</span>
+                <span id="themeStatusText">Theme: Auto</span>
+              </button>
+              <a href="/privacy-policy" class="btn btn-secondary" style="justify-content:space-between;">
+                <span>Privacy Policy &amp; Security</span>
+                <span>↗</span>
+              </a>
+              <button class="btn btn-secondary" style="color:#DC2626; border-color:rgba(220,38,38,0.2);" onclick="handleSignOut()">
+                Sign Out of Account
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </main>
     </div>
   </div>
 
-  <!-- ─── HERO SECTION ─── -->
-  <header class="hero">
-    <div>
-      <span class="hero-badge">🐾 SMART PET HEALTHCARE PLATFORM</span>
-      <h1 class="hero-title">
-        Everything Your Pet Needs, <span>All in One Place.</span>
-      </h1>
-      <p class="hero-subtitle">
-        Pet Maya empowers pet parents to track medical records, diagnose conditions with Vision AI, book certified veterinarians for telehealth, and order nutrition & pharmacy supplies.
+  <!-- ─── LOGIN MODAL ─── -->
+  <div class="modal-backdrop" id="loginModal">
+    <div class="modal-box" style="text-align:center;">
+      <button class="modal-close-btn" onclick="closeLoginModal()">✕</button>
+      
+      <img src="assets/images/tail_wagging_logo.png" alt="Pet Maya Logo" style="width:64px; height:64px; border-radius:50%; margin-bottom:14px;">
+      <h2 style="font-size:24px; font-weight:800; margin-bottom:8px;">Sign In to Pet Maya</h2>
+      <p style="font-size:14px; color:var(--text-muted); margin-bottom:24px;">
+        Access your pet profiles, veterinary schedules, AI health diagnostic records, and community on the web.
       </p>
 
-      <div class="hero-cta-group">
-        <a href="#scanner" class="btn btn-primary">
-          🔬 Try AI Health Scanner
-        </a>
-        <a href="#vets" class="btn btn-secondary">
-          🩺 Book a Doctor
-        </a>
-        <button class="btn btn-secondary" onclick="openAppModal()">
-          📲 Get on Google Play
+      <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:20px;">
+        <button class="btn-google" style="width:100%; justify-content:center;" onclick="handleGoogleLogin()">
+          <svg width="20" height="20" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+          </svg>
+          Continue with Google
+        </button>
+
+        <button class="btn btn-secondary" style="width:100%; padding:14px;" onclick="enterDemoMode()">
+          ⚡ Continue as Guest (Demo Access)
         </button>
       </div>
 
-      <div style="display:flex; align-items:center; gap:14px;">
-        <div style="display:flex;">
-          <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=60&auto=format&fit=crop&q=80" style="width:36px; height:36px; border-radius:50%; border:2px solid white; margin-right:-10px;">
-          <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=60&auto=format&fit=crop&q=80" style="width:36px; height:36px; border-radius:50%; border:2px solid white; margin-right:-10px;">
-          <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=60&auto=format&fit=crop&q=80" style="width:36px; height:36px; border-radius:50%; border:2px solid white;">
-        </div>
-        <p style="font-size:13px; color:var(--text-muted);">
-          Trusted by <strong style="color:var(--text-dark);">10,000+ pet parents</strong> & verified veterinarians.
+      <div style="font-size:12px; color:var(--text-muted); line-height:1.5;">
+        By signing in, you agree to our <a href="/terms" style="color:var(--primary);">Terms of Service</a> and acknowledge our <a href="/privacy-policy" style="color:var(--primary);">Privacy Policy</a>.
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── VET APPOINTMENT BOOKING MODAL ─── -->
+  <div class="modal-backdrop" id="bookingModal">
+    <div class="modal-box">
+      <button class="modal-close-btn" onclick="closeBookingModal()">✕</button>
+      
+      <div id="bookingFormStep">
+        <h2 style="font-size:22px; font-weight:800; margin-bottom:6px;">📅 Schedule Vet Appointment</h2>
+        <p style="font-size:13.5px; color:var(--text-muted); margin-bottom:18px;">
+          Choose consultation mode, slot, and receive an instant calendar sync invite.
         </p>
-      </div>
-    </div>
 
-    <div class="hero-phone-wrapper">
-      <div class="phone-mockup">
-        <div class="phone-screen">
-          <div class="mockup-status-bar">
-            <span>9:41</span>
-            <span>LTE 100%</span>
-          </div>
-          <div class="mockup-app-bar">
-            <span style="font-family:'Fredoka'; font-weight:700; color:var(--primary); font-size:15px;">Pet Maya</span>
-            <span>🔔</span>
-          </div>
-          <div class="mockup-content">
-            <div class="mockup-hero-card">
-              <span style="font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:1px; opacity:0.9;">VISION HEALTH SCANNER</span>
-              <h4 style="font-size:14px; font-weight:800; margin:4px 0 2px;">Smart Symptom Check</h4>
-              <p style="font-size:11px; opacity:0.9;">Scan eyes, skin & coat with instant clinical guidance.</p>
-            </div>
-            <div class="mockup-card">
-              <div style="display:flex; justify-content:space-between; align-items:center;">
-                <strong style="color:var(--primary); font-size:11px;">Upcoming Appointment</strong>
-                <span style="font-size:10px; color:#10B981; font-weight:700;">Active</span>
-              </div>
-              <p style="font-size:11px; color:var(--text-dark); margin:4px 0 0; font-weight:700;">Dr. Sarah Jenkins • Tomorrow 10:30 AM</p>
-            </div>
-            <div class="mockup-card">
-              <strong style="color:#00B6D2; font-size:11px;">Community Story</strong>
-              <p style="font-size:11px; color:var(--text-dark); margin:2px 0;">"Max finished his agility milestone today! 🏆"</p>
-              <span style="font-size:10px; color:#FF6B6B; font-weight:700;">❤️ 42 Likes</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <!-- ─── 1. PET MANAGER SECTION ─── -->
-  <section id="pets" class="section">
-    <div class="section-header">
-      <span class="section-tag">Pet Profile Manager</span>
-      <h2 class="section-title">Manage Your Pets & Track Vital Health</h2>
-      <p class="section-desc">Create personalized profiles for your pets, monitor nutrition recipes, and record weight milestones.</p>
-    </div>
-
-    <div class="interactive-tool-box">
-      <!-- Active Pet Vitals Header -->
-      <div style="background:var(--bg-light); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:24px; margin-bottom:28px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px;">
-        <div style="display:flex; align-items:center; gap:16px;">
-          <img id="activePetAvatar" src="https://images.unsplash.com/photo-1552053831-71594a27632d?w=300&auto=format&fit=crop&q=80" alt="Active Pet" style="width:72px; height:72px; border-radius:20px; object-fit:cover; border:3px solid var(--primary);">
-          <div>
-            <div style="display:flex; align-items:center; gap:8px;">
-              <h3 id="activePetName" style="font-size:22px; font-weight:800; color:var(--text-dark); margin:0;">Max</h3>
-              <span style="background:var(--primary-light); color:var(--primary); font-size:11px; font-weight:800; padding:2px 8px; border-radius:999px;">Primary Patient</span>
-            </div>
-            <p id="activePetBreed" style="font-size:13px; color:var(--text-muted); margin:2px 0;">Golden Retriever • Male • 2.5 Years</p>
-            <p style="font-size:12px; color:var(--primary); font-weight:700; margin:0;">🥗 Diet: <span id="activePetDiet" style="color:var(--text-dark); font-weight:500;">High-Protein Salmon & Rice Kibble</span></p>
-          </div>
-        </div>
-
-        <div style="display:flex; gap:12px;">
-          <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:14px; padding:10px 16px; text-align:center;">
-            <span style="font-size:11px; color:var(--text-muted); font-weight:700; display:block;">WEIGHT</span>
-            <strong id="activePetWeight" style="font-size:16px; color:var(--text-dark);">28.4 kg</strong>
-          </div>
-          <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:14px; padding:10px 16px; text-align:center;">
-            <span style="font-size:11px; color:var(--text-muted); font-weight:700; display:block;">WELLNESS</span>
-            <strong id="activePetScore" style="font-size:16px; color:#10B981;">96/100</strong>
-          </div>
-        </div>
-      </div>
-
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; flex-wrap:wrap; gap:10px;">
-        <h4 style="font-size:17px; font-weight:800; color:var(--text-dark); margin:0;">Registered Pet Profiles</h4>
-        <button class="btn btn-sm btn-primary" onclick="openAddPetModal()">
-          ➕ Add New Pet
-        </button>
-      </div>
-
-      <!-- Pets Grid -->
-      <div id="myPetsList" class="grid-2">
-        <!-- Rendered by app.js -->
-      </div>
-    </div>
-  </section>
-
-  <!-- ─── 2. AI HEALTH SCANNER SECTION ─── -->
-  <section id="scanner" class="section" style="background:var(--bg-card); border-top:1px solid var(--border-color); border-bottom:1px solid var(--border-color);">
-    <div class="section-header">
-      <span class="section-tag">Vision AI Pathology Diagnostics</span>
-      <h2 class="section-title">Instant AI Health Triage & Analysis</h2>
-      <p class="section-desc">Upload a clear photo of your pet's eye, skin lesion, coat, or ear to receive immediate triage classification and clinical guidance.</p>
-    </div>
-
-    <div class="interactive-tool-box">
-      <!-- Upload Box -->
-      <div style="border:2px dashed var(--border-color); border-radius:var(--radius-md); padding:30px; text-align:center; background:var(--bg-light); cursor:pointer; position:relative;" onclick="document.getElementById('scannerFileInput').click()">
-        <input type="file" id="scannerFileInput" accept="image/*" style="display:none;" onchange="handleScannerImageUpload(this)">
-        
-        <div id="scannerUploadPlaceholder">
-          <p style="font-size:40px; margin-bottom:8px;">📸</p>
-          <h4 style="font-size:16px; font-weight:800; color:var(--text-dark); margin-bottom:4px;">Click or Drag & Drop Pet Photo Here</h4>
-          <p style="font-size:13px; color:var(--text-muted);">Supports JPG, PNG, WEBP from smartphone camera or files.</p>
-        </div>
-
-        <img id="scannerPreviewImg" src="" alt="Scan Preview" style="display:none; max-height:240px; margin:0 auto; border-radius:14px; object-fit:cover; border:2px solid var(--primary);">
-      </div>
-
-      <!-- Symptom Areas -->
-      <div style="margin-top:24px;">
-        <label style="font-size:13px; font-weight:800; color:var(--text-dark); display:block; margin-bottom:10px; text-transform:uppercase;">Select Symptom Category</label>
-        <div class="chip-group">
-          <div class="chip active" onclick="document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active')); this.classList.add('active');">Skin & Coat Condition</div>
-          <div class="chip" onclick="document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active')); this.classList.add('active');">Eye & Ear Discharge</div>
-          <div class="chip" onclick="document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active')); this.classList.add('active');">Digestion & Appetite</div>
-          <div class="chip" onclick="document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active')); this.classList.add('active');">Limping & Mobility</div>
-        </div>
-      </div>
-
-      <button class="btn btn-primary" style="width:100%; padding:14px; font-size:16px;" onclick="runAIVisionScan()">
-        🔬 Run AI Vision Diagnostic Scan
-      </button>
-
-      <!-- Scan Progress Animation -->
-      <div id="scanStatus" style="display:none; margin-top:20px; background:var(--bg-light); border-radius:var(--radius-sm); padding:20px; border:1px solid var(--border-color);">
-        <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:700; margin-bottom:6px;">
-          <span id="scanStepText" style="color:var(--primary);">Analyzing photo...</span>
-          <span style="color:var(--text-muted);">Neural Engine v4.8</span>
-        </div>
-        <div style="height:8px; background:#e2e8f0; border-radius:999px; overflow:hidden;">
-          <div id="scanProgressBar" style="height:100%; width:0%; background:linear-gradient(90deg, var(--primary), #00B6D2); transition:width 0.3s ease;"></div>
-        </div>
-      </div>
-
-      <!-- Triage Result Card -->
-      <div id="triageResultCard" style="display:none; margin-top:24px; background:var(--bg-card); border:2px solid var(--primary); border-radius:var(--radius-md); padding:28px; box-shadow:var(--shadow-md);">
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
-          <h3 id="triageTitle" style="font-size:18px; font-weight:800; color:var(--text-dark); margin:0;">Clinical Assessment</h3>
-          <span id="triageUrgencyBadge" style="padding:4px 12px; border-radius:999px; font-size:12px; font-weight:800;">Moderate</span>
+        <div style="margin-bottom:14px;">
+          <label style="font-size:13px; font-weight:700; display:block; margin-bottom:6px;">Select Doctor</label>
+          <select id="bookDoctorSelect" class="input-field">
+            <option value="Dr. Sarah Jenkins">Dr. Sarah Jenkins, DVM (Dermatology)</option>
+            <option value="Dr. Lisa Chen">Dr. Lisa Chen, BVSc (Feline Specialist)</option>
+            <option value="Dr. Michael Rahman">Dr. Michael Rahman, DVM (Nutrition &amp; Care)</option>
+          </select>
         </div>
 
         <div style="margin-bottom:14px;">
-          <strong style="font-size:13px; color:var(--text-dark);">Probable Etiology / Causes:</strong>
-          <p id="triageCauses" style="font-size:13px; color:var(--text-muted); margin:4px 0 0;"></p>
+          <label style="font-size:13px; font-weight:700; display:block; margin-bottom:6px;">Mode</label>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div class="chip active" id="modeClinic" onclick="setConsultMode('clinic')" style="text-align:center;">🏥 Clinic Visit</div>
+            <div class="chip" id="modeTele" onclick="setConsultMode('tele')" style="text-align:center;">💻 Video Call</div>
+          </div>
         </div>
 
-        <div style="background:var(--bg-light); padding:16px; border-radius:12px; margin-bottom:14px; border-left:4px solid #00B6D2;">
-          <strong style="font-size:13px; color:var(--text-dark);">🏠 Recommended Home Care:</strong>
-          <p id="triageHomeCare" style="font-size:13px; color:var(--text-muted); margin:4px 0 0;"></p>
-        </div>
-
-        <div style="background:var(--bg-light); padding:16px; border-radius:12px; margin-bottom:20px; border-left:4px solid var(--primary);">
-          <strong style="font-size:13px; color:var(--text-dark);">🩺 Recommended Veterinary Action:</strong>
-          <p id="triageClinicAction" style="font-size:13px; color:var(--text-muted); margin:4px 0 0;"></p>
-        </div>
-
-        <div style="display:flex; gap:12px; flex-wrap:wrap;">
-          <button class="btn btn-primary" onclick="openBookingModal('vet-1')">
-            📅 Book Vet Teleconsultation for this Case
-          </button>
-          <button class="btn btn-secondary" onclick="exportTriageReport()">
-            📄 Download Medical Summary (.txt)
-          </button>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ─── 3. VETERINARIAN DIRECTORY & BOOKING ─── -->
-  <section id="vets" class="section">
-    <div class="section-header">
-      <span class="section-tag">Telehealth & Clinic Appointments</span>
-      <h2 class="section-title">Book Certified Veterinary Doctors</h2>
-      <p class="section-desc">Schedule remote video consultations or in-person clinic visits with verified veterinarians in your area.</p>
-    </div>
-
-    <!-- Filters -->
-    <div style="display:flex; justify-content:center; gap:10px; margin-bottom:30px; flex-wrap:wrap;">
-      <button class="vet-filter-btn active" onclick="filterVets('all', this)">All Specialists</button>
-      <button class="vet-filter-btn" onclick="filterVets('canine', this)">🐕 Canine Medicine</button>
-      <button class="vet-filter-btn" onclick="filterVets('feline', this)">🐈 Feline Care</button>
-      <button class="vet-filter-btn" onclick="filterVets('dermatology', this)">🔬 Dermatology</button>
-      <button class="vet-filter-btn" onclick="filterVets('exotic', this)">🦜 Avian & Exotic</button>
-    </div>
-
-    <div id="vetsListGrid" class="grid-2">
-      <!-- Rendered by app.js -->
-    </div>
-
-    <!-- User Appointments Section -->
-    <div style="margin-top:50px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-lg); padding:30px; box-shadow:var(--shadow-sm);">
-      <h3 style="font-size:18px; font-weight:800; color:var(--text-dark); margin-bottom:16px;">📅 Your Scheduled Appointments</h3>
-      <div id="myAppointmentsContainer">
-        <!-- Rendered by app.js -->
-      </div>
-    </div>
-  </section>
-
-  <!-- ─── 4. PET STORE MARKETPLACE ─── -->
-  <section id="shop" class="section" style="background:var(--bg-card); border-top:1px solid var(--border-color); border-bottom:1px solid var(--border-color);">
-    <div class="section-header">
-      <span class="section-tag">Pet Supplies & Pharmacy</span>
-      <h2 class="section-title">Nutritional Foods, Pharmacy & Essentials</h2>
-      <p class="section-desc">Curated by veterinary dieticians. Delivered to your doorstep with real-time order tracking.</p>
-    </div>
-
-    <!-- Category Filters -->
-    <div style="display:flex; justify-content:center; gap:10px; margin-bottom:30px; flex-wrap:wrap;">
-      <button class="shop-filter-btn active" onclick="filterProducts('all', this)">All Products</button>
-      <button class="shop-filter-btn" onclick="filterProducts('food', this)">🥣 Healthy Foods</button>
-      <button class="shop-filter-btn" onclick="filterProducts('health', this)">💊 Pharmacy & Supplements</button>
-      <button class="shop-filter-btn" onclick="filterProducts('grooming', this)">🛁 Shampoos & Grooming</button>
-      <button class="shop-filter-btn" onclick="filterProducts('toys', this)">🎾 Interactive Toys</button>
-    </div>
-
-    <div id="productsGrid" class="grid-3">
-      <!-- Rendered by app.js -->
-    </div>
-  </section>
-
-  <!-- ─── 5. VACCINE CALCULATOR & REMINDERS ─── -->
-  <section id="calculator" class="section">
-    <div class="section-header">
-      <span class="section-tag">Vaccine & Health Schedule Planner</span>
-      <h2 class="section-title">Never Miss a Critical Immunization</h2>
-      <p class="section-desc">Calculate essential vaccinations, deworming cycles, and annual wellness milestones tailored to your pet's age.</p>
-    </div>
-
-    <div class="interactive-tool-box">
-      <div class="grid-2" style="margin-bottom:20px;">
-        <div>
-          <label style="font-size:13px; font-weight:800; color:var(--text-dark); display:block; margin-bottom:6px;">Select Pet Type</label>
-          <select id="calcPetType" class="input-field" onchange="calculateVaccineSchedule()">
-            <option value="dog">Dog / Puppy 🐶</option>
-            <option value="cat">Cat / Kitten 🐱</option>
-          </select>
-        </div>
-        <div>
-          <label style="font-size:13px; font-weight:800; color:var(--text-dark); display:block; margin-bottom:6px;">Pet's Approximate Age</label>
-          <select id="calcPetAge" class="input-field" onchange="calculateVaccineSchedule()">
-            <option value="2">2 Months (Starter Series)</option>
-            <option value="4">4 Months (Booster Phase)</option>
-            <option value="6">6 Months (Adolescent / Rabies)</option>
-            <option value="12" selected>1 Year+ (Adult Maintenance)</option>
-            <option value="36">3 Years+ (Senior Health)</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="table-container">
-        <table class="schedule-table">
-          <thead>
-            <tr>
-              <th>Milestone</th>
-              <th>Recommended Care</th>
-              <th>Cycle Frequency</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody id="scheduleTableBody">
-            <!-- Rendered by app.js -->
-          </tbody>
-        </table>
-      </div>
-
-      <div style="margin-top:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
-        <button class="btn btn-secondary" onclick="openAddReminderModal()">
-          ⏰ + Add Custom Alarm
-        </button>
-        <button class="btn btn-primary" onclick="downloadCalendarICS()">
-          📥 Export Schedule to Calendar (.ics)
-        </button>
-      </div>
-
-      <!-- Custom Reminders Box -->
-      <div style="margin-top:30px; border-top:1px solid var(--border-color); padding-top:20px;">
-        <h4 style="font-size:15px; font-weight:800; color:var(--text-dark); margin-bottom:12px;">⏰ Custom Schedule Alarms</h4>
-        <div id="customRemindersList">
-          <!-- Rendered by app.js -->
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ─── 6. PET COMMUNITY FEED ─── -->
-  <section id="community" class="section" style="background:var(--bg-card); border-top:1px solid var(--border-color); border-bottom:1px solid var(--border-color);">
-    <div class="section-header">
-      <span class="section-tag">Pet Community</span>
-      <h2 class="section-title">Connect with Caring Pet Parents</h2>
-      <p class="section-desc">Share milestones, adorable photos, ask advice, and interact with pet owners nearby.</p>
-    </div>
-
-    <div style="max-width:720px; margin:0 auto;">
-      <!-- Create Post Box -->
-      <div style="background:var(--bg-light); border:1.5px solid var(--border-color); border-radius:var(--radius-md); padding:20px; margin-bottom:30px;">
-        <h4 style="font-size:15px; font-weight:800; color:var(--text-dark); margin-bottom:12px;">✍️ Share an Update with the Community</h4>
-        <textarea id="newPostText" class="input-field" rows="3" placeholder="What adorable thing did your pet do today? Ask a question or share advice..."></textarea>
-        <input type="text" id="newPostImageUrl" class="input-field" placeholder="Optional image URL (https://...)" style="margin-top:10px;">
-        <div style="margin-top:12px; display:flex; justify-content:flex-end;">
-          <button class="btn btn-primary" onclick="createNewPost(event)">
-            🐾 Publish Post
-          </button>
-        </div>
-      </div>
-
-      <!-- Feed List -->
-      <div id="communityFeedList">
-        <!-- Rendered by app.js -->
-      </div>
-    </div>
-  </section>
-
-  <!-- ─── 7. PRIVACY & SECURITY ─── -->
-  <section id="privacy" class="section">
-    <div class="section-header">
-      <span class="section-tag">Security & Compliance</span>
-      <h2 class="section-title">Enterprise Data Protection for Your Family</h2>
-      <p class="section-desc">We uphold strict medical data privacy standards. Your data is encrypted and never sold.</p>
-    </div>
-
-    <div class="grid-3">
-      <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:24px;">
-        <h3 style="font-size:17px; font-weight:800; color:var(--text-dark); margin-bottom:8px;">🔒 Google OAuth 2.0</h3>
-        <p style="font-size:13px; color:var(--text-muted);">Secure sign-in keeping your pet records synchronized across devices with zero password vulnerability.</p>
-      </div>
-      <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:24px;">
-        <h3 style="font-size:17px; font-weight:800; color:var(--text-dark); margin-bottom:8px;">🛡️ AES-256 Encryption</h3>
-        <p style="font-size:13px; color:var(--text-muted);">All uploaded clinical photos and chat consultations are protected with TLS 1.3 in-transit and AES at rest.</p>
-      </div>
-      <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:24px;">
-        <h3 style="font-size:17px; font-weight:800; color:var(--text-dark); margin-bottom:8px;">🚫 Zero Data Resale</h3>
-        <p style="font-size:13px; color:var(--text-muted);">We strictly do not monetize or share personal information or pet data with third-party advertisers.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- ─── FOOTER ─── -->
-  <footer>
-    <div class="footer-container">
-      <div>
-        <div class="brand" style="margin-bottom:14px;">
-          <img src="assets/images/tail_wagging_logo.png" alt="Pet Maya Logo" style="width:36px;height:36px;border-radius:50%;">
-          <span class="brand-text">Pet Maya</span>
-        </div>
-        <p style="font-size:13px; color:var(--text-muted); line-height:1.6; max-width:320px;">
-          The complete mobile and web ecosystem for modern pet healthcare, verified veterinary telehealth, and AI diagnostics.
-        </p>
-      </div>
-      <div>
-        <h4 style="font-size:14px; font-weight:800; color:var(--text-dark); margin-bottom:14px;">Platform</h4>
-        <ul style="list-style:none; display:flex; flex-direction:column; gap:8px; font-size:13px;">
-          <li><a href="#pets" style="color:var(--text-muted); text-decoration:none;">My Pets</a></li>
-          <li><a href="#scanner" style="color:var(--text-muted); text-decoration:none;">AI Health Scanner</a></li>
-          <li><a href="#vets" style="color:var(--text-muted); text-decoration:none;">Book a Vet</a></li>
-          <li><a href="#shop" style="color:var(--text-muted); text-decoration:none;">Pet Store</a></li>
-        </ul>
-      </div>
-      <div>
-        <h4 style="font-size:14px; font-weight:800; color:var(--text-dark); margin-bottom:14px;">Company</h4>
-        <ul style="list-style:none; display:flex; flex-direction:column; gap:8px; font-size:13px;">
-          <li><a href="/about" style="color:var(--text-muted); text-decoration:none;">About Us</a></li>
-          <li><a href="/privacy-policy" style="color:var(--text-muted); text-decoration:none;">Privacy Policy</a></li>
-          <li><a href="/terms-of-service" style="color:var(--text-muted); text-decoration:none;">Terms of Service</a></li>
-        </ul>
-      </div>
-      <div>
-        <h4 style="font-size:14px; font-weight:800; color:var(--text-dark); margin-bottom:14px;">Support</h4>
-        <p style="font-size:13px; color:var(--text-muted); margin-bottom:8px;">Email: siradive137@gmail.com</p>
-        <p style="font-size:12px; color:var(--text-muted);">Developed by VertexHand & MASA</p>
-      </div>
-    </div>
-    <div style="border-top:1px solid var(--border-color); padding-top:20px; text-align:center; font-size:13px; color:var(--text-muted);">
-      © 2026 Pet Maya Ecosystem. All rights reserved.
-    </div>
-  </footer>
-
-  <!-- ─── BACK TO TOP ─── -->
-  <button class="back-to-top" id="backToTopBtn" onclick="window.scrollTo({top:0, behavior:'smooth'})" aria-label="Back to Top">
-    ▲
-  </button>
-
-  <!-- ─── MODAL: ADD PET ─── -->
-  <div class="modal-overlay" id="addPetModal">
-    <div class="modal-box">
-      <button class="modal-close-btn" onclick="closeAddPetModal()">✕</button>
-      <h3 style="font-size:20px; font-weight:800; color:var(--text-dark); margin-bottom:18px;">🐾 Add New Pet Profile</h3>
-      <form id="addPetForm" onsubmit="submitNewPet(event)">
-        <div style="margin-bottom:12px;">
-          <label style="font-size:12px; font-weight:700; color:var(--text-dark); display:block; margin-bottom:4px;">Pet Name *</label>
-          <input type="text" id="newPetName" class="input-field" placeholder="e.g. Milo, Bella" required>
-        </div>
-        <div class="grid-2" style="margin-bottom:12px;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;">
           <div>
-            <label style="font-size:12px; font-weight:700; color:var(--text-dark); display:block; margin-bottom:4px;">Species</label>
-            <select id="newPetSpecies" class="input-field">
-              <option value="dog">Dog 🐕</option>
-              <option value="cat">Cat 🐈</option>
-              <option value="bird">Bird 🦜</option>
-              <option value="rabbit">Rabbit 🐇</option>
-            </select>
+            <label style="font-size:13px; font-weight:700; display:block; margin-bottom:6px;">Date</label>
+            <input type="date" id="bookDate" class="input-field">
           </div>
           <div>
-            <label style="font-size:12px; font-weight:700; color:var(--text-dark); display:block; margin-bottom:4px;">Gender</label>
-            <select id="newPetGender" class="input-field">
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-              <option value="Neutered/Spayed">Neutered / Spayed</option>
+            <label style="font-size:13px; font-weight:700; display:block; margin-bottom:6px;">Time Slot</label>
+            <select id="bookTime" class="input-field">
+              <option value="09:30 AM">09:30 AM</option>
+              <option value="11:15 AM">11:15 AM</option>
+              <option value="02:30 PM">02:30 PM</option>
+              <option value="04:45 PM">04:45 PM</option>
             </select>
           </div>
         </div>
-        <div style="margin-bottom:12px;">
-          <label style="font-size:12px; font-weight:700; color:var(--text-dark); display:block; margin-bottom:4px;">Breed *</label>
-          <input type="text" id="newPetBreed" class="input-field" placeholder="e.g. Labrador, Persian Cat" required>
-        </div>
-        <div class="grid-2" style="margin-bottom:20px;">
-          <div>
-            <label style="font-size:12px; font-weight:700; color:var(--text-dark); display:block; margin-bottom:4px;">Age</label>
-            <input type="text" id="newPetAge" class="input-field" placeholder="e.g. 2 Years">
-          </div>
-          <div>
-            <label style="font-size:12px; font-weight:700; color:var(--text-dark); display:block; margin-bottom:4px;">Weight (kg)</label>
-            <input type="number" step="0.1" id="newPetWeight" class="input-field" placeholder="e.g. 12.5">
-          </div>
-        </div>
-        <button type="submit" class="btn btn-primary" style="width:100%;">
-          Save Pet Profile
-        </button>
-      </form>
-    </div>
-  </div>
 
-  <!-- ─── MODAL: VET BOOKING ─── -->
-  <div class="modal-overlay" id="bookingModal">
-    <div class="modal-box">
-      <button class="modal-close-btn" onclick="closeBookingModal()">✕</button>
-      <div style="display:flex; align-items:center; gap:12px; margin-bottom:18px;">
-        <img id="bookingVetAvatar" src="" alt="Vet" style="width:50px; height:50px; border-radius:14px; object-fit:cover;">
-        <div>
-          <h3 id="bookingVetName" style="font-size:17px; font-weight:800; color:var(--text-dark); margin:0;"></h3>
-          <p id="bookingVetSpecialty" style="font-size:12px; color:var(--primary); font-weight:700; margin:2px 0;"></p>
-        </div>
-      </div>
-      <form onsubmit="confirmAppointment(event)">
-        <div style="margin-bottom:12px;">
-          <label style="font-size:12px; font-weight:700; color:var(--text-dark); display:block; margin-bottom:4px;">Select Patient (Your Pet)</label>
-          <select id="bookingPetSelect" class="input-field"></select>
-        </div>
-        <div style="margin-bottom:12px;">
-          <label style="font-size:12px; font-weight:700; color:var(--text-dark); display:block; margin-bottom:4px;">Consultation Mode</label>
-          <select id="bookingVisitType" class="input-field">
-            <option value="Live Video Consultation (Telehealth)">🎥 Live Video Consultation (Telehealth)</option>
-            <option value="In-Clinic Visit">🏥 In-Clinic Physical Visit</option>
-          </select>
-        </div>
-        <div class="grid-2" style="margin-bottom:12px;">
-          <div>
-            <label style="font-size:12px; font-weight:700; color:var(--text-dark); display:block; margin-bottom:4px;">Preferred Date</label>
-            <input type="date" id="bookingDate" class="input-field" required>
-          </div>
-          <div>
-            <label style="font-size:12px; font-weight:700; color:var(--text-dark); display:block; margin-bottom:4px;">Time Slot</label>
-            <select id="bookingTime" class="input-field">
-              <option value="10:00 AM">10:00 AM</option>
-              <option value="11:30 AM" selected>11:30 AM</option>
-              <option value="02:00 PM">02:00 PM</option>
-              <option value="04:30 PM">04:30 PM</option>
-              <option value="06:00 PM">06:00 PM</option>
-            </select>
-          </div>
-        </div>
         <div style="margin-bottom:18px;">
-          <label style="font-size:12px; font-weight:700; color:var(--text-dark); display:block; margin-bottom:4px;">Reason for Consultation</label>
-          <input type="text" id="bookingReason" class="input-field" placeholder="e.g. Skin rash, booster vaccines, lethargy">
+          <label style="font-size:13px; font-weight:700; display:block; margin-bottom:6px;">Pet Name &amp; Note</label>
+          <input type="text" id="bookPetName" class="input-field" placeholder="e.g. Max - Regular checkup">
         </div>
-        <button type="submit" class="btn btn-primary" style="width:100%;">
-          Confirm Booking
+
+        <button class="btn btn-primary" style="width:100%; padding:14px;" onclick="confirmBooking()">
+          Confirm Appointment
         </button>
-      </form>
-    </div>
-  </div>
-
-  <!-- ─── MODAL: APPOINTMENT PASS ─── -->
-  <div class="modal-overlay" id="apptPassModal">
-    <div class="modal-box" style="text-align:center;">
-      <button class="modal-close-btn" onclick="closeApptPassModal()">✕</button>
-      <p style="font-size:44px; margin-bottom:10px;">🎉</p>
-      <h3 style="font-size:20px; font-weight:800; color:var(--text-dark); margin-bottom:6px;">Booking Confirmed!</h3>
-      <p style="font-size:13px; color:var(--text-muted); margin-bottom:18px;">Your appointment has been registered with the clinic.</p>
-
-      <div style="background:var(--bg-light); border:1px dashed var(--primary); border-radius:16px; padding:18px; text-align:left; margin-bottom:20px;">
-        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-          <span style="font-size:12px; color:var(--text-muted);">REF PASS:</span>
-          <strong id="passRefId" style="color:var(--primary); font-size:12px;"></strong>
-        </div>
-        <p style="font-size:13px; margin:4px 0;"><strong id="passVetName"></strong></p>
-        <p style="font-size:13px; color:var(--text-muted); margin:4px 0;">🐾 Patient: <strong id="passPetName" style="color:var(--text-dark);"></strong></p>
-        <p style="font-size:13px; color:var(--text-muted); margin:4px 0;">📅 <strong id="passDateTime" style="color:var(--text-dark);"></strong></p>
-        <p style="font-size:13px; color:var(--text-muted); margin:4px 0;">🏥 Mode: <span id="passType"></span></p>
       </div>
 
-      <button class="btn btn-primary" style="width:100%;" onclick="closeApptPassModal()">
-        Done
-      </button>
+      <div id="bookingSuccessStep" style="display:none; text-align:center;">
+        <div style="width:54px; height:54px; border-radius:50%; background:var(--health-bg); color:var(--health-green); font-size:26px; display:flex; align-items:center; justify-content:center; margin:0 auto 14px;">✓</div>
+        <h3 style="font-size:22px; font-weight:800; margin-bottom:6px;">Appointment Confirmed!</h3>
+        <p style="font-size:13.5px; color:var(--text-muted); margin-bottom:18px;">Ref ID: <span id="confirmedRef" style="color:var(--primary); font-weight:800;">PM-2026-8941</span></p>
+        <button class="btn btn-primary" style="width:100%; margin-bottom:8px;" onclick="downloadAppointmentICS()">📥 Add to My Calendar (.ics)</button>
+        <button class="btn btn-secondary" style="width:100%;" onclick="closeBookingModal()">Done</button>
+      </div>
     </div>
   </div>
 
-  <!-- ─── MODAL: ADD REMINDER ─── -->
-  <div class="modal-overlay" id="reminderModal">
-    <div class="modal-box">
-      <button class="modal-close-btn" onclick="closeReminderModal()">✕</button>
-      <h3 style="font-size:18px; font-weight:800; color:var(--text-dark); margin-bottom:16px;">⏰ Add Schedule Reminder</h3>
-      <form onsubmit="submitCustomReminder(event)">
-        <div style="margin-bottom:12px;">
-          <label style="font-size:12px; font-weight:700; color:var(--text-dark); display:block; margin-bottom:4px;">Reminder Title *</label>
-          <input type="text" id="remTitle" class="input-field" placeholder="e.g. Monthly Bravecto Chew, Ear Cleaning" required>
-        </div>
-        <div class="grid-2" style="margin-bottom:18px;">
-          <div>
-            <label style="font-size:12px; font-weight:700; color:var(--text-dark); display:block; margin-bottom:4px;">Due Date</label>
-            <input type="date" id="remDate" class="input-field" required>
-          </div>
-          <div>
-            <label style="font-size:12px; font-weight:700; color:var(--text-dark); display:block; margin-bottom:4px;">Category</label>
-            <select id="remType" class="input-field">
-              <option value="Vaccine">💉 Vaccine</option>
-              <option value="Medication">💊 Medication</option>
-              <option value="Grooming">🛁 Grooming</option>
-              <option value="Vet Visit">🩺 Vet Visit</option>
-            </select>
-          </div>
-        </div>
-        <button type="submit" class="btn btn-primary" style="width:100%;">
-          Save Reminder
-        </button>
-      </form>
-    </div>
-  </div>
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
 
-  <!-- ─── MODAL: CHECKOUT ─── -->
-  <div class="modal-overlay" id="checkoutModal">
-    <div class="modal-box">
-      <button class="modal-close-btn" onclick="closeCheckoutModal()">✕</button>
-      <h3 style="font-size:18px; font-weight:800; color:var(--text-dark); margin-bottom:16px;">📦 Checkout & Delivery</h3>
-      <form onsubmit="submitOrder(event)">
-        <div style="margin-bottom:12px;">
-          <label style="font-size:12px; font-weight:700; color:var(--text-dark); display:block; margin-bottom:4px;">Full Name *</label>
-          <input type="text" id="checkoutName" class="input-field" placeholder="Jane Doe" required>
-        </div>
-        <div style="margin-bottom:12px;">
-          <label style="font-size:12px; font-weight:700; color:var(--text-dark); display:block; margin-bottom:4px;">Shipping Address *</label>
-          <input type="text" id="checkoutAddress" class="input-field" placeholder="123 Pet Care Lane, Apt 4B" required>
-        </div>
-        <div style="margin-bottom:18px;">
-          <label style="font-size:12px; font-weight:700; color:var(--text-dark); display:block; margin-bottom:4px;">Payment Method</label>
-          <select class="input-field">
-            <option value="card">💳 Credit / Debit Card</option>
-            <option value="apple">📱 Apple Pay / Google Pay</option>
-            <option value="cod">💵 Cash on Delivery</option>
-          </select>
-        </div>
-        <button type="submit" class="btn btn-primary" style="width:100%;">
-          Place Order
-        </button>
-      </form>
-    </div>
-  </div>
-
-  <!-- ─── MODAL: GET APP ─── -->
-  <div class="modal-overlay" id="appModal">
-    <div class="modal-box" style="text-align:center;">
-      <button class="modal-close-btn" onclick="document.getElementById('appModal').style.display='none'">✕</button>
-      <img src="assets/images/tail_wagging_logo.png" alt="Pet Maya Logo" style="width:60px; height:60px; border-radius:50%; margin-bottom:12px;">
-      <h3 style="font-size:20px; font-weight:800; color:var(--text-dark); margin-bottom:8px;">Download Pet Maya Android App</h3>
-      <p style="font-size:13px; color:var(--text-muted); margin-bottom:20px;">
-        Get real-time push alarms, offline emergency first-aid, GPS vet discovery, and AI camera vision directly in your pocket.
-      </p>
-      <a href="https://play.google.com/store/apps/details?id=com.vertexhand.petmaya" target="_blank" class="btn btn-primary" style="width:100%; margin-bottom:10px;">
-        Open in Google Play Store
-      </a>
-      <button class="btn btn-secondary" style="width:100%;" onclick="document.getElementById('appModal').style.display='none'">
-        Continue on Web
-      </button>
-    </div>
-  </div>
-
-  <!-- ─── SCRIPTS ─── -->
-  <script src="app.js"></script>
+  <!-- ─── JAVASCRIPT APP CONTROLLER ─── -->
   <script>
-    function toggleTheme() {
-      const isDark = document.body.getAttribute('data-theme') === 'dark';
-      document.body.setAttribute('data-theme', isDark ? 'light' : 'dark');
-      document.getElementById('themeToggleBtn').textContent = isDark ? '🌙' : '☀️';
-      localStorage.setItem('petmaya_theme', isDark ? 'light' : 'dark');
-    }
+    // Firebase Web Configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyDjikCtm7RK1CoebQMGQIQTAPh-cC23B-Q",
+      authDomain: "pet-maya.firebaseapp.com",
+      projectId: "pet-maya",
+      storageBucket: "pet-maya.firebasestorage.app",
+      messagingSenderId: "335402911476",
+      appId: "1:335402911476:web:841262770bb408768a00a1"
+    };
 
-    function toggleDrawer(open) {
-      const drawer = document.getElementById('mobileDrawer');
-      const overlay = document.getElementById('drawerOverlay');
-      if (drawer && overlay) {
-        if (open) {
-          drawer.classList.add('open');
-          overlay.classList.add('active');
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    const auth = firebase.auth();
+
+    // App State
+    let currentUser = null;
+
+    // Listen to Firebase Auth state
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        setLoggedInState({
+          displayName: user.displayName || 'Pet Parent',
+          email: user.email || '',
+          photoURL: user.photoURL || 'assets/images/Pet_2.jpg'
+        });
+      } else {
+        const savedDemo = localStorage.getItem('petmaya_demo_user');
+        if (savedDemo) {
+          try {
+            setLoggedInState(JSON.parse(savedDemo));
+          } catch(e) {
+            setLoggedOutState();
+          }
         } else {
-          drawer.classList.remove('open');
-          overlay.classList.remove('active');
+          setLoggedOutState();
         }
-      }
-    }
-
-    function openAppModal() {
-      document.getElementById('appModal').style.display = 'flex';
-    }
-
-    // Scroll listener for back to top
-    window.addEventListener('scroll', () => {
-      const btn = document.getElementById('backToTopBtn');
-      if (btn) {
-        btn.style.display = window.scrollY > 350 ? 'flex' : 'none';
       }
     });
 
-    // Auto-detect theme
-    (function () {
-      const saved = localStorage.getItem('petmaya_theme');
-      if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        document.body.setAttribute('data-theme', 'dark');
-        const btn = document.getElementById('themeToggleBtn');
-        if (btn) btn.textContent = '☀️';
+    function setLoggedInState(user) {
+      currentUser = user;
+      document.getElementById('publicLandingView').style.display = 'none';
+      document.getElementById('authenticatedAppView').style.display = 'block';
+
+      // Update UI elements
+      document.getElementById('userNameText').textContent = user.displayName || 'Pet Parent';
+      document.getElementById('userAvatarImg').src = user.photoURL || 'assets/images/Pet_2.jpg';
+      document.getElementById('dashGreeting').textContent = `Welcome Back, ${(user.displayName || 'Pet Parent').split(' ')[0]}! 🐾`;
+      document.getElementById('profileTabName').textContent = user.displayName || 'Pet Parent';
+      document.getElementById('profileTabEmail').textContent = user.email || 'petparent@petmaya.app';
+      document.getElementById('profileTabAvatar').src = user.photoURL || 'assets/images/Pet_2.jpg';
+
+      calculateVaccineSchedule();
+      showToast(`👋 Signed in as ${user.displayName || 'Pet Parent'}`);
+    }
+
+    function setLoggedOutState() {
+      currentUser = null;
+      document.getElementById('authenticatedAppView').style.display = 'none';
+      document.getElementById('publicLandingView').style.display = 'block';
+    }
+
+    function handleGoogleLogin() {
+      closeLoginModal();
+      const provider = new firebase.auth.GoogleAuthProvider();
+      auth.signInWithPopup(provider).catch((error) => {
+        console.warn('Google Popup issue, using Demo mode fallback:', error);
+        enterDemoMode();
+      });
+    }
+
+    function enterDemoMode() {
+      closeLoginModal();
+      const demoUser = {
+        displayName: 'Alex (Pet Parent)',
+        email: 'alex.petparent@gmail.com',
+        photoURL: 'assets/images/Pet_2.jpg'
+      };
+      localStorage.setItem('petmaya_demo_user', JSON.stringify(demoUser));
+      setLoggedInState(demoUser);
+    }
+
+    function handleSignOut() {
+      localStorage.removeItem('petmaya_demo_user');
+      auth.signOut().then(() => {
+        setLoggedOutState();
+        showToast('🔒 Signed out successfully');
+      });
+    }
+
+    // Modal Handlers
+    function openLoginModal() {
+      document.getElementById('loginModal').classList.add('active');
+    }
+
+    function closeLoginModal() {
+      document.getElementById('loginModal').classList.remove('active');
+    }
+
+    function openBookingModal(vetName) {
+      const modal = document.getElementById('bookingModal');
+      document.getElementById('bookingFormStep').style.display = 'block';
+      document.getElementById('bookingSuccessStep').style.display = 'none';
+      if (vetName) {
+        const select = document.getElementById('bookDoctorSelect');
+        for (let i = 0; i < select.options.length; i++) {
+          if (select.options[i].text.includes(vetName)) {
+            select.selectedIndex = i;
+            break;
+          }
+        }
       }
-    })();
+      modal.classList.add('active');
+    }
+
+    function closeBookingModal() {
+      document.getElementById('bookingModal').classList.remove('active');
+    }
+
+    function setConsultMode(mode) {
+      document.getElementById('modeClinic').classList.toggle('active', mode === 'clinic');
+      document.getElementById('modeTele').classList.toggle('active', mode === 'tele');
+    }
+
+    let currentBookingData = { doctor: 'Dr. Sarah Jenkins', date: 'Tomorrow', time: '10:30 AM', petName: 'Max', refId: 'PM-2026-8941' };
+
+    function confirmBooking() {
+      const doctor = document.getElementById('bookDoctorSelect').value;
+      const date = document.getElementById('bookDate').value || 'Tomorrow';
+      const time = document.getElementById('bookTime').value;
+      const petName = document.getElementById('bookPetName').value || 'Max';
+      const refId = 'PM-2026-' + Math.floor(1000 + Math.random() * 9000);
+
+      currentBookingData = { doctor, date, time, petName, refId };
+      document.getElementById('confirmedRef').textContent = refId;
+      document.getElementById('bookingFormStep').style.display = 'none';
+      document.getElementById('bookingSuccessStep').style.display = 'block';
+      showToast('🎉 Appointment Confirmed!');
+    }
+
+    function downloadAppointmentICS() {
+      const b = currentBookingData;
+      const ics = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Pet Maya//Vet Booking//EN
+METHOD:PUBLISH
+BEGIN:VEVENT
+SUMMARY:🩺 Pet Maya Appointment with ${b.doctor}
+DESCRIPTION:Veterinary consultation for ${b.petName}. Ref: ${b.refId}.
+STATUS:CONFIRMED
+END:VEVENT
+END:VCALENDAR`;
+
+      const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.setAttribute('download', `PetMaya_Appointment_${b.refId}.ics`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('📅 Calendar invite downloaded (.ics)');
+    }
+
+    // App Tab Switching
+    function switchAppTab(tabId, btn) {
+      document.querySelectorAll('.app-tab-content').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.app-tab-btn').forEach(b => b.classList.remove('active'));
+
+      const target = document.getElementById('tab-' + tabId);
+      if (target) target.classList.add('active');
+
+      if (btn) {
+        btn.classList.add('active');
+      } else {
+        const matchingBtn = Array.from(document.querySelectorAll('.app-tab-btn')).find(b => b.getAttribute('onclick')?.includes(tabId));
+        if (matchingBtn) matchingBtn.classList.add('active');
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Symptom Scanner
+    let selectedSymptoms = new Set(['skin_rash']);
+    function selectPetType(el, type) {
+      el.parentElement.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+    }
+
+    function toggleSymptom(el, symptom) {
+      if (selectedSymptoms.has(symptom)) {
+        selectedSymptoms.delete(symptom);
+        el.classList.remove('active');
+      } else {
+        selectedSymptoms.add(symptom);
+        el.classList.add('active');
+      }
+    }
+
+    function runSymptomScan() {
+      if (selectedSymptoms.size === 0) {
+        showToast('⚠️ Please select at least one symptom');
+        return;
+      }
+      const progressBox = document.getElementById('scanProgressBox');
+      const progressBar = document.getElementById('scanProgressBar');
+      const percentageText = document.getElementById('scanPercentage');
+      const resultCard = document.getElementById('triageResultCard');
+
+      resultCard.style.display = 'none';
+      progressBox.style.display = 'block';
+      progressBar.style.width = '0%';
+
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += 25;
+        progressBar.style.width = progress + '%';
+        percentageText.textContent = progress + '%';
+        if (progress >= 100) {
+          clearInterval(interval);
+          setTimeout(() => {
+            progressBox.style.display = 'none';
+            document.getElementById('triageTitle').textContent = 'Suspected Allergic Dermatitis / Contact Rash';
+            document.getElementById('triageHomeCare').textContent = 'Prevent licking using an e-collar. Keep coat clean and dry.';
+            document.getElementById('triageClinicAction').textContent = 'Consult a certified veterinarian for skin evaluation.';
+            resultCard.style.display = 'block';
+            showToast('✅ Triage Report Generated');
+          }, 300);
+        }
+      }, 200);
+    }
+
+    // Community Post Creation & Likes
+    function publishCommunityPost() {
+      const input = document.getElementById('newPostInput');
+      if (!input || !input.value.trim()) return;
+
+      const postDiv = document.createElement('div');
+      postDiv.className = 'post-card';
+      postDiv.innerHTML = `
+        <div class="post-header">
+          <div class="post-author">
+            <img src="${currentUser?.photoURL || 'assets/images/Pet_2.jpg'}" alt="User">
+            <div>
+              <strong style="font-size:15px; display:block;">${currentUser?.displayName || 'Pet Parent'}</strong>
+              <span style="font-size:12px; color:var(--text-muted);">Just now</span>
+            </div>
+          </div>
+          <span style="font-size:12px; background:var(--primary-light); color:var(--primary); padding:4px 10px; border-radius:999px; font-weight:700;">🐾 Story</span>
+        </div>
+        <p style="font-size:14.5px; margin-bottom:14px;">${escapeHtml(input.value.trim())}</p>
+        <div style="display:flex; gap:16px; margin-top:14px; padding-top:12px; border-top:1px solid var(--border-color);">
+          <button class="btn btn-secondary" style="padding:6px 14px; font-size:13px;" onclick="togglePostLike(this)">❤️ 1 Like</button>
+          <button class="btn btn-secondary" style="padding:6px 14px; font-size:13px;" onclick="copyShareLink()">🔗 Share</button>
+        </div>
+      `;
+
+      const list = document.getElementById('communityPostsList');
+      list.insertBefore(postDiv, list.firstChild);
+      input.value = '';
+      showToast('🎉 Post published to community feed!');
+    }
+
+    function togglePostLike(btn) {
+      if (btn.classList.contains('liked')) {
+        btn.classList.remove('liked');
+        btn.innerHTML = '❤️ 142 Likes';
+      } else {
+        btn.classList.add('liked');
+        btn.innerHTML = '❤️ 143 Likes';
+        showToast('❤️ Liked post!');
+      }
+    }
+
+    function copyShareLink() {
+      navigator.clipboard.writeText('https://www.petmaya.app/').then(() => {
+        showToast('📋 Link copied to clipboard!');
+      });
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Vaccine Schedule Generator
+    const schedules = {
+      dog: [
+        { milestone: 'Core Vaccine #1', care: 'DHPP (Distemper, Parvo)', freq: 'Every 3-4 Weeks', status: 'Essential 💉' },
+        { milestone: 'Core Vaccine #2', care: 'Rabies (1-Year or 3-Year)', freq: 'At 16 Weeks & Annual Booster', status: 'Mandatory 🛡️' },
+        { milestone: 'Parasite Prevention', care: 'Heartworm + Flea & Tick', freq: 'Monthly Chew', status: 'Active 💊' }
+      ],
+      cat: [
+        { milestone: 'Core Vaccine #1', care: 'FVRCP (Feline Viral Combo)', freq: 'Every 3-4 Weeks', status: 'Essential 💉' },
+        { milestone: 'Core Vaccine #2', care: 'Rabies & FeLV', freq: 'At 12-16 Weeks & Booster', status: 'Mandatory 🛡️' }
+      ]
+    };
+
+    function calculateVaccineSchedule() {
+      const type = document.getElementById('calcPetType')?.value || 'dog';
+      const list = schedules[type] || schedules.dog;
+      const container = document.getElementById('vaccineTableContainer');
+      if (!container) return;
+
+      let html = '<table style="width:100%; border-collapse:collapse;"><thead><tr style="text-align:left; border-bottom:2px solid var(--border-color);"><th style="padding:10px;">Milestone</th><th style="padding:10px;">Treatment</th><th style="padding:10px;">Status</th></tr></thead><tbody>';
+      list.forEach(i => {
+        html += `<tr style="border-bottom:1px solid var(--border-color);"><td style="padding:10px;"><strong>${i.milestone}</strong></td><td style="padding:10px;">${i.care}</td><td style="padding:10px;"><span style="color:var(--primary); font-weight:700;">${i.status}</span></td></tr>`;
+      });
+      html += '</tbody></table>';
+      container.innerHTML = html;
+    }
+
+    function downloadCalendarICS() {
+      const ics = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Pet Maya//Vaccine Planner//EN
+BEGIN:VEVENT
+SUMMARY:🐾 Pet Maya: Vaccine & Wellness Due
+DESCRIPTION:Scheduled veterinary preventive care reminder from Pet Maya.
+STATUS:CONFIRMED
+RRULE:FREQ=MONTHLY;INTERVAL=1
+END:VEVENT
+END:VCALENDAR`;
+
+      const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.setAttribute('download', 'PetMaya_Vaccine_Schedule.ics');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('📅 Schedule downloaded (.ics)');
+    }
+
+    // Theme Switcher
+    function initTheme() {
+      const saved = localStorage.getItem('petmaya_theme');
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const isDark = saved === 'dark' || (!saved && prefersDark);
+      applyTheme(isDark);
+    }
+
+    function applyTheme(isDark) {
+      if (isDark) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        document.querySelectorAll('.theme-toggle-btn').forEach(b => b.textContent = '☀️');
+      } else {
+        document.documentElement.removeAttribute('data-theme');
+        document.querySelectorAll('.theme-toggle-btn').forEach(b => b.textContent = '🌙');
+      }
+    }
+
+    function toggleTheme() {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      applyTheme(!isDark);
+      localStorage.setItem('petmaya_theme', !isDark ? 'dark' : 'light');
+      showToast(!isDark ? '🌙 Switched to Dark Theme' : '☀️ Switched to Light Theme');
+    }
+
+    function showToast(msg) {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.textContent = msg;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s';
+        setTimeout(() => toast.remove(), 300);
+      }, 3200);
+    }
+
+    // Close modals on click outside
+    document.querySelectorAll('.modal-backdrop').forEach(b => {
+      b.addEventListener('click', (e) => {
+        if (e.target === b) b.classList.remove('active');
+      });
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initTheme();
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const dateStr = tomorrow.toISOString().split('T')[0];
+      const dateInput = document.getElementById('bookDate');
+      if (dateInput) {
+        dateInput.value = dateStr;
+        dateInput.min = dateStr;
+      }
+    });
   </script>
 </body>
 
