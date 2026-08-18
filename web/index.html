@@ -2326,32 +2326,88 @@
   let activePets = [];
   let activeBooking = { doctor:'Dr. Sarah Jenkins', date:'', time:'10:30 AM', note:'Max', ref:'PM-2026-8941' };
 
-  auth.onAuthStateChanged(user => {
-    if (user) {
-      initUser({ uid:user.uid, displayName:user.displayName||'Pet Parent', email:user.email||'', photoURL:user.photoURL||'assets/images/Pet_2.jpg' });
-      loadData(user.uid);
+  auth.onAuthStateChanged(firebaseUser => {
+    if (firebaseUser) {
+      // Read the full user document from Firestore to get real schema fields
+      db.collection('users').doc(firebaseUser.uid).get()
+        .then(doc => {
+          const data = doc.exists ? doc.data() : {};
+          const u = {
+            uid:         firebaseUser.uid,
+            // Firestore stores 'name', fallback to Firebase Auth displayName
+            displayName: data.name || firebaseUser.displayName || 'Pet Parent',
+            email:       data.email || firebaseUser.email || '',
+            // Firestore stores 'photoUrl' (lowercase l), fallback to Auth photoURL
+            photoURL:    data.photoUrl || firebaseUser.photoURL || 'assets/images/Pet_2.jpg',
+            role:        data.role || 'Pet Owner',
+            isVerified:  data.isVerified || false,
+            points:      data.points || 0,
+            phone:       data.phone || '',
+            address:     data.address || '',
+          };
+          initUser(u);
+          loadData(firebaseUser.uid);
+        })
+        .catch(() => {
+          // Firestore read failed — fallback to Firebase Auth fields
+          const u = {
+            uid:         firebaseUser.uid,
+            displayName: firebaseUser.displayName || 'Pet Parent',
+            email:       firebaseUser.email || '',
+            photoURL:    firebaseUser.photoURL || 'assets/images/Pet_2.jpg',
+            role:        'Pet Owner',
+            isVerified:  false,
+            points:      0,
+          };
+          initUser(u);
+          loadData(firebaseUser.uid);
+        });
     } else {
       const demo = localStorage.getItem('pm_demo');
-      if (demo) { try { const u = JSON.parse(demo); initUser(u); loadData(u.uid); } catch(e) { showPublic(); } }
-      else showPublic();
+      if (demo) {
+        try { const u = JSON.parse(demo); initUser(u); loadData(u.uid); }
+        catch(e) { showPublic(); }
+      } else {
+        showPublic();
+      }
     }
   });
 
   function initUser(u) {
     currentUser = u;
-    // ─ Reset admin state FIRST so a normal user never inherits a previous session's access
+    // Reset admin state FIRST — no previous session leaks through
     revokeAdmin();
     document.getElementById('publicView').style.display = 'none';
     document.getElementById('appView').style.display = 'block';
-    document.getElementById('userAvatar').src = u.photoURL || 'assets/images/Pet_2.jpg';
-    document.getElementById('userNameLabel').textContent = (u.displayName||'Pet Parent').split(' ')[0];
-    document.getElementById('greetText').textContent = `Welcome, ${(u.displayName||'Pet Parent').split(' ')[0]}! 🐾`;
-    document.getElementById('profileAva').src = u.photoURL || 'assets/images/Pet_2.jpg';
-    document.getElementById('profileName').textContent = u.displayName || 'Pet Parent';
-    document.getElementById('profileEmail').textContent = u.email || 'petparent@petmaya.app';
+
+    const name   = u.displayName || 'Pet Parent';
+    const photo  = u.photoURL    || 'assets/images/Pet_2.jpg';
+    const first  = name.split(' ')[0];
+    const pts    = u.points || 0;
+    const role   = u.role   || 'Pet Owner';
+
+    // Header
+    document.getElementById('userAvatar').src              = photo;
+    document.getElementById('userNameLabel').textContent   = first;
+    // Dashboard greeting
+    document.getElementById('greetText').textContent       = `Welcome, ${first}! 🐾`;
+    // Profile pane
+    document.getElementById('profileAva').src              = photo;
+    document.getElementById('profileName').textContent     = name;
+    document.getElementById('profileEmail').textContent    = u.email || 'petparent@petmaya.app';
+
+    // Update points badge in welcome card
+    const ptsEl = document.getElementById('userPoints');
+    if (ptsEl) ptsEl.textContent = pts + ' pts';
+
+    // Show role badge in profile if needed
+    const roleEl = document.getElementById('profileRole');
+    if (roleEl) roleEl.textContent = role;
+
     buildVaccineTable();
-    toast(`👋 Signed in as ${(u.displayName||'Pet Parent').split(' ')[0]}`);
-    // Admin check — runs AFTER UI is ready; only grants access if truly admin
+    toast(`👋 Signed in as ${first}`);
+
+    // Admin check — reads role from Firestore user doc (already populated in u.role)
     checkAdminAccess(u);
   }
 
@@ -2699,12 +2755,26 @@
   let bcAudiences = new Set(['all']);
   let broadcastLog = [];
 
-  function checkAdminAccess(user) {
-    if (!user) return;
-    const isEmailAdmin = ADMIN_EMAILS.includes(user.email);
-    db.collection('admins').doc(user.uid).get()
-      .then(doc => { if (doc.exists || isEmailAdmin) { grantAdmin(); } })
-      .catch(() => { if (isEmailAdmin) grantAdmin(); });
+  // Admin check — role-based from Firestore 'users' collection
+  // The user object (u) already has u.role populated from the onAuthStateChanged read.
+  // This is the single source of truth; no hardcoded email list needed.
+  function checkAdminAccess(u) {
+    if (!u) return;
+
+    // 1. Fast path — role already set in user object from Firestore read
+    if (u.role === 'Admin') { grantAdmin(); return; }
+
+    // 2. Fallback: re-read from Firestore in case u was built without Firestore data
+    //    (e.g., demo mode or auth fallback path)
+    if (!u.uid || u.uid === 'demo_001') return; // never grant admin to demo
+    db.collection('users').doc(u.uid).get()
+      .then(doc => {
+        if (doc.exists && doc.data().role === 'Admin') grantAdmin();
+      })
+      .catch(() => {
+        // Firestore read failed — also check legacy email list as last resort
+        if (ADMIN_EMAILS.includes(u.email)) grantAdmin();
+      });
   }
 
   function grantAdmin() {
