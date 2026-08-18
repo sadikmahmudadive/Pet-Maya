@@ -73,7 +73,8 @@ class VetConsoleHomeFragment extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = context.select((AppStateRepository state) => state.currentUser);
-    final events = context.select((AppStateRepository state) => state.events);
+    final rawEvents = context.select((AppStateRepository state) => state.events);
+    final events = rawEvents.where((e) => e.category != 'Birthday').toList();
     final records = context.select((AppStateRepository state) => state.serviceRecords);
     final state = context.read<AppStateRepository>();
 

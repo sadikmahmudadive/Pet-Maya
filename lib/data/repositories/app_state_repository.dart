@@ -75,31 +75,33 @@ class AppStateRepository extends ChangeNotifier {
   List<EventModel> get events {
     final all = List<EventModel>.from(_events);
     
-    // Generate birthday events dynamically
-    for (final pet in _pets) {
-      if (pet.dob.isNotEmpty) {
-        try {
-          final dob = DateTime.parse(pet.dob);
-          final now = DateTime.now();
-          final today = DateTime(now.year, now.month, now.day);
-          
-          // Generate birthday for the current year only to avoid duplicate clutter in lists
-          final bday = DateTime(now.year, dob.month, dob.day);
-          all.add(EventModel(
-            id: 'bday_${pet.petID}_${bday.year}',
-            userId: _currentUser?.uid ?? '',
-            title: "${pet.name}'s Birthday! 🎂",
-            category: 'Birthday',
-            note: 'Happy Birthday to ${pet.name}!',
-            petName: pet.name,
-            petId: pet.petID,
-            date: bday,
-            fromTime: '08:00 AM',
-            toTime: '11:59 PM',
-            isReminderEnabled: true,
-            isCompleted: bday.isBefore(today),
-          ));
-        } catch (_) {}
+    // Generate birthday events dynamically ONLY for Pet Owners (never on clinical provider portals)
+    if (_currentUser?.role == UserRole.petOwner) {
+      for (final pet in _pets) {
+        if (pet.dob.isNotEmpty) {
+          try {
+            final dob = DateTime.parse(pet.dob);
+            final now = DateTime.now();
+            final today = DateTime(now.year, now.month, now.day);
+            
+            // Generate birthday for the current year only to avoid duplicate clutter in lists
+            final bday = DateTime(now.year, dob.month, dob.day);
+            all.add(EventModel(
+              id: 'bday_${pet.petID}_${bday.year}',
+              userId: _currentUser?.uid ?? '',
+              title: "${pet.name}'s Birthday! 🎂",
+              category: 'Birthday',
+              note: 'Happy Birthday to ${pet.name}!',
+              petName: pet.name,
+              petId: pet.petID,
+              date: bday,
+              fromTime: '08:00 AM',
+              toTime: '11:59 PM',
+              isReminderEnabled: true,
+              isCompleted: bday.isBefore(today),
+            ));
+          } catch (_) {}
+        }
       }
     }
 
@@ -270,6 +272,7 @@ class AppStateRepository extends ChangeNotifier {
         case UserRole.veterinarian:
         case UserRole.grooming:
         case UserRole.boarding:
+          _listenToPets(''); // Real-time patient directory sync from all clinic records
           _listenToEventsForProvider(user.uid); 
           _listenToServiceRecords(''); 
           _listenToAllOrders(); 
@@ -374,28 +377,6 @@ class AppStateRepository extends ChangeNotifier {
     }, onError: (e) => debugPrint('[AppStateRepository] _listenToNotifications error: $e'));
   }
 
-  Future<void> _loadEvents(String userId) async {
-    try {
-      final fetched = await _firebase.fetchEvents(userId);
-      _events
-        ..clear()
-        ..addAll(fetched);
-    } catch (e) {
-      debugPrint('[AppStateRepository] _loadEvents error: $e');
-    }
-  }
-
-  Future<void> _loadAllEvents() async {
-    try {
-      final fetched = await _firebase.fetchEvents('');
-      _events
-        ..clear()
-        ..addAll(fetched);
-    } catch (e) {
-      debugPrint('[AppStateRepository] _loadAllEvents error: $e');
-    }
-  }
-
   Future<void> _loadProducts() async {
     try {
       final fetched = await _firebase.fetchProducts();
@@ -404,39 +385,6 @@ class AppStateRepository extends ChangeNotifier {
         ..addAll(fetched);
     } catch (e) {
       debugPrint('[AppStateRepository] _loadProducts error: $e');
-    }
-  }
-
-  Future<void> _loadUserOrders(String userId) async {
-    try {
-      final fetched = await _firebase.fetchOrders(userId);
-      _orders
-        ..clear()
-        ..addAll(fetched);
-    } catch (e) {
-      debugPrint('[AppStateRepository] _loadUserOrders error: $e');
-    }
-  }
-
-  Future<void> _loadAllOrders() async {
-    try {
-      final fetched = await _firebase.fetchAllOrders();
-      _orders
-        ..clear()
-        ..addAll(fetched);
-    } catch (e) {
-      debugPrint('[AppStateRepository] _loadAllOrders error: $e');
-    }
-  }
-
-  Future<void> _loadAllServiceRecords() async {
-    try {
-      final fetched = await _firebase.fetchAllServiceRecords();
-      _serviceRecords
-        ..clear()
-        ..addAll(fetched);
-    } catch (e) {
-      debugPrint('[AppStateRepository] _loadAllServiceRecords error: $e');
     }
   }
 

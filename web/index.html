@@ -4930,7 +4930,8 @@
 
   function loadVetConsoleData() {
     renderVetQueue();
-    renderVetAppointments(activeEvents.length ? activeEvents : activeClinicQueue);
+    const clinicalEvents = activeEvents.filter(e => (e.category || '').toLowerCase() !== 'birthday');
+    renderVetAppointments(clinicalEvents.length ? clinicalEvents : activeClinicQueue);
     renderVetRecords(activeServiceRecords);
   }
 
