@@ -2349,6 +2349,8 @@
     document.getElementById('profileEmail').textContent = u.email || 'petparent@petmaya.app';
     buildVaccineTable();
     toast(`👋 Signed in as ${(u.displayName||'Pet Parent').split(' ')[0]}`);
+    // Admin check — runs after UI is ready
+    checkAdminAccess(u);
   }
 
   function showPublic() {
@@ -2453,7 +2455,26 @@
   }
 
   // ── AUTH ACTIONS ──
-  function openLoginModal() { document.getElementById('loginModal').classList.add('open'); }
+  function openLoginModal(tab) {
+    // Reset all form state before opening
+    if (typeof clearAuthMessages === 'function') clearAuthMessages();
+    if (typeof showForgot === 'function') showForgot(false);
+    if (typeof switchAuthTab === 'function') switchAuthTab(tab || 'signin');
+    ['siEmail','siPass','suName','suEmail','suPass','suPass2','fpEmail'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.value = '';
+    });
+    const sf = document.getElementById('strengthFill');
+    const sl = document.getElementById('strengthLabel');
+    if (sf) { sf.style.width = '0%'; sf.style.background = 'transparent'; }
+    if (sl) sl.textContent = '';
+    const siBtn = document.getElementById('siBtn');
+    const suBtn = document.getElementById('suBtn');
+    const fpBtn = document.getElementById('fpBtn');
+    if (siBtn) { siBtn.innerHTML = 'Sign In';         siBtn.disabled = false; }
+    if (suBtn) { suBtn.innerHTML = 'Create Account';  suBtn.disabled = false; }
+    if (fpBtn) { fpBtn.innerHTML = 'Send Reset Link'; fpBtn.disabled = false; }
+    document.getElementById('loginModal')?.classList.add('open');
+  }
   function closeModal(id) { document.getElementById(id).classList.remove('open'); }
   function openAddPetModal() { document.getElementById('addPetModal').classList.add('open'); }
 
@@ -2688,12 +2709,7 @@
     if (btn) btn.style.display = 'inline-flex';
   }
 
-  // Patch initUser to run admin check
-  const _origInitUser = initUser;
-  function initUser(u) {
-    _origInitUser(u);
-    checkAdminAccess(u);
-  }
+  // ── Admin access — called from initUser (see above) ──
 
   /* ── Sub-navigation ── */
   function adminSubSwitch(section) {
