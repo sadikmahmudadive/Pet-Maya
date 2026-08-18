@@ -20,9 +20,10 @@
     href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
     rel="stylesheet">
 
-  <!-- Firebase App & Auth SDKs -->
+  <!-- Firebase App, Auth & Analytics SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics-compat.js"></script>
 
   <style>
     :root {
@@ -1853,11 +1854,19 @@
       projectId: "pet-maya",
       storageBucket: "pet-maya.firebasestorage.app",
       messagingSenderId: "335402911476",
-      appId: "1:335402911476:web:841262770bb408768a00a1"
+      appId: "1:335402911476:web:841262770bb408768a00a1",
+      measurementId: "G-WSN2ZQE4PF"
     };
 
     if (!firebase.apps.length) {
       firebase.initializeApp(firebaseConfig);
+      if (typeof firebase.analytics === 'function') {
+        try {
+          firebase.analytics();
+        } catch (e) {
+          console.log('Firebase Analytics initialization:', e);
+        }
+      }
     }
     const auth = firebase.auth();
 
