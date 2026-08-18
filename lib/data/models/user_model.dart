@@ -39,6 +39,7 @@ class UserModel {
   final List<String> favoriteVetIds;
   final int points;
   final String? referralCode;
+  final String? referredBy;
   final String? fcmToken;
   final double? latitude;
   final double? longitude;
@@ -53,12 +54,57 @@ class UserModel {
     this.role = UserRole.petOwner,
     this.isVerified = false,
     this.favoriteVetIds = const [],
-    this.points = 0,
+    this.points = 15,
     this.referralCode,
+    this.referredBy,
     this.fcmToken,
     this.latitude,
     this.longitude,
   });
+
+  static String generateReferralCode(String uid) {
+    final cleanUid = uid.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toUpperCase();
+    if (cleanUid.length >= 6) {
+      return 'PM${cleanUid.substring(0, 6)}';
+    }
+    return 'PM${cleanUid.padRight(6, 'X')}';
+  }
+
+  UserModel copyWith({
+    String? uid,
+    String? name,
+    String? email,
+    String? photoUrl,
+    String? phone,
+    String? address,
+    UserRole? role,
+    bool? isVerified,
+    List<String>? favoriteVetIds,
+    int? points,
+    String? referralCode,
+    String? referredBy,
+    String? fcmToken,
+    double? latitude,
+    double? longitude,
+  }) {
+    return UserModel(
+      uid: uid ?? this.uid,
+      name: name ?? this.name,
+      email: email ?? this.email,
+      photoUrl: photoUrl ?? this.photoUrl,
+      phone: phone ?? this.phone,
+      address: address ?? this.address,
+      role: role ?? this.role,
+      isVerified: isVerified ?? this.isVerified,
+      favoriteVetIds: favoriteVetIds ?? this.favoriteVetIds,
+      points: points ?? this.points,
+      referralCode: referralCode ?? this.referralCode,
+      referredBy: referredBy ?? this.referredBy,
+      fcmToken: fcmToken ?? this.fcmToken,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+    );
+  }
 
   Map<String, dynamic> toMap() {
     return {
@@ -73,6 +119,7 @@ class UserModel {
       'favoriteVetIds': favoriteVetIds,
       'points': points,
       'referralCode': referralCode,
+      'referredBy': referredBy,
       'fcmToken': fcmToken,
       'latitude': latitude,
       'longitude': longitude,
@@ -90,8 +137,9 @@ class UserModel {
       role: UserRole.fromString(map['role']),
       isVerified: map['isVerified'] ?? false,
       favoriteVetIds: (map['favoriteVetIds'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
-      points: (map['points'] as num?)?.toInt() ?? 0,
+      points: (map['points'] as num?)?.toInt() ?? 15,
       referralCode: map['referralCode'],
+      referredBy: map['referredBy'],
       fcmToken: map['fcmToken'],
       latitude: (map['latitude'] as num?)?.toDouble(),
       longitude: (map['longitude'] as num?)?.toDouble(),

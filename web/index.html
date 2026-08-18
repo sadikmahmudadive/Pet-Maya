@@ -2032,6 +2032,46 @@
         </div>
       </div>
 
+      <!-- Referral & Loyalty Program -->
+      <div class="card-box" style="margin-bottom:24px;background:linear-gradient(135deg, rgba(26,182,128,0.08) 0%, rgba(59,130,246,0.06) 100%);border:1.5px solid rgba(26,182,128,0.25);">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px;">
+          <div>
+            <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(26,182,128,0.15);color:#0D9488;padding:4px 10px;border-radius:var(--r-full);font-size:11px;font-weight:800;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:8px;">
+              🎁 Referral &amp; Loyalty Rewards
+            </div>
+            <h3 style="font-size:20px;font-weight:800;letter-spacing:-0.4px;margin-bottom:4px;">Invite Friends &amp; Earn Points</h3>
+            <p style="font-size:13px;color:var(--label-3);max-width:480px;line-height:1.4;">
+              New accounts receive <strong>15 initial points</strong>. Share your unique referral code with friends and earn <strong>+5 points</strong> each time someone registers!
+            </p>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--separator);padding:10px 18px;border-radius:18px;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,0.04);">
+            <div style="font-size:11px;color:var(--label-3);font-weight:700;text-transform:uppercase;">My Balance</div>
+            <div style="font-size:24px;font-weight:900;color:var(--primary);" id="profilePointsVal">15</div>
+            <div style="font-size:11px;color:var(--label-3);">Loyalty Points</div>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
+          <div style="background:var(--surface);border:1.5px dashed var(--primary);padding:8px 16px;border-radius:var(--r-sm);display:flex;align-items:center;gap:10px;">
+            <span style="font-size:11px;color:var(--label-3);font-weight:700;">YOUR CODE:</span>
+            <span style="font-size:16px;font-weight:900;letter-spacing:1px;color:var(--primary);" id="profileReferralCodeDisplay">PM2026</span>
+          </div>
+          <button class="btn-sm-primary" onclick="copyReferralCode()">📋 Copy Code</button>
+          <button class="btn-sm-ghost" onclick="shareReferralInvite()">🔗 Share Invite</button>
+        </div>
+
+        <div id="referralRedeemSection" style="padding-top:14px;border-top:1px solid var(--separator);">
+          <div id="notReferredWrap" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <span style="font-size:13px;color:var(--label-3);">Have a friend's code?</span>
+            <input type="text" id="redeemCodeInput" class="input-clean" placeholder="e.g. PM89AC12" style="max-width:180px;padding:8px 12px;font-size:13px;text-transform:uppercase;">
+            <button class="btn-sm-ghost" onclick="redeemWebReferralCode()">Apply (+5 pts)</button>
+          </div>
+          <div id="alreadyReferredWrap" style="display:none;font-size:13px;color:var(--primary);font-weight:700;">
+            ✓ Referred by <span id="referredByCodeLabel">PM0000</span>
+          </div>
+        </div>
+      </div>
+
       <!-- My Orders -->
       <div class="card-box">
         <h3 style="font-size:19px;font-weight:800;letter-spacing:-0.3px;margin-bottom:16px;">📦 My Orders History</h3>
@@ -2095,9 +2135,9 @@
           <div style="overflow-x:auto;">
             <table class="admin-table">
               <thead><tr>
-                <th>User</th><th>Email</th><th>Role</th><th>Points</th><th>Verified</th><th>Actions</th>
+                <th>User</th><th>Email</th><th>Role</th><th>Referral Code</th><th>Points</th><th>Verified</th><th>Actions</th>
               </tr></thead>
-              <tbody id="adminUsersBody"><tr><td colspan="6" style="text-align:center;padding:30px;color:var(--label-3);">Loading users…</td></tr></tbody>
+              <tbody id="adminUsersBody"><tr><td colspan="7" style="text-align:center;padding:30px;color:var(--label-3);">Loading users…</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -2308,11 +2348,15 @@
         <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
         <div style="font-size:11px;color:var(--label-3);margin-bottom:12px;" id="strengthLabel"></div>
       </div>
-      <div style="margin-bottom:18px;"><label class="label-mini">Confirm Password</label>
+      <div style="margin-bottom:14px;"><label class="label-mini">Confirm Password</label>
         <div class="input-wrap">
           <input type="password" id="suPass2" class="input-clean" placeholder="Re-enter password" onkeydown="if(event.key==='Enter')emailSignUp()">
           <button class="input-eye" onclick="toggleEye('suPass2',this)" tabindex="-1">👁</button>
         </div>
+      </div>
+      <div style="margin-bottom:18px;">
+        <label class="label-mini">Referral Code (Optional)</label>
+        <input type="text" id="suReferral" class="input-clean" placeholder="e.g. PM89AC12" style="text-transform:uppercase;" onkeydown="if(event.key==='Enter')emailSignUp()">
       </div>
       <button class="btn-sm-primary" style="width:100%;padding:13px;font-size:15px;" onclick="emailSignUp()" id="suBtn">Create Account</button>
     </div>
@@ -2491,22 +2535,41 @@
   let userProfileUnsub = null;
   let activeBooking = { doctor:'Dr. Sarah Jenkins', date:'', time:'10:30 AM', note:'Max', ref:'PM-2026-8941' };
 
+  function generateReferralCode(uid) {
+    if (!uid) return 'PM' + Math.random().toString(36).substring(2, 8).toUpperCase();
+    const clean = uid.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+    return 'PM' + (clean.length >= 6 ? clean.substring(0, 6) : clean.padEnd(6, 'X'));
+  }
+
   auth.onAuthStateChanged(firebaseUser => {
     if (firebaseUser) {
       // Real-time listener for current user document (instant sync if admin changes role/points/verified)
       if (userProfileUnsub) userProfileUnsub();
       userProfileUnsub = db.collection('users').doc(firebaseUser.uid).onSnapshot(doc => {
         const data = doc.exists ? doc.data() : {};
+        const refCode = data.referralCode || generateReferralCode(firebaseUser.uid);
+        const pts = typeof data.points === 'number' && data.points > 0 ? data.points : 15;
+        
+        // Auto-backfill referralCode and initial points if newly created / missing
+        if (!data.referralCode || typeof data.points !== 'number') {
+          db.collection('users').doc(firebaseUser.uid).set({
+            referralCode: refCode,
+            points: pts
+          }, { merge: true }).catch(() => {});
+        }
+
         const u = {
-          uid:         firebaseUser.uid,
-          displayName: data.name || firebaseUser.displayName || 'Pet Parent',
-          email:       data.email || firebaseUser.email || '',
-          photoURL:    data.photoUrl || firebaseUser.photoURL || 'assets/images/Pet_2.jpg',
-          role:        data.role || 'Pet Owner',
-          isVerified:  data.isVerified === true,
-          points:      data.points || 0,
-          phone:       data.phone || '',
-          address:     data.address || '',
+          uid:          firebaseUser.uid,
+          displayName:  data.name || firebaseUser.displayName || 'Pet Parent',
+          email:        data.email || firebaseUser.email || '',
+          photoURL:     data.photoUrl || firebaseUser.photoURL || 'assets/images/Pet_2.jpg',
+          role:         data.role || 'Pet Owner',
+          isVerified:   data.isVerified === true,
+          points:       pts,
+          referralCode: refCode,
+          referredBy:   data.referredBy || null,
+          phone:        data.phone || '',
+          address:      data.address || '',
         };
         initUser(u);
       }, () => {
@@ -2515,7 +2578,9 @@
           displayName: firebaseUser.displayName || 'Pet Parent',
           email: firebaseUser.email || '',
           photoURL: firebaseUser.photoURL || 'assets/images/Pet_2.jpg',
-          role: 'Pet Owner', isVerified: false, points: 0, phone: '', address: ''
+          role: 'Pet Owner', isVerified: false, points: 15,
+          referralCode: generateReferralCode(firebaseUser.uid),
+          referredBy: null, phone: '', address: ''
         };
         initUser(u);
       });
@@ -2542,8 +2607,9 @@
     const name   = u.displayName || 'Pet Parent';
     const photo  = u.photoURL    || 'assets/images/Pet_2.jpg';
     const first  = name.split(' ')[0];
-    const pts    = u.points || 0;
+    const pts    = typeof u.points === 'number' ? u.points : 15;
     const role   = u.role   || 'Pet Owner';
+    const code   = u.referralCode || generateReferralCode(u.uid);
 
     // Header
     const av = document.getElementById('userAvatar'); if (av) av.src = photo;
@@ -2559,6 +2625,21 @@
     const pe = document.getElementById('profileEmail'); if (pe) pe.textContent = u.email || '—';
     const pp = document.getElementById('profilePhone'); if (pp) pp.textContent = u.phone ? `Phone: ${u.phone}` : 'Phone: Not set';
     const pd = document.getElementById('profileAddress'); if (pd) pd.textContent = u.address ? `Address: ${u.address}` : 'Address: Not set';
+    const ppv = document.getElementById('profilePointsVal'); if (ppv) ppv.textContent = pts;
+    const pcd = document.getElementById('profileReferralCodeDisplay'); if (pcd) pcd.textContent = code;
+
+    // Referral status
+    const notRef = document.getElementById('notReferredWrap');
+    const alrRef = document.getElementById('alreadyReferredWrap');
+    const refLbl = document.getElementById('referredByCodeLabel');
+    if (u.referredBy) {
+      if (notRef) notRef.style.display = 'none';
+      if (alrRef) alrRef.style.display = 'block';
+      if (refLbl) refLbl.textContent = u.referredBy;
+    } else {
+      if (notRef) notRef.style.display = 'flex';
+      if (alrRef) alrRef.style.display = 'none';
+    }
 
     const pvb = document.getElementById('profileVerifiedBadge');
     if (pvb) {
@@ -3469,7 +3550,7 @@
     const tbody = document.getElementById('adminUsersBody');
     if (!tbody) return;
     if (!users.length) {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--label-3);">No registered users found.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--label-3);">No registered users found.</td></tr>';
       return;
     }
     const roles = ['Pet Owner', 'Veterinarian', 'Grooming', 'Boarding', 'Pet Shop', 'Admin', 'Suspended'];
@@ -3485,6 +3566,7 @@
             ${roles.map(r => `<option value="${r}" ${r===(u.role||'Pet Owner')?'selected':''}>${r}</option>`).join('')}
           </select>
         </td>
+        <td style="font-family:monospace;font-weight:700;color:var(--primary);font-size:13px;">${esc(u.referralCode || '—')}</td>
         <td style="font-weight:700;color:var(--primary);">${u.points || 0}</td>
         <td>
           <span class="badge ${u.isVerified ? 'badge-green' : 'badge-yellow'}">
@@ -3825,15 +3907,137 @@
   function handleGoogleLogin() {
     closeModal('loginModal');
     const p = new firebase.auth.GoogleAuthProvider();
-    auth.signInWithPopup(p).catch(() => enterDemoMode());
+    auth.signInWithPopup(p)
+      .then(cred => {
+        if (cred.user) {
+          const u = cred.user;
+          // Ensure initial 15 points and referralCode on Google login if new doc
+          db.collection('users').doc(u.uid).get().then(doc => {
+            if (!doc.exists) {
+              const myCode = generateReferralCode(u.uid);
+              db.collection('users').doc(u.uid).set({
+                uid: u.uid,
+                name: u.displayName || 'Google User',
+                email: u.email || '',
+                photoUrl: u.photoURL || '',
+                role: 'Pet Owner',
+                isVerified: false,
+                points: 15,
+                referralCode: myCode,
+                createdAt: new Date().toISOString()
+              }, { merge: true });
+            }
+          });
+        }
+      })
+      .catch(() => enterDemoMode());
   }
 
   function enterDemoMode() {
     closeModal('loginModal');
-    const u = { uid:'demo_001', displayName:'Alex (Pet Parent)', email:'alex@petmaya.app', photoURL:'assets/images/Pet_2.jpg', role:'Pet Owner', points:250, isVerified:true };
+    const u = {
+      uid: 'demo_001',
+      displayName: 'Alex (Pet Parent)',
+      email: 'alex@petmaya.app',
+      photoURL: 'assets/images/Pet_2.jpg',
+      role: 'Pet Owner',
+      points: 15,
+      referralCode: 'PMDEMO88',
+      referredBy: null,
+      isVerified: true
+    };
     localStorage.setItem('pm_demo', JSON.stringify(u));
     initUser(u);
     loadFallbackData();
+  }
+
+  function copyReferralCode() {
+    const code = currentUser?.referralCode || generateReferralCode(currentUser?.uid);
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(code).catch(() => {});
+      } else {
+        const temp = document.createElement('textarea');
+        temp.value = code;
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand('copy');
+        temp.remove();
+      }
+    } catch(e) {}
+    toast('📋 Referral code "' + code + '" copied! Share with friends.');
+  }
+
+  function shareReferralInvite() {
+    const code = currentUser?.referralCode || generateReferralCode(currentUser?.uid);
+    const text = 'Join me on Pet Maya, the smart pet care app! 🐾 Use my referral code: ' + code + ' to get 15 initial points & rewards!\nhttps://petmaya.app/';
+    if (navigator.share) {
+      navigator.share({ title: 'Pet Maya Referral Code', text: text, url: 'https://petmaya.app/' }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(text).then(() => {
+        toast('🔗 Invite link & code copied to clipboard!');
+      });
+    }
+  }
+
+  function redeemWebReferralCode() {
+    if (!currentUser) return;
+    const input = document.getElementById('redeemCodeInput');
+    const code = (input?.value || '').trim().toUpperCase();
+    if (!code) { toast('⚠️ Please enter a referral code.'); return; }
+    if (currentUser.referralCode && currentUser.referralCode.toUpperCase() === code) {
+      toast('⚠️ You cannot use your own referral code.');
+      return;
+    }
+    if (currentUser.referredBy) {
+      toast('ℹ️ You have already redeemed a referral code.');
+      return;
+    }
+
+    if (currentUser.uid === 'demo_001') {
+      currentUser.referredBy = code;
+      initUser(currentUser);
+      toast('🎉 Referral code applied in demo mode! (+5 points awarded to friend)');
+      return;
+    }
+
+    db.collection('users').where('referralCode', '==', code).limit(1).get()
+      .then(snap => {
+        if (snap.empty) {
+          toast('❌ Referral code "' + code + '" not found.');
+          return;
+        }
+        const refDoc = snap.docs[0];
+        const refUid = refDoc.id;
+        if (refUid === currentUser.uid) {
+          toast('⚠️ You cannot use your own referral code.');
+          return;
+        }
+        // Increment referrer points +5
+        db.collection('users').doc(refUid).update({
+          points: firebase.firestore.FieldValue.increment(5)
+        });
+        // Push notification to referrer
+        const notifId = 'notif_' + Date.now();
+        db.collection('notifications').doc(refUid).collection('items').doc(notifId).set({
+          id: notifId,
+          title: '🎉 +5 Referral Points Earned!',
+          message: 'A friend joined Pet Maya using your referral code ' + code + '. You received 5 points!',
+          type: 'reward',
+          timestamp: Date.now(),
+          isRead: false
+        }).catch(() => {});
+
+        // Record on current user
+        db.collection('users').doc(currentUser.uid).set({
+          referredBy: code
+        }, { merge: true });
+
+        currentUser.referredBy = code;
+        initUser(currentUser);
+        toast('🎉 Referral code applied! +5 points awarded to your friend.');
+      })
+      .catch(err => toast('⚠️ Error: ' + err.message));
   }
 
   function doSignOut() {
@@ -3954,6 +4158,7 @@
     const email = (document.getElementById('suEmail')?.value || '').trim();
     const pass  =  document.getElementById('suPass')?.value  || '';
     const pass2 =  document.getElementById('suPass2')?.value || '';
+    const refCodeInput = (document.getElementById('suReferral')?.value || '').trim().toUpperCase();
     clearAuthMessages();
     if (!name)                  { showAuthErr('suErr', '⚠️ Please enter your full name.');         return; }
     if (!email)                 { showAuthErr('suErr', '⚠️ Please enter your email address.');      return; }
@@ -3965,19 +4170,46 @@
       .then(cred => cred.user.updateProfile({ displayName: name }))
       .then(() => {
         const u = auth.currentUser;
-        db.collection('users').doc(u.uid).set({
+        const myReferralCode = generateReferralCode(u.uid);
+        const userData = {
           uid: u.uid,
           name: name,
           email: email,
           photoUrl: '',
           role: 'Pet Owner',
           isVerified: false,
-          points: 0,
+          points: 15,
+          referralCode: myReferralCode,
           favoriteVetIds: [],
           createdAt: new Date().toISOString()
-        }, { merge: true }).catch(() => {});
+        };
+
+        if (refCodeInput) {
+          userData.referredBy = refCodeInput;
+          // Award +5 points to referrer
+          db.collection('users').where('referralCode', '==', refCodeInput).limit(1).get()
+            .then(snap => {
+              if (!snap.empty && snap.docs[0].id !== u.uid) {
+                const refUid = snap.docs[0].id;
+                db.collection('users').doc(refUid).update({
+                  points: firebase.firestore.FieldValue.increment(5)
+                });
+                const notifId = 'notif_' + Date.now();
+                db.collection('notifications').doc(refUid).collection('items').doc(notifId).set({
+                  id: notifId,
+                  title: '🎉 +5 Referral Points Earned!',
+                  message: 'A friend joined Pet Maya using your referral code ' + refCodeInput + '. You received 5 points!',
+                  type: 'reward',
+                  timestamp: Date.now(),
+                  isRead: false
+                }).catch(() => {});
+              }
+            }).catch(() => {});
+        }
+
+        db.collection('users').doc(u.uid).set(userData, { merge: true }).catch(() => {});
         closeModal('loginModal');
-        toast('🎉 Account created! Welcome, ' + name.split(' ')[0] + '!');
+        toast('🎉 Account created with 15 bonus points! Welcome, ' + name.split(' ')[0] + '!');
       })
       .catch(err => {
         if (btn) { btn.innerHTML = 'Create Account'; btn.disabled = false; }
@@ -4118,8 +4350,13 @@
   }
 
   function toast(msg) {
-    const s = document.getElementById('toastStack');
-    if (!s) return;
+    let s = document.getElementById('toastStack');
+    if (!s) {
+      s = document.createElement('div');
+      s.id = 'toastStack';
+      s.className = 'toast-stack';
+      document.body.appendChild(s);
+    }
     const t = document.createElement('div');
     t.className = 'toast-item';
     t.textContent = msg;

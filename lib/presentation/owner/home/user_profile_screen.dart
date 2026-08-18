@@ -632,7 +632,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 
   Widget _buildRewardsBanner(BuildContext context, UserModel user) {
-    final referralCode = user.referralCode?.isNotEmpty == true ? user.referralCode! : 'PETMAYA2026';
+    final referralCode = user.referralCode?.isNotEmpty == true
+        ? user.referralCode!
+        : UserModel.generateReferralCode(user.uid);
     final state = context.read<AppStateRepository>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -669,145 +671,270 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         ),
         child: Padding(
           padding: const EdgeInsets.all(22),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        'REFERRAL PROGRAM 🎁',
-                        style: TextStyle(
-                          color: AppColors.primaryDark,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 9,
-                          letterSpacing: 1,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Invite friends & earn rewards!',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 16,
-                        color: isDark ? Colors.white : AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      crossAxisAlignment: WrapCrossAlignment.center,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Copy Pill
-                        InkWell(
-                          onTap: () async {
-                            HapticFeedback.lightImpact();
-                            await Clipboard.setData(ClipboardData(text: referralCode));
-                            state.showToast('Referral code "$referralCode" copied! 📋');
-                          },
-                          borderRadius: BorderRadius.circular(14),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-                            decoration: BoxDecoration(
-                              color: isDark ? const Color(0xFF1B2631) : Colors.white,
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(
-                                color: AppColors.primary.withValues(alpha: 0.3),
-                                width: 1.2,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.05),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  referralCode,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w900,
-                                    fontSize: 13,
-                                    letterSpacing: 1.2,
-                                    color: AppColors.primary,
-                                  ),
-                                ),
-                                const SizedBox(width: 6),
-                                const Icon(Icons.copy_rounded, size: 14, color: AppColors.primary),
-                              ],
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            'REFERRAL PROGRAM 🎁',
+                            style: TextStyle(
+                              color: AppColors.primaryDark,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 9,
+                              letterSpacing: 1,
                             ),
                           ),
                         ),
-                        // Direct Share Button
-                        InkWell(
-                          onTap: () async {
-                            HapticFeedback.mediumImpact();
-                            final shareText =
-                                'Join me on Pet Maya, the smart pet care app! 🐾 Use my referral code: $referralCode to unlock pet care rewards.\n\nDownload: https://petmaya.app/';
-                            await SharePlus.instance.share(
-                              ShareParams(
-                                text: shareText,
-                                subject: 'Pet Maya Invite Code',
-                              ),
-                            );
-                          },
-                          borderRadius: BorderRadius.circular(14),
-                          child: Container(
-                            padding: const EdgeInsets.all(7.5),
-                            decoration: BoxDecoration(
-                              color: AppColors.primary,
-                              borderRadius: BorderRadius.circular(14),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.primary.withValues(alpha: 0.35),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 3),
-                                ),
-                              ],
-                            ),
-                            child: const Icon(Icons.share_rounded, size: 15, color: Colors.white),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Invite Friends & Earn Points!',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 16,
+                            color: isDark ? Colors.white : AppColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'New users get 15 initial points. Earn +5 points for every friend who joins with your code!',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isDark ? Colors.grey[300] : AppColors.textSecondary,
+                            height: 1.35,
                           ),
                         ),
                       ],
                     ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-              Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                  gradient: AppColors.primaryGradient,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.3),
-                      blurRadius: 14,
-                      offset: const Offset(0, 6),
+                  ),
+                  const SizedBox(width: 12),
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      gradient: AppColors.primaryGradient,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withValues(alpha: 0.3),
+                          blurRadius: 14,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.card_giftcard_rounded,
-                  size: 34,
-                  color: Colors.white,
-                ),
+                    child: const Icon(
+                      Icons.card_giftcard_rounded,
+                      size: 28,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              // Referral Code & Actions
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  // Code pill with copy
+                  InkWell(
+                    onTap: () async {
+                      HapticFeedback.lightImpact();
+                      await Clipboard.setData(ClipboardData(text: referralCode));
+                      state.showToast('Referral code "$referralCode" copied! 📋');
+                    },
+                    borderRadius: BorderRadius.circular(14),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF1B2631) : Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: AppColors.primary.withValues(alpha: 0.3),
+                          width: 1.2,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            referralCode,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 14,
+                              letterSpacing: 1.2,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          const Icon(Icons.copy_rounded, size: 14, color: AppColors.primary),
+                        ],
+                      ),
+                    ),
+                  ),
+                  // Direct Share Button
+                  InkWell(
+                    onTap: () async {
+                      HapticFeedback.mediumImpact();
+                      final shareText =
+                          'Join me on Pet Maya, the smart pet care app! 🐾 Use my referral code: $referralCode to unlock 15 welcome points and rewards.\n\nDownload: https://petmaya.app/';
+                      await SharePlus.instance.share(
+                        ShareParams(
+                          text: shareText,
+                          subject: 'Pet Maya Referral Code',
+                        ),
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(14),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withValues(alpha: 0.35),
+                            blurRadius: 10,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          Icon(Icons.share_rounded, size: 14, color: Colors.white),
+                          SizedBox(width: 6),
+                          Text(
+                            'Share Invite',
+                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  // Redeem friend's code button (if not already used)
+                  if (user.referredBy == null || user.referredBy!.isEmpty)
+                    InkWell(
+                      onTap: () => _showRedeemDialog(context, state),
+                      borderRadius: BorderRadius.circular(14),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: isDark ? Colors.grey[800] : Colors.grey[100],
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.input_rounded, size: 14, color: isDark ? Colors.white70 : AppColors.textPrimary),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Have a code?',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 12,
+                                color: isDark ? Colors.white70 : AppColors.textPrimary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  else
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        'Referred by ${user.referredBy} ✓',
+                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.primary),
+                      ),
+                    ),
+                ],
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  void _showRedeemDialog(BuildContext context, AppStateRepository state) {
+    final controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Row(
+          children: [
+            const Icon(Icons.card_giftcard_rounded, color: AppColors.primary),
+            const SizedBox(width: 10),
+            Text('Redeem Referral Code', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 18)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Enter a friend\'s referral code to award them +5 reward points!',
+              style: TextStyle(fontSize: 13, height: 1.4),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: controller,
+              textCapitalization: TextCapitalization.characters,
+              decoration: InputDecoration(
+                hintText: 'e.g. PM89AC12',
+                prefixIcon: const Icon(Icons.confirmation_number_outlined, color: AppColors.primary),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                filled: true,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final code = controller.text.trim();
+              if (code.isEmpty) return;
+              Navigator.pop(ctx);
+              await state.redeemReferralCode(code);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            ),
+            child: const Text('Apply Code', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+          ),
+        ],
       ),
     );
   }

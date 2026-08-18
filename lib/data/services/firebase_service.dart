@@ -151,6 +151,68 @@ class FirebaseService {
         .toList();
   }
 
+  /// Applies a referral code for a user, awarding +5 points to the referrer.
+  Future<({bool success, String? errorMessage})> applyReferralCode({
+    required String userUid,
+    required String code,
+  }) async {
+    try {
+      final normalizedCode = code.trim().toUpperCase();
+      if (normalizedCode.isEmpty) {
+        return (success: false, errorMessage: 'Referral code cannot be empty');
+      }
+
+      // 1. Find referrer user with matching referralCode
+      final snap = await _usersCol.where('referralCode', isEqualTo: normalizedCode).limit(1).get();
+      if (snap.docs.isEmpty) {
+        return (success: false, errorMessage: 'Referral code "$normalizedCode" is invalid or does not exist');
+      }
+
+      final referrerDoc = snap.docs.first;
+      final referrerUid = referrerDoc.id;
+
+      // 2. Prevent self-referral
+      if (referrerUid == userUid) {
+        return (success: false, errorMessage: 'You cannot use your own referral code');
+      }
+
+      // 3. Prevent duplicate referral redemption by current user
+      final userDoc = await _usersCol.doc(userUid).get();
+      if (userDoc.exists && userDoc.data() != null) {
+        final userData = userDoc.data() as Map<String, dynamic>;
+        if (userData['referredBy'] != null && (userData['referredBy'] as String).isNotEmpty) {
+          return (success: false, errorMessage: 'You have already redeemed a referral code');
+        }
+      }
+
+      // 4. Award +5 points to referrer
+      await _usersCol.doc(referrerUid).update({
+        'points': FieldValue.increment(5),
+      });
+
+      // 5. Record referral on current user document
+      await _usersCol.doc(userUid).set({
+        'referredBy': normalizedCode,
+      }, SetOptions(merge: true));
+
+      // 6. Push notification to referrer
+      final notifId = 'notif_${DateTime.now().millisecondsSinceEpoch}';
+      await _notificationsCol.doc(referrerUid).collection('items').doc(notifId).set({
+        'id': notifId,
+        'title': '🎉 +5 Referral Points Earned!',
+        'message': 'A friend just joined Pet Maya using your referral code $normalizedCode. You received 5 points!',
+        'type': 'reward',
+        'timestamp': DateTime.now().millisecondsSinceEpoch,
+        'isRead': false,
+      }).catchError((_) => null);
+
+      return (success: true, errorMessage: null);
+    } catch (e) {
+      debugPrint('[FirebaseService] applyReferralCode error: $e');
+      return (success: false, errorMessage: 'Failed to apply referral code: ${e.toString()}');
+    }
+  }
+
   /// Purge all user data from Firestore
   Future<void> deleteUserData(String userId) async {
     // 1. Delete user profile

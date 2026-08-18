@@ -548,6 +548,7 @@ class AppStateRepository extends ChangeNotifier {
         
         if (profile == null) {
           // New Google User - create profile with default role (usually petOwner)
+          final myReferralCode = UserModel.generateReferralCode(fUser.uid);
           profile = UserModel(
             uid: fUser.uid,
             name: fUser.displayName ?? 'Google User',
@@ -555,6 +556,16 @@ class AppStateRepository extends ChangeNotifier {
             photoUrl: fUser.photoURL,
             role: defaultRole ?? UserRole.petOwner,
             isVerified: false,
+            points: 15,
+            referralCode: myReferralCode,
+          );
+          await _firebase.saveUserProfile(profile);
+        } else if (profile.referralCode == null || profile.referralCode!.isEmpty) {
+          // Backfill referral code if missing
+          final myReferralCode = UserModel.generateReferralCode(fUser.uid);
+          profile = profile.copyWith(
+            referralCode: myReferralCode,
+            points: profile.points <= 0 ? 15 : profile.points,
           );
           await _firebase.saveUserProfile(profile);
         }
@@ -587,11 +598,13 @@ class AppStateRepository extends ChangeNotifier {
     required String name,
     required UserRole role,
     String? phone,
+    String? referralCode,
   }) async {
     _setLoading(true);
     try {
       final userCredential = await _firebase.createAccount(email, password);
       final firebaseUID = userCredential.user!.uid;
+      final myReferralCode = UserModel.generateReferralCode(firebaseUID);
 
       _currentUser = UserModel(
         uid: firebaseUID,
@@ -600,10 +613,20 @@ class AppStateRepository extends ChangeNotifier {
         role: role,
         phone: phone,
         isVerified: role == UserRole.veterinarian,
+        points: 15,
+        referralCode: myReferralCode,
       );
 
       // Save to Firestore and sync
       await syncFromFirebase(_currentUser!);
+
+      // Process referral code if provided
+      if (referralCode != null && referralCode.trim().isNotEmpty) {
+        await _firebase.applyReferralCode(
+          userUid: firebaseUID,
+          code: referralCode.trim().toUpperCase(),
+        );
+      }
 
       // If they are a service provider, also add them to the public directory
       if (role == UserRole.veterinarian || role == UserRole.grooming || role == UserRole.boarding) {
@@ -623,6 +646,46 @@ class AppStateRepository extends ChangeNotifier {
       _syncError = 'Signup error: ${e.toString()}';
       debugPrint('[AppStateRepository] signUp error: $e');
       rethrow;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  /// Redeem / apply a friend's referral code to award them 5 points.
+  Future<bool> redeemReferralCode(String code) async {
+    if (_currentUser == null) return false;
+    final trimmed = code.trim().toUpperCase();
+    if (trimmed.isEmpty) {
+      showToast('Please enter a valid referral code', type: ToastType.warning);
+      return false;
+    }
+    if (_currentUser!.referralCode?.toUpperCase() == trimmed) {
+      showToast('You cannot use your own referral code', type: ToastType.warning);
+      return false;
+    }
+    if (_currentUser!.referredBy != null && _currentUser!.referredBy!.isNotEmpty) {
+      showToast('You have already redeemed a referral code', type: ToastType.info);
+      return false;
+    }
+
+    _setLoading(true);
+    try {
+      final res = await _firebase.applyReferralCode(
+        userUid: _currentUser!.uid,
+        code: trimmed,
+      );
+      if (res.success) {
+        _currentUser = _currentUser!.copyWith(referredBy: trimmed);
+        notifyListeners();
+        showToast('🎉 Referral code applied! +5 points awarded to your friend.', type: ToastType.success);
+        return true;
+      } else {
+        showToast(res.errorMessage ?? 'Invalid referral code', type: ToastType.error);
+        return false;
+      }
+    } catch (e) {
+      showToast('Failed to apply referral code: $e', type: ToastType.error);
+      return false;
     } finally {
       _setLoading(false);
     }

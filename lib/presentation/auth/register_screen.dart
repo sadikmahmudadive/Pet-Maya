@@ -78,6 +78,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         password: password,
         name: name,
         role: _selectedRole,
+        referralCode: _referralController.text.trim().isNotEmpty ? _referralController.text.trim() : null,
       );
 
       if (!mounted) return;
