@@ -78,6 +78,21 @@ class VetConsoleHomeFragment extends StatelessWidget {
     final records = context.select((AppStateRepository state) => state.serviceRecords);
     final state = context.read<AppStateRepository>();
 
+    // Count unique consulted patients for this doctor
+    final consultedPetIds = <String>{};
+    if (user != null) {
+      final uid = user.uid;
+      final uName = user.name.trim().toLowerCase();
+      for (final r in records) {
+        if (r.providerId == uid || (uName.isNotEmpty && r.providerName.toLowerCase() == uName)) {
+          consultedPetIds.add(r.petId);
+        }
+      }
+      for (final e in events) {
+        if (e.providerId == uid) consultedPetIds.add(e.petId);
+      }
+    }
+
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return CustomScrollView(
@@ -215,7 +230,7 @@ class VetConsoleHomeFragment extends StatelessWidget {
                         child: _buildKpiCard(
                           context,
                           'PATIENTS',
-                          '${records.length}',
+                          '${consultedPetIds.length}',
                           Icons.medical_services_rounded,
                           AppColors.healthGreen,
                         ),

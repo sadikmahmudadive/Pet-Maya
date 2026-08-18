@@ -7,10 +7,10 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../data/repositories/app_state_repository.dart';
 import '../../data/models/pet_model.dart';
+import '../../data/models/user_model.dart';
 import '../common_widgets/glass_scaffold.dart';
 import '../common_widgets/premium_card.dart';
 import '../owner/pets/pet_details_screen.dart';
-import '../owner/pets/add_edit_pet_screen.dart';
 import 'add_service_record_modal.dart';
 
 class ClientListScreen extends StatefulWidget {
@@ -31,78 +31,47 @@ class _ClientListScreenState extends State<ClientListScreen> {
     super.dispose();
   }
 
-  // Fallback demo clinical patients if Firestore has no pets yet
-  List<PetModel> _getFallbackPatients() {
-    return [
-      PetModel(
-        petID: 'pm_p101',
-        ownerID: 'owner_alex',
-        name: 'Bella',
-        type: 'Dog',
-        breed: 'Golden Retriever',
-        gender: 'Female',
-        age: '3 yrs',
-        dob: '2023-04-12',
-        weight: '28 kg',
-        photoUrl: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=400',
-        vaccinationDetails: 'DHPP Booster Due Nov 2026',
-        description: 'Friendly golden retriever, sensitive skin history.',
-      ),
-      PetModel(
-        petID: 'pm_p102',
-        ownerID: 'owner_elena',
-        name: 'Milo',
-        type: 'Cat',
-        breed: 'British Shorthair',
-        gender: 'Male',
-        age: '2 yrs',
-        dob: '2024-02-18',
-        weight: '4.5 kg',
-        photoUrl: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=400',
-        vaccinationDetails: 'Rabies Vaccinated (Valid 2027)',
-        description: 'Indoor cat, regular dental cleaning checkups.',
-      ),
-      PetModel(
-        petID: 'pm_p103',
-        ownerID: 'owner_david',
-        name: 'Luna',
-        type: 'Dog',
-        breed: 'French Bulldog',
-        gender: 'Female',
-        age: '1 yr',
-        dob: '2025-01-10',
-        weight: '11 kg',
-        photoUrl: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=400',
-        vaccinationDetails: 'Puppy Core Series Completed',
-        description: 'Brachycephalic respiratory monitoring.',
-      ),
-      PetModel(
-        petID: 'pm_p104',
-        ownerID: 'owner_sophia',
-        name: 'Coco',
-        type: 'Cat',
-        breed: 'Siamese',
-        gender: 'Male',
-        age: '4 yrs',
-        dob: '2022-09-05',
-        weight: '3.8 kg',
-        photoUrl: 'https://images.unsplash.com/photo-1513360309081-38f076273999?w=400',
-        vaccinationDetails: 'FVRCP Current',
-        description: 'Mild seasonal allergy management.',
-      ),
-    ];
-  }
-
   @override
   Widget build(BuildContext context) {
-    final livePets = context.select((AppStateRepository state) => state.pets);
+    final allLivePets = context.select((AppStateRepository state) => state.pets);
+    final serviceRecords = context.select((AppStateRepository state) => state.serviceRecords);
+    final events = context.select((AppStateRepository state) => state.events);
     final state = context.read<AppStateRepository>();
     final user = state.currentUser;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final allPatients = livePets.isNotEmpty ? livePets : _getFallbackPatients();
+    // 1. Identify all pet IDs that have been consulted or booked with this specific provider
+    final consultedPetIds = <String>{};
+    if (user != null) {
+      final uid = user.uid;
+      final uName = user.name.trim().toLowerCase();
 
-    final filteredPatients = allPatients.where((pet) {
+      for (final record in serviceRecords) {
+        final rProviderId = record.providerId.trim();
+        final rProviderName = record.providerName.trim().toLowerCase();
+        if (rProviderId == uid || (uName.isNotEmpty && rProviderName.isNotEmpty && rProviderName == uName)) {
+          consultedPetIds.add(record.petId);
+        }
+      }
+
+      for (final event in events) {
+        if (event.providerId == uid) {
+          consultedPetIds.add(event.petId);
+        }
+      }
+    }
+
+    // 2. Filter: Providers ONLY get the profiles of pets they have consulted / booked
+    final isProvider = user?.role == UserRole.veterinarian ||
+        user?.role == UserRole.grooming ||
+        user?.role == UserRole.boarding;
+
+    final myPatients = isProvider
+        ? allLivePets.where((pet) => consultedPetIds.contains(pet.petID)).toList()
+        : allLivePets;
+
+    // 3. Search & Species Filtering
+    final filteredPatients = myPatients.where((pet) {
       final q = _searchQuery.toLowerCase();
       final matchesSearch = q.isEmpty ||
           pet.name.toLowerCase().contains(q) ||
@@ -117,24 +86,31 @@ class _ClientListScreenState extends State<ClientListScreen> {
     }).toList();
 
     return GlassScaffold(
-      appBar: AppBar(
-        title: const Text('Patient Directory & EHR', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: -0.5)),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.person_add_alt_1_rounded, color: AppColors.primary),
-            onPressed: () {
-              HapticFeedback.lightImpact();
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const AddEditPetScreen()));
-            },
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
         slivers: [
+          SliverAppBar(
+            title: const Text('My Consulted Patients', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: -0.5)),
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            floating: true,
+            actions: [
+              IconButton(
+                tooltip: 'Consult New Patient',
+                icon: const Icon(Icons.post_add_rounded, color: AppColors.primary, size: 26),
+                onPressed: () {
+                  HapticFeedback.lightImpact();
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (_) => const AddServiceRecordModal(),
+                  );
+                },
+              ),
+              const SizedBox(width: 8),
+            ],
+          ),
           CupertinoSliverRefreshControl(
             onRefresh: () async {
               HapticFeedback.mediumImpact();
@@ -143,7 +119,7 @@ class _ClientListScreenState extends State<ClientListScreen> {
           ),
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -169,7 +145,7 @@ class _ClientListScreenState extends State<ClientListScreen> {
                         onChanged: (val) => setState(() => _searchQuery = val.trim()),
                         style: TextStyle(fontWeight: FontWeight.w600, color: isDark ? Colors.white : Colors.black87),
                         decoration: InputDecoration(
-                          hintText: 'Search by pet name, breed, or ID...',
+                          hintText: 'Search my patients by name, breed, or ID...',
                           hintStyle: TextStyle(color: Colors.grey[500], fontSize: 14),
                           prefixIcon: const Icon(Icons.search_rounded, color: AppColors.primary),
                           suffixIcon: _searchQuery.isNotEmpty
@@ -190,33 +166,40 @@ class _ClientListScreenState extends State<ClientListScreen> {
                   const SizedBox(height: 16),
 
                   // Species Filters
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    physics: const BouncingScrollPhysics(),
-                    child: Row(
-                      children: [
-                        _buildFilterChip('ALL', '🌟 All (${allPatients.length})', isDark),
-                        const SizedBox(width: 8),
-                        _buildFilterChip('DOG', '🐕 Dogs (${allPatients.where((p) => p.type.toUpperCase() == 'DOG').length})', isDark),
-                        const SizedBox(width: 8),
-                        _buildFilterChip('CAT', '🐈 Cats (${allPatients.where((p) => p.type.toUpperCase() == 'CAT').length})', isDark),
-                        const SizedBox(width: 8),
-                        _buildFilterChip('BIRD', '🦜 Birds', isDark),
-                        const SizedBox(width: 8),
-                        _buildFilterChip('RABBIT', '🐇 Rabbits', isDark),
-                      ],
+                  if (myPatients.isNotEmpty)
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      physics: const BouncingScrollPhysics(),
+                      child: Row(
+                        children: [
+                          _buildFilterChip('ALL', '🌟 All (${myPatients.length})', isDark),
+                          const SizedBox(width: 8),
+                          _buildFilterChip('DOG', '🐕 Dogs (${myPatients.where((p) => p.type.toUpperCase() == 'DOG').length})', isDark),
+                          const SizedBox(width: 8),
+                          _buildFilterChip('CAT', '🐈 Cats (${myPatients.where((p) => p.type.toUpperCase() == 'CAT').length})', isDark),
+                          const SizedBox(width: 8),
+                          _buildFilterChip('BIRD', '🦜 Birds', isDark),
+                          const SizedBox(width: 8),
+                          _buildFilterChip('RABBIT', '🐇 Rabbits', isDark),
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
+
+                  const SizedBox(height: 20),
 
                   // Header Info
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'Registered Patients',
-                        style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w900, fontSize: 19),
+                      Expanded(
+                        child: Text(
+                          'Consultation Records',
+                          style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w900, fontSize: 18),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
+                      const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
@@ -224,7 +207,7 @@ class _ClientListScreenState extends State<ClientListScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          '${filteredPatients.length} EHR RECORDS',
+                          '${filteredPatients.length} PATIENTS',
                           style: const TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w900,
@@ -241,7 +224,7 @@ class _ClientListScreenState extends State<ClientListScreen> {
             ),
           ),
 
-          if (filteredPatients.isEmpty)
+          if (myPatients.isEmpty)
             SliverFillRemaining(
               hasScrollBody: false,
               child: Center(
@@ -256,30 +239,70 @@ class _ClientListScreenState extends State<ClientListScreen> {
                           color: AppColors.primary.withValues(alpha: 0.1),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.pets_rounded, color: AppColors.primary, size: 48),
+                        child: const Icon(Icons.medical_services_outlined, color: AppColors.primary, size: 52),
                       ),
                       const SizedBox(height: 20),
-                      Text('No Patients Found', style: AppTypography.headlineSmall.copyWith(fontWeight: FontWeight.w800)),
+                      Text('No Consulted Patients Yet', style: AppTypography.headlineSmall.copyWith(fontWeight: FontWeight.w800)),
                       const SizedBox(height: 8),
                       Text(
-                        _searchQuery.isNotEmpty
-                            ? 'No patient records match "$_searchQuery".'
-                            : 'No patients registered in the directory yet.',
+                        'You haven\'t logged any consultations or received appointments yet. When you consult a pet, their medical profile will automatically appear here.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.grey[500], fontSize: 14, height: 1.4),
+                      ),
+                      const SizedBox(height: 24),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          HapticFeedback.mediumImpact();
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (_) => const AddServiceRecordModal(),
+                          );
+                        },
+                        icon: const Icon(Icons.note_add_rounded, size: 18),
+                        label: const Text('Start New Consultation'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            )
+          else if (filteredPatients.isEmpty)
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.search_off_rounded, color: Colors.grey, size: 48),
+                      const SizedBox(height: 16),
+                      Text('No Matching Patients', style: AppTypography.headlineSmall.copyWith(fontWeight: FontWeight.w800)),
+                      const SizedBox(height: 8),
+                      Text(
+                        'No consulted patient matches "$_searchQuery".',
                         textAlign: TextAlign.center,
                         style: TextStyle(color: Colors.grey[500], fontSize: 14),
                       ),
-                      const SizedBox(height: 24),
-                      if (_searchQuery.isNotEmpty)
-                        ElevatedButton(
-                          onPressed: () {
-                            _searchController.clear();
-                            setState(() {
-                              _searchQuery = '';
-                              _selectedSpecies = 'ALL';
-                            });
-                          },
-                          child: const Text('Reset Search Filters'),
-                        ),
+                      const SizedBox(height: 20),
+                      ElevatedButton(
+                        onPressed: () {
+                          _searchController.clear();
+                          setState(() {
+                            _searchQuery = '';
+                            _selectedSpecies = 'ALL';
+                          });
+                        },
+                        child: const Text('Reset Search'),
+                      ),
                     ],
                   ),
                 ),
@@ -407,14 +430,19 @@ class _ClientListScreenState extends State<ClientListScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            pet.name,
-                            style: AppTypography.titleMedium.copyWith(
-                              fontWeight: FontWeight.w900,
-                              fontSize: 18,
-                              letterSpacing: -0.3,
+                          Expanded(
+                            child: Text(
+                              pet.name,
+                              style: AppTypography.titleMedium.copyWith(
+                                fontWeight: FontWeight.w900,
+                                fontSize: 18,
+                                letterSpacing: -0.3,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
+                          const SizedBox(width: 8),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
@@ -446,7 +474,7 @@ class _ClientListScreenState extends State<ClientListScreen> {
                         const SizedBox(height: 4),
                         Text(
                           '💉 ${pet.vaccinationDetails}',
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: AppColors.healthGreen,
                             fontSize: 11,
                             fontWeight: FontWeight.w700,

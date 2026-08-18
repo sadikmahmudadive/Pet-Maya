@@ -310,28 +310,37 @@ class _AddEventModalState extends State<AddEventModal> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildSectionLabel(label),
-        PremiumCard(
-          opacity: 0.1,
-          borderRadius: 16,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                if (icon != null) ...[Icon(icon, size: 20, color: AppColors.primary), const SizedBox(width: 12)],
-                Expanded(
-                  child: TextField(
-                    controller: controller,
-                    maxLines: maxLines,
-                    style: TextStyle(fontWeight: FontWeight.w700, color: isDark ? Colors.white : Colors.black87),
-                    decoration: InputDecoration(
-                      hintText: hintText,
-                      border: InputBorder.none,
-                      hintStyle: TextStyle(fontSize: 14, color: isDark ? Colors.white24 : Colors.grey),
-                    ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: isDark ? Colors.white.withValues(alpha: 0.06) : Colors.black.withValues(alpha: 0.04),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isDark ? Colors.white.withValues(alpha: 0.12) : Colors.black.withValues(alpha: 0.08),
+            ),
+          ),
+          child: Row(
+            children: [
+              if (icon != null) ...[Icon(icon, size: 20, color: AppColors.primary), const SizedBox(width: 12)],
+              Expanded(
+                child: TextField(
+                  controller: controller,
+                  maxLines: maxLines,
+                  style: TextStyle(fontWeight: FontWeight.w700, color: isDark ? Colors.white : Colors.black87),
+                  decoration: InputDecoration(
+                    filled: false,
+                    hintText: hintText,
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    errorBorder: InputBorder.none,
+                    disabledBorder: InputBorder.none,
+                    hintStyle: TextStyle(fontSize: 14, color: isDark ? Colors.white38 : Colors.grey),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 14),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ],

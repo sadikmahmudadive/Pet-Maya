@@ -7,7 +7,6 @@ import '../../core/theme/app_typography.dart';
 import '../../data/repositories/app_state_repository.dart';
 import '../../data/models/service_record_model.dart';
 import '../../data/models/pet_model.dart';
-import '../common_widgets/premium_card.dart';
 
 class AddServiceRecordModal extends StatefulWidget {
   final PetModel? initialPet;
@@ -58,13 +57,7 @@ class _AddServiceRecordModalState extends State<AddServiceRecordModal> {
       timestamp: DateTime.now().millisecondsSinceEpoch,
     );
 
-    repo.saveAiDiagnosisToPetRecord(
-      petId: record.petId,
-      petName: record.petName,
-      title: record.title,
-      diagnosis: record.diagnosis ?? '',
-      suggestion: record.suggestion ?? '',
-    );
+    repo.addServiceRecord(record);
 
     HapticFeedback.mediumImpact();
     Navigator.pop(context);
@@ -101,21 +94,24 @@ class _AddServiceRecordModalState extends State<AddServiceRecordModal> {
             const SizedBox(height: 24),
 
             _buildSectionLabel('Patient (Pet)'),
-            PremiumCard(
-              opacity: 0.1,
-              borderRadius: 16,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<PetModel>(
-                    value: _selectedPet,
-                    isExpanded: true,
-                    icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.primary),
-                    items: pets.map((p) => DropdownMenuItem(value: p, child: Text(p.name, style: const TextStyle(fontWeight: FontWeight.w700)))).toList(),
-                    onChanged: (p) => setState(() => _selectedPet = p),
-                    hint: const Text('Select Patient', style: TextStyle(fontSize: 14)),
-                    dropdownColor: isDark ? const Color(0xFF1A1A1A) : Colors.white,
-                  ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              decoration: BoxDecoration(
+                color: isDark ? Colors.white.withValues(alpha: 0.06) : Colors.black.withValues(alpha: 0.04),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: isDark ? Colors.white.withValues(alpha: 0.12) : Colors.black.withValues(alpha: 0.08),
+                ),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<PetModel>(
+                  value: _selectedPet,
+                  isExpanded: true,
+                  icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.primary),
+                  items: pets.map((p) => DropdownMenuItem(value: p, child: Text(p.name, style: const TextStyle(fontWeight: FontWeight.w700)))).toList(),
+                  onChanged: (p) => setState(() => _selectedPet = p),
+                  hint: const Text('Select Patient', style: TextStyle(fontSize: 14)),
+                  dropdownColor: isDark ? const Color(0xFF1E293B) : Colors.white,
                 ),
               ),
             ),
@@ -167,21 +163,29 @@ class _AddServiceRecordModalState extends State<AddServiceRecordModal> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildSectionLabel(label),
-        PremiumCard(
-          opacity: 0.1,
-          borderRadius: 16,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: TextField(
-              controller: controller,
-              maxLines: maxLines,
-              style: TextStyle(fontWeight: FontWeight.w700, color: isDark ? Colors.white : Colors.black87),
-              decoration: InputDecoration(
-                hintText: hintText,
-                border: InputBorder.none,
-                hintStyle: TextStyle(fontSize: 14, color: isDark ? Colors.white24 : Colors.grey),
-                contentPadding: const EdgeInsets.symmetric(vertical: 16),
-              ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: isDark ? Colors.white.withValues(alpha: 0.06) : Colors.black.withValues(alpha: 0.04),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isDark ? Colors.white.withValues(alpha: 0.12) : Colors.black.withValues(alpha: 0.08),
+            ),
+          ),
+          child: TextField(
+            controller: controller,
+            maxLines: maxLines,
+            style: TextStyle(fontWeight: FontWeight.w700, color: isDark ? Colors.white : Colors.black87),
+            decoration: InputDecoration(
+              filled: false,
+              hintText: hintText,
+              border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              errorBorder: InputBorder.none,
+              disabledBorder: InputBorder.none,
+              hintStyle: TextStyle(fontSize: 14, color: isDark ? Colors.white38 : Colors.grey),
+              contentPadding: const EdgeInsets.symmetric(vertical: 14),
             ),
           ),
         ),

@@ -1038,6 +1038,25 @@ class AppStateRepository extends ChangeNotifier {
     );
   }
 
+  Future<void> addServiceRecord(ServiceRecordModel record) async {
+    _serviceRecords.removeWhere((r) => r.recordId == record.recordId);
+    _serviceRecords.insert(0, record);
+    notifyListeners();
+    await _firebase.saveServiceRecord(record);
+    logAudit('Clinical Record Added', '${record.providerName} logged consultation for ${record.petName}');
+    
+    // Trigger notification
+    await NotificationService().showHealthAlert(
+      title: 'Clinical Consultation Logged 🩺',
+      body: '${record.title} for ${record.petName} by ${record.providerName}',
+    );
+    addNotification(
+      title: 'Clinical Consultation 🩺',
+      message: 'Consultation record for ${record.petName} has been saved.',
+      type: NotificationType.health,
+    );
+  }
+
   // ─── SHOPPING CART & ORDERS ──────────────────────────────────────────────
 
   void addToCart(ProductModel product) {
@@ -1267,15 +1286,6 @@ class AppStateRepository extends ChangeNotifier {
     notifyListeners();
 
     await _firebase.addComment(postId, comment);
-  }
-
-  // ─── SERVICE RECORDS ─────────────────────────────────────────────────────
-
-  Future<void> addServiceRecord(ServiceRecordModel record) async {
-    _serviceRecords.insert(0, record);
-    notifyListeners();
-    await _firebase.saveServiceRecord(record);
-    logAudit('Medical Record Saved', 'Clinical chart saved for ${record.petName}');
   }
 
   // ─── VET VERIFICATION ────────────────────────────────────────────────────

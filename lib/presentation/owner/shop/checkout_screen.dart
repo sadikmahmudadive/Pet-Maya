@@ -202,17 +202,28 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       children: [
         _buildSectionLabel(label),
         const SizedBox(height: 8),
-        PremiumCard(
-          opacity: 0.1,
-          borderRadius: 20,
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: isDark ? Colors.white.withValues(alpha: 0.06) : Colors.black.withValues(alpha: 0.04),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: isDark ? Colors.white.withValues(alpha: 0.12) : Colors.black.withValues(alpha: 0.08),
+            ),
+          ),
           child: TextField(
             controller: controller,
             keyboardType: keyboardType,
             style: TextStyle(fontWeight: FontWeight.w700, color: isDark ? Colors.white : Colors.black87),
             decoration: InputDecoration(
+              filled: false,
               prefixIcon: Icon(icon, color: AppColors.primary, size: 20),
               border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(vertical: 20),
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              errorBorder: InputBorder.none,
+              disabledBorder: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(vertical: 16),
             ),
           ),
         ),
