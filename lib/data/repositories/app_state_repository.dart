@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:geolocator/geolocator.dart';
 import 'dart:io';
 
 import '../models/user_model.dart';
@@ -68,6 +69,9 @@ class AppStateRepository extends ChangeNotifier {
   final List<UserModel> _allUsers = [];
   final List<NotificationModel> _notifications = [];
   final List<ReviewModel> _reviews = [];
+  
+  // Dynamic Distance Calculation State
+  final Map<String, String> _calculatedDistances = {};
 
   // Getters
   List<PetModel> get pets => List.unmodifiable(_pets);
@@ -112,7 +116,17 @@ class AppStateRepository extends ChangeNotifier {
   List<ProductModel> get products => List.unmodifiable(_products);
   List<CartItemModel> get cartItems => List.unmodifiable(_cartItems);
   List<OrderModel> get orders => List.unmodifiable(_orders);
-  List<VetModel> get vets => List.unmodifiable(_vets);
+  List<VetModel> get vets {
+    if (_calculatedDistances.isEmpty) return List.unmodifiable(_vets);
+    
+    // Apply dynamically calculated distances to the vet list
+    return List.unmodifiable(_vets.map((vet) {
+      if (_calculatedDistances.containsKey(vet.id)) {
+        return vet.copyWith(distance: _calculatedDistances[vet.id]);
+      }
+      return vet;
+    }));
+  }
   List<ServiceRecordModel> get serviceRecords => List.unmodifiable(_serviceRecords);
   List<FeedPostModel> get posts => List.unmodifiable(_posts);
   List<String> get auditLogs => List.unmodifiable(_auditLogs);
@@ -292,6 +306,11 @@ class AppStateRepository extends ChangeNotifier {
       // Stream notifications for the current user
       _listenToNotifications(user.uid);
 
+      // Trigger dynamic distance calculations if user has coordinates
+      if (user.latitude != null && user.longitude != null) {
+        _calculateDynamicDistances(user.latitude!, user.longitude!);
+      }
+
       logAudit('Firebase Sync', 'Data loaded for ${user.name} (${user.role.displayName})');
     } catch (e) {
       debugPrint('[AppStateRepository] syncFromFirebase error: $e');
@@ -319,8 +338,39 @@ class AppStateRepository extends ChangeNotifier {
       _vets
         ..clear()
         ..addAll(fetched);
+      
+      // Re-calculate distances when vet list changes
+      if (_currentUser?.latitude != null && _currentUser?.longitude != null) {
+        _calculateDynamicDistances(_currentUser!.latitude!, _currentUser!.longitude!);
+      }
+      
       notifyListeners();
     }, onError: (e) => debugPrint('[AppStateRepository] _listenToVets error: $e'));
+  }
+
+  void _calculateDynamicDistances(double userLat, double userLng) {
+    bool changed = false;
+    for (var vet in _vets) {
+      if (vet.latitude != null && vet.longitude != null) {
+        final distanceInMeters = Geolocator.distanceBetween(
+          userLat, userLng,
+          vet.latitude!, vet.longitude!
+        );
+        
+        String distanceStr;
+        if (distanceInMeters < 1000) {
+          distanceStr = '${distanceInMeters.toStringAsFixed(0)} m';
+        } else {
+          distanceStr = '${(distanceInMeters / 1000).toStringAsFixed(1)} km';
+        }
+
+        if (_calculatedDistances[vet.id] != distanceStr) {
+          _calculatedDistances[vet.id] = distanceStr;
+          changed = true;
+        }
+      }
+    }
+    if (changed) notifyListeners();
   }
 
   void _listenToEvents(String userId) {
@@ -1173,7 +1223,7 @@ class AppStateRepository extends ChangeNotifier {
         category: p.category,
         price: p.price,
         stockQuantity: newStock,
-        imageUrl: p.imageUrl,
+        imageGallery: p.imageGallery,
         description: p.description,
         brand: p.brand,
         soldCount: p.soldCount,
@@ -1493,6 +1543,8 @@ class AppStateRepository extends ChangeNotifier {
         bio: updatedUser.bio ?? 'Experienced pet care professional dedicated to your pet\'s health.',
         experience: updatedUser.yearsExperience != null ? '${updatedUser.yearsExperience} Years' : '5 Years',
         isVerified: updatedUser.isVerified,
+        latitude: updatedUser.latitude,
+        longitude: updatedUser.longitude,
       );
       await _firebase.saveVet(vetProfile);
     }
@@ -1700,6 +1752,7 @@ class AppStateRepository extends ChangeNotifier {
 
     return null;
   }
+
 }
 
 

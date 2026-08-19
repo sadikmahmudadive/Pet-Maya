@@ -92,40 +92,6 @@ class FloatingNavbar extends StatelessWidget {
                 return Stack(
                   alignment: Alignment.centerLeft,
                   children: [
-                    // ─── Sliding Liquid Glass Morph Indicator ───
-                    AnimatedPositioned(
-                      duration: const Duration(milliseconds: 340),
-                      curve: Curves.fastLinearToSlowEaseIn,
-                      left: activeSlot * slotWidth + (slotWidth - indicatorWidth) / 2,
-                      top: (barHeight - indicatorHeight) / 2,
-                      child: Container(
-                        width: indicatorWidth,
-                        height: indicatorHeight,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              AppColors.primary.withValues(alpha: isDark ? 0.24 : 0.16),
-                              AppColors.secondary.withValues(alpha: isDark ? 0.14 : 0.08),
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(18),
-                          border: Border.all(
-                            color: AppColors.primary.withValues(alpha: isDark ? 0.40 : 0.25),
-                            width: 1.0,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.primary.withValues(alpha: isDark ? 0.20 : 0.10),
-                              blurRadius: 12,
-                              offset: const Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
                     // ─── Navigation Items Row ───
                     Row(
                       children: [

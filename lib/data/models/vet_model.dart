@@ -13,6 +13,8 @@ class VetModel {
   final String businessHours;
   final String bio;
   final bool isVerified;
+  final double? latitude;
+  final double? longitude;
 
   VetModel({
     required this.id,
@@ -29,6 +31,8 @@ class VetModel {
     this.businessHours = 'Mon - Fri: 8:00 AM - 6:00 PM',
     this.bio = 'Dedicated and caring veterinary specialist providing top-notch healthcare, surgeries, and routine checkups for pets.',
     this.isVerified = true,
+    this.latitude,
+    this.longitude,
   });
 
   Map<String, dynamic> toMap() {
@@ -47,6 +51,8 @@ class VetModel {
       'businessHours': businessHours,
       'bio': bio,
       'isVerified': isVerified,
+      'latitude': latitude,
+      'longitude': longitude,
     };
   }
 
@@ -66,6 +72,46 @@ class VetModel {
       businessHours: map['businessHours'] ?? 'Mon - Fri: 9 AM - 6 PM',
       bio: map['bio'] ?? 'Experienced pet care professional dedicated to your pet\'s health.',
       isVerified: map['isVerified'] ?? false,
+      latitude: (map['latitude'] as num?)?.toDouble(),
+      longitude: (map['longitude'] as num?)?.toDouble(),
+    );
+  }
+
+  VetModel copyWith({
+    String? id,
+    String? name,
+    String? qualification,
+    double? rating,
+    int? reviewsCount,
+    String? tag,
+    String? distance,
+    String? price,
+    String? phone,
+    String? experience,
+    String? photoUrl,
+    String? businessHours,
+    String? bio,
+    bool? isVerified,
+    double? latitude,
+    double? longitude,
+  }) {
+    return VetModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      qualification: qualification ?? this.qualification,
+      rating: rating ?? this.rating,
+      reviewsCount: reviewsCount ?? this.reviewsCount,
+      tag: tag ?? this.tag,
+      distance: distance ?? this.distance,
+      price: price ?? this.price,
+      phone: phone ?? this.phone,
+      experience: experience ?? this.experience,
+      photoUrl: photoUrl ?? this.photoUrl,
+      businessHours: businessHours ?? this.businessHours,
+      bio: bio ?? this.bio,
+      isVerified: isVerified ?? this.isVerified,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
     );
   }
 }

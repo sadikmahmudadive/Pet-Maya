@@ -1,6 +1,6 @@
 class ReviewModel {
   final String id;
-  final String targetId; // Vet ID or Shop ID
+  final String targetId; // The ID of the Vet, Groomer, etc. being reviewed
   final String reviewerId;
   final String reviewerName;
   final String? reviewerPhoto;
@@ -37,11 +37,11 @@ class ReviewModel {
       id: id,
       targetId: map['targetId'] ?? '',
       reviewerId: map['reviewerId'] ?? '',
-      reviewerName: map['reviewerName'] ?? 'Anonymous',
+      reviewerName: map['reviewerName'] ?? 'Anonymous User',
       reviewerPhoto: map['reviewerPhoto'],
-      rating: (map['rating'] ?? 0).toDouble(),
+      rating: (map['rating'] as num?)?.toDouble() ?? 5.0,
       comment: map['comment'] ?? '',
-      timestamp: map['timestamp'] ?? DateTime.now().millisecondsSinceEpoch,
+      timestamp: (map['timestamp'] as num?)?.toInt() ?? DateTime.now().millisecondsSinceEpoch,
     );
   }
 }

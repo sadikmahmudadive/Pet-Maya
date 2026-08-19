@@ -13,6 +13,9 @@ import 'admin_broadcast_screen.dart';
 import 'admin_user_list_screen.dart';
 import 'admin_logs_screen.dart';
 import 'admin_analytics_screen.dart';
+import 'admin_shop_manager_screen.dart';
+import 'admin_order_manager_screen.dart';
+import 'admin_pet_directory_screen.dart';
 import 'package:animate_do/animate_do.dart';
 
 class AdminDashboardScreen extends StatelessWidget {
@@ -23,6 +26,7 @@ class AdminDashboardScreen extends StatelessWidget {
     final user = context.select((AppStateRepository repo) => repo.currentUser);
     final vets = context.select((AppStateRepository repo) => repo.vets);
     final usersCount = context.select((AppStateRepository repo) => repo.allUsers.length);
+    final ordersCount = context.select((AppStateRepository repo) => repo.orders.length);
     final logs = context.select((AppStateRepository repo) => repo.auditLogs);
     final state = context.read<AppStateRepository>();
 
@@ -95,11 +99,11 @@ class AdminDashboardScreen extends StatelessWidget {
                         child: FadeInDown(
                           child: _buildKpiCard(
                             context,
-                            'HEALTH', 
-                            'OK', 
-                            Icons.trending_up_rounded, 
-                            AppColors.healthGreen,
-                            () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminAnalyticsScreen())),
+                            'SALES', 
+                            '$ordersCount', 
+                            Icons.shopping_bag_rounded, 
+                            AppColors.tertiary,
+                            () => _navigateToOrderManager(context),
                           ),
                         ),
                       ),
@@ -117,6 +121,31 @@ class AdminDashboardScreen extends StatelessWidget {
                         ),
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Quick Access Grid
+                  FadeInUp(
+                    delay: const Duration(milliseconds: 100),
+                    child: Row(
+                      children: [
+                        _buildQuickActionBtn(
+                          context,
+                          'Shop Manager',
+                          Icons.inventory_2_rounded,
+                          AppColors.primary,
+                          () => _navigateToShopManager(context),
+                        ),
+                        const SizedBox(width: 12),
+                        _buildQuickActionBtn(
+                          context,
+                          'Pet Directory',
+                          Icons.pets_rounded,
+                          AppColors.healthGreen,
+                          () => _navigateToPetDirectory(context),
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 24),
 
@@ -278,6 +307,45 @@ class AdminDashboardScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildQuickActionBtn(BuildContext context, String label, IconData icon, Color color, VoidCallback onTap) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Expanded(
+      child: PremiumCard(
+        onTap: onTap,
+        opacity: 0.15,
+        borderRadius: 20,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 18),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: color, size: 20),
+              const SizedBox(width: 12),
+              Text(label, 
+                style: TextStyle(
+                  fontWeight: FontWeight.w800, 
+                  fontSize: 13, 
+                  color: isDark ? Colors.white70 : Colors.black87
+                )),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _navigateToOrderManager(BuildContext context) {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminOrderManagerScreen()));
+  }
+
+  void _navigateToShopManager(BuildContext context) {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminShopManagerScreen()));
+  }
+
+  void _navigateToPetDirectory(BuildContext context) {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminPetDirectoryScreen()));
   }
 
   Widget _buildLogTile(BuildContext context, String log) {

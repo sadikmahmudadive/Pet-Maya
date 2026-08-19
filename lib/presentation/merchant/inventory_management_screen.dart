@@ -170,7 +170,7 @@ class InventoryManagementScreen extends StatelessWidget {
                         category: category,
                         brand: brandController.text.trim(),
                         stockQuantity: int.tryParse(stockController.text.trim()) ?? 10,
-                        imageUrl: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=500&auto=format&fit=crop',
+                        imageGallery: const ['https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=500&auto=format&fit=crop'],
                       ));
                       HapticFeedback.mediumImpact();
                       Navigator.pop(ctx);

@@ -76,10 +76,45 @@ class AdminAnalyticsScreen extends StatelessWidget {
                 ),
               ),
             ),
+            const SizedBox(height: 48),
+            FadeInUp(
+              delay: const Duration(milliseconds: 400),
+              child: Text('Operational Health', style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w800)),
+            ),
+            const SizedBox(height: 20),
+            FadeInUp(
+              delay: const Duration(milliseconds: 500),
+              child: PremiumCard(
+                opacity: 0.15,
+                borderRadius: 28,
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    children: [
+                      _buildHealthIndicator('Database Response', '12ms', AppColors.healthGreen),
+                      const Divider(height: 32),
+                      _buildHealthIndicator('AI Processing Load', 'Light', AppColors.primary),
+                      const Divider(height: 32),
+                      _buildHealthIndicator('Notification Queue', 'Clear', AppColors.healthGreen),
+                    ],
+                  ),
+                ),
+              ),
+            ),
             const SizedBox(height: 100),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildHealthIndicator(String label, String value, Color color) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: Colors.grey)),
+        Text(value, style: TextStyle(fontWeight: FontWeight.w900, color: color, fontSize: 13)),
+      ],
     );
   }
 

@@ -120,6 +120,34 @@ class _AddEventModalState extends State<AddEventModal> {
     );
   }
 
+  void _cancelAppointment() {
+    if (widget.event == null) return;
+    
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        title: const Text('Cancel Appointment?'),
+        content: const Text('This will permanently remove the appointment from your calendar and cancel the reminder alarm.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('GO BACK')),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx); // Close dialog
+              context.read<AppStateRepository>().deleteEvent(widget.event!.id);
+              Navigator.pop(context); // Close modal
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Appointment cancelled 🗑️'), backgroundColor: AppColors.dangerRed, behavior: SnackBarBehavior.floating),
+              );
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.dangerRed),
+            child: const Text('CANCEL APPOINTMENT', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final pets = context.watch<AppStateRepository>().pets;
@@ -263,23 +291,36 @@ class _AddEventModalState extends State<AddEventModal> {
             ),
             const SizedBox(height: 32),
 
-            // Save Button
-            SizedBox(
-              width: double.infinity,
-              height: 60,
-              child: ElevatedButton(
-                onPressed: _isSaving ? null : _saveEvent,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF1AB680), 
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            // Actions
+            Column(
+              children: [
+                SizedBox(
+                  width: double.infinity,
+                  height: 60,
+                  child: ElevatedButton(
+                    onPressed: _isSaving ? null : _saveEvent,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1AB680), 
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    ),
+                    child: _isSaving
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : Text(
+                            isEdit ? 'Update Event' : 'Save Event',
+                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16),
+                          ),
+                  ),
                 ),
-                child: _isSaving
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : Text(
-                        isEdit ? 'Update Event' : 'Save Event',
-                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16),
-                      ),
-              ),
+                if (isEdit) ...[
+                  const SizedBox(height: 16),
+                  TextButton(
+                    onPressed: _cancelAppointment,
+                    style: TextButton.styleFrom(foregroundColor: AppColors.dangerRed),
+                    child: const Text('CANCEL APPOINTMENT', 
+                      style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1.2, fontSize: 11)),
+                  ),
+                ],
+              ],
             ),
           ],
         ),

@@ -80,7 +80,7 @@ class _BookingScreenState extends State<BookingScreen> {
       id: 'apt_${const Uuid().v4().substring(0, 6)}',
       userId: repo.currentUser?.uid ?? 'user_1',
       title: '${widget.vet.tag}: ${widget.vet.name}',
-      category: widget.vet.tag == 'Veterinarian' ? 'Vet Visit' : widget.vet.tag,
+      category: 'Vet Appointment', // Standardized category as requested
       note: 'Reason: ${_reasonController.text.trim()}',
       petName: _selectedPet!.name,
       petId: _selectedPet!.petID,
@@ -122,9 +122,8 @@ class _BookingScreenState extends State<BookingScreen> {
               height: 54,
               child: ElevatedButton(
                 onPressed: () {
-                  Navigator.pop(context); // dialog
-                  Navigator.pop(context); // booking
-                  Navigator.pop(context); // details
+                  // Safely pop back to the dashboard, avoiding black screen from over-popping
+                  Navigator.of(context).popUntil((route) => route.isFirst);
                 },
                 style: ElevatedButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
                 child: const Text('DONE', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12)),
@@ -195,21 +194,21 @@ class _BookingScreenState extends State<BookingScreen> {
                 children: [
                   _buildSectionLabel('Select Pet'),
                   const SizedBox(height: 8),
-                  PremiumCard(
-                    opacity: 0.1,
-                    borderRadius: 16,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<PetModel>(
-                          value: _selectedPet,
-                          isExpanded: true,
-                          dropdownColor: isDark ? const Color(0xFF1A1A1A) : Colors.white,
-                          icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.primary),
-                          style: TextStyle(fontWeight: FontWeight.w700, color: isDark ? Colors.white : Colors.black87, fontSize: 14),
-                          items: pets.map((p) => DropdownMenuItem(value: p, child: Text('${p.name} (${p.breed})'))).toList(),
-                          onChanged: (p) => setState(() => _selectedPet = p),
-                        ),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05),
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<PetModel>(
+                        value: _selectedPet,
+                        isExpanded: true,
+                        dropdownColor: isDark ? const Color(0xFF1A1A1A) : Colors.white,
+                        icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.primary),
+                        style: TextStyle(fontWeight: FontWeight.w700, color: isDark ? Colors.white : Colors.black87, fontSize: 14),
+                        items: pets.map((p) => DropdownMenuItem(value: p, child: Text('${p.name} (${p.breed})'))).toList(),
+                        onChanged: (p) => setState(() => _selectedPet = p),
                       ),
                     ),
                   ),
@@ -308,21 +307,25 @@ class _BookingScreenState extends State<BookingScreen> {
       children: [
         _buildSectionLabel(label),
         const SizedBox(height: 8),
-        PremiumCard(
-          opacity: 0.1,
-          borderRadius: 16,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: TextField(
-              controller: controller,
-              maxLines: maxLines,
-              style: TextStyle(fontWeight: FontWeight.w700, color: isDark ? Colors.white : Colors.black87),
-              decoration: InputDecoration(
-                hintText: hint,
-                border: InputBorder.none,
-                hintStyle: TextStyle(fontSize: 14, color: isDark ? Colors.white24 : Colors.grey),
-                contentPadding: const EdgeInsets.symmetric(vertical: 18),
-              ),
+        Container(
+          decoration: BoxDecoration(
+            color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: TextField(
+            controller: controller,
+            maxLines: maxLines,
+            style: TextStyle(fontWeight: FontWeight.w700, color: isDark ? Colors.white : Colors.black87),
+            decoration: InputDecoration(
+              hintText: hint,
+              border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              errorBorder: InputBorder.none,
+              disabledBorder: InputBorder.none,
+              hintStyle: TextStyle(fontSize: 14, color: isDark ? Colors.white24 : Colors.grey),
+              contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
+              filled: false,
             ),
           ),
         ),

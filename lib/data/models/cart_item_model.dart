@@ -30,7 +30,7 @@ class CartItemModel {
         category: '',
         price: (map['price'] as num?)?.toDouble() ?? 0.0,
         stockQuantity: 99,
-        imageUrl: map['imageUrl'],
+        imageGallery: map['imageUrl'] != null ? [map['imageUrl'].toString()] : [],
       ),
       quantity: (map['quantity'] as num?)?.toInt() ?? 1,
     );

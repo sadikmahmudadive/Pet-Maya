@@ -104,11 +104,22 @@ class _AdminUserListScreenState extends State<AdminUserListScreen> {
                                   Column(
                                     crossAxisAlignment: CrossAxisAlignment.end,
                                     children: [
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                        decoration: BoxDecoration(color: _getRoleColor(user.role).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
-                                        child: Text(user.role.displayName.toUpperCase(), 
-                                          style: TextStyle(color: _getRoleColor(user.role), fontWeight: FontWeight.w900, fontSize: 8)),
+                                      Row(
+                                        children: [
+                                          IconButton(
+                                            icon: const Icon(Icons.delete_outline_rounded, color: AppColors.dangerRed, size: 20),
+                                            onPressed: () => _showDeleteConfirm(context, user),
+                                            padding: EdgeInsets.zero,
+                                            constraints: const BoxConstraints(),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                            decoration: BoxDecoration(color: _getRoleColor(user.role).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+                                            child: Text(user.role.displayName.toUpperCase(), 
+                                              style: TextStyle(color: _getRoleColor(user.role), fontWeight: FontWeight.w900, fontSize: 8)),
+                                          ),
+                                        ],
                                       ),
                                       const SizedBox(height: 8),
                                       if (user.isVerified)
@@ -125,6 +136,29 @@ class _AdminUserListScreenState extends State<AdminUserListScreen> {
                       );
                     },
                   ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteConfirm(BuildContext context, UserModel user) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        title: const Text('Delete User Account?'),
+        content: Text('Are you sure you want to permanently delete the account for ${user.name}? This cannot be undone.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('CANCEL')),
+          ElevatedButton(
+            onPressed: () {
+              // Implementation would involve calling a deleteUser method in repository
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('User deletion restricted in demo mode.')));
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.dangerRed),
+            child: const Text('DELETE', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
