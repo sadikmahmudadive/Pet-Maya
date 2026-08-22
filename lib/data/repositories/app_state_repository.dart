@@ -1345,26 +1345,23 @@ class AppStateRepository extends ChangeNotifier {
     if (idx != -1) {
       final old = _vets[idx];
       final newVerified = !old.isVerified;
-      final updated = VetModel(
-        id: old.id,
-        name: old.name,
-        qualification: old.qualification,
-        rating: old.rating,
-        reviewsCount: old.reviewsCount,
-        tag: old.tag,
-        distance: old.distance,
-        price: old.price,
-        phone: old.phone,
-        experience: old.experience,
-        photoUrl: old.photoUrl,
-        businessHours: old.businessHours,
-        bio: old.bio,
-        isVerified: newVerified,
-      );
+      final updated = old.copyWith(isVerified: newVerified);
       _vets[idx] = updated;
       notifyListeners();
       await _firebase.toggleVetVerification(vetId, newVerified);
       logAudit('Vet Verification', 'Toggled verified status for ${old.name}');
+    }
+  }
+
+  Future<void> updateVetPrice(String vetId, String newPrice) async {
+    final idx = _vets.indexWhere((v) => v.id == vetId);
+    if (idx != -1) {
+      final old = _vets[idx];
+      final updated = old.copyWith(price: newPrice);
+      _vets[idx] = updated;
+      notifyListeners();
+      await _firebase.saveVet(updated);
+      logAudit('Pricing Updated', 'Updated visit price for ${old.name} to $newPrice');
     }
   }
 

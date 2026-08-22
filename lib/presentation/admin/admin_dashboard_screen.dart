@@ -16,6 +16,7 @@ import 'admin_analytics_screen.dart';
 import 'admin_shop_manager_screen.dart';
 import 'admin_order_manager_screen.dart';
 import 'admin_pet_directory_screen.dart';
+import 'admin_service_pricing_screen.dart';
 import 'package:animate_do/animate_do.dart';
 
 class AdminDashboardScreen extends StatelessWidget {
@@ -143,6 +144,14 @@ class AdminDashboardScreen extends StatelessWidget {
                           Icons.pets_rounded,
                           AppColors.healthGreen,
                           () => _navigateToPetDirectory(context),
+                        ),
+                        const SizedBox(width: 12),
+                        _buildQuickActionBtn(
+                          context,
+                          'Service Pricing',
+                          Icons.payments_rounded,
+                          AppColors.tertiary,
+                          () => _navigateToServicePricing(context),
                         ),
                       ],
                     ),
@@ -346,6 +355,10 @@ class AdminDashboardScreen extends StatelessWidget {
 
   void _navigateToPetDirectory(BuildContext context) {
     Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminPetDirectoryScreen()));
+  }
+
+  void _navigateToServicePricing(BuildContext context) {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminServicePricingScreen()));
   }
 
   Widget _buildLogTile(BuildContext context, String log) {

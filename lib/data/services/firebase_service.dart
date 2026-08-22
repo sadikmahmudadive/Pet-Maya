@@ -406,6 +406,13 @@ class FirebaseService {
     } catch (_) {}
   }
 
+  Future<void> updateVetPrice(String vetId, String price) async {
+    await _usersCol.doc(vetId).update({'price': price});
+    try {
+      await _vetsCol.doc(vetId).update({'price': price});
+    } catch (_) {}
+  }
+
   // ─── MEDICAL / SERVICE RECORDS ───────────────────────────────────────────
 
   Future<List<ServiceRecordModel>> fetchServiceRecords(String petId) async {
