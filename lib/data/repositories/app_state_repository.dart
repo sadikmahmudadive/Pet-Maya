@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:geolocator/geolocator.dart';
 import 'dart:io';
@@ -33,6 +34,20 @@ class AppStateRepository extends ChangeNotifier {
 
   final _uuid = const Uuid();
   final _firebase = FirebaseService();
+  final _functions = FirebaseFunctions.instance;
+
+  Future<dynamic> _callAiProxy(String method, Map<String, dynamic> data) async {
+    try {
+      final result = await _functions.httpsCallable('openai_proxy').call({
+        'method': method,
+        ...data,
+      });
+      return result.data;
+    } catch (e) {
+      debugPrint('[AI Proxy] Error: $e');
+      rethrow;
+    }
+  }
 
   // Theme Mode State & Persistence
   ThemeMode _themeMode = ThemeMode.system;
@@ -972,81 +987,24 @@ class AppStateRepository extends ChangeNotifier {
     required String prompt,
     File? imageFile,
   }) async {
-    final openAiApiKey = dotenv.env['OPENAI_API_KEY'];
-    if (openAiApiKey != null && openAiApiKey.isNotEmpty) {
-      try {
-        List<Map<String, dynamic>> content = [
-          {
-            'type': 'text',
-            'text': 'Pet Name: $petName. Issue description: $prompt'
-          }
-        ];
-
-        if (imageFile != null) {
-          final bytes = await imageFile.readAsBytes();
-          final base64Image = base64Encode(bytes);
-          content.add({
-            'type': 'image_url',
-            'image_url': {'url': 'data:image/jpeg;base64,$base64Image'}
-          });
-        }
-
-        final response = await http.post(
-          Uri.parse('https://api.openai.com/v1/chat/completions'),
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer $openAiApiKey',
-          },
-          body: jsonEncode({
-            'model': 'gpt-4o', // Use full gpt-4o for vision capabilities
-            'messages': [
-              {
-                'role': 'system',
-                'content': '''You are a highly experienced, compassionate Senior Veterinarian. 
-                
-                IMPORTANT RULES:
-                1. HIGHLIGHT KEY TERMS: Use double asterisks ** around any suspected diseases, medical conditions, symptoms, or specific body parts mentioned (e.g., **ringworm**, **lesion**, **eye area**).
-                2. Use clear, plain text with natural spacing for the rest of the content.
-                3. VISUAL EVIDENCE: Describe exactly what you see in the specific photo provided. Be precise about location and appearance.
-                4. DIAGNOSTIC REASONING: Provide a specific assessment. Do not give the same general advice for every pet.
-                5. TONE: Empathetic and reassuring.
-                6. VET URGENCY: Clearly state if this is an Emergency, Non-Urgent, or Routine concern.
-                7. NO SYMBOLS: Aside from the ** markers for highlighting, do not use hashtags (#) or other markdown symbols.'''
-              },
-              {'role': 'user', 'content': content}
-            ],
-            'temperature': 0.5, // Lower temperature for more consistent, clinical accuracy
-            'max_tokens': 1000,
-          }),
-        );
-        if (response.statusCode == 200) {
-          final data = jsonDecode(response.body);
-          final aiResponse = data['choices'][0]['message']['content'].toString();
-          // DO NOT strip asterisks anymore as they are used for highlighting
-          return aiResponse.replaceAll('#', '').trim();
-        } else {
-          final errorData = jsonDecode(response.body);
-          final errorMsg = errorData['error']?['message'] ?? 'Unknown Error';
-          debugPrint('[AI Scanner] API Error (${response.statusCode}): $errorMsg');
-          
-          if (response.statusCode == 401) {
-            return "Authentication Error: Please check the API key configuration. Details: $errorMsg";
-          } else if (response.statusCode == 429) {
-            return "The AI is currently busy (Rate Limit). Please wait a moment and try again. Details: $errorMsg";
-          } else if (response.statusCode == 400) {
-            return "The request was not understood by the AI. This usually happens with very large images. Details: $errorMsg";
-          }
-          
-          return "I'm having trouble connecting to my medical database (Error $errorMsg). Please ensure your internet is stable and try again.";
-        }
-      } catch (e) {
-        debugPrint('[AI Scanner] Exception: $e');
-        return "I encountered a system error ($e) while analyzing the image. Please try again later.";
+    try {
+      String? base64Image;
+      if (imageFile != null) {
+        final bytes = await imageFile.readAsBytes();
+        base64Image = base64Encode(bytes);
       }
-    }
 
-    // Fallback if no API key is found
-    return "AI Diagnostic capability is currently unavailable. Please contact support or check your network settings.";
+      final result = await _callAiProxy('health_diagnosis', {
+        'petName': petName,
+        'prompt': prompt,
+        'image': base64Image,
+      });
+
+      return result['response'].toString();
+    } catch (e) {
+      debugPrint('[AI Scanner] Exception: $e');
+      return "I encountered a system error ($e) while analyzing the image. Please try again later.";
+    }
   }
 
   Future<void> saveAiDiagnosisToPetRecord({
@@ -1595,41 +1553,18 @@ class AppStateRepository extends ChangeNotifier {
     required String age,
     required String weight,
   }) async {
-    final openAiApiKey = dotenv.env['OPENAI_API_KEY'];
-    if (openAiApiKey != null && openAiApiKey.isNotEmpty) {
-      try {
-        final response = await http.post(
-          Uri.parse('https://api.openai.com/v1/chat/completions'),
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer $openAiApiKey',
-          },
-          body: jsonEncode({
-            'model': 'gpt-4o',
-            'messages': [
-              {
-                'role': 'system',
-                'content': 'You are a pet nutrition expert. Provide a recommended feeding schedule (times only, format HH:MM) as a JSON array for the given pet details. Return ONLY the JSON array.'
-              },
-              {'role': 'user', 'content': 'Pet: $petName, Breed: $breed, Age: $age, Weight: $weight'}
-            ],
-            'temperature': 0.7,
-          }),
-        );
-        if (response.statusCode == 200) {
-          final data = jsonDecode(response.body);
-          final content = data['choices'][0]['message']['content'].toString().trim();
-          // Remove potential markdown code blocks if the AI includes them
-          final cleanJson = content.replaceAll('```json', '').replaceAll('```', '').trim();
-          final List<dynamic> suggested = jsonDecode(cleanJson);
-          return suggested.map((e) => e.toString()).toList();
-        }
-      } catch (_) {}
+    try {
+      final result = await _callAiProxy('nutrition_schedule', {
+        'petName': petName,
+        'breed': breed,
+        'age': age,
+        'weight': weight,
+      });
+      return List<String>.from(result['schedule']);
+    } catch (e) {
+      debugPrint('[AI Nutrition] Schedule Exception: $e');
+      return ['08:00', '13:00', '19:00']; // Fallback
     }
-
-    // Fallback default schedule
-    await Future.delayed(const Duration(milliseconds: 1500));
-    return ['08:00', '13:00', '19:00'];
   }
 
   Future<Map<String, dynamic>> runAiNutritionRecommendation({
@@ -1639,61 +1574,28 @@ class AppStateRepository extends ChangeNotifier {
     required String weight,
     String? currentDiet,
   }) async {
-    final openAiApiKey = dotenv.env['OPENAI_API_KEY'];
-    if (openAiApiKey != null && openAiApiKey.isNotEmpty) {
-      try {
-        final response = await http.post(
-          Uri.parse('https://api.openai.com/v1/chat/completions'),
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer $openAiApiKey',
-          },
-          body: jsonEncode({
-            'model': 'gpt-4o',
-            'messages': [
-              {
-                'role': 'system',
-                'content': 'You are a specialized veterinary nutritionist. Analyze the pet\'s profile and provide a professional dietary plan as JSON. Include "calories", "nutrients" (list of strings), and "recommendations" (list of strings). Return ONLY valid JSON.'
-              },
-              {'role': 'user', 'content': 'Pet: $petName, Breed: $breed, Age: $age, Weight: $weight. Current Diet: ${currentDiet ?? 'Not specified'}'}
-            ],
-            'temperature': 0.7,
-          }),
-        );
-        if (response.statusCode == 200) {
-          final data = jsonDecode(response.body);
-          final content = data['choices'][0]['message']['content'].toString().trim();
-          // Remove potential markdown code blocks if the AI includes them
-          final cleanJson = content.replaceAll('```json', '').replaceAll('```', '').trim();
-          return jsonDecode(cleanJson);
-        }
-      } catch (_) {}
+    try {
+      final result = await _callAiProxy('nutrition_recommendation', {
+        'petName': petName,
+        'breed': breed,
+        'age': age,
+        'weight': weight,
+        'currentDiet': currentDiet,
+      });
+      return Map<String, dynamic>.from(result['recommendation']);
+    } catch (e) {
+      debugPrint('[AI Nutrition] Recommendation Exception: $e');
+      return {
+        'calories': 'Unable to calculate at this time.',
+        'nutrients': ['Error retrieving AI data'],
+        'recommendations': ['Please check your internet and try again.']
+      };
     }
-
-    await Future.delayed(const Duration(milliseconds: 1800));
-    return {
-      'calories': '350-400 kcal/day based on weight ($weight) and age ($age).',
-      'nutrients': [
-        'High-quality animal-based protein (min 26%)',
-        'Omega-3 and Omega-6 fatty acids for coat health',
-        'Balanced fiber (3-5%) for digestive stability'
-      ],
-      'recommendations': [
-        'Transition slowly over 7-10 days if changing brands.',
-        'Maintain consistent feeding times to regulate metabolism.',
-        'Ensure fresh water is available at all times.'
-      ]
-    };
   }
 
   // ─── AI BREED FINDER ─────────────────────────────────────────────────────
 
   Future<String?> identifyBreed({required String? imagePath, File? imageFile}) async {
-    final openAiApiKey = dotenv.env['OPENAI_API_KEY'];
-    if (openAiApiKey == null || openAiApiKey.isEmpty) {
-      return 'Generic Breed';
-    }
-
     try {
       String base64Image;
       if (imageFile != null) {
@@ -1711,38 +1613,11 @@ class AppStateRepository extends ChangeNotifier {
         return null;
       }
 
-      final response = await http.post(
-        Uri.parse('https://api.openai.com/v1/chat/completions'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $openAiApiKey',
-        },
-        body: jsonEncode({
-          'model': 'gpt-4o',
-          'messages': [
-            {
-              'role': 'system',
-              'content': 'You are a professional veterinarian breed identification expert. Return only the breed name, nothing else. If multiple breeds are visible, identify the most prominent one. If it is a mixed breed, state the two most likely breeds.'
-            },
-            {
-              'role': 'user',
-              'content': [
-                {'type': 'text', 'text': 'Identify the breed of this pet. Return only the name.'},
-                {
-                  'type': 'image_url',
-                  'image_url': {'url': 'data:image/jpeg;base64,$base64Image'}
-                }
-              ]
-            }
-          ],
-          'max_tokens': 50,
-        }),
-      );
+      final result = await _callAiProxy('breed_finder', {
+        'image': base64Image,
+      });
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return data['choices'][0]['message']['content'].toString().trim();
-      }
+      return result['breed'].toString();
     } catch (e) {
       debugPrint('[AI Breed Finder] Exception: $e');
     }

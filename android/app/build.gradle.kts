@@ -5,6 +5,8 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
     // Firebase Google Services
     id("com.google.gms.google-services")
+    // Firebase Crashlytics
+    id("com.google.firebase.crashlytics")
 }
 
 import java.util.Properties
@@ -49,6 +51,9 @@ android {
 
     buildTypes {
         release {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = signingConfigs.getByName("release")
         }
     }

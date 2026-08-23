@@ -50,6 +50,7 @@ dependencies:
   # Firebase
   firebase_core: ^3.15.1
   cloud_firestore: ^5.6.10
+  cloud_functions: ^5.1.4
   firebase_database: ^11.3.4
   firebase_auth: ^5.5.4
   google_sign_in: ^6.2.1
@@ -65,6 +66,8 @@ dependencies:
   permission_handler: ^11.3.1
   workmanager: ^0.10.7
   share_plus: ^13.3.0
+  firebase_crashlytics: ^4.3.10
+  firebase_analytics: ^11.6.0
 
 dependency_overrides:
   latlong2: 0.10.1

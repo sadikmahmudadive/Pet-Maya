@@ -1,76 +1,80 @@
 {
   "rules": {
-    ".read": "auth != null",
-    ".write": "auth != null",
     "users": {
       ".indexOn": ["role", "email"],
       "$uid": {
         ".read": "auth != null",
-        ".write": "auth != null"
+        ".write": "$uid === auth.uid"
       }
     },
     "pets": {
       ".indexOn": ["ownerID"],
       "$petId": {
-        ".read": "auth != null",
-        ".write": "auth != null"
+        ".read": "auth != null && (data.child('ownerID').val() === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'Veterinarian')",
+        ".write": "auth != null && (!data.exists() || data.child('ownerID').val() === auth.uid)"
       }
     },
     "events": {
       "$uid": {
-        ".read": "auth != null",
-        ".write": "auth != null"
+        ".read": "$uid === auth.uid",
+        ".write": "$uid === auth.uid"
       }
     },
     "appointments": {
       ".indexOn": ["userId", "ownerId", "vetId"],
       "$apptId": {
-        ".read": "auth != null",
-        ".write": "auth != null"
+        ".read": "auth != null && (data.child('userId').val() === auth.uid || data.child('vetId').val() === auth.uid)",
+        ".write": "auth != null && (data.child('userId').val() === auth.uid || data.child('vetId').val() === auth.uid || !data.exists())"
       }
     },
     "notifications": {
       "$uid": {
-        ".read": "auth != null",
-        ".write": "auth != null"
+        ".read": "$uid === auth.uid",
+        ".write": "$uid === auth.uid"
       }
     },
     "orders": {
       ".indexOn": ["userId"],
       "$orderId": {
-        ".read": "auth != null",
-        ".write": "auth != null"
+        ".read": "auth != null && (data.child('userId').val() === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'Admin')",
+        ".write": "auth != null && (!data.exists() || data.child('userId').val() === auth.uid)"
       }
     },
     "service_records": {
       ".indexOn": ["petId", "providerId"],
       "$recordId": {
-        ".read": "auth != null",
-        ".write": "auth != null"
+        ".read": "auth != null && (data.child('providerId').val() === auth.uid || root.child('pets').child(data.child('petId').val()).child('ownerID').val() === auth.uid)",
+        ".write": "auth != null && (!data.exists() || data.child('providerId').val() === auth.uid)"
       }
     },
     "community_posts": {
       ".read": "auth != null",
-      ".write": "auth != null"
+      "$postId": {
+        ".write": "auth != null && (!data.exists() || data.child('userId').val() === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'Admin')"
+      }
     },
     "comments": {
       ".read": "auth != null",
-      ".write": "auth != null"
+      "$commentId": {
+        ".write": "auth != null && (!data.exists() || data.child('userId').val() === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'Admin')"
+      }
     },
     "reviews": {
       ".indexOn": ["targetId"],
       "$reviewId": {
         ".read": "auth != null",
-        ".write": "auth != null"
+        ".write": "auth != null && (!data.exists() || data.child('userId').val() === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'Admin')"
       }
     },
     "products": {
       ".read": "auth != null",
-      ".write": "auth != null"
+      ".write": "root.child('users').child(auth.uid).child('role').val() === 'Admin'"
     },
     "vets": {
       ".read": "auth != null",
-      ".write": "auth != null"
+      "$vetId": {
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'Admin' || $vetId === auth.uid)"
+      }
     }
   }
 }
