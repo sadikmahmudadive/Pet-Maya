@@ -1,7 +1,7 @@
 /**
  * Pet Maya Web Application Core Engine
  * Full-featured interactive SPA mirroring the mobile app experience.
- * Handles Pets, AI Vision Scanner, Vet Teleconsultation, Community, Shop Cart, and Calendar.
+ * Handles Pets, Clinical Vision Scanner, Vet Teleconsultation, Community, Shop Cart, and Calendar.
  */
 
 // ─── LOCAL STORAGE REPOSITORY ───
@@ -63,7 +63,7 @@ const VETS_DATA = [
     clinicName: 'Central Metro Pet Hospital, Floor 2',
     yearsExperience: 9,
     exp: '9+ Years Experience',
-    rating: '4.9 ★ (184 reviews)',
+    rating: '4.9  (184 reviews)',
     clinic: 'Central Metro Pet Hospital, Floor 2',
     fee: '৳45 / Consultation',
     avatar: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150&auto=format&fit=crop&q=80',
@@ -79,7 +79,7 @@ const VETS_DATA = [
     clinicName: 'Apex Veterinary Dermatology Care',
     yearsExperience: 12,
     exp: '12+ Years Experience',
-    rating: '5.0 ★ (240 reviews)',
+    rating: '5.0  (240 reviews)',
     clinic: 'Apex Veterinary Dermatology Care',
     fee: '৳55 / Consultation',
     avatar: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=150&auto=format&fit=crop&q=80',
@@ -95,7 +95,7 @@ const VETS_DATA = [
     clinicName: 'Whisker & Paws Feline Health Center',
     yearsExperience: 8,
     exp: '8+ Years Experience',
-    rating: '4.9 ★ (132 reviews)',
+    rating: '4.9  (132 reviews)',
     clinic: 'Whisker & Paws Feline Health Center',
     fee: '৳40 / Consultation',
     avatar: 'https://images.unsplash.com/photo-1594824813591-1823906371ef?w=150&auto=format&fit=crop&q=80',
@@ -111,7 +111,7 @@ const VETS_DATA = [
     clinicName: 'Avian & Exotic Wildcare Clinic',
     yearsExperience: 14,
     exp: '14+ Years Experience',
-    rating: '4.8 ★ (98 reviews)',
+    rating: '4.8  (98 reviews)',
     clinic: 'Avian & Exotic Wildcare Clinic',
     fee: '৳50 / Consultation',
     avatar: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=150&auto=format&fit=crop&q=80',
@@ -127,7 +127,7 @@ const PRODUCTS_DATA = [
     name: 'Pro-Health Omega-3 Wild Salmon Oil (500ml)',
     category: 'health',
     price: 240.00,
-    rating: '4.9 ★',
+    rating: '4.9 ',
     image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=300&auto=format&fit=crop&q=80',
     badge: 'Best Seller',
     desc: 'Promotes shiny coat, joint flexibility, and relieves itchy skin.'
@@ -137,7 +137,7 @@ const PRODUCTS_DATA = [
     name: 'Royal Canin Adult Digestive Care Kibble (4kg)',
     category: 'food',
     price: 480.00,
-    rating: '4.8 ★',
+    rating: '4.8 ',
     image: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=300&auto=format&fit=crop&q=80',
     badge: 'Veterinary Choice',
     desc: 'Formulated for optimal stool quality and balanced gut microflora.'
@@ -147,7 +147,7 @@ const PRODUCTS_DATA = [
     name: 'NexGard Spectra Flea & Tick Chewables (3 Pack)',
     category: 'health',
     price: 360.00,
-    rating: '5.0 ★',
+    rating: '5.0 ',
     image: 'https://images.unsplash.com/photo-1471864190281-a93a3070b6de?w=300&auto=format&fit=crop&q=80',
     badge: 'Essential',
     desc: 'Monthly beef-flavored chew protecting against heartworm, fleas & ticks.'
@@ -157,7 +157,7 @@ const PRODUCTS_DATA = [
     name: 'Organic Lavender Soothing Pet Shampoo (400ml)',
     category: 'grooming',
     price: 170.00,
-    rating: '4.7 ★',
+    rating: '4.7 ',
     image: 'https://images.unsplash.com/photo-1583947215259-38e31be8751f?w=300&auto=format&fit=crop&q=80',
     badge: '100% Organic',
     desc: 'Hypoallergenic botanical wash that hydrates dry and sensitive skin.'
@@ -167,7 +167,7 @@ const PRODUCTS_DATA = [
     name: 'Smart Interactive Laser & Feather Cat Toy',
     category: 'toys',
     price: 220.00,
-    rating: '4.9 ★',
+    rating: '4.9 ',
     image: 'https://images.unsplash.com/photo-1545249390-6bdfa286032f?w=300&auto=format&fit=crop&q=80',
     badge: 'Popular',
     desc: 'Automatic 360° rotating laser beacon for active indoor exercise.'
@@ -177,7 +177,7 @@ const PRODUCTS_DATA = [
     name: 'Heavy-Duty Dental Chew Bone for Tough Chewers',
     category: 'toys',
     price: 145.00,
-    rating: '4.8 ★',
+    rating: '4.8 ',
     image: 'https://images.unsplash.com/photo-1576201836106-db1758fd1c97?w=300&auto=format&fit=crop&q=80',
     badge: 'Durable',
     desc: 'Cleans plaque and tartar while satisfying natural chewing instincts.'
@@ -191,7 +191,7 @@ const INITIAL_POSTS = [
     avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&auto=format&fit=crop&q=80',
     time: '2 hours ago',
     badge: 'Golden Retriever Mom',
-    text: 'Max just finished his 12-week agility training milestone! 🏆 His coat has been super healthy since we switched to Omega-3 salmon oil supplements recommended on Pet Maya.',
+    text: 'Max just finished his 12-week agility training milestone!  His coat has been super healthy since we switched to Omega-3 salmon oil supplements recommended on Pet Maya.',
     image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=600&auto=format&fit=crop&q=80',
     likes: 42,
     isLiked: false,
@@ -206,7 +206,7 @@ const INITIAL_POSTS = [
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80',
     time: '5 hours ago',
     badge: 'Cat Parent',
-    text: 'Quick tip: The AI Health Scanner caught Luna\'s mild ear irritation before it turned into an infection. Booked Dr. Vance right away and got topical drops in 1 hour!',
+    text: 'Quick tip: The Clinical Health Triage caught Luna\'s mild ear irritation before it turned into an infection. Booked Dr. Vance right away and got topical drops in 1 hour!',
     image: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=600&auto=format&fit=crop&q=80',
     likes: 29,
     isLiked: false,
@@ -242,7 +242,7 @@ function showToast(msg, isSuccess = true) {
   const container = document.getElementById('toastContainer') || createToastContainer();
   const toast = document.createElement('div');
   toast.className = 'toast ' + (isSuccess ? 'toast-success' : 'toast-error');
-  toast.innerHTML = (isSuccess ? '✅ ' : '⚠️ ') + msg;
+  toast.innerHTML = (isSuccess ? ' ' : '️ ') + msg;
   container.appendChild(toast);
 
   setTimeout(() => {
@@ -299,16 +299,16 @@ function renderPets() {
           </div>
           <p style="font-size:13px; color:var(--text-muted); margin:2px 0;">${pet.breed} • ${pet.gender}</p>
           <div style="display:flex; gap:8px; margin-top:6px; font-size:12px; font-weight:700;">
-            <span style="background:var(--primary-light); color:var(--primary); padding:2px 8px; border-radius:999px;">⚖️ ${pet.weight}</span>
-            <span style="background:rgba(0,182,210,0.1); color:#00B6D2; padding:2px 8px; border-radius:999px;">🎂 ${pet.age}</span>
+            <span style="background:var(--primary-light); color:var(--primary); padding:2px 8px; border-radius:999px;">️ ${pet.weight}</span>
+            <span style="background:rgba(0,182,210,0.1); color:#00B6D2; padding:2px 8px; border-radius:999px;"> ${pet.age}</span>
           </div>
         </div>
       </div>
       <div style="margin-top:14px; padding-top:12px; border-top:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center;">
         <button class="btn btn-sm ${isActive ? 'btn-primary' : 'btn-secondary'}" onclick="switchActivePet('${pet.id}')">
-          ${isActive ? '✓ Selected' : 'Switch to ' + pet.name}
+          ${isActive ? ' Selected' : 'Switch to ' + pet.name}
         </button>
-        <button class="btn-icon-del" onclick="deletePet('${pet.id}')" title="Delete Profile" style="background:none; border:none; cursor:pointer; font-size:16px;">🗑️</button>
+        <button class="btn-icon-del" onclick="deletePet('${pet.id}')" title="Delete Profile" style="background:none; border:none; cursor:pointer; font-size:16px;">️</button>
       </div>
     `;
     container.appendChild(card);
@@ -390,7 +390,7 @@ function submitNewPet(e) {
   saveState();
   renderPets();
   closeAddPetModal();
-  showToast(`🐾 ${name} added to your Pet Maya dashboard!`);
+  showToast(` ${name} added to your Pet Maya dashboard!`);
   document.getElementById('addPetForm').reset();
 }
 
@@ -410,7 +410,7 @@ function deletePet(id) {
   }
 }
 
-// ─── 2. AI VISION HEALTH SCANNER ───
+// ─── 2. Clinical VISION HEALTH SCANNER ───
 function handleScannerImageUpload(input) {
   if (input.files && input.files[0]) {
     const file = input.files[0];
@@ -424,7 +424,7 @@ function handleScannerImageUpload(input) {
         preview.style.display = 'block';
       }
       if (placeholder) placeholder.style.display = 'none';
-      showToast('Image uploaded! Click "Run AI Vision Scan".');
+      showToast('Image uploaded! Click "Run Clinical Vision Scan".');
     };
     reader.readAsDataURL(file);
   }
@@ -535,7 +535,7 @@ function displayTriageResult() {
     resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
-  showToast('✅ Diagnostic report generated!');
+  showToast(' Diagnostic report generated!');
 }
 
 function exportTriageReport() {
@@ -545,7 +545,7 @@ function exportTriageReport() {
   const clinicAction = document.getElementById('triageClinicAction')?.textContent || '';
 
   const reportText = `======================================================
-PET MAYA AI CLINICAL HEALTH REPORT
+PET MAYA Clinical CLINICAL HEALTH REPORT
 Generated: ${new Date().toLocaleString()}
 Patient: ${pet.name} (${pet.species.toUpperCase()} - ${pet.breed})
 Age: ${pet.age} | Weight: ${pet.weight}
@@ -573,7 +573,7 @@ Support: siradive137@gmail.com
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-  showToast('📄 Clinical report downloaded!');
+  showToast(' Clinical report downloaded!');
 }
 
 // ─── 3. VETERINARIAN BOOKING MODULE ───
@@ -596,11 +596,11 @@ function renderVets(filter = 'all') {
             <span style="font-size:13px; font-weight:700; color:var(--primary);">${vet.fee}</span>
           </div>
           <p style="font-size:13px; color:var(--primary); font-weight:600; margin:2px 0;">${vet.specialty}</p>
-          <p style="font-size:12px; color:var(--text-muted); margin:2px 0;">📍 ${vet.clinic} • ${vet.rating}</p>
+          <p style="font-size:12px; color:var(--text-muted); margin:2px 0;"> ${vet.clinic} • ${vet.rating}</p>
           <div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-            <span style="font-size:12px; color:#10B981; font-weight:700;">🟢 ${vet.available}</span>
+            <span style="font-size:12px; color:#10B981; font-weight:700;"> ${vet.available}</span>
             <button class="btn btn-sm btn-primary" onclick="openBookingModal('${vet.id}')">
-              📅 Book Appointment
+               Book Appointment
             </button>
           </div>
         </div>
@@ -682,7 +682,7 @@ function confirmAppointment(e) {
   closeBookingModal();
   renderAppointmentsList();
   showAppointmentConfirmationPass(appointment);
-  showToast(`🎉 Appointment booked with ${vet.name}!`);
+  showToast(` Appointment booked with ${vet.name}!`);
 }
 
 function showAppointmentConfirmationPass(appt) {
@@ -727,13 +727,13 @@ function renderAppointmentsList() {
       <div style="display:flex; justify-content:space-between; align-items:flex-start;">
         <div>
           <h4 style="font-size:15px; font-weight:800; color:var(--text-dark); margin:0;">${appt.vetName}</h4>
-          <p style="font-size:12px; color:var(--primary); font-weight:700; margin:2px 0;">🐾 Patient: ${appt.petName} • ${appt.visitType}</p>
-          <p style="font-size:12px; color:var(--text-muted); margin:2px 0;">📅 ${appt.date} at ${appt.time}</p>
+          <p style="font-size:12px; color:var(--primary); font-weight:700; margin:2px 0;"> Patient: ${appt.petName} • ${appt.visitType}</p>
+          <p style="font-size:12px; color:var(--text-muted); margin:2px 0;"> ${appt.date} at ${appt.time}</p>
         </div>
         <span class="badge" style="background:#DCFCE7; color:#16A34A; padding:3px 8px; font-size:11px; border-radius:999px;">Confirmed</span>
       </div>
       <div style="margin-top:10px; display:flex; gap:8px;">
-        <button class="btn btn-sm btn-secondary" onclick="downloadApptICS('${appt.id}')">📲 Add to Calendar</button>
+        <button class="btn btn-sm btn-secondary" onclick="downloadApptICS('${appt.id}')"> Add to Calendar</button>
         <button class="btn btn-sm" style="color:#EF4444; background:rgba(239,68,68,0.1); border:none; cursor:pointer; border-radius:999px; padding:6px 12px;" onclick="cancelAppointment('${appt.id}')">Cancel</button>
       </div>
     `;
@@ -758,7 +758,7 @@ function downloadApptICS(id) {
 VERSION:2.0
 PRODID:-//Pet Maya//Appointment//EN
 BEGIN:VEVENT
-SUMMARY:🩺 Pet Maya: ${appt.visitType} with ${appt.vetName}
+SUMMARY: Pet Maya: ${appt.visitType} with ${appt.vetName}
 DESCRIPTION:Patient: ${appt.petName}\\nReason: ${appt.reason}\\nFee: ${appt.fee}
 LOCATION:Central Pet Hospital / Video Call
 STATUS:CONFIRMED
@@ -801,9 +801,9 @@ function renderCommunityFeed() {
       
       <div style="margin-top:14px; display:flex; align-items:center; justify-content:space-between; padding-top:12px; border-top:1px solid var(--border-color);">
         <button class="like-btn" onclick="toggleLikePost(${pIndex})" style="background:none; border:none; cursor:pointer; font-size:14px; font-weight:700; color:${post.isLiked ? '#EF4444' : 'var(--text-muted)'}; display:flex; align-items:center; gap:6px;">
-          ${post.isLiked ? '❤️' : '🤍'} <span>${post.likes} Likes</span>
+          ${post.isLiked ? '️' : ''} <span>${post.likes} Likes</span>
         </button>
-        <span style="font-size:13px; color:var(--text-muted); font-weight:600;">💬 ${post.comments.length} Comments</span>
+        <span style="font-size:13px; color:var(--text-muted); font-weight:600;"> ${post.comments.length} Comments</span>
       </div>
 
       <!-- Comments Thread -->
@@ -880,7 +880,7 @@ function createNewPost(e) {
   renderCommunityFeed();
   document.getElementById('newPostText').value = '';
   if (document.getElementById('newPostImageUrl')) document.getElementById('newPostImageUrl').value = '';
-  showToast('🎉 Your post is live on the Pet Maya Community!');
+  showToast(' Your post is live on the Pet Maya Community!');
 }
 
 // ─── 5. PET SUPPLIES MARKETPLACE & CART ───
@@ -909,7 +909,7 @@ function renderProducts(filter = 'all') {
         <p style="font-size:12px; color:var(--text-muted); line-height:1.4; margin-bottom:14px; flex:1;">${prod.desc}</p>
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <span style="font-size:18px; font-weight:800; color:var(--primary);">$${prod.price.toFixed(2)}</span>
-          <button class="btn btn-sm btn-primary" onclick="addToCart('${prod.id}')">🛒 Add</button>
+          <button class="btn btn-sm btn-primary" onclick="addToCart('${prod.id}')"> Add</button>
         </div>
       </div>
     `;
@@ -972,7 +972,7 @@ function renderCartDrawer() {
 
   if (state.cart.length === 0) {
     container.innerHTML = `<div style="text-align:center; padding:40px 10px; color:var(--text-muted);">
-      <p style="font-size:36px; margin-bottom:10px;">🛍️</p>
+      <p style="font-size:36px; margin-bottom:10px;">️</p>
       <p>Your pet care cart is empty.</p>
     </div>`;
     if (subtotalEl) subtotalEl.textContent = '$0.00';
@@ -1045,7 +1045,7 @@ function submitOrder(e) {
   updateCartBadge();
   closeCheckoutModal();
 
-  showToast(`🎉 Order confirmed! Delivering supplies for ${pet.name} to ${address}!`);
+  showToast(` Order confirmed! Delivering supplies for ${pet.name} to ${address}!`);
 }
 
 // ─── 6. REMINDER & CALENDAR ENGINE ───
@@ -1083,7 +1083,7 @@ function submitCustomReminder(e) {
   saveState();
   closeReminderModal();
   renderRemindersList();
-  showToast('⏰ Reminder added to your schedule!');
+  showToast(' Reminder added to your schedule!');
 }
 
 function renderRemindersList() {
@@ -1102,9 +1102,9 @@ function renderRemindersList() {
     div.innerHTML = `
       <div>
         <strong style="font-size:13px; color:var(--text-dark);">${r.title}</strong>
-        <p style="font-size:11px; color:var(--text-muted); margin:0;">🐾 ${r.petName} • 📅 ${r.date}</p>
+        <p style="font-size:11px; color:var(--text-muted); margin:0;"> ${r.petName} •  ${r.date}</p>
       </div>
-      <button onclick="deleteReminder('${r.id}')" style="background:none; border:none; color:#EF4444; font-size:14px; cursor:pointer;">✕</button>
+      <button onclick="deleteReminder('${r.id}')" style="background:none; border:none; color:#EF4444; font-size:14px; cursor:pointer;"></button>
     `;
     container.appendChild(div);
   });
@@ -1120,18 +1120,18 @@ function deleteReminder(id) {
 // ─── VACCINE SCHEDULE CALCULATOR ───
 const schedules = {
   dog: [
-    { milestone: 'Core Vaccine #1', care: 'DHPP / DAPP (Distemper, Parvo)', freq: 'Every 3-4 Weeks (Puppy Series)', status: 'Essential 💉' },
-    { milestone: 'Core Vaccine #2', care: 'Rabies (1-Year or 3-Year)', freq: 'At 16 Weeks & Annual Booster', status: 'Mandatory 🛡️' },
-    { milestone: 'Parasite Prevention', care: 'Heartworm + Flea & Tick (Simparica/NexGard)', freq: 'Monthly Oral Chew', status: 'Active 💊' },
-    { milestone: 'Deworming Protocol', care: 'Broad-Spectrum Deworming (Pyrantel/Praziquantel)', freq: 'Quarterly (Every 3 Months)', status: 'Scheduled ⏰' },
-    { milestone: 'Annual Wellness', care: 'Complete Blood Count & Dental Scaling', freq: 'Every 12 Months', status: 'Recommended 🩺' }
+    { milestone: 'Core Vaccine #1', care: 'DHPP / DAPP (Distemper, Parvo)', freq: 'Every 3-4 Weeks (Puppy Series)', status: 'Essential ' },
+    { milestone: 'Core Vaccine #2', care: 'Rabies (1-Year or 3-Year)', freq: 'At 16 Weeks & Annual Booster', status: 'Mandatory ️' },
+    { milestone: 'Parasite Prevention', care: 'Heartworm + Flea & Tick (Simparica/NexGard)', freq: 'Monthly Oral Chew', status: 'Active ' },
+    { milestone: 'Deworming Protocol', care: 'Broad-Spectrum Deworming (Pyrantel/Praziquantel)', freq: 'Quarterly (Every 3 Months)', status: 'Scheduled ' },
+    { milestone: 'Annual Wellness', care: 'Complete Blood Count & Dental Scaling', freq: 'Every 12 Months', status: 'Recommended ' }
   ],
   cat: [
-    { milestone: 'Core Vaccine #1', care: 'FVRCP (Feline Viral Rhinotracheitis, Calici, Panleukopenia)', freq: 'Every 3-4 Weeks (Kitten Series)', status: 'Essential 💉' },
-    { milestone: 'Core Vaccine #2', care: 'Rabies & FeLV (Feline Leukemia)', freq: 'At 12-16 Weeks & Annual Booster', status: 'Mandatory 🛡️' },
-    { milestone: 'Parasite Prevention', care: 'Topical Flea, Tick & Ear Mite (Revolution Plus)', freq: 'Monthly Topical Dose', status: 'Active 💊' },
-    { milestone: 'Deworming Protocol', care: 'Intestinal Deworming Treatment', freq: 'Quarterly (Every 3 Months)', status: 'Scheduled ⏰' },
-    { milestone: 'Wellness Exam', care: 'Kidney Health Screening & Dental Check', freq: 'Every 12 Months', status: 'Recommended 🩺' }
+    { milestone: 'Core Vaccine #1', care: 'FVRCP (Feline Viral Rhinotracheitis, Calici, Panleukopenia)', freq: 'Every 3-4 Weeks (Kitten Series)', status: 'Essential ' },
+    { milestone: 'Core Vaccine #2', care: 'Rabies & FeLV (Feline Leukemia)', freq: 'At 12-16 Weeks & Annual Booster', status: 'Mandatory ️' },
+    { milestone: 'Parasite Prevention', care: 'Topical Flea, Tick & Ear Mite (Revolution Plus)', freq: 'Monthly Topical Dose', status: 'Active ' },
+    { milestone: 'Deworming Protocol', care: 'Intestinal Deworming Treatment', freq: 'Quarterly (Every 3 Months)', status: 'Scheduled ' },
+    { milestone: 'Wellness Exam', care: 'Kidney Health Screening & Dental Check', freq: 'Every 12 Months', status: 'Recommended ' }
   ]
 };
 
@@ -1164,7 +1164,7 @@ PRODID:-//Pet Maya//Vaccine Planner//EN
 CALSCALE:GREGORIAN
 METHOD:PUBLISH
 BEGIN:VEVENT
-SUMMARY:🐾 Pet Maya: ${petType} Vaccine & Wellness Due
+SUMMARY: Pet Maya: ${petType} Vaccine & Wellness Due
 DESCRIPTION:Scheduled veterinary reminder from Pet Maya platform. Checkup, booster, and parasite preventative due date.
 STATUS:CONFIRMED
 RRULE:FREQ=MONTHLY;INTERVAL=1
@@ -1178,7 +1178,7 @@ END:VCALENDAR`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-  showToast('📥 Vaccine calendar (.ics) exported!');
+  showToast(' Vaccine calendar (.ics) exported!');
 }
 
 // ─── INITIALIZATION ───

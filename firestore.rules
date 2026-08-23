@@ -7,78 +7,103 @@ service cloud.firestore {
       return request.auth != null;
     }
     
-    // Helper function to check if user owns the document
+    // Helper function to check if user owns the document by ID
     function isOwner(userId) {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
+    // Helper function to check for Admin role
+    function isAdmin() {
+      return isAuthenticated() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'Admin';
+    }
+
     // User Profiles
     match /users/{userId} {
+      // Public profiles for community/vet search
       allow read: if isAuthenticated();
+      // Only user can edit their own profile
       allow write: if isOwner(userId);
     }
 
     // Pets
     match /pets/{petId} {
-      allow read, write: if isAuthenticated();
+      // Only owner or veterinarians can read pet data
+      allow read: if isAuthenticated() && (
+        resource.data.ownerID == request.auth.uid ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'Veterinarian'
+      );
+      // Only owner can create/edit/delete
+      allow write: if isAuthenticated() && (
+        (resource == null && request.resource.data.ownerID == request.auth.uid) ||
+        (resource != null && resource.data.ownerID == request.auth.uid)
+      );
     }
 
     // Calendar & Reminders
     match /events/{eventId} {
-      allow read, write: if isAuthenticated();
+      allow read, write: if isAuthenticated() && (
+        (resource == null && request.resource.data.userId == request.auth.uid) ||
+        (resource != null && resource.data.userId == request.auth.uid)
+      );
     }
 
     // Shop Catalog & Inventory
     match /products/{productId} {
       allow read: if true;
-      allow write: if isAuthenticated();
+      allow write: if isAdmin();
     }
 
     // Orders
     match /orders/{orderId} {
-      allow read, write: if isAuthenticated();
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAdmin();
     }
 
     // Veterinarians & Clinics
     match /vets/{vetId} {
       allow read: if true;
-      allow write: if isAuthenticated();
+      allow write: if isAdmin() || isOwner(vetId);
     }
 
-    // Veterinary Service Records & AI Diagnoses
+    // Veterinary Service Records
     match /service_records/{recordId} {
-      allow read, write: if isAuthenticated();
+      allow read: if isAuthenticated() && (
+        resource.data.providerId == request.auth.uid ||
+        get(/databases/$(database)/documents/pets/$(resource.data.petId)).data.ownerID == request.auth.uid
+      );
+      allow create: if isAuthenticated() && request.resource.data.providerId == request.auth.uid;
+      allow update, delete: if isAuthenticated() && resource.data.providerId == request.auth.uid;
     }
 
     // Community Posts & Comments
     match /community_posts/{postId} {
       allow read: if true;
-      allow write: if isAuthenticated();
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
       
       match /comments/{commentId} {
         allow read: if true;
-        allow write: if isAuthenticated();
+        allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+        allow update, delete: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
       }
     }
 
     // Reviews & Ratings
     match /reviews/{reviewId} {
       allow read: if true;
-      allow write: if isAuthenticated();
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
     }
 
-    // Notifications (Supports subcollections like notifications/{userId}/items/{id})
+    // Notifications
     match /notifications/{userId} {
       allow read, write: if isOwner(userId);
       
       match /{allSubcollections=**} {
         allow read, write: if isOwner(userId);
       }
-    }
-
-    // Default fallback rule for authenticated users
-    match /{document=**} {
-      allow read, write: if isAuthenticated();
     }
   }
 }
