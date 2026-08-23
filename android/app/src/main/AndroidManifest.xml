@@ -9,7 +9,7 @@
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
 
     <application
-        android:name="com.vertexhand.petmaya.App"
+        android:name="${applicationName}"
         android:label="Pet Maya"
         android:icon="@mipmap/launcher_icon"
         android:enableOnBackInvokedCallback="true">
@@ -44,6 +44,10 @@
 
         <receiver android:name="com.vertexhand.petmaya.EventAlarmReceiver" android:exported="false" />
         <receiver android:name="com.vertexhand.petmaya.ActionReceiver" android:exported="false" />
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyAhmOHCWgWf7exFnjQ1nns8cDjPZvKRTto"/>
 
         <meta-data
             android:name="flutterEmbedding"

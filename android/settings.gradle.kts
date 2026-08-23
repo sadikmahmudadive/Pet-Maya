@@ -26,5 +26,3 @@ plugins {
 }
 
 include(":app")
-
-
