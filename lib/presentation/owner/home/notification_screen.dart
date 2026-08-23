@@ -97,9 +97,11 @@ class NotificationScreen extends StatelessWidget {
                                           child: Text(
                                             notification.title,
                                             style: AppTypography.titleMedium.copyWith(
-                                              fontSize: 15,
-                                              fontWeight: notification.isRead ? FontWeight.w600 : FontWeight.w700,
-                                              color: notification.isRead ? AppColors.textSecondary : AppColors.textPrimary,
+                                              fontSize: 14,
+                                              fontWeight: notification.isRead ? FontWeight.w600 : FontWeight.w800,
+                                              color: isDark 
+                                                ? (notification.isRead ? Colors.white38 : Colors.white)
+                                                : (notification.isRead ? Colors.black38 : Colors.black87),
                                             ),
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,

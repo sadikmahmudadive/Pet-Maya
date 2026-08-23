@@ -110,7 +110,7 @@ class _EventsHistoryScreenState extends State<EventsHistoryScreen> {
                       if (user != null) await state.syncFromFirebase(user);
                     },
                     child: ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        padding: const EdgeInsets.fromLTRB(20, 10, 20, 120),
                         physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
                         itemCount: sortedEvents.length,
                         itemBuilder: (context, index) {

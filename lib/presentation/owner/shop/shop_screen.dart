@@ -183,13 +183,13 @@ class _ShopScreenState extends State<ShopScreen> {
               : products.isEmpty
                   ? _buildEmptyState()
                   : SliverPadding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
                       sliver: SliverGrid(
                     gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                      maxCrossAxisExtent: 220,
+                      maxCrossAxisExtent: 220, // Responsive sizing for small/large screens
                       mainAxisSpacing: 16,
                       crossAxisSpacing: 16,
-                      childAspectRatio: 0.7,
+                      childAspectRatio: 0.72,
                     ),
                     delegate: SliverChildBuilderDelegate(
                       (context, index) => FadeInUp(

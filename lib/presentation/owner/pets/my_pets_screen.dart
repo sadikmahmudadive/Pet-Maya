@@ -75,7 +75,7 @@ class MyPetsScreen extends StatelessWidget {
         opacity: 0.3,
         borderRadius: 28,
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
               Container(
@@ -95,19 +95,19 @@ class MyPetsScreen extends StatelessWidget {
                       ? pet.photoUrl!.startsWith('assets')
                           ? Image.asset(
                               pet.photoUrl!,
-                              width: 60,
-                              height: 60,
+                              width: 50,
+                              height: 50,
                               fit: BoxFit.cover,
                             )
                           : CachedNetworkImage(
                               imageUrl: pet.photoUrl!,
-                              width: 60,
-                              height: 60,
+                              width: 50,
+                              height: 50,
                               fit: BoxFit.cover,
                               placeholder: (c, u) => const CupertinoActivityIndicator(),
-                              errorWidget: (c, u, e) => const Icon(Icons.pets, size: 24, color: Colors.grey),
+                              errorWidget: (c, u, e) => const Icon(Icons.pets, size: 20, color: Colors.grey),
                             )
-                      : const Icon(Icons.pets, size: 24, color: Colors.grey),
+                      : const Icon(Icons.pets, size: 20, color: Colors.grey),
                 ),
               ),
               const SizedBox(width: 16),

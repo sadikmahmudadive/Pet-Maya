@@ -101,23 +101,24 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
                       opacity: isDark ? 0.25 : 0.2,
                       borderRadius: 24,
                       child: Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         child: Column(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             Row(
                               children: [
                                 CircleAvatar(
-                                  radius: 20,
+                                  radius: 18,
                                   backgroundColor: AppColors.primaryLight,
                                   backgroundImage: currentUser?.photoUrl != null ? NetworkImage(currentUser!.photoUrl!) : null,
-                                  child: currentUser?.photoUrl == null ? const Icon(Icons.person, size: 20) : null,
+                                  child: currentUser?.photoUrl == null ? const Icon(Icons.person, size: 18) : null,
                                 ),
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: GestureDetector(
                                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CreatePostScreen())),
                                     child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                                       decoration: BoxDecoration(
                                         color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.04),
                                         borderRadius: BorderRadius.circular(24),
@@ -125,9 +126,11 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
                                       ),
                                       child: Text(
                                         "What's on your mind${currentUser?.name != null ? ', ${currentUser!.name.split(' ').first}' : ''}?",
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                         style: TextStyle(
                                           color: isDark ? Colors.white54 : Colors.black54,
-                                          fontSize: 13,
+                                          fontSize: 12,
                                           fontWeight: FontWeight.w500,
                                         ),
                                       ),
@@ -136,9 +139,9 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 10),
                             Divider(height: 1, color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.06)),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: 6),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
                               children: [
