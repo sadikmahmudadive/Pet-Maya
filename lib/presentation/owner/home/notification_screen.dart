@@ -18,6 +18,7 @@ class NotificationScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final notifications = context.select((AppStateRepository repo) => repo.notifications);
     final repo = context.read<AppStateRepository>();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GlassScaffold(
       appBar: AppBar(
@@ -99,7 +100,7 @@ class NotificationScreen extends StatelessWidget {
                                             style: AppTypography.titleMedium.copyWith(
                                               fontSize: 14,
                                               fontWeight: notification.isRead ? FontWeight.w600 : FontWeight.w800,
-                                              color: isDark 
+                                              color: Theme.of(context).brightness == Brightness.dark
                                                 ? (notification.isRead ? Colors.white38 : Colors.white)
                                                 : (notification.isRead ? Colors.black38 : Colors.black87),
                                             ),

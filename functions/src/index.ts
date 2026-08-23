@@ -1,52 +1,50 @@
-import * as functions from "firebase-functions";
+import { onCall, HttpsError } from "firebase-functions/v2/https";
 import OpenAI from "openai";
 
-// Securely access the OpenAI API key from Firebase Secret Manager
-// To set this: firebase functions:secrets:set OPENAI_API_KEY
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-export const openai_proxy = functions.https.onCall(async (data, context) => {
+export const openai_proxy = onCall({ secrets: ["OPENAI_API_KEY"] }, async (request) => {
   // 1. Authentication Check
-  if (!context.auth) {
-    throw new functions.https.HttpsError(
+  if (!request.auth) {
+    throw new HttpsError(
       "unauthenticated",
       "The function must be called while authenticated."
     );
   }
 
-  const { method, ...payload } = data;
+  const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+
+  const { method, ...payload } = request.data;
 
   try {
     switch (method) {
       case "health_diagnosis":
-        return await handleHealthDiagnosis(payload);
+        return await handleHealthDiagnosis(openai, payload);
       case "nutrition_schedule":
-        return await handleNutritionSchedule(payload);
+        return await handleNutritionSchedule(openai, payload);
       case "nutrition_recommendation":
-        return await handleNutritionRecommendation(payload);
+        return await handleNutritionRecommendation(openai, payload);
       case "breed_finder":
-        return await handleBreedFinder(payload);
+        return await handleBreedFinder(openai, payload);
       default:
-        throw new functions.https.HttpsError(
+        throw new HttpsError(
           "invalid-argument",
           "Unknown method requested."
         );
     }
   } catch (error: any) {
     console.error("OpenAI Error:", error);
-    throw new functions.https.HttpsError("internal", error.message || "AI logic failed");
+    throw new HttpsError("internal", error.message || "AI logic failed");
   }
 });
 
-async function handleHealthDiagnosis(data: any) {
+async function handleHealthDiagnosis(openai: OpenAI, data: any) {
   const content: any[] = [
     { type: "text", text: `Pet Name: ${data.petName}. Issue description: ${data.prompt}` },
   ];
 
   if (data.image) {
-    content.add({
+    content.push({
       type: "image_url",
       image_url: { url: `data:image/jpeg;base64,${data.image}` },
     });
@@ -67,7 +65,7 @@ async function handleHealthDiagnosis(data: any) {
   return { response: response.choices[0].message.content };
 }
 
-async function handleNutritionSchedule(data: any) {
+async function handleNutritionSchedule(openai: OpenAI, data: any) {
   const response = await openai.chat.completions.create({
     model: "gpt-4o",
     messages: [
@@ -82,7 +80,7 @@ async function handleNutritionSchedule(data: any) {
   return { schedule };
 }
 
-async function handleNutritionRecommendation(data: any) {
+async function handleNutritionRecommendation(openai: OpenAI, data: any) {
   const response = await openai.chat.completions.create({
     model: "gpt-4o",
     messages: [
@@ -97,7 +95,7 @@ async function handleNutritionRecommendation(data: any) {
   return { recommendation };
 }
 
-async function handleBreedFinder(data: any) {
+async function handleBreedFinder(openai: OpenAI, data: any) {
   const response = await openai.chat.completions.create({
     model: "gpt-4o",
     messages: [

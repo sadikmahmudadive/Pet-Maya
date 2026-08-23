@@ -5,29 +5,23 @@ allprojects {
     }
 }
 
-val newBuildDir: Directory = rootProject.layout.buildDirectory.dir("../../build").get()
-rootProject.layout.buildDirectory.value(newBuildDir)
+rootProject.layout.buildDirectory.value(rootProject.layout.buildDirectory.dir("../../build").get())
 
 subprojects {
-    val newSubprojectBuildDir: Directory = newBuildDir.dir(project.name)
-    project.layout.buildDirectory.value(newSubprojectBuildDir)
+    project.layout.buildDirectory.value(rootProject.layout.buildDirectory.get().dir(project.name))
 }
 
 subprojects {
-    project.evaluationDependsOn(":app")
-}
-
-subprojects {
-    val configureCompileSdk: Project.() -> Unit = {
-        extensions.findByType(com.android.build.api.dsl.CommonExtension::class.java)?.apply {
-            compileSdk = 36
+    afterEvaluate {
+        if (plugins.hasPlugin("com.android.library")) {
+            extensions.configure<com.android.build.api.dsl.LibraryExtension> {
+                compileSdk = 36
+            }
         }
-    }
-    if (state.executed) {
-        configureCompileSdk()
-    } else {
-        afterEvaluate {
-            configureCompileSdk()
+        if (plugins.hasPlugin("com.android.application")) {
+            extensions.configure<com.android.build.api.dsl.ApplicationExtension> {
+                compileSdk = 36
+            }
         }
     }
 }
