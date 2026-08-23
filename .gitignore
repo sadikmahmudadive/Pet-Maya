@@ -1,11 +1,17 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# PET MAYA - FLUTTER & FIREBASE GITIGNORE
+# PET MAYA — Flutter, Firebase & Web
+# .gitignore  |  Updated 2026-08-23
 # ─────────────────────────────────────────────────────────────────────────────
 
-# --- ENVIRONMENT & SECRETS ---
+
+# ══════════════════════════════════════════════════════════════════════════════
+# SECRETS & CREDENTIALS
+# ══════════════════════════════════════════════════════════════════════════════
 .env
 .env.*
 !.env.example
+
+# Android signing
 *.keystore
 *.jks
 *.p12
@@ -13,11 +19,15 @@
 *.pem
 android/key.properties
 android/local.properties
+
+# Firebase app config (downloaded from console, not committed)
 android/app/google-services.json
 ios/Runner/GoogleService-Info.plist
-ios/Flutter/ephemeral/
 
-# --- FLUTTER & DART ---
+
+# ══════════════════════════════════════════════════════════════════════════════
+# FLUTTER & DART
+# ══════════════════════════════════════════════════════════════════════════════
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
@@ -26,11 +36,19 @@ ios/Flutter/ephemeral/
 .pub/
 build/
 coverage/
+
+# Generated code
 lib/generated/
 *.freezed.dart
 *.g.dart
 
-# --- ANDROID ---
+# Flutter metadata (machine-generated, not useful to teammates)
+.metadata
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# ANDROID
+# ══════════════════════════════════════════════════════════════════════════════
 .gradle/
 Captures/
 **/android/app/debug/
@@ -41,7 +59,10 @@ android/*/build/
 *.aab
 *.aar
 
-# --- IOS & MACOS ---
+
+# ══════════════════════════════════════════════════════════════════════════════
+# iOS & macOS
+# ══════════════════════════════════════════════════════════════════════════════
 *.xcworkspace
 xcuserdata/
 DerivedData/
@@ -57,43 +78,90 @@ ios/Flutter/app.flx
 ios/Flutter/app.zip
 ios/Flutter/flutter_assets.zip
 ios/Flutter/flutter_export_environment.sh
+ios/Flutter/ephemeral/
 ios/ServiceDefinitions.json
 macos/Pods/
 macos/Flutter/ephemeral/
 
-# --- WINDOWS & LINUX DESKTOP ---
+
+# ══════════════════════════════════════════════════════════════════════════════
+# WINDOWS & LINUX DESKTOP
+# ══════════════════════════════════════════════════════════════════════════════
 windows/flutter/ephemeral/
 linux/flutter/ephemeral/
 
-# --- WEB & DIGITAL ASSET LINKS ---
+
+# ══════════════════════════════════════════════════════════════════════════════
+# WEB
+# ══════════════════════════════════════════════════════════════════════════════
+# Keep web/ source files; only ignore generated build output
 .web/
+
+# Always keep Google Site Verification & well-known (needed for hosting)
 !web/.well-known/
 !web/.well-known/**
 
-# --- FIREBASE & CLOUD ---
+
+# ══════════════════════════════════════════════════════════════════════════════
+# FIREBASE & CLOUD FUNCTIONS
+# ══════════════════════════════════════════════════════════════════════════════
 .firebase/
-*-debug.log*
 firebase-debug.log*
 firestore-debug.log*
+database-debug.log*
 ui-debug.log*
+*-debug.log*
 
-# --- AGENT & AI TOOLS ---
+# Cloud Functions dependencies
+functions/node_modules/
+functions/lib/
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# NODE / NPM
+# ══════════════════════════════════════════════════════════════════════════════
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnp/
+.pnp.js
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# AI AGENT & TOOL DIRECTORIES
+# ══════════════════════════════════════════════════════════════════════════════
 .agents/
 .claude/
 .gemini/
+skills-lock.json
 
-# --- IDE & EDITORS ---
+
+# ══════════════════════════════════════════════════════════════════════════════
+# IDE & EDITORS
+# ══════════════════════════════════════════════════════════════════════════════
 .idea/
 *.iml
 *.ipr
 *.iws
 .vscode/
 .history/
-*.log
 doc/api/
-node_modules/
 
-# --- SYSTEM & OS FILES ---
+
+# ══════════════════════════════════════════════════════════════════════════════
+# LOGS & TEMPORARY FILES
+# ══════════════════════════════════════════════════════════════════════════════
+*.log
+*.tmp
+*.bak
+*.swp
+*~
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# OS / SYSTEM FILES
+# ══════════════════════════════════════════════════════════════════════════════
 .DS_Store
 .DS_Store?
 ._*
@@ -102,7 +170,10 @@ node_modules/
 ehthumbs.db
 Thumbs.db
 desktop.ini
-*.swp
-*~
-*.tmp
-*.bak
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# ACCIDENTAL ARTIFACTS (shell command names created as directories)
+# ══════════════════════════════════════════════════════════════════════════════
+/cd/
+/echo/
