@@ -2522,6 +2522,8 @@
         <button class="admin-sub-btn active" id="asub-users"   onclick="adminSubSwitch('users')">👤 Users</button>
         <button class="admin-sub-btn"        id="asub-products" onclick="adminSubSwitch('products')">📦 Products</button>
         <button class="admin-sub-btn"        id="asub-orders"  onclick="adminSubSwitch('orders')">🛒 Orders</button>
+        <button class="admin-sub-btn"        id="asub-pricing" onclick="adminSubSwitch('pricing')">💰 Service Pricing</button>
+        <button class="admin-sub-btn"        id="asub-pets"    onclick="adminSubSwitch('pets')">🐾 Pet Directory</button>
         <button class="admin-sub-btn"        id="asub-broadcast" onclick="adminSubSwitch('broadcast')">📢 Broadcast</button>
       </div>
 
@@ -2702,6 +2704,64 @@
         </div>
       </div>
 
+      <!-- ─── SERVICE PRICING MANAGEMENT ─── -->
+      <div id="admin-pricing" class="admin-section" style="display:none;">
+        <div class="card-box" style="padding:24px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:18px;">
+            <div>
+              <h3 style="font-size:18px;font-weight:800;letter-spacing:-0.3px;">Doctor &amp; Care Specialist Pricing</h3>
+              <p style="font-size:13px;color:var(--label-3);margin-top:2px;">Adjust consultation &amp; visit fees for veterinarians, groomers, and clinics.</p>
+            </div>
+            <button class="btn-sm-ghost" onclick="loadAdminPricing()">⟳ Refresh Pricing</button>
+          </div>
+          <div class="admin-search">
+            <input type="text" id="pricingSearch" placeholder="Search provider by name or specialty…" oninput="filterAdminPricing()">
+            <select class="input-clean" id="pricingRoleFilter" style="width:auto;padding:10px 14px;" onchange="filterAdminPricing()">
+              <option value="all">All Roles</option>
+              <option value="Veterinarian">Veterinarians</option>
+              <option value="Grooming">Grooming Spas</option>
+              <option value="Boarding">Boarding Resorts</option>
+              <option value="Pet Shop">Pet Shops</option>
+            </select>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="admin-table">
+              <thead><tr><th>Provider / Doctor</th><th>Role / Specialty</th><th>Rating</th><th>Distance</th><th>Current Fee</th><th>Action</th></tr></thead>
+              <tbody id="adminPricingBody"><tr><td colspan="6" style="text-align:center;padding:30px;color:var(--label-3);">Loading provider pricing…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── PET DIRECTORY ─── -->
+      <div id="admin-pets" class="admin-section" style="display:none;">
+        <div class="card-box" style="padding:24px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:18px;">
+            <div>
+              <h3 style="font-size:18px;font-weight:800;letter-spacing:-0.3px;">Centralized Platform Pet Directory</h3>
+              <p style="font-size:13px;color:var(--label-3);margin-top:2px;">Platform-wide overview of all registered pets, breeds, and health records.</p>
+            </div>
+            <button class="btn-sm-ghost" onclick="loadAdminPets()">⟳ Refresh</button>
+          </div>
+          <div class="admin-search">
+            <input type="text" id="adminPetSearch" placeholder="Search pets by name, breed, species, or owner…" oninput="filterAdminPets()">
+            <select class="input-clean" id="adminPetSpeciesFilter" style="width:auto;padding:10px 14px;" onchange="filterAdminPets()">
+              <option value="all">All Species</option>
+              <option value="Dog">Dogs 🐶</option>
+              <option value="Cat">Cats 🐱</option>
+              <option value="Bird">Birds 🦜</option>
+              <option value="Rabbit">Rabbits 🐇</option>
+            </select>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="admin-table">
+              <thead><tr><th>Pet</th><th>Species &amp; Breed</th><th>Gender / Age</th><th>Weight</th><th>Owner ID</th><th>Health Status</th></tr></thead>
+              <tbody id="adminPetsBody"><tr><td colspan="6" style="text-align:center;padding:30px;color:var(--label-3);">Loading pet directory…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
     </div><!-- /pane-admin -->
   </main>
 </div>
@@ -2862,9 +2922,9 @@
     <div id="cartItemsContainer" style="max-height:240px;overflow-y:auto;margin-bottom:16px;padding-right:4px;"></div>
     
     <div class="cart-summary-box">
-      <div class="cart-sum-row"><span>Subtotal</span><span id="cartSubtotal">$0.00</span></div>
-      <div class="cart-sum-row"><span>Delivery / Shipping</span><span id="cartShipping">$5.00</span></div>
-      <div class="cart-sum-row total"><span>Order Total</span><span id="cartTotal" style="color:var(--primary);">$5.00</span></div>
+      <div class="cart-sum-row"><span>Subtotal</span><span id="cartSubtotal">৳0.00</span></div>
+      <div class="cart-sum-row"><span>Delivery / Shipping</span><span id="cartShipping">৳50.00</span></div>
+      <div class="cart-sum-row total"><span>Order Total</span><span id="cartTotal" style="color:var(--primary);">৳50.00</span></div>
     </div>
 
     <div style="margin-top:18px;">
@@ -2919,16 +2979,88 @@
 
 <!-- ── EDIT PROFILE MODAL ── -->
 <div class="modal-veil" id="editProfileModal">
-  <div class="modal-sheet">
+  <div class="modal-sheet" style="max-width:520px;">
     <button class="modal-close" onclick="closeModal('editProfileModal')">✕</button>
     <h2 style="font-size:22px;font-weight:800;letter-spacing:-0.3px;margin-bottom:6px;">👤 Edit Profile</h2>
-    <p style="font-size:14px;color:var(--label-3);margin-bottom:20px;">Update your name, contact details, and preferences.</p>
+    <p style="font-size:14px;color:var(--label-3);margin-bottom:20px;">Update your name, contact details, and clinical preferences.</p>
     
     <div style="margin-bottom:14px;"><label class="label-mini">Full Display Name</label><input type="text" id="editProfileName" class="input-clean" placeholder="Alex Johnson"></div>
     <div style="margin-bottom:14px;"><label class="label-mini">Contact Phone Number</label><input type="tel" id="editProfilePhone" class="input-clean" placeholder="+1 555-0199"></div>
-    <div style="margin-bottom:14px;"><label class="label-mini">Shipping / Home Address</label><input type="text" id="editProfileAddress" class="input-clean" placeholder="123 Ocean Drive, Suite 4B"></div>
-    <div style="margin-bottom:22px;"><label class="label-mini">Avatar Photo URL (Optional)</label><input type="url" id="editProfilePhoto" class="input-clean" placeholder="https://example.com/photo.jpg"></div>
-    <button class="btn-sm-primary" style="width:100%;padding:14px;font-size:16px;" onclick="saveProfile()">Save Profile</button>
+    <div style="margin-bottom:14px;"><label class="label-mini">Shipping / Clinic Location</label><input type="text" id="editProfileAddress" class="input-clean" placeholder="123 Ocean Drive, Suite 4B"></div>
+    <div style="margin-bottom:14px;"><label class="label-mini">Avatar Photo URL (Optional)</label><input type="url" id="editProfilePhoto" class="input-clean" placeholder="https://example.com/photo.jpg"></div>
+
+    <!-- Provider-specific profile fields (dynamically shown for clinicians, groomers, boarders, shops) -->
+    <div id="editProfileProviderFields" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--separator);">
+      <div style="margin-bottom:14px;">
+        <label class="label-mini" id="editProfileClinicLabel">🏥 Clinic / Business Name</label>
+        <input type="text" id="editProfileClinic" class="input-clean" placeholder="e.g. Central Metro Pet Hospital">
+      </div>
+      <div id="editProfileSpecializationWrap" style="margin-bottom:14px;">
+        <label class="label-mini">🔬 Specialization (Veterinarians)</label>
+        <input type="text" id="editProfileSpecialization" class="input-clean" placeholder="e.g. Canine Surgery, Dermatology">
+      </div>
+      <div style="margin-bottom:14px;">
+        <label class="label-mini">🏆 Years of Experience</label>
+        <input type="number" id="editProfileExperience" class="input-clean" placeholder="e.g. 8" min="0">
+      </div>
+      <div style="margin-bottom:14px;">
+        <label class="label-mini">📝 Professional Bio</label>
+        <textarea id="editProfileBio" class="input-clean" rows="3" placeholder="Tell pet parents about your experience, certifications, and approach to care…"></textarea>
+      </div>
+    </div>
+
+    <button class="btn-sm-primary" style="width:100%;padding:14px;font-size:16px;margin-top:10px;" onclick="saveProfile()">Save Profile</button>
+  </div>
+</div>
+
+<!-- ── EDIT SERVICE PRICE MODAL ── -->
+<div class="modal-veil" id="editPriceModal">
+  <div class="modal-sheet" style="max-width:440px;">
+    <button class="modal-close" onclick="closeModal('editPriceModal')">✕</button>
+    <h2 style="font-size:22px;font-weight:800;letter-spacing:-0.3px;margin-bottom:6px;">💰 Update Visit Fee</h2>
+    <p style="font-size:14px;color:var(--label-3);margin-bottom:20px;" id="editPriceProviderLabel">Update consultation fee</p>
+    
+    <input type="hidden" id="editPriceVetId">
+    <div style="margin-bottom:18px;">
+      <label class="label-mini">Consultation / Visit Fee (৳ BDT)</label>
+      <input type="text" id="editPriceInput" class="input-clean" placeholder="e.g. ৳35/visit or ৳50">
+    </div>
+    <button class="btn-sm-primary" style="width:100%;padding:14px;font-size:16px;" onclick="saveVetPrice()">Save Updated Fee ✓</button>
+  </div>
+</div>
+
+<!-- ── SPECIALIST REVIEWS MODAL ── -->
+<div class="modal-veil" id="reviewsModal">
+  <div class="modal-sheet" style="max-width:540px;">
+    <button class="modal-close" onclick="closeModal('reviewsModal')">✕</button>
+    <h2 style="font-size:22px;font-weight:800;letter-spacing:-0.3px;margin-bottom:4px;" id="reviewsModalTitle">⭐ Care Specialist Reviews</h2>
+    <p style="font-size:14px;color:var(--label-3);margin-bottom:18px;" id="reviewsModalSubtitle">Verified patient reviews &amp; feedback.</p>
+    
+    <!-- Existing reviews container -->
+    <div id="reviewsListContainer" style="max-height:260px;overflow-y:auto;margin-bottom:20px;padding-right:4px;">
+      <div style="text-align:center;padding:24px;color:var(--label-3);">Loading reviews…</div>
+    </div>
+
+    <!-- Submit new review form -->
+    <div style="padding-top:16px;border-top:1px solid var(--separator);">
+      <h4 style="font-size:15px;font-weight:700;margin-bottom:10px;">Leave a Rating &amp; Review</h4>
+      <input type="hidden" id="reviewTargetId">
+      <input type="hidden" id="reviewTargetName">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <label class="label-mini" style="margin-bottom:0;">Rating:</label>
+        <select id="reviewRatingSelect" class="input-clean" style="width:auto;padding:6px 12px;font-size:13px;font-weight:700;">
+          <option value="5">⭐⭐⭐⭐⭐ 5.0 — Excellent</option>
+          <option value="4">⭐⭐⭐⭐ 4.0 — Very Good</option>
+          <option value="3">⭐⭐⭐ 3.0 — Average</option>
+          <option value="2">⭐⭐ 2.0 — Needs Improvement</option>
+          <option value="1">⭐ 1.0 — Poor</option>
+        </select>
+      </div>
+      <div style="margin-bottom:14px;">
+        <textarea id="reviewCommentInput" class="input-clean" rows="2" placeholder="Write your experience with this care specialist…"></textarea>
+      </div>
+      <button class="btn-sm-primary" style="width:100%;padding:12px;" onclick="submitSpecialistReview()">Submit Review 🚀</button>
+    </div>
   </div>
 </div>
 
@@ -3461,9 +3593,10 @@
                 ${v.bio ? `<p style="font-size:13px;color:var(--label-3);line-height:1.45;margin-bottom:16px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${esc(v.bio)}</p>` : ''}
               </div>
 
-              <div style="display:flex;gap:8px;padding-top:14px;border-top:1px solid var(--separator);margin-top:auto;">
-                <button class="btn-sm-ghost" style="flex:1;font-size:12px;" onclick="switchPane('pane-vet-consult')">📹 Tele-Consult</button>
-                <button class="btn-sm-primary" style="flex:1;font-size:12px;" onclick="openBookingModal('${esc(v.name)}')">📅 Book Slot</button>
+              <div style="display:flex;gap:6px;padding-top:14px;border-top:1px solid var(--separator);margin-top:auto;flex-wrap:wrap;">
+                <button class="btn-sm-ghost" style="flex:1;min-width:70px;padding:6px 10px;font-size:12px;" onclick="openReviewsModal('${esc(v.id||v.uid||'v1')}', '${esc(v.name)}')">⭐ Reviews</button>
+                <button class="btn-sm-ghost" style="flex:1;min-width:80px;padding:6px 10px;font-size:12px;" onclick="switchTab('vet-consult')">📹 Consult</button>
+                <button class="btn-sm-primary" style="flex:1.2;min-width:90px;padding:6px 12px;font-size:12px;" onclick="openBookingModal('${esc(v.name)}')">📅 Book Slot</button>
               </div>
             </div>`;
         }).join('')}
@@ -3804,10 +3937,10 @@
 
   /* ── 5. SHOP, CART & ORDER PLACEMENT ENGINE ── */
   const SAMPLE_PRODUCTS_CATALOG = [
-    { id:'p1', name:'Premium Adult Kibble', category:'Food', price:34.99, stockQuantity:120, brand:'Royal Canin', imageUrl:'assets/images/Pet_1.jpg', description:'Complete balanced nutrition for active adult dogs.' },
-    { id:'p2', name:'Omega-3 Skin & Coat Oil', category:'Medicine', price:18.50, stockQuantity:85, brand:'Nordic Naturals', imageUrl:'assets/images/Pet_2.jpg', description:'250ml pure wild Alaskan salmon oil.' },
-    { id:'p3', name:'Broad-Spectrum Dewormer', category:'Medicine', price:14.20, stockQuantity:200, brand:'Bayer', imageUrl:'assets/images/tail_wagging_logo.png', description:'4 tasty chewable tablets for complete internal parasite protection.' },
-    { id:'p4', name:'Ergonomic Grooming Brush', category:'Grooming', price:22.00, stockQuantity:45, brand:'Furminator', imageUrl:'assets/images/Pet_1.jpg', description:'Reduces shedding by up to 90% without scratching skin.' }
+    { id:'p1', name:'Premium Adult Kibble (4kg)', category:'Food', price:340.00, stockQuantity:120, brand:'Royal Canin', imageUrl:'assets/images/Pet_1.jpg', description:'Complete balanced nutrition for active adult dogs.' },
+    { id:'p2', name:'Omega-3 Skin & Coat Oil (250ml)', category:'Medicine', price:180.00, stockQuantity:85, brand:'Nordic Naturals', imageUrl:'assets/images/Pet_2.jpg', description:'250ml pure wild Alaskan salmon oil.' },
+    { id:'p3', name:'Broad-Spectrum Dewormer Chewables', category:'Medicine', price:140.00, stockQuantity:200, brand:'Bayer', imageUrl:'assets/images/tail_wagging_logo.png', description:'4 tasty chewable tablets for complete internal parasite protection.' },
+    { id:'p4', name:'Ergonomic De-Shedding Brush', category:'Grooming', price:220.00, stockQuantity:45, brand:'Furminator', imageUrl:'assets/images/Pet_1.jpg', description:'Reduces shedding by up to 90% without scratching skin.' }
   ];
 
   function renderShop(products) {
@@ -3823,7 +3956,7 @@
           <h4 style="font-size:16px;font-weight:700;margin-bottom:4px;">${esc(p.name)}</h4>
           <span style="font-size:13px;color:var(--label-3);">${esc(p.category||'Care')} · ${esc(p.brand||'Pet Maya')}</span>
           <div style="display:flex;justify-content:space-between;align-items:center;margin:10px 0;">
-            <div style="font-size:20px;font-weight:800;color:var(--primary);letter-spacing:-0.5px;">$${price}</div>
+            <div style="font-size:20px;font-weight:800;color:var(--primary);letter-spacing:-0.5px;">৳${price}</div>
             <span style="font-size:11px;font-weight:700;color:${isOut?'#DC2626':'#16A34A'};">${isOut?'Out of Stock':(p.stockQuantity||p.stock||0)+' in stock'}</span>
           </div>
           <button class="btn-sm-primary" style="width:100%;justify-content:center;" ${isOut?'disabled style="opacity:0.5;"':''} onclick="addToCart('${p.id}')">
@@ -3882,8 +4015,8 @@
 
     if (!items.length) {
       c.innerHTML = '<div style="text-align:center;padding:30px;color:var(--label-3);">Your cart is currently empty.</div>';
-      document.getElementById('cartSubtotal').textContent = '$0.00';
-      document.getElementById('cartTotal').textContent    = '$0.00';
+      document.getElementById('cartSubtotal').textContent = '৳0.00';
+      document.getElementById('cartTotal').textContent    = '৳0.00';
       return;
     }
 
@@ -3898,7 +4031,7 @@
             <img src="${prod.imageUrl||'assets/images/Pet_1.jpg'}" alt="${esc(prod.name)}">
             <div>
               <strong style="font-size:14px;display:block;">${esc(prod.name)}</strong>
-              <span style="font-size:12px;color:var(--label-3);">$${parseFloat(prod.price).toFixed(2)} each</span>
+              <span style="font-size:12px;color:var(--label-3);">৳${parseFloat(prod.price).toFixed(2)} each</span>
             </div>
           </div>
           <div class="cart-qty-ctrl">
@@ -3906,14 +4039,14 @@
             <span style="font-weight:700;font-size:14px;min-width:18px;text-align:center;">${qty}</span>
             <button class="cart-qty-btn" onclick="updateCartQty('${pid}', 1)">+</button>
           </div>
-          <strong style="font-size:14px;color:var(--primary);min-width:60px;text-align:right;">$${itemTotal.toFixed(2)}</strong>
+          <strong style="font-size:14px;color:var(--primary);min-width:60px;text-align:right;">৳${itemTotal.toFixed(2)}</strong>
         </div>`;
     }).join('');
 
-    const shipping = 5.00;
-    document.getElementById('cartSubtotal').textContent = '$' + subtotal.toFixed(2);
-    document.getElementById('cartShipping').textContent = '$' + shipping.toFixed(2);
-    document.getElementById('cartTotal').textContent    = '$' + (subtotal + shipping).toFixed(2);
+    const shipping = 50.00;
+    document.getElementById('cartSubtotal').textContent = '৳' + subtotal.toFixed(2);
+    document.getElementById('cartShipping').textContent = '৳' + shipping.toFixed(2);
+    document.getElementById('cartTotal').textContent    = '৳' + (subtotal + shipping).toFixed(2);
   }
 
   function checkoutOrder() {
@@ -3950,8 +4083,8 @@
       phone: phone,
       paymentMethod: payment,
       subtotal: subtotal,
-      shippingCharges: 5.0,
-      total: subtotal + 5.0,
+      shippingCharges: 50.0,
+      total: subtotal + 50.0,
       timestamp: Date.now(),
       status: 'Pending',
       items: orderItems
@@ -4000,7 +4133,7 @@
               <tr>
                 <td><strong>${esc(o.orderId||o.id)}</strong></td>
                 <td style="font-size:13px;color:var(--label-3);">${(o.items||[]).map(i => `${esc(i.productName)} × ${i.quantity}`).join(', ') || '—'}</td>
-                <td style="font-weight:700;color:var(--primary);">$${parseFloat(o.total||0).toFixed(2)}</td>
+                <td style="font-weight:700;color:var(--primary);">৳${parseFloat(o.total||0).toFixed(2)}</td>
                 <td style="font-size:13px;color:var(--label-3);">${o.timestamp ? new Date(o.timestamp).toLocaleDateString() : '—'}</td>
                 <td><span class="badge ${STATUS_BADGE[(o.status||'').toLowerCase()]||'badge-blue'}">${o.status||'Pending'}</span></td>
               </tr>`).join('')}
@@ -4011,10 +4144,28 @@
 
   /* ── 6. USER PROFILE ENGINE ── */
   function openEditProfileModal() {
-    const n = document.getElementById('editProfileName'); if (n) n.value = currentUser?.displayName || '';
+    const n = document.getElementById('editProfileName'); if (n) n.value = currentUser?.displayName || currentUser?.name || '';
     const p = document.getElementById('editProfilePhone'); if (p) p.value = currentUser?.phone || '';
     const a = document.getElementById('editProfileAddress'); if (a) a.value = currentUser?.address || '';
-    const ph = document.getElementById('editProfilePhoto'); if (ph) ph.value = currentUser?.photoURL || '';
+    const ph = document.getElementById('editProfilePhoto'); if (ph) ph.value = currentUser?.photoURL || currentUser?.photoUrl || '';
+
+    // Check if provider role
+    const role = (currentUser?.role || '').toLowerCase();
+    const isProvider = role.includes('vet') || role.includes('groom') || role.includes('board') || role.includes('shop');
+    const provWrap = document.getElementById('editProfileProviderFields');
+    if (provWrap) provWrap.style.display = isProvider ? 'block' : 'none';
+
+    if (isProvider) {
+      const c = document.getElementById('editProfileClinic'); if (c) c.value = currentUser?.clinicName || '';
+      const exp = document.getElementById('editProfileExperience'); if (exp) exp.value = currentUser?.yearsExperience || '';
+      const bio = document.getElementById('editProfileBio'); if (bio) bio.value = currentUser?.bio || '';
+      
+      const isVet = role.includes('vet') || role.includes('doctor');
+      const specWrap = document.getElementById('editProfileSpecializationWrap');
+      if (specWrap) specWrap.style.display = isVet ? 'block' : 'none';
+      const spec = document.getElementById('editProfileSpecialization'); if (spec) spec.value = currentUser?.specialization || '';
+    }
+
     document.getElementById('editProfileModal')?.classList.add('open');
   }
 
@@ -4026,24 +4177,52 @@
 
     if (!name) { toast('⚠️ Name cannot be empty'); return; }
 
+    const role = (currentUser?.role || '').toLowerCase();
+    const isProvider = role.includes('vet') || role.includes('groom') || role.includes('board') || role.includes('shop');
+
     const updates = {
       name: name,
       phone: phone || '',
       address: address || '',
-      photoUrl: photo || currentUser?.photoURL || 'assets/images/Pet_2.jpg'
+      photoUrl: photo || currentUser?.photoURL || currentUser?.photoUrl || 'assets/images/Pet_2.jpg'
     };
+
+    if (isProvider) {
+      updates.clinicName = document.getElementById('editProfileClinic')?.value.trim() || '';
+      updates.yearsExperience = parseInt(document.getElementById('editProfileExperience')?.value) || 0;
+      updates.bio = document.getElementById('editProfileBio')?.value.trim() || '';
+      if (role.includes('vet') || role.includes('doctor')) {
+        updates.specialization = document.getElementById('editProfileSpecialization')?.value.trim() || '';
+      }
+    }
 
     if (currentUser?.uid && currentUser.uid !== 'demo_001') {
       db.collection('users').doc(currentUser.uid).set(updates, { merge: true })
         .then(() => {
+          // Dual-sync with public specialist catalog if provider
+          if (isProvider) {
+            db.collection('vets').doc(currentUser.uid).set({
+              name: (role.includes('vet') && !name.startsWith('Dr.') ? 'Dr. ' : '') + name,
+              phone: updates.phone,
+              address: updates.address,
+              photoUrl: updates.photoUrl,
+              bio: updates.bio || '',
+              qualification: updates.specialization || updates.clinicName || 'Pet Care Specialist',
+              clinic: updates.clinicName || ''
+            }, { merge: true }).catch(() => {});
+          }
+
+          Object.assign(currentUser, updates);
+          currentUser.displayName = name;
+          currentUser.photoURL = updates.photoUrl;
+          initUser(currentUser);
           closeModal('editProfileModal');
-          toast('✅ Profile details updated!');
+          toast('✅ Profile & provider details updated successfully!');
         })
         .catch(err => toast('⚠️ ' + err.message));
     } else {
+      Object.assign(currentUser, updates);
       currentUser.displayName = name;
-      currentUser.phone = phone;
-      currentUser.address = address;
       initUser(currentUser);
       closeModal('editProfileModal');
       toast('✅ Profile details updated (demo)!');
@@ -4065,6 +4244,8 @@
   let allAdminUsers = [];
   let allAdminProducts = [];
   let allAdminOrders = [];
+  let allAdminPricing = [];
+  let allAdminPets = [];
   let bcType = 'info';
   let bcAudiences = new Set(['all']);
   let broadcastLog = [];
@@ -4102,11 +4283,16 @@
   function adminSubSwitch(section) {
     document.querySelectorAll('.admin-section').forEach(s => s.style.display = 'none');
     document.querySelectorAll('.admin-sub-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById('admin-' + section).style.display = 'block';
-    document.getElementById('asub-' + section).classList.add('active');
+    const secEl = document.getElementById('admin-' + section);
+    if (secEl) secEl.style.display = 'block';
+    const btnEl = document.getElementById('asub-' + section);
+    if (btnEl) btnEl.classList.add('active');
+
     if (section === 'users')     loadAdminUsers();
     if (section === 'products')  loadAdminProducts();
     if (section === 'orders')    loadAdminOrders();
+    if (section === 'pricing')   loadAdminPricing();
+    if (section === 'pets')      loadAdminPets();
     if (section === 'broadcast') renderBroadcastHistory();
   }
 
@@ -4451,6 +4637,234 @@
         <td style="font-weight:700;color:var(--primary);">${(b.reach||0).toLocaleString()}</td>
       </tr>`).join('');
   }
+  // ── Admin Service Pricing Management ──
+  function loadAdminPricing() {
+    const tbody = document.getElementById('adminPricingBody');
+    if (tbody) tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--label-3);">Loading provider pricing from Firestore…</td></tr>';
+
+    db.collection('users').where('role', 'in', ['Veterinarian', 'Grooming', 'Boarding', 'Pet Shop']).onSnapshot(snap => {
+      allAdminPricing = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderPricingTable(allAdminPricing);
+    }, () => {
+      allAdminPricing = activeVets.length ? activeVets : SAMPLE_VETS;
+      renderPricingTable(allAdminPricing);
+    });
+  }
+
+  function renderPricingTable(list) {
+    const tbody = document.getElementById('adminPricingBody');
+    if (!tbody) return;
+    if (!list.length) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--label-3);">No service providers registered.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = list.map(v => {
+      const p = v.price || '৳35/visit';
+      const role = v.role || v.tag || 'Veterinarian';
+      const name = v.name || v.displayName || 'Specialist';
+      return `
+        <tr>
+          <td>
+            <div style="font-weight:700;">${esc(name)}</div>
+            <div style="font-size:11px;color:var(--label-3);">${esc(v.specialization || v.qualification || 'Pet Care Specialist')}</div>
+          </td>
+          <td><span class="badge ${role==='Veterinarian'?'badge-green':(role==='Grooming'?'badge-purple':'badge-blue')}">${esc(role)}</span></td>
+          <td style="font-weight:700;color:#D97706;">★ ${v.rating || '4.9'} (${v.reviewsCount || v.reviews || 0})</td>
+          <td style="font-size:13px;color:var(--label-3);">${esc(v.distance || '1.2 km')}</td>
+          <td style="font-weight:900;color:var(--primary);font-size:15px;">${esc(p)}</td>
+          <td>
+            <button class="btn-sm-primary" style="padding:6px 12px;font-size:12px;" onclick="openEditPriceModal('${esc(v.id||v.uid)}', '${esc(name)}', '${esc(p)}')">
+              ✏️ Edit Fee
+            </button>
+          </td>
+        </tr>`;
+    }).join('');
+  }
+
+  function filterAdminPricing() {
+    const q = (document.getElementById('pricingSearch')?.value || '').toLowerCase();
+    const role = document.getElementById('pricingRoleFilter')?.value;
+    renderPricingTable(allAdminPricing.filter(v => {
+      const matchesQ = !q || (v.name||'').toLowerCase().includes(q) || (v.specialization||'').toLowerCase().includes(q) || (v.qualification||'').toLowerCase().includes(q);
+      const matchesR = role === 'all' || (v.role||v.tag||'') === role;
+      return matchesQ && matchesR;
+    }));
+  }
+
+  function openEditPriceModal(vetId, vetName, currentPrice) {
+    const idEl = document.getElementById('editPriceVetId'); if (idEl) idEl.value = vetId;
+    const lbl = document.getElementById('editPriceProviderLabel'); if (lbl) lbl.textContent = `Update consultation fee for ${vetName}`;
+    const inp = document.getElementById('editPriceInput'); if (inp) inp.value = currentPrice || '৳35/visit';
+    document.getElementById('editPriceModal')?.classList.add('open');
+  }
+
+  function saveVetPrice() {
+    const vetId = document.getElementById('editPriceVetId')?.value;
+    let newPrice = document.getElementById('editPriceInput')?.value.trim();
+    if (!newPrice) { toast('⚠️ Please enter a fee.'); return; }
+    if (!newPrice.startsWith('৳') && !newPrice.startsWith('$')) newPrice = '৳' + newPrice;
+
+    if (vetId && vetId !== 'demo_001') {
+      db.collection('users').doc(vetId).set({ price: newPrice }, { merge: true })
+        .then(() => {
+          db.collection('vets').doc(vetId).set({ price: newPrice }, { merge: true }).catch(() => {});
+          closeModal('editPriceModal');
+          toast(`💰 Pricing updated to ${newPrice} for provider.`);
+          loadAdminPricing();
+        })
+        .catch(err => toast('⚠️ ' + err.message));
+    } else {
+      const v = allAdminPricing.find(x => x.id === vetId || x.uid === vetId);
+      if (v) v.price = newPrice;
+      renderPricingTable(allAdminPricing);
+      closeModal('editPriceModal');
+      toast(`💰 Pricing updated to ${newPrice} (demo mode).`);
+    }
+  }
+
+  // ── Admin Pet Directory Management ──
+  function loadAdminPets() {
+    const tbody = document.getElementById('adminPetsBody');
+    if (tbody) tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--label-3);">Loading all registered pets from Firestore…</td></tr>';
+
+    db.collection('pets').onSnapshot(snap => {
+      allAdminPets = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderAdminPetsTable(allAdminPets);
+    }, () => {
+      allAdminPets = activePets.length ? activePets : INITIAL_PETS;
+      renderAdminPetsTable(allAdminPets);
+    });
+  }
+
+  function renderAdminPetsTable(pets) {
+    const tbody = document.getElementById('adminPetsBody');
+    if (!tbody) return;
+    if (!pets.length) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--label-3);">No pets registered on platform.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = pets.map(p => `
+      <tr>
+        <td>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <img src="${p.photoUrl || p.imageUrl || p.avatar || 'assets/images/Pet_1.jpg'}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">
+            <div>
+              <div style="font-weight:700;">${esc(p.name)}</div>
+              <div style="font-size:11px;color:var(--label-3);">ID: ${(p.id||p.petID||'').slice(0,8)}</div>
+            </div>
+          </div>
+        </td>
+        <td><strong>${esc(p.type||p.species||'Dog')}</strong> · <span style="color:var(--label-3);">${esc(p.breed||'Mixed')}</span></td>
+        <td style="font-size:13px;">${esc(p.gender||'Male')} · ${esc(p.age||'2 yrs')}</td>
+        <td style="font-size:13px;color:var(--label-3);">${esc(p.weight||'—')}</td>
+        <td style="font-family:monospace;font-size:12px;color:var(--label-3);">${esc((p.ownerID||p.userId||'—').slice(0,12))}</td>
+        <td>
+          <span class="badge ${p.vaccinationDetails ? 'badge-green' : 'badge-yellow'}">
+            ${p.vaccinationDetails ? '💉 Vaccinated' : '🐾 Active'}
+          </span>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function filterAdminPets() {
+    const q = (document.getElementById('adminPetSearch')?.value || '').toLowerCase();
+    const sp = document.getElementById('adminPetSpeciesFilter')?.value;
+    renderAdminPetsTable(allAdminPets.filter(p => {
+      const matchQ = !q || (p.name||'').toLowerCase().includes(q) || (p.breed||'').toLowerCase().includes(q) || (p.ownerID||'').toLowerCase().includes(q);
+      const matchSp = sp === 'all' || (p.type||p.species||'').toLowerCase() === sp.toLowerCase();
+      return matchQ && matchSp;
+    }));
+  }
+
+  // ── Specialist Reviews & Rating System ──
+  let activeReviews = [];
+  function openReviewsModal(vetId, vetName) {
+    const targetIdEl = document.getElementById('reviewTargetId'); if (targetIdEl) targetIdEl.value = vetId;
+    const targetNameEl = document.getElementById('reviewTargetName'); if (targetNameEl) targetNameEl.value = vetName;
+    const titleEl = document.getElementById('reviewsModalTitle'); if (titleEl) titleEl.textContent = `⭐ Reviews for ${vetName}`;
+    const subEl = document.getElementById('reviewsModalSubtitle'); if (subEl) subEl.textContent = `Verified feedback from pet parents.`;
+    
+    loadSpecialistReviews(vetId);
+    document.getElementById('reviewsModal')?.classList.add('open');
+  }
+
+  function loadSpecialistReviews(vetId) {
+    const c = document.getElementById('reviewsListContainer');
+    if (!c) return;
+    c.innerHTML = '<div style="text-align:center;padding:20px;color:var(--label-3);">Loading reviews…</div>';
+
+    db.collection('reviews').where('targetId', '==', vetId).orderBy('timestamp', 'desc').limit(20).get()
+      .then(snap => {
+        activeReviews = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        renderReviewsList(activeReviews);
+      })
+      .catch(() => {
+        // Sample review demo
+        activeReviews = [
+          { id: 'rev1', userName: 'Maria Garcia', rating: 5, comment: 'Dr. was exceptional with Bella! Explained the ear drops in detail and answered all our questions.', timestamp: Date.now() - 86400000 },
+          { id: 'rev2', userName: 'John Doe', rating: 5, comment: 'Quick response time and highly professional clinic atmosphere. Recommended!', timestamp: Date.now() - 259200000 }
+        ];
+        renderReviewsList(activeReviews);
+      });
+  }
+
+  function renderReviewsList(reviews) {
+    const c = document.getElementById('reviewsListContainer');
+    if (!c) return;
+    if (!reviews.length) {
+      c.innerHTML = '<div style="text-align:center;padding:24px;color:var(--label-3);">No reviews yet. Be the first to leave a review!</div>';
+      return;
+    }
+    c.innerHTML = reviews.map(r => `
+      <div style="background:var(--surface-alt);border-radius:var(--r-sm);padding:14px;margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <strong style="font-size:14px;">${esc(r.userName || 'Pet Parent')}</strong>
+          <span style="color:#D97706;font-size:13px;font-weight:800;">${'★'.repeat(r.rating || 5)} (${(r.rating||5).toFixed(1)})</span>
+        </div>
+        <p style="font-size:13.5px;color:var(--label-2);line-height:1.4;margin:0;">${esc(r.comment || r.text || '')}</p>
+        <span style="font-size:11px;color:var(--label-3);margin-top:6px;display:block;">${r.timestamp ? new Date(r.timestamp).toLocaleDateString() : 'Recent'}</span>
+      </div>
+    `).join('');
+  }
+
+  function submitSpecialistReview() {
+    const targetId = document.getElementById('reviewTargetId')?.value;
+    const targetName = document.getElementById('reviewTargetName')?.value || 'Specialist';
+    const rating = parseInt(document.getElementById('reviewRatingSelect')?.value) || 5;
+    const comment = document.getElementById('reviewCommentInput')?.value.trim();
+
+    if (!comment) { toast('⚠️ Please write a review comment.'); return; }
+
+    const revId = 'rev_' + Date.now();
+    const reviewData = {
+      id: revId,
+      targetId: targetId,
+      targetName: targetName,
+      userId: currentUser?.uid || 'guest',
+      userName: currentUser?.displayName || 'Pet Parent',
+      userPhoto: currentUser?.photoURL || '',
+      rating: rating,
+      comment: comment,
+      timestamp: Date.now()
+    };
+
+    if (currentUser?.uid && currentUser.uid !== 'demo_001') {
+      db.collection('reviews').doc(revId).set(reviewData)
+        .then(() => {
+          document.getElementById('reviewCommentInput').value = '';
+          toast('🎉 Review submitted successfully!');
+          loadSpecialistReviews(targetId);
+        })
+        .catch(err => toast('⚠️ ' + err.message));
+    } else {
+      activeReviews.unshift(reviewData);
+      renderReviewsList(activeReviews);
+      document.getElementById('reviewCommentInput').value = '';
+      toast('🎉 Review submitted (demo mode)!');
+    }
+  }
+
   /* ══════════════════════════════════════════════════════
      AUTH HANDLERS & MODAL MANAGEMENT
   ══════════════════════════════════════════════════════ */
