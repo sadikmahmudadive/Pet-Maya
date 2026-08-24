@@ -46,6 +46,18 @@ class _VetDetailsScreenState extends State<VetDetailsScreen> {
     final reviews = repo.reviews;
     final total = reviews.length;
     
+    // Self-Healing Data: If the database aggregate (rating/count) doesn't match the actual reviews, 
+    // we correct the main Vet document in the background.
+    if (total > 0 && (currentVet.reviewsCount != total)) {
+       final sum = reviews.fold(0.0, (s, r) => s + r.rating);
+       final trueAvg = double.parse((sum / total).toStringAsFixed(1));
+       
+       // background update to fix the "hardcoded" look on Home Screen
+       WidgetsBinding.instance.addPostFrameCallback((_) {
+         repo.updateVetAggregate(currentVet.id, trueAvg, total);
+       });
+    }
+
     int exc = 0, good = 0, avg = 0, poor = 0;
     for (var r in reviews) {
       if (r.rating >= 4.5) {
@@ -166,7 +178,22 @@ class _VetDetailsScreenState extends State<VetDetailsScreen> {
                       Expanded(
                         child: GestureDetector(
                           onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ReviewsScreen(targetId: currentVet.id, targetName: currentVet.name))),
-                          child: _buildStatTile(context, Icons.star_rounded, AppColors.accentAmber, currentVet.rating == 0 ? 'N/A' : '${currentVet.rating}', 'REVIEWS'),
+                          child: Builder(builder: (context) {
+                            // Truth Logic: Calculate real rating from loaded reviews if they exist
+                            double displayRating = currentVet.rating;
+                            if (total > 0) {
+                              final sum = reviews.fold(0.0, (s, r) => s + r.rating);
+                              displayRating = double.parse((sum / total).toStringAsFixed(1));
+                            }
+                            
+                            return _buildStatTile(
+                              context, 
+                              Icons.star_rounded, 
+                              AppColors.accentAmber, 
+                              displayRating == 0 ? 'N/A' : '$displayRating', 
+                              'REVIEWS'
+                            );
+                          }),
                         ),
                       ),
                       const SizedBox(width: 12),

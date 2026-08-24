@@ -556,7 +556,7 @@ class _PetServicesScreenState extends State<PetServicesScreen> {
                                   const Icon(Icons.star_rounded, color: AppColors.accentAmber, size: 13),
                                   const SizedBox(width: 3),
                                   Text(
-                                    '${vet.rating} (${vet.reviewsCount})',
+                                    vet.reviewsCount == 0 ? 'NEW' : '${vet.rating} (${vet.reviewsCount})',
                                     style: const TextStyle(
                                       fontWeight: FontWeight.w900,
                                       fontSize: 10,

@@ -61,7 +61,7 @@ class VetModel {
       id: id,
       name: map['name'] ?? '',
       qualification: map['qualification'] ?? 'Pet Care Specialist',
-      rating: (map['rating'] as num?)?.toDouble() ?? 4.5,
+      rating: (map['rating'] as num?)?.toDouble() ?? 0.0,
       reviewsCount: (map['reviewsCount'] as num?)?.toInt() ?? 0,
       tag: map['role'] ?? map['tag'] ?? 'Veterinarian',
       distance: map['distance'] ?? 'Nearby',

@@ -1186,13 +1186,13 @@ class HomeDashboardFragment extends StatelessWidget {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              '${vet.rating}',
+                              vet.reviewsCount == 0 ? 'NEW' : '${vet.rating}',
                               style: Theme.of(context).textTheme.labelSmall
                                   ?.copyWith(fontWeight: FontWeight.bold),
                             ),
                             Flexible(
                               child: Text(
-                                ' (${vet.reviewsCount} reviews)',
+                                vet.reviewsCount == 0 ? '' : ' (${vet.reviewsCount} reviews)',
                                 style: Theme.of(context).textTheme.labelSmall,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
