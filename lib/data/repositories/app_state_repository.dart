@@ -21,6 +21,7 @@ import '../models/feed_post_model.dart';
 import '../models/comment_model.dart';
 import '../models/notification_model.dart';
 import '../models/review_model.dart';
+import '../models/blog_post_model.dart';
 import '../services/firebase_service.dart';
 import '../../core/services/notification_service.dart';
 import '../../core/services/native_bridge_service.dart';
@@ -84,12 +85,14 @@ class AppStateRepository extends ChangeNotifier {
   final List<UserModel> _allUsers = [];
   final List<NotificationModel> _notifications = [];
   final List<ReviewModel> _reviews = [];
+  final List<BlogPostModel> _blogs = [];
   
   // Dynamic Distance Calculation State
   final Map<String, String> _calculatedDistances = {};
 
   // Getters
   List<PetModel> get pets => List.unmodifiable(_pets);
+  List<BlogPostModel> get blogs => List.unmodifiable(_blogs);
   
   List<EventModel> get events {
     final all = List<EventModel>.from(_events);
@@ -286,6 +289,7 @@ class AppStateRepository extends ChangeNotifier {
       Future.wait([
         _loadProducts(),
         _loadCommunityPosts(),
+        _loadBlogs(),
       ]);
       
       _listenToVets();
@@ -476,6 +480,32 @@ class AppStateRepository extends ChangeNotifier {
     } catch (e) {
       debugPrint('[AppStateRepository] _loadCommunityPosts error: $e');
     }
+  }
+
+  Future<void> _loadBlogs() async {
+    try {
+      _firebase.streamBlogs().listen((fetchedBlogs) {
+        _blogs
+          ..clear()
+          ..addAll(fetchedBlogs);
+        notifyListeners();
+      });
+    } catch (e) {
+      debugPrint('[AppStateRepository] _loadBlogs error: $e');
+    }
+  }
+
+  Future<void> addBlog(BlogPostModel blog) async {
+    _blogs.insert(0, blog);
+    notifyListeners();
+    await _firebase.saveBlog(blog);
+    logAudit('Blog Created', 'User ${_currentUser?.name} published an article');
+  }
+
+  Future<void> deleteBlog(String blogId) async {
+    _blogs.removeWhere((b) => b.id == blogId);
+    notifyListeners();
+    await _firebase.deleteBlog(blogId);
   }
 
   // ─── AUTH ────────────────────────────────────────────────────────────────

@@ -24,6 +24,8 @@ import '../shop/shop_screen.dart';
 import '../services/pet_services_screen.dart';
 import '../community/community_feed_screen.dart';
 import '../community/create_post_screen.dart';
+import '../community/blog_screen.dart';
+import '../community/create_blog_screen.dart';
 import 'pet_tracker_screen.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
@@ -189,8 +191,10 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
                 ],
               ),
               const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
+              Wrap(
+                spacing: 20,
+                runSpacing: 20,
+                alignment: WrapAlignment.center,
                 children: [
                   _buildQuickActionBtn(
                     ctx,
@@ -233,6 +237,21 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
                         context,
                         MaterialPageRoute(
                           builder: (_) => const CreatePostScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  _buildQuickActionBtn(
+                    ctx,
+                    Icons.article_rounded,
+                    'Write Blog',
+                    AppColors.tertiary,
+                    () {
+                      Navigator.pop(ctx);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const CreateBlogScreen(),
                         ),
                       );
                     },
@@ -415,6 +434,7 @@ class HomeDashboardFragment extends StatelessWidget {
                   ),
                 ),
               ),
+              const SizedBox(height: 4),
               SizedBox(
                 height: 180,
                 child: pets.isEmpty
@@ -434,7 +454,7 @@ class HomeDashboardFragment extends StatelessWidget {
               ),
 
               // ─── DISCOVER MORE ─────────────────────────────────────────────
-              const SizedBox(height: 32),
+              const SizedBox(height: 24),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
@@ -446,7 +466,7 @@ class HomeDashboardFragment extends StatelessWidget {
                         context,
                       ).textTheme.titleLarge?.copyWith(fontSize: 20),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     LayoutBuilder(
                       builder: (context, constraints) {
                         final crossAxisCount = constraints.maxWidth > 600
@@ -457,11 +477,12 @@ class HomeDashboardFragment extends StatelessWidget {
                             : (isSmallScreen ? 0.75 : 0.8);
 
                         return GridView.count(
+                          padding: EdgeInsets.zero,
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
                           crossAxisCount: crossAxisCount,
-                          mainAxisSpacing: 12,
-                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 16,
+                          crossAxisSpacing: 16,
                           childAspectRatio: childAspectRatio,
                           children: [
                             _buildDiscoveryCard(
@@ -519,6 +540,36 @@ class HomeDashboardFragment extends StatelessWidget {
                               action: 'Explore',
                               onTap: () => onNavRequested?.call(2),
                             ),
+                            _buildDiscoveryCard(
+                              context,
+                              icon: Icons.article_rounded,
+                              color: const Color(0xFFFFF3E0),
+                              iconColor: const Color(0xFFE65100),
+                              title: 'Blog',
+                              subtitle: 'Expert advice',
+                              action: 'Read',
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const BlogScreen(),
+                                ),
+                              ),
+                            ),
+                            _buildDiscoveryCard(
+                              context,
+                              icon: Icons.event_available_rounded,
+                              color: const Color(0xFFFFEBEE),
+                              iconColor: const Color(0xFFD32F2F),
+                              title: 'Reminders',
+                              subtitle: 'Schedule care',
+                              action: 'View',
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const CalendarScreen(),
+                                ),
+                              ),
+                            ),
                           ],
                         );
                       },
@@ -528,7 +579,7 @@ class HomeDashboardFragment extends StatelessWidget {
               ),
 
               // ─── UPCOMING EVENTS ──────────────────────────────────────────
-              const SizedBox(height: 32),
+              const SizedBox(height: 24),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Row(
@@ -588,7 +639,7 @@ class HomeDashboardFragment extends StatelessWidget {
                 ),
 
               // ─── TOP VETERINARIANS ────────────────────────────────────────
-              const SizedBox(height: 32),
+              const SizedBox(height: 24),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Row(

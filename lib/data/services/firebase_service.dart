@@ -13,6 +13,7 @@ import '../models/feed_post_model.dart';
 import '../models/comment_model.dart';
 import '../models/review_model.dart';
 import '../models/notification_model.dart';
+import '../models/blog_post_model.dart';
 import '../models/user_model.dart' as app_models;
 
 /// FirebaseService handles all Firestore and Auth operations with offline-first persistence.
@@ -56,6 +57,7 @@ class FirebaseService {
   CollectionReference get _eventsCol => _db.collection('events');
   CollectionReference get _reviewsCol => _db.collection('reviews');
   CollectionReference get _notificationsCol => _db.collection('notifications');
+  CollectionReference get _blogsCol => _db.collection('blogs');
 
   // ─── AUTH ────────────────────────────────────────────────────────────────
 
@@ -560,6 +562,31 @@ class FirebaseService {
     for (var doc in snap.docs) {
       await doc.reference.delete();
     }
+  }
+
+  // ─── BLOGS ──────────────────────────────────────────────────────────────
+
+  Future<List<BlogPostModel>> fetchBlogs() async {
+    final snap = await _blogsCol.get();
+    final list = snap.docs.map((d) => BlogPostModel.fromMap(d.id, d.data()! as Map<String, dynamic>)).toList();
+    list.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    return list;
+  }
+
+  Stream<List<BlogPostModel>> streamBlogs() {
+    return _blogsCol.snapshots().map((snap) {
+      final list = snap.docs.map((d) => BlogPostModel.fromMap(d.id, d.data()! as Map<String, dynamic>)).toList();
+      list.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      return list;
+    });
+  }
+
+  Future<void> saveBlog(BlogPostModel blog) async {
+    await _blogsCol.doc(blog.id).set(blog.toMap(), SetOptions(merge: true));
+  }
+
+  Future<void> deleteBlog(String blogId) async {
+    await _blogsCol.doc(blogId).delete();
   }
 }
 
