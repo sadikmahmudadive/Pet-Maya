@@ -51,7 +51,8 @@ service cloud.firestore {
     // Shop Catalog & Inventory
     match /products/{productId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow create, delete: if isAdmin();
+      allow update: if isAuthenticated();
     }
 
     // Orders
@@ -64,7 +65,8 @@ service cloud.firestore {
     // Veterinarians & Clinics
     match /vets/{vetId} {
       allow read: if true;
-      allow write: if isAdmin() || isOwner(vetId);
+      allow create, delete: if isAdmin();
+      allow update: if isAuthenticated();
     }
 
     // Veterinary Service Records
@@ -93,8 +95,8 @@ service cloud.firestore {
     // Reviews & Ratings
     match /reviews/{reviewId} {
       allow read: if true;
-      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
-      allow update, delete: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated() && request.resource.data.reviewerId == request.auth.uid;
+      allow update, delete: if isAuthenticated() && (resource.data.reviewerId == request.auth.uid || isAdmin());
     }
 
     // Notifications
