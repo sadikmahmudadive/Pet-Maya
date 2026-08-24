@@ -233,20 +233,23 @@ class _AddReviewBottomSheetState extends State<_AddReviewBottomSheet> {
             const Text('YOUR COMMENT',
                 style: TextStyle(fontWeight: FontWeight.w800, fontSize: 10, color: Colors.grey, letterSpacing: 1)),
             const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: TextField(
-                controller: _commentController,
-                maxLines: 4,
-                style: const TextStyle(fontWeight: FontWeight.w600),
-                decoration: const InputDecoration(
-                  hintText: 'Describe your visit, the care provided...',
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(vertical: 18),
+            TextField(
+              controller: _commentController,
+              maxLines: 4,
+              style: const TextStyle(fontWeight: FontWeight.w600),
+              decoration: InputDecoration(
+                hintText: 'Describe your visit, the care provided...',
+                hintStyle: TextStyle(color: isDark ? Colors.white24 : Colors.grey),
+                filled: true,
+                fillColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05),
+                contentPadding: const EdgeInsets.all(20),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(18),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(18),
+                  borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
                 ),
               ),
             ),

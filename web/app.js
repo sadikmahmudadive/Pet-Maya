@@ -1120,43 +1120,75 @@ function deleteReminder(id) {
 // ─── VACCINE SCHEDULE CALCULATOR ───
 const schedules = {
   dog: [
-    { milestone: 'Core Vaccine #1', care: 'DHPP / DAPP (Distemper, Parvo)', freq: 'Every 3-4 Weeks (Puppy Series)', status: 'Essential ' },
-    { milestone: 'Core Vaccine #2', care: 'Rabies (1-Year or 3-Year)', freq: 'At 16 Weeks & Annual Booster', status: 'Mandatory ️' },
-    { milestone: 'Parasite Prevention', care: 'Heartworm + Flea & Tick (Simparica/NexGard)', freq: 'Monthly Oral Chew', status: 'Active ' },
-    { milestone: 'Deworming Protocol', care: 'Broad-Spectrum Deworming (Pyrantel/Praziquantel)', freq: 'Quarterly (Every 3 Months)', status: 'Scheduled ' },
-    { milestone: 'Annual Wellness', care: 'Complete Blood Count & Dental Scaling', freq: 'Every 12 Months', status: 'Recommended ' }
+    { milestone: 'Core Vaccine #1', care: 'DHPP / DAPP (Distemper, Parvo)', freq: 'Every 3-4 Weeks (Puppy Series)', status: 'Essential 💉' },
+    { milestone: 'Core Vaccine #2', care: 'Rabies (1-Year or 3-Year)', freq: 'At 16 Weeks & Annual Booster', status: 'Mandatory 🛡️' },
+    { milestone: 'Parasite Prevention', care: 'Heartworm + Flea & Tick (Simparica/NexGard)', freq: 'Monthly Oral Chew', status: 'Active 💊' },
+    { milestone: 'Deworming Protocol', care: 'Broad-Spectrum Deworming (Pyrantel/Praziquantel)', freq: 'Quarterly (Every 3 Months)', status: 'Scheduled 🐾' },
+    { milestone: 'Annual Wellness', care: 'Complete Blood Count & Dental Scaling', freq: 'Every 12 Months', status: 'Recommended 🩺' }
   ],
   cat: [
-    { milestone: 'Core Vaccine #1', care: 'FVRCP (Feline Viral Rhinotracheitis, Calici, Panleukopenia)', freq: 'Every 3-4 Weeks (Kitten Series)', status: 'Essential ' },
-    { milestone: 'Core Vaccine #2', care: 'Rabies & FeLV (Feline Leukemia)', freq: 'At 12-16 Weeks & Annual Booster', status: 'Mandatory ️' },
-    { milestone: 'Parasite Prevention', care: 'Topical Flea, Tick & Ear Mite (Revolution Plus)', freq: 'Monthly Topical Dose', status: 'Active ' },
-    { milestone: 'Deworming Protocol', care: 'Intestinal Deworming Treatment', freq: 'Quarterly (Every 3 Months)', status: 'Scheduled ' },
-    { milestone: 'Wellness Exam', care: 'Kidney Health Screening & Dental Check', freq: 'Every 12 Months', status: 'Recommended ' }
+    { milestone: 'Core Vaccine #1', care: 'FVRCP (Feline Viral Rhinotracheitis, Calici, Panleukopenia)', freq: 'Every 3-4 Weeks (Kitten Series)', status: 'Essential 💉' },
+    { milestone: 'Core Vaccine #2', care: 'Rabies & FeLV (Feline Leukemia)', freq: 'At 12-16 Weeks & Annual Booster', status: 'Mandatory 🛡️' },
+    { milestone: 'Parasite Prevention', care: 'Topical Flea, Tick & Ear Mite (Revolution Plus)', freq: 'Monthly Topical Dose', status: 'Active 💊' },
+    { milestone: 'Deworming Protocol', care: 'Intestinal Deworming Treatment', freq: 'Quarterly (Every 3 Months)', status: 'Scheduled 🐾' },
+    { milestone: 'Wellness Exam', care: 'Kidney Health Screening & Dental Check', freq: 'Every 12 Months', status: 'Recommended 🩺' }
   ]
 };
 
 function calculateVaccineSchedule() {
-  const typeEl = document.getElementById('calcPetType');
+  buildVaccineTable();
+}
+
+function buildVaccineTable() {
+  const typeEl = document.getElementById('vaccPetType') || document.getElementById('calcPetType');
   const type = typeEl ? typeEl.value : 'dog';
   const list = schedules[type] || schedules.dog;
+  const tableContainer = document.getElementById('vaccTable');
   const tbody = document.getElementById('scheduleTableBody');
-  if (!tbody) return;
-  tbody.innerHTML = '';
 
-  list.forEach(item => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><strong>${item.milestone}</strong></td>
-      <td>${item.care}</td>
-      <td><span style="color:var(--text-muted);">${item.freq}</span></td>
-      <td><span style="display:inline-block; padding:4px 10px; border-radius:999px; background:#DCFCE7; color:#16A34A; font-size:12px; font-weight:700;">${item.status}</span></td>
+  if (tableContainer) {
+    tableContainer.innerHTML = `
+      <table style="width:100%;border-collapse:collapse;margin-top:14px;font-size:13.5px;">
+        <thead>
+          <tr style="border-bottom:1.5px solid var(--separator);text-align:left;color:var(--label-3);">
+            <th style="padding:10px 8px;">Milestone</th>
+            <th style="padding:10px 8px;">Preventive Care / Vaccine</th>
+            <th style="padding:10px 8px;">Frequency</th>
+            <th style="padding:10px 8px;">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${list.map(item => `
+            <tr style="border-bottom:1px solid var(--separator);">
+              <td style="padding:12px 8px;font-weight:700;">${item.milestone}</td>
+              <td style="padding:12px 8px;">${item.care}</td>
+              <td style="padding:12px 8px;color:var(--label-3);">${item.freq}</td>
+              <td style="padding:12px 8px;"><span class="badge badge-green" style="font-size:11px;">${item.status}</span></td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
     `;
-    tbody.appendChild(tr);
-  });
+  }
+
+  if (tbody) {
+    tbody.innerHTML = list.map(item => `
+      <tr>
+        <td><strong>${item.milestone}</strong></td>
+        <td>${item.care}</td>
+        <td><span style="color:var(--text-muted);">${item.freq}</span></td>
+        <td><span style="display:inline-block; padding:4px 10px; border-radius:999px; background:#DCFCE7; color:#16A34A; font-size:12px; font-weight:700;">${item.status}</span></td>
+      </tr>
+    `).join('');
+  }
+}
+
+function downloadVaccICS() {
+  downloadCalendarICS();
 }
 
 function downloadCalendarICS() {
-  const typeEl = document.getElementById('calcPetType');
+  const typeEl = document.getElementById('vaccPetType') || document.getElementById('calcPetType');
   const petType = typeEl && typeEl.value === 'dog' ? 'Dog' : 'Cat';
   const icsContent = `BEGIN:VCALENDAR
 VERSION:2.0
@@ -1178,7 +1210,539 @@ END:VCALENDAR`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-  showToast(' Vaccine calendar (.ics) exported!');
+  showToast('📅 Vaccine calendar (.ics) exported!');
+}
+
+// ─── 7. REAL-TIME GPS PET RADAR & GEOFENCE ENGINE ───
+let radarState = {
+  petX: 0,
+  petY: 0,
+  targetX: 0,
+  targetY: 0,
+  geofenceRadius: 250, // in meters
+  sonarAngle: 0,
+  isLostMode: false,
+  isWalking: false,
+  lat: 23.8103,
+  lng: 90.4125,
+  battery: 88,
+  satellites: 14,
+  speed: 0.6,
+  temp: 23.8,
+  breadcrumbs: []
+};
+
+let radarAnimId = null;
+
+function initRadarCanvas() {
+  const canvas = document.getElementById('radarCanvas');
+  if (!canvas) return;
+
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width || 600;
+  canvas.height = rect.height || 380;
+
+  if (!radarAnimId) {
+    animateRadar();
+  }
+}
+
+function animateRadar() {
+  const canvas = document.getElementById('radarCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width;
+  const h = canvas.height;
+  const cx = w / 2;
+  const cy = h / 2;
+
+  // Clear background
+  ctx.clearRect(0, 0, w, h);
+
+  // Concentric Range Rings
+  const maxR = Math.min(cx, cy) - 20;
+  const rings = [0.25, 0.5, 0.75, 1.0];
+  ctx.strokeStyle = 'rgba(26, 182, 128, 0.2)';
+  ctx.lineWidth = 1;
+
+  rings.forEach((pct, idx) => {
+    ctx.beginPath();
+    ctx.arc(cx, cy, maxR * pct, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.fillStyle = 'rgba(26, 182, 128, 0.4)';
+    ctx.font = '10px monospace';
+    const meters = Math.round((pct * 1000));
+    ctx.fillText(`${meters}m`, cx + 4, cy - (maxR * pct) + 12);
+  });
+
+  // Crosshairs
+  ctx.strokeStyle = 'rgba(26, 182, 128, 0.15)';
+  ctx.beginPath();
+  ctx.moveTo(cx, 10); ctx.lineTo(cx, h - 10);
+  ctx.moveTo(10, cy); ctx.lineTo(w - 10, cy);
+  ctx.stroke();
+
+  // Dynamic Geofence Circle
+  const geofenceVisualR = (radarState.geofenceRadius / 1000) * maxR;
+  ctx.beginPath();
+  ctx.arc(cx, cy, geofenceVisualR, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(16, 185, 129, 0.08)';
+  ctx.fill();
+  ctx.strokeStyle = radarState.isLostMode ? '#ef4444' : 'rgba(16, 185, 129, 0.6)';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([6, 4]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Sonar Sweep Line
+  radarState.sonarAngle += 0.03;
+  if (radarState.sonarAngle > Math.PI * 2) radarState.sonarAngle = 0;
+
+  const sweepX = cx + Math.cos(radarState.sonarAngle) * maxR;
+  const sweepY = cy + Math.sin(radarState.sonarAngle) * maxR;
+
+  const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, maxR);
+  grad.addColorStop(0, 'rgba(16, 185, 129, 0.4)');
+  grad.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.arc(cx, cy, maxR, radarState.sonarAngle - 0.35, radarState.sonarAngle);
+  ctx.closePath();
+  ctx.fillStyle = grad;
+  ctx.fill();
+  ctx.restore();
+
+  // Breadcrumbs Trail
+  if (radarState.breadcrumbs.length > 1) {
+    ctx.strokeStyle = 'rgba(74, 222, 128, 0.4)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    radarState.breadcrumbs.forEach((pt, i) => {
+      const px = cx + pt.x;
+      const py = cy + pt.y;
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    });
+    ctx.stroke();
+  }
+
+  // Smooth Pet Interpolation
+  if (radarState.isWalking) {
+    radarState.petX += (radarState.targetX - radarState.petX) * 0.05;
+    radarState.petY += (radarState.targetY - radarState.petY) * 0.05;
+
+    if (Math.hypot(radarState.targetX - radarState.petX, radarState.targetY - radarState.petY) < 3) {
+      // Pick next random waypoint
+      const angle = Math.random() * Math.PI * 2;
+      const dist = Math.random() * (geofenceVisualR * 0.85);
+      radarState.targetX = Math.cos(angle) * dist;
+      radarState.targetY = Math.sin(angle) * dist;
+      radarState.breadcrumbs.push({ x: radarState.petX, y: radarState.petY });
+      if (radarState.breadcrumbs.length > 25) radarState.breadcrumbs.shift();
+
+      // Update telemetry coordinates
+      radarState.lat = 23.8103 + (radarState.petY / 10000);
+      radarState.lng = 90.4125 + (radarState.petX / 10000);
+      const coordsEl = document.getElementById('trackerCoordsLabel');
+      if (coordsEl) coordsEl.textContent = `${radarState.lat.toFixed(4)}° N, ${radarState.lng.toFixed(4)}° E (±1.8m)`;
+    }
+  }
+
+  // Pet Position Indicator
+  const petScreenX = cx + radarState.petX;
+  const petScreenY = cy + radarState.petY;
+
+  // Pulse Ring
+  const pulseR = 12 + Math.sin(Date.now() / 200) * 4;
+  ctx.beginPath();
+  ctx.arc(petScreenX, petScreenY, pulseR, 0, Math.PI * 2);
+  ctx.fillStyle = radarState.isLostMode ? 'rgba(239, 68, 68, 0.4)' : 'rgba(74, 222, 128, 0.35)';
+  ctx.fill();
+
+  // Core Pin
+  ctx.beginPath();
+  ctx.arc(petScreenX, petScreenY, 7, 0, Math.PI * 2);
+  ctx.fillStyle = radarState.isLostMode ? '#ef4444' : '#10b981';
+  ctx.fill();
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Pet Label Tag
+  const activePet = getActivePet();
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 11px system-ui, sans-serif';
+  ctx.fillText(activePet ? activePet.name : 'Max 🐾', petScreenX + 10, petScreenY - 6);
+
+  radarAnimId = requestAnimationFrame(animateRadar);
+}
+
+function updateGeofenceRadius(val) {
+  radarState.geofenceRadius = parseInt(val, 10);
+  const lbl = document.getElementById('geofenceRadiusLabel');
+  if (lbl) lbl.textContent = `${val} Meters Radius`;
+  showToast(`Safe-zone perimeter updated to ${val} meters.`);
+}
+
+function soundCollarBuzzer() {
+  try {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(880, audioCtx.currentTime); // A5 tone
+    osc.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.4);
+
+    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.5);
+
+    showToast('🔔 Sound buzzer activated on pet collar!');
+  } catch (e) {
+    showToast('🔔 Sound buzzer triggered on collar!');
+  }
+}
+
+function simulatePetWalk() {
+  radarState.isWalking = !radarState.isWalking;
+  const speedEl = document.getElementById('telemetrySpeed');
+  if (radarState.isWalking) {
+    radarState.targetX = (Math.random() - 0.5) * 120;
+    radarState.targetY = (Math.random() - 0.5) * 120;
+    if (speedEl) speedEl.textContent = '1.8 km/h 🐾';
+    showToast('🚶 Live GPS walk tracking simulation active!');
+  } else {
+    if (speedEl) speedEl.textContent = '0.0 km/h (Stationary)';
+    showToast('Pet tracking simulation paused.');
+  }
+}
+
+function toggleLostMode() {
+  radarState.isLostMode = !radarState.isLostMode;
+  const banner = document.getElementById('lostPetAlertBanner');
+  const btn = document.getElementById('lostModeToggleBtn');
+
+  if (radarState.isLostMode) {
+    if (banner) banner.style.display = 'flex';
+    if (btn) {
+      btn.textContent = '🚨 Deactivate Lost Mode';
+      btn.style.background = '#374151';
+    }
+    showToast('🚨 EMERGENCY LOST PET BEACON ACTIVATED! Broadcasting telemetry.');
+  } else {
+    if (banner) banner.style.display = 'none';
+    if (btn) {
+      btn.textContent = '🚨 Lost Pet Mode';
+      btn.style.background = '#ef4444';
+    }
+    showToast('Lost pet mode deactivated. Status returned to normal.');
+  }
+}
+
+// ─── 8. NUTRITION CALCULATOR & BREED EXPLORER ENGINE ───
+const BREEDS_DATABASE = [
+  {
+    name: 'Golden Retriever',
+    species: 'dog',
+    image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=300&auto=format&fit=crop&q=80',
+    tags: ['dog', 'family', 'active'],
+    exercise: 90,
+    shedding: 80,
+    trainability: 95,
+    lifespan: '10 - 12 Yrs',
+    health: 'Prone to hip dysplasia and seasonal allergic dermatitis.'
+  },
+  {
+    name: 'British Shorthair',
+    species: 'cat',
+    image: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=300&auto=format&fit=crop&q=80',
+    tags: ['cat', 'apartment', 'calm'],
+    exercise: 40,
+    shedding: 50,
+    trainability: 70,
+    lifespan: '12 - 17 Yrs',
+    health: 'Prone to hypertrophic cardiomyopathy and obesity.'
+  },
+  {
+    name: 'Poodle (Standard & Toy)',
+    species: 'dog',
+    image: 'https://images.unsplash.com/photo-1576201836106-db1758fd1c97?w=300&auto=format&fit=crop&q=80',
+    tags: ['dog', 'hypo', 'apartment'],
+    exercise: 75,
+    shedding: 20,
+    trainability: 98,
+    lifespan: '12 - 15 Yrs',
+    health: 'Hypoallergenic coat. Regular ear cleaning required.'
+  },
+  {
+    name: 'French Bulldog',
+    species: 'dog',
+    image: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=300&auto=format&fit=crop&q=80',
+    tags: ['dog', 'apartment', 'low-exercise'],
+    exercise: 35,
+    shedding: 45,
+    trainability: 75,
+    lifespan: '10 - 12 Yrs',
+    health: 'Brachycephalic airway syndrome. Keep in cool climate.'
+  },
+  {
+    name: 'Persian Cat',
+    species: 'cat',
+    image: 'https://images.unsplash.com/photo-1533738363-b7f9aef128ce?w=300&auto=format&fit=crop&q=80',
+    tags: ['cat', 'apartment', 'grooming'],
+    exercise: 30,
+    shedding: 85,
+    trainability: 60,
+    lifespan: '12 - 16 Yrs',
+    health: 'Daily facial grooming and tear duct cleaning necessary.'
+  },
+  {
+    name: 'German Shepherd',
+    species: 'dog',
+    image: 'https://images.unsplash.com/photo-1589941013453-ec89f33b5455?w=300&auto=format&fit=crop&q=80',
+    tags: ['dog', 'active', 'guard'],
+    exercise: 95,
+    shedding: 90,
+    trainability: 98,
+    lifespan: '9 - 13 Yrs',
+    health: 'Requires robust joint supplements and high-protein diet.'
+  }
+];
+
+function syncFoodCalcPet() {
+  const sel = document.getElementById('calcPetSelect');
+  const weightInput = document.getElementById('calcWeightInput');
+  if (!sel || !weightInput) return;
+
+  if (sel.value === 'pet-1') {
+    weightInput.value = 28.4;
+  } else if (sel.value === 'pet-2') {
+    weightInput.value = 4.2;
+  }
+  computeNutrition();
+}
+
+function computeNutrition() {
+  const weight = parseFloat(document.getElementById('calcWeightInput')?.value) || 10.0;
+  const stage = document.getElementById('calcLifeStage')?.value || 'adult';
+  const activity = document.getElementById('calcActivity')?.value || 'active';
+
+  // RER = 70 * (weight ^ 0.75)
+  const rer = 70 * Math.pow(weight, 0.75);
+
+  let factor = 1.6; // Adult active
+  if (activity === 'neutered') factor = 1.4;
+  if (activity === 'active') factor = 1.8;
+  if (activity === 'working') factor = 2.4;
+  if (activity === 'weightloss') factor = 1.0;
+  if (stage === 'puppy') factor = 2.8;
+  if (stage === 'senior') factor = 1.2;
+
+  const mer = Math.round(rer * factor);
+  const dryGrams = Math.round((mer * 0.75) / 3.75);
+  const cups = (dryGrams / 120).toFixed(1);
+  const wetGrams = Math.round((mer * 0.15) / 1.0);
+  const treatKcal = Math.round(mer * 0.1);
+  const waterMl = Math.round(weight * 60);
+
+  const merEl = document.getElementById('nutritionMerVal');
+  const kibbleEl = document.getElementById('kibblePortionVal');
+  const wetEl = document.getElementById('wetFoodPortionVal');
+  const treatEl = document.getElementById('treatPortionVal');
+  const waterEl = document.getElementById('waterPortionVal');
+
+  if (merEl) merEl.textContent = `${mer.toLocaleString()} kcal/day`;
+  if (kibbleEl) kibbleEl.textContent = `${dryGrams} g (${cups} cups)`;
+  if (wetEl) wetEl.textContent = `${wetGrams} g / day`;
+  if (treatEl) treatEl.textContent = `${treatKcal} kcal max`;
+  if (waterEl) waterEl.textContent = `${waterMl.toLocaleString()} ml / day`;
+}
+
+let activeBreedFilter = 'all';
+
+function setBreedFilter(btn, cat) {
+  activeBreedFilter = cat;
+  document.querySelectorAll('#pane-food .chip-pill').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  filterBreedCards();
+}
+
+function filterBreedCards() {
+  const container = document.getElementById('breedCardsContainer');
+  const query = (document.getElementById('breedSearchInput')?.value || '').toLowerCase();
+  if (!container) return;
+
+  const filtered = BREEDS_DATABASE.filter(b => {
+    const matchesQuery = b.name.toLowerCase().includes(query) || b.health.toLowerCase().includes(query);
+    const matchesCat = activeBreedFilter === 'all' || b.tags.includes(activeBreedFilter);
+    return matchesQuery && matchesCat;
+  });
+
+  if (filtered.length === 0) {
+    container.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--label-3);">No matching breeds found. Try another search query!</div>';
+    return;
+  }
+
+  container.innerHTML = filtered.map(b => `
+    <div class="breed-explore-card">
+      <img src="${b.image}" alt="${b.name}" style="width:100%;height:140px;object-fit:cover;border-radius:var(--r-sm);">
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <h4 style="font-size:16px;font-weight:800;color:var(--label);margin:0;">${b.name}</h4>
+          <span class="badge badge-blue" style="font-size:10.5px;">${b.lifespan}</span>
+        </div>
+        <p style="font-size:12px;color:var(--label-3);margin:4px 0 8px;">${b.health}</p>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;color:var(--label-3);">
+          <span>Exercise Needs</span><span>${b.exercise}%</span>
+        </div>
+        <div class="trait-meter-bar"><div class="trait-meter-fill" style="width:${b.exercise}%;"></div></div>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;color:var(--label-3);">
+          <span>Trainability</span><span>${b.trainability}%</span>
+        </div>
+        <div class="trait-meter-bar"><div class="trait-meter-fill" style="width:${b.trainability}%;"></div></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ─── 9. ENHANCED AI VISION DROPZONE & DIAGNOSTICS ───
+const SAMPLE_CASES = {
+  dermatitis: {
+    title: 'Canine Atopic Dermatitis with Secondary Pyoderma',
+    image: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=600&auto=format&fit=crop&q=80',
+    severity: 'Moderate Priority',
+    confidence: '96.2%',
+    care: 'Clean hotspot with warm saline or chlorhexidine wipe. Fit protective cone collar to stop scratching.',
+    clinic: 'Book cytology swab with Dr. Aris Thorne (Dermatologist) to determine antibiotic vs antifungal course.',
+    bbox: { top: '35%', left: '42%', width: '120px', height: '90px' }
+  },
+  conjunctivitis: {
+    title: 'Feline Infectious Conjunctivitis / Ocular Discharge',
+    image: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=600&auto=format&fit=crop&q=80',
+    severity: 'High Priority',
+    confidence: '94.8%',
+    care: 'Gently wipe discharge with sterile warm water gauze. Do not administer human eye drops.',
+    clinic: 'Schedule immediate fluorescein corneal stain test with Dr. Emily Vance to rule out ulceration.',
+    bbox: { top: '28%', left: '38%', width: '90px', height: '60px' }
+  },
+  otitis: {
+    title: 'Otitis Externa (Ear Mite & Cerumen Irritation)',
+    image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=600&auto=format&fit=crop&q=80',
+    severity: 'Moderate Priority',
+    confidence: '92.5%',
+    care: 'Avoid deep probing with cotton swabs. Keep ear canal dry and gently wipe outer pinna.',
+    clinic: 'Video or in-clinic otoscopic examination with Dr. Sarah Jenkins for prescription ear drops.',
+    bbox: { top: '20%', left: '22%', width: '80px', height: '80px' }
+  },
+  healthy: {
+    title: 'Normal Physiological Markers (No Acute Pathology)',
+    image: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=600&auto=format&fit=crop&q=80',
+    severity: 'Routine / Healthy',
+    confidence: '98.5%',
+    care: 'Pet shows clear eyes, intact skin barrier, and alert posture. Continue regular preventative schedule.',
+    clinic: 'Maintain annual DHPP/Rabies vaccinations and monthly flea & tick chewables.',
+    bbox: { top: '40%', left: '35%', width: '140px', height: '100px' }
+  }
+};
+
+function handleVisionImageUpload(e) {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    const previewBox = document.getElementById('visionPreviewBox');
+    const previewImg = document.getElementById('visionPreviewImg');
+    if (previewBox && previewImg) {
+      previewImg.src = evt.target.result;
+      previewBox.style.display = 'block';
+    }
+    runScan();
+  };
+  reader.readAsDataURL(file);
+}
+
+function loadSampleScan(caseType) {
+  const sample = SAMPLE_CASES[caseType] || SAMPLE_CASES.dermatitis;
+  const previewBox = document.getElementById('visionPreviewBox');
+  const previewImg = document.getElementById('visionPreviewImg');
+  const targetBox = document.getElementById('visionTargetBox');
+
+  if (previewBox && previewImg) {
+    previewImg.src = sample.image;
+    previewBox.style.display = 'block';
+  }
+
+  if (targetBox && sample.bbox) {
+    targetBox.style.top = sample.bbox.top;
+    targetBox.style.left = sample.bbox.left;
+    targetBox.style.width = sample.bbox.width;
+    targetBox.style.height = sample.bbox.height;
+    targetBox.style.display = 'none'; // displayed after laser
+  }
+
+  runScan(sample);
+}
+
+function runScan(customSample = null) {
+  const progress = document.getElementById('scanProgress');
+  const result = document.getElementById('scanResult');
+  const bar = document.getElementById('scanBar');
+  const pct = document.getElementById('scanPct');
+  const targetBox = document.getElementById('visionTargetBox');
+  const statusMsg = document.getElementById('scanStatusMsg');
+
+  if (progress) progress.style.display = 'block';
+  if (result) result.style.display = 'none';
+  if (targetBox) targetBox.style.display = 'none';
+
+  let p = 0;
+  const timer = setInterval(() => {
+    p += 15;
+    if (bar) bar.style.width = `${Math.min(p, 100)}%`;
+    if (pct) pct.textContent = `${Math.min(p, 100)}%`;
+
+    if (p === 30 && statusMsg) statusMsg.textContent = 'Preprocessing convolutional neural feature layers…';
+    if (p === 60 && statusMsg) statusMsg.textContent = 'Comparing lesion morphology against 50,000+ veterinary clinical cases…';
+    if (p === 90 && statusMsg) statusMsg.textContent = 'Synthesizing differential diagnosis and triage urgency…';
+
+    if (p >= 100) {
+      clearInterval(timer);
+      setTimeout(() => {
+        if (progress) progress.style.display = 'none';
+        if (result) result.style.display = 'block';
+        if (targetBox) targetBox.style.display = 'block';
+
+        const sample = customSample || SAMPLE_CASES.dermatitis;
+        const titleEl = document.getElementById('scanTitle');
+        const badgeEl = document.getElementById('scanSeverityBadge');
+        const confEl = document.getElementById('scanConfidenceLabel');
+        const careEl = document.getElementById('careText');
+        const clinicEl = document.getElementById('clinicText');
+
+        if (titleEl) titleEl.textContent = sample.title;
+        if (badgeEl) badgeEl.textContent = sample.severity;
+        if (confEl) confEl.textContent = `Confidence: ${sample.confidence}`;
+        if (careEl) careEl.textContent = sample.care;
+        if (clinicEl) clinicEl.textContent = sample.clinic;
+
+        showToast(' AI Health Diagnostic analysis complete!');
+      }, 300);
+    }
+  }, 120);
 }
 
 // ─── INITIALIZATION ───
@@ -1191,5 +1755,10 @@ document.addEventListener('DOMContentLoaded', () => {
   renderRemindersList();
   updateCartBadge();
   calculateVaccineSchedule();
+  computeNutrition();
+  filterBreedCards();
+
+  // Initialize Radar Canvas after short delay for layout
+  setTimeout(initRadarCanvas, 400);
 });
 

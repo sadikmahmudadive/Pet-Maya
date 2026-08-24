@@ -35,7 +35,11 @@ class _VetDetailsScreenState extends State<VetDetailsScreen> {
   Widget build(BuildContext context) {
     final user = context.select((AppStateRepository repo) => repo.currentUser);
     final repo = context.watch<AppStateRepository>();
-    final isFavorite = user?.favoriteVetIds.contains(widget.vet.id) ?? false;
+    
+    // Smart Sync: Find the latest version of this vet in the repository to ensure live ratings/distances
+    final currentVet = repo.vets.firstWhere((v) => v.id == widget.vet.id, orElse: () => widget.vet);
+    
+    final isFavorite = user?.favoriteVetIds.contains(currentVet.id) ?? false;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     // Calculate dynamic rating distributions
@@ -72,7 +76,7 @@ class _VetDetailsScreenState extends State<VetDetailsScreen> {
                 ),
                 onPressed: () {
                   HapticFeedback.mediumImpact();
-                  context.read<AppStateRepository>().toggleFavoriteVet(widget.vet.id);
+                  context.read<AppStateRepository>().toggleFavoriteVet(currentVet.id);
                 },
               ),
               const SizedBox(width: 8),
@@ -81,9 +85,9 @@ class _VetDetailsScreenState extends State<VetDetailsScreen> {
               background: Stack(
                 fit: StackFit.expand,
                 children: [
-                  widget.vet.photoUrl != null
+                  currentVet.photoUrl != null
                       ? CachedNetworkImage(
-                          imageUrl: widget.vet.photoUrl!,
+                          imageUrl: currentVet.photoUrl!,
                           fit: BoxFit.cover,
                           placeholder: (c, u) => const Center(child: CupertinoActivityIndicator()),
                           errorWidget: (c, u, e) => Container(color: AppColors.primaryLight, child: const Icon(Icons.person, size: 50, color: AppColors.primary)),
@@ -123,11 +127,11 @@ class _VetDetailsScreenState extends State<VetDetailsScreen> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(10)),
-                            child: Text(widget.vet.tag.toUpperCase(), 
+                            child: Text(currentVet.tag.toUpperCase(), 
                               style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 9, letterSpacing: 1)),
                           ),
                           const SizedBox(height: 12),
-                          Text(widget.vet.name, 
+                          Text(currentVet.name, 
                             style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w900)),
                         ],
                       ),
@@ -148,7 +152,7 @@ class _VetDetailsScreenState extends State<VetDetailsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(widget.vet.qualification, 
+                  Text(currentVet.qualification, 
                     style: AppTypography.titleLarge.copyWith(color: AppColors.primary, fontWeight: FontWeight.w800, fontSize: 18)),
                   const SizedBox(height: 32),
 
@@ -156,21 +160,21 @@ class _VetDetailsScreenState extends State<VetDetailsScreen> {
                     children: [
                       Expanded(
                         child: GestureDetector(
-                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ReviewsScreen(targetId: widget.vet.id, targetName: widget.vet.name))),
-                          child: _buildStatTile(context, Icons.star_rounded, AppColors.accentAmber, '${widget.vet.rating}', 'REVIEWS'),
+                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ReviewsScreen(targetId: currentVet.id, targetName: currentVet.name))),
+                          child: _buildStatTile(context, Icons.star_rounded, AppColors.accentAmber, currentVet.rating == 0 ? 'N/A' : '${currentVet.rating}', 'REVIEWS'),
                         ),
                       ),
                       const SizedBox(width: 12),
-                      Expanded(child: _buildStatTile(context, Icons.location_on_rounded, AppColors.primary, widget.vet.distance, 'DISTANCE')),
+                      Expanded(child: _buildStatTile(context, Icons.location_on_rounded, AppColors.primary, currentVet.distance, 'DISTANCE')),
                       const SizedBox(width: 12),
-                      Expanded(child: _buildStatTile(context, Icons.work_history_rounded, AppColors.secondary, widget.vet.experience, 'EXPERIENCE')),
+                      Expanded(child: _buildStatTile(context, Icons.work_history_rounded, AppColors.secondary, currentVet.experience, 'EXPERIENCE')),
                     ],
                   ),
                   const SizedBox(height: 40),
 
                   _buildSectionHeader('Professional Bio'),
                   const SizedBox(height: 12),
-                  Text(widget.vet.bio, 
+                  Text(currentVet.bio, 
                     style: AppTypography.bodyLarge.copyWith(height: 1.7, color: isDark ? Colors.white70 : Colors.black87, fontWeight: FontWeight.w500)),
                   
                   const SizedBox(height: 40),
@@ -197,7 +201,7 @@ class _VetDetailsScreenState extends State<VetDetailsScreen> {
                                 Text('Weekly Schedule', 
                                   style: AppTypography.labelSmall.copyWith(fontWeight: FontWeight.w800, color: Colors.grey[500])),
                                 const SizedBox(height: 4),
-                                Text(widget.vet.businessHours, 
+                                Text(currentVet.businessHours, 
                                   style: AppTypography.bodyLarge.copyWith(fontWeight: FontWeight.w800)),
                               ],
                             ),
@@ -221,7 +225,7 @@ class _VetDetailsScreenState extends State<VetDetailsScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
-                      onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ReviewsScreen(targetId: widget.vet.id, targetName: widget.vet.name))),
+                      onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ReviewsScreen(targetId: currentVet.id, targetName: currentVet.name))),
                       icon: const Icon(Icons.rate_review_rounded, size: 18),
                       label: const Text('RATE & REVIEW THIS PROVIDER', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11, letterSpacing: 0.5)),
                       style: OutlinedButton.styleFrom(
@@ -239,7 +243,7 @@ class _VetDetailsScreenState extends State<VetDetailsScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: _buildBottomBar(context),
+      bottomNavigationBar: _buildBottomBar(context, currentVet),
     );
   }
 
@@ -292,7 +296,7 @@ class _VetDetailsScreenState extends State<VetDetailsScreen> {
     );
   }
 
-  Widget _buildBottomBar(BuildContext context) {
+  Widget _buildBottomBar(BuildContext context, VetModel currentVet) {
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
       decoration: BoxDecoration(
@@ -306,13 +310,13 @@ class _VetDetailsScreenState extends State<VetDetailsScreen> {
           child: ElevatedButton(
             onPressed: () {
               HapticFeedback.heavyImpact();
-              Navigator.push(context, MaterialPageRoute(builder: (_) => BookingScreen(vet: widget.vet)));
+              Navigator.push(context, MaterialPageRoute(builder: (_) => BookingScreen(vet: currentVet)));
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF1AB680),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             ),
-            child: Text('SCHEDULE APPOINTMENT • ${widget.vet.price.toUpperCase()}', 
+            child: Text('SCHEDULE APPOINTMENT • ${currentVet.price.toUpperCase()}', 
               style: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: 0.8, fontSize: 12)),
           ),
         ),
