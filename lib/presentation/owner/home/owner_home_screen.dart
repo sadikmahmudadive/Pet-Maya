@@ -1188,12 +1188,12 @@ class HomeDashboardFragment extends StatelessWidget {
                             Text(
                               vet.reviewsCount == 0 ? 'NEW' : '${vet.rating}',
                               style: Theme.of(context).textTheme.labelSmall
-                                  ?.copyWith(fontWeight: FontWeight.bold),
+                                  ?.copyWith(fontWeight: FontWeight.w900, color: AppColors.accentAmber),
                             ),
                             Flexible(
                               child: Text(
                                 vet.reviewsCount == 0 ? '' : ' (${vet.reviewsCount} reviews)',
-                                style: Theme.of(context).textTheme.labelSmall,
+                                style: Theme.of(context).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w600),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),

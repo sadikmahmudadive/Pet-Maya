@@ -1401,6 +1401,20 @@ class AppStateRepository extends ChangeNotifier {
     }
   }
 
+  Future<void> updateVetAggregate(String vetId, double rating, int count) async {
+    final idx = _vets.indexWhere((v) => v.id == vetId);
+    if (idx != -1) {
+      final old = _vets[idx];
+      if (old.rating == rating && old.reviewsCount == count) return;
+
+      final updated = old.copyWith(rating: rating, reviewsCount: count);
+      _vets[idx] = updated;
+      notifyListeners();
+      await _firebase.saveVet(updated);
+      debugPrint('[AppStateRepository] Self-healed aggregate for Vet: $vetId');
+    }
+  }
+
   Future<void> updateVetPrice(String vetId, String newPrice) async {
     final idx = _vets.indexWhere((v) => v.id == vetId);
     if (idx != -1) {
