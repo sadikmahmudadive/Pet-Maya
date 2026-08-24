@@ -189,8 +189,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   const SizedBox(height: 32),
 
                   // Settings Grid
+                  // Settings Grid
                   _buildSectionHeader('Account & Security'),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 8),
                   _buildSettingsGrid(context),
                   
                   const SizedBox(height: 40),
@@ -366,17 +367,39 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     return PremiumCard(
       opacity: 0.1,
       borderRadius: 28,
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            _buildInfoRow(Icons.email_rounded, 'Email', user.email),
-            const Divider(height: 32),
-            _buildInfoRow(Icons.phone_rounded, 'Phone', user.phone ?? 'Not set'),
-            const Divider(height: 32),
-            _buildInfoRow(Icons.location_on_rounded, 'Address', user.address ?? 'Not set'),
-          ],
-        ),
+      child: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              children: [
+                _buildInfoRow(Icons.email_rounded, 'Email', user.email),
+                const Divider(height: 32),
+                _buildInfoRow(Icons.phone_rounded, 'Phone', user.phone ?? 'Not set'),
+                const Divider(height: 32),
+                _buildInfoRow(Icons.location_on_rounded, 'Address', user.address ?? 'Not set'),
+              ],
+            ),
+          ),
+          Positioned(
+            top: 12,
+            right: 12,
+            child: GestureDetector(
+              onTap: () {
+                HapticFeedback.selectionClick();
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const EditProfileScreen()));
+              },
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.08),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.edit_rounded, color: AppColors.primary, size: 16),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -428,6 +451,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     }
 
     return GridView.count(
+      padding: EdgeInsets.zero,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       crossAxisCount: 2,
@@ -435,10 +459,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       crossAxisSpacing: 12,
       childAspectRatio: 2.2,
       children: [
-        _buildSettingsCard(context, Icons.edit_note_rounded, 'Edit Profile', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EditProfileScreen()))),
         _buildSettingsCard(context, Icons.history_rounded, 'My Orders', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const OrdersScreen()))),
         _buildSettingsCard(context, Icons.favorite_rounded, 'Favorite Vets', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FavoriteVetsScreen()))),
-        _buildSettingsCard(context, Icons.notifications_active_rounded, 'Notifications', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationScreen()))),
         _buildSettingsCard(context, themeIcon, themeLabel, () => _showThemeModeDialog(context, state)),
         _buildSettingsCard(context, Icons.security_rounded, 'Privacy & Terms', () async {
           final url = Uri.parse('https://petmaya.app/privacy-policy');
