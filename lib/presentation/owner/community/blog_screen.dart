@@ -173,19 +173,43 @@ class _BlogScreenState extends State<BlogScreen> {
                     style: TextStyle(fontSize: 13, color: isDark ? Colors.white60 : Colors.grey[600], height: 1.5)
                   ),
                   const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 12,
-                        backgroundImage: blog.authorPhoto != null ? NetworkImage(blog.authorPhoto!) : null,
-                        child: blog.authorPhoto == null ? const Icon(Icons.person, size: 12) : null,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(blog.authorName, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
-                      const Spacer(),
-                      Text(dateStr, style: TextStyle(fontSize: 11, color: Colors.grey[500])),
-                    ],
-                  ),
+                  Builder(builder: (context) {
+                    final repo = context.read<AppStateRepository>();
+                    final currentUser = context.select((AppStateRepository r) => r.currentUser);
+                    String authorName = blog.authorName;
+                    String? authorPhoto = blog.authorPhoto;
+
+                    if (currentUser != null && blog.authorId == currentUser.uid) {
+                      authorName = currentUser.name;
+                      authorPhoto = currentUser.photoUrl;
+                    } else if (repo.userCache.containsKey(blog.authorId)) {
+                      final cached = repo.userCache[blog.authorId]!;
+                      authorName = cached.name;
+                      authorPhoto = cached.photoUrl;
+                    } else {
+                      repo.fetchAndCacheUser(blog.authorId);
+                    }
+
+                    return Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 12,
+                          backgroundImage: authorPhoto != null && authorPhoto.isNotEmpty
+                              ? (authorPhoto.startsWith('http') 
+                                  ? NetworkImage(authorPhoto) as ImageProvider
+                                  : AssetImage(authorPhoto) as ImageProvider)
+                              : null,
+                          child: authorPhoto == null || authorPhoto.isEmpty
+                              ? const Icon(Icons.person, size: 12)
+                              : null,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(authorName, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                        const Spacer(),
+                        Text(dateStr, style: TextStyle(fontSize: 11, color: Colors.grey[500])),
+                      ],
+                    );
+                  }),
                 ],
               ),
             ),

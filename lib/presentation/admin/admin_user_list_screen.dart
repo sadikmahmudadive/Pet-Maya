@@ -95,37 +95,44 @@ class _AdminUserListScreenState extends State<AdminUserListScreen> {
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Text(user.name, style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.w800)),
+                                        Text(user.name, 
+                                          maxLines: 1, overflow: TextOverflow.ellipsis,
+                                          style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.w800, fontSize: 14)),
                                         const SizedBox(height: 2),
-                                        Text(user.email, style: TextStyle(fontSize: 12, color: Colors.grey[500], fontWeight: FontWeight.w600)),
+                                        Text(user.email, 
+                                          maxLines: 1, overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(fontSize: 11, color: Colors.grey[500], fontWeight: FontWeight.w600)),
                                       ],
                                     ),
                                   ),
+                                  const SizedBox(width: 8),
                                   Column(
                                     crossAxisAlignment: CrossAxisAlignment.end,
+                                    mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Row(
+                                        mainAxisSize: MainAxisSize.min,
                                         children: [
                                           IconButton(
-                                            icon: const Icon(Icons.delete_outline_rounded, color: AppColors.dangerRed, size: 20),
+                                            icon: const Icon(Icons.delete_outline_rounded, color: AppColors.dangerRed, size: 18),
                                             onPressed: () => _showDeleteConfirm(context, user),
                                             padding: EdgeInsets.zero,
                                             constraints: const BoxConstraints(),
                                           ),
-                                          const SizedBox(width: 8),
+                                          const SizedBox(width: 6),
                                           Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                            decoration: BoxDecoration(color: _getRoleColor(user.role).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                                            decoration: BoxDecoration(color: _getRoleColor(user.role).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(6)),
                                             child: Text(user.role.displayName.toUpperCase(), 
-                                              style: TextStyle(color: _getRoleColor(user.role), fontWeight: FontWeight.w900, fontSize: 8)),
+                                              style: TextStyle(color: _getRoleColor(user.role), fontWeight: FontWeight.w900, fontSize: 7, letterSpacing: 0.5)),
                                           ),
                                         ],
                                       ),
-                                      const SizedBox(height: 8),
+                                      const SizedBox(height: 6),
                                       if (user.isVerified)
-                                        const Icon(Icons.verified_rounded, color: AppColors.healthGreen, size: 16)
+                                        const Icon(Icons.verified_rounded, color: AppColors.healthGreen, size: 14)
                                       else
-                                        const Icon(Icons.hourglass_empty_rounded, color: AppColors.accentAmber, size: 16),
+                                        const Icon(Icons.hourglass_empty_rounded, color: AppColors.accentAmber, size: 14),
                                     ],
                                   ),
                                 ],

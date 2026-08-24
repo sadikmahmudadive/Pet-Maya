@@ -17,6 +17,7 @@ import 'admin_shop_manager_screen.dart';
 import 'admin_order_manager_screen.dart';
 import 'admin_pet_directory_screen.dart';
 import 'admin_service_pricing_screen.dart';
+import 'admin_blog_manager_screen.dart';
 import 'package:animate_do/animate_do.dart';
 
 class AdminDashboardScreen extends StatelessWidget {
@@ -128,30 +129,41 @@ class AdminDashboardScreen extends StatelessWidget {
                   // Quick Access Grid
                   FadeInUp(
                     delay: const Duration(milliseconds: 100),
-                    child: Row(
+                    child: GridView.count(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      crossAxisCount: size.width < 360 ? 1 : 2, // 1 column on tiny screens, 2 on others
+                      mainAxisSpacing: 12,
+                      crossAxisSpacing: 12,
+                      childAspectRatio: 2.8,
                       children: [
-                        _buildQuickActionBtn(
+                        _buildQuickActionTile(
                           context,
                           'Shop Manager',
                           Icons.inventory_2_rounded,
                           AppColors.primary,
                           () => _navigateToShopManager(context),
                         ),
-                        const SizedBox(width: 12),
-                        _buildQuickActionBtn(
+                        _buildQuickActionTile(
                           context,
                           'Pet Directory',
                           Icons.pets_rounded,
                           AppColors.healthGreen,
                           () => _navigateToPetDirectory(context),
                         ),
-                        const SizedBox(width: 12),
-                        _buildQuickActionBtn(
+                        _buildQuickActionTile(
                           context,
                           'Service Pricing',
                           Icons.payments_rounded,
                           AppColors.tertiary,
                           () => _navigateToServicePricing(context),
+                        ),
+                        _buildQuickActionTile(
+                          context,
+                          'Blog Manager',
+                          Icons.article_rounded,
+                          AppColors.accentAmber,
+                          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminBlogManagerScreen())),
                         ),
                       ],
                     ),
@@ -295,9 +307,9 @@ class AdminDashboardScreen extends StatelessWidget {
       opacity: 0.2,
       borderRadius: 20,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 16),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center, // Centered for better fit
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Container(
               padding: const EdgeInsets.all(8),
@@ -305,41 +317,47 @@ class AdminDashboardScreen extends StatelessWidget {
               child: Icon(icon, color: color, size: 16),
             ),
             const SizedBox(height: 12),
-            Text(value, 
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700, fontSize: 16),
-              maxLines: 1, overflow: TextOverflow.ellipsis),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(value, 
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700, fontSize: 16)),
+            ),
             const SizedBox(height: 2),
-            Text(title, 
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(fontSize: 8, fontWeight: FontWeight.w700, letterSpacing: 0.5),
-              maxLines: 1, overflow: TextOverflow.ellipsis),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(title, 
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(fontSize: 8, fontWeight: FontWeight.w700, letterSpacing: 0.5)),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildQuickActionBtn(BuildContext context, String label, IconData icon, Color color, VoidCallback onTap) {
+  Widget _buildQuickActionTile(BuildContext context, String label, IconData icon, Color color, VoidCallback onTap) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Expanded(
-      child: PremiumCard(
-        onTap: onTap,
-        opacity: 0.15,
-        borderRadius: 20,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 18),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, color: color, size: 20),
-              const SizedBox(width: 12),
-              Text(label, 
+    return PremiumCard(
+      onTap: onTap,
+      opacity: 0.15,
+      borderRadius: 18,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: color, size: 18),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(label, 
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   fontWeight: FontWeight.w800, 
-                  fontSize: 13, 
+                  fontSize: 12, 
                   color: isDark ? Colors.white70 : Colors.black87
                 )),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

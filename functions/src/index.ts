@@ -1,5 +1,8 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
+import * as admin from "firebase-admin";
 import OpenAI from "openai";
+
+admin.initializeApp();
 
 export const openai_proxy = onCall({ secrets: ["OPENAI_API_KEY"] }, async (request) => {
   // 1. Authentication Check
@@ -35,6 +38,43 @@ export const openai_proxy = onCall({ secrets: ["OPENAI_API_KEY"] }, async (reque
   } catch (error: any) {
     console.error("OpenAI Error:", error);
     throw new HttpsError("internal", error.message || "AI logic failed");
+  }
+});
+
+export const send_broadcast = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Auth required");
+  }
+
+  // Verify admin role
+  const userDoc = await admin.firestore().collection("users").doc(request.auth.uid).get();
+  if (userDoc.data()?.role !== "Admin") {
+    throw new HttpsError("permission-denied", "Admin only");
+  }
+
+  const { title, message, targetGroup } = request.data;
+
+  let topic = "everyone";
+  if (targetGroup === "All Pet Owners") topic = "pet_owners";
+  else if (targetGroup === "All Veterinarians") topic = "vets";
+  else if (targetGroup === "All Shop Merchants") topic = "merchants";
+
+  const payload = {
+    data: {
+      title: title,
+      body: message,
+      category: "system",
+      click_action: "FLUTTER_NOTIFICATION_CLICK",
+    },
+    topic: topic,
+  };
+
+  try {
+    await admin.messaging().send(payload);
+    return { success: true };
+  } catch (error: any) {
+    console.error("FCM Error:", error);
+    throw new HttpsError("internal", error.message || "FCM failed");
   }
 });
 

@@ -13,17 +13,42 @@ import '../../common_widgets/premium_card.dart';
 import 'booking_screen.dart';
 import 'reviews_screen.dart';
 
-class VetDetailsScreen extends StatelessWidget {
+class VetDetailsScreen extends StatefulWidget {
   final VetModel vet;
 
   const VetDetailsScreen({super.key, required this.vet});
 
   @override
+  State<VetDetailsScreen> createState() => _VetDetailsScreenState();
+}
+
+class _VetDetailsScreenState extends State<VetDetailsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AppStateRepository>().loadReviews(widget.vet.id);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final user = context.select((AppStateRepository repo) => repo.currentUser);
-    final repo = context.read<AppStateRepository>();
-    final isFavorite = user?.favoriteVetIds.contains(vet.id) ?? false;
+    final repo = context.watch<AppStateRepository>();
+    final isFavorite = user?.favoriteVetIds.contains(widget.vet.id) ?? false;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // Calculate dynamic rating distributions
+    final reviews = repo.reviews;
+    final total = reviews.length;
+    
+    int exc = 0, good = 0, avg = 0, poor = 0;
+    for (var r in reviews) {
+      if (r.rating >= 4.5) exc++;
+      else if (r.rating >= 3.5) good++;
+      else if (r.rating >= 2.5) avg++;
+      else poor++;
+    }
 
     return GlassScaffold(
       body: CustomScrollView(
@@ -47,7 +72,7 @@ class VetDetailsScreen extends StatelessWidget {
                 ),
                 onPressed: () {
                   HapticFeedback.mediumImpact();
-                  repo.toggleFavoriteVet(vet.id);
+                  context.read<AppStateRepository>().toggleFavoriteVet(widget.vet.id);
                 },
               ),
               const SizedBox(width: 8),
@@ -56,11 +81,11 @@ class VetDetailsScreen extends StatelessWidget {
               background: Stack(
                 fit: StackFit.expand,
                 children: [
-                  vet.photoUrl != null
+                  widget.vet.photoUrl != null
                       ? CachedNetworkImage(
-                          imageUrl: vet.photoUrl!,
+                          imageUrl: widget.vet.photoUrl!,
                           fit: BoxFit.cover,
-                          placeholder: (c, u) => Center(child: CupertinoActivityIndicator()),
+                          placeholder: (c, u) => const Center(child: CupertinoActivityIndicator()),
                           errorWidget: (c, u, e) => Container(color: AppColors.primaryLight, child: const Icon(Icons.person, size: 50, color: AppColors.primary)),
                         )
                       : Container(color: AppColors.primaryLight),
@@ -98,11 +123,11 @@ class VetDetailsScreen extends StatelessWidget {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(10)),
-                            child: Text(vet.tag.toUpperCase(), 
+                            child: Text(widget.vet.tag.toUpperCase(), 
                               style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 9, letterSpacing: 1)),
                           ),
                           const SizedBox(height: 12),
-                          Text(vet.name, 
+                          Text(widget.vet.name, 
                             style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w900)),
                         ],
                       ),
@@ -123,7 +148,7 @@ class VetDetailsScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(vet.qualification, 
+                  Text(widget.vet.qualification, 
                     style: AppTypography.titleLarge.copyWith(color: AppColors.primary, fontWeight: FontWeight.w800, fontSize: 18)),
                   const SizedBox(height: 32),
 
@@ -131,21 +156,21 @@ class VetDetailsScreen extends StatelessWidget {
                     children: [
                       Expanded(
                         child: GestureDetector(
-                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ReviewsScreen(targetId: vet.id, targetName: vet.name))),
-                          child: _buildStatTile(context, Icons.star_rounded, AppColors.accentAmber, '${vet.rating}', 'REVIEWS'),
+                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ReviewsScreen(targetId: widget.vet.id, targetName: widget.vet.name))),
+                          child: _buildStatTile(context, Icons.star_rounded, AppColors.accentAmber, '${widget.vet.rating}', 'REVIEWS'),
                         ),
                       ),
                       const SizedBox(width: 12),
-                      Expanded(child: _buildStatTile(context, Icons.location_on_rounded, AppColors.primary, vet.distance, 'DISTANCE')),
+                      Expanded(child: _buildStatTile(context, Icons.location_on_rounded, AppColors.primary, widget.vet.distance, 'DISTANCE')),
                       const SizedBox(width: 12),
-                      Expanded(child: _buildStatTile(context, Icons.work_history_rounded, AppColors.secondary, vet.experience, 'EXPERIENCE')),
+                      Expanded(child: _buildStatTile(context, Icons.work_history_rounded, AppColors.secondary, widget.vet.experience, 'EXPERIENCE')),
                     ],
                   ),
                   const SizedBox(height: 40),
 
                   _buildSectionHeader('Professional Bio'),
                   const SizedBox(height: 12),
-                  Text(vet.bio, 
+                  Text(widget.vet.bio, 
                     style: AppTypography.bodyLarge.copyWith(height: 1.7, color: isDark ? Colors.white70 : Colors.black87, fontWeight: FontWeight.w500)),
                   
                   const SizedBox(height: 40),
@@ -172,7 +197,7 @@ class VetDetailsScreen extends StatelessWidget {
                                 Text('Weekly Schedule', 
                                   style: AppTypography.labelSmall.copyWith(fontWeight: FontWeight.w800, color: Colors.grey[500])),
                                 const SizedBox(height: 4),
-                                Text(vet.businessHours, 
+                                Text(widget.vet.businessHours, 
                                   style: AppTypography.bodyLarge.copyWith(fontWeight: FontWeight.w800)),
                               ],
                             ),
@@ -185,9 +210,28 @@ class VetDetailsScreen extends StatelessWidget {
 
                   _buildSectionHeader('Client Satisfaction'),
                   const SizedBox(height: 20),
-                  _buildRatingBar(context, 'Excellent', 0.85, '120'),
-                  _buildRatingBar(context, 'Good', 0.12, '18'),
-                  _buildRatingBar(context, 'Average', 0.03, '4'),
+                  _buildRatingBar(context, 'Excellent', total == 0 ? 0 : exc / total, '$exc'),
+                  _buildRatingBar(context, 'Good', total == 0 ? 0 : good / total, '$good'),
+                  _buildRatingBar(context, 'Average', total == 0 ? 0 : avg / total, '$avg'),
+                  _buildRatingBar(context, 'Fair/Poor', total == 0 ? 0 : poor / total, '$poor'),
+                  
+                  const SizedBox(height: 32),
+                  
+                  // New Direct Review Button
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ReviewsScreen(targetId: widget.vet.id, targetName: widget.vet.name))),
+                      icon: const Icon(Icons.rate_review_rounded, size: 18),
+                      label: const Text('RATE & REVIEW THIS PROVIDER', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11, letterSpacing: 0.5)),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        side: BorderSide(color: AppColors.primary.withValues(alpha: 0.3)),
+                        foregroundColor: AppColors.primary,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 120),
                 ],
               ),
@@ -262,13 +306,13 @@ class VetDetailsScreen extends StatelessWidget {
           child: ElevatedButton(
             onPressed: () {
               HapticFeedback.heavyImpact();
-              Navigator.push(context, MaterialPageRoute(builder: (_) => BookingScreen(vet: vet)));
+              Navigator.push(context, MaterialPageRoute(builder: (_) => BookingScreen(vet: widget.vet)));
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF1AB680),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             ),
-            child: Text('SCHEDULE APPOINTMENT • ${vet.price.toUpperCase()}', 
+            child: Text('SCHEDULE APPOINTMENT • ${widget.vet.price.toUpperCase()}', 
               style: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: 0.8, fontSize: 12)),
           ),
         ),

@@ -8,7 +8,7 @@ import 'dart:io';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/user_model.dart';
 import '../../../data/repositories/app_state_repository.dart';
-import '../../../core/services/cloudinary_service.dart';
+import '../../../core/services/firebase_storage_service.dart';
 import '../../../core/services/connectivity_service.dart';
 import '../../common_widgets/premium_toast.dart';
 import '../../common_widgets/glass_scaffold.dart';
@@ -83,7 +83,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       HapticFeedback.mediumImpact();
       
       final file = File(pickedFile.path);
-      final uploadedUrl = await CloudinaryService().uploadImage(file, 'profile_pics');
+      final uploadedUrl = await FirebaseStorageService().uploadImage(file, 'profile_pics');
       
       if (uploadedUrl != null) {
         setState(() {
@@ -442,8 +442,32 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             style: TextStyle(fontWeight: FontWeight.w900, color: isDark ? Colors.white70 : Colors.black54, fontSize: 10, letterSpacing: 1.5),
           ),
         ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: isDark ? Colors.white.withValues(alpha: 0.06) : Colors.black.withValues(alpha: 0.04),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.12) : Colors.black.withValues(alpha: 0.08)),
+          ),
+          child: TextField(
+            controller: _addressController,
+            style: TextStyle(fontWeight: FontWeight.w700, color: isDark ? Colors.white : Colors.black87, fontSize: 15),
+            decoration: InputDecoration(
+              filled: false,
+              prefixIcon: const Icon(Icons.location_on_rounded, color: AppColors.primary, size: 20),
+              hintText: 'Enter your delivery address',
+              hintStyle: TextStyle(fontSize: 14, color: isDark ? Colors.white38 : Colors.grey[400]),
+              border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(vertical: 18),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
         GestureDetector(
           onTap: () async {
+            HapticFeedback.lightImpact();
             final address = await Navigator.push(
               context, 
               MaterialPageRoute(builder: (_) => const LocationPickerScreen())
@@ -452,30 +476,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               setState(() => _addressController.text = address);
             }
           },
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 20),
-            decoration: BoxDecoration(
-              color: isDark ? Colors.white.withValues(alpha: 0.06) : Colors.black.withValues(alpha: 0.04),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.12) : Colors.black.withValues(alpha: 0.08)),
-            ),
+          child: Padding(
+            padding: const EdgeInsets.only(left: 4),
             child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.location_on_rounded, color: AppColors.primary, size: 20),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    _addressController.text.isEmpty ? 'Select your address' : _addressController.text,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 15,
-                      color: _addressController.text.isEmpty ? (isDark ? Colors.white38 : Colors.grey[400]) : (isDark ? Colors.white : Colors.black87),
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                const Icon(Icons.near_me_rounded, color: AppColors.primary, size: 14),
+                const SizedBox(width: 6),
+                Text(
+                  'tap to set location on map',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.primary.withValues(alpha: 0.8),
+                    letterSpacing: 0.2,
                   ),
                 ),
-                const Icon(Icons.keyboard_arrow_right_rounded, color: AppColors.textTertiary, size: 20),
               ],
             ),
           ),

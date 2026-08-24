@@ -85,11 +85,21 @@ class NotificationService {
     );
 
     // 6. Configure FCM Listeners
-    FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+    FirebaseMessaging.onMessage.listen(handleRemoteMessage);
     FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageTap);
 
     _initialized = true;
     debugPrint('[NotificationService] Initialized multi-channel alerts (Health, Feeding, Events)');
+  }
+
+  Future<void> subscribeToTopic(String topic) async {
+    await _fcm.subscribeToTopic(topic);
+    debugPrint('[NotificationService] Subscribed to topic: $topic');
+  }
+
+  Future<void> unsubscribeFromTopic(String topic) async {
+    await _fcm.unsubscribeFromTopic(topic);
+    debugPrint('[NotificationService] Unsubscribed from topic: $topic');
   }
 
   /// Request notification permissions
@@ -121,7 +131,7 @@ class NotificationService {
   }
 
   /// Handle messages received while the app is in the foreground
-  void _handleForegroundMessage(RemoteMessage message) {
+  void handleRemoteMessage(RemoteMessage message) {
     String title = message.notification?.title ?? message.data['title'] ?? 'Pet Maya Alert';
     String body = message.notification?.body ?? message.data['body'] ?? message.data['message'] ?? '';
     String category = message.data['category'] ?? message.data['type'] ?? 'general';

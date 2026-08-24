@@ -110,8 +110,14 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
                                 CircleAvatar(
                                   radius: 18,
                                   backgroundColor: AppColors.primaryLight,
-                                  backgroundImage: currentUser?.photoUrl != null ? NetworkImage(currentUser!.photoUrl!) : null,
-                                  child: currentUser?.photoUrl == null ? const Icon(Icons.person, size: 18) : null,
+                                  backgroundImage: (currentUser?.photoUrl != null && currentUser!.photoUrl!.isNotEmpty)
+                                      ? (currentUser.photoUrl!.startsWith('http')
+                                          ? NetworkImage(currentUser.photoUrl!) as ImageProvider
+                                          : AssetImage(currentUser.photoUrl!) as ImageProvider)
+                                      : null,
+                                  child: (currentUser?.photoUrl == null || currentUser!.photoUrl!.isEmpty)
+                                      ? const Icon(Icons.person, size: 18)
+                                      : null,
                                 ),
                                 const SizedBox(width: 12),
                                 Expanded(
@@ -228,50 +234,71 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   // Author Header
-                                  Padding(
-                                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-                                    child: Row(
-                                      children: [
-                                        CircleAvatar(
-                                          radius: 20,
-                                          backgroundColor: AppColors.primaryLight,
-                                          backgroundImage: (post.userPhoto != null && post.userPhoto!.isNotEmpty)
-                                              ? NetworkImage(post.userPhoto!)
-                                              : null,
-                                          child: (post.userPhoto == null || post.userPhoto!.isEmpty)
-                                              ? const Icon(Icons.person, size: 20)
-                                              : null,
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text(post.userName, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
-                                              const SizedBox(height: 2),
-                                              Row(
-                                                children: [
-                                                  Text(
-                                                    formattedTime,
-                                                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: isDark ? Colors.white54 : Colors.grey[600]),
-                                                  ),
-                                                  const SizedBox(width: 4),
-                                                  Text('·', style: TextStyle(fontSize: 11, color: isDark ? Colors.white54 : Colors.grey[600])),
-                                                  const SizedBox(width: 4),
-                                                  Icon(Icons.public_rounded, size: 12, color: isDark ? Colors.white54 : Colors.grey[600]),
-                                                ],
-                                              ),
-                                            ],
+                                  Builder(builder: (context) {
+                                    // Live Data Logic: Priority 1 (Current User), Priority 2 (Cached Other Users), Priority 3 (Post Data)
+                                    final repo = context.read<AppStateRepository>();
+                                    String authorName = post.userName;
+                                    String? authorPhoto = post.userPhoto;
+                                    
+                                    if (post.userId == currentUserId && currentUser != null) {
+                                      authorName = currentUser.name;
+                                      authorPhoto = currentUser.photoUrl;
+                                    } else if (repo.userCache.containsKey(post.userId)) {
+                                      final cached = repo.userCache[post.userId]!;
+                                      authorName = cached.name;
+                                      authorPhoto = cached.photoUrl;
+                                    } else {
+                                      // Trigger background fetch for next scroll
+                                      repo.fetchAndCacheUser(post.userId);
+                                    }
+
+                                    return Padding(
+                                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+                                      child: Row(
+                                        children: [
+                                          CircleAvatar(
+                                            radius: 20,
+                                            backgroundColor: AppColors.primaryLight,
+                                            backgroundImage: (authorPhoto != null && authorPhoto.isNotEmpty)
+                                                ? (authorPhoto.startsWith('http') 
+                                                    ? NetworkImage(authorPhoto) as ImageProvider
+                                                    : AssetImage(authorPhoto) as ImageProvider)
+                                                : null,
+                                            child: (authorPhoto == null || authorPhoto.isEmpty)
+                                                ? const Icon(Icons.person, size: 20)
+                                                : null,
                                           ),
-                                        ),
-                                        _buildPostBadge(post.postType),
-                                        IconButton(
-                                          icon: Icon(Icons.more_horiz_rounded, color: isDark ? Colors.white54 : Colors.grey[600]),
-                                          onPressed: () {},
-                                        ),
-                                      ],
-                                    ),
-                                  ),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(authorName, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+                                                const SizedBox(height: 2),
+                                                Row(
+                                                  children: [
+                                                    Text(
+                                                      formattedTime,
+                                                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: isDark ? Colors.white54 : Colors.grey[600]),
+                                                    ),
+                                                    const SizedBox(width: 4),
+                                                    Text('·', style: TextStyle(fontSize: 11, color: isDark ? Colors.white54 : Colors.grey[600])),
+                                                    const SizedBox(width: 4),
+                                                    Icon(Icons.public_rounded, size: 12, color: isDark ? Colors.white54 : Colors.grey[600]),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          _buildPostBadge(post.postType),
+                                          IconButton(
+                                            icon: Icon(Icons.more_horiz_rounded, color: isDark ? Colors.white54 : Colors.grey[600]),
+                                            onPressed: () {},
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  }),
 
                                   // Post Content Text
                                   Padding(

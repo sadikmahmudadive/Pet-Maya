@@ -5,8 +5,10 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/blog_post_model.dart';
+import '../../../data/repositories/app_state_repository.dart';
 import '../../common_widgets/glass_scaffold.dart';
 
 class BlogDetailScreen extends StatelessWidget {
@@ -110,23 +112,45 @@ class BlogDetailScreen extends StatelessWidget {
                   // Author Info
                   FadeInUp(
                     duration: const Duration(milliseconds: 600),
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 20,
-                          backgroundImage: blog.authorPhoto != null ? NetworkImage(blog.authorPhoto!) : null,
-                          child: blog.authorPhoto == null ? const Icon(Icons.person) : null,
-                        ),
-                        const SizedBox(width: 12),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(blog.authorName, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
-                            Text(dateStr, style: TextStyle(fontSize: 11, color: Colors.grey[500])),
-                          ],
-                        ),
-                      ],
-                    ),
+                    child: Builder(builder: (context) {
+                      final repo = context.read<AppStateRepository>();
+                      final currentUser = context.select((AppStateRepository r) => r.currentUser);
+                      String authorName = blog.authorName;
+                      String? authorPhoto = blog.authorPhoto;
+
+                      if (currentUser != null && blog.authorId == currentUser.uid) {
+                        authorName = currentUser.name;
+                        authorPhoto = currentUser.photoUrl;
+                      } else if (repo.userCache.containsKey(blog.authorId)) {
+                        final cached = repo.userCache[blog.authorId]!;
+                        authorName = cached.name;
+                        authorPhoto = cached.photoUrl;
+                      } else {
+                        repo.fetchAndCacheUser(blog.authorId);
+                      }
+
+                      return Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 20,
+                            backgroundImage: authorPhoto != null && authorPhoto.isNotEmpty
+                                ? (authorPhoto.startsWith('http') 
+                                    ? NetworkImage(authorPhoto) as ImageProvider
+                                    : AssetImage(authorPhoto) as ImageProvider)
+                                : null,
+                            child: authorPhoto == null || authorPhoto.isEmpty ? const Icon(Icons.person) : null,
+                          ),
+                          const SizedBox(width: 12),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(authorName, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
+                              Text(dateStr, style: TextStyle(fontSize: 11, color: Colors.grey[500])),
+                            ],
+                          ),
+                        ],
+                      );
+                    }),
                   ),
                   const SizedBox(height: 32),
                   

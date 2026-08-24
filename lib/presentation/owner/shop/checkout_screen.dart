@@ -17,10 +17,38 @@ class CheckoutScreen extends StatefulWidget {
 }
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
-  final _addressController = TextEditingController(text: '742 Evergreen Terrace, Springfield');
-  final _phoneController = TextEditingController(text: '+1 (555) 987-6543');
+  late TextEditingController _addressController;
+  late TextEditingController _phoneController;
   String _paymentMethod = 'COD';
   bool _isPlacing = false;
+  double _deliveryCharge = 120.0;
+
+  @override
+  void initState() {
+    super.initState();
+    final user = context.read<AppStateRepository>().currentUser;
+    _addressController = TextEditingController(text: user?.address ?? '');
+    _phoneController = TextEditingController(text: user?.phone ?? '');
+    
+    _updateDeliveryCharge();
+    _addressController.addListener(_updateDeliveryCharge);
+  }
+
+  void _updateDeliveryCharge() {
+    final addr = _addressController.text.toLowerCase();
+    final newCharge = addr.contains('dhaka') ? 80.0 : 120.0;
+    if (_deliveryCharge != newCharge) {
+      setState(() => _deliveryCharge = newCharge);
+    }
+  }
+
+  @override
+  void dispose() {
+    _addressController.removeListener(_updateDeliveryCharge);
+    _addressController.dispose();
+    _phoneController.dispose();
+    super.dispose();
+  }
 
   Future<void> _confirmOrder() async {
     final address = _addressController.text.trim();
@@ -41,6 +69,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         address: address,
         phone: phone,
         paymentMethod: _paymentMethod,
+        shippingCharges: _deliveryCharge,
       );
 
       if (!mounted) return;
@@ -155,19 +184,34 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text('${item.quantity}x ${item.product.name}', 
-                                      style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.w600, color: isDark ? Colors.white70 : Colors.black87)),
+                                    Expanded(
+                                      child: Text('${item.quantity}x ${item.product.name}', 
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.w600, color: isDark ? Colors.white70 : Colors.black87)),
+                                    ),
+                                    const SizedBox(width: 8),
                                     Text('৳${item.totalPrice.toStringAsFixed(2)}', 
                                       style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.w800, fontSize: 14)),
                                   ],
                                 ),
                               )),
+                          const SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('Delivery Charge', 
+                                style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.w600, color: isDark ? Colors.white70 : Colors.black87)),
+                              Text('৳${_deliveryCharge.toStringAsFixed(2)}', 
+                                style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.w800, fontSize: 14)),
+                            ],
+                          ),
                           const Divider(height: 32),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text('Total Amount', style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w800)),
-                              Text('৳${state.cartTotal.toStringAsFixed(2)}',
+                              Text('৳${(state.cartSubtotal + _deliveryCharge).toStringAsFixed(2)}',
                                 style: AppTypography.headlineSmall.copyWith(color: AppColors.primary, fontWeight: FontWeight.w900)),
                             ],
                           ),

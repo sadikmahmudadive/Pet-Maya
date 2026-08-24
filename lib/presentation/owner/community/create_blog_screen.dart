@@ -8,7 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/blog_post_model.dart';
 import '../../../data/repositories/app_state_repository.dart';
-import '../../../core/services/cloudinary_service.dart';
+import '../../../core/services/firebase_storage_service.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
 
@@ -74,7 +74,7 @@ class _CreateBlogScreenState extends State<CreateBlogScreen> {
 
     try {
       // 1. Upload cover image
-      final imageUrl = await CloudinaryService().uploadImage(_imageFile!, 'blogs');
+      final imageUrl = await FirebaseStorageService().uploadImage(_imageFile!, 'blogs');
       if (imageUrl == null) throw Exception('Image upload failed');
 
       // 2. Create blog model

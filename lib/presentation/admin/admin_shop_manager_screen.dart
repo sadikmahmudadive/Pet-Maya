@@ -10,7 +10,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../data/repositories/app_state_repository.dart';
 import '../../data/models/product_model.dart';
-import '../../../core/services/cloudinary_service.dart';
+import '../../../core/services/firebase_storage_service.dart';
 import '../common_widgets/glass_scaffold.dart';
 import '../common_widgets/premium_card.dart';
 import '../common_widgets/empty_state.dart';
@@ -107,12 +107,18 @@ class _AdminShopManagerScreenState extends State<AdminShopManagerScreen> {
         opacity: 0.15,
         borderRadius: 20,
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 4),
           child: Column(
             children: [
-              Text(label, style: TextStyle(fontSize: 8, fontWeight: FontWeight.w900, color: Colors.grey[500], letterSpacing: 1)),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(label, style: TextStyle(fontSize: 8, fontWeight: FontWeight.w900, color: Colors.grey[500], letterSpacing: 1)),
+              ),
               const SizedBox(height: 4),
-              Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: color)),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: color)),
+              ),
             ],
           ),
         ),
@@ -229,12 +235,14 @@ class _AdminShopManagerScreenState extends State<AdminShopManagerScreen> {
                       Text(p.brand?.toUpperCase() ?? 'GENERIC', 
                         style: TextStyle(fontSize: 8, fontWeight: FontWeight.w900, color: AppColors.primary, letterSpacing: 1)),
                       Text(p.name, 
+                        maxLines: 1, overflow: TextOverflow.ellipsis,
                         style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.w800, fontSize: 15)),
                       const SizedBox(height: 6),
-                      Row(
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 4,
                         children: [
                           _badge('৳${p.price.toStringAsFixed(0)}', AppColors.healthGreen),
-                          const SizedBox(width: 8),
                           _badge('STOCK: ${p.stockQuantity}', isLowStock ? AppColors.dangerRed : Colors.blueGrey),
                         ],
                       ),
@@ -421,7 +429,7 @@ class _ProductEditorSheetState extends State<_ProductEditorSheet> {
     final picked = await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
     if (picked != null) {
       setState(() => _isUploading = true);
-      final url = await CloudinaryService().uploadImage(File(picked.path), 'shop_products');
+      final url = await FirebaseStorageService().uploadImage(File(picked.path), 'shop_products');
       if (url != null) {
         setState(() {
           _imageGallery.add(url);

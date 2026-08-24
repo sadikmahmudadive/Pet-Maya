@@ -6,6 +6,8 @@ plugins {
     id("com.google.gms.google-services")
     // Firebase Crashlytics
     id("com.google.firebase.crashlytics")
+    // Firebase Performance Monitoring
+    id("com.google.firebase.firebase-perf")
 }
 
 import java.util.Properties

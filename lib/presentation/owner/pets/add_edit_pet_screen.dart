@@ -11,8 +11,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../data/repositories/app_state_repository.dart';
 import '../../../data/models/pet_model.dart';
 import '../../common_widgets/glass_scaffold.dart';
-
-import '../../../core/services/cloudinary_service.dart';
+import '../../../core/services/firebase_storage_service.dart';
 
 class AddEditPetScreen extends StatefulWidget {
   final PetModel? petToEdit;
@@ -99,9 +98,9 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
 
     String finalPhotoUrl = _selectedImageUrl;
 
-    // Upload to Cloudinary if a new local image was selected
+    // Upload to Firebase Storage if a new local image was selected
     if (_localImage != null) {
-      final uploadedUrl = await CloudinaryService().uploadImage(_localImage!, 'pets');
+      final uploadedUrl = await FirebaseStorageService().uploadImage(_localImage!, 'pets');
       if (uploadedUrl != null) {
         finalPhotoUrl = uploadedUrl;
       } else {

@@ -36,40 +36,15 @@ class TailWaggingLoader extends StatelessWidget {
       return Center(child: loader);
     }
 
-    // Advanced "Pop & Zoom" Motion
-    Widget content = Stack(
-      alignment: Alignment.center,
-      clipBehavior: Clip.none,
-      children: [
-        Positioned(
-          top: screenHeight * 0.52, // Balanced anchor
-          left: 0,
-          right: 0,
-          child: ElasticInUp( // Premium bouncy entrance
-            duration: const Duration(milliseconds: 1500),
-            from: 350, 
-            child: ZoomIn( // Depth effect
-              duration: const Duration(milliseconds: 800),
-              child: Center(child: loader),
-            ),
-          ),
-        ),
-      ],
+    // Optimization: Simplified stack for performance
+    Widget content = Center(
+      child: loader,
     );
 
     if (isGlobal) {
-      return TweenAnimationBuilder<double>(
-        tween: Tween(begin: 0.0, end: 1.0),
-        duration: const Duration(milliseconds: 600),
-        builder: (context, value, child) {
-          return BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 8 * value, sigmaY: 8 * value),
-            child: Material(
-              color: Colors.black.withValues(alpha: 0.2 * value),
-              child: content,
-            ),
-          );
-        },
+      return Material(
+        color: Colors.black.withValues(alpha: 0.2),
+        child: content,
       );
     }
 

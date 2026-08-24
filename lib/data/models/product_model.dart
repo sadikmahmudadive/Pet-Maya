@@ -9,6 +9,8 @@ class ProductModel {
   final String description;
   final String brand;
   final int soldCount;
+  final double rating;
+  final int reviewsCount;
 
   ProductModel({
     required this.id,
@@ -21,6 +23,8 @@ class ProductModel {
     this.description = '',
     this.brand = '',
     this.soldCount = 0,
+    this.rating = 0.0,
+    this.reviewsCount = 0,
   });
 
   // Backward compatibility getter for single-image UI parts
@@ -41,6 +45,8 @@ class ProductModel {
       'description': description,
       'brand': brand,
       'soldCount': soldCount,
+      'rating': rating,
+      'reviewsCount': reviewsCount,
     };
   }
 
@@ -64,6 +70,8 @@ class ProductModel {
       description: map['description'] ?? '',
       brand: map['brand'] ?? '',
       soldCount: (map['soldCount'] as num?)?.toInt() ?? 0,
+      rating: (map['rating'] as num?)?.toDouble() ?? 0.0,
+      reviewsCount: (map['reviewsCount'] as num?)?.toInt() ?? 0,
     );
   }
 }

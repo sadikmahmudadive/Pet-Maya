@@ -1,0 +1,40 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Helper to check authentication
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Profiles folder
+    match /profile_pics/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+
+    // Pets folder
+    match /pets/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+
+    // Community folder
+    match /community_posts/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+
+    // Blogs folder
+    match /blogs/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+
+    // Shop folder
+    match /shop_products/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAuthenticated(); // Should be isAdmin() in production
+    }
+  }
+}

@@ -970,10 +970,12 @@ class HomeDashboardFragment extends StatelessWidget {
               child: CircleAvatar(
                 radius: isLandscape ? 20 : 24,
                 backgroundColor: Theme.of(context).cardColor,
-                backgroundImage: user?.photoUrl != null
-                    ? CachedNetworkImageProvider(user!.photoUrl!)
+                backgroundImage: (user?.photoUrl != null && user!.photoUrl!.isNotEmpty)
+                    ? (user.photoUrl!.startsWith('http')
+                        ? CachedNetworkImageProvider(user.photoUrl!) as ImageProvider
+                        : AssetImage(user.photoUrl!) as ImageProvider)
                     : null,
-                child: user?.photoUrl == null
+                child: (user?.photoUrl == null || user!.photoUrl!.isEmpty)
                     ? Icon(
                         Icons.person,
                         color: Theme.of(context).colorScheme.primary,

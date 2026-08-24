@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:provider/provider.dart';
+import '../../data/repositories/app_state_repository.dart';
 import '../common_widgets/glass_scaffold.dart';
 import '../common_widgets/premium_card.dart';
 
@@ -16,10 +18,24 @@ class _AdminBroadcastScreenState extends State<AdminBroadcastScreen> {
   final _msgController = TextEditingController(text: 'Join us at Central Dog Park this Saturday from 9 AM to 3 PM for a free rabies immunization drive hosted by the City Health Dept.');
   String _targetGroup = 'All Pet Owners';
 
-  void _sendBroadcast() {
+  void _sendBroadcast() async {
     if (_titleController.text.isEmpty || _msgController.text.isEmpty) return;
 
+    final repo = context.read<AppStateRepository>();
+    final title = _titleController.text.trim();
+    final message = _msgController.text.trim();
+
     HapticFeedback.heavyImpact();
+    
+    // Perform the broadcast in the repository
+    await repo.sendBroadcastNotification(
+      title: title,
+      message: message,
+      targetGroup: _targetGroup,
+    );
+
+    if (!mounted) return;
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(

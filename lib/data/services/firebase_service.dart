@@ -146,8 +146,22 @@ class FirebaseService {
     return app_models.UserModel.fromMap(uid, doc.data()! as Map<String, dynamic>);
   }
 
+  Stream<app_models.UserModel?> streamUserProfile(String uid) {
+    return _usersCol.doc(uid).snapshots().map((doc) {
+      if (!doc.exists || doc.data() == null) return null;
+      return app_models.UserModel.fromMap(uid, doc.data()! as Map<String, dynamic>);
+    });
+  }
+
   Future<List<app_models.UserModel>> fetchUsers() async {
     final snap = await _usersCol.get();
+    return snap.docs
+        .map((d) => app_models.UserModel.fromMap(d.id, d.data()! as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<List<app_models.UserModel>> fetchUsersByRole(String role) async {
+    final snap = await _usersCol.where('role', isEqualTo: role).get();
     return snap.docs
         .map((d) => app_models.UserModel.fromMap(d.id, d.data()! as Map<String, dynamic>))
         .toList();

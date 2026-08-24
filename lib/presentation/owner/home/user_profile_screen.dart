@@ -8,7 +8,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../../data/models/user_model.dart';
 import '../../../data/models/pet_model.dart';
 import '../../../data/repositories/app_state_repository.dart';
-import '../../../core/services/cloudinary_service.dart';
+import '../../../core/services/firebase_storage_service.dart';
 import '../../common_widgets/premium_card.dart';
 import '../../auth/login_screen.dart';
 import '../services/favorite_vets_screen.dart';
@@ -41,7 +41,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       HapticFeedback.mediumImpact();
       
       final file = File(pickedFile.path);
-      final uploadedUrl = await CloudinaryService().uploadImage(file, 'profile_pics');
+      final uploadedUrl = await FirebaseStorageService().uploadImage(file, 'profile_pics');
       
       if (uploadedUrl != null) {
         final repo = context.read<AppStateRepository>();
@@ -259,7 +259,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             radius: 54,
             backgroundColor: Colors.white.withValues(alpha: 0.1),
             backgroundImage: (user.photoUrl != null && user.photoUrl!.isNotEmpty)
-                ? NetworkImage(user.photoUrl!)
+                ? (user.photoUrl!.startsWith('http') 
+                    ? NetworkImage(user.photoUrl!) as ImageProvider
+                    : AssetImage(user.photoUrl!) as ImageProvider)
                 : null,
             child: (user.photoUrl == null || user.photoUrl!.isEmpty)
                 ? const Icon(Icons.person, size: 50, color: Colors.white38)

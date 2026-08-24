@@ -96,26 +96,35 @@ class _AdminServicePricingScreenState extends State<AdminServicePricingScreen> {
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Text(vet.name, style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.w800)),
-                                        Text(vet.tag.toUpperCase(), style: TextStyle(fontSize: 10, color: Colors.grey[500], fontWeight: FontWeight.w900, letterSpacing: 0.5)),
+                                        Text(vet.name, 
+                                          maxLines: 1, overflow: TextOverflow.ellipsis,
+                                          style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.w800, fontSize: 14)),
+                                        Text(vet.tag.toUpperCase(), 
+                                          maxLines: 1, overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(fontSize: 9, color: Colors.grey[500], fontWeight: FontWeight.w900, letterSpacing: 0.5)),
                                       ],
                                     ),
                                   ),
+                                  const SizedBox(width: 8),
                                   GestureDetector(
                                     onTap: () => _showPriceEditModal(context, state, vet),
                                     child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                                       decoration: BoxDecoration(
                                         color: AppColors.healthGreen.withValues(alpha: 0.1),
-                                        borderRadius: BorderRadius.circular(14),
+                                        borderRadius: BorderRadius.circular(12),
                                         border: Border.all(color: AppColors.healthGreen.withValues(alpha: 0.2)),
                                       ),
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          Text(vet.price, style: const TextStyle(color: AppColors.healthGreen, fontWeight: FontWeight.w900, fontSize: 14)),
-                                          const SizedBox(width: 8),
-                                          const Icon(Icons.edit_rounded, color: AppColors.healthGreen, size: 14),
+                                          Flexible(
+                                            child: Text(vet.price, 
+                                              maxLines: 1, overflow: TextOverflow.ellipsis,
+                                              style: const TextStyle(color: AppColors.healthGreen, fontWeight: FontWeight.w900, fontSize: 12)),
+                                          ),
+                                          const SizedBox(width: 4),
+                                          const Icon(Icons.edit_rounded, color: AppColors.healthGreen, size: 12),
                                         ],
                                       ),
                                     ),

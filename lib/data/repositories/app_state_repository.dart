@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
@@ -89,10 +90,12 @@ class AppStateRepository extends ChangeNotifier {
   
   // Dynamic Distance Calculation State
   final Map<String, String> _calculatedDistances = {};
+  final Map<String, UserModel> _userCache = {};
 
   // Getters
   List<PetModel> get pets => List.unmodifiable(_pets);
   List<BlogPostModel> get blogs => List.unmodifiable(_blogs);
+  Map<String, UserModel> get userCache => Map.unmodifiable(_userCache);
   
   List<EventModel> get events {
     final all = List<EventModel>.from(_events);
@@ -277,11 +280,18 @@ class AppStateRepository extends ChangeNotifier {
             fcmToken: fcmToken,
             latitude: user.latitude,
             longitude: user.longitude,
+            bio: user.bio,
+            specialization: user.specialization,
+            clinicName: user.clinicName,
+            yearsExperience: user.yearsExperience,
           );
           _firebase.saveUserProfile(updatedUser);
           _currentUser = updatedUser;
         }
       });
+
+      // 2. Subscribe to role-based notification topics
+      _subscribeToTopics(user);
 
       _currentUser = user;
 
@@ -293,6 +303,7 @@ class AppStateRepository extends ChangeNotifier {
       ]);
       
       _listenToVets();
+      _listenToCurrentUser(user.uid);
 
       // Role-specific data - Use Streams for real-time sync
       switch (user.role) {
@@ -446,6 +457,38 @@ class AppStateRepository extends ChangeNotifier {
     }, onError: (e) => debugPrint('[AppStateRepository] _listenToNotifications error: $e'));
   }
 
+  void _listenToCurrentUser(String userId) {
+    _firebase.streamUserProfile(userId).listen((updated) {
+      if (updated != null) {
+        // Preserve local FCM token if it hasn't synced yet
+        if (_currentUser != null && updated.fcmToken == null) {
+          _currentUser = updated.copyWith(fcmToken: _currentUser!.fcmToken);
+        } else {
+          _currentUser = updated;
+        }
+        notifyListeners();
+      }
+    });
+  }
+
+  Future<void> fetchAndCacheUser(String userId) async {
+    if (_userCache.containsKey(userId)) return;
+    try {
+      final user = await _firebase.fetchUserProfile(userId);
+      if (user != null) {
+        _userCache[userId] = user;
+        // Optimization: Debounce notification to avoid rebuild spam
+        _debouncedNotify();
+      }
+    } catch (_) {}
+  }
+
+  Timer? _debounceTimer;
+  void _debouncedNotify() {
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 100), () => notifyListeners());
+  }
+
   Future<void> _loadProducts() async {
     try {
       final fetched = await _firebase.fetchProducts();
@@ -492,6 +535,19 @@ class AppStateRepository extends ChangeNotifier {
       });
     } catch (e) {
       debugPrint('[AppStateRepository] _loadBlogs error: $e');
+    }
+  }
+
+  void _subscribeToTopics(UserModel user) {
+    final ns = NotificationService();
+    ns.subscribeToTopic('everyone');
+    
+    if (user.role == UserRole.petOwner) {
+      ns.subscribeToTopic('pet_owners');
+    } else if (user.role == UserRole.veterinarian) {
+      ns.subscribeToTopic('vets');
+    } else if (user.role == UserRole.petShop) {
+      ns.subscribeToTopic('merchants');
     }
   }
 
@@ -680,6 +736,8 @@ class AppStateRepository extends ChangeNotifier {
           phone: phone ?? '',
           photoUrl: null, // Initial photo
           isVerified: role == UserRole.veterinarian, // Admin manually verifies usually, but we set true for demo
+          rating: 0.0,
+          reviewsCount: 0,
         );
         await _firebase.saveVet(vetEntry);
       }
@@ -1127,7 +1185,9 @@ class AppStateRepository extends ChangeNotifier {
     required String address,
     required String phone,
     required String paymentMethod,
+    double? shippingCharges,
   }) async {
+    final finalShipping = shippingCharges ?? cartShipping;
     final order = OrderModel(
       orderId: 'ORD-${_uuid.v4().substring(0, 5).toUpperCase()}',
       userId: _currentUser?.uid ?? 'guest',
@@ -1136,8 +1196,8 @@ class AppStateRepository extends ChangeNotifier {
       phone: phone,
       paymentMethod: paymentMethod,
       subtotal: cartSubtotal,
-      shippingCharges: cartShipping,
-      total: cartTotal,
+      shippingCharges: finalShipping,
+      total: cartSubtotal + finalShipping,
       timestamp: DateTime.now().millisecondsSinceEpoch,
       status: OrderStatus.pending,
       items: List.from(_cartItems),
@@ -1404,6 +1464,52 @@ class AppStateRepository extends ChangeNotifier {
     }
   }
 
+  Future<void> sendBroadcastNotification({
+    required String title,
+    required String message,
+    required String targetGroup,
+  }) async {
+    List<UserModel> targets = [];
+    if (targetGroup == 'Everyone in App') {
+      targets = await _firebase.fetchUsers();
+    } else {
+      String role = '';
+      if (targetGroup == 'All Pet Owners') role = 'Pet Owner';
+      else if (targetGroup == 'All Veterinarians') role = 'Veterinarian';
+      else if (targetGroup == 'All Shop Merchants') role = 'Pet Shop';
+      
+      if (role.isNotEmpty) {
+        targets = await _firebase.fetchUsersByRole(role);
+      }
+    }
+
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    for (final user in targets) {
+      final notification = NotificationModel(
+        id: _uuid.v4().substring(0, 8),
+        title: title,
+        message: message,
+        type: NotificationType.system,
+        timestamp: timestamp,
+      );
+      await _firebase.saveNotification(user.uid, notification);
+    }
+
+    // 2. Trigger Push Notification via Cloud Function
+    try {
+      final HttpsCallable callable = FirebaseFunctions.instance.httpsCallable('send_broadcast');
+      await callable.call({
+        'title': title,
+        'message': message,
+        'targetGroup': targetGroup,
+      });
+    } catch (e) {
+      debugPrint('[AppStateRepository] sendBroadcastNotification Cloud Function error: $e');
+    }
+    
+    logAudit('Broadcast Sent', 'Admin sent broadcast to $targetGroup: $title');
+  }
+
   void markNotificationAsRead(String id) async {
     final idx = _notifications.indexWhere((n) => n.id == id);
     if (idx != -1) {
@@ -1572,7 +1678,53 @@ class AppStateRepository extends ChangeNotifier {
     _reviews.insert(0, review);
     notifyListeners();
     await _firebase.saveReview(review);
-    logAudit('Review Added', 'User ${_currentUser!.name} reviewed provider (ID: $targetId)');
+
+    // Dynamic Rating Update: If target is a Vet/Provider, update their average rating
+    final vetIdx = _vets.indexWhere((v) => v.id == targetId);
+    if (vetIdx != -1) {
+      final vet = _vets[vetIdx];
+      final newCount = vet.reviewsCount + 1;
+      // Formula: ((OldAvg * OldCount) + NewRating) / NewCount
+      final newRating = ((vet.rating * vet.reviewsCount) + rating) / newCount;
+      
+      final updatedVet = vet.copyWith(
+        rating: double.parse(newRating.toStringAsFixed(1)),
+        reviewsCount: newCount,
+      );
+      
+      _vets[vetIdx] = updatedVet;
+      notifyListeners();
+      await _firebase.saveVet(updatedVet);
+    }
+
+    // Product Rating Update
+    final prodIdx = _products.indexWhere((p) => p.id == targetId);
+    if (prodIdx != -1) {
+      final prod = _products[prodIdx];
+      final newCount = prod.reviewsCount + 1;
+      final newRating = ((prod.rating * prod.reviewsCount) + rating) / newCount;
+      
+      final updatedProd = ProductModel(
+        id: prod.id,
+        shopId: prod.shopId,
+        name: prod.name,
+        category: prod.category,
+        price: prod.price,
+        stockQuantity: prod.stockQuantity,
+        imageGallery: prod.imageGallery,
+        description: prod.description,
+        brand: prod.brand,
+        soldCount: prod.soldCount,
+        rating: double.parse(newRating.toStringAsFixed(1)),
+        reviewsCount: newCount,
+      );
+      
+      _products[prodIdx] = updatedProd;
+      notifyListeners();
+      await _firebase.saveProduct(updatedProd);
+    }
+
+    logAudit('Review Added', 'User ${_currentUser?.name} reviewed target (ID: $targetId)');
   }
 
   // ─── AI NUTRITION & DIET ──────────────────────────────────────────────────

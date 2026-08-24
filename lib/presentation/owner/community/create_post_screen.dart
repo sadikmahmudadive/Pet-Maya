@@ -10,7 +10,7 @@ import '../../../data/repositories/app_state_repository.dart';
 import '../../../data/models/feed_post_model.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
-import '../../../core/services/cloudinary_service.dart';
+import '../../../core/services/firebase_storage_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class CreatePostScreen extends StatefulWidget {
@@ -61,9 +61,9 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
     String? finalImageUrl;
 
-    // Upload to Cloudinary if image selected
+    // Upload to Firebase Storage if image selected
     if (_localImage != null) {
-      final uploadedUrl = await CloudinaryService().uploadImage(_localImage!, 'community_posts');
+      final uploadedUrl = await FirebaseStorageService().uploadImage(_localImage!, 'community_posts');
       if (uploadedUrl != null) {
         finalImageUrl = uploadedUrl;
       } else {

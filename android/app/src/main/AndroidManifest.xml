@@ -45,6 +45,14 @@
         <receiver android:name="com.vertexhand.petmaya.EventAlarmReceiver" android:exported="false" />
         <receiver android:name="com.vertexhand.petmaya.ActionReceiver" android:exported="false" />
 
+        <!-- FCM Configuration -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@mipmap/launcher_icon" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="high_importance_channel" />
+
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyAhmOHCWgWf7exFnjQ1nns8cDjPZvKRTto"/>

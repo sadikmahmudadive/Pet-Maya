@@ -10,6 +10,8 @@ import '../../../data/models/product_model.dart';
 import '../../common_widgets/glass_scaffold.dart';
 //
 import 'cart_screen.dart';
+import 'checkout_screen.dart';
+import '../services/reviews_screen.dart';
 
 class ProductDetailsScreen extends StatelessWidget {
   final ProductModel product;
@@ -115,15 +117,19 @@ class ProductDetailsScreen extends StatelessWidget {
                               style: const TextStyle(fontSize: 38, fontWeight: FontWeight.w900, color: AppColors.primary)),
                         ],
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                        decoration: BoxDecoration(color: AppColors.accentAmber.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(16)),
-                        child: const Row(
-                          children: [
-                            Icon(Icons.star_rounded, color: AppColors.accentAmber, size: 20),
-                            SizedBox(width: 6),
-                            Text('4.8', style: TextStyle(fontWeight: FontWeight.w900, color: AppColors.accentAmber, fontSize: 16)),
-                          ],
+                      GestureDetector(
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ReviewsScreen(targetId: product.id, targetName: product.name))),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                          decoration: BoxDecoration(color: AppColors.accentAmber.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(16)),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.star_rounded, color: AppColors.accentAmber, size: 20),
+                              const SizedBox(width: 6),
+                              Text(product.rating == 0 ? 'N/A' : product.rating.toString(), 
+                                style: const TextStyle(fontWeight: FontWeight.w900, color: AppColors.accentAmber, fontSize: 16)),
+                            ],
+                          ),
                         ),
                       ),
                     ],
@@ -245,6 +251,8 @@ class ProductDetailsScreen extends StatelessWidget {
   }
 
   Widget _buildBottomBar(BuildContext context, AppStateRepository state) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
       decoration: BoxDecoration(
@@ -253,28 +261,58 @@ class ProductDetailsScreen extends StatelessWidget {
         boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 40, offset: const Offset(0, -10))],
       ),
       child: SafeArea(
-        child: SizedBox(
-          height: 64,
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: () {
-              HapticFeedback.heavyImpact();
-              state.addToCart(product);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Text('Added to your basket! 🐾', style: TextStyle(fontWeight: FontWeight.w800)),
-                  backgroundColor: AppColors.primary,
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Row(
+          children: [
+            Expanded(
+              child: SizedBox(
+                height: 64,
+                child: ElevatedButton(
+                  onPressed: () {
+                    HapticFeedback.heavyImpact();
+                    state.addToCart(product);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: const Text('Added to your basket! 🐾', style: TextStyle(fontWeight: FontWeight.w800)),
+                        backgroundColor: AppColors.primary,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey[100],
+                    foregroundColor: AppColors.primary,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                      side: BorderSide(color: AppColors.primary.withValues(alpha: 0.2)),
+                    ),
+                  ),
+                  child: const Text('ADD TO BASKET', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 0.5, fontSize: 11)),
                 ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF1AB680),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              ),
             ),
-            child: const Text('ADD TO BASKET', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 1, fontSize: 13)),
-          ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: SizedBox(
+                height: 64,
+                child: ElevatedButton(
+                  onPressed: () {
+                    HapticFeedback.heavyImpact();
+                    state.addToCart(product);
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const CheckoutScreen()));
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1AB680),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    elevation: 8,
+                    shadowColor: const Color(0xFF1AB680).withValues(alpha: 0.4),
+                  ),
+                  child: const Text('BUY NOW', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 1, fontSize: 13)),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
