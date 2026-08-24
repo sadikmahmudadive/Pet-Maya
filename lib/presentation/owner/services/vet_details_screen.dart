@@ -48,10 +48,15 @@ class _VetDetailsScreenState extends State<VetDetailsScreen> {
     
     int exc = 0, good = 0, avg = 0, poor = 0;
     for (var r in reviews) {
-      if (r.rating >= 4.5) exc++;
-      else if (r.rating >= 3.5) good++;
-      else if (r.rating >= 2.5) avg++;
-      else poor++;
+      if (r.rating >= 4.5) {
+        exc++;
+      } else if (r.rating >= 3.5) {
+        good++;
+      } else if (r.rating >= 2.5) {
+        avg++;
+      } else {
+        poor++;
+      }
     }
 
     return GlassScaffold(
