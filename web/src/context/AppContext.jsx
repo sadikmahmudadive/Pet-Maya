@@ -1,14 +1,32 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { 
+  db,
+  collection,
+  doc,
+  getDocs,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  addDoc,
+  query,
+  where,
+  orderBy,
+  onSnapshot,
+  increment,
+  arrayUnion,
+  arrayRemove,
   INITIAL_PETS, 
   INITIAL_VETS, 
   INITIAL_PRODUCTS, 
   INITIAL_POSTS 
 } from '../config/firebase';
+import { useAuth } from './AuthContext';
 
 const AppContext = createContext();
 
 export function AppProvider({ children }) {
+  const { currentUser, awardPoints } = useAuth();
+
   // Navigation
   const [activeTab, setActiveTab] = useState('dashboard');
   const [theme, setTheme] = useState(() => localStorage.getItem('pm_theme') || 'dark');
@@ -17,38 +35,13 @@ export function AppProvider({ children }) {
   const [activeModal, setActiveModal] = useState(null);
   const [modalData, setModalData] = useState(null);
 
-  // Core Datasets
-  const [pets, setPets] = useState(() => {
-    const saved = localStorage.getItem('pm_pets');
-    return saved ? JSON.parse(saved) : INITIAL_PETS;
-  });
-
-  const [vets, setVets] = useState(() => {
-    const saved = localStorage.getItem('pm_vets');
-    return saved ? JSON.parse(saved) : INITIAL_VETS;
-  });
-
-  const [products] = useState(INITIAL_PRODUCTS);
-
-  const [posts, setPosts] = useState(() => {
-    const saved = localStorage.getItem('pm_posts');
-    return saved ? JSON.parse(saved) : INITIAL_POSTS;
-  });
-
-  const [appointments, setAppointments] = useState(() => {
-    const saved = localStorage.getItem('pm_appointments');
-    return saved ? JSON.parse(saved) : [
-      { id: 'apt-1', title: 'Annual Nobivac Booster with Dr. Sarah Jenkins', doctor: 'Dr. Sarah Jenkins', petName: 'Max', date: '2026-08-28', time: '10:30 AM', mode: 'In-Clinic Consultation', status: 'Confirmed' }
-    ];
-  });
-
-  const [medicalRecords, setMedicalRecords] = useState(() => {
-    const saved = localStorage.getItem('pm_ehr');
-    return saved ? JSON.parse(saved) : [
-      { id: 'ehr-1', petName: 'Bella', ownerName: 'Alex Johnson', serviceType: 'Consultation', weight: '14.2 kg', diagnosis: 'Otitis Externa (mild fungal ear canal infection)', prescription: 'Otomax Drops 4 drops 2x daily (7 days). Apoquel 16mg daily.', cost: 45, date: '2026-08-15', nextBooster: '2026-08-25' },
-      { id: 'ehr-2', petName: 'Max', ownerName: 'Alex Johnson', serviceType: 'Vaccination', weight: '28.4 kg', diagnosis: 'Routine Annual Immunization', prescription: 'Nobivac DHPP + Rabies 1ml SC administered.', cost: 35, date: '2026-08-10', nextBooster: '2027-08-10' }
-    ];
-  });
+  // Core Datasets with Firebase Real-time Synchronization
+  const [pets, setPets] = useState(INITIAL_PETS);
+  const [vets, setVets] = useState(INITIAL_VETS);
+  const [products, setProducts] = useState(INITIAL_PRODUCTS);
+  const [posts, setPosts] = useState(INITIAL_POSTS);
+  const [appointments, setAppointments] = useState([]);
+  const [medicalRecords, setMedicalRecords] = useState([]);
 
   // E-Commerce Cart
   const [cart, setCart] = useState(() => {
@@ -58,24 +51,12 @@ export function AppProvider({ children }) {
   const [appliedCoupon, setAppliedCoupon] = useState(null);
 
   // Orders
-  const [orders, setOrders] = useState(() => {
-    const saved = localStorage.getItem('pm_orders');
-    return saved ? JSON.parse(saved) : [
-      {
-        id: 'PM-ORD-8941',
-        date: '2026-08-24',
-        items: [{ id: 'p1', name: 'Royal Canin Golden Retriever Adult', price: 64.99, qty: 1 }],
-        total: 64.99,
-        status: 'In Preparation',
-        address: 'House 14, Road 7, Banani, Dhaka'
-      }
-    ];
-  });
+  const [orders, setOrders] = useState([]);
 
   // Toasts
   const [toasts, setToasts] = useState([]);
 
-  // Theme synchronization
+  // ─── THEME SYNCHRONIZATION ───
   useEffect(() => {
     if (theme === 'dark') {
       document.documentElement.setAttribute('data-theme', 'dark');
@@ -85,26 +66,331 @@ export function AppProvider({ children }) {
     localStorage.setItem('pm_theme', theme);
   }, [theme]);
 
-  // Persist State Changes
-  useEffect(() => { localStorage.setItem('pm_pets', JSON.stringify(pets)); }, [pets]);
-  useEffect(() => { localStorage.setItem('pm_vets', JSON.stringify(vets)); }, [vets]);
-  useEffect(() => { localStorage.setItem('pm_posts', JSON.stringify(posts)); }, [posts]);
-  useEffect(() => { localStorage.setItem('pm_appointments', JSON.stringify(appointments)); }, [appointments]);
-  useEffect(() => { localStorage.setItem('pm_ehr', JSON.stringify(medicalRecords)); }, [medicalRecords]);
-  useEffect(() => { localStorage.setItem('pm_cart', JSON.stringify(cart)); }, [cart]);
-  useEffect(() => { localStorage.setItem('pm_orders', JSON.stringify(orders)); }, [orders]);
-
   const toggleTheme = () => {
     setTheme(prev => prev === 'dark' ? 'light' : 'dark');
   };
 
-  const showToast = (msg, type = 'info') => {
-    const id = Date.now() + Math.random().toString(36).substr(2, 4);
-    setToasts(prev => [...prev, { id, msg, type }]);
-    setTimeout(() => {
-      setToasts(prev => prev.filter(t => t.id !== id));
-    }, 3500);
-  };
+  // ─── 1. FIREBASE REAL-TIME PETS LISTENER ───
+  useEffect(() => {
+    if (!currentUser || currentUser.uid.startsWith('demo_guest')) {
+      const saved = localStorage.getItem('pm_pets');
+      setPets(saved ? JSON.parse(saved) : INITIAL_PETS);
+      return;
+    }
+
+    try {
+      const petsRef = collection(db, 'pets');
+      const q = query(petsRef, where('ownerID', '==', currentUser.uid));
+
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        if (!snapshot.empty) {
+          const fetchedPets = snapshot.docs.map(docSnap => {
+            const data = docSnap.data();
+            return {
+              id: docSnap.id,
+              petID: docSnap.id,
+              name: data.name || 'Pet',
+              species: data.species || data.type || 'Dog',
+              breed: data.breed || 'Mixed',
+              gender: data.gender || 'Unknown',
+              age: data.age || '1 Yr',
+              weight: data.weight || '10 kg',
+              photo: data.photoUrl || data.photo || 'assets/images/Pet_1.jpg',
+              microchip: data.microchip || data.microchipId || `PM-${docSnap.id.slice(0, 5).toUpperCase()}`,
+              nextVaccine: data.nextVaccine || '2026-09-30'
+            };
+          });
+          setPets(fetchedPets);
+        } else {
+          // If user has no pets in Firestore yet, start with default
+          setPets([]);
+        }
+      }, (err) => {
+        console.warn('[Firebase] Pets stream warning:', err);
+      });
+
+      return () => unsubscribe();
+    } catch (e) {
+      console.warn('[Firebase] Error setting up pets listener:', e);
+    }
+  }, [currentUser]);
+
+  // ─── 2. FIREBASE REAL-TIME VETS LISTENER ───
+  useEffect(() => {
+    try {
+      const vetsRef = collection(db, 'vets');
+      const unsubscribe = onSnapshot(vetsRef, (snapshot) => {
+        if (!snapshot.empty) {
+          const fetchedVets = snapshot.docs.map(docSnap => {
+            const data = docSnap.data();
+            return {
+              id: docSnap.id,
+              name: data.name || 'Specialist',
+              qualification: data.qualification || 'DVM',
+              tag: data.tag || 'Veterinarian',
+              rating: typeof data.rating === 'number' ? data.rating : (parseFloat(data.rating) || 4.9),
+              reviewsCount: data.reviewsCount || data.reviews || 45,
+              reviews: data.reviewsCount || data.reviews || 45,
+              distance: data.distance || '1.5 km away',
+              price: data.price || '৳35/visit',
+              availability: data.businessHours || data.availability || 'Mon - Fri • 9am - 6pm',
+              isVerified: data.isVerified ?? true,
+              bio: data.bio || 'Dedicated veterinary specialist.',
+              photo: data.photoUrl || data.photo || 'assets/images/Pet_1.jpg',
+              clinic: data.clinic || data.businessHours || 'Animal Hospital'
+            };
+          });
+          setVets(fetchedVets);
+        } else {
+          // Fallback to initial verified clinicians
+          setVets(INITIAL_VETS);
+          // Auto-seed Firestore 'vets' collection if completely empty
+          INITIAL_VETS.forEach(v => {
+            setDoc(doc(db, 'vets', v.id), {
+              id: v.id,
+              name: v.name,
+              qualification: v.qualification,
+              tag: v.tag,
+              rating: v.rating,
+              reviewsCount: v.reviewsCount,
+              distance: v.distance,
+              price: v.price,
+              isVerified: v.isVerified,
+              bio: v.bio,
+              photoUrl: v.photo,
+              clinic: v.clinic
+            }, { merge: true }).catch(() => {});
+          });
+        }
+      }, (err) => {
+        console.warn('[Firebase] Vets listener warning:', err);
+        setVets(INITIAL_VETS);
+      });
+
+      return () => unsubscribe();
+    } catch (e) {
+      console.warn('[Firebase] Vets setup error:', e);
+    }
+  }, []);
+
+  // ─── 3. FIREBASE REAL-TIME PRODUCTS LISTENER ───
+  useEffect(() => {
+    try {
+      const productsRef = collection(db, 'products');
+      const unsubscribe = onSnapshot(productsRef, (snapshot) => {
+        if (!snapshot.empty) {
+          const fetchedProducts = snapshot.docs.map(docSnap => {
+            const data = docSnap.data();
+            return {
+              id: docSnap.id,
+              name: data.name || 'Product',
+              category: data.category || 'supplies',
+              price: typeof data.price === 'number' ? data.price : (parseFloat(data.price) || 29.99),
+              rating: data.rating || 4.8,
+              ratingCount: data.ratingCount || 50,
+              image: data.imageUrl || data.image || 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=500&auto=format&fit=crop&q=80',
+              description: data.description || 'High quality pet care supply.',
+              isRx: data.isRx || false
+            };
+          });
+          setProducts(fetchedProducts);
+        } else {
+          setProducts(INITIAL_PRODUCTS);
+          // Seed products
+          INITIAL_PRODUCTS.forEach(p => {
+            setDoc(doc(db, 'products', p.id), {
+              id: p.id,
+              name: p.name,
+              category: p.category,
+              price: p.price,
+              rating: p.rating,
+              ratingCount: p.ratingCount,
+              imageUrl: p.image,
+              description: p.description
+            }, { merge: true }).catch(() => {});
+          });
+        }
+      }, (err) => {
+        console.warn('[Firebase] Products listener warning:', err);
+      });
+
+      return () => unsubscribe();
+    } catch (e) {
+      console.warn('[Firebase] Products setup error:', e);
+    }
+  }, []);
+
+  // ─── 4. FIREBASE REAL-TIME COMMUNITY POSTS ───
+  useEffect(() => {
+    try {
+      const postsRef = collection(db, 'community_posts');
+      const unsubscribe = onSnapshot(postsRef, (snapshot) => {
+        if (!snapshot.empty) {
+          const fetchedPosts = snapshot.docs.map(docSnap => {
+            const data = docSnap.data();
+            const likedList = data.likedBy || [];
+            const isLiked = currentUser ? likedList.includes(currentUser.uid) : false;
+
+            return {
+              id: docSnap.id,
+              author: data.authorName || data.author || 'Pet Parent',
+              authorPhoto: data.authorPhoto || 'assets/images/tail_wagging_logo.png',
+              petTag: data.petTag || 'Pet',
+              time: data.time || data.timestamp || 'Recent',
+              content: data.content || '',
+              image: data.imageUrl || data.image || '',
+              likes: data.likesCount ?? (likedList.length || 0),
+              isLiked: isLiked,
+              likedBy: likedList,
+              comments: data.comments || []
+            };
+          });
+          setPosts(fetchedPosts);
+        } else {
+          setPosts(INITIAL_POSTS);
+        }
+      }, (err) => {
+        console.warn('[Firebase] Community posts listener warning:', err);
+      });
+
+      return () => unsubscribe();
+    } catch (e) {
+      console.warn('[Firebase] Posts setup error:', e);
+    }
+  }, [currentUser]);
+
+  // ─── 5. FIREBASE APPOINTMENTS & EVENTS ───
+  useEffect(() => {
+    if (!currentUser || currentUser.uid.startsWith('demo_guest')) {
+      const saved = localStorage.getItem('pm_appointments');
+      setAppointments(saved ? JSON.parse(saved) : [
+        { id: 'apt-1', title: 'Annual Nobivac Booster with Dr. Sarah Jenkins', doctor: 'Dr. Sarah Jenkins', clinic: 'Greenwood Animal Hospital', petName: 'Max', date: '2026-08-28', time: '10:30 AM', mode: 'In-Clinic Consultation', status: 'Confirmed' }
+      ]);
+      return;
+    }
+
+    try {
+      const eventsRef = collection(db, 'events');
+      const q = query(eventsRef, where('userId', '==', currentUser.uid));
+
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const fetched = snapshot.docs.map(docSnap => {
+          const data = docSnap.data();
+          return {
+            id: docSnap.id,
+            title: data.title || 'Veterinary Appointment',
+            doctor: data.doctor || data.providerName || 'Dr. Specialist',
+            clinic: data.clinic || data.location || 'Clinic',
+            petName: data.petName || 'Pet',
+            date: data.date || '',
+            time: data.time || '',
+            mode: data.mode || data.type || 'In-Clinic Consultation',
+            status: data.status || 'Confirmed'
+          };
+        });
+        setAppointments(fetched);
+      }, (err) => {
+        console.warn('[Firebase] Events listener error:', err);
+      });
+
+      return () => unsubscribe();
+    } catch (e) {
+      console.warn('[Firebase] Appointments setup error:', e);
+    }
+  }, [currentUser]);
+
+  // ─── 6. FIREBASE MEDICAL RECORDS / SERVICE RECORDS ───
+  useEffect(() => {
+    if (!currentUser || currentUser.uid.startsWith('demo_guest')) {
+      const saved = localStorage.getItem('pm_ehr');
+      setMedicalRecords(saved ? JSON.parse(saved) : [
+        { id: 'ehr-1', petName: 'Bella', ownerName: 'Alex Johnson', serviceType: 'Consultation', weight: '14.2 kg', diagnosis: 'Otitis Externa (mild fungal ear canal infection)', prescription: 'Otomax Drops 4 drops 2x daily (7 days). Apoquel 16mg daily.', cost: 45, date: '2026-08-15', nextBooster: '2026-08-25' },
+        { id: 'ehr-2', petName: 'Max', ownerName: 'Alex Johnson', serviceType: 'Vaccination', weight: '28.4 kg', diagnosis: 'Routine Annual Immunization', prescription: 'Nobivac DHPP + Rabies 1ml SC administered.', cost: 35, date: '2026-08-10', nextBooster: '2027-08-10' }
+      ]);
+      return;
+    }
+
+    try {
+      const recordsRef = collection(db, 'service_records');
+      const q = query(recordsRef, where('userId', '==', currentUser.uid));
+
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const fetched = snapshot.docs.map(docSnap => {
+          const data = docSnap.data();
+          return {
+            id: docSnap.id,
+            petName: data.petName || 'Pet',
+            ownerName: data.ownerName || currentUser.name,
+            serviceType: data.serviceType || 'Consultation',
+            weight: data.weight || '10 kg',
+            diagnosis: data.diagnosis || 'Routine checkup',
+            prescription: data.prescription || 'None',
+            cost: data.cost || 35,
+            date: data.date || '',
+            nextBooster: data.nextBooster || 'N/A'
+          };
+        });
+        setMedicalRecords(fetched);
+      }, (err) => {
+        console.warn('[Firebase] Records listener error:', err);
+      });
+
+      return () => unsubscribe();
+    } catch (e) {
+      console.warn('[Firebase] EHR setup error:', e);
+    }
+  }, [currentUser]);
+
+  // ─── 7. FIREBASE ORDERS ───
+  useEffect(() => {
+    if (!currentUser || currentUser.uid.startsWith('demo_guest')) {
+      const saved = localStorage.getItem('pm_orders');
+      setOrders(saved ? JSON.parse(saved) : [
+        {
+          id: 'PM-ORD-8941',
+          date: '2026-08-24',
+          items: [{ id: 'p1', name: 'Royal Canin Golden Retriever Adult', price: 64.99, qty: 1 }],
+          total: 64.99,
+          status: 'In Preparation',
+          address: 'House 14, Road 7, Banani, Dhaka'
+        }
+      ]);
+      return;
+    }
+
+    try {
+      const ordersRef = collection(db, 'orders');
+      const q = query(ordersRef, where('userId', '==', currentUser.uid));
+
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const fetched = snapshot.docs.map(docSnap => {
+          const data = docSnap.data();
+          return {
+            id: docSnap.id,
+            date: data.date || new Date().toISOString().split('T')[0],
+            items: data.items || [],
+            total: data.total || 0,
+            status: data.status || 'Order Placed',
+            address: data.deliveryAddress || data.address || 'Address'
+          };
+        });
+        setOrders(fetched);
+      }, (err) => {
+        console.warn('[Firebase] Orders listener error:', err);
+      });
+
+      return () => unsubscribe();
+    } catch (e) {
+      console.warn('[Firebase] Orders setup error:', e);
+    }
+  }, [currentUser]);
+
+  // Persist Local Cart
+  useEffect(() => {
+    localStorage.setItem('pm_cart', JSON.stringify(cart));
+  }, [cart]);
+
+  // ─── ACTIONS ───
 
   const openModal = (modalName, data = null) => {
     setActiveModal(modalName);
@@ -116,66 +402,227 @@ export function AppProvider({ children }) {
     setModalData(null);
   };
 
-  // Pets
-  const addPet = (newPet) => {
-    const pet = {
-      id: 'pet_' + Date.now(),
-      name: newPet.name || 'Buddy',
-      species: newPet.species || 'Dog',
-      breed: newPet.breed || 'Mixed',
-      gender: newPet.gender || 'Male',
-      age: newPet.age || '1 Yr',
-      weight: newPet.weight ? `${newPet.weight} kg` : '10 kg',
-      photo: newPet.photo || 'assets/images/Pet_1.jpg',
-      microchip: `PM-${Math.floor(10000 + Math.random() * 90000)}`,
-      nextVaccine: '2026-11-20'
+  const showToast = (message, type = 'info') => {
+    const id = Date.now() + Math.random();
+    setToasts(prev => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id));
+    }, 4000);
+  };
+
+  // Add Pet
+  const addPet = async (petData) => {
+    const newId = 'pet_' + Date.now();
+    const petObj = {
+      id: newId,
+      petID: newId,
+      ownerID: currentUser ? currentUser.uid : 'demo_user_001',
+      ...petData
     };
-    setPets(prev => [pet, ...prev]);
-    showToast(`🐾 ${pet.name} added to your pet family!`, 'success');
-  };
 
-  const removePet = (id) => {
-    setPets(prev => prev.filter(p => p.id !== id));
-    showToast('Pet profile removed.');
-  };
-
-  // Vets
-  const updateVetPrice = (vetId, newPrice) => {
-    setVets(prev => prev.map(v => v.id === vetId ? { ...v, price: newPrice } : v));
-    showToast('Consultation fee updated successfully!', 'success');
-  };
-
-  const addVetReview = (vetId, rating, comment, authorName) => {
-    setVets(prev => prev.map(v => {
-      if (v.id === vetId) {
-        const newCount = (v.reviewsCount || 0) + 1;
-        const newRating = Number((((v.rating * (newCount - 1)) + rating) / newCount).toFixed(1));
-        return { ...v, rating: newRating, reviewsCount: newCount };
+    if (currentUser && !currentUser.uid.startsWith('demo_guest')) {
+      try {
+        await setDoc(doc(db, 'pets', newId), petObj, { merge: true });
+      } catch (e) {
+        console.warn('[Firebase] addPet firestore error:', e);
       }
-      return v;
-    }));
-    showToast('⭐ Thank you for your review!', 'success');
+    } else {
+      setPets(prev => [petObj, ...prev]);
+    }
+    awardPoints(10);
   };
 
-  // Cart
-  const addToCart = (product, qty = 1) => {
+  // Delete Pet
+  const deletePet = async (petId) => {
+    if (currentUser && !currentUser.uid.startsWith('demo_guest')) {
+      try {
+        await deleteDoc(doc(db, 'pets', petId));
+      } catch (e) {
+        console.warn('[Firebase] deletePet error:', e);
+      }
+    }
+    setPets(prev => prev.filter(p => (p.id !== petId && p.petID !== petId)));
+  };
+
+  // Add Community Post
+  const createPost = async (postData) => {
+    const newPost = {
+      authorName: postData.author || (currentUser ? currentUser.name : 'Pet Parent'),
+      authorId: currentUser ? currentUser.uid : 'guest',
+      authorPhoto: currentUser?.photoUrl || 'assets/images/tail_wagging_logo.png',
+      petTag: postData.petTag || 'Pet',
+      content: postData.content,
+      imageUrl: postData.image || '',
+      likesCount: 0,
+      likedBy: [],
+      comments: [],
+      timestamp: 'Just now',
+      createdAt: new Date().toISOString()
+    };
+
+    if (currentUser && !currentUser.uid.startsWith('demo_guest')) {
+      try {
+        await addDoc(collection(db, 'community_posts'), newPost);
+      } catch (e) {
+        console.warn('[Firebase] createPost error:', e);
+      }
+    } else {
+      setPosts(prev => [{ id: 'p_' + Date.now(), ...newPost, likes: 0, isLiked: false }, ...prev]);
+    }
+    awardPoints(5);
+    showToast('✨ Story published to community feed!', 'success');
+  };
+
+  // Toggle Like Post
+  const toggleLike = async (postId) => {
+    if (!currentUser) {
+      openModal('auth');
+      showToast('🔒 Please sign in to like posts', 'info');
+      return;
+    }
+
+    const post = posts.find(p => p.id === postId);
+    if (!post) return;
+
+    const isLiked = post.isLiked;
+
+    if (!currentUser.uid.startsWith('demo_guest')) {
+      try {
+        const postDocRef = doc(db, 'community_posts', postId);
+        await updateDoc(postDocRef, {
+          likedBy: isLiked ? arrayRemove(currentUser.uid) : arrayUnion(currentUser.uid),
+          likesCount: increment(isLiked ? -1 : 1)
+        });
+      } catch (e) {
+        console.warn('[Firebase] toggleLike error:', e);
+      }
+    } else {
+      setPosts(prev => prev.map(p => {
+        if (p.id === postId) {
+          return {
+            ...p,
+            likes: isLiked ? Math.max(0, p.likes - 1) : p.likes + 1,
+            isLiked: !isLiked
+          };
+        }
+        return p;
+      }));
+    }
+  };
+
+  // Add Comment to Post
+  const addComment = async (postId, text, authorName) => {
+    const commentObj = {
+      author: authorName || (currentUser ? currentUser.name : 'Pet Parent'),
+      text,
+      createdAt: new Date().toISOString()
+    };
+
+    if (currentUser && !currentUser.uid.startsWith('demo_guest')) {
+      try {
+        const postDocRef = doc(db, 'community_posts', postId);
+        await updateDoc(postDocRef, {
+          comments: arrayUnion(commentObj)
+        });
+      } catch (e) {
+        console.warn('[Firebase] addComment error:', e);
+      }
+    } else {
+      setPosts(prev => prev.map(p => {
+        if (p.id === postId) {
+          return { ...p, comments: [...(p.comments || []), commentObj] };
+        }
+        return p;
+      }));
+    }
+    showToast('💬 Comment posted!', 'success');
+  };
+
+  // Add Appointment / Event
+  const addAppointment = async (aptData) => {
+    const newApt = {
+      title: aptData.title || `${aptData.mode} with ${aptData.doctor}`,
+      doctor: aptData.doctor,
+      clinic: aptData.clinic || 'Specialist Clinic',
+      petName: aptData.petName || 'Pet',
+      date: aptData.date,
+      time: aptData.time,
+      mode: aptData.mode || 'In-Clinic Consultation',
+      status: 'Confirmed',
+      userId: currentUser ? currentUser.uid : 'demo_user_001',
+      createdAt: new Date().toISOString()
+    };
+
+    if (currentUser && !currentUser.uid.startsWith('demo_guest')) {
+      try {
+        await addDoc(collection(db, 'events'), newApt);
+      } catch (e) {
+        console.warn('[Firebase] addAppointment error:', e);
+      }
+    } else {
+      setAppointments(prev => [{ id: 'apt_' + Date.now(), ...newApt }, ...prev]);
+    }
+    awardPoints(15);
+    showToast('📅 Appointment confirmed and scheduled!', 'success');
+  };
+
+  // Remove Appointment
+  const removeAppointment = async (aptId) => {
+    if (currentUser && !currentUser.uid.startsWith('demo_guest')) {
+      try {
+        await deleteDoc(doc(db, 'events', aptId));
+      } catch (e) {
+        console.warn('[Firebase] removeAppointment error:', e);
+      }
+    }
+    setAppointments(prev => prev.filter(a => a.id !== aptId));
+    showToast('Appointment removed.', 'info');
+  };
+
+  // Add Medical Record
+  const addMedicalRecord = async (recordData) => {
+    const newRecord = {
+      petName: recordData.petName,
+      ownerName: currentUser ? currentUser.name : 'Alex Johnson',
+      serviceType: recordData.serviceType || 'Consultation',
+      weight: recordData.weight || '12 kg',
+      diagnosis: recordData.diagnosis,
+      prescription: recordData.prescription,
+      cost: parseFloat(recordData.cost) || 40,
+      date: recordData.date || new Date().toISOString().split('T')[0],
+      nextBooster: recordData.nextBooster || 'N/A',
+      userId: currentUser ? currentUser.uid : 'demo_user_001',
+      createdAt: new Date().toISOString()
+    };
+
+    if (currentUser && !currentUser.uid.startsWith('demo_guest')) {
+      try {
+        await addDoc(collection(db, 'service_records'), newRecord);
+      } catch (e) {
+        console.warn('[Firebase] addMedicalRecord error:', e);
+      }
+    } else {
+      setMedicalRecords(prev => [{ id: 'ehr_' + Date.now(), ...newRecord }, ...prev]);
+    }
+    awardPoints(10);
+    showToast('📋 Clinical medical record saved to EHR!', 'success');
+  };
+
+  // E-Commerce Cart Actions
+  const addToCart = (product, quantity = 1) => {
     setCart(prev => {
       const existing = prev.find(item => item.id === product.id);
       if (existing) {
-        return prev.map(item => item.id === product.id ? { ...item, qty: item.qty + qty } : item);
+        return prev.map(item => item.id === product.id ? { ...item, qty: item.qty + quantity } : item);
       }
-      return [...prev, { ...product, qty }];
+      return [...prev, { ...product, qty: quantity }];
     });
-    showToast(`🛒 Added ${product.name} to cart!`, 'success');
+    showToast(`🛒 Added "${product.name}" to bag!`, 'success');
   };
 
-  const removeFromCart = (id) => {
-    setCart(prev => prev.filter(item => item.id !== id));
-  };
-
-  const updateCartQty = (id, delta) => {
+  const updateCartQty = (productId, delta) => {
     setCart(prev => prev.map(item => {
-      if (item.id === id) {
+      if (item.id === productId) {
         const newQty = item.qty + delta;
         return newQty > 0 ? { ...item, qty: newQty } : null;
       }
@@ -183,170 +630,101 @@ export function AppProvider({ children }) {
     }).filter(Boolean));
   };
 
-  const clearCart = () => {
-    setCart([]);
-    setAppliedCoupon(null);
+  const removeFromCart = (productId) => {
+    setCart(prev => prev.filter(item => item.id !== productId));
   };
+
+  const clearCart = () => setCart([]);
 
   const applyCoupon = (code) => {
     const clean = code.trim().toUpperCase();
     if (clean === 'PETMAYA10') {
-      setAppliedCoupon({ code: clean, discountPct: 0.10, label: '10% Off' });
-      showToast('🎉 Promo code PETMAYA10 applied (10% Off)!', 'success');
-      return true;
+      setAppliedCoupon({ code: clean, discount: 0.10, label: '10% Launch Discount' });
+      showToast('🎉 Coupon PETMAYA10 applied (10% OFF)!', 'success');
     } else if (clean === 'FREESHIP') {
-      setAppliedCoupon({ code: clean, freeShipping: true, label: 'Free Shipping' });
-      showToast('🚚 Promo code FREESHIP applied!', 'success');
-      return true;
+      setAppliedCoupon({ code: clean, discount: 'free_shipping', label: 'Free Express Shipping' });
+      showToast('🚚 Free shipping coupon applied!', 'success');
     } else {
-      showToast('Invalid promo code. Try PETMAYA10 or FREESHIP', 'error');
-      return false;
+      showToast('❌ Invalid coupon code.', 'error');
     }
   };
 
-  // Orders
-  const placeOrder = (orderData) => {
+  // Checkout & Place Order
+  const checkoutOrder = async (deliveryAddress) => {
+    const subtotal = cart.reduce((acc, item) => acc + item.price * item.qty, 0);
+    const shipping = appliedCoupon?.discount === 'free_shipping' || subtotal > 50 ? 0 : 5.99;
+    const discount = typeof appliedCoupon?.discount === 'number' ? subtotal * appliedCoupon.discount : 0;
+    const total = Math.max(0, subtotal - discount + shipping);
+
     const newOrder = {
-      id: `PM-ORD-${Math.floor(1000 + Math.random() * 9000)}`,
+      orderId: 'PM-ORD-' + Math.floor(1000 + Math.random() * 9000),
+      items: cart.map(i => ({ id: i.id, name: i.name, price: i.price, qty: i.qty })),
+      subtotal,
+      shipping,
+      discount,
+      total: parseFloat(total.toFixed(2)),
+      deliveryAddress: deliveryAddress || 'Home Address',
+      status: 'In Preparation',
       date: new Date().toISOString().split('T')[0],
-      items: [...cart],
-      total: orderData.total,
-      status: 'Placed',
-      address: orderData.address || 'Dhaka, Bangladesh',
-      paymentMethod: orderData.paymentMethod || 'Cash on Delivery'
+      timestamp: Date.now(),
+      userId: currentUser ? currentUser.uid : 'demo_user_001'
     };
-    setOrders(prev => [newOrder, ...prev]);
+
+    if (currentUser && !currentUser.uid.startsWith('demo_guest')) {
+      try {
+        await addDoc(collection(db, 'orders'), newOrder);
+      } catch (e) {
+        console.warn('[Firebase] checkoutOrder error:', e);
+      }
+    } else {
+      setOrders(prev => [newOrder, ...prev]);
+    }
+
     clearCart();
-    closeModal();
-    openModal('orderTracker', newOrder);
-    showToast('🎉 Order placed successfully!', 'success');
+    awardPoints(25);
+    showToast('📦 Order placed successfully! Live dispatch tracking active.', 'success');
+    return newOrder;
   };
 
-  // Appointments
-  const addAppointment = (apt) => {
-    const item = {
-      id: 'apt_' + Date.now(),
-      title: apt.title || `Appointment with ${apt.doctor}`,
-      doctor: apt.doctor,
-      petName: apt.petName || 'Max',
-      date: apt.date || '2026-08-30',
-      time: apt.time || '11:00 AM',
-      mode: apt.mode || 'In-Clinic Consultation',
-      status: 'Confirmed'
-    };
-    setAppointments(prev => [item, ...prev]);
-    closeModal();
-    showToast('📅 Appointment scheduled & synced with Google/Apple Calendar!', 'success');
-  };
-
-  const removeAppointment = (id) => {
-    setAppointments(prev => prev.filter(a => a.id !== id));
-    showToast('Appointment cancelled.');
-  };
-
-  // Medical Records
-  const addMedicalRecord = (rec) => {
-    const item = {
-      id: 'ehr_' + Date.now(),
-      petName: rec.petName || 'Bella',
-      ownerName: rec.ownerName || 'Alex Johnson',
-      serviceType: rec.serviceType || 'Consultation',
-      weight: rec.weight || '14.0 kg',
-      diagnosis: rec.diagnosis || 'Routine clinical exam',
-      prescription: rec.prescription || 'N/A',
-      cost: rec.cost || 40,
-      date: rec.date || new Date().toISOString().split('T')[0],
-      nextBooster: rec.nextBooster || '2027-08-25'
-    };
-    setMedicalRecords(prev => [item, ...prev]);
-    closeModal();
-    showToast('📋 Clinical record saved and synced to patient digital passport!', 'success');
-  };
-
-  // Community
-  const createPost = (newPost) => {
-    const item = {
-      id: 'post_' + Date.now(),
-      author: newPost.author || 'Alex Johnson',
-      authorAvatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80',
-      petTag: newPost.petTag || 'Max (Golden Retriever)',
-      timestamp: 'Just now',
-      content: newPost.content,
-      image: newPost.image || '',
-      likes: 0,
-      likedByMe: false,
-      comments: []
-    };
-    setPosts(prev => [item, ...prev]);
-    showToast('🌟 Community post shared!', 'success');
-  };
-
-  const toggleLike = (postId) => {
-    setPosts(prev => prev.map(p => {
-      if (p.id === postId) {
-        const liked = !p.likedByMe;
-        return { ...p, likedByMe: liked, likes: liked ? p.likes + 1 : p.likes - 1 };
-      }
-      return p;
-    }));
-  };
-
-  const addComment = (postId, text, authorName = 'Alex Johnson') => {
-    if (!text.trim()) return;
-    setPosts(prev => prev.map(p => {
-      if (p.id === postId) {
-        return { ...p, comments: [...p.comments, { author: authorName, text: text.trim() }] };
-      }
-      return p;
-    }));
-    showToast('Comment posted!');
-  };
-
-  const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-  const cartCount = cart.reduce((count, item) => count + item.qty, 0);
-
-  const value = {
-    activeTab,
-    setActiveTab,
-    theme,
-    toggleTheme,
-    activeModal,
-    modalData,
-    openModal,
-    closeModal,
-    pets,
-    addPet,
-    removePet,
-    vets,
-    updateVetPrice,
-    addVetReview,
-    products,
-    cart,
-    cartCount,
-    cartTotal,
-    appliedCoupon,
-    addToCart,
-    removeFromCart,
-    updateCartQty,
-    clearCart,
-    applyCoupon,
-    orders,
-    placeOrder,
-    appointments,
-    addAppointment,
-    removeAppointment,
-    medicalRecords,
-    addMedicalRecord,
-    posts,
-    createPost,
-    toggleLike,
-    addComment,
-    toasts,
-    showToast
-  };
+  const cartCount = cart.reduce((acc, item) => acc + item.qty, 0);
 
   return (
-    <AppContext.Provider value={value}>
+    <AppContext.Provider value={{
+      activeTab,
+      setActiveTab,
+      theme,
+      toggleTheme,
+      activeModal,
+      modalData,
+      openModal,
+      closeModal,
+      toasts,
+      showToast,
+      pets,
+      addPet,
+      deletePet,
+      vets,
+      products,
+      posts,
+      createPost,
+      toggleLike,
+      addComment,
+      appointments,
+      addAppointment,
+      removeAppointment,
+      medicalRecords,
+      addMedicalRecord,
+      cart,
+      cartCount,
+      addToCart,
+      updateCartQty,
+      removeFromCart,
+      clearCart,
+      appliedCoupon,
+      applyCoupon,
+      orders,
+      checkoutOrder
+    }}>
       {children}
     </AppContext.Provider>
   );

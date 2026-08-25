@@ -17,6 +17,7 @@ import {
   getDoc, 
   setDoc, 
   updateDoc, 
+  deleteDoc,
   getDocs, 
   query, 
   where, 
@@ -24,7 +25,10 @@ import {
   limit, 
   onSnapshot,
   increment,
-  addDoc
+  addDoc,
+  serverTimestamp,
+  arrayUnion,
+  arrayRemove
 } from 'firebase/firestore';
 
 const firebaseConfig = {
@@ -55,6 +59,7 @@ export {
   getDoc,
   setDoc,
   updateDoc,
+  deleteDoc,
   getDocs,
   query,
   where,
@@ -62,7 +67,10 @@ export {
   limit,
   onSnapshot,
   increment,
-  addDoc
+  addDoc,
+  serverTimestamp,
+  arrayUnion,
+  arrayRemove
 };
 
 // ── INITIAL SEED DATA FOR DEMO & INSTANT RENDERING ──
@@ -75,7 +83,7 @@ export const INITIAL_VETS = [
   { id: 'v1', name: 'Dr. Sarah Jenkins', qualification: 'DVM, MRCVS • Small Animal Surgery', tag: 'Veterinarian', rating: 4.9, reviewsCount: 68, distance: '1.2 km away', price: '৳35/visit', availability: 'Mon - Fri • 9am - 6pm', verified: true, isVerified: true, bio: '12+ years clinical experience in orthopedics, emergency soft tissue surgery, and canine preventative care.', photo: 'assets/images/Pet_1.jpg', clinic: 'Greenwood Animal Hospital' },
   { id: 'v2', name: 'Dr. Aris Thorne', qualification: 'BVSc, PhD • Feline Medicine & Dermatology', tag: 'Veterinarian', rating: 5.0, reviewsCount: 42, distance: '2.8 km away', price: '৳45/visit', availability: 'Tue - Sat • 10am - 7pm', verified: true, isVerified: true, bio: 'Specialist in feline chronic kidney disease, allergic dermatitis, and clinical cytology diagnostics.', photo: 'assets/images/Pet_2.jpg', clinic: 'Metropolitan Veterinary Center' },
   { id: 'v3', name: 'Dr. Emily Vance', qualification: 'DVM • Internal Medicine & Cardiology', tag: 'Veterinarian', rating: 4.8, reviewsCount: 51, distance: '3.5 km away', price: '৳40/visit', availability: 'Daily • 8am - 4pm', verified: true, isVerified: true, bio: 'Expert in echocardiography, metabolic triage, and comprehensive canine/feline cardiac disease management.', photo: 'assets/images/Pet_1.jpg', clinic: 'City Vets & Diagnostics' },
-  { id: 'v4', name: 'Pawfect Spa & Grooming', qualification: 'Master Groomer Certified • Hydrobath & Styling', tag: 'Grooming Spa', rating: 4.9, reviewsCount: 89, distance: '0.8 km away', price: '৳25/session', availability: 'Mon - Sun • 9am - 8pm', verified: true, isVerified: true, bio: 'Deluxe stress-free grooming, flea & tick therapeutic baths, and precision breed breed styling.', photo: 'assets/images/Pet_2.jpg', clinic: 'Pawfect Pet Wellness Studio' },
+  { id: 'v4', name: 'Pawfect Spa & Grooming', qualification: 'Master Groomer Certified • Hydrobath & Styling', tag: 'Grooming Spa', rating: 4.9, reviewsCount: 89, distance: '0.8 km away', price: '৳25/session', availability: 'Mon - Sun • 9am - 8pm', verified: true, isVerified: true, bio: 'Deluxe stress-free grooming, flea & tick therapeutic baths, and precision breed styling.', photo: 'assets/images/Pet_2.jpg', clinic: 'Pawfect Pet Wellness Studio' },
   { id: 'v5', name: 'Happy Tails Luxury Boarding', qualification: '24/7 Monitored Pet Hotel & Agility Park', tag: 'Boarding Resort', rating: 4.9, reviewsCount: 112, distance: '4.1 km away', price: '৳30/night', availability: '24/7 Check-in', verified: true, isVerified: true, bio: 'Climate-controlled suites, live webcams, individualized playtime, and on-call veterinary supervision.', photo: 'assets/images/Pet_1.jpg', clinic: 'Happy Tails Resort' },
   { id: 'v6', name: 'Apex Pet Supplies & Pharmacy', qualification: 'Licensed Veterinary Pharmacy & Specialty Diet Depot', tag: 'Pet Shop', rating: 4.8, reviewsCount: 94, distance: '1.5 km away', price: 'Free Delivery', availability: 'Daily • 8am - 10pm', verified: true, isVerified: true, bio: 'Prescription veterinary diets, authentic tick/flea preventatives, supplements, and premium accessories.', photo: 'assets/images/Pet_2.jpg', clinic: 'Apex Pet Hub' }
 ];

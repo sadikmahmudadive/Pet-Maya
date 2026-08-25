@@ -30,6 +30,7 @@ export default function AddRecordModal() {
       cost: parseFloat(cost) || 40,
       nextBooster
     });
+    closeModal();
   };
 
   return (

@@ -14,7 +14,10 @@ import {
   getDoc,
   setDoc,
   updateDoc,
-  increment
+  onSnapshot,
+  increment,
+  arrayUnion,
+  arrayRemove
 } from '../config/firebase';
 
 const AuthContext = createContext();
@@ -23,102 +26,90 @@ export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Generate clean 8-char referral code
+  // Generate clean referral code
   const generateReferralCode = (uid) => {
     const raw = (uid || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
     return 'PM' + (raw.length >= 6 ? raw.slice(0, 6) : (raw + '89AC12').slice(0, 6));
   };
 
   useEffect(() => {
-    // Check if user explicitly signed out
+    // Check if user explicitly chose to stay in guest mode
     const isSignedOut = localStorage.getItem('pm_signed_out') === 'true';
-    if (isSignedOut) {
-      setCurrentUser(null);
-      setLoading(false);
-      return;
-    }
-
-    // Check local demo session first
-    const savedDemo = localStorage.getItem('pm_demo_user');
-    if (savedDemo) {
-      try {
-        setCurrentUser(JSON.parse(savedDemo));
-        setLoading(false);
-        return;
-      } catch (e) {}
-    }
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        try {
-          const userRef = doc(db, 'users', user.uid);
-          const snap = await getDoc(userRef);
+        localStorage.removeItem('pm_signed_out');
+        localStorage.removeItem('pm_demo_user');
 
+        const userDocRef = doc(db, 'users', user.uid);
+
+        // Real-time listener on user profile document in Firestore
+        const un有機 = onSnapshot(userDocRef, (snap) => {
           if (snap.exists()) {
             const data = snap.data();
             setCurrentUser({
               uid: user.uid,
               name: data.name || user.displayName || 'Pet Parent',
               email: data.email || user.email,
-              photoUrl: data.photoUrl || user.photoURL || '',
+              photoUrl: data.photoUrl || user.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80',
               role: data.role || 'Pet Owner',
-              points: data.points ?? 15,
+              points: data.points ?? 25,
               referralCode: data.referralCode || generateReferralCode(user.uid),
               isVerified: data.isVerified ?? false,
               favoriteVetIds: data.favoriteVetIds || []
             });
           } else {
-            const newUser = {
+            // First time sign-up creation in Firestore
+            const initialUserData = {
               uid: user.uid,
               name: user.displayName || 'Pet Parent',
               email: user.email,
               photoUrl: user.photoURL || '',
               role: 'Pet Owner',
-              points: 15,
+              points: 25,
               referralCode: generateReferralCode(user.uid),
               isVerified: false,
-              favoriteVetIds: []
+              favoriteVetIds: [],
+              createdAt: new Date().toISOString()
             };
-            await setDoc(userRef, newUser, { merge: true });
-            setCurrentUser(newUser);
+            setDoc(userDocRef, initialUserData, { merge: true }).catch(() => {});
+            setCurrentUser(initialUserData);
           }
-        } catch (e) {
-          // Fallback user profile
+          setLoading(false);
+        }, (error) => {
+          console.warn('[Firebase Auth] Firestore listener warning:', error);
           setCurrentUser({
             uid: user.uid,
-            name: user.displayName || 'Alex Johnson',
+            name: user.displayName || 'Pet Parent',
             email: user.email,
             photoUrl: user.photoURL || '',
             role: 'Pet Owner',
-            points: 15,
+            points: 25,
             referralCode: generateReferralCode(user.uid),
             isVerified: false,
             favoriteVetIds: []
           });
-        }
+          setLoading(false);
+        });
+
+        return () => un有機();
       } else {
-        if (localStorage.getItem('pm_signed_out') === 'true') {
-          setCurrentUser(null);
+        // No active Firebase user
+        const savedDemo = localStorage.getItem('pm_demo_user');
+        if (savedDemo && !isSignedOut) {
+          try {
+            setCurrentUser(JSON.parse(savedDemo));
+          } catch (_) {
+            setCurrentUser(null);
+          }
         } else {
-          // Default to Demo Guest User
-          const defaultGuest = {
-            uid: 'demo_user_001',
-            name: 'Alex Johnson',
-            email: 'alex@petmaya.app',
-            photoUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80',
-            role: 'Pet Owner',
-            points: 45,
-            referralCode: 'PM89AC12',
-            isVerified: true,
-            favoriteVetIds: ['v1', 'v2']
-          };
-          setCurrentUser(defaultGuest);
+          setCurrentUser(null);
         }
+        setLoading(false);
       }
-      setLoading(false);
     });
 
-    return unsubscribe;
+    return () => unsubscribe();
   }, []);
 
   const loginWithEmail = async (email, password) => {
@@ -132,121 +123,126 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('pm_demo_user');
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     await updateProfile(cred.user, { displayName: name });
-    const myCode = generateReferralCode(cred.user.uid);
-    const userData = {
+    
+    const userDocRef = doc(db, 'users', cred.user.uid);
+    const newUserData = {
       uid: cred.user.uid,
       name,
       email,
       photoUrl: '',
       role: 'Pet Owner',
-      points: 15,
-      referralCode: myCode,
+      points: 25,
+      referralCode: generateReferralCode(cred.user.uid),
+      referredBy: referralCode ? referralCode.trim() : null,
       isVerified: false,
-      favoriteVetIds: []
+      favoriteVetIds: [],
+      createdAt: new Date().toISOString()
     };
-    if (referralCode) {
-      userData.referredBy = referralCode.trim().toUpperCase();
-    }
-    await setDoc(doc(db, 'users', cred.user.uid), userData, { merge: true });
-    setCurrentUser(userData);
+
+    await setDoc(userDocRef, newUserData, { merge: true });
     return cred;
   };
 
   const loginWithGoogle = async () => {
     localStorage.removeItem('pm_signed_out');
     localStorage.removeItem('pm_demo_user');
-    return signInWithPopup(auth, googleProvider);
+    const result = await signInWithPopup(auth, googleProvider);
+    const userDocRef = doc(db, 'users', result.user.uid);
+    const snap = await getDoc(userDocRef);
+
+    if (!snap.exists()) {
+      await setDoc(userDocRef, {
+        uid: result.user.uid,
+        name: result.user.displayName || 'Pet Parent',
+        email: result.user.email,
+        photoUrl: result.user.photoURL || '',
+        role: 'Pet Owner',
+        points: 25,
+        referralCode: generateReferralCode(result.user.uid),
+        isVerified: false,
+        favoriteVetIds: [],
+        createdAt: new Date().toISOString()
+      }, { merge: true });
+    }
+    return result;
   };
 
   const loginAsGuest = (role = 'Pet Owner') => {
     localStorage.removeItem('pm_signed_out');
-    const demoUser = {
-      uid: 'demo_user_001',
-      name: role === 'Veterinarian' ? 'Dr. Sarah Jenkins' : (role === 'Shop Merchant' ? 'Apex Store Manager' : 'Alex Johnson'),
-      email: 'alex@petmaya.app',
+    const guestUser = {
+      uid: 'demo_guest_' + Date.now(),
+      name: 'Alex Johnson (Demo)',
+      email: 'alex.demo@petmaya.app',
       photoUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80',
-      role,
-      points: 45,
+      role: role,
+      points: 50,
       referralCode: 'PM89AC12',
       isVerified: true,
       favoriteVetIds: ['v1', 'v2']
     };
-    localStorage.setItem('pm_demo_user', JSON.stringify(demoUser));
-    setCurrentUser(demoUser);
-  };
-
-  const switchRole = async (newRole) => {
-    if (!currentUser) return;
-    const updated = { ...currentUser, role: newRole };
-    setCurrentUser(updated);
-    if (currentUser.uid === 'demo_user_001') {
-      localStorage.setItem('pm_demo_user', JSON.stringify(updated));
-    } else {
-      try {
-        await updateDoc(doc(db, 'users', currentUser.uid), { role: newRole });
-      } catch (e) {}
-    }
+    localStorage.setItem('pm_demo_user', JSON.stringify(guestUser));
+    setCurrentUser(guestUser);
   };
 
   const logout = async () => {
     localStorage.setItem('pm_signed_out', 'true');
     localStorage.removeItem('pm_demo_user');
+    setCurrentUser(null);
     try {
       await signOut(auth);
-    } catch (e) {}
-    setCurrentUser(null);
+    } catch (_) {}
   };
 
-  const sendPasswordReset = async (email) => {
-    return sendPasswordResetEmail(auth, email);
-  };
-
-  const awardPoints = async (pts, reason = 'Activity reward') => {
+  const awardPoints = async (amount = 5) => {
     if (!currentUser) return;
-    const newPoints = (currentUser.points || 0) + pts;
-    const updated = { ...currentUser, points: newPoints };
-    setCurrentUser(updated);
-    if (currentUser.uid === 'demo_user_001') {
-      localStorage.setItem('pm_demo_user', JSON.stringify(updated));
-    } else {
-      try {
-        await updateDoc(doc(db, 'users', currentUser.uid), {
-          points: increment(pts)
-        });
-      } catch (e) {}
+    if (currentUser.uid.startsWith('demo_guest')) {
+      setCurrentUser(prev => ({ ...prev, points: (prev?.points || 0) + amount }));
+      return;
+    }
+    try {
+      const userDocRef = doc(db, 'users', currentUser.uid);
+      await updateDoc(userDocRef, { points: increment(amount) });
+    } catch (e) {
+      console.warn('[Firebase] Award points error:', e);
     }
   };
 
   const toggleFavoriteVet = async (vetId) => {
     if (!currentUser) return;
-    const currentFavs = currentUser.favoriteVetIds || [];
-    const isFav = currentFavs.includes(vetId);
-    const updatedFavs = isFav ? currentFavs.filter(id => id !== vetId) : [...currentFavs, vetId];
-    const updated = { ...currentUser, favoriteVetIds: updatedFavs };
-    setCurrentUser(updated);
-    if (currentUser.uid !== 'demo_user_001') {
-      try {
-        await updateDoc(doc(db, 'users', currentUser.uid), { favoriteVetIds: updatedFavs });
-      } catch (e) {}
+    const isFav = currentUser.favoriteVetIds?.includes(vetId);
+    
+    if (currentUser.uid.startsWith('demo_guest')) {
+      setCurrentUser(prev => ({
+        ...prev,
+        favoriteVetIds: isFav 
+          ? prev.favoriteVetIds.filter(id => id !== vetId) 
+          : [...(prev.favoriteVetIds || []), vetId]
+      }));
+      return;
+    }
+
+    try {
+      const userDocRef = doc(db, 'users', currentUser.uid);
+      await updateDoc(userDocRef, {
+        favoriteVetIds: isFav ? arrayRemove(vetId) : arrayUnion(vetId)
+      });
+    } catch (e) {
+      console.warn('[Firebase] Toggle favorite vet error:', e);
     }
   };
 
-  const value = {
-    currentUser,
-    loading,
-    loginWithEmail,
-    signupWithEmail,
-    loginWithGoogle,
-    loginAsGuest,
-    switchRole,
-    logout,
-    sendPasswordReset,
-    awardPoints,
-    toggleFavoriteVet
-  };
-
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{
+      currentUser,
+      loading,
+      loginWithEmail,
+      signupWithEmail,
+      loginWithGoogle,
+      loginAsGuest,
+      logout,
+      awardPoints,
+      toggleFavoriteVet
+    }}>
       {children}
     </AuthContext.Provider>
   );

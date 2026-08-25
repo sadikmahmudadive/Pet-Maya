@@ -25,6 +25,7 @@ export default function BookingModal() {
       time,
       mode
     });
+    closeModal();
   };
 
   return (
