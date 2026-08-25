@@ -25,7 +25,47 @@ export default function Dashboard() {
     return 'Good Evening,';
   };
 
-  const topVets = vets.slice(0, 3);
+  // Filter ONLY doctors and veterinary medical specialists (exclude grooming, boarding, pet shop)
+  const topVets = vets
+    .filter((v) => {
+      const tag = (v.tag || '').toLowerCase();
+      const qual = (v.qualification || '').toLowerCase();
+      const role = (v.role || '').toLowerCase();
+      const name = (v.name || '').toLowerCase();
+
+      // Exclude explicit non-vet services
+      if (
+        tag.includes('groom') || 
+        tag.includes('board') || 
+        tag.includes('spa') || 
+        tag.includes('shop') || 
+        tag.includes('hotel') ||
+        tag.includes('store') ||
+        qual.includes('groom') ||
+        qual.includes('boarding') ||
+        qual.includes('hotel') ||
+        name.includes('groom') ||
+        name.includes('boarding') ||
+        name.includes('spa')
+      ) {
+        return false;
+      }
+
+      // Include confirmed veterinarians
+      return (
+        tag.includes('vet') || 
+        role.includes('vet') || 
+        name.startsWith('dr.') || 
+        name.startsWith('dr ') ||
+        qual.includes('dvm') || 
+        qual.includes('bvsc') || 
+        qual.includes('mrcvs') || 
+        qual.includes('officer') ||
+        qual.includes('surgeon') ||
+        qual.includes('veterin')
+      );
+    })
+    .slice(0, 3);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', maxWidth: '1120px', margin: '0 auto', width: '100%' }}>
