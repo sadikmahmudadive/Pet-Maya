@@ -2,28 +2,19 @@ import React from 'react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { 
-  Sparkles, 
   Radar, 
   Activity, 
   Utensils, 
   Stethoscope, 
   ShoppingBag, 
   Bell, 
-  ShieldCheck, 
   Download, 
   Smartphone, 
-  QrCode, 
-  ArrowRight, 
-  Heart, 
-  Star, 
-  CheckCircle2, 
-  Video, 
+  ChevronRight, 
+  ShieldCheck, 
   ExternalLink,
-  ChevronRight,
-  Radio,
-  Zap,
-  Lock,
-  Layers
+  Sparkles,
+  Play
 } from 'lucide-react';
 
 export default function LandingPage() {
@@ -37,377 +28,296 @@ export default function LandingPage() {
   const handleTryDemo = () => {
     loginAsGuest('Pet Owner');
     setActiveTab('dashboard');
-    showToast('🚀 Logged in as Demo Pet Parent! Explore all features.', 'success');
+    showToast('🚀 Welcome to Pet Maya Demo Dashboard!', 'success');
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '88px', paddingBottom: '40px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', margin: '-24px -16px 0', width: 'calc(100% + 32px)' }}>
+      
       {/* ══════════════════════════════════════════════════════
-          APPLE HERO SECTION
+          HERO 1: TITANIUM CARE FLAGSHIP (APPLE.COM STYLE)
           ══════════════════════════════════════════════════════ */}
-      <section style={{ textAlign: 'center', maxWidth: '980px', margin: '24px auto 0', padding: '0 16px', position: 'relative' }}>
-        {/* Ambient Apple Radial Light */}
-        <div 
-          style={{
-            position: 'absolute',
-            top: '-60px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: '600px',
-            height: '350px',
-            background: 'radial-gradient(circle, rgba(16, 185, 129, 0.18) 0%, rgba(59, 130, 246, 0.08) 50%, transparent 75%)',
-            filter: 'blur(60px)',
-            pointerEvents: 'none',
-            zIndex: -1
-          }} 
-        />
-
-        {/* Main Headline */}
-        <h1 style={{ fontSize: 'clamp(36px, 5.8vw, 64px)', fontWeight: 800, letterSpacing: '-0.04em', lineHeight: 1.08, marginBottom: '20px' }}>
-          Next-Gen Pet Healthcare, <br />
-          <span style={{ background: 'linear-gradient(135deg, #10B981 0%, #3B82F6 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-            Live GPS Radar &amp; AI Vision.
-          </span>
+      <section className="apple-hero-section apple-hero-dark" style={{ minHeight: '82vh', justifyContent: 'center' }}>
+        <span className="apple-hero-eyebrow" style={{ color: 'var(--primary)' }}>
+          Pet Maya 2.0
+        </span>
+        <h1 className="apple-hero-headline" style={{ color: '#FFFFFF' }}>
+          Titanium intelligence.
         </h1>
-
-        {/* Subtitle */}
-        <p style={{ fontSize: 'clamp(17px, 2vw, 20px)', color: 'var(--text-muted)', maxWidth: '720px', margin: '0 auto 36px', lineHeight: 1.5, letterSpacing: '-0.015em' }}>
-          Everything you need for your furry family in one seamless ecosystem: Real-time GPS sonar tracking, AI clinical health triage, verified vet teleconsultations, and scientific nutrition.
+        <p className="apple-hero-subhead" style={{ color: '#A1A1A6' }}>
+          Next-generation pet healthcare, live GPS radar, and clinical AI triage. All in one place.
         </p>
 
-        {/* Call To Actions */}
-        <div style={{ display: 'flex', gap: '14px', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '48px' }}>
-          <button 
-            className="btn-primary" 
-            style={{ padding: '14px 34px', fontSize: '15.5px' }}
-            onClick={() => openModal('auth')}
-          >
-            <span>Get Started Free</span>
-            <ArrowRight size={17} />
+        <div className="apple-cta-group">
+          <button className="apple-btn-blue" onClick={() => openModal('auth')}>
+            <span>Get Started</span>
           </button>
 
-          <button 
-            className="btn-ghost" 
-            style={{ padding: '14px 28px', fontSize: '15px' }}
-            onClick={handleTryDemo}
-          >
-            <Sparkles size={16} color="#10B981" />
+          <button className="apple-link-cta" onClick={handleTryDemo}>
             <span>Explore Live Demo</span>
+            <ChevronRight size={16} />
           </button>
-
-          <a 
-            href="#mobile-downloads" 
-            className="btn-ghost" 
-            style={{ padding: '14px 28px', fontSize: '15px', textDecoration: 'none' }}
-          >
-            <Smartphone size={16} />
-            <span>Download Mobile App</span>
-          </a>
         </div>
 
-        {/* Apple Glass Interactive Widget Showcase */}
+        {/* Hero Ecosystem Visual */}
         <div 
-          className="glass-card" 
           style={{
-            padding: '28px',
-            background: 'var(--surface)',
-            border: '1px solid var(--border)',
-            boxShadow: 'var(--border-specular), var(--shadow-lg)',
-            borderRadius: 'var(--radius-xl)',
-            position: 'relative'
+            maxWidth: '920px',
+            width: '100%',
+            background: 'rgba(28, 28, 30, 0.7)',
+            backdropFilter: 'blur(24px)',
+            border: '1px solid rgba(255, 255, 255, 0.12)',
+            borderRadius: '24px',
+            padding: '24px 32px',
+            boxShadow: '0 30px 80px rgba(0, 0, 0, 0.9)',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: '20px',
+            textAlign: 'left'
           }}
         >
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '16px', textAlign: 'left' }}>
-            <div 
-              style={{ background: 'var(--surface-alt)', padding: '20px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', cursor: 'pointer', transition: 'transform 0.2s var(--apple-spring)' }}
-              onClick={() => setActiveTab('tracker')}
-            >
-              <Radar size={24} color="#10B981" style={{ marginBottom: '10px' }} />
-              <strong style={{ fontSize: '15px', fontWeight: 700, display: 'block' }}>Live Sonar Radar</strong>
-              <span style={{ fontSize: '12.5px', color: 'var(--text-muted)' }}>Real-time GPS boundary alerts &amp; audio collar buzzer</span>
-            </div>
-
-            <div 
-              style={{ background: 'var(--surface-alt)', padding: '20px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', cursor: 'pointer', transition: 'transform 0.2s var(--apple-spring)' }}
-              onClick={() => setActiveTab('ai')}
-            >
-              <Activity size={24} color="#3B82F6" style={{ marginBottom: '10px' }} />
-              <strong style={{ fontSize: '15px', fontWeight: 700, display: 'block' }}>AI Health Triage</strong>
-              <span style={{ fontSize: '12.5px', color: 'var(--text-muted)' }}>Computer vision scanning for lesions, eyes &amp; ears</span>
-            </div>
-
-            <div 
-              style={{ background: 'var(--surface-alt)', padding: '20px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', cursor: 'pointer', transition: 'transform 0.2s var(--apple-spring)' }}
-              onClick={() => setActiveTab('vets')}
-            >
-              <Stethoscope size={24} color="#F59E0B" style={{ marginBottom: '10px' }} />
-              <strong style={{ fontSize: '15px', fontWeight: 700, display: 'block' }}>Verified Specialists</strong>
-              <span style={{ fontSize: '12.5px', color: 'var(--text-muted)' }}>In-clinic appointments &amp; HD video teleconsultations</span>
-            </div>
-
-            <div 
-              style={{ background: 'var(--surface-alt)', padding: '20px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', cursor: 'pointer', transition: 'transform 0.2s var(--apple-spring)' }}
-              onClick={() => setActiveTab('food')}
-            >
-              <Utensils size={24} color="#EC4899" style={{ marginBottom: '10px' }} />
-              <strong style={{ fontSize: '15px', fontWeight: 700, display: 'block' }}>Precision Nutrition</strong>
-              <span style={{ fontSize: '12.5px', color: 'var(--text-muted)' }}>Scientific RER/MER daily calorie &amp; breed trait guide</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ══════════════════════════════════════════════════════
-          APPLE ECOSYSTEM STATS
-          ══════════════════════════════════════════════════════ */}
-      <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
-        <div className="glass-card" style={{ textAlign: 'center', padding: '26px' }}>
-          <span style={{ fontSize: '36px', fontWeight: 800, color: 'var(--primary)', display: 'block', letterSpacing: '-0.03em' }}>10k+</span>
-          <strong style={{ fontSize: '14.5px', fontWeight: 700 }}>Pets Protected</strong>
-          <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>Active GPS &amp; clinical monitoring</p>
-        </div>
-
-        <div className="glass-card" style={{ textAlign: 'center', padding: '26px' }}>
-          <span style={{ fontSize: '36px', fontWeight: 800, color: '#3B82F6', display: 'block', letterSpacing: '-0.03em' }}>99.8%</span>
-          <strong style={{ fontSize: '14.5px', fontWeight: 700 }}>GPS Precision</strong>
-          <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>Multi-constellation satellite lock</p>
-        </div>
-
-        <div className="glass-card" style={{ textAlign: 'center', padding: '26px' }}>
-          <span style={{ fontSize: '36px', fontWeight: 800, color: '#F59E0B', display: 'block', letterSpacing: '-0.03em' }}>500+</span>
-          <strong style={{ fontSize: '14.5px', fontWeight: 700 }}>Verified Clinicians</strong>
-          <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>Surgeons, dermatologists &amp; spas</p>
-        </div>
-
-        <div className="glass-card" style={{ textAlign: 'center', padding: '26px' }}>
-          <span style={{ fontSize: '36px', fontWeight: 800, color: '#EC4899', display: 'block', letterSpacing: '-0.03em' }}>24/7</span>
-          <strong style={{ fontSize: '14.5px', fontWeight: 700 }}>Emergency Triage</strong>
-          <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>Instant video triage &amp; AI scanner</p>
-        </div>
-      </section>
-
-      {/* ══════════════════════════════════════════════════════
-          FEATURE HIGHLIGHTS BENTO
-          ══════════════════════════════════════════════════════ */}
-      <section>
-        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-          <span className="label-mini" style={{ color: 'var(--primary)' }}>Integrated Features</span>
-          <h2 style={{ fontSize: '34px', fontWeight: 800, letterSpacing: '-0.03em' }}>Engineered for Ultimate Pet Wellness</h2>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '22px' }}>
-          {/* Bento 1 */}
-          <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            <div style={{ width: 44, height: 44, borderRadius: 'var(--radius-sm)', background: 'var(--primary-tint)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(16, 185, 129, 0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#10B981' }}>
               <Radar size={22} />
             </div>
-            <h3 style={{ fontSize: '18px', fontWeight: 700, letterSpacing: '-0.02em' }}>Live Sonar Radar &amp; Geofence</h3>
-            <p style={{ fontSize: '13.5px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-              Dynamic safe-zone boundary perimeters (100m - 1km). Receive instant push alerts if your pet leaves home, activate the audio collar buzzer, and track telemetry in real time.
-            </p>
-            <button className="btn-ghost" style={{ alignSelf: 'flex-start', marginTop: 'auto' }} onClick={() => setActiveTab('tracker')}>
-              <span>Try Live Radar</span>
-              <ChevronRight size={15} />
-            </button>
+            <div>
+              <strong style={{ fontSize: '15px', color: '#FFFFFF', display: 'block' }}>Sonar GPS</strong>
+              <span style={{ fontSize: '12px', color: '#86868B' }}>Live safe-zone perimeter</span>
+            </div>
           </div>
 
-          {/* Bento 2 */}
-          <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            <div style={{ width: 44, height: 44, borderRadius: 'var(--radius-sm)', background: 'rgba(59, 130, 246, 0.14)', color: '#3B82F6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(59, 130, 246, 0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3B82F6' }}>
               <Activity size={22} />
             </div>
-            <h3 style={{ fontSize: '18px', fontWeight: 700, letterSpacing: '-0.02em' }}>AI Vision Health Diagnostic Scanner</h3>
-            <p style={{ fontSize: '13.5px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-              Upload photos of skin irritation, eye cloudiness, or ear discomfort. Our neural diagnostic model provides instant severity ratings, first aid instructions, and clinic booking.
-            </p>
-            <button className="btn-ghost" style={{ alignSelf: 'flex-start', marginTop: 'auto' }} onClick={() => setActiveTab('ai')}>
-              <span>Test AI Scanner</span>
-              <ChevronRight size={15} />
-            </button>
+            <div>
+              <strong style={{ fontSize: '15px', color: '#FFFFFF', display: 'block' }}>AI Vision</strong>
+              <span style={{ fontSize: '12px', color: '#86868B' }}>Instant lesion triage</span>
+            </div>
           </div>
 
-          {/* Bento 3 */}
-          <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            <div style={{ width: 44, height: 44, borderRadius: 'var(--radius-sm)', background: 'rgba(245, 158, 11, 0.14)', color: '#F59E0B', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(245, 158, 11, 0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#F59E0B' }}>
               <Stethoscope size={22} />
             </div>
-            <h3 style={{ fontSize: '18px', fontWeight: 700, letterSpacing: '-0.02em' }}>Verified Care Specialists &amp; Tele-Health</h3>
-            <p style={{ fontSize: '13.5px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-              Connect with top veterinary surgeons, dermatologists, groomers, and boarding resorts. Schedule in-clinic appointments or join HD video consultations with digital Rx prescriptions.
-            </p>
-            <button className="btn-ghost" style={{ alignSelf: 'flex-start', marginTop: 'auto' }} onClick={() => setActiveTab('vets')}>
-              <span>Explore Specialists</span>
-              <ChevronRight size={15} />
-            </button>
+            <div>
+              <strong style={{ fontSize: '15px', color: '#FFFFFF', display: 'block' }}>Specialists</strong>
+              <span style={{ fontSize: '12px', color: '#86868B' }}>500+ Verified clinics</span>
+            </div>
           </div>
 
-          {/* Bento 4 */}
-          <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            <div style={{ width: 44, height: 44, borderRadius: 'var(--radius-sm)', background: 'rgba(236, 72, 153, 0.14)', color: '#EC4899', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(236, 72, 153, 0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#EC4899' }}>
               <Utensils size={22} />
             </div>
-            <h3 style={{ fontSize: '18px', fontWeight: 700, letterSpacing: '-0.02em' }}>Scientific Daily Nutrition &amp; Breed Guide</h3>
-            <p style={{ fontSize: '13.5px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-              Calculate resting (RER) and maintenance (MER) energy requirements. Get exact dry kibble, wet food, and water targets, plus trait meters for over 20+ breeds.
-            </p>
-            <button className="btn-ghost" style={{ alignSelf: 'flex-start', marginTop: 'auto' }} onClick={() => setActiveTab('food')}>
-              <span>Calculate Portions</span>
-              <ChevronRight size={15} />
-            </button>
-          </div>
-
-          {/* Bento 5 */}
-          <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            <div style={{ width: 44, height: 44, borderRadius: 'var(--radius-sm)', background: 'rgba(99, 102, 241, 0.14)', color: '#6366F1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <ShoppingBag size={22} />
+            <div>
+              <strong style={{ fontSize: '15px', color: '#FFFFFF', display: 'block' }}>Nutrition</strong>
+              <span style={{ fontSize: '12px', color: '#86868B' }}>Scientific RER formulas</span>
             </div>
-            <h3 style={{ fontSize: '18px', fontWeight: 700, letterSpacing: '-0.02em' }}>Pet Pharmacy &amp; 5-Stage Order Tracking</h3>
-            <p style={{ fontSize: '13.5px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-              Order genuine prescription medications (Simparica), specialty diets, and smart collars with fast home delivery and live step-by-step dispatch tracking.
-            </p>
-            <button className="btn-ghost" style={{ alignSelf: 'flex-start', marginTop: 'auto' }} onClick={() => setActiveTab('shop')}>
-              <span>Visit Shop</span>
-              <ChevronRight size={15} />
-            </button>
-          </div>
-
-          {/* Bento 6 */}
-          <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            <div style={{ width: 44, height: 44, borderRadius: 'var(--radius-sm)', background: 'rgba(16, 185, 129, 0.14)', color: '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Bell size={22} />
-            </div>
-            <h3 style={{ fontSize: '18px', fontWeight: 700, letterSpacing: '-0.02em' }}>Digital Passport &amp; Vaccine Calendar</h3>
-            <p style={{ fontSize: '13.5px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-              Never miss a booster or deworming date. Full DHPP, Rabies, and parasite prevention matrix with 1-click export to Apple &amp; Google Calendars (.ICS).
-            </p>
-            <button className="btn-ghost" style={{ alignSelf: 'flex-start', marginTop: 'auto' }} onClick={() => setActiveTab('vaccines')}>
-              <span>View Vaccine Matrix</span>
-              <ChevronRight size={15} />
-            </button>
           </div>
         </div>
       </section>
 
       {/* ══════════════════════════════════════════════════════
-          MOBILE APP DOWNLOADS (ANDROID & IOS DIRECT INSTALL)
+          HERO 2: REAL-TIME SONAR RADAR
           ══════════════════════════════════════════════════════ */}
-      <section id="mobile-downloads" style={{ scrollMarginTop: '100px' }}>
+      <section className="apple-hero-section apple-hero-light" style={{ minHeight: '65vh', justifyContent: 'center' }}>
+        <span className="apple-hero-eyebrow" style={{ color: 'var(--primary)' }}>
+          Pet Radar &amp; Smart Collar
+        </span>
+        <h2 className="apple-hero-headline">
+          Wonderfully fast. <br />
+          Astoundingly precise.
+        </h2>
+        <p className="apple-hero-subhead">
+          Multi-constellation GPS tracking with geofence breach alarms and collar audio buzzer.
+        </p>
+
+        <div className="apple-cta-group">
+          <button className="apple-btn-blue" onClick={() => setActiveTab('tracker')}>
+            <span>Launch Radar</span>
+          </button>
+          <button className="apple-link-cta" onClick={() => setActiveTab('tracker')}>
+            <span>See live telemetry</span>
+            <ChevronRight size={16} />
+          </button>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════
+          HERO 3: AI VISION CLINICAL TRIAGE
+          ══════════════════════════════════════════════════════ */}
+      <section className="apple-hero-section apple-hero-dark" style={{ minHeight: '65vh', justifyContent: 'center' }}>
+        <span className="apple-hero-eyebrow" style={{ color: '#3B82F6' }}>
+          AI Health Vision
+        </span>
+        <h2 className="apple-hero-headline" style={{ color: '#FFFFFF' }}>
+          Clinical intelligence. <br />
+          Right on your camera.
+        </h2>
+        <p className="apple-hero-subhead" style={{ color: '#A1A1A6' }}>
+          Upload photos of skin irritation, eye discharge, or ear discomfort for instant severity analysis and first aid advice.
+        </p>
+
+        <div className="apple-cta-group">
+          <button className="apple-btn-blue" onClick={() => setActiveTab('ai')}>
+            <span>Test Diagnostic Scanner</span>
+          </button>
+          <button className="apple-link-cta" onClick={() => setActiveTab('vets')}>
+            <span>Consult a veterinarian</span>
+            <ChevronRight size={16} />
+          </button>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════
+          APPLE 2X2 BENTO PROMO MATRIX
+          ══════════════════════════════════════════════════════ */}
+      <section className="apple-bento-grid">
+        {/* Bento 1 */}
+        <div className="apple-promo-card">
+          <span className="apple-card-eyebrow" style={{ color: '#F59E0B' }}>Specialist Network</span>
+          <h3 className="apple-card-title">Verified Clinicians</h3>
+          <p className="apple-card-desc">
+            In-clinic visits, surgery consultations, and HD teleconsultations with digital prescriptions.
+          </p>
+          <button className="apple-link-cta" onClick={() => setActiveTab('vets')}>
+            <span>Explore directory</span>
+            <ChevronRight size={15} />
+          </button>
+        </div>
+
+        {/* Bento 2 */}
+        <div className="apple-promo-card">
+          <span className="apple-card-eyebrow" style={{ color: '#EC4899' }}>Precision Diet</span>
+          <h3 className="apple-card-title">Daily Nutrition Formula</h3>
+          <p className="apple-card-desc">
+            Scientific RER/MER calorie calculators, dry/wet portion splits, and 20+ breed trait meters.
+          </p>
+          <button className="apple-link-cta" onClick={() => setActiveTab('food')}>
+            <span>Calculate portions</span>
+            <ChevronRight size={15} />
+          </button>
+        </div>
+
+        {/* Bento 3 */}
+        <div className="apple-promo-card">
+          <span className="apple-card-eyebrow" style={{ color: '#6366F1' }}>Pet Pharmacy</span>
+          <h3 className="apple-card-title">Shop &amp; Live Dispatch</h3>
+          <p className="apple-card-desc">
+            Genuine prescription flea/tick preventatives (Simparica) and specialty food with 5-stage order tracking.
+          </p>
+          <button className="apple-link-cta" onClick={() => setActiveTab('shop')}>
+            <span>Visit Store</span>
+            <ChevronRight size={15} />
+          </button>
+        </div>
+
+        {/* Bento 4 */}
+        <div className="apple-promo-card">
+          <span className="apple-card-eyebrow" style={{ color: '#10B981' }}>Medical Passport</span>
+          <h3 className="apple-card-title">Vaccine Reminders</h3>
+          <p className="apple-card-desc">
+            Automated immunization schedules, rabies tracking, and 1-click export to Apple Calendar (.ICS).
+          </p>
+          <button className="apple-link-cta" onClick={() => setActiveTab('vaccines')}>
+            <span>View vaccine matrix</span>
+            <ChevronRight size={15} />
+          </button>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════
+          APPLE MOBILE DOWNLOADS & SIDELOADING SECTION
+          ══════════════════════════════════════════════════════ */}
+      <section id="mobile-downloads" style={{ maxWidth: '1240px', margin: '30px auto', padding: '0 16px', width: '100%', scrollMarginTop: '80px' }}>
         <div 
-          className="glass-card" 
-          style={{
-            background: 'var(--surface)',
-            border: '1.5px solid var(--border)',
-            boxShadow: 'var(--border-specular), var(--shadow-lg)',
-            padding: '44px 34px',
-            borderRadius: 'var(--radius-xl)'
-          }}
+          className="apple-promo-card" 
+          style={{ padding: '60px 40px', textAlign: 'center', background: 'var(--surface-solid)' }}
         >
-          <div style={{ textAlign: 'center', maxWidth: '720px', margin: '0 auto 36px' }}>
-            <div className="badge badge-green" style={{ marginBottom: '12px' }}>Apple &amp; Android Ecosystem</div>
-            <h2 style={{ fontSize: '34px', fontWeight: 800, letterSpacing: '-0.03em' }}>
-              Install Pet Maya on Your Devices
-            </h2>
-            <p style={{ fontSize: '15px', color: 'var(--text-muted)', marginTop: '8px' }}>
-              Access full Bluetooth collar telemetry, live GPS background alarms, push notifications, and camera scanners directly on your phone.
-            </p>
-          </div>
+          <span className="apple-card-eyebrow" style={{ color: 'var(--primary)' }}>Apple &amp; Android Ecosystem</span>
+          <h2 style={{ fontSize: 'clamp(32px, 4vw, 48px)', fontWeight: 700, letterSpacing: '-0.03em', marginBottom: '14px' }}>
+            Connected seamlessly.
+          </h2>
+          <p style={{ fontSize: '16px', color: 'var(--text-muted)', maxWidth: '640px', margin: '0 auto 36px', lineHeight: 1.5 }}>
+            Enjoy full Bluetooth collar telemetry, background boundary alarms, push notifications, and camera triage on your phone.
+          </p>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
-            {/* Android Column */}
-            <div style={{ background: 'var(--surface-alt)', padding: '24px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(16, 185, 129, 0.14)', color: '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Smartphone size={22} />
-                </div>
-                <div>
-                  <strong style={{ fontSize: '17px', fontWeight: 700, display: 'block' }}>Android Application</strong>
-                  <span style={{ fontSize: '12.5px', color: 'var(--text-muted)' }}>Google Play Store &amp; Direct APK</span>
-                </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', width: '100%', maxWidth: '980px' }}>
+            {/* iOS Column */}
+            <div style={{ background: 'var(--surface-alt)', padding: '28px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '14px', textAlign: 'left' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Smartphone size={22} color="#0071E3" />
+                <strong style={{ fontSize: '17px', fontWeight: 600 }}>iPhone &amp; iPad</strong>
               </div>
-
-              <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                Install directly from Google Play or download the universal Android APK release binary for all devices running Android 8.0+.
+              <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                Install directly via Wireless OTA Manifest or download the <strong>.ipa</strong> package for AltStore, Sideloadly, TrollStore or Scarlet.
               </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: 'auto' }}>
+                <a 
+                  href="itms-services://?action=download-manifest&url=https://www.petmaya.app/manifest.plist" 
+                  className="apple-btn-blue" 
+                  style={{ justifyContent: 'center', textDecoration: 'none' }}
+                >
+                  <Download size={15} />
+                  <span>1-Click Install on iPhone</span>
+                </a>
+                <a 
+                  href="https://github.com/sadikmahmudadive/Pet-Maya/releases" 
+                  target="_blank" 
+                  rel="noreferrer" 
+                  className="apple-link-cta"
+                  style={{ justifyContent: 'center', fontSize: '13px' }}
+                >
+                  <span>Download .IPA Package</span>
+                  <ExternalLink size={13} />
+                </a>
+              </div>
+            </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: 'auto' }}>
+            {/* Android Column */}
+            <div style={{ background: 'var(--surface-alt)', padding: '28px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '14px', textAlign: 'left' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Smartphone size={22} color="#10B981" />
+                <strong style={{ fontSize: '17px', fontWeight: 600 }}>Android</strong>
+              </div>
+              <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                Get the official application on Google Play Store or download the universal Android APK release binary.
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: 'auto' }}>
                 <a 
                   href="https://play.google.com/store/apps/details?id=com.vertexhand.petmaya" 
                   target="_blank" 
-                  rel="noreferrer"
-                  className="btn-primary" 
-                  style={{ textDecoration: 'none', justifyContent: 'center', padding: '12px' }}
+                  rel="noreferrer" 
+                  className="apple-btn-blue" 
+                  style={{ background: '#10B981', justifyContent: 'center', textDecoration: 'none' }}
                 >
-                  <Download size={16} />
+                  <Download size={15} />
                   <span>Get on Google Play</span>
                 </a>
-
                 <a 
                   href="https://github.com/sadikmahmudadive/Pet-Maya/releases" 
                   target="_blank" 
-                  rel="noreferrer"
-                  className="btn-ghost" 
-                  style={{ textDecoration: 'none', justifyContent: 'center', padding: '10px' }}
+                  rel="noreferrer" 
+                  className="apple-link-cta"
+                  style={{ justifyContent: 'center', fontSize: '13px', color: '#10B981' }}
                 >
-                  <ExternalLink size={15} />
-                  <span>Download Universal APK (.apk)</span>
+                  <span>Download APK Binary</span>
+                  <ExternalLink size={13} />
                 </a>
               </div>
             </div>
 
-            {/* iOS Column (Direct Install / GitHub / Sideloading) */}
-            <div style={{ background: 'var(--surface-alt)', padding: '24px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(59, 130, 246, 0.14)', color: '#3B82F6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Smartphone size={22} />
-                </div>
-                <div>
-                  <strong style={{ fontSize: '17px', fontWeight: 700, display: 'block' }}>iOS iPhone Installation</strong>
-                  <span style={{ fontSize: '12.5px', color: 'var(--text-muted)' }}>OTA Direct Install &amp; .IPA Package</span>
-                </div>
-              </div>
-
-              <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                Install on iPhone via Wireless OTA Manifest or download the <strong style={{ color: 'var(--text-main)' }}>.ipa</strong> package for AltStore, Sideloadly, TrollStore or Scarlet.
-              </p>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: 'auto' }}>
-                <a 
-                  href="itms-services://?action=download-manifest&url=https://www.petmaya.app/manifest.plist" 
-                  className="btn-primary" 
-                  style={{ background: 'var(--text-main)', color: 'var(--bg)', textDecoration: 'none', justifyContent: 'center', padding: '12px' }}
-                >
-                  <Download size={16} />
-                  <span>Install on iPhone (OTA)</span>
-                </a>
-
-                <a 
-                  href="https://github.com/sadikmahmudadive/Pet-Maya/releases" 
-                  target="_blank" 
-                  rel="noreferrer"
-                  className="btn-ghost" 
-                  style={{ textDecoration: 'none', justifyContent: 'center', padding: '10px' }}
-                >
-                  <ExternalLink size={15} />
-                  <span>Download .IPA Package (GitHub)</span>
-                </a>
-              </div>
-
-              {/* iOS Trust Note */}
-              <div style={{ background: 'var(--surface)', padding: '10px 14px', borderRadius: 'var(--radius-xs)', fontSize: '11.5px', color: 'var(--text-muted)', lineHeight: 1.4, border: '1px solid var(--border)' }}>
-                💡 <strong>First time opening on iOS?</strong> Go to <em>Settings &gt; General &gt; VPN &amp; Device Management</em> and tap <strong>Trust "Pet Maya"</strong>.
-              </div>
-            </div>
-
-            {/* QR Code Column */}
-            <div style={{ background: 'var(--surface-alt)', padding: '24px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '12px' }}>
+            {/* QR Scan Column */}
+            <div style={{ background: 'var(--surface-alt)', padding: '28px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '12px' }}>
               <img 
-                src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=https%3A%2F%2Fwww.petmaya.app%2F" 
-                alt="Scan to open Pet Maya on Mobile" 
-                style={{ width: 140, height: 140, borderRadius: 'var(--radius-sm)', border: '2px solid var(--border)', padding: '4px', background: '#fff' }} 
+                src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=https%3A%2F%2Fwww.petmaya.app%2F" 
+                alt="Scan with Camera" 
+                style={{ width: 120, height: 120, borderRadius: '8px', border: '1px solid var(--border)', background: '#FFFFFF', padding: '4px' }} 
               />
-              <strong style={{ fontSize: '15px', fontWeight: 700 }}>Scan with iPhone / Android</strong>
+              <strong style={{ fontSize: '15px' }}>Scan with Phone Camera</strong>
               <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                Point your phone camera at the QR code to open the web application or install instantly on your phone.
+                Instantly opens Pet Maya web app or downloads mobile application on your device.
               </p>
             </div>
           </div>
@@ -415,44 +325,66 @@ export default function LandingPage() {
       </section>
 
       {/* ══════════════════════════════════════════════════════
-          SECURITY & PRIVACY PROMISE
+          APPLE.COM GLOBAL DIRECTORY FOOTER
           ══════════════════════════════════════════════════════ */}
-      <section style={{ textAlign: 'center', maxWidth: '800px', margin: '0 auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
-          <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'var(--primary-tint)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <ShieldCheck size={26} />
+      <footer className="apple-footer-wrap">
+        <div className="apple-footer-inner">
+          <div className="apple-footer-grid">
+            <div className="apple-footer-col">
+              <h5>Explore Services</h5>
+              <ul>
+                <li><button onClick={() => setActiveTab('tracker')}>Sonar GPS Radar</button></li>
+                <li><button onClick={() => setActiveTab('ai')}>AI Health Triage</button></li>
+                <li><button onClick={() => setActiveTab('vets')}>Specialist Network</button></li>
+                <li><button onClick={() => setActiveTab('food')}>Daily Nutrition</button></li>
+                <li><button onClick={() => setActiveTab('shop')}>Pharmacy &amp; Supplies</button></li>
+              </ul>
+            </div>
+
+            <div className="apple-footer-col">
+              <h5>Account &amp; Pet EHR</h5>
+              <ul>
+                <li><button onClick={() => openModal('auth')}>Sign In to Account</button></li>
+                <li><button onClick={handleTryDemo}>Guest Demo Console</button></li>
+                <li><button onClick={() => setActiveTab('vaccines')}>Vaccine Passport</button></li>
+                <li><button onClick={() => openModal('cart')}>View Shopping Bag</button></li>
+              </ul>
+            </div>
+
+            <div className="apple-footer-col">
+              <h5>For Veterinarians</h5>
+              <ul>
+                <li><button onClick={() => setActiveTab('vets')}>Clinician Verification</button></li>
+                <li><button onClick={() => setActiveTab('admin')}>Super Admin Console</button></li>
+                <li><button onClick={() => openModal('booking')}>Telehealth Guidelines</button></li>
+              </ul>
+            </div>
+
+            <div className="apple-footer-col">
+              <h5>Pet Maya Values</h5>
+              <ul>
+                <li><a href="/privacy_policy.html" target="_blank">Privacy First</a></li>
+                <li><a href="/terms_of_service.html" target="_blank">Terms of Service</a></li>
+                <li><a href="/about.html" target="_blank">About Pet Maya</a></li>
+                <li><a href="https://github.com/sadikmahmudadive/Pet-Maya" target="_blank" rel="noreferrer">Open Source GitHub</a></li>
+              </ul>
+            </div>
           </div>
-        </div>
-        <h2 style={{ fontSize: '26px', fontWeight: 800, letterSpacing: '-0.02em', marginBottom: '10px' }}>Your Pet’s Privacy &amp; Data Security First</h2>
-        <p style={{ fontSize: '14.5px', color: 'var(--text-muted)', lineHeight: 1.6 }}>
-          GPS coordinates, clinical health records, and owner contact details are strictly encrypted with TLS/AES-256 cloud infrastructure. We will never sell your telemetry or clinical records.
-        </p>
 
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '20px', fontSize: '13px', color: 'var(--text-muted)' }}>
-          <a href="/privacy_policy.html" target="_blank" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 600 }}>Privacy Policy</a>
-          <span>•</span>
-          <a href="/terms_of_service.html" target="_blank" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 600 }}>Terms of Service</a>
-          <span>•</span>
-          <a href="https://github.com/sadikmahmudadive/Pet-Maya" target="_blank" rel="noreferrer" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 600 }}>GitHub Repository</a>
-        </div>
-      </section>
-
-      {/* ══════════════════════════════════════════════════════
-          FOOTER
-          ══════════════════════════════════════════════════════ */}
-      <footer style={{ borderTop: '1px solid var(--border)', paddingTop: '28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', fontSize: '13px', color: 'var(--text-muted)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <img src="assets/images/tail_wagging_logo.png" alt="Pet Maya" style={{ width: 28, height: 28, borderRadius: '50%' }} />
-          <span>© 2026 Pet Maya Ecosystem. All rights reserved.</span>
-        </div>
-
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-          <button className="btn-ghost" style={{ fontSize: '12.5px', padding: '6px 14px' }} onClick={handleTryDemo}>
-            <span>Try Demo Mode</span>
-          </button>
-          <button className="btn-primary" style={{ fontSize: '12.5px', padding: '6px 16px' }} onClick={() => openModal('auth')}>
-            <span>Sign In</span>
-          </button>
+          <div className="apple-footer-legal">
+            <div>
+              Copyright © 2026 Pet Maya Inc. All rights reserved.
+            </div>
+            <div style={{ display: 'flex', gap: '16px' }}>
+              <a href="/privacy_policy.html" target="_blank">Privacy Policy</a>
+              <span>|</span>
+              <a href="/terms_of_service.html" target="_blank">Terms of Use</a>
+              <span>|</span>
+              <a href="/about.html" target="_blank">Legal</a>
+              <span>|</span>
+              <a href="/sitemap.xml" target="_blank">Site Map</a>
+            </div>
+          </div>
         </div>
       </footer>
     </div>

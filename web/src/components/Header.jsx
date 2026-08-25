@@ -2,23 +2,12 @@ import React from 'react';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { 
-  Home, 
-  Radar, 
-  Stethoscope, 
-  Activity, 
-  Utensils, 
-  Users, 
-  ShoppingBag, 
-  Bell, 
-  User, 
-  ShieldAlert, 
   Sun, 
   Moon, 
-  ShoppingCart,
-  Award,
+  ShoppingBag, 
   Sparkles,
-  Smartphone,
-  LayoutGrid
+  ShieldAlert,
+  ChevronDown
 } from 'lucide-react';
 
 export default function Header() {
@@ -27,66 +16,8 @@ export default function Header() {
 
   const role = currentUser?.role || 'Pet Owner';
 
-  // Define tab navigation based on authentication & active user role
-  const getNavTabs = () => {
-    if (!currentUser) {
-      // Unsigned / Public Visitor View
-      return [
-        { id: 'landing', label: 'Overview', icon: Sparkles },
-        { id: 'tracker', label: 'Live GPS Radar', icon: Radar },
-        { id: 'vets', label: 'Specialists', icon: Stethoscope },
-        { id: 'ai', label: 'AI Health Triage', icon: Activity },
-        { id: 'food', label: 'Nutrition & Breeds', icon: Utensils },
-        { id: 'shop', label: 'Shop & Rx', icon: ShoppingBag }
-      ];
-    }
-
-    // Signed-in Custom Role Views
-    if (role.toLowerCase().includes('vet') || role.toLowerCase().includes('doctor')) {
-      return [
-        { id: 'dashboard', label: 'Console', icon: Activity },
-        { id: 'vets', label: 'Appointments', icon: Stethoscope },
-        { id: 'vaccines', label: 'Patient EHR', icon: Bell },
-        { id: 'shop', label: 'Supplies', icon: ShoppingBag },
-        { id: 'community', label: 'Community', icon: Users },
-        { id: 'landing', label: 'Website Home', icon: Sparkles },
-        { id: 'profile', label: 'Clinic Profile', icon: User }
-      ];
-    } else if (role.toLowerCase().includes('shop') || role.toLowerCase().includes('merchant')) {
-      return [
-        { id: 'shop', label: 'Catalog & Orders', icon: ShoppingBag },
-        { id: 'community', label: 'Community', icon: Users },
-        { id: 'landing', label: 'Website Home', icon: Sparkles },
-        { id: 'profile', label: 'Store Profile', icon: User }
-      ];
-    } else if (role.toLowerCase().includes('groom') || role.toLowerCase().includes('board')) {
-      return [
-        { id: 'vets', label: 'Service Queue', icon: Stethoscope },
-        { id: 'vaccines', label: 'Guest Pets', icon: Bell },
-        { id: 'shop', label: 'Supplies', icon: ShoppingBag },
-        { id: 'landing', label: 'Website Home', icon: Sparkles },
-        { id: 'profile', label: 'Provider Profile', icon: User }
-      ];
-    } else {
-      // Standard Signed-in Pet Parent
-      return [
-        { id: 'dashboard', label: 'Dashboard', icon: Home },
-        { id: 'tracker', label: 'Pet Tracker', icon: Radar },
-        { id: 'vets', label: 'Specialists', icon: Stethoscope },
-        { id: 'ai', label: 'Health Triage', icon: Activity },
-        { id: 'food', label: 'Nutrition', icon: Utensils },
-        { id: 'community', label: 'Community', icon: Users },
-        { id: 'shop', label: 'Shop', icon: ShoppingBag },
-        { id: 'vaccines', label: 'Reminders', icon: Bell },
-        { id: 'landing', label: 'Overview', icon: Sparkles },
-        { id: 'profile', label: 'Profile', icon: User }
-      ];
-    }
-  };
-
-  const navTabs = getNavTabs();
-
-  const handleBrandClick = () => {
+  const handleBrandClick = (e) => {
+    e.preventDefault();
     if (currentUser) {
       setActiveTab('dashboard');
     } else {
@@ -97,114 +28,234 @@ export default function Header() {
   const handleDemoClick = () => {
     loginAsGuest('Pet Owner');
     setActiveTab('dashboard');
-    showToast('🚀 Entered Pet Maya demo dashboard!', 'success');
+    showToast('🚀 Welcome to Pet Maya Demo Mode!', 'success');
   };
 
   return (
-    <header className="app-header">
-      {/* Brand Logo & Name */}
-      <div className="brand-wrap" onClick={handleBrandClick}>
-        <img src="assets/images/tail_wagging_logo.png" alt="Pet Maya" className="brand-logo" />
-        <span className="brand-title">Pet Maya</span>
-      </div>
+    <header className="apple-nav-wrapper">
+      <div className="apple-nav-inner">
+        {/* Apple Brand Logo */}
+        <div className="apple-brand" onClick={handleBrandClick}>
+          <img src="assets/images/tail_wagging_logo.png" alt="Pet Maya" />
+          <span>Pet Maya</span>
+        </div>
 
-      {/* Navigation Pills */}
-      <nav className="nav-tabs">
-        {navTabs.map((tab) => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.id || (!currentUser && activeTab === 'dashboard' && tab.id === 'landing');
-          return (
-            <button
-              key={tab.id}
-              className={`nav-pill ${isActive ? 'active' : ''}`}
-              onClick={() => setActiveTab(tab.id)}
-            >
-              <Icon size={16} />
-              <span>{tab.label}</span>
-            </button>
-          );
-        })}
-
-        {/* Admin Tab (Always accessible for governance) */}
-        <button
-          className={`nav-pill ${activeTab === 'admin' ? 'active' : ''}`}
-          style={{ background: activeTab === 'admin' ? '#ef4444' : 'rgba(239,68,68,0.1)', color: activeTab === 'admin' ? '#fff' : '#ef4444' }}
-          onClick={() => setActiveTab('admin')}
-        >
-          <ShieldAlert size={16} />
-          <span>Admin</span>
-        </button>
-      </nav>
-
-      {/* Header Actions */}
-      <div className="header-actions">
-        {/* Reward Points Pill */}
-        {currentUser && (
-          <div 
-            className="badge badge-yellow" 
-            style={{ padding: '6px 12px', fontSize: '12px', cursor: 'pointer' }}
-            onClick={() => setActiveTab('profile')}
-            title="Earn points by referring friends & completing pet care milestones"
-          >
-            <Award size={14} />
-            <span>{currentUser.points ?? 45} pts</span>
-          </div>
-        )}
-
-        {/* Cart Button */}
-        <button className="icon-btn" onClick={() => openModal('cart')} style={{ position: 'relative' }}>
-          <ShoppingCart size={18} />
-          {cartCount > 0 && (
-            <span style={{
-              position: 'absolute',
-              top: -4,
-              right: -4,
-              background: '#10b981',
-              color: '#fff',
-              fontSize: '11px',
-              fontWeight: 800,
-              width: '18px',
-              height: '18px',
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 2px 6px rgba(16,185,129,0.5)'
-            }}>
-              {cartCount}
-            </span>
+        {/* Apple.com Global Navigation Links */}
+        <ul className="apple-nav-links">
+          {currentUser ? (
+            <>
+              <li>
+                <button 
+                  className={`apple-nav-item ${activeTab === 'dashboard' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('dashboard')}
+                >
+                  Dashboard
+                </button>
+              </li>
+              <li>
+                <button 
+                  className={`apple-nav-item ${activeTab === 'tracker' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('tracker')}
+                >
+                  Sonar Radar
+                </button>
+              </li>
+              <li>
+                <button 
+                  className={`apple-nav-item ${activeTab === 'ai' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('ai')}
+                >
+                  AI Vision
+                </button>
+              </li>
+              <li>
+                <button 
+                  className={`apple-nav-item ${activeTab === 'vets' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('vets')}
+                >
+                  Specialists
+                </button>
+              </li>
+              <li>
+                <button 
+                  className={`apple-nav-item ${activeTab === 'food' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('food')}
+                >
+                  Nutrition
+                </button>
+              </li>
+              <li>
+                <button 
+                  className={`apple-nav-item ${activeTab === 'shop' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('shop')}
+                >
+                  Store
+                </button>
+              </li>
+              <li>
+                <button 
+                  className={`apple-nav-item ${activeTab === 'vaccines' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('vaccines')}
+                >
+                  Passport
+                </button>
+              </li>
+              <li>
+                <button 
+                  className={`apple-nav-item ${activeTab === 'landing' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('landing')}
+                >
+                  Overview
+                </button>
+              </li>
+            </>
+          ) : (
+            <>
+              <li>
+                <button 
+                  className={`apple-nav-item ${activeTab === 'landing' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('landing')}
+                >
+                  Overview
+                </button>
+              </li>
+              <li>
+                <button 
+                  className={`apple-nav-item ${activeTab === 'tracker' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('tracker')}
+                >
+                  Sonar Radar
+                </button>
+              </li>
+              <li>
+                <button 
+                  className={`apple-nav-item ${activeTab === 'ai' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('ai')}
+                >
+                  AI Triage
+                </button>
+              </li>
+              <li>
+                <button 
+                  className={`apple-nav-item ${activeTab === 'vets' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('vets')}
+                >
+                  Specialists
+                </button>
+              </li>
+              <li>
+                <button 
+                  className={`apple-nav-item ${activeTab === 'food' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('food')}
+                >
+                  Nutrition
+                </button>
+              </li>
+              <li>
+                <button 
+                  className={`apple-nav-item ${activeTab === 'shop' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('shop')}
+                >
+                  Pharmacy &amp; Store
+                </button>
+              </li>
+              <li>
+                <a 
+                  href="#mobile-downloads" 
+                  className="apple-nav-item"
+                  onClick={() => setActiveTab('landing')}
+                >
+                  iOS &amp; Android App
+                </a>
+              </li>
+            </>
           )}
-        </button>
 
-        {/* Dark/Light Theme Toggle */}
-        <button className="icon-btn" onClick={toggleTheme} title="Toggle Theme">
-          {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-        </button>
+          {/* Super Admin Access */}
+          <li>
+            <button 
+              className={`apple-nav-item ${activeTab === 'admin' ? 'active' : ''}`}
+              style={{ color: '#EF4444' }}
+              onClick={() => setActiveTab('admin')}
+            >
+              Admin
+            </button>
+          </li>
+        </ul>
 
-        {/* User Profile Avatar or Sign-In / Demo Action */}
-        {currentUser ? (
-          <div 
-            style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
-            onClick={() => setActiveTab('profile')}
-            title="View Profile & EHR"
+        {/* Right Nav Utilities */}
+        <div className="apple-nav-actions">
+          {/* Shopping Bag */}
+          <button 
+            className="icon-btn" 
+            onClick={() => openModal('cart')} 
+            style={{ width: 30, height: 30, position: 'relative' }}
+            title="Shopping Bag"
           >
-            <img 
-              src={currentUser.photoUrl || 'assets/images/tail_wagging_logo.png'} 
-              alt={currentUser.name} 
-              style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--primary)' }} 
-            />
-          </div>
-        ) : (
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            <button className="btn-ghost" style={{ padding: '8px 14px', fontSize: '13px' }} onClick={handleDemoClick}>
-              <span>Try Demo</span>
-            </button>
-            <button className="btn-primary" style={{ padding: '8px 18px', fontSize: '13px' }} onClick={() => openModal('auth')}>
-              <Sparkles size={15} />
-              <span>Sign In</span>
-            </button>
-          </div>
-        )}
+            <ShoppingBag size={15} />
+            {cartCount > 0 && (
+              <span style={{
+                position: 'absolute',
+                top: -2,
+                right: -2,
+                background: 'var(--primary)',
+                color: '#fff',
+                fontSize: '10px',
+                fontWeight: 700,
+                width: '15px',
+                height: '15px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                {cartCount}
+              </span>
+            )}
+          </button>
+
+          {/* Theme Switcher */}
+          <button 
+            className="icon-btn" 
+            onClick={toggleTheme} 
+            style={{ width: 30, height: 30 }}
+            title="Toggle Light/Dark Theme"
+          >
+            {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
+          </button>
+
+          {/* User Profile Avatar / Sign In */}
+          {currentUser ? (
+            <div 
+              style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
+              onClick={() => setActiveTab('profile')}
+              title="Account & EHR"
+            >
+              <img 
+                src={currentUser.photoUrl || 'assets/images/tail_wagging_logo.png'} 
+                alt={currentUser.name} 
+                style={{ width: 26, height: 26, borderRadius: '50%', objectFit: 'cover', border: '1.5px solid var(--primary)' }} 
+              />
+            </div>
+          ) : (
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <button 
+                className="apple-link-cta" 
+                style={{ fontSize: '12px' }} 
+                onClick={handleDemoClick}
+              >
+                Demo
+              </button>
+              <button 
+                className="apple-btn-blue" 
+                style={{ padding: '4px 12px', fontSize: '12px' }} 
+                onClick={() => openModal('auth')}
+              >
+                Sign In
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );

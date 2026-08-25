@@ -21,9 +21,10 @@ function MainContent() {
   const { activeTab } = useApp();
   const { currentUser } = useAuth();
 
+  const isLanding = activeTab === 'landing' || (!currentUser && (activeTab === 'dashboard' || !activeTab));
+
   const renderActiveScreen = () => {
-    // If user is unsigned and on default home/dashboard/landing, show full presentation landing page
-    if (!currentUser && (activeTab === 'dashboard' || activeTab === 'landing')) {
+    if (isLanding) {
       return <LandingPage />;
     }
 
@@ -58,7 +59,7 @@ function MainContent() {
   return (
     <div className="app-container">
       <Header />
-      <main className="app-main">
+      <main className={isLanding ? "apple-landing-main" : "app-main"}>
         {renderActiveScreen()}
       </main>
       <ModalRoot />
