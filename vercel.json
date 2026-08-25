@@ -2,6 +2,8 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "cleanUrls": true,
   "trailingSlash": false,
+  "installCommand": "npm install",
+  "buildCommand": "npm run build",
   "outputDirectory": "web/dist",
   "rewrites": [
     { "source": "/privacy-policy", "destination": "/privacy_policy" },
