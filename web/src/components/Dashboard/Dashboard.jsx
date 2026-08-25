@@ -2,28 +2,15 @@ import React from 'react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { 
-  Radar, 
-  Activity, 
-  Utensils, 
-  Stethoscope, 
   Plus, 
   Calendar, 
   Trash2, 
-  Award,
-  Sparkles,
-  ChevronRight,
-  ShieldCheck,
-  ShoppingBag,
-  Bell,
-  Heart,
-  DollarSign,
-  MapPin,
-  MessageCircle,
-  BookOpen,
-  Star,
-  Briefcase,
-  Clock,
-  Video
+  ChevronRight, 
+  Bell, 
+  Star, 
+  Briefcase, 
+  Clock, 
+  Video 
 } from 'lucide-react';
 
 export default function Dashboard() {
@@ -165,151 +152,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ── 3. DISCOVER MORE (7 MATCHING DISCOVERY CARDS) ── */}
-      <div>
-        <div style={{ marginBottom: '16px' }}>
-          <h2 style={{ fontSize: '20px', fontWeight: 700, letterSpacing: '-0.02em' }}>Discover More</h2>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
-          
-          {/* 1. Pet Shop */}
-          <div 
-            className="apple-promo-card" 
-            style={{ padding: '22px', textAlign: 'left', alignItems: 'flex-start', cursor: 'pointer' }}
-            onClick={() => setActiveTab('shop')}
-          >
-            <div style={{ width: 42, height: 42, borderRadius: '50%', background: 'rgba(16, 185, 129, 0.15)', color: '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '14px' }}>
-              <DollarSign size={20} />
-            </div>
-            <strong style={{ fontSize: '16px', fontWeight: 700 }}>Pet Shop</strong>
-            <span style={{ fontSize: '13px', color: 'var(--text-muted)', display: 'block', marginTop: '2px', marginBottom: '16px' }}>
-              Premium treats &amp; food
-            </span>
-            <span className="apple-link-cta" style={{ fontSize: '12px', fontWeight: 700, marginTop: 'auto', color: '#10B981' }}>
-              <span>SHOP</span>
-              <ChevronRight size={13} />
-            </span>
-          </div>
-
-          {/* 2. Tracker */}
-          <div 
-            className="apple-promo-card" 
-            style={{ padding: '22px', textAlign: 'left', alignItems: 'flex-start', cursor: 'pointer' }}
-            onClick={() => setActiveTab('tracker')}
-          >
-            <div style={{ width: 42, height: 42, borderRadius: '50%', background: 'rgba(59, 130, 246, 0.15)', color: '#3B82F6', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '14px' }}>
-              <MapPin size={20} />
-            </div>
-            <strong style={{ fontSize: '16px', fontWeight: 700 }}>Tracker</strong>
-            <span style={{ fontSize: '13px', color: 'var(--text-muted)', display: 'block', marginTop: '2px', marginBottom: '16px' }}>
-              Live GPS location
-            </span>
-            <span className="apple-link-cta" style={{ fontSize: '12px', fontWeight: 700, marginTop: 'auto', color: '#3B82F6' }}>
-              <span>LOCATE</span>
-              <ChevronRight size={13} />
-            </span>
-          </div>
-
-          {/* 3. Wellness */}
-          <div 
-            className="apple-promo-card" 
-            style={{ padding: '22px', textAlign: 'left', alignItems: 'flex-start', cursor: 'pointer' }}
-            onClick={() => setActiveTab('ai')}
-          >
-            <div style={{ width: 42, height: 42, borderRadius: '50%', background: 'rgba(147, 51, 234, 0.15)', color: '#A855F7', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '14px' }}>
-              <MessageCircle size={20} />
-            </div>
-            <strong style={{ fontSize: '16px', fontWeight: 700 }}>Wellness</strong>
-            <span style={{ fontSize: '13px', color: 'var(--text-muted)', display: 'block', marginTop: '2px', marginBottom: '16px' }}>
-              AI health scan
-            </span>
-            <span className="apple-link-cta" style={{ fontSize: '12px', fontWeight: 700, marginTop: 'auto', color: '#A855F7' }}>
-              <span>CHECK</span>
-              <ChevronRight size={13} />
-            </span>
-          </div>
-
-          {/* 4. Specialists */}
-          <div 
-            className="apple-promo-card" 
-            style={{ padding: '22px', textAlign: 'left', alignItems: 'flex-start', cursor: 'pointer' }}
-            onClick={() => setActiveTab('vets')}
-          >
-            <div style={{ width: 42, height: 42, borderRadius: '50%', background: 'rgba(245, 158, 11, 0.15)', color: '#F59E0B', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '14px' }}>
-              <Stethoscope size={20} />
-            </div>
-            <strong style={{ fontSize: '16px', fontWeight: 700 }}>Specialists</strong>
-            <span style={{ fontSize: '13px', color: 'var(--text-muted)', display: 'block', marginTop: '2px', marginBottom: '16px' }}>
-              Verified clinicians
-            </span>
-            <span className="apple-link-cta" style={{ fontSize: '12px', fontWeight: 700, marginTop: 'auto', color: '#F59E0B' }}>
-              <span>FIND</span>
-              <ChevronRight size={13} />
-            </span>
-          </div>
-
-          {/* 5. Community */}
-          <div 
-            className="apple-promo-card" 
-            style={{ padding: '22px', textAlign: 'left', alignItems: 'flex-start', cursor: 'pointer' }}
-            onClick={() => setActiveTab('community')}
-          >
-            <div style={{ width: 42, height: 42, borderRadius: '50%', background: 'rgba(34, 197, 94, 0.15)', color: '#22C55E', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '14px' }}>
-              <Heart size={20} />
-            </div>
-            <strong style={{ fontSize: '16px', fontWeight: 700 }}>Community</strong>
-            <span style={{ fontSize: '13px', color: 'var(--text-muted)', display: 'block', marginTop: '2px', marginBottom: '16px' }}>
-              Global feed
-            </span>
-            <span className="apple-link-cta" style={{ fontSize: '12px', fontWeight: 700, marginTop: 'auto', color: '#22C55E' }}>
-              <span>EXPLORE</span>
-              <ChevronRight size={13} />
-            </span>
-          </div>
-
-          {/* 6. Blog */}
-          <div 
-            className="apple-promo-card" 
-            style={{ padding: '22px', textAlign: 'left', alignItems: 'flex-start', cursor: 'pointer' }}
-            onClick={() => setActiveTab('food')}
-          >
-            <div style={{ width: 42, height: 42, borderRadius: '50%', background: 'rgba(249, 115, 22, 0.15)', color: '#F97316', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '14px' }}>
-              <BookOpen size={20} />
-            </div>
-            <strong style={{ fontSize: '16px', fontWeight: 700 }}>Blog</strong>
-            <span style={{ fontSize: '13px', color: 'var(--text-muted)', display: 'block', marginTop: '2px', marginBottom: '16px' }}>
-              Expert advice &amp; diet
-            </span>
-            <span className="apple-link-cta" style={{ fontSize: '12px', fontWeight: 700, marginTop: 'auto', color: '#F97316' }}>
-              <span>READ</span>
-              <ChevronRight size={13} />
-            </span>
-          </div>
-
-          {/* 7. Reminders */}
-          <div 
-            className="apple-promo-card" 
-            style={{ padding: '22px', textAlign: 'left', alignItems: 'flex-start', cursor: 'pointer' }}
-            onClick={() => setActiveTab('vaccines')}
-          >
-            <div style={{ width: 42, height: 42, borderRadius: '50%', background: 'rgba(239, 68, 68, 0.15)', color: '#EF4444', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '14px' }}>
-              <Calendar size={20} />
-            </div>
-            <strong style={{ fontSize: '16px', fontWeight: 700 }}>Reminders</strong>
-            <span style={{ fontSize: '13px', color: 'var(--text-muted)', display: 'block', marginTop: '2px', marginBottom: '16px' }}>
-              Schedule care
-            </span>
-            <span className="apple-link-cta" style={{ fontSize: '12px', fontWeight: 700, marginTop: 'auto', color: '#EF4444' }}>
-              <span>VIEW</span>
-              <ChevronRight size={13} />
-            </span>
-          </div>
-
-        </div>
-      </div>
-
-      {/* ── 4. UPCOMING EVENTS SECTION ── */}
+      {/* ── 3. UPCOMING EVENTS SECTION ── */}
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <h2 style={{ fontSize: '20px', fontWeight: 700, letterSpacing: '-0.02em' }}>Upcoming Events</h2>
@@ -390,7 +233,7 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* ── 5. TOP VETERINARIANS SECTION ── */}
+      {/* ── 4. TOP VETERINARIANS SECTION ── */}
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <h2 style={{ fontSize: '20px', fontWeight: 700, letterSpacing: '-0.02em' }}>Top Veterinarians</h2>
