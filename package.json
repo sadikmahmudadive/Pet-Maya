@@ -1,0 +1,9 @@
+{
+  "name": "pet-maya-workspace",
+  "private": true,
+  "scripts": {
+    "dev": "npm run dev --prefix web-app",
+    "build": "npm run build --prefix web-app",
+    "preview": "npm run preview --prefix web-app"
+  }
+}
