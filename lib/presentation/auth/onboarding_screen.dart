@@ -5,6 +5,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../common_widgets/premium_card.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:action_slider/action_slider.dart';
 import 'login_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -410,59 +411,35 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Widget _buildGetStartedButton(double screenWidth) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return GestureDetector(
-      onTap: () {
+    
+    return ActionSlider.standard(
+      sliderBehavior: SliderBehavior.stretch,
+      width: screenWidth * 0.8,
+      height: 70,
+      backgroundColor: const Color(0xFF1AB680),
+      toggleColor: isDark ? AppColors.surfaceDark : Colors.white,
+      action: (controller) async {
+        controller.loading(); //start loading animation
+        await Future.delayed(const Duration(seconds: 1));
         _pageController.nextPage(
           duration: const Duration(milliseconds: 600),
           curve: Curves.easeInOutCubic,
         );
+        controller.success(); //reset slider
       },
-      child: Container(
-        height: 70,
-        width: screenWidth * 0.8,
-        decoration: BoxDecoration(
-          color: const Color(0xFF1AB680),
-          borderRadius: BorderRadius.circular(35),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF1AB680).withValues(alpha: isDark ? 0.5 : 0.3),
-              blurRadius: 30,
-              offset: const Offset(0, 15),
-            ),
-          ],
+      child: const Text(
+        'EXPLORE PET MAYA',
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 14,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.8,
         ),
-        child: Stack(
-          children: [
-            Positioned(
-              left: 6,
-              top: 6,
-              bottom: 6,
-              child: Container(
-                width: 58,
-                decoration: BoxDecoration(
-                  color: isDark ? AppColors.surfaceDark : Colors.white,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  color: isDark ? Colors.white : AppColors.primaryDark,
-                  size: 20,
-                ),
-              ),
-            ),
-            const Center(
-              child: Text(
-                'EXPLORE PET MAYA',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.8,
-                ),
-              ),
-            ),
-          ],
-        ),
+      ),
+      icon: Icon(
+        Icons.arrow_forward_ios_rounded,
+        color: isDark ? Colors.white : AppColors.primaryDark,
+        size: 20,
       ),
     );
   }

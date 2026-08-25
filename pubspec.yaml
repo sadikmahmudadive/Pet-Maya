@@ -71,6 +71,7 @@ dependencies:
   firebase_storage: ^12.4.10
   flutter_image_compress: ^2.3.0
   path_provider: ^2.1.0
+  action_slider: ^0.7.0
 
 dependency_overrides:
   # latlong2: 0.10.1
