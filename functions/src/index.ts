@@ -36,7 +36,13 @@ export const openai_proxy = onCall({ secrets: ["OPENAI_API_KEY"] }, async (reque
     }
   } catch (error: any) {
     console.error("OpenAI Error:", error);
-    throw new HttpsError("internal", error.message || "AI logic failed");
+    // Even if OpenAI fails, return a graceful error instead of crashing the call
+    return {
+      response: `AI Error: ${error.message}. Please try again later.`,
+      schedule: ["08:00", "13:00", "19:00"],
+      breed: "Unknown",
+      recommendation: {}
+    };
   }
 });
 

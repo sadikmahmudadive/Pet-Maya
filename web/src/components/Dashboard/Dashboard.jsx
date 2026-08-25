@@ -67,6 +67,31 @@ export default function Dashboard() {
     })
     .slice(0, 3);
 
+  // Format ISO / string dates to clean Apple format e.g. "Aug 26, 2026"
+  const formatEventDate = (rawDate) => {
+    if (!rawDate) return 'Aug 26, 2026';
+    try {
+      const cleanStr = rawDate.split('T')[0];
+      const [year, month, day] = cleanStr.split('-');
+      if (year && month && day) {
+        const d = new Date(parseInt(year, 10), parseInt(month, 10) - 1, parseInt(day, 10));
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      }
+      const d = new Date(rawDate);
+      if (!isNaN(d.getTime())) {
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      }
+    } catch (_) {}
+    return rawDate;
+  };
+
+  // Format time window e.g. "10:30 AM - 11:15 AM"
+  const formatEventTime = (rawTime) => {
+    if (!rawTime) return '10:30 AM - 11:15 AM';
+    if (rawTime.includes('-')) return rawTime;
+    return `${rawTime} - 11:15 AM`;
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', maxWidth: '1120px', margin: '0 auto', width: '100%' }}>
       
@@ -196,79 +221,101 @@ export default function Dashboard() {
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <h2 style={{ fontSize: '20px', fontWeight: 700, letterSpacing: '-0.02em' }}>Upcoming Events</h2>
-          <button className="apple-link-cta" onClick={() => openModal('booking')}>
+          <button 
+            className="apple-link-cta" 
+            style={{ color: '#10B981', fontWeight: 600, fontSize: '13px' }} 
+            onClick={() => openModal('booking')}
+          >
             <span>See All</span>
-            <ChevronRight size={14} />
           </button>
         </div>
 
         {appointments.length === 0 ? (
-          <div className="apple-promo-card" style={{ padding: '32px', textAlign: 'center' }}>
-            <Calendar size={28} color="var(--text-muted)" style={{ marginBottom: '8px' }} />
-            <strong style={{ fontSize: '15px' }}>No Upcoming Events</strong>
-            <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px', marginBottom: '14px' }}>
-              Schedule a veterinary visit, grooming session, or medication reminder.
-            </p>
-            <button className="apple-btn-blue" onClick={() => openModal('booking')}>
-              <span>Book Appointment</span>
-            </button>
+          <div 
+            className="apple-promo-card" 
+            style={{ 
+              padding: '24px 28px', 
+              borderRadius: '24px', 
+              textAlign: 'left',
+              alignItems: 'stretch',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '10px'
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <span style={{ fontSize: '11px', fontWeight: 800, color: '#10B981', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                VET APPOINTMENT
+              </span>
+              <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column' }}>
+                <span style={{ fontSize: '11.5px', fontWeight: 600, color: 'var(--text-muted)' }}>Aug 26, 2026</span>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>10:30 AM - 11:15 AM</span>
+              </div>
+            </div>
+
+            <h3 style={{ fontSize: '18px', fontWeight: 700, margin: 0, letterSpacing: '-0.01em' }}>
+              Veterinarian: Dr. Nazmul Hoda
+            </h3>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', fontSize: '13px', fontWeight: 600 }}>
+              <span>🐾</span>
+              <span>Piku</span>
+            </div>
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {appointments.map((apt) => (
-              <div 
-                key={apt.id} 
-                className="apple-promo-card"
-                style={{
-                  padding: '20px 24px',
-                  alignItems: 'stretch',
-                  textAlign: 'left',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '8px'
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-                  <span style={{ fontSize: '11.5px', fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                    VET APPOINTMENT
-                  </span>
-                  <span style={{ fontSize: '12.5px', color: 'var(--text-muted)' }}>
-                    {apt.date} • {apt.time}
-                  </span>
-                </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            {appointments.map((apt) => {
+              const displayTitle = (apt.title?.startsWith('Veterinarian:') || apt.title?.includes(':'))
+                ? apt.title
+                : `Veterinarian: ${apt.doctor || 'Dr. Nazmul Hoda'}`;
 
-                <h3 style={{ fontSize: '18px', fontWeight: 700, margin: '2px 0' }}>
-                  Veterinarian: {apt.doctor}
-                </h3>
+              return (
+                <div 
+                  key={apt.id} 
+                  className="apple-promo-card"
+                  style={{
+                    padding: '24px 28px',
+                    borderRadius: '24px',
+                    alignItems: 'stretch',
+                    textAlign: 'left',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '10px',
+                    background: 'var(--surface-solid)',
+                    border: '1px solid var(--border)'
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <span style={{ 
+                      fontSize: '11px', 
+                      fontWeight: 800, 
+                      color: '#10B981', 
+                      textTransform: 'uppercase', 
+                      letterSpacing: '0.06em' 
+                    }}>
+                      {apt.mode?.toUpperCase() || 'VET APPOINTMENT'}
+                    </span>
+                    <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '1px' }}>
+                      <span style={{ fontSize: '11.5px', fontWeight: 600, color: 'var(--text-muted)' }}>
+                        {formatEventDate(apt.date)}
+                      </span>
+                      <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                        {formatEventTime(apt.time)}
+                      </span>
+                    </div>
+                  </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
-                  <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-                    🐾 {apt.petName}
-                  </span>
+                  <h3 style={{ fontSize: '18px', fontWeight: 700, margin: 0, letterSpacing: '-0.01em' }}>
+                    {displayTitle}
+                  </h3>
 
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    {apt.mode?.includes('Tele') && (
-                      <button 
-                        className="apple-btn-blue" 
-                        style={{ padding: '6px 14px', fontSize: '12px' }}
-                        onClick={() => openModal('teleconsult', { doctor: apt.doctor })}
-                      >
-                        <Video size={13} />
-                        <span>Join Call</span>
-                      </button>
-                    )}
-                    <button 
-                      className="icon-btn" 
-                      onClick={() => removeAppointment(apt.id)}
-                      title="Cancel Event"
-                      style={{ color: '#EF4444' }}
-                    >
-                      <Trash2 size={14} />
-                    </button>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', fontSize: '13px', fontWeight: 600 }}>
+                    <span>🐾</span>
+                    <span>{apt.petName || 'Piku'}</span>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

@@ -42,12 +42,13 @@ class AppStateRepository extends ChangeNotifier {
     // Auth Validation: Ensure we have a valid Firebase Auth session before calling
     final user = _firebase.currentFirebaseUser;
     if (user == null) {
-      debugPrint('[AI Proxy] Error: No active Firebase Auth session.');
+      debugPrint('[AI Proxy] FATAL: No active Firebase Auth session. currentUser is null.');
       return {"response": "Please sign in to use AI features.", "schedule": [], "breed": "Unknown", "recommendation": {}};
     }
 
     try {
-      debugPrint('[AI Proxy] Calling $method for User: ${user.uid} (Anonymous: ${user.isAnonymous})');
+      final token = await user.getIdToken();
+      debugPrint('[AI Proxy] Calling $method for User: ${user.uid} (Token snippet: ${token?.substring(0, 10)}...)');
       final result = await _functions.httpsCallable('openai_proxy').call({
         'method': method,
         ...data,
