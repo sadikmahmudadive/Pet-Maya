@@ -77,8 +77,13 @@ class FavoriteVetsScreen extends StatelessWidget {
                                     children: [
                                       const Icon(Icons.star_rounded, color: AppColors.accentAmber, size: 14),
                                       const SizedBox(width: 4),
-                                      Text('${vet.rating}', style: AppTypography.labelSmall.copyWith(fontWeight: FontWeight.w700)),
-                                      Text(' (${vet.reviewsCount})', style: AppTypography.labelSmall.copyWith(color: AppColors.textTertiary, fontWeight: FontWeight.w600)),
+                                      Text(
+                                        vet.reviewsCount == 0 ? 'NEW' : '${vet.rating} (${vet.reviewsCount})',
+                                        style: AppTypography.labelSmall.copyWith(
+                                          fontWeight: FontWeight.w700,
+                                          color: vet.reviewsCount == 0 ? AppColors.accentAmber : null,
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 ],

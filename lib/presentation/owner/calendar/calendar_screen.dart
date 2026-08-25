@@ -174,15 +174,16 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   )
                 )).toList(),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 2),
               GridView.builder(
+                padding: EdgeInsets.zero,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 7, 
                   mainAxisSpacing: 6, 
                   crossAxisSpacing: 6,
-                  childAspectRatio: 0.9,
+                  childAspectRatio: 1.2,
                 ),
                 itemCount: 42,
                 itemBuilder: (context, index) {

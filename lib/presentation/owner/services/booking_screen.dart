@@ -12,7 +12,6 @@ import '../../../data/models/pet_model.dart';
 import '../../../data/models/event_model.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
-import '../../common_widgets/location_picker_screen.dart';
 
 class BookingScreen extends StatefulWidget {
   final VetModel vet;
@@ -27,7 +26,6 @@ class _BookingScreenState extends State<BookingScreen> {
   PetModel? _selectedPet;
   DateTime _selectedDate = DateTime.now().add(const Duration(days: 1));
   String _selectedTimeSlot = '10:30 AM';
-  String _selectedLocation = 'Select Clinic Location';
   final _reasonController = TextEditingController(text: 'Routine comprehensive health checkup');
 
   final List<String> _slots = [
@@ -238,29 +236,6 @@ class _BookingScreenState extends State<BookingScreen> {
                             style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
                           const Spacer(),
                           const Icon(Icons.edit_calendar_rounded, color: AppColors.textTertiary, size: 18),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  _buildSectionLabel('Clinic Location'),
-                  const SizedBox(height: 8),
-                  PremiumCard(
-                    onTap: () async {
-                      final address = await Navigator.push(context, MaterialPageRoute(builder: (_) => const LocationPickerScreen()));
-                      if (address != null) setState(() => _selectedLocation = address);
-                    },
-                    opacity: 0.1,
-                    borderRadius: 16,
-                    child: Padding(
-                      padding: const EdgeInsets.all(18),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.map_rounded, color: AppColors.primary, size: 20),
-                          const SizedBox(width: 16),
-                          Expanded(child: Text(_selectedLocation, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14), maxLines: 1, overflow: TextOverflow.ellipsis)),
-                          const Icon(Icons.keyboard_arrow_right_rounded, color: AppColors.textTertiary, size: 20),
                         ],
                       ),
                     ),

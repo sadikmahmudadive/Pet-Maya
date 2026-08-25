@@ -57,12 +57,21 @@ class VetModel {
   }
 
   factory VetModel.fromMap(String id, Map<dynamic, dynamic> map) {
+    double rawRating = (map['rating'] as num?)?.toDouble() ?? 0.0;
+    int rawCount = (map['reviewsCount'] as num?)?.toInt() ?? 0;
+
+    // Truth Logic: Purge legacy hardcoded template values (4.8 rating / 120 reviews)
+    if (rawRating == 4.8 && rawCount == 120) {
+      rawRating = 0.0;
+      rawCount = 0;
+    }
+
     return VetModel(
       id: id,
       name: map['name'] ?? '',
       qualification: map['qualification'] ?? 'Pet Care Specialist',
-      rating: (map['rating'] as num?)?.toDouble() ?? 0.0,
-      reviewsCount: (map['reviewsCount'] as num?)?.toInt() ?? 0,
+      rating: rawRating,
+      reviewsCount: rawCount,
       tag: map['role'] ?? map['tag'] ?? 'Veterinarian',
       distance: map['distance'] ?? 'Nearby',
       price: map['price'] ?? '৳30',
