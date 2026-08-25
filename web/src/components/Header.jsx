@@ -177,17 +177,6 @@ export default function Header() {
               </li>
             </>
           )}
-
-          {/* Super Admin Access */}
-          <li>
-            <button 
-              className={`apple-nav-item ${activeTab === 'admin' ? 'active' : ''}`}
-              style={{ color: '#EF4444' }}
-              onClick={() => handleProtectedNav('admin', 'Admin Console')}
-            >
-              Admin
-            </button>
-          </li>
         </ul>
 
         {/* Right Nav Utilities */}

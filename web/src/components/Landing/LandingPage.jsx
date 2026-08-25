@@ -372,7 +372,6 @@ export default function LandingPage() {
               <h5>For Veterinarians</h5>
               <ul>
                 <li><button onClick={() => handleFeatureAccess('vets', 'Clinician Network')}>Clinician Verification</button></li>
-                <li><button onClick={() => handleFeatureAccess('admin', 'Super Admin Console')}>Super Admin Console</button></li>
                 <li><button onClick={() => openModal('booking')}>Telehealth Guidelines</button></li>
               </ul>
             </div>

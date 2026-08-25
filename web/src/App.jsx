@@ -21,7 +21,25 @@ function MainContent() {
   const { activeTab } = useApp();
   const { currentUser } = useAuth();
 
-  // If user is unsigned, enforce Landing presentation view and prevent direct screen bypass
+  // Subdomain check: admin.petmaya.app (or admin.localhost, ?portal=admin, /admin)
+  const isAdminSubdomain = typeof window !== 'undefined' && (
+    window.location.hostname.startsWith('admin.') || 
+    window.location.search.includes('portal=admin') ||
+    window.location.pathname.startsWith('/admin')
+  );
+
+  // If accessed via admin subdomain, route directly to dedicated Admin Portal
+  if (isAdminSubdomain) {
+    return (
+      <div className="app-container" style={{ padding: '24px 16px' }}>
+        <AdminPortal />
+        <ModalRoot />
+        <Toast />
+      </div>
+    );
+  }
+
+  // Standard consumer site: enforce landing page presentation for unsigned users
   const isLanding = !currentUser || activeTab === 'landing';
 
   const renderActiveScreen = () => {
@@ -50,8 +68,6 @@ function MainContent() {
         return <Reminders />;
       case 'profile':
         return <Profile />;
-      case 'admin':
-        return <AdminPortal />;
       default:
         return currentUser ? <Dashboard /> : <LandingPage />;
     }
