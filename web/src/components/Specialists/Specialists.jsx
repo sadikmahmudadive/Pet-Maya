@@ -11,7 +11,8 @@ import {
   MessageSquarePlus, 
   ShieldCheck,
   Heart,
-  Flame
+  Flame,
+  ChevronRight
 } from 'lucide-react';
 
 export default function Specialists() {
@@ -41,51 +42,52 @@ export default function Specialists() {
   });
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      {/* ── HEADER & SEARCH ── */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+      {/* ── HEADER & ACTIONS ── */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
         <div>
-          <h2 style={{ fontSize: '24px', fontWeight: 900, letterSpacing: '-0.5px' }}>Veterinarians &amp; Care Specialists</h2>
-          <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Discover verified clinicians, specialist veterinarians, grooming spas &amp; boarding resorts.</p>
+          <span className="apple-card-eyebrow" style={{ color: '#F59E0B' }}>Clinical Network</span>
+          <h1 style={{ fontSize: '28px', fontWeight: 700, letterSpacing: '-0.03em' }}>Specialists &amp; Clinicians</h1>
+          <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Discover verified veterinarians, specialist surgeons, grooming spas &amp; boarding resorts.</p>
         </div>
-        <button className="btn-primary" onClick={() => openModal('booking')}>
-          <Calendar size={16} />
-          <span>Book In-Clinic Slot</span>
+        <button className="apple-btn-blue" onClick={() => openModal('booking')}>
+          <Calendar size={15} />
+          <span>Book In-Clinic Visit</span>
         </button>
       </div>
 
-      {/* ── 24/7 EMERGENCY BANNER ── */}
+      {/* ── 24/7 EMERGENCY ON-CALL BANNER ── */}
       <div 
+        className="apple-promo-card"
         style={{
-          padding: '20px 24px',
-          borderRadius: 'var(--radius-lg)',
-          background: 'linear-gradient(135deg, rgba(239,68,68,0.12) 0%, rgba(16,185,129,0.10) 100%)',
-          border: '1.5px solid rgba(239,68,68,0.3)',
-          display: 'flex',
+          background: 'var(--surface-solid)',
+          padding: '24px 30px',
           alignItems: 'center',
+          flexDirection: 'row',
           justifyContent: 'space-between',
           flexWrap: 'wrap',
-          gap: '16px'
+          gap: '16px',
+          textAlign: 'left'
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'rgba(239,68,68,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444' }}>
-            <Flame size={26} />
+          <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(239, 68, 68, 0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#EF4444' }}>
+            <Flame size={22} />
           </div>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <strong style={{ fontSize: '16px' }}>24/7 Emergency Clinical Triage</strong>
-              <span className="badge badge-green" style={{ fontSize: '10px' }}>Live On-Call</span>
+              <strong style={{ fontSize: '16px', fontWeight: 700 }}>24/7 Emergency Clinical Triage</strong>
+              <span className="badge badge-green" style={{ fontSize: '10.5px' }}>Live On-Call</span>
             </div>
-            <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Immediate video tele-health connection with verified on-duty emergency veterinarians.</p>
+            <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Immediate video tele-health connection with on-duty emergency veterinarians.</p>
           </div>
         </div>
         <button 
-          className="btn-primary" 
-          style={{ background: '#ef4444', boxShadow: '0 4px 14px rgba(239,68,68,0.35)' }}
+          className="apple-btn-blue" 
+          style={{ background: '#EF4444' }}
           onClick={() => openModal('booking', { doctor: 'Dr. Sarah Jenkins', mode: 'HD Tele-Consultation' })}
         >
-          <Video size={16} />
+          <Video size={15} />
           <span>Instant Video Triage</span>
         </button>
       </div>
@@ -93,20 +95,20 @@ export default function Specialists() {
       {/* ── SEARCH & FILTER CONTROLS ── */}
       <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
         <div style={{ flex: 1, minWidth: '260px', position: 'relative' }}>
-          <Search size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }} />
+          <Search size={16} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }} />
           <input 
             type="text" 
             className="input-clean" 
             placeholder="Search by clinician name, qualification, or clinic..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            style={{ paddingLeft: '42px' }}
+            style={{ paddingLeft: '38px' }}
           />
         </div>
 
         <select 
           className="input-clean" 
-          style={{ width: 'auto', fontWeight: 700 }}
+          style={{ width: 'auto', fontWeight: 600 }}
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
         >
@@ -133,27 +135,31 @@ export default function Specialists() {
       </div>
 
       {/* ── SPECIALISTS GRID ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '18px' }}>
         {filteredVets.map((v) => {
           const isFav = currentUser?.favoriteVetIds?.includes(v.id);
           const isVet = v.tag.toLowerCase().includes('vet');
 
           return (
-            <div key={v.id} className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '14px', position: 'relative' }}>
+            <div 
+              key={v.id} 
+              className="apple-promo-card" 
+              style={{ display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'stretch', textAlign: 'left', padding: '22px' }}
+            >
               {/* Card Header */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
                   <img 
                     src={v.photo || 'assets/images/Pet_1.jpg'} 
                     alt={v.name} 
-                    style={{ width: 56, height: 56, borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--primary)' }} 
+                    style={{ width: 54, height: 54, borderRadius: '50%', objectFit: 'cover', border: '1.5px solid var(--primary)' }} 
                   />
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <strong style={{ fontSize: '16.5px' }}>{v.name}</strong>
-                      {v.isVerified && <ShieldCheck size={16} color="#10b981" />}
+                      <strong style={{ fontSize: '17px', fontWeight: 700 }}>{v.name}</strong>
+                      {v.isVerified && <ShieldCheck size={16} color="#10B981" />}
                     </div>
-                    <span style={{ fontSize: '12px', color: 'var(--primary)', fontWeight: 700, display: 'block' }}>
+                    <span style={{ fontSize: '12px', color: 'var(--primary)', fontWeight: 600, display: 'block' }}>
                       {v.qualification}
                     </span>
                     <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>{v.clinic}</span>
@@ -162,70 +168,65 @@ export default function Specialists() {
 
                 <button 
                   className="icon-btn" 
-                  style={{ width: 34, height: 34, color: isFav ? '#ef4444' : 'var(--text-muted)' }}
+                  style={{ width: 32, height: 32, color: isFav ? '#EF4444' : 'var(--text-muted)' }}
                   onClick={() => toggleFavoriteVet(v.id)}
                   title="Save to Favorites"
                 >
-                  <Heart size={16} fill={isFav ? '#ef4444' : 'none'} />
+                  <Heart size={15} fill={isFav ? '#EF4444' : 'none'} />
                 </button>
               </div>
 
-              {/* Bio snippet */}
+              {/* Bio */}
               <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.45 }}>
                 {v.bio}
               </p>
 
-              {/* Badges & Meta */}
-              <div style={{ display: 'flex', gap: '12px', fontSize: '12.5px', flexWrap: 'wrap' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 800 }}>
-                  <Star size={15} color="#f59e0b" fill="#f59e0b" />
+              {/* Meta Stats */}
+              <div style={{ display: 'flex', gap: '12px', fontSize: '12px', flexWrap: 'wrap', background: 'var(--surface-alt)', padding: '10px 12px', borderRadius: 'var(--radius-sm)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 700 }}>
+                  <Star size={13} color="#F59E0B" fill="#F59E0B" />
                   <span>{v.rating}</span>
-                  <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>({v.reviewsCount})</span>
+                  <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>({v.reviews} reviews)</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-muted)' }}>
-                  <MapPin size={15} />
+                  <MapPin size={13} />
                   <span>{v.distance}</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-muted)' }}>
-                  <Clock size={15} />
-                  <span>{v.availability}</span>
+                  <Clock size={13} />
+                  <span>{v.experience} exp</span>
                 </div>
-              </div>
-
-              {/* Pricing Tag */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border)', paddingTop: '12px' }}>
-                <div>
-                  <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block' }}>Consultation Fee</span>
-                  <strong style={{ fontSize: '16px', color: 'var(--primary)' }}>{v.price}</strong>
-                </div>
-                <span className={`badge ${isVet ? 'badge-blue' : 'badge-purple'}`}>{v.tag}</span>
               </div>
 
               {/* Action Buttons */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px', marginTop: 'auto' }}>
+              <div style={{ display: 'flex', gap: '8px', marginTop: 'auto', paddingTop: '4px' }}>
                 <button 
-                  className="btn-primary" 
-                  style={{ fontSize: '12px', padding: '8px 4px' }}
-                  onClick={() => openModal('booking', { doctor: v.name, mode: 'In-Clinic Consultation' })}
+                  className="apple-btn-blue" 
+                  style={{ flex: 1.2, padding: '8px 12px', fontSize: '12.5px' }}
+                  onClick={() => openModal('booking', { doctor: v.name, clinic: v.clinic })}
                 >
                   <Calendar size={13} />
-                  <span>Book</span>
+                  <span>Book In-Clinic</span>
                 </button>
+
+                {isVet && (
+                  <button 
+                    className="btn-ghost" 
+                    style={{ flex: 1, padding: '8px 10px', fontSize: '12.5px' }}
+                    onClick={() => openModal('teleconsult', { doctor: v.name })}
+                  >
+                    <Video size={13} color="#3B82F6" />
+                    <span>Telehealth</span>
+                  </button>
+                )}
+
                 <button 
-                  className="btn-ghost" 
-                  style={{ fontSize: '12px', padding: '8px 4px' }}
-                  onClick={() => openModal('teleconsult', { doctor: v.name, petName: 'Max' })}
+                  className="icon-btn" 
+                  style={{ width: 34, height: 34 }}
+                  onClick={() => openModal('review', { doctor: v.name })}
+                  title="Write Review"
                 >
-                  <Video size={13} />
-                  <span>Video</span>
-                </button>
-                <button 
-                  className="btn-ghost" 
-                  style={{ fontSize: '12px', padding: '8px 4px' }}
-                  onClick={() => openModal('review', { targetId: v.id, targetName: v.name })}
-                >
-                  <MessageSquarePlus size={13} />
-                  <span>Review</span>
+                  <Star size={14} />
                 </button>
               </div>
             </div>

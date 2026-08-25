@@ -7,7 +7,8 @@ import {
   Beef, 
   Cookie, 
   Sparkles,
-  Heart
+  Heart,
+  ChevronRight
 } from 'lucide-react';
 
 const BREEDS_DATABASE = [
@@ -20,7 +21,7 @@ const BREEDS_DATABASE = [
     shedding: 80,
     trainability: 95,
     lifespan: '10 - 12 Yrs',
-    health: 'Prone to hip dysplasia, ear canal moisture, and seasonal allergic dermatitis.'
+    health: 'Prone to hip dysplasia, ear moisture, and seasonal allergies.'
   },
   {
     name: 'British Shorthair',
@@ -31,7 +32,7 @@ const BREEDS_DATABASE = [
     shedding: 50,
     trainability: 70,
     lifespan: '12 - 17 Yrs',
-    health: 'Prone to hypertrophic cardiomyopathy (HCM) and indoor weight gain.'
+    health: 'Prone to hypertrophic cardiomyopathy (HCM) and weight gain.'
   },
   {
     name: 'Poodle (Standard & Toy)',
@@ -42,7 +43,7 @@ const BREEDS_DATABASE = [
     shedding: 20,
     trainability: 98,
     lifespan: '12 - 15 Yrs',
-    health: 'Hypoallergenic coat. Regular ear cleaning and eye tear maintenance needed.'
+    health: 'Hypoallergenic coat. Regular ear cleaning and grooming needed.'
   },
   {
     name: 'French Bulldog',
@@ -58,45 +59,46 @@ const BREEDS_DATABASE = [
   {
     name: 'Persian Cat',
     species: 'cat',
-    image: 'https://images.unsplash.com/photo-1533738363-b7f9aef128ce?w=300&auto=format&fit=crop&q=80',
-    tags: ['cat', 'apartment', 'grooming'],
+    image: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=300&auto=format&fit=crop&q=80',
+    tags: ['cat', 'calm', 'indoor'],
     exercise: 30,
     shedding: 85,
     trainability: 60,
-    lifespan: '12 - 16 Yrs',
-    health: 'Daily facial grooming and tear duct cleansing required to prevent irritation.'
+    lifespan: '12 - 15 Yrs',
+    health: 'Requires daily coat brushing and ocular tear cleaning.'
   },
   {
     name: 'German Shepherd',
     species: 'dog',
-    image: 'https://images.unsplash.com/photo-1589941013453-ec89f33b5455?w=300&auto=format&fit=crop&q=80',
+    image: 'https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=300&auto=format&fit=crop&q=80',
     tags: ['dog', 'active', 'guard'],
     exercise: 95,
-    shedding: 90,
-    trainability: 98,
+    shedding: 85,
+    trainability: 99,
     lifespan: '9 - 13 Yrs',
-    health: 'High protein energy requirements. Benefits from joint glucosamine supplements.'
+    health: 'High stamina. Needs joint supplements and mental stimulation.'
   }
 ];
 
 export default function NutritionBreeds() {
   const { pets, showToast } = useApp();
 
-  const [selectedPet, setSelectedPet] = useState('pet-1');
-  const [weight, setWeight] = useState(28.4);
+  const [selectedPet, setSelectedPet] = useState(pets[0]?.id || 'custom');
+  const [weight, setWeight] = useState(pets[0]?.weight ? parseFloat(pets[0].weight) : 12.5);
   const [lifeStage, setLifeStage] = useState('adult');
   const [activity, setActivity] = useState('active');
 
   const [breedSearch, setBreedSearch] = useState('');
   const [breedFilter, setBreedFilter] = useState('all');
 
-  const handlePetChange = (val) => {
-    setSelectedPet(val);
-    if (val === 'pet-1') setWeight(28.4);
-    else if (val === 'pet-2') setWeight(4.2);
+  const handlePetChange = (petId) => {
+    setSelectedPet(petId);
+    if (petId === 'custom') return;
+    const p = pets.find(x => x.id === petId);
+    if (p && p.weight) setWeight(parseFloat(p.weight) || 10);
   };
 
-  // Scientific Calorie Calculations
+  // Scientific RER & MER Formula (Resting / Maintenance Energy Requirement)
   const rer = 70 * Math.pow(Math.max(weight, 0.5), 0.75);
 
   let factor = 1.6;
@@ -122,12 +124,13 @@ export default function NutritionBreeds() {
   });
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
       {/* ── NUTRITION CALCULATOR ── */}
-      <div className="glass-card">
-        <div style={{ marginBottom: '20px' }}>
-          <h2 style={{ fontSize: '24px', fontWeight: 900, letterSpacing: '-0.5px' }}>Pet Nutrition &amp; Daily Food Calculator</h2>
-          <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Scientifically balanced daily caloric intake (RER/MER) and precise portion calculator based on breed, weight &amp; activity.</p>
+      <div className="apple-promo-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '32px' }}>
+        <div style={{ marginBottom: '24px' }}>
+          <span className="apple-card-eyebrow" style={{ color: '#EC4899' }}>Precision Diet</span>
+          <h1 style={{ fontSize: '28px', fontWeight: 700, letterSpacing: '-0.03em' }}>Daily Calorie &amp; Portion Calculator</h1>
+          <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Scientifically balanced daily caloric intake (RER/MER) based on breed, weight, and activity level.</p>
         </div>
 
         <div className="nutrition-calc-grid">
@@ -179,22 +182,29 @@ export default function NutritionBreeds() {
             </div>
 
             <button 
-              className="btn-primary" 
-              style={{ marginTop: '6px' }}
+              className="apple-btn-blue" 
+              style={{ marginTop: '8px', padding: '12px' }}
               onClick={() => showToast('🥣 Portion recommendations refreshed!', 'success')}
             >
-              <Utensils size={16} />
+              <Utensils size={15} />
               <span>Calculate Daily Portions</span>
             </button>
           </div>
 
           {/* Results Card */}
-          <div className="nutrition-result-card">
+          <div 
+            style={{
+              background: 'var(--surface-alt)',
+              border: '1px solid var(--border)',
+              borderRadius: 'var(--radius-lg)',
+              padding: '24px'
+            }}
+          >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <span style={{ fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--primary-dark)' }}>
+              <span style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-muted)' }}>
                 Target Daily Energy
               </span>
-              <span className="badge badge-green" style={{ fontSize: '15px', fontWeight: 900, padding: '6px 14px' }}>
+              <span className="badge badge-green" style={{ fontSize: '15px', fontWeight: 800, padding: '6px 14px' }}>
                 {mer.toLocaleString()} kcal/day
               </span>
             </div>
@@ -202,30 +212,30 @@ export default function NutritionBreeds() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13.5px' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Beef size={16} color="#10b981" /> Dry Kibble Portion:
+                  <Beef size={16} color="#10B981" /> Dry Kibble Portion:
                 </span>
-                <strong>{dryGrams} g / {cups} cups</strong>
+                <strong style={{ color: 'var(--text-main)' }}>{dryGrams} g / {cups} cups</strong>
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13.5px' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Utensils size={16} color="#f59e0b" /> Wet Food / Topper:
+                  <Utensils size={16} color="#F59E0B" /> Wet Food / Topper:
                 </span>
-                <strong>{wetGrams} g / day</strong>
+                <strong style={{ color: 'var(--text-main)' }}>{wetGrams} g / day</strong>
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13.5px' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Cookie size={16} color="#ec4899" /> Treat Allowance (Max 10%):
+                  <Cookie size={16} color="#EC4899" /> Treat Allowance (Max 10%):
                 </span>
-                <strong>{treatKcal} kcal max</strong>
+                <strong style={{ color: 'var(--text-main)' }}>{treatKcal} kcal max</strong>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13.5px', borderTop: '1px solid var(--border)', paddingTop: '10px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13.5px', borderTop: '1px solid var(--border)', paddingTop: '12px' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Droplet size={16} color="#0284c7" /> Daily Hydration Target:
+                  <Droplet size={16} color="#0071E3" /> Daily Hydration Target:
                 </span>
-                <strong style={{ color: '#0284c7' }}>{waterMl.toLocaleString()} ml / day</strong>
+                <strong style={{ color: '#0071E3' }}>{waterMl.toLocaleString()} ml / day</strong>
               </div>
             </div>
           </div>
@@ -233,21 +243,21 @@ export default function NutritionBreeds() {
       </div>
 
       {/* ── BREED TRAIT EXPLORER ── */}
-      <div className="glass-card">
+      <div className="apple-promo-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '32px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '16px' }}>
           <div>
-            <h3 style={{ fontSize: '20px', fontWeight: 900, letterSpacing: '-0.4px' }}>Interactive Breed Trait &amp; Care Finder</h3>
+            <h3 style={{ fontSize: '20px', fontWeight: 700, letterSpacing: '-0.02em' }}>Breed Trait &amp; Care Explorer</h3>
             <p style={{ fontSize: '13.5px', color: 'var(--text-muted)' }}>Discover energy levels, shedding, trainability, and clinical health tendencies.</p>
           </div>
           <div style={{ position: 'relative', minWidth: '240px' }}>
-            <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }} />
+            <Search size={15} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }} />
             <input 
               type="text" 
               className="input-clean" 
-              placeholder="Search breed (e.g. Retriever, Poodle)..." 
+              placeholder="Search breed (e.g. Retriever)..." 
               value={breedSearch}
               onChange={(e) => setBreedSearch(e.target.value)}
-              style={{ paddingLeft: '38px' }}
+              style={{ paddingLeft: '34px' }}
             />
           </div>
         </div>
@@ -262,25 +272,25 @@ export default function NutritionBreeds() {
 
         <div className="breed-card-grid">
           {filteredBreeds.map(b => (
-            <div key={b.name} className="breed-explore-card">
+            <div key={b.name} className="breed-explore-card" style={{ borderRadius: 'var(--radius-md)' }}>
               <img src={b.image} alt={b.name} style={{ width: '100%', height: 140, objectFit: 'cover', borderRadius: 'var(--radius-sm)' }} />
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <h4 style={{ fontSize: '16px', fontWeight: 800 }}>{b.name}</h4>
-                  <span className="badge badge-blue" style={{ fontSize: '10.5px' }}>{b.lifespan}</span>
+                  <h4 style={{ fontSize: '16px', fontWeight: 700 }}>{b.name}</h4>
+                  <span className="badge badge-blue">{b.lifespan}</span>
                 </div>
                 <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>{b.health}</p>
               </div>
 
               <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)' }}>
                   <span>Exercise Needs</span><span>{b.exercise}%</span>
                 </div>
                 <div className="trait-meter-bar"><div className="trait-meter-fill" style={{ width: `${b.exercise}%` }} /></div>
               </div>
 
               <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)' }}>
                   <span>Trainability</span><span>{b.trainability}%</span>
                 </div>
                 <div className="trait-meter-bar"><div className="trait-meter-fill" style={{ width: `${b.trainability}%` }} /></div>

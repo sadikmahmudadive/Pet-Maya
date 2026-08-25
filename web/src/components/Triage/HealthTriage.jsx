@@ -7,7 +7,8 @@ import {
   CheckCircle2, 
   Calendar,
   Layers,
-  HeartPulse
+  HeartPulse,
+  ChevronRight
 } from 'lucide-react';
 
 const SAMPLE_CASES = {
@@ -61,42 +62,49 @@ export default function HealthTriage() {
   const [scanResult, setScanResult] = useState(null);
   const [activeBBox, setActiveBBox] = useState(null);
 
-  const toggleSymptom = (s) => {
+  const toggleSymptom = (id) => {
     setSelectedSymptoms(prev => 
-      prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s]
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
     );
   };
 
   const handleFileUpload = (e) => {
-    const file = e.target.files?.[0];
+    const file = e.target.files[0];
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (evt) => {
-      setUploadedImage(evt.target.result);
-      runScanProcess(SAMPLE_CASES.dermatitis, evt.target.result);
+    reader.onload = (event) => {
+      setUploadedImage(event.target.result);
+      setScanResult(null);
+      runScanProcess(null, event.target.result);
     };
     reader.readAsDataURL(file);
   };
 
-  const loadSample = (caseKey) => {
-    const sample = SAMPLE_CASES[caseKey];
+  const loadSample = (key) => {
+    const sample = SAMPLE_CASES[key];
     setUploadedImage(sample.image);
     setActiveBBox(sample.bbox);
+    setScanResult(null);
     runScanProcess(sample, sample.image);
   };
 
   const runScanProcess = (samplePayload, imageSrc) => {
-    setIsScanning(true);
-    setScanResult(null);
-    setScanProgress(0);
+    if (!imageSrc && !uploadedImage) {
+      showToast('⚠️ Please upload or select a symptom photo first.', 'error');
+      return;
+    }
 
-    let p = 0;
+    setIsScanning(true);
+    setScanProgress(10);
+    setStatusMsg('Preprocessing convolutional neural feature layers…');
+
+    let p = 10;
     const timer = setInterval(() => {
       p += 15;
-      setScanProgress(Math.min(p, 100));
+      setScanProgress(p);
 
-      if (p === 30) setStatusMsg('Preprocessing convolutional neural feature layers…');
+      if (p === 30) setStatusMsg('Scanning epithelial margins & lesion contours…');
       if (p === 60) setStatusMsg('Comparing lesion morphology against 50,000+ veterinary clinical cases…');
       if (p === 90) setStatusMsg('Synthesizing differential diagnosis and triage urgency…');
 
@@ -112,13 +120,14 @@ export default function HealthTriage() {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      <div className="glass-card">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+      <div className="apple-promo-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '32px' }}>
         {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '24px' }}>
           <div>
-            <h2 style={{ fontSize: '24px', fontWeight: 900, letterSpacing: '-0.5px' }}>Clinical Vision Diagnostic &amp; Health Triage</h2>
-            <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Upload a symptom photo or select clinical markers for instantaneous veterinary triage guidance.</p>
+            <span className="apple-card-eyebrow" style={{ color: '#3B82F6' }}>Neural Diagnostics</span>
+            <h1 style={{ fontSize: '28px', fontWeight: 700, letterSpacing: '-0.03em' }}>AI Health Vision &amp; Clinical Triage</h1>
+            <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Upload symptom photos for instantaneous diagnostic triage and specialist guidance.</p>
           </div>
           <span className="badge badge-green" style={{ fontSize: '12px', padding: '6px 14px' }}>
             <Sparkles size={14} /> AI Model: Clinical V3.4
@@ -128,8 +137,8 @@ export default function HealthTriage() {
         {/* ── PHOTO DROPZONE ── */}
         <label className="vision-dropzone" style={{ display: 'block' }}>
           <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFileUpload} />
-          <UploadCloud size={44} color="#10b981" style={{ margin: '0 auto 10px' }} />
-          <strong style={{ fontSize: '16px', display: 'block', marginBottom: '4px' }}>
+          <UploadCloud size={40} color="#10B981" style={{ margin: '0 auto 8px' }} />
+          <strong style={{ fontSize: '16px', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
             Drag &amp; Drop or Click to Upload Symptom Photo
           </strong>
           <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
@@ -139,7 +148,7 @@ export default function HealthTriage() {
 
         {/* ── SAMPLE PRESETS ── */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '16px', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '12.5px', fontWeight: 800, color: 'var(--text-muted)' }}>Try Clinical Presets:</span>
+          <span style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--text-muted)' }}>Try Clinical Presets:</span>
           <button className="chip-pill" onClick={() => loadSample('dermatitis')}>🐕 Canine Dermatitis</button>
           <button className="chip-pill" onClick={() => loadSample('conjunctivitis')}>🐱 Feline Eye Infection</button>
           <button className="chip-pill" onClick={() => loadSample('otitis')}>👂 Ear Canal Mites</button>
@@ -148,7 +157,7 @@ export default function HealthTriage() {
 
         {/* ── LASER SCAN PREVIEW ── */}
         {uploadedImage && (
-          <div className="vision-preview-box">
+          <div className="vision-preview-box" style={{ borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
             <img src={uploadedImage} alt="Symptom Preview" style={{ width: '100%', height: 260, objectFit: 'cover', display: 'block' }} />
             {isScanning && <div className="vision-laser-line" />}
             {activeBBox && !isScanning && (
@@ -183,13 +192,13 @@ export default function HealthTriage() {
           <span className="label-mini" style={{ marginTop: '14px' }}>Step 2 — Observed Clinical Symptoms</span>
           <div className="chip-row">
             {[
-              { id: 'skin', label: '🔴 Skin Redness / Itch' },
+              { id: 'skin', label: '🔴 Skin Redness / Hotspot' },
               { id: 'eye', label: '👁️ Cloudy Eye / Discharge' },
               { id: 'ear', label: '👂 Ear Scratching' },
               { id: 'lethargy', label: '💤 Lethargy / Fatigue' },
               { id: 'limping', label: '🐾 Limping / Stiffness' },
               { id: 'cough', label: '🫁 Coughing / Wheezing' },
-              { id: 'vomiting', label: '🤢 Vomiting / Refusal to Eat' }
+              { id: 'vomiting', label: '🤢 Vomiting / Loss of Appetite' }
             ].map(sym => (
               <button 
                 key={sym.id}
@@ -202,24 +211,24 @@ export default function HealthTriage() {
           </div>
 
           <button 
-            className="btn-primary" 
-            style={{ marginTop: '12px', padding: '12px 28px', fontSize: '15px' }}
+            className="apple-btn-blue" 
+            style={{ marginTop: '14px', padding: '12px 28px', fontSize: '15px' }}
             onClick={() => runScanProcess(SAMPLE_CASES.dermatitis, uploadedImage)}
             disabled={isScanning}
           >
-            <HeartPulse size={18} />
-            <span>{isScanning ? 'Running Neural Diagnostic…' : 'Run AI Clinical Diagnostic Scan'}</span>
+            <HeartPulse size={17} />
+            <span>{isScanning ? 'Analyzing Morphology…' : 'Run AI Diagnostic Scan'}</span>
           </button>
         </div>
 
         {/* ── SCAN PROGRESS BAR ── */}
         {isScanning && (
           <div style={{ marginTop: '22px', background: 'var(--surface-alt)', padding: '18px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 700, marginBottom: '8px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 600, marginBottom: '8px' }}>
               <span>{statusMsg}</span>
               <span>{scanProgress}%</span>
             </div>
-            <div style={{ height: '6px', background: 'var(--border)', borderRadius: '3px', overflow: 'hidden' }}>
+            <div style={{ height: '5px', background: 'var(--border)', borderRadius: '3px', overflow: 'hidden' }}>
               <div style={{ height: '100%', width: `${scanProgress}%`, background: 'linear-gradient(90deg, var(--primary), #3B82F6)', transition: 'width 0.2s' }} />
             </div>
           </div>
@@ -230,28 +239,28 @@ export default function HealthTriage() {
           <div 
             style={{
               marginTop: '24px',
-              padding: '26px',
+              padding: '24px',
               borderRadius: 'var(--radius-lg)',
-              border: '1.5px solid var(--primary)',
+              border: '1px solid var(--primary)',
               background: 'var(--primary-tint)'
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '12px' }}>
-              <span className="badge badge-yellow" style={{ fontSize: '12px', padding: '6px 14px' }}>
+              <span className="badge badge-yellow" style={{ fontSize: '12px', padding: '5px 12px' }}>
                 {scanResult.severity}
               </span>
-              <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-muted)' }}>
+              <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)' }}>
                 Confidence: {scanResult.confidence}
               </span>
             </div>
 
-            <h3 style={{ fontSize: '22px', fontWeight: 900, letterSpacing: '-0.4px', marginBottom: '16px' }}>
+            <h3 style={{ fontSize: '20px', fontWeight: 700, letterSpacing: '-0.02em', marginBottom: '16px' }}>
               {scanResult.title}
             </h3>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', marginBottom: '20px' }}>
-              <div style={{ background: 'var(--surface)', padding: '18px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
-                <strong style={{ fontSize: '12px', color: 'var(--primary)', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              <div style={{ background: 'var(--surface-solid)', padding: '18px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
+                <strong style={{ fontSize: '12px', color: 'var(--primary)', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                   🛡️ Immediate First Aid Protocol
                 </strong>
                 <p style={{ fontSize: '13.5px', color: 'var(--text-main)', lineHeight: 1.5 }}>
@@ -259,8 +268,8 @@ export default function HealthTriage() {
                 </p>
               </div>
 
-              <div style={{ background: 'var(--surface)', padding: '18px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
-                <strong style={{ fontSize: '12px', color: 'var(--primary)', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              <div style={{ background: 'var(--surface-solid)', padding: '18px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
+                <strong style={{ fontSize: '12px', color: 'var(--primary)', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                   🩺 Recommended Clinical Step
                 </strong>
                 <p style={{ fontSize: '13.5px', color: 'var(--text-main)', lineHeight: 1.5 }}>
@@ -270,11 +279,11 @@ export default function HealthTriage() {
             </div>
 
             <button 
-              className="btn-primary" 
+              className="apple-btn-blue" 
               onClick={() => openModal('booking', { doctor: 'Dr. Aris Thorne', mode: 'In-Clinic Consultation' })}
             >
-              <Calendar size={16} />
-              <span>Book Recommended Specialist Consultation</span>
+              <Calendar size={15} />
+              <span>Book Recommended Specialist</span>
             </button>
           </div>
         )}

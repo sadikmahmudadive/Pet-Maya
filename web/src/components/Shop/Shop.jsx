@@ -7,7 +7,8 @@ import {
   ShoppingCart, 
   Truck, 
   Plus,
-  PackageCheck
+  PackageCheck,
+  ChevronRight
 } from 'lucide-react';
 
 export default function Shop() {
@@ -24,24 +25,25 @@ export default function Shop() {
   });
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
       {/* ── HEADER & SEARCH ── */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
         <div>
-          <h2 style={{ fontSize: '24px', fontWeight: 900, letterSpacing: '-0.5px' }}>Pet Maya Store &amp; Pharmacy</h2>
-          <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Veterinary-grade diets, genuine prescription medications, smart GPS collars &amp; supplies.</p>
+          <span className="apple-card-eyebrow" style={{ color: '#6366F1' }}>Apple &amp; Pet Store</span>
+          <h1 style={{ fontSize: '28px', fontWeight: 700, letterSpacing: '-0.03em' }}>Pharmacy &amp; Supplies</h1>
+          <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Veterinary-grade diets, genuine prescription medications, smart GPS collars &amp; toys.</p>
         </div>
 
         <div style={{ display: 'flex', gap: '10px' }}>
           {orders.length > 0 && (
             <button className="btn-ghost" onClick={() => openModal('orderTracker', orders[0])}>
-              <PackageCheck size={16} />
+              <PackageCheck size={15} />
               <span>Track Orders ({orders.length})</span>
             </button>
           )}
-          <button className="btn-primary" onClick={() => openModal('cart')}>
-            <ShoppingCart size={16} />
-            <span>Open Cart</span>
+          <button className="apple-btn-blue" onClick={() => openModal('cart')}>
+            <ShoppingCart size={15} />
+            <span>View Bag</span>
           </button>
         </div>
       </div>
@@ -49,61 +51,78 @@ export default function Shop() {
       {/* ── SEARCH & CATEGORIES ── */}
       <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
         <div style={{ flex: 1, minWidth: '260px', position: 'relative' }}>
-          <Search size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }} />
+          <Search size={16} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }} />
           <input 
             type="text" 
             className="input-clean" 
-            placeholder="Search food, Simparica, smart GPS collars, beds..." 
+            placeholder="Search food, Simparica, smart GPS collars..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            style={{ paddingLeft: '42px' }}
+            style={{ paddingLeft: '38px' }}
           />
         </div>
+
+        <select 
+          className="input-clean" 
+          style={{ width: 'auto', fontWeight: 600 }}
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+        >
+          <option value="all">All Categories</option>
+          <option value="nutrition">Diets &amp; Nutrition</option>
+          <option value="pharmacy">Pharmacy &amp; Rx</option>
+          <option value="tech">Smart Collars &amp; Tech</option>
+          <option value="comfort">Beds &amp; Accessories</option>
+        </select>
       </div>
 
-      <div className="chip-row">
-        <button className={`chip-pill ${selectedCategory === 'all' ? 'active' : ''}`} onClick={() => setSelectedCategory('all')}>All Items</button>
-        <button className={`chip-pill ${selectedCategory === 'food' ? 'active' : ''}`} onClick={() => setSelectedCategory('food')}>🥩 Food &amp; Diets</button>
-        <button className={`chip-pill ${selectedCategory === 'pharma' ? 'active' : ''}`} onClick={() => setSelectedCategory('pharma')}>💊 Pharmacy &amp; Rx</button>
-        <button className={`chip-pill ${selectedCategory === 'tech' ? 'active' : ''}`} onClick={() => setSelectedCategory('tech')}>🛰️ GPS &amp; Tech</button>
-        <button className={`chip-pill ${selectedCategory === 'supplies' ? 'active' : ''}`} onClick={() => setSelectedCategory('supplies')}>🛏️ Beds &amp; Supplies</button>
-      </div>
-
-      {/* ── PRODUCT GRID ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
-        {filteredProducts.map(product => (
-          <div key={product.id} className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <img 
-              src={product.image} 
-              alt={product.name} 
-              style={{ width: '100%', height: 180, objectFit: 'cover', borderRadius: 'var(--radius-sm)' }} 
-            />
-
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                <span className="badge badge-green">{product.category}</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', fontWeight: 800 }}>
-                  <Star size={14} color="#f59e0b" fill="#f59e0b" />
-                  <span>{product.rating}</span>
-                  <span style={{ color: 'var(--text-muted)' }}>({product.ratingCount})</span>
-                </div>
-              </div>
-
-              <h4 style={{ fontSize: '16px', fontWeight: 800, marginTop: '6px' }}>{product.name}</h4>
-              <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', marginTop: '4px', lineHeight: 1.4 }}>
-                {product.description}
-              </p>
+      {/* ── PRODUCT GRID (APPLE STORE STYLE) ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '20px' }}>
+        {filteredProducts.map((p) => (
+          <div 
+            key={p.id} 
+            className="apple-promo-card" 
+            style={{ display: 'flex', flexDirection: 'column', padding: '22px', textAlign: 'left', alignItems: 'stretch' }}
+          >
+            <div style={{ position: 'relative', borderRadius: 'var(--radius-md)', overflow: 'hidden', marginBottom: '14px', background: '#FFFFFF' }}>
+              <img 
+                src={p.image} 
+                alt={p.name} 
+                style={{ width: '100%', height: 180, objectFit: 'contain', padding: '12px', transition: 'transform 0.3s ease' }} 
+              />
+              {p.isRx && (
+                <span className="badge badge-red" style={{ position: 'absolute', top: 10, left: 10 }}>
+                  Rx Prescription
+                </span>
+              )}
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', borderTop: '1px solid var(--border)', paddingTop: '12px' }}>
+            <span style={{ fontSize: '11.5px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 600 }}>
+              {p.category}
+            </span>
+
+            <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '4px 0 6px', lineHeight: 1.3 }}>
+              {p.name}
+            </h3>
+
+            <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', lineHeight: 1.45, marginBottom: '12px' }}>
+              {p.description}
+            </p>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '10px', borderTop: '1px solid var(--border)' }}>
               <div>
-                <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block' }}>Price</span>
-                <strong style={{ fontSize: '18px', color: 'var(--primary)' }}>${product.price.toFixed(2)}</strong>
+                <strong style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-main)' }}>
+                  ${p.price.toFixed(2)}
+                </strong>
               </div>
 
-              <button className="btn-primary" onClick={() => addToCart(product, 1)}>
-                <Plus size={16} />
-                <span>Add to Cart</span>
+              <button 
+                className="apple-btn-blue" 
+                style={{ padding: '7px 16px', fontSize: '12.5px' }}
+                onClick={() => addToCart(p)}
+              >
+                <Plus size={14} />
+                <span>Add to Bag</span>
               </button>
             </div>
           </div>

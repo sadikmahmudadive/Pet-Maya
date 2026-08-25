@@ -9,7 +9,8 @@ import {
   ShieldCheck, 
   FileText, 
   Plus,
-  ArrowRightLeft
+  ArrowRightLeft,
+  ChevronRight
 } from 'lucide-react';
 
 export default function Profile() {
@@ -35,19 +36,17 @@ export default function Profile() {
   if (!currentUser) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '28px', maxWidth: '640px', margin: '40px auto', width: '100%' }}>
-        <div className="glass-card" style={{ textAlign: 'center', padding: '40px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
-          <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--primary-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)' }}>
-            <User size={32} />
+        <div className="apple-promo-card" style={{ padding: '44px 30px', textAlign: 'center' }}>
+          <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--primary-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)', margin: '0 auto 16px' }}>
+            <User size={30} />
           </div>
-          <div>
-            <h2 style={{ fontSize: '24px', fontWeight: 900 }}>You are currently signed out</h2>
-            <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginTop: '4px' }}>
-              Sign in to manage your pets, view medical passport history, earn rewards, and access clinical consultations.
-            </p>
-          </div>
+          <h2 style={{ fontSize: '24px', fontWeight: 700, letterSpacing: '-0.02em', marginBottom: '8px' }}>You are currently signed out</h2>
+          <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '24px', maxWidth: '440px', margin: '0 auto 24px' }}>
+            Sign in to manage your pets, view medical records, earn rewards, and access clinical consultations.
+          </p>
 
-          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center', marginTop: '10px' }}>
-            <button className="btn-primary" onClick={() => openModal('auth')}>
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
+            <button className="apple-btn-blue" onClick={() => openModal('auth')}>
               <span>Sign In / Create Account</span>
             </button>
             <button className="btn-ghost" onClick={() => { loginAsGuest('Pet Owner'); showToast('Entered Guest Demo Mode', 'info'); }}>
@@ -62,17 +61,17 @@ export default function Profile() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px', maxWidth: '840px', margin: '0 auto', width: '100%' }}>
       {/* ── USER PROFILE CARD ── */}
-      <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div className="apple-promo-card" style={{ display: 'flex', flexDirection: 'column', gap: '20px', alignItems: 'stretch', textAlign: 'left', padding: '32px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
             <img 
               src={currentUser?.photoUrl || 'assets/images/tail_wagging_logo.png'} 
               alt={currentUser?.name} 
-              style={{ width: 72, height: 72, borderRadius: '50%', objectFit: 'cover', border: '3px solid var(--primary)' }} 
+              style={{ width: 68, height: 68, borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--primary)' }} 
             />
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <h2 style={{ fontSize: '22px', fontWeight: 900 }}>{currentUser?.name || 'Pet Parent'}</h2>
+                <h2 style={{ fontSize: '22px', fontWeight: 700, letterSpacing: '-0.02em' }}>{currentUser?.name || 'Pet Parent'}</h2>
                 <span className="badge badge-green">{currentUser?.role || 'Pet Owner'}</span>
               </div>
               <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{currentUser?.email}</span>
@@ -80,7 +79,7 @@ export default function Profile() {
           </div>
 
           <button className="btn-ghost" style={{ color: 'var(--danger)' }} onClick={handleSignOut}>
-            <LogOut size={16} />
+            <LogOut size={15} />
             <span>Sign Out</span>
           </button>
         </div>
@@ -88,10 +87,10 @@ export default function Profile() {
         {/* ── REFERRAL & REWARDS BANNER ── */}
         <div 
           style={{
-            background: 'var(--primary-tint)',
-            border: '1.5px solid var(--primary)',
+            background: 'var(--surface-alt)',
+            border: '1px solid var(--border)',
             borderRadius: 'var(--radius-md)',
-            padding: '18px 22px',
+            padding: '20px 24px',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
@@ -100,9 +99,9 @@ export default function Profile() {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <Award size={32} color="#f59e0b" />
+            <Award size={30} color="#F59E0B" />
             <div>
-              <strong style={{ fontSize: '16px', display: 'block' }}>
+              <strong style={{ fontSize: '16px', fontWeight: 700, display: 'block' }}>
                 {currentUser?.points || 0} Reward Points Available
               </strong>
               <span style={{ fontSize: '12.5px', color: 'var(--text-muted)' }}>
@@ -111,13 +110,13 @@ export default function Profile() {
             </div>
           </div>
 
-          <button className="btn-primary" onClick={copyReferral}>
-            <Copy size={15} />
+          <button className="apple-btn-blue" onClick={copyReferral}>
+            <Copy size={14} />
             <span>Code: {currentUser?.referralCode || 'PM89AC12'}</span>
           </button>
         </div>
 
-        {/* ── ROLE SWITCHER (FOR DEMO & MULTI-PORTAL TESTING) ── */}
+        {/* ── ROLE SWITCHER (FOR DEMO & TESTING) ── */}
         <div>
           <span className="label-mini">Switch Portal Role (Instant Testing)</span>
           <div className="chip-row">
@@ -127,7 +126,7 @@ export default function Profile() {
                 className={`chip-pill ${currentUser?.role === r ? 'active' : ''}`}
                 onClick={() => handleRoleChange(r)}
               >
-                <ArrowRightLeft size={13} style={{ display: 'inline', marginRight: 4 }} />
+                <ArrowRightLeft size={12} style={{ display: 'inline', marginRight: 4 }} />
                 {r}
               </button>
             ))}
@@ -136,14 +135,14 @@ export default function Profile() {
       </div>
 
       {/* ── DIGITAL PATIENT RECORDS (EHR) ── */}
-      <div className="glass-card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '10px' }}>
+      <div className="apple-promo-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '32px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
           <div>
-            <h3 style={{ fontSize: '19px', fontWeight: 800 }}>Digital Medical Records &amp; Clinical EHR</h3>
+            <h3 style={{ fontSize: '19px', fontWeight: 700, letterSpacing: '-0.02em' }}>Digital Medical Records &amp; Clinical EHR</h3>
             <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Verified veterinary diagnoses, prescription dosages, and follow-up boosters.</p>
           </div>
-          <button className="btn-primary" onClick={() => openModal('addRecord')}>
-            <Plus size={16} />
+          <button className="apple-btn-blue" onClick={() => openModal('addRecord')}>
+            <Plus size={15} />
             <span>Add Clinical Record</span>
           </button>
         </div>
@@ -151,7 +150,7 @@ export default function Profile() {
         {medicalRecords.length === 0 ? (
           <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '30px' }}>No medical records recorded yet.</p>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {medicalRecords.map(rec => (
               <div 
                 key={rec.id} 
@@ -159,7 +158,7 @@ export default function Profile() {
                   background: 'var(--surface-alt)',
                   border: '1px solid var(--border)',
                   borderRadius: 'var(--radius-md)',
-                  padding: '18px',
+                  padding: '18px 20px',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '10px'
@@ -167,8 +166,8 @@ export default function Profile() {
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <FileText size={18} color="#10b981" />
-                    <strong style={{ fontSize: '15.5px' }}>{rec.petName}</strong>
+                    <FileText size={17} color="#10B981" />
+                    <strong style={{ fontSize: '15.5px', fontWeight: 600 }}>{rec.petName}</strong>
                     <span className="badge badge-blue">{rec.serviceType}</span>
                   </div>
                   <span style={{ fontSize: '12.5px', color: 'var(--text-muted)' }}>{rec.date}</span>
@@ -176,17 +175,17 @@ export default function Profile() {
 
                 <div style={{ fontSize: '13.5px' }}>
                   <span style={{ color: 'var(--text-muted)' }}>Diagnosis: </span>
-                  <strong>{rec.diagnosis}</strong>
+                  <strong style={{ color: 'var(--text-main)' }}>{rec.diagnosis}</strong>
                 </div>
 
-                <div style={{ fontSize: '13px', background: 'var(--surface)', padding: '10px 14px', borderRadius: 'var(--radius-xs)', border: '1px solid var(--border)' }}>
-                  <span style={{ color: 'var(--primary)', fontWeight: 800, display: 'block', marginBottom: '2px' }}>Rx Prescription:</span>
+                <div style={{ fontSize: '13px', background: 'var(--surface-solid)', padding: '10px 14px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
+                  <span style={{ color: 'var(--primary)', fontWeight: 700, display: 'block', marginBottom: '2px' }}>Rx Prescription:</span>
                   <span>{rec.prescription}</span>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                  <span>Weight: <strong>{rec.weight}</strong></span>
-                  <span>Treatment Fee: <strong>${rec.cost}</strong></span>
+                  <span>Weight: <strong style={{ color: 'var(--text-main)' }}>{rec.weight}</strong></span>
+                  <span>Treatment Fee: <strong style={{ color: 'var(--text-main)' }}>${rec.cost}</strong></span>
                   <span>Next Booster: <strong style={{ color: 'var(--primary)' }}>{rec.nextBooster}</strong></span>
                 </div>
               </div>

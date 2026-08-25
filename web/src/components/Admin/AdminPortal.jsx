@@ -8,7 +8,8 @@ import {
   XCircle, 
   DollarSign, 
   Users, 
-  Radio 
+  Radio,
+  ChevronRight
 } from 'lucide-react';
 
 export default function AdminPortal() {
@@ -44,131 +45,116 @@ export default function AdminPortal() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
       {/* ── HEADER ── */}
       <div 
-        className="glass-card" 
+        className="apple-promo-card" 
         style={{
-          background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
-          color: '#fff',
-          padding: '24px 28px'
+          background: 'var(--surface-solid)',
+          padding: '28px 32px',
+          alignItems: 'flex-start',
+          textAlign: 'left'
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-          <ShieldCheck size={28} color="#10b981" />
-          <h2 style={{ fontSize: '24px', fontWeight: 900 }}>Super Admin Governance Console</h2>
-        </div>
-        <p style={{ fontSize: '14px', opacity: 0.85 }}>
-          Manage certified veterinary licenses, update consultation prices, and broadcast community alerts.
+        <span className="apple-card-eyebrow" style={{ color: '#EF4444' }}>Governance</span>
+        <h1 style={{ fontSize: '28px', fontWeight: 700, letterSpacing: '-0.03em', marginTop: '2px' }}>Super Admin Console</h1>
+        <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginTop: '4px' }}>
+          Manage certified veterinary licenses, update consultation prices, and broadcast community alerts across all devices.
         </p>
       </div>
 
-      {/* ── BROADCAST MESSENGER ── */}
-      <div className="glass-card">
-        <h3 style={{ fontSize: '18px', fontWeight: 800, marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Radio size={18} color="#ef4444" />
-          <span>Platform Broadcast &amp; Push Notification Messenger</span>
+      {/* ── BROADCAST PUSH MESSENGER ── */}
+      <div className="apple-promo-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '28px' }}>
+        <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Radio size={18} color="var(--primary)" />
+          <span>System Broadcast Push Messenger</span>
         </h3>
 
-        <form onSubmit={handleBroadcast} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '14px' }}>
-            <div>
-              <label className="label-mini">Broadcast Title</label>
-              <input 
-                type="text" 
-                className="input-clean" 
-                placeholder="e.g. Free Rabies Vaccination Camp Tomorrow" 
-                value={broadcastTitle}
-                onChange={(e) => setBroadcastTitle(e.target.value)}
-              />
-            </div>
-
-            <div>
-              <label className="label-mini">Target Audience</label>
-              <select 
-                className="input-clean" 
-                value={broadcastTarget}
-                onChange={(e) => setBroadcastTarget(e.target.value)}
-              >
-                <option value="all">Broadcast to All Users</option>
-                <option value="owners">Pet Owners Only</option>
-                <option value="vets">Verified Doctors &amp; Spas</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label className="label-mini">Notification Message</label>
-            <textarea 
+        <form onSubmit={handleBroadcast} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '12px' }}>
+            <input 
+              type="text" 
               className="input-clean" 
-              rows={2} 
-              placeholder="Write the platform-wide announcement..." 
-              value={broadcastMsg}
-              onChange={(e) => setBroadcastMsg(e.target.value)}
+              placeholder="Notification Title (e.g. Weather Alert, Vaccination Drive)..."
+              value={broadcastTitle}
+              onChange={(e) => setBroadcastTitle(e.target.value)}
             />
+            <select 
+              className="input-clean" 
+              style={{ width: 'auto', fontWeight: 600 }}
+              value={broadcastTarget}
+              onChange={(e) => setBroadcastTarget(e.target.value)}
+            >
+              <option value="all">Broadcast to All Users</option>
+              <option value="owners">Pet Owners Only</option>
+              <option value="vets">Clinicians Only</option>
+            </select>
           </div>
 
-          <button 
-            type="submit" 
-            className="btn-primary" 
-            style={{ width: 'fit-content', background: '#ef4444' }}
-            disabled={!broadcastTitle.trim() || !broadcastMsg.trim()}
-          >
-            <Send size={15} />
-            <span>Send Push Broadcast</span>
+          <textarea 
+            className="input-clean" 
+            rows={2} 
+            placeholder="Broadcast announcement content sent to mobile & web clients..."
+            value={broadcastMsg}
+            onChange={(e) => setBroadcastMsg(e.target.value)}
+            style={{ resize: 'vertical' }}
+          />
+
+          <button type="submit" className="apple-btn-blue" style={{ alignSelf: 'flex-start', padding: '9px 22px' }}>
+            <Send size={14} />
+            <span>Send Live Broadcast</span>
           </button>
         </form>
 
-        {/* Broadcast History */}
-        <div style={{ marginTop: '20px', borderTop: '1px solid var(--border)', paddingTop: '16px' }}>
+        {/* History */}
+        <div style={{ marginTop: '20px' }}>
           <span className="label-mini">Recent Broadcast Log</span>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '6px' }}>
             {broadcasts.map(b => (
-              <div key={b.id} style={{ background: 'var(--surface-alt)', padding: '12px 16px', borderRadius: 'var(--radius-sm)', fontSize: '13px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                  <strong>{b.title}</strong>
-                  <span className="badge badge-purple">{b.target} • {b.date}</span>
+              <div key={b.id} style={{ background: 'var(--surface-alt)', border: '1px solid var(--border)', padding: '12px 16px', borderRadius: 'var(--radius-sm)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <strong style={{ fontSize: '14px' }}>{b.title}</strong>
+                  <span className="badge badge-green">{b.target} • {b.date}</span>
                 </div>
-                <p style={{ color: 'var(--text-muted)', margin: 0 }}>{b.message}</p>
+                <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', marginTop: '4px' }}>{b.message}</p>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* ── PROVIDER PRICING & LICENSE VERIFICATION ── */}
-      <div className="glass-card">
-        <h3 style={{ fontSize: '18px', fontWeight: 800, marginBottom: '16px' }}>
-          Verified Care Providers &amp; Fee Management
-        </h3>
+      {/* ── CLINICIAN LICENSING & FEE CONTROL ── */}
+      <div className="apple-promo-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '28px' }}>
+        <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '16px' }}>Verified Clinicians &amp; Pricing Directory</h3>
 
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13.5px' }}>
             <thead>
-              <tr style={{ borderBottom: '1.5px solid var(--border)', textAlign: 'left', color: 'var(--text-muted)' }}>
-                <th style={{ padding: '12px 10px' }}>Doctor / Provider</th>
-                <th style={{ padding: '12px 10px' }}>Specialty</th>
-                <th style={{ padding: '12px 10px' }}>Rating</th>
-                <th style={{ padding: '12px 10px' }}>Consultation Fee</th>
-                <th style={{ padding: '12px 10px' }}>License Status</th>
-                <th style={{ padding: '12px 10px' }}>Action</th>
+              <tr style={{ borderBottom: '1px solid var(--border)', textAlign: 'left', color: 'var(--text-muted)' }}>
+                <th style={{ padding: '12px 10px', fontWeight: 600 }}>Doctor / Clinic</th>
+                <th style={{ padding: '12px 10px', fontWeight: 600 }}>Specialization</th>
+                <th style={{ padding: '12px 10px', fontWeight: 600 }}>License Status</th>
+                <th style={{ padding: '12px 10px', fontWeight: 600 }}>Slot Fee</th>
+                <th style={{ padding: '12px 10px', fontWeight: 600 }}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {vets.map(v => (
                 <tr key={v.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                  <td style={{ padding: '14px 10px', fontWeight: 800 }}>{v.name}</td>
-                  <td style={{ padding: '14px 10px', color: 'var(--text-muted)' }}>{v.tag}</td>
-                  <td style={{ padding: '14px 10px' }}>⭐ {v.rating} ({v.reviewsCount})</td>
-                  <td style={{ padding: '14px 10px', fontWeight: 800, color: 'var(--primary)' }}>{v.price}</td>
                   <td style={{ padding: '14px 10px' }}>
-                    <span className="badge badge-green">Verified Active</span>
+                    <strong style={{ display: 'block', color: 'var(--text-main)' }}>{v.name}</strong>
+                    <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{v.clinic}</span>
                   </td>
+                  <td style={{ padding: '14px 10px', color: 'var(--text-muted)' }}>{v.qualification}</td>
+                  <td style={{ padding: '14px 10px' }}>
+                    <span className="badge badge-green">Verified License</span>
+                  </td>
+                  <td style={{ padding: '14px 10px', fontWeight: 700 }}>${v.price || 40}</td>
                   <td style={{ padding: '14px 10px' }}>
                     <button 
                       className="btn-ghost" 
-                      style={{ fontSize: '12px', padding: '6px 12px' }}
-                      onClick={() => openModal('editPrice', { vetId: v.id, currentPrice: v.price, name: v.name })}
+                      style={{ padding: '5px 12px', fontSize: '12px' }}
+                      onClick={() => openModal('editPrice', v)}
                     >
                       <Edit size={13} />
-                      <span>Edit Fee</span>
+                      <span>Adjust Fee</span>
                     </button>
                   </td>
                 </tr>
