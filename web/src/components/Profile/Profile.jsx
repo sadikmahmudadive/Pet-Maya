@@ -9,23 +9,17 @@ import {
   ShieldCheck, 
   FileText, 
   Plus,
-  ArrowRightLeft,
   ChevronRight
 } from 'lucide-react';
 
 export default function Profile() {
   const { medicalRecords, openModal, showToast } = useApp();
-  const { currentUser, switchRole, logout, loginAsGuest, awardPoints } = useAuth();
+  const { currentUser, logout, loginAsGuest, awardPoints } = useAuth();
 
   const copyReferral = () => {
     if (!currentUser?.referralCode) return;
     navigator.clipboard.writeText(currentUser.referralCode);
     showToast(`📋 Referral code ${currentUser.referralCode} copied!`, 'success');
-  };
-
-  const handleRoleChange = (newRole) => {
-    switchRole(newRole);
-    showToast(`🔀 Switched active portal to: ${newRole}`, 'success');
   };
 
   const handleSignOut = async () => {
@@ -116,22 +110,7 @@ export default function Profile() {
           </button>
         </div>
 
-        {/* ── ROLE SWITCHER (FOR DEMO & TESTING) ── */}
-        <div>
-          <span className="label-mini">Switch Portal Role (Instant Testing)</span>
-          <div className="chip-row">
-            {['Pet Owner', 'Veterinarian', 'Grooming / Boarding Provider', 'Shop Merchant', 'Super Admin'].map(r => (
-              <button 
-                key={r}
-                className={`chip-pill ${currentUser?.role === r ? 'active' : ''}`}
-                onClick={() => handleRoleChange(r)}
-              >
-                <ArrowRightLeft size={12} style={{ display: 'inline', marginRight: 4 }} />
-                {r}
-              </button>
-            ))}
-          </div>
-        </div>
+
       </div>
 
       {/* ── DIGITAL PATIENT RECORDS (EHR) ── */}
