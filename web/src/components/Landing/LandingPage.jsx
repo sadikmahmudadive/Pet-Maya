@@ -19,16 +19,21 @@ import {
 
 export default function LandingPage() {
   const { setActiveTab, openModal, showToast } = useApp();
-  const { loginAsGuest } = useAuth();
-
-  const handleLaunchApp = () => {
-    setActiveTab('dashboard');
-  };
+  const { currentUser, loginAsGuest } = useAuth();
 
   const handleTryDemo = () => {
     loginAsGuest('Pet Owner');
     setActiveTab('dashboard');
     showToast('🚀 Welcome to Pet Maya Demo Dashboard!', 'success');
+  };
+
+  const handleFeatureAccess = (tabId, featureName) => {
+    if (currentUser) {
+      setActiveTab(tabId);
+    } else {
+      openModal('auth');
+      showToast(`🔒 Please sign in to access ${featureName}`, 'info');
+    }
   };
 
   return (
@@ -76,7 +81,10 @@ export default function LandingPage() {
             textAlign: 'left'
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <div 
+            style={{ display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer' }}
+            onClick={() => handleFeatureAccess('tracker', 'Sonar Radar')}
+          >
             <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(16, 185, 129, 0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#10B981' }}>
               <Radar size={22} />
             </div>
@@ -86,7 +94,10 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <div 
+            style={{ display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer' }}
+            onClick={() => handleFeatureAccess('ai', 'AI Health Triage')}
+          >
             <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(59, 130, 246, 0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3B82F6' }}>
               <Activity size={22} />
             </div>
@@ -96,7 +107,10 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <div 
+            style={{ display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer' }}
+            onClick={() => handleFeatureAccess('vets', 'Specialists Network')}
+          >
             <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(245, 158, 11, 0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#F59E0B' }}>
               <Stethoscope size={22} />
             </div>
@@ -106,7 +120,10 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <div 
+            style={{ display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer' }}
+            onClick={() => handleFeatureAccess('food', 'Daily Nutrition')}
+          >
             <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(236, 72, 153, 0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#EC4899' }}>
               <Utensils size={22} />
             </div>
@@ -134,10 +151,10 @@ export default function LandingPage() {
         </p>
 
         <div className="apple-cta-group">
-          <button className="apple-btn-blue" onClick={() => setActiveTab('tracker')}>
+          <button className="apple-btn-blue" onClick={() => handleFeatureAccess('tracker', 'Sonar Radar')}>
             <span>Launch Radar</span>
           </button>
-          <button className="apple-link-cta" onClick={() => setActiveTab('tracker')}>
+          <button className="apple-link-cta" onClick={() => handleFeatureAccess('tracker', 'Sonar Radar Telemetry')}>
             <span>See live telemetry</span>
             <ChevronRight size={16} />
           </button>
@@ -160,10 +177,10 @@ export default function LandingPage() {
         </p>
 
         <div className="apple-cta-group">
-          <button className="apple-btn-blue" onClick={() => setActiveTab('ai')}>
+          <button className="apple-btn-blue" onClick={() => handleFeatureAccess('ai', 'AI Diagnostic Scanner')}>
             <span>Test Diagnostic Scanner</span>
           </button>
-          <button className="apple-link-cta" onClick={() => setActiveTab('vets')}>
+          <button className="apple-link-cta" onClick={() => handleFeatureAccess('vets', 'Specialists Directory')}>
             <span>Consult a veterinarian</span>
             <ChevronRight size={16} />
           </button>
@@ -181,7 +198,7 @@ export default function LandingPage() {
           <p className="apple-card-desc">
             In-clinic visits, surgery consultations, and HD teleconsultations with digital prescriptions.
           </p>
-          <button className="apple-link-cta" onClick={() => setActiveTab('vets')}>
+          <button className="apple-link-cta" onClick={() => handleFeatureAccess('vets', 'Specialists Network')}>
             <span>Explore directory</span>
             <ChevronRight size={15} />
           </button>
@@ -194,7 +211,7 @@ export default function LandingPage() {
           <p className="apple-card-desc">
             Scientific RER/MER calorie calculators, dry/wet portion splits, and 20+ breed trait meters.
           </p>
-          <button className="apple-link-cta" onClick={() => setActiveTab('food')}>
+          <button className="apple-link-cta" onClick={() => handleFeatureAccess('food', 'Daily Nutrition')}>
             <span>Calculate portions</span>
             <ChevronRight size={15} />
           </button>
@@ -207,7 +224,7 @@ export default function LandingPage() {
           <p className="apple-card-desc">
             Genuine prescription flea/tick preventatives (Simparica) and specialty food with 5-stage order tracking.
           </p>
-          <button className="apple-link-cta" onClick={() => setActiveTab('shop')}>
+          <button className="apple-link-cta" onClick={() => handleFeatureAccess('shop', 'Pharmacy & Store')}>
             <span>Visit Store</span>
             <ChevronRight size={15} />
           </button>
@@ -220,7 +237,7 @@ export default function LandingPage() {
           <p className="apple-card-desc">
             Automated immunization schedules, rabies tracking, and 1-click export to Apple Calendar (.ICS).
           </p>
-          <button className="apple-link-cta" onClick={() => setActiveTab('vaccines')}>
+          <button className="apple-link-cta" onClick={() => handleFeatureAccess('vaccines', 'Vaccine Passport')}>
             <span>View vaccine matrix</span>
             <ChevronRight size={15} />
           </button>
@@ -333,11 +350,11 @@ export default function LandingPage() {
             <div className="apple-footer-col">
               <h5>Explore Services</h5>
               <ul>
-                <li><button onClick={() => setActiveTab('tracker')}>Sonar GPS Radar</button></li>
-                <li><button onClick={() => setActiveTab('ai')}>AI Health Triage</button></li>
-                <li><button onClick={() => setActiveTab('vets')}>Specialist Network</button></li>
-                <li><button onClick={() => setActiveTab('food')}>Daily Nutrition</button></li>
-                <li><button onClick={() => setActiveTab('shop')}>Pharmacy &amp; Supplies</button></li>
+                <li><button onClick={() => handleFeatureAccess('tracker', 'Sonar Radar')}>Sonar GPS Radar</button></li>
+                <li><button onClick={() => handleFeatureAccess('ai', 'AI Health Triage')}>AI Health Triage</button></li>
+                <li><button onClick={() => handleFeatureAccess('vets', 'Specialist Network')}>Specialist Network</button></li>
+                <li><button onClick={() => handleFeatureAccess('food', 'Daily Nutrition')}>Daily Nutrition</button></li>
+                <li><button onClick={() => handleFeatureAccess('shop', 'Pharmacy & Supplies')}>Pharmacy &amp; Supplies</button></li>
               </ul>
             </div>
 
@@ -346,16 +363,16 @@ export default function LandingPage() {
               <ul>
                 <li><button onClick={() => openModal('auth')}>Sign In to Account</button></li>
                 <li><button onClick={handleTryDemo}>Guest Demo Console</button></li>
-                <li><button onClick={() => setActiveTab('vaccines')}>Vaccine Passport</button></li>
-                <li><button onClick={() => openModal('cart')}>View Shopping Bag</button></li>
+                <li><button onClick={() => handleFeatureAccess('vaccines', 'Vaccine Passport')}>Vaccine Passport</button></li>
+                <li><button onClick={() => handleFeatureAccess('shop', 'Shopping Bag')}>View Shopping Bag</button></li>
               </ul>
             </div>
 
             <div className="apple-footer-col">
               <h5>For Veterinarians</h5>
               <ul>
-                <li><button onClick={() => setActiveTab('vets')}>Clinician Verification</button></li>
-                <li><button onClick={() => setActiveTab('admin')}>Super Admin Console</button></li>
+                <li><button onClick={() => handleFeatureAccess('vets', 'Clinician Network')}>Clinician Verification</button></li>
+                <li><button onClick={() => handleFeatureAccess('admin', 'Super Admin Console')}>Super Admin Console</button></li>
                 <li><button onClick={() => openModal('booking')}>Telehealth Guidelines</button></li>
               </ul>
             </div>

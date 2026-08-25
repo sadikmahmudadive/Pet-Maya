@@ -14,8 +14,6 @@ export default function Header() {
   const { activeTab, setActiveTab, theme, toggleTheme, cartCount, openModal, showToast } = useApp();
   const { currentUser, loginAsGuest } = useAuth();
 
-  const role = currentUser?.role || 'Pet Owner';
-
   const handleBrandClick = (e) => {
     e.preventDefault();
     if (currentUser) {
@@ -29,6 +27,15 @@ export default function Header() {
     loginAsGuest('Pet Owner');
     setActiveTab('dashboard');
     showToast('🚀 Welcome to Pet Maya Demo Mode!', 'success');
+  };
+
+  const handleProtectedNav = (tabId, featureName) => {
+    if (currentUser) {
+      setActiveTab(tabId);
+    } else {
+      openModal('auth');
+      showToast(`🔒 Please sign in to access ${featureName}`, 'info');
+    }
   };
 
   return (
@@ -121,40 +128,40 @@ export default function Header() {
               </li>
               <li>
                 <button 
-                  className={`apple-nav-item ${activeTab === 'tracker' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('tracker')}
+                  className="apple-nav-item"
+                  onClick={() => handleProtectedNav('tracker', 'Sonar Radar')}
                 >
                   Sonar Radar
                 </button>
               </li>
               <li>
                 <button 
-                  className={`apple-nav-item ${activeTab === 'ai' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('ai')}
+                  className="apple-nav-item"
+                  onClick={() => handleProtectedNav('ai', 'AI Health Triage')}
                 >
                   AI Triage
                 </button>
               </li>
               <li>
                 <button 
-                  className={`apple-nav-item ${activeTab === 'vets' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('vets')}
+                  className="apple-nav-item"
+                  onClick={() => handleProtectedNav('vets', 'Specialists Directory')}
                 >
                   Specialists
                 </button>
               </li>
               <li>
                 <button 
-                  className={`apple-nav-item ${activeTab === 'food' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('food')}
+                  className="apple-nav-item"
+                  onClick={() => handleProtectedNav('food', 'Daily Nutrition')}
                 >
                   Nutrition
                 </button>
               </li>
               <li>
                 <button 
-                  className={`apple-nav-item ${activeTab === 'shop' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('shop')}
+                  className="apple-nav-item"
+                  onClick={() => handleProtectedNav('shop', 'Pharmacy & Store')}
                 >
                   Pharmacy &amp; Store
                 </button>
@@ -176,7 +183,7 @@ export default function Header() {
             <button 
               className={`apple-nav-item ${activeTab === 'admin' ? 'active' : ''}`}
               style={{ color: '#EF4444' }}
-              onClick={() => setActiveTab('admin')}
+              onClick={() => handleProtectedNav('admin', 'Admin Console')}
             >
               Admin
             </button>
@@ -188,7 +195,14 @@ export default function Header() {
           {/* Shopping Bag */}
           <button 
             className="icon-btn" 
-            onClick={() => openModal('cart')} 
+            onClick={() => {
+              if (currentUser) {
+                openModal('cart');
+              } else {
+                openModal('auth');
+                showToast('🔒 Please sign in to view your bag', 'info');
+              }
+            }} 
             style={{ width: 30, height: 30, position: 'relative' }}
             title="Shopping Bag"
           >

@@ -21,7 +21,8 @@ function MainContent() {
   const { activeTab } = useApp();
   const { currentUser } = useAuth();
 
-  const isLanding = activeTab === 'landing' || (!currentUser && (activeTab === 'dashboard' || !activeTab));
+  // If user is unsigned, enforce Landing presentation view and prevent direct screen bypass
+  const isLanding = !currentUser || activeTab === 'landing';
 
   const renderActiveScreen = () => {
     if (isLanding) {
