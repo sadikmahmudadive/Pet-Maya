@@ -39,7 +39,15 @@ class AppStateRepository extends ChangeNotifier {
   final _functions = FirebaseFunctions.instance;
 
   Future<dynamic> _callAiProxy(String method, Map<String, dynamic> data) async {
+    // Auth Validation: Ensure we have a valid Firebase Auth session before calling
+    final user = _firebase.currentFirebaseUser;
+    if (user == null) {
+      debugPrint('[AI Proxy] Error: No active Firebase Auth session.');
+      return {"response": "Please sign in to use AI features.", "schedule": [], "breed": "Unknown", "recommendation": {}};
+    }
+
     try {
+      debugPrint('[AI Proxy] Calling $method for User: ${user.uid} (Anonymous: ${user.isAnonymous})');
       final result = await _functions.httpsCallable('openai_proxy').call({
         'method': method,
         ...data,

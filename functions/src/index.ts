@@ -5,10 +5,11 @@ import OpenAI from "openai";
 admin.initializeApp();
 
 export const openai_proxy = onCall({ secrets: ["OPENAI_API_KEY"] }, async (request) => {
-  // 1. Authentication Check (Temporarily relaxed for debugging or handled per-method)
+  // 1. Authentication Check & Logging
   if (!request.auth) {
-    console.log("Request Auth is missing! Raw data:", request.data);
-    // Keep it for now to see if it's the culprit, but maybe log it.
+    console.warn("openai_proxy called without active authentication context. Proceeding anyway for debugging...");
+  } else {
+    console.log(`openai_proxy called by user: ${request.auth.uid}`);
   }
 
   const openai = new OpenAI({
