@@ -165,13 +165,13 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ── 3. DISCOVER MORE (6 DISCOVERY CARDS) ── */}
+      {/* ── 3. DISCOVER MORE (7 MATCHING DISCOVERY CARDS) ── */}
       <div>
         <div style={{ marginBottom: '16px' }}>
           <h2 style={{ fontSize: '20px', fontWeight: 700, letterSpacing: '-0.02em' }}>Discover More</h2>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
           
           {/* 1. Pet Shop */}
           <div 
@@ -211,7 +211,7 @@ export default function Dashboard() {
             </span>
           </div>
 
-          {/* 3. Wellness / Health Triage */}
+          {/* 3. Wellness */}
           <div 
             className="apple-promo-card" 
             style={{ padding: '22px', textAlign: 'left', alignItems: 'flex-start', cursor: 'pointer' }}
@@ -230,7 +230,26 @@ export default function Dashboard() {
             </span>
           </div>
 
-          {/* 4. Community */}
+          {/* 4. Specialists */}
+          <div 
+            className="apple-promo-card" 
+            style={{ padding: '22px', textAlign: 'left', alignItems: 'flex-start', cursor: 'pointer' }}
+            onClick={() => setActiveTab('vets')}
+          >
+            <div style={{ width: 42, height: 42, borderRadius: '50%', background: 'rgba(245, 158, 11, 0.15)', color: '#F59E0B', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '14px' }}>
+              <Stethoscope size={20} />
+            </div>
+            <strong style={{ fontSize: '16px', fontWeight: 700 }}>Specialists</strong>
+            <span style={{ fontSize: '13px', color: 'var(--text-muted)', display: 'block', marginTop: '2px', marginBottom: '16px' }}>
+              Verified clinicians
+            </span>
+            <span className="apple-link-cta" style={{ fontSize: '12px', fontWeight: 700, marginTop: 'auto', color: '#F59E0B' }}>
+              <span>FIND</span>
+              <ChevronRight size={13} />
+            </span>
+          </div>
+
+          {/* 5. Community */}
           <div 
             className="apple-promo-card" 
             style={{ padding: '22px', textAlign: 'left', alignItems: 'flex-start', cursor: 'pointer' }}
@@ -249,7 +268,7 @@ export default function Dashboard() {
             </span>
           </div>
 
-          {/* 5. Blog / Nutrition */}
+          {/* 6. Blog */}
           <div 
             className="apple-promo-card" 
             style={{ padding: '22px', textAlign: 'left', alignItems: 'flex-start', cursor: 'pointer' }}
@@ -260,7 +279,7 @@ export default function Dashboard() {
             </div>
             <strong style={{ fontSize: '16px', fontWeight: 700 }}>Blog</strong>
             <span style={{ fontSize: '13px', color: 'var(--text-muted)', display: 'block', marginTop: '2px', marginBottom: '16px' }}>
-              Expert advice
+              Expert advice &amp; diet
             </span>
             <span className="apple-link-cta" style={{ fontSize: '12px', fontWeight: 700, marginTop: 'auto', color: '#F97316' }}>
               <span>READ</span>
@@ -268,7 +287,7 @@ export default function Dashboard() {
             </span>
           </div>
 
-          {/* 6. Reminders / Vaccine Passport */}
+          {/* 7. Reminders */}
           <div 
             className="apple-promo-card" 
             style={{ padding: '22px', textAlign: 'left', alignItems: 'flex-start', cursor: 'pointer' }}

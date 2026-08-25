@@ -47,7 +47,7 @@ export default function Header() {
           <span>Pet Maya</span>
         </div>
 
-        {/* Apple.com Global Navigation Links */}
+        {/* Global Navigation Links - Perfectly Aligned with Discover More */}
         <ul className="apple-nav-links">
           {currentUser ? (
             <>
@@ -61,10 +61,18 @@ export default function Header() {
               </li>
               <li>
                 <button 
+                  className={`apple-nav-item ${activeTab === 'shop' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('shop')}
+                >
+                  Pet Shop
+                </button>
+              </li>
+              <li>
+                <button 
                   className={`apple-nav-item ${activeTab === 'tracker' ? 'active' : ''}`}
                   onClick={() => setActiveTab('tracker')}
                 >
-                  Sonar Radar
+                  Tracker
                 </button>
               </li>
               <li>
@@ -72,7 +80,7 @@ export default function Header() {
                   className={`apple-nav-item ${activeTab === 'ai' ? 'active' : ''}`}
                   onClick={() => setActiveTab('ai')}
                 >
-                  AI Vision
+                  Wellness
                 </button>
               </li>
               <li>
@@ -85,18 +93,18 @@ export default function Header() {
               </li>
               <li>
                 <button 
-                  className={`apple-nav-item ${activeTab === 'food' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('food')}
+                  className={`apple-nav-item ${activeTab === 'community' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('community')}
                 >
-                  Nutrition
+                  Community
                 </button>
               </li>
               <li>
                 <button 
-                  className={`apple-nav-item ${activeTab === 'shop' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('shop')}
+                  className={`apple-nav-item ${activeTab === 'food' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('food')}
                 >
-                  Store
+                  Blog
                 </button>
               </li>
               <li>
@@ -104,7 +112,7 @@ export default function Header() {
                   className={`apple-nav-item ${activeTab === 'vaccines' ? 'active' : ''}`}
                   onClick={() => setActiveTab('vaccines')}
                 >
-                  Passport
+                  Reminders
                 </button>
               </li>
               <li>
@@ -129,23 +137,31 @@ export default function Header() {
               <li>
                 <button 
                   className="apple-nav-item"
-                  onClick={() => handleProtectedNav('tracker', 'Sonar Radar')}
+                  onClick={() => handleProtectedNav('shop', 'Pet Shop')}
                 >
-                  Sonar Radar
+                  Pet Shop
                 </button>
               </li>
               <li>
                 <button 
                   className="apple-nav-item"
-                  onClick={() => handleProtectedNav('ai', 'AI Health Triage')}
+                  onClick={() => handleProtectedNav('tracker', 'Tracker')}
                 >
-                  AI Triage
+                  Tracker
                 </button>
               </li>
               <li>
                 <button 
                   className="apple-nav-item"
-                  onClick={() => handleProtectedNav('vets', 'Specialists Directory')}
+                  onClick={() => handleProtectedNav('ai', 'Wellness')}
+                >
+                  Wellness
+                </button>
+              </li>
+              <li>
+                <button 
+                  className="apple-nav-item"
+                  onClick={() => handleProtectedNav('vets', 'Specialists')}
                 >
                   Specialists
                 </button>
@@ -153,17 +169,25 @@ export default function Header() {
               <li>
                 <button 
                   className="apple-nav-item"
-                  onClick={() => handleProtectedNav('food', 'Daily Nutrition')}
+                  onClick={() => handleProtectedNav('community', 'Community')}
                 >
-                  Nutrition
+                  Community
                 </button>
               </li>
               <li>
                 <button 
                   className="apple-nav-item"
-                  onClick={() => handleProtectedNav('shop', 'Pharmacy & Store')}
+                  onClick={() => handleProtectedNav('food', 'Blog')}
                 >
-                  Pharmacy &amp; Store
+                  Blog
+                </button>
+              </li>
+              <li>
+                <button 
+                  className="apple-nav-item"
+                  onClick={() => handleProtectedNav('vaccines', 'Reminders')}
+                >
+                  Reminders
                 </button>
               </li>
               <li>

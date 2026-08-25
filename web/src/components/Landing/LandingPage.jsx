@@ -14,7 +14,13 @@ import {
   ShieldCheck, 
   ExternalLink,
   Sparkles,
-  Play
+  Play,
+  Heart,
+  BookOpen,
+  DollarSign,
+  MapPin,
+  MessageCircle,
+  Calendar
 } from 'lucide-react';
 
 export default function LandingPage() {
@@ -83,60 +89,60 @@ export default function LandingPage() {
         >
           <div 
             style={{ display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer' }}
-            onClick={() => handleFeatureAccess('tracker', 'Sonar Radar')}
+            onClick={() => handleFeatureAccess('tracker', 'Tracker')}
           >
             <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(16, 185, 129, 0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#10B981' }}>
               <Radar size={22} />
             </div>
             <div>
-              <strong style={{ fontSize: '15px', color: '#FFFFFF', display: 'block' }}>Sonar GPS</strong>
-              <span style={{ fontSize: '12px', color: '#86868B' }}>Live safe-zone perimeter</span>
+              <strong style={{ fontSize: '15px', color: '#FFFFFF', display: 'block' }}>Tracker</strong>
+              <span style={{ fontSize: '12px', color: '#86868B' }}>Live GPS location</span>
             </div>
           </div>
 
           <div 
             style={{ display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer' }}
-            onClick={() => handleFeatureAccess('ai', 'AI Health Triage')}
+            onClick={() => handleFeatureAccess('ai', 'Wellness')}
           >
             <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(59, 130, 246, 0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3B82F6' }}>
               <Activity size={22} />
             </div>
             <div>
-              <strong style={{ fontSize: '15px', color: '#FFFFFF', display: 'block' }}>AI Vision</strong>
-              <span style={{ fontSize: '12px', color: '#86868B' }}>Instant lesion triage</span>
+              <strong style={{ fontSize: '15px', color: '#FFFFFF', display: 'block' }}>Wellness</strong>
+              <span style={{ fontSize: '12px', color: '#86868B' }}>AI health scan</span>
             </div>
           </div>
 
           <div 
             style={{ display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer' }}
-            onClick={() => handleFeatureAccess('vets', 'Specialists Network')}
+            onClick={() => handleFeatureAccess('vets', 'Specialists')}
           >
             <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(245, 158, 11, 0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#F59E0B' }}>
               <Stethoscope size={22} />
             </div>
             <div>
               <strong style={{ fontSize: '15px', color: '#FFFFFF', display: 'block' }}>Specialists</strong>
-              <span style={{ fontSize: '12px', color: '#86868B' }}>500+ Verified clinics</span>
+              <span style={{ fontSize: '12px', color: '#86868B' }}>500+ Verified clinicians</span>
             </div>
           </div>
 
           <div 
             style={{ display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer' }}
-            onClick={() => handleFeatureAccess('food', 'Daily Nutrition')}
+            onClick={() => handleFeatureAccess('food', 'Blog')}
           >
             <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(236, 72, 153, 0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#EC4899' }}>
-              <Utensils size={22} />
+              <BookOpen size={22} />
             </div>
             <div>
-              <strong style={{ fontSize: '15px', color: '#FFFFFF', display: 'block' }}>Nutrition</strong>
-              <span style={{ fontSize: '12px', color: '#86868B' }}>Scientific RER formulas</span>
+              <strong style={{ fontSize: '15px', color: '#FFFFFF', display: 'block' }}>Blog</strong>
+              <span style={{ fontSize: '12px', color: '#86868B' }}>Expert advice &amp; diet</span>
             </div>
           </div>
         </div>
       </section>
 
       {/* ══════════════════════════════════════════════════════
-          HERO 2: REAL-TIME SONAR RADAR
+          HERO 2: REAL-TIME TRACKER
           ══════════════════════════════════════════════════════ */}
       <section className="apple-hero-section apple-hero-light" style={{ minHeight: '65vh', justifyContent: 'center' }}>
         <span className="apple-hero-eyebrow" style={{ color: 'var(--primary)' }}>
@@ -151,10 +157,10 @@ export default function LandingPage() {
         </p>
 
         <div className="apple-cta-group">
-          <button className="apple-btn-blue" onClick={() => handleFeatureAccess('tracker', 'Sonar Radar')}>
-            <span>Launch Radar</span>
+          <button className="apple-btn-blue" onClick={() => handleFeatureAccess('tracker', 'Tracker')}>
+            <span>Launch Tracker</span>
           </button>
-          <button className="apple-link-cta" onClick={() => handleFeatureAccess('tracker', 'Sonar Radar Telemetry')}>
+          <button className="apple-link-cta" onClick={() => handleFeatureAccess('tracker', 'Tracker Live Telemetry')}>
             <span>See live telemetry</span>
             <ChevronRight size={16} />
           </button>
@@ -162,7 +168,7 @@ export default function LandingPage() {
       </section>
 
       {/* ══════════════════════════════════════════════════════
-          HERO 3: AI VISION CLINICAL TRIAGE
+          HERO 3: WELLNESS AI CLINICAL TRIAGE
           ══════════════════════════════════════════════════════ */}
       <section className="apple-hero-section apple-hero-dark" style={{ minHeight: '65vh', justifyContent: 'center' }}>
         <span className="apple-hero-eyebrow" style={{ color: '#3B82F6' }}>
@@ -177,11 +183,11 @@ export default function LandingPage() {
         </p>
 
         <div className="apple-cta-group">
-          <button className="apple-btn-blue" onClick={() => handleFeatureAccess('ai', 'AI Diagnostic Scanner')}>
-            <span>Test Diagnostic Scanner</span>
+          <button className="apple-btn-blue" onClick={() => handleFeatureAccess('ai', 'Wellness Scan')}>
+            <span>Test Wellness Scan</span>
           </button>
           <button className="apple-link-cta" onClick={() => handleFeatureAccess('vets', 'Specialists Directory')}>
-            <span>Consult a veterinarian</span>
+            <span>Consult a specialist</span>
             <ChevronRight size={16} />
           </button>
         </div>
@@ -191,54 +197,54 @@ export default function LandingPage() {
           APPLE 2X2 BENTO PROMO MATRIX
           ══════════════════════════════════════════════════════ */}
       <section className="apple-bento-grid">
-        {/* Bento 1 */}
+        {/* Bento 1: Specialists */}
         <div className="apple-promo-card">
           <span className="apple-card-eyebrow" style={{ color: '#F59E0B' }}>Specialist Network</span>
-          <h3 className="apple-card-title">Verified Clinicians</h3>
+          <h3 className="apple-card-title">Specialists</h3>
           <p className="apple-card-desc">
-            In-clinic visits, surgery consultations, and HD teleconsultations with digital prescriptions.
+            In-clinic visits, surgery consultations, and HD teleconsultations with verified doctors.
           </p>
-          <button className="apple-link-cta" onClick={() => handleFeatureAccess('vets', 'Specialists Network')}>
+          <button className="apple-link-cta" onClick={() => handleFeatureAccess('vets', 'Specialists')}>
             <span>Explore directory</span>
             <ChevronRight size={15} />
           </button>
         </div>
 
-        {/* Bento 2 */}
+        {/* Bento 2: Blog */}
         <div className="apple-promo-card">
           <span className="apple-card-eyebrow" style={{ color: '#EC4899' }}>Precision Diet</span>
-          <h3 className="apple-card-title">Daily Nutrition Formula</h3>
+          <h3 className="apple-card-title">Blog &amp; Nutrition</h3>
           <p className="apple-card-desc">
-            Scientific RER/MER calorie calculators, dry/wet portion splits, and 20+ breed trait meters.
+            Scientific RER/MER calorie calculators, dry/wet portion splits, and breed guides.
           </p>
-          <button className="apple-link-cta" onClick={() => handleFeatureAccess('food', 'Daily Nutrition')}>
-            <span>Calculate portions</span>
+          <button className="apple-link-cta" onClick={() => handleFeatureAccess('food', 'Blog')}>
+            <span>Read guide</span>
             <ChevronRight size={15} />
           </button>
         </div>
 
-        {/* Bento 3 */}
+        {/* Bento 3: Pet Shop */}
         <div className="apple-promo-card">
-          <span className="apple-card-eyebrow" style={{ color: '#6366F1' }}>Pet Pharmacy</span>
-          <h3 className="apple-card-title">Shop &amp; Live Dispatch</h3>
+          <span className="apple-card-eyebrow" style={{ color: '#6366F1' }}>Pharmacy &amp; Store</span>
+          <h3 className="apple-card-title">Pet Shop</h3>
           <p className="apple-card-desc">
-            Genuine prescription flea/tick preventatives (Simparica) and specialty food with 5-stage order tracking.
+            Genuine prescription flea/tick preventatives (Simparica) and specialty food with live order dispatch.
           </p>
-          <button className="apple-link-cta" onClick={() => handleFeatureAccess('shop', 'Pharmacy & Store')}>
-            <span>Visit Store</span>
+          <button className="apple-link-cta" onClick={() => handleFeatureAccess('shop', 'Pet Shop')}>
+            <span>Visit Pet Shop</span>
             <ChevronRight size={15} />
           </button>
         </div>
 
-        {/* Bento 4 */}
+        {/* Bento 4: Reminders */}
         <div className="apple-promo-card">
           <span className="apple-card-eyebrow" style={{ color: '#10B981' }}>Medical Passport</span>
-          <h3 className="apple-card-title">Vaccine Reminders</h3>
+          <h3 className="apple-card-title">Reminders</h3>
           <p className="apple-card-desc">
             Automated immunization schedules, rabies tracking, and 1-click export to Apple Calendar (.ICS).
           </p>
-          <button className="apple-link-cta" onClick={() => handleFeatureAccess('vaccines', 'Vaccine Passport')}>
-            <span>View vaccine matrix</span>
+          <button className="apple-link-cta" onClick={() => handleFeatureAccess('vaccines', 'Reminders')}>
+            <span>View Reminders</span>
             <ChevronRight size={15} />
           </button>
         </div>
@@ -350,11 +356,13 @@ export default function LandingPage() {
             <div className="apple-footer-col">
               <h5>Explore Services</h5>
               <ul>
-                <li><button onClick={() => handleFeatureAccess('tracker', 'Sonar Radar')}>Sonar GPS Radar</button></li>
-                <li><button onClick={() => handleFeatureAccess('ai', 'AI Health Triage')}>AI Health Triage</button></li>
-                <li><button onClick={() => handleFeatureAccess('vets', 'Specialist Network')}>Specialist Network</button></li>
-                <li><button onClick={() => handleFeatureAccess('food', 'Daily Nutrition')}>Daily Nutrition</button></li>
-                <li><button onClick={() => handleFeatureAccess('shop', 'Pharmacy & Supplies')}>Pharmacy &amp; Supplies</button></li>
+                <li><button onClick={() => handleFeatureAccess('shop', 'Pet Shop')}>Pet Shop</button></li>
+                <li><button onClick={() => handleFeatureAccess('tracker', 'Tracker')}>Tracker</button></li>
+                <li><button onClick={() => handleFeatureAccess('ai', 'Wellness')}>Wellness</button></li>
+                <li><button onClick={() => handleFeatureAccess('vets', 'Specialists')}>Specialists</button></li>
+                <li><button onClick={() => handleFeatureAccess('community', 'Community')}>Community</button></li>
+                <li><button onClick={() => handleFeatureAccess('food', 'Blog')}>Blog</button></li>
+                <li><button onClick={() => handleFeatureAccess('vaccines', 'Reminders')}>Reminders</button></li>
               </ul>
             </div>
 
@@ -363,8 +371,8 @@ export default function LandingPage() {
               <ul>
                 <li><button onClick={() => openModal('auth')}>Sign In to Account</button></li>
                 <li><button onClick={handleTryDemo}>Guest Demo Console</button></li>
-                <li><button onClick={() => handleFeatureAccess('vaccines', 'Vaccine Passport')}>Vaccine Passport</button></li>
-                <li><button onClick={() => handleFeatureAccess('shop', 'Shopping Bag')}>View Shopping Bag</button></li>
+                <li><button onClick={() => handleFeatureAccess('vaccines', 'Reminders')}>Reminders</button></li>
+                <li><button onClick={() => handleFeatureAccess('shop', 'Pet Shop')}>Pet Shop</button></li>
               </ul>
             </div>
 
