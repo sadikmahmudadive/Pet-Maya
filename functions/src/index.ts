@@ -12,8 +12,14 @@ export const openai_proxy = onCall({ secrets: ["OPENAI_API_KEY"] }, async (reque
     console.log(`openai_proxy called by user: ${request.auth.uid}`);
   }
 
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    console.error("CRITICAL: OPENAI_API_KEY is not defined in environment variables or secrets!");
+    return { response: "AI Configuration Error: API Key missing on server.", schedule: [], breed: "Error", recommendation: {} };
+  }
+
   const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
+    apiKey: apiKey,
   });
 
   const { method, ...payload } = request.data;

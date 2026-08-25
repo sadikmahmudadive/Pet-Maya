@@ -36,7 +36,7 @@ class AppStateRepository extends ChangeNotifier {
 
   final _uuid = const Uuid();
   final _firebase = FirebaseService();
-  final _functions = FirebaseFunctions.instance;
+  final _functions = FirebaseFunctions.instanceFor(region: 'us-central1');
 
   Future<dynamic> _callAiProxy(String method, Map<String, dynamic> data) async {
     // Auth Validation: Ensure we have a valid Firebase Auth session before calling

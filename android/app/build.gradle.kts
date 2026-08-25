@@ -76,6 +76,8 @@ dependencies {
     implementation("com.google.firebase:firebase-messaging:24.0.0")
     implementation("com.google.firebase:firebase-database:21.0.0")
     implementation("androidx.browser:browser:1.8.0")
+    implementation("com.google.firebase:firebase-appcheck-playintegrity")
+    implementation("com.google.firebase:firebase-appcheck-debug")
 }
 
 configurations.all {
