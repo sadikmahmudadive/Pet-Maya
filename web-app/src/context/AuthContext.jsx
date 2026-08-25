@@ -30,6 +30,14 @@ export function AuthProvider({ children }) {
   };
 
   useEffect(() => {
+    // Check if user explicitly signed out
+    const isSignedOut = localStorage.getItem('pm_signed_out') === 'true';
+    if (isSignedOut) {
+      setCurrentUser(null);
+      setLoading(false);
+      return;
+    }
+
     // Check local demo session first
     const savedDemo = localStorage.getItem('pm_demo_user');
     if (savedDemo) {
@@ -89,19 +97,23 @@ export function AuthProvider({ children }) {
           });
         }
       } else {
-        // Default to Demo Guest User
-        const defaultGuest = {
-          uid: 'demo_user_001',
-          name: 'Alex Johnson',
-          email: 'alex@petmaya.app',
-          photoUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80',
-          role: 'Pet Owner',
-          points: 45,
-          referralCode: 'PM89AC12',
-          isVerified: true,
-          favoriteVetIds: ['v1', 'v2']
-        };
-        setCurrentUser(defaultGuest);
+        if (localStorage.getItem('pm_signed_out') === 'true') {
+          setCurrentUser(null);
+        } else {
+          // Default to Demo Guest User
+          const defaultGuest = {
+            uid: 'demo_user_001',
+            name: 'Alex Johnson',
+            email: 'alex@petmaya.app',
+            photoUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80',
+            role: 'Pet Owner',
+            points: 45,
+            referralCode: 'PM89AC12',
+            isVerified: true,
+            favoriteVetIds: ['v1', 'v2']
+          };
+          setCurrentUser(defaultGuest);
+        }
       }
       setLoading(false);
     });
@@ -110,11 +122,13 @@ export function AuthProvider({ children }) {
   }, []);
 
   const loginWithEmail = async (email, password) => {
+    localStorage.removeItem('pm_signed_out');
     localStorage.removeItem('pm_demo_user');
     return signInWithEmailAndPassword(auth, email, password);
   };
 
   const signupWithEmail = async (name, email, password, referralCode) => {
+    localStorage.removeItem('pm_signed_out');
     localStorage.removeItem('pm_demo_user');
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     await updateProfile(cred.user, { displayName: name });
@@ -139,11 +153,13 @@ export function AuthProvider({ children }) {
   };
 
   const loginWithGoogle = async () => {
+    localStorage.removeItem('pm_signed_out');
     localStorage.removeItem('pm_demo_user');
     return signInWithPopup(auth, googleProvider);
   };
 
   const loginAsGuest = (role = 'Pet Owner') => {
+    localStorage.removeItem('pm_signed_out');
     const demoUser = {
       uid: 'demo_user_001',
       name: role === 'Veterinarian' ? 'Dr. Sarah Jenkins' : (role === 'Shop Merchant' ? 'Apex Store Manager' : 'Alex Johnson'),
@@ -173,11 +189,12 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
+    localStorage.setItem('pm_signed_out', 'true');
     localStorage.removeItem('pm_demo_user');
     try {
       await signOut(auth);
     } catch (e) {}
-    loginAsGuest('Pet Owner');
+    setCurrentUser(null);
   };
 
   const sendPasswordReset = async (email) => {

@@ -14,7 +14,7 @@ import {
 
 export default function Profile() {
   const { medicalRecords, openModal, showToast } = useApp();
-  const { currentUser, switchRole, logout, awardPoints } = useAuth();
+  const { currentUser, switchRole, logout, loginAsGuest, awardPoints } = useAuth();
 
   const copyReferral = () => {
     if (!currentUser?.referralCode) return;
@@ -26,6 +26,38 @@ export default function Profile() {
     switchRole(newRole);
     showToast(`🔀 Switched active portal to: ${newRole}`, 'success');
   };
+
+  const handleSignOut = async () => {
+    await logout();
+    showToast('👋 You have been signed out successfully.', 'info');
+  };
+
+  if (!currentUser) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '28px', maxWidth: '640px', margin: '40px auto', width: '100%' }}>
+        <div className="glass-card" style={{ textAlign: 'center', padding: '40px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+          <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--primary-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)' }}>
+            <User size={32} />
+          </div>
+          <div>
+            <h2 style={{ fontSize: '24px', fontWeight: 900 }}>You are currently signed out</h2>
+            <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginTop: '4px' }}>
+              Sign in to manage your pets, view medical passport history, earn rewards, and access clinical consultations.
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center', marginTop: '10px' }}>
+            <button className="btn-primary" onClick={() => openModal('auth')}>
+              <span>Sign In / Create Account</span>
+            </button>
+            <button className="btn-ghost" onClick={() => { loginAsGuest('Pet Owner'); showToast('Entered Guest Demo Mode', 'info'); }}>
+              <span>Continue as Guest Demo</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px', maxWidth: '840px', margin: '0 auto', width: '100%' }}>
@@ -47,7 +79,7 @@ export default function Profile() {
             </div>
           </div>
 
-          <button className="btn-ghost" style={{ color: 'var(--danger)' }} onClick={logout}>
+          <button className="btn-ghost" style={{ color: 'var(--danger)' }} onClick={handleSignOut}>
             <LogOut size={16} />
             <span>Sign Out</span>
           </button>
