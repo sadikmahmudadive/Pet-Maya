@@ -1,9 +1,10 @@
-/* ══════════════════════════════════════════════════════
-   PET MAYA — MODERN DESIGN SYSTEM & TOKENS (VITE/REACT)
-   ══════════════════════════════════════════════════════ */
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
+/* ═════════════════════════════════════════════════════════════════
+   PET MAYA — APPLE HUMAN INTERFACE DESIGN SYSTEM (HIG & SF AESTHETICS)
+   ═════════════════════════════════════════════════════════════════ */
+@import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
 
 :root {
+  /* Brand Color Codes (Preserved) */
   --primary: #10B981;
   --primary-hover: #059669;
   --primary-tint: rgba(16, 185, 129, 0.12);
@@ -14,68 +15,81 @@
   --danger: #EF4444;
   --danger-tint: rgba(239, 68, 68, 0.12);
 
-  --bg: #F8FAFC;
-  --surface: #FFFFFF;
-  --surface-alt: #F1F5F9;
-  --surface-glass: rgba(255, 255, 255, 0.85);
+  /* Apple Light Mode Palette (SF Gray 6 & Pure Canvas) */
+  --bg: #F5F5F7;
+  --surface: rgba(255, 255, 255, 0.82);
+  --surface-solid: #FFFFFF;
+  --surface-alt: rgba(0, 0, 0, 0.04);
+  --surface-glass: rgba(255, 255, 255, 0.75);
+  --segmented-bg: rgba(118, 118, 128, 0.12);
   
-  --border: #E2E8F0;
-  --separator: #E2E8F0;
+  --border: rgba(0, 0, 0, 0.08);
+  --border-specular: inset 0 1px 0 0 rgba(255, 255, 255, 0.85);
+  --separator: rgba(60, 60, 67, 0.12);
   
-  --text-main: #0F172A;
-  --text-muted: #64748B;
-  --text-subtle: #94A3B8;
+  --text-main: #1D1D1F;
+  --text-muted: #86868B;
+  --text-subtle: #AEAEB2;
 
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 16px -2px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 12px 32px -4px rgba(0, 0, 0, 0.12);
-  --shadow-glow: 0 0 20px rgba(16, 185, 129, 0.3);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 10px 30px -4px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 20px 50px -10px rgba(0, 0, 0, 0.12);
+  --shadow-glow: 0 0 28px rgba(16, 185, 129, 0.22);
 
-  --radius-xs: 8px;
-  --radius-sm: 12px;
-  --radius-md: 18px;
-  --radius-lg: 24px;
-  --radius-xl: 32px;
+  --radius-xs: 10px;
+  --radius-sm: 14px;
+  --radius-md: 20px;
+  --radius-lg: 26px;
+  --radius-xl: 34px;
   --radius-full: 9999px;
+
+  --apple-spring: cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 [data-theme="dark"] {
-  --bg: #0B0F17;
-  --surface: #131A26;
-  --surface-alt: #1A2332;
-  --surface-glass: rgba(19, 26, 38, 0.88);
+  /* Apple OLED Dark Mode Palette (Pure Black & SF Gray 6 Dark) */
+  --bg: #000000;
+  --surface: rgba(28, 28, 30, 0.78);
+  --surface-solid: #1C1C1E;
+  --surface-alt: rgba(255, 255, 255, 0.06);
+  --surface-glass: rgba(20, 20, 22, 0.8);
+  --segmented-bg: rgba(118, 118, 128, 0.24);
 
-  --border: #243044;
-  --separator: #243044;
+  --border: rgba(255, 255, 255, 0.1);
+  --border-specular: inset 0 1px 0 0 rgba(255, 255, 255, 0.12);
+  --separator: rgba(84, 84, 88, 0.35);
 
-  --text-main: #F8FAFC;
-  --text-muted: #94A3B8;
-  --text-subtle: #64748B;
+  --text-main: #F5F5F7;
+  --text-muted: #86868B;
+  --text-subtle: #636366;
 
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 16px -2px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 12px 32px -4px rgba(0, 0, 0, 0.5);
-  --shadow-glow: 0 0 24px rgba(16, 185, 129, 0.25);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 12px 32px -4px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 24px 60px -12px rgba(0, 0, 0, 0.75);
+  --shadow-glow: 0 0 32px rgba(16, 185, 129, 0.28);
 }
 
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
-  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "SF Pro", "Plus Jakarta Sans", "Helvetica Neue", sans-serif;
   background-color: var(--bg);
   color: var(--text-main);
   min-height: 100vh;
-  line-height: 1.5;
+  line-height: 1.47;
+  letter-spacing: -0.012em;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
-  transition: background-color 0.25s ease, color 0.25s ease;
+  transition: background-color 0.35s var(--apple-spring), color 0.35s var(--apple-spring);
 }
 
-/* ── LAYOUT UTILITIES ── */
+/* ── APPLE CONTAINER & LAYOUT ── */
 .app-container {
   display: flex;
   flex-direction: column;
@@ -84,97 +98,115 @@ body {
 
 .app-main {
   flex: 1;
-  max-width: 1280px;
+  max-width: 1240px;
   width: 100%;
   margin: 0 auto;
-  padding: 24px 20px 80px;
+  padding: 28px 22px 90px;
 }
 
-/* ── HEADER & NAVIGATION ── */
+/* ── APPLE GLASS NAVIGATION HEADER ── */
 .app-header {
   position: sticky;
-  top: 0;
+  top: 14px;
   z-index: 100;
+  max-width: 1240px;
+  margin: 0 auto;
+  width: calc(100% - 32px);
   background: var(--surface-glass);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid var(--border);
-  padding: 12px 24px;
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  border: 1px solid var(--border);
+  box-shadow: var(--border-specular), var(--shadow-md);
+  border-radius: var(--radius-full);
+  padding: 10px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+  transition: all 0.3s var(--apple-spring);
 }
 
 .brand-wrap {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   cursor: pointer;
   user-select: none;
+  transition: transform 0.2s var(--apple-spring);
+}
+
+.brand-wrap:active {
+  transform: scale(0.97);
 }
 
 .brand-logo {
-  width: 38px;
-  height: 38px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   object-fit: cover;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .brand-title {
-  font-size: 20px;
-  font-weight: 900;
-  letter-spacing: -0.6px;
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
   background: linear-gradient(135deg, var(--primary), #3B82F6);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
+/* Apple Segmented Tab Control */
 .nav-tabs {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
+  background: var(--segmented-bg);
+  padding: 4px;
+  border-radius: var(--radius-full);
   overflow-x: auto;
   scrollbar-width: none;
-  padding: 4px;
 }
 .nav-tabs::-webkit-scrollbar { display: none; }
 
 .nav-pill {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
+  gap: 7px;
+  padding: 7px 15px;
   border-radius: var(--radius-full);
-  font-size: 13.5px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
   color: var(--text-muted);
   background: transparent;
   border: none;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s var(--apple-spring);
   white-space: nowrap;
 }
 
 .nav-pill:hover {
   color: var(--text-main);
-  background: var(--surface-alt);
 }
 
 .nav-pill.active {
   color: #FFFFFF;
   background: var(--primary);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);
+}
+
+.nav-pill:active {
+  transform: scale(0.96);
 }
 
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
-/* ── BUTTONS ── */
+/* ── APPLE SYSTEM BUTTONS ── */
 .btn-primary {
   display: inline-flex;
   align-items: center;
@@ -183,19 +215,23 @@ body {
   background: var(--primary);
   color: #FFFFFF;
   font-size: 14px;
-  font-weight: 800;
-  padding: 10px 20px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  padding: 10px 22px;
   border-radius: var(--radius-full);
   border: none;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+  transition: all 0.25s var(--apple-spring);
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.28);
 }
 
 .btn-primary:hover {
   background: var(--primary-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(16, 185, 129, 0.4);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.38);
+}
+
+.btn-primary:active {
+  transform: scale(0.965);
 }
 
 .btn-ghost {
@@ -206,60 +242,78 @@ body {
   background: var(--surface-alt);
   color: var(--text-main);
   font-size: 13.5px;
-  font-weight: 700;
-  padding: 8px 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  padding: 9px 18px;
   border-radius: var(--radius-full);
   border: 1px solid var(--border);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s var(--apple-spring);
 }
 
 .btn-ghost:hover {
-  background: var(--border);
+  background: rgba(120, 120, 128, 0.16);
+}
+
+.btn-ghost:active {
+  transform: scale(0.965);
 }
 
 .icon-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   background: var(--surface-alt);
   border: 1px solid var(--border);
   color: var(--text-main);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s var(--apple-spring);
 }
 
 .icon-btn:hover {
-  background: var(--border);
+  background: rgba(120, 120, 128, 0.2);
 }
 
-/* ── BADGES & CHIPS ── */
+.icon-btn:active {
+  transform: scale(0.92);
+}
+
+/* ── APPLE GLASS CARDS & WIDGETS ── */
+.glass-card {
+  background: var(--surface);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--border);
+  box-shadow: var(--border-specular), var(--shadow-sm);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  transition: transform 0.25s var(--apple-spring), box-shadow 0.25s var(--apple-spring);
+}
+
+.glass-card:hover {
+  box-shadow: var(--border-specular), var(--shadow-md);
+}
+
+/* ── BADGES & SYSTEM CHIPS ── */
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   padding: 4px 10px;
   border-radius: var(--radius-full);
-  font-size: 11px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
-.badge-green { background: #DCFCE7; color: #16A34A; }
-.badge-blue { background: #DBEAFE; color: #2563EB; }
-.badge-yellow { background: #FEF3C7; color: #D97706; }
-.badge-purple { background: #F3E8FF; color: #9333EA; }
-.badge-red { background: #FEE2E2; color: #DC2626; }
-
-[data-theme="dark"] .badge-green { background: rgba(22, 163, 74, 0.2); color: #4ADE80; }
-[data-theme="dark"] .badge-blue { background: rgba(37, 99, 235, 0.2); color: #60A5FA; }
-[data-theme="dark"] .badge-yellow { background: rgba(217, 119, 6, 0.2); color: #FBBF24; }
-[data-theme="dark"] .badge-purple { background: rgba(147, 51, 234, 0.2); color: #C084FC; }
-[data-theme="dark"] .badge-red { background: rgba(220, 38, 38, 0.2); color: #F87171; }
+.badge-green { background: rgba(16, 185, 129, 0.14); color: #10B981; }
+.badge-blue { background: rgba(59, 130, 246, 0.14); color: #3B82F6; }
+.badge-yellow { background: rgba(245, 158, 11, 0.14); color: #F59E0B; }
+.badge-purple { background: rgba(168, 85, 247, 0.14); color: #A855F7; }
+.badge-red { background: rgba(239, 68, 68, 0.14); color: #EF4444; }
 
 .chip-row {
   display: flex;
@@ -273,16 +327,16 @@ body {
   padding: 8px 16px;
   border-radius: var(--radius-full);
   font-size: 13px;
-  font-weight: 700;
-  background: var(--surface);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  background: var(--surface-alt);
   border: 1px solid var(--border);
   color: var(--text-muted);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s var(--apple-spring);
 }
 
 .chip-pill:hover {
-  background: var(--surface-alt);
   color: var(--text-main);
 }
 
@@ -290,60 +344,53 @@ body {
   background: var(--primary-tint);
   border-color: var(--primary);
   color: var(--primary);
+  font-weight: 700;
 }
 
-/* ── CARDS ── */
-.glass-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 24px;
-  box-shadow: var(--shadow-sm);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+.chip-pill:active {
+  transform: scale(0.96);
 }
 
-.glass-card:hover {
-  box-shadow: var(--shadow-md);
-}
-
-/* ── INPUTS & CONTROLS ── */
+/* ── APPLE INPUTS & CONTROLS ── */
 .input-clean {
   width: 100%;
   padding: 12px 16px;
   border-radius: var(--radius-sm);
-  border: 1.5px solid var(--border);
-  background: var(--surface);
+  border: 1px solid var(--border);
+  background: var(--surface-alt);
   color: var(--text-main);
   font-size: 14px;
   font-family: inherit;
   outline: none;
-  transition: border-color 0.2s ease;
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .input-clean:focus {
   border-color: var(--primary);
+  background: var(--surface-solid);
+  box-shadow: 0 0 0 3px var(--primary-tint);
 }
 
 .label-mini {
   display: block;
-  font-size: 11.5px;
-  font-weight: 800;
+  font-size: 11px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   color: var(--text-muted);
   margin-bottom: 6px;
 }
 
-/* ── RADAR CANVAS ── */
+/* ── RADAR CANVAS (APPLE FIND MY STYLE) ── */
 .radar-screen-wrap {
   position: relative;
   width: 100%;
   height: 380px;
-  background: #06110D;
+  background: #020805;
   border-radius: var(--radius-lg);
   overflow: hidden;
-  border: 1.5px solid rgba(16, 185, 129, 0.4);
-  box-shadow: 0 0 30px rgba(16, 185, 129, 0.15) inset;
+  border: 1.5px solid rgba(16, 185, 129, 0.35);
+  box-shadow: 0 0 40px rgba(16, 185, 129, 0.12) inset;
 }
 
 .radar-canvas {
@@ -357,16 +404,17 @@ body {
   top: 14px;
   left: 14px;
   background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(8px);
-  color: #4ade80;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: #4ADE80;
   padding: 6px 14px;
   border-radius: var(--radius-full);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
   display: flex;
   align-items: center;
   gap: 8px;
-  border: 1px solid rgba(74, 222, 128, 0.3);
+  border: 1px solid rgba(74, 222, 128, 0.25);
 }
 
 .radar-telemetry-grid {
@@ -378,31 +426,33 @@ body {
 
 .telemetry-tile {
   background: var(--surface);
+  backdrop-filter: blur(20px);
   border: 1px solid var(--border);
   padding: 16px;
   border-radius: var(--radius-md);
   display: flex;
   flex-direction: column;
   gap: 4px;
+  box-shadow: var(--border-specular), var(--shadow-sm);
 }
 
-.telemetry-tile .t-lbl { font-size: 11.5px; color: var(--text-muted); font-weight: 700; }
-.telemetry-tile .t-val { font-size: 18px; font-weight: 900; }
+.telemetry-tile .t-lbl { font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+.telemetry-tile .t-val { font-size: 19px; font-weight: 800; letter-spacing: -0.02em; }
 
 /* ── AI VISION DROPZONE ── */
 .vision-dropzone {
-  border: 2px dashed var(--primary);
+  border: 2px dashed rgba(16, 185, 129, 0.6);
   background: var(--primary-tint);
   border-radius: var(--radius-lg);
   padding: 40px 20px;
   text-align: center;
   cursor: pointer;
-  transition: all 0.25s ease;
+  transition: all 0.25s var(--apple-spring);
 }
 
 .vision-dropzone:hover {
   background: rgba(16, 185, 129, 0.18);
-  transform: scale(1.005);
+  border-color: var(--primary);
 }
 
 .vision-preview-box {
@@ -410,6 +460,7 @@ body {
   border-radius: var(--radius-md);
   overflow: hidden;
   margin-top: 16px;
+  border: 1px solid var(--border);
 }
 
 .vision-laser-line {
@@ -417,9 +468,9 @@ body {
   top: 0;
   left: 0;
   width: 100%;
-  height: 3px;
-  background: linear-gradient(90deg, transparent, #ef4444, #10b981, transparent);
-  box-shadow: 0 0 12px #ef4444;
+  height: 2.5px;
+  background: linear-gradient(90deg, transparent, #EF4444, #10B981, transparent);
+  box-shadow: 0 0 14px #EF4444;
   animation: laserSweep 2s ease-in-out infinite alternate;
 }
 
@@ -430,16 +481,16 @@ body {
 
 .vision-target-box {
   position: absolute;
-  border: 2px solid #ef4444;
-  background: rgba(239, 68, 68, 0.15);
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+  border: 2px solid #EF4444;
+  background: rgba(239, 68, 68, 0.18);
+  border-radius: 10px;
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.5);
   animation: pulseBox 1.2s infinite;
 }
 
 @keyframes pulseBox {
-  0%, 100% { opacity: 0.8; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.03); }
+  0%, 100% { opacity: 0.85; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.02); }
 }
 
 /* ── NUTRITION & BREEDS ── */
@@ -457,7 +508,7 @@ body {
   background: var(--primary-tint);
   border: 1.5px solid var(--primary);
   border-radius: var(--radius-lg);
-  padding: 22px;
+  padding: 24px;
 }
 
 .breed-card-grid {
@@ -475,14 +526,15 @@ body {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  box-shadow: var(--border-specular), var(--shadow-sm);
 }
 
 .trait-meter-bar {
-  height: 6px;
+  height: 5px;
   background: var(--surface-alt);
   border-radius: 3px;
   overflow: hidden;
-  margin-top: 4px;
+  margin-top: 5px;
 }
 
 .trait-meter-fill {
@@ -491,22 +543,23 @@ body {
   border-radius: 3px;
 }
 
-/* ── MODALS & TOASTS ── */
+/* ── APPLE MODALS & DIALOGS ── */
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
-  animation: fadeIn 0.2s ease;
+  animation: appleFadeIn 0.25s var(--apple-spring);
 }
 
 .modal-dialog {
-  background: var(--surface);
+  background: var(--surface-solid);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
   max-width: 520px;
@@ -516,11 +569,18 @@ body {
   padding: 28px;
   box-shadow: var(--shadow-lg);
   position: relative;
-  animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: appleSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes slideUp { from { opacity: 0; transform: translateY(20px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes appleFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes appleSlideUp {
+  from { opacity: 0; transform: scale(0.94) translateY(24px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
 
 .toast-container {
   position: fixed;
@@ -545,7 +605,10 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  animation: slideInRight 0.25s ease;
+  animation: appleToastSlide 0.3s var(--apple-spring);
 }
 
-@keyframes slideInRight { from { transform: translateX(40px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes appleToastSlide {
+  from { transform: translateY(20px) scale(0.95); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
