@@ -16,17 +16,32 @@ import {
   Moon, 
   ShoppingCart,
   Award,
-  Sparkles
+  Sparkles,
+  Smartphone,
+  LayoutGrid
 } from 'lucide-react';
 
 export default function Header() {
-  const { activeTab, setActiveTab, theme, toggleTheme, cartCount, openModal } = useApp();
-  const { currentUser, switchRole } = useAuth();
+  const { activeTab, setActiveTab, theme, toggleTheme, cartCount, openModal, showToast } = useApp();
+  const { currentUser, loginAsGuest } = useAuth();
 
   const role = currentUser?.role || 'Pet Owner';
 
-  // Define tab navigation based on active user role
+  // Define tab navigation based on authentication & active user role
   const getNavTabs = () => {
+    if (!currentUser) {
+      // Unsigned / Public Visitor View
+      return [
+        { id: 'landing', label: 'Overview', icon: Sparkles },
+        { id: 'tracker', label: 'Live GPS Radar', icon: Radar },
+        { id: 'vets', label: 'Specialists', icon: Stethoscope },
+        { id: 'ai', label: 'AI Health Triage', icon: Activity },
+        { id: 'food', label: 'Nutrition & Breeds', icon: Utensils },
+        { id: 'shop', label: 'Shop & Rx', icon: ShoppingBag }
+      ];
+    }
+
+    // Signed-in Custom Role Views
     if (role.toLowerCase().includes('vet') || role.toLowerCase().includes('doctor')) {
       return [
         { id: 'dashboard', label: 'Console', icon: Activity },
@@ -34,12 +49,14 @@ export default function Header() {
         { id: 'vaccines', label: 'Patient EHR', icon: Bell },
         { id: 'shop', label: 'Supplies', icon: ShoppingBag },
         { id: 'community', label: 'Community', icon: Users },
+        { id: 'landing', label: 'Website Home', icon: Sparkles },
         { id: 'profile', label: 'Clinic Profile', icon: User }
       ];
     } else if (role.toLowerCase().includes('shop') || role.toLowerCase().includes('merchant')) {
       return [
         { id: 'shop', label: 'Catalog & Orders', icon: ShoppingBag },
         { id: 'community', label: 'Community', icon: Users },
+        { id: 'landing', label: 'Website Home', icon: Sparkles },
         { id: 'profile', label: 'Store Profile', icon: User }
       ];
     } else if (role.toLowerCase().includes('groom') || role.toLowerCase().includes('board')) {
@@ -47,19 +64,21 @@ export default function Header() {
         { id: 'vets', label: 'Service Queue', icon: Stethoscope },
         { id: 'vaccines', label: 'Guest Pets', icon: Bell },
         { id: 'shop', label: 'Supplies', icon: ShoppingBag },
+        { id: 'landing', label: 'Website Home', icon: Sparkles },
         { id: 'profile', label: 'Provider Profile', icon: User }
       ];
     } else {
-      // Default: Pet Owner
+      // Standard Signed-in Pet Parent
       return [
-        { id: 'dashboard', label: 'Home', icon: Home },
+        { id: 'dashboard', label: 'Dashboard', icon: Home },
         { id: 'tracker', label: 'Pet Tracker', icon: Radar },
         { id: 'vets', label: 'Specialists', icon: Stethoscope },
         { id: 'ai', label: 'Health Triage', icon: Activity },
-        { id: 'food', label: 'Nutrition & Breeds', icon: Utensils },
+        { id: 'food', label: 'Nutrition', icon: Utensils },
         { id: 'community', label: 'Community', icon: Users },
         { id: 'shop', label: 'Shop', icon: ShoppingBag },
         { id: 'vaccines', label: 'Reminders', icon: Bell },
+        { id: 'landing', label: 'Overview', icon: Sparkles },
         { id: 'profile', label: 'Profile', icon: User }
       ];
     }
@@ -67,10 +86,24 @@ export default function Header() {
 
   const navTabs = getNavTabs();
 
+  const handleBrandClick = () => {
+    if (currentUser) {
+      setActiveTab('dashboard');
+    } else {
+      setActiveTab('landing');
+    }
+  };
+
+  const handleDemoClick = () => {
+    loginAsGuest('Pet Owner');
+    setActiveTab('dashboard');
+    showToast('🚀 Entered Pet Maya demo dashboard!', 'success');
+  };
+
   return (
     <header className="app-header">
       {/* Brand Logo & Name */}
-      <div className="brand-wrap" onClick={() => setActiveTab('dashboard')}>
+      <div className="brand-wrap" onClick={handleBrandClick}>
         <img src="assets/images/tail_wagging_logo.png" alt="Pet Maya" className="brand-logo" />
         <span className="brand-title">Pet Maya</span>
       </div>
@@ -79,7 +112,7 @@ export default function Header() {
       <nav className="nav-tabs">
         {navTabs.map((tab) => {
           const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
+          const isActive = activeTab === tab.id || (!currentUser && activeTab === 'dashboard' && tab.id === 'landing');
           return (
             <button
               key={tab.id}
@@ -92,7 +125,7 @@ export default function Header() {
           );
         })}
 
-        {/* Admin Tab (Always accessible for demo governance) */}
+        {/* Admin Tab (Always accessible for governance) */}
         <button
           className={`nav-pill ${activeTab === 'admin' ? 'active' : ''}`}
           style={{ background: activeTab === 'admin' ? '#ef4444' : 'rgba(239,68,68,0.1)', color: activeTab === 'admin' ? '#fff' : '#ef4444' }}
@@ -148,11 +181,12 @@ export default function Header() {
           {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
         </button>
 
-        {/* User Profile Avatar / Sign-In Button */}
+        {/* User Profile Avatar or Sign-In / Demo Action */}
         {currentUser ? (
           <div 
             style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
             onClick={() => setActiveTab('profile')}
+            title="View Profile & EHR"
           >
             <img 
               src={currentUser.photoUrl || 'assets/images/tail_wagging_logo.png'} 
@@ -161,10 +195,15 @@ export default function Header() {
             />
           </div>
         ) : (
-          <button className="btn-primary" onClick={() => openModal('auth')}>
-            <Sparkles size={16} />
-            <span>Sign In</span>
-          </button>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <button className="btn-ghost" style={{ padding: '8px 14px', fontSize: '13px' }} onClick={handleDemoClick}>
+              <span>Try Demo</span>
+            </button>
+            <button className="btn-primary" style={{ padding: '8px 18px', fontSize: '13px' }} onClick={() => openModal('auth')}>
+              <Sparkles size={15} />
+              <span>Sign In</span>
+            </button>
+          </div>
         )}
       </div>
     </header>

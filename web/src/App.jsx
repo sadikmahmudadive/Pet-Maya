@@ -1,10 +1,11 @@
 import React from 'react';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { AppProvider, useApp } from './context/AppContext';
 import Header from './components/Header';
 import Toast from './components/Toast';
 import ModalRoot from './components/Modals/ModalRoot';
 
+import LandingPage from './components/Landing/LandingPage';
 import Dashboard from './components/Dashboard/Dashboard';
 import PetTracker from './components/Tracker/PetTracker';
 import Specialists from './components/Specialists/Specialists';
@@ -18,9 +19,17 @@ import AdminPortal from './components/Admin/AdminPortal';
 
 function MainContent() {
   const { activeTab } = useApp();
+  const { currentUser } = useAuth();
 
   const renderActiveScreen = () => {
+    // If user is unsigned and on default home/dashboard/landing, show full presentation landing page
+    if (!currentUser && (activeTab === 'dashboard' || activeTab === 'landing')) {
+      return <LandingPage />;
+    }
+
     switch (activeTab) {
+      case 'landing':
+        return <LandingPage />;
       case 'dashboard':
         return <Dashboard />;
       case 'tracker':
@@ -42,7 +51,7 @@ function MainContent() {
       case 'admin':
         return <AdminPortal />;
       default:
-        return <Dashboard />;
+        return currentUser ? <Dashboard /> : <LandingPage />;
     }
   };
 
