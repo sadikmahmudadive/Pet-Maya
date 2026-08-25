@@ -45,14 +45,6 @@ export default function LandingPage() {
           HERO SECTION
           ══════════════════════════════════════════════════════ */}
       <section style={{ textAlign: 'center', maxWidth: '960px', margin: '20px auto 0', padding: '0 12px' }}>
-        {/* Version Badge */}
-        <div 
-          className="badge badge-green" 
-          style={{ padding: '8px 18px', fontSize: '12.5px', marginBottom: '20px', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
-        >
-          <Sparkles size={15} />
-          <span>Pet Maya 2.0 • Complete Smart Pet Care Ecosystem</span>
-        </div>
 
         {/* Main Headline */}
         <h1 style={{ fontSize: 'clamp(32px, 5vw, 56px)', fontWeight: 900, letterSpacing: '-1.5px', lineHeight: 1.15, marginBottom: '20px' }}>
