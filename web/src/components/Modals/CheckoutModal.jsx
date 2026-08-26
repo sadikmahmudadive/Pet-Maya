@@ -7,8 +7,8 @@ export default function CheckoutModal() {
   const { closeModal, modalData, placeOrder } = useApp();
   const { currentUser } = useAuth();
 
-  const [address, setAddress] = useState('House 14, Road 7, Block D, Banani, Dhaka');
-  const [phone, setPhone] = useState('+880 1712-345678');
+  const [address, setAddress] = useState(currentUser?.address || 'House 14, Road 7, Block D, Banani, Dhaka');
+  const [phone, setPhone] = useState(currentUser?.phone || '+880 1712-345678');
   const [paymentMethod, setPaymentMethod] = useState('bKash / Mobile Banking');
 
   const total = modalData?.total || 64.99;
