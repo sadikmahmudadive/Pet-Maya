@@ -7,7 +7,7 @@ import {
   Code, Minus, Link2, Image, X, Send, ChevronLeft,
   Save, Clock, Type, AlignLeft, Eye, EyeOff
 } from 'lucide-react';
-import { db, collection, addDoc } from '../../config/firebase';
+import { db, collection, addDoc, storage, ref, uploadBytesResumable, getDownloadURL } from '../../config/firebase';
 
 const CATEGORIES = ['Health', 'Nutrition', 'Training', 'Lifestyle'];
 const CATEGORY_COLORS = {
@@ -184,6 +184,60 @@ export default function ArticleEditor({ onClose, onPublished, showToast }) {
   const handleImageUrl = (url) => {
     setImageUrl(url);
     setImagePreview(!!url.trim());
+  };
+
+  const fileInputRef = useRef(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+
+  // ── Upload Image to Firebase Storage ─────────────────
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    // Check file type
+    if (!file.type.startsWith('image/')) {
+      showToast('Please select a valid image file', 'error');
+      return;
+    }
+    
+    // Check file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('Image must be less than 5MB', 'error');
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadProgress(0);
+
+    const fileExtension = file.name.split('.').pop();
+    const fileName = `blog_covers/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExtension}`;
+    const storageRef = ref(storage, fileName);
+    
+    const uploadTask = uploadBytesResumable(storageRef, file);
+
+    uploadTask.on('state_changed', 
+      (snapshot) => {
+        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        setUploadProgress(Math.round(progress));
+      }, 
+      (error) => {
+        showToast('Image upload failed', 'error');
+        setIsUploading(false);
+      }, 
+      async () => {
+        try {
+          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+          setImageUrl(downloadURL);
+          setImagePreview(true);
+          showToast('Image uploaded successfully', 'success');
+        } catch (err) {
+          showToast('Failed to get image URL', 'error');
+        } finally {
+          setIsUploading(false);
+        }
+      }
+    );
   };
 
   // ── Publish ─────────────────────────────────────────
@@ -380,18 +434,39 @@ export default function ArticleEditor({ onClose, onPublished, showToast }) {
               </button>
             </div>
           ) : (
-            <div
-              style={{ marginBottom: '24px', padding: '24px', background: 'var(--surface-alt)', borderRadius: '0 0 20px 20px', display: 'flex', alignItems: 'center', gap: '12px', cursor: 'text' }}
-              onClick={() => imageUrlRef.current?.focus()}
-            >
-              <Image size={18} color="var(--text-muted)" />
+            <div style={{ marginBottom: '24px', display: 'flex', gap: '12px' }}>
+              <div
+                style={{ flex: 1, padding: '24px', background: 'var(--surface-alt)', borderRadius: '0 0 0 20px', display: 'flex', alignItems: 'center', gap: '12px', cursor: 'text' }}
+                onClick={() => imageUrlRef.current?.focus()}
+              >
+                <Image size={18} color="var(--text-muted)" />
+                <input
+                  ref={imageUrlRef}
+                  type="url"
+                  placeholder="Paste cover image URL..."
+                  value={imageUrl}
+                  onChange={e => handleImageUrl(e.target.value)}
+                  style={{ flex: 1, background: 'none', border: 'none', outline: 'none', color: 'var(--text-main)', fontSize: '14px', fontStyle: imageUrl ? 'normal' : 'italic' }}
+                />
+              </div>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+                style={{ 
+                  background: 'var(--surface-alt)', color: 'var(--text-main)', border: 'none', 
+                  borderRadius: '0 0 20px 0', padding: '0 24px', cursor: isUploading ? 'not-allowed' : 'pointer',
+                  fontWeight: 600, fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                {isUploading ? `${uploadProgress}%` : 'Upload'}
+              </button>
               <input
-                ref={imageUrlRef}
-                type="url"
-                placeholder="Paste cover image URL..."
-                value={imageUrl}
-                onChange={e => handleImageUrl(e.target.value)}
-                style={{ flex: 1, background: 'none', border: 'none', outline: 'none', color: 'var(--text-main)', fontSize: '14px', fontStyle: imageUrl ? 'normal' : 'italic' }}
+                type="file"
+                ref={fileInputRef}
+                style={{ display: 'none' }}
+                accept="image/*"
+                onChange={handleImageUpload}
               />
             </div>
           )}

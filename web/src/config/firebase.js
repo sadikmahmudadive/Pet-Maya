@@ -30,6 +30,12 @@ import {
   arrayUnion,
   arrayRemove
 } from 'firebase/firestore';
+import { 
+  getStorage, 
+  ref, 
+  uploadBytesResumable, 
+  getDownloadURL 
+} from 'firebase/storage';
 
 const firebaseConfig = {
   apiKey: "AIzaSyDjikCtm7RK1CoebQMGQIQTAPh-cC23B-Q",
@@ -44,6 +50,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+export const storage = getStorage(app);
 export const googleProvider = new GoogleAuthProvider();
 
 export {
@@ -70,7 +77,10 @@ export {
   addDoc,
   serverTimestamp,
   arrayUnion,
-  arrayRemove
+  arrayRemove,
+  ref,
+  uploadBytesResumable,
+  getDownloadURL
 };
 
 // ── INITIAL SEED DATA FOR DEMO & INSTANT RENDERING ──
