@@ -43,8 +43,8 @@ function MainContent() {
     );
   }
 
-  // Standard consumer site: enforce landing page presentation for unsigned users
-  const isLanding = !currentUser || activeTab === 'landing';
+  // Standard consumer site: landing page for overview or default unsigned visit
+  const isLanding = activeTab === 'landing' || (!currentUser && activeTab === 'dashboard');
 
   const renderActiveScreen = () => {
     if (isLanding) {

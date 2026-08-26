@@ -140,56 +140,56 @@ export default function Header() {
               </li>
               <li>
                 <button 
-                  className="apple-nav-item"
-                  onClick={() => { handleProtectedNav('shop', 'Pet Shop'); setIsMobileMenuOpen(false); }}
+                  className={`apple-nav-item ${activeTab === 'shop' ? 'active' : ''}`}
+                  onClick={() => { setActiveTab('shop'); setIsMobileMenuOpen(false); }}
                 >
                   Pet Shop
                 </button>
               </li>
               <li>
                 <button 
-                  className="apple-nav-item"
-                  onClick={() => { handleProtectedNav('tracker', 'Tracker'); setIsMobileMenuOpen(false); }}
+                  className={`apple-nav-item ${activeTab === 'tracker' ? 'active' : ''}`}
+                  onClick={() => { setActiveTab('tracker'); setIsMobileMenuOpen(false); }}
                 >
                   Tracker
                 </button>
               </li>
               <li>
                 <button 
-                  className="apple-nav-item"
-                  onClick={() => { handleProtectedNav('ai', 'Wellness'); setIsMobileMenuOpen(false); }}
+                  className={`apple-nav-item ${activeTab === 'ai' ? 'active' : ''}`}
+                  onClick={() => { setActiveTab('ai'); setIsMobileMenuOpen(false); }}
                 >
                   Wellness
                 </button>
               </li>
               <li>
                 <button 
-                  className="apple-nav-item"
-                  onClick={() => { handleProtectedNav('vets', 'Specialists'); setIsMobileMenuOpen(false); }}
+                  className={`apple-nav-item ${activeTab === 'vets' ? 'active' : ''}`}
+                  onClick={() => { setActiveTab('vets'); setIsMobileMenuOpen(false); }}
                 >
                   Specialists
                 </button>
               </li>
               <li>
                 <button 
-                  className="apple-nav-item"
-                  onClick={() => { handleProtectedNav('community', 'Community'); setIsMobileMenuOpen(false); }}
+                  className={`apple-nav-item ${activeTab === 'community' ? 'active' : ''}`}
+                  onClick={() => { setActiveTab('community'); setIsMobileMenuOpen(false); }}
                 >
                   Community
                 </button>
               </li>
               <li>
                 <button 
-                  className="apple-nav-item"
-                  onClick={() => { handleProtectedNav('food', 'Blog'); setIsMobileMenuOpen(false); }}
+                  className={`apple-nav-item ${activeTab === 'food' ? 'active' : ''}`}
+                  onClick={() => { setActiveTab('food'); setIsMobileMenuOpen(false); }}
                 >
                   Blog
                 </button>
               </li>
               <li>
                 <button 
-                  className="apple-nav-item"
-                  onClick={() => { handleProtectedNav('vaccines', 'Reminders'); setIsMobileMenuOpen(false); }}
+                  className={`apple-nav-item ${activeTab === 'vaccines' ? 'active' : ''}`}
+                  onClick={() => { setActiveTab('vaccines'); setIsMobileMenuOpen(false); }}
                 >
                   Reminders
                 </button>

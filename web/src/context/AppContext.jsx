@@ -22,17 +22,107 @@ import {
 } from '../config/firebase';
 import { useAuth } from './AuthContext';
 
+// Route to Tab Mapping & Document Titles
+export const TAB_ROUTES = {
+  landing: '/',
+  overview: '/',
+  dashboard: '/dashboard',
+  shop: '/shop',
+  tracker: '/tracker',
+  ai: '/wellness',
+  vets: '/specialists',
+  community: '/community',
+  food: '/blog',
+  vaccines: '/reminders',
+  profile: '/profile',
+  admin: '/admin',
+};
+
+export const ROUTE_TABS = {
+  '/': 'landing',
+  '/overview': 'landing',
+  '/dashboard': 'dashboard',
+  '/shop': 'shop',
+  '/pet-shop': 'shop',
+  '/tracker': 'tracker',
+  '/wellness': 'ai',
+  '/ai': 'ai',
+  '/specialists': 'vets',
+  '/vets': 'vets',
+  '/community': 'community',
+  '/blog': 'food',
+  '/nutrition': 'food',
+  '/reminders': 'vaccines',
+  '/vaccines': 'vaccines',
+  '/profile': 'profile',
+  '/admin': 'admin',
+};
+
+const PAGE_TITLES = {
+  landing: 'Pet Maya — Ultimate Pet Health, GPS Radar & Clinical Ecosystem',
+  dashboard: 'Pet Maya — Real-Time Health & Pet Telemetry Dashboard',
+  shop: 'Pet Maya — Veterinary Pharmacy, Diets & Smart GPS Collars',
+  tracker: 'Pet Maya — Live GPS Radar, Sonar & Safe-Zone Telemetry',
+  ai: 'Pet Maya — AI Vision Clinical Health Triage',
+  vets: 'Pet Maya — Verified Specialists & Teleconsultation',
+  community: 'Pet Maya — Pet Community & Moments Feed',
+  food: 'Pet Maya — Clinical Nutrition & Veterinary Articles',
+  vaccines: 'Pet Maya — Medical Passport & Vaccine Schedule',
+  profile: 'Pet Maya — Account & Pet EHR Records',
+  admin: 'Pet Maya — Administration Control Center',
+};
+
+const resolveInitialTab = () => {
+  if (typeof window === 'undefined') return 'dashboard';
+  const pathname = window.location.pathname.toLowerCase().replace(/\/$/, '') || '/';
+  if (ROUTE_TABS[pathname]) {
+    return ROUTE_TABS[pathname];
+  }
+  // Support hash routing fallback (#/shop or #tracker)
+  const hash = window.location.hash.replace(/^#\/?/, '').toLowerCase();
+  if (hash && (ROUTE_TABS['/' + hash] || TAB_ROUTES[hash])) {
+    return ROUTE_TABS['/' + hash] || hash;
+  }
+  return localStorage.getItem('pm_active_tab') || 'dashboard';
+};
+
 const AppContext = createContext();
 
 export function AppProvider({ children }) {
   const { currentUser, awardPoints } = useAuth();
 
   // Navigation
-  const [activeTab, setActiveTab] = useState(() => localStorage.getItem('pm_active_tab') || 'dashboard');
+  const [activeTab, setActiveTab] = useState(resolveInitialTab);
   const [theme, setTheme] = useState(() => localStorage.getItem('pm_theme') || 'dark');
 
+  // Handle Browser Back / Forward button navigation
+  useEffect(() => {
+    const handlePopState = (event) => {
+      const pathname = window.location.pathname.toLowerCase().replace(/\/$/, '') || '/';
+      const targetTab = ROUTE_TABS[pathname] || (event.state && event.state.tab);
+      if (targetTab) {
+        setActiveTab(targetTab);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  // Synchronize Browser Address Bar & Document Title when activeTab changes
   useEffect(() => {
     localStorage.setItem('pm_active_tab', activeTab);
+    
+    if (typeof window !== 'undefined') {
+      const targetRoute = TAB_ROUTES[activeTab] || `/${activeTab}`;
+      if (window.location.pathname !== targetRoute) {
+        window.history.pushState({ tab: activeTab }, '', targetRoute);
+      }
+
+      if (PAGE_TITLES[activeTab]) {
+        document.title = PAGE_TITLES[activeTab];
+      }
+    }
   }, [activeTab]);
 
   // Modals & Drawers
