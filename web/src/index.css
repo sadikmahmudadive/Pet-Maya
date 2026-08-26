@@ -1108,10 +1108,35 @@ body {
   color: #EF4444;
 }
 
-/* Story Viewer Progress Bar */
-@keyframes storyTimer {
-  from { width: 0%; }
-  to { width: 100%; }
+/* Facebook Style Create Post Trigger Bar */
+.fb-input-pill {
+  transition: background 0.2s ease;
+}
+
+.fb-input-pill:hover {
+  background: var(--border) !important;
+}
+
+.fb-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.fb-action-btn:hover {
+  background: var(--surface-alt);
+  color: var(--text-main);
 }
 
 

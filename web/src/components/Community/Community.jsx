@@ -10,7 +10,6 @@ import {
   Share2,
   Bookmark,
   MoreHorizontal,
-  Smile,
   ShieldCheck,
   Plus,
   Compass,
@@ -25,31 +24,24 @@ import {
   CheckCircle,
   HelpCircle,
   Camera,
-  Activity
+  Activity,
+  Globe
 } from 'lucide-react';
 import { AppleReveal } from '../Animations/AppleReveal';
 import { AppleStagger } from '../Animations/AppleStagger';
-
-const MOOD_ACTIVITIES = [
-  '🐾 Playful & Energetic',
-  '🩺 Health Check Complete',
-  '🎾 Park Day & Agility',
-  '💤 Cozy Nap Time',
-  '🎓 Training Milestone',
-  '🍗 Gourmet Treat Time'
-];
 
 export default function Community() {
   const { posts, isPostsLoading, createPost, toggleLike, addComment, pets, vets, showToast, openModal } = useApp();
   const { currentUser } = useAuth();
 
-  // State for Create Post
+  // State for Create Post Modal & Inputs
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [postText, setPostText] = useState('');
   const [selectedPetTag, setSelectedPetTag] = useState(pets[0]?.name || 'My Pet');
   const [selectedCategory, setSelectedCategory] = useState('Moment');
-  const [selectedMood, setSelectedMood] = useState(MOOD_ACTIVITIES[0]);
   const [postImagePreview, setPostImagePreview] = useState(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [showPhotoDropzone, setShowPhotoDropzone] = useState(false);
   const fileInputRef = useRef(null);
 
   // Feed Filter & Search
@@ -140,16 +132,17 @@ export default function Community() {
     reader.onload = (event) => {
       setPostImagePreview(event.target.result);
       setIsUploadingImage(false);
-      showToast('📸 Photo attached! Ready to share.', 'success');
+      setShowPhotoDropzone(true);
+      showToast('Photo attached! Ready to share.', 'success');
     };
     reader.readAsDataURL(file);
   };
 
   // ── Post Submission ──
   const handlePostSubmit = (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     if (!postText.trim() && !postImagePreview) {
-      showToast('⚠️ Please enter a message or attach a photo', 'error');
+      showToast('Please enter a message or attach a photo', 'error');
       return;
     }
 
@@ -161,12 +154,13 @@ export default function Community() {
       petTag: petTagText,
       content: postText.trim(),
       category: selectedCategory,
-      mood: selectedMood,
       image: postImagePreview || ''
     });
 
     setPostText('');
     setPostImagePreview(null);
+    setShowPhotoDropzone(false);
+    setIsCreateModalOpen(false);
   };
 
   // ── Comment Submission ──
@@ -193,7 +187,7 @@ export default function Community() {
       try {
         localStorage.setItem('pm_bookmarked_posts', JSON.stringify(next));
       } catch (_) {}
-      showToast(next.includes(postId) ? '🔖 Saved to your Bookmarks!' : 'Removed from bookmarks', 'info');
+      showToast(next.includes(postId) ? 'Saved to your Bookmarks!' : 'Removed from bookmarks', 'info');
       return next;
     });
   };
@@ -202,7 +196,7 @@ export default function Community() {
   const handleToggleFollow = (id, name) => {
     setFollowedParents(prev => {
       const isFollowing = !prev[id];
-      showToast(isFollowing ? `✨ Following ${name}` : `Unfollowed ${name}`, 'info');
+      showToast(isFollowing ? `Following ${name}` : `Unfollowed ${name}`, 'info');
       return { ...prev, [id]: isFollowing };
     });
   };
@@ -211,9 +205,9 @@ export default function Community() {
   const handleSharePost = (postId) => {
     if (navigator.clipboard) {
       navigator.clipboard.writeText(`${window.location.origin}/community#${postId}`);
-      showToast('🔗 Story link copied to clipboard!', 'success');
+      showToast('Story link copied to clipboard!', 'success');
     } else {
-      showToast('🔗 Link ready to share!', 'success');
+      showToast('Link ready to share!', 'success');
     }
   };
 
@@ -364,103 +358,74 @@ export default function Community() {
         {/* ── CENTER COLUMN (Create Post & Posts Feed) ── */}
         <main style={{ display: 'flex', flexDirection: 'column', gap: '20px', minWidth: 0 }}>
           
-          {/* ── FACEBOOK-STYLE CREATE POST CARD ── */}
+          {/* ── AUTHENTIC FACEBOOK-STYLE CREATE POST BOX ── */}
           <AppleReveal duration={0.6} yOffset={20}>
-            <div className="apple-solid-card" style={{ padding: '20px', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div className="apple-solid-card" style={{ padding: '16px 18px', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '12px' }}>
               
-              {/* Avatar + Main Input Bar */}
-              <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+              {/* Top Row: Avatar + Clickable Pill Input */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <img 
                   src={currentUser?.photoUrl || 'assets/images/tail_wagging_logo.png'} 
                   alt="User" 
-                  style={{ width: 42, height: 42, borderRadius: '50%', objectFit: 'cover' }} 
+                  style={{ width: 42, height: 42, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} 
                 />
-                <textarea 
-                  className="input-clean" 
-                  rows={postImagePreview || postText.length > 60 ? 3 : 2} 
-                  placeholder={`What's on your pet's mind, ${currentUser ? currentUser.name.split(' ')[0] : 'Pet Parent'}?`}
-                  value={postText}
-                  onChange={(e) => setPostText(e.target.value)}
-                  style={{ resize: 'none', fontSize: '14px', borderRadius: 'var(--radius-sm)', padding: '12px 14px' }}
-                />
+                <div 
+                  onClick={() => setIsCreateModalOpen(true)}
+                  className="fb-input-pill"
+                  style={{
+                    flex: 1,
+                    background: 'var(--surface-alt)',
+                    borderRadius: '24px',
+                    padding: '11px 18px',
+                    color: 'var(--text-muted)',
+                    fontSize: '14px',
+                    cursor: 'pointer',
+                    userSelect: 'none',
+                    border: '1px solid var(--border)'
+                  }}
+                >
+                  {`What's on your pet's mind, ${currentUser ? currentUser.name.split(' ')[0] : 'Pet Parent'}?`}
+                </div>
               </div>
 
-              {/* Attached Image Preview */}
-              {postImagePreview && (
-                <div style={{ position: 'relative', borderRadius: 'var(--radius-md)', overflow: 'hidden', maxHeight: 280, border: '1px solid var(--border)' }}>
-                  <img src={postImagePreview} alt="Attached Preview" style={{ width: '100%', height: 260, objectFit: 'cover', display: 'block' }} />
-                  <button 
-                    className="icon-btn" 
-                    style={{ position: 'absolute', top: 10, right: 10, background: 'rgba(0,0,0,0.6)', color: '#fff', border: 'none' }}
-                    onClick={() => setPostImagePreview(null)}
-                    title="Remove Photo"
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
-              )}
+              {/* Divider Line */}
+              <div style={{ height: '1px', background: 'var(--border)', width: '100%' }} />
 
-              {/* Tags and Metadata Bar */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', paddingTop: '4px', borderTop: '1px solid var(--border)' }}>
+              {/* Bottom Action Row: 3 Classic Facebook Buttons */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around', gap: '6px' }}>
                 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                  {/* Photo Upload Trigger */}
-                  <input 
-                    type="file" 
-                    ref={fileInputRef} 
-                    accept="image/*" 
-                    style={{ display: 'none' }} 
-                    onChange={handleImageSelect} 
-                  />
-                  <button 
-                    type="button" 
-                    className="btn-ghost" 
-                    style={{ padding: '6px 12px', fontSize: '12.5px', color: '#10B981' }}
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <ImageIcon size={16} />
-                    <span>Photo</span>
-                  </button>
-
-                  {/* Pet Tag Selector */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'var(--surface-alt)', padding: '4px 10px', borderRadius: '20px' }}>
-                    <Tag size={13} color="var(--primary)" />
-                    <select 
-                      value={selectedPetTag} 
-                      onChange={(e) => setSelectedPetTag(e.target.value)}
-                      style={{ background: 'transparent', border: 'none', color: 'var(--text-main)', fontSize: '12px', fontWeight: 600, outline: 'none', cursor: 'pointer' }}
-                    >
-                      {pets.map(p => (
-                        <option key={p.id} value={p.name} style={{ background: 'var(--surface)', color: 'var(--text-main)' }}>
-                          {p.name} ({p.breed || 'Pet'})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Category Pill Selector */}
-                  <select 
-                    value={selectedCategory} 
-                    onChange={(e) => setSelectedCategory(e.target.value)}
-                    style={{ background: 'var(--surface-alt)', border: '1px solid var(--border)', color: 'var(--text-main)', fontSize: '12px', fontWeight: 600, borderRadius: '20px', padding: '4px 10px', outline: 'none', cursor: 'pointer' }}
-                  >
-                    <option value="Moment" style={{ background: 'var(--surface)' }}>Moment</option>
-                    <option value="Health" style={{ background: 'var(--surface)' }}>Health Milestone</option>
-                    <option value="Adoption" style={{ background: 'var(--surface)' }}>Rescue Story</option>
-                    <option value="Question" style={{ background: 'var(--surface)' }}>Advice Needed</option>
-                  </select>
-                </div>
-
-                {/* Submit Post Button */}
+                {/* Photo / Video Button */}
                 <button 
                   type="button" 
-                  className="apple-btn-blue" 
-                  style={{ padding: '7px 22px', fontSize: '13px', borderRadius: '20px' }}
-                  onClick={handlePostSubmit}
-                  disabled={isUploadingImage}
+                  className="fb-action-btn"
+                  onClick={() => {
+                    setIsCreateModalOpen(true);
+                    setShowPhotoDropzone(true);
+                    setTimeout(() => fileInputRef.current?.click(), 150);
+                  }}
                 >
-                  <Send size={13} />
-                  <span>Post Story</span>
+                  <ImageIcon size={20} color="#10B981" />
+                  <span>Photo/video</span>
+                </button>
+
+                {/* Tag Pet Button */}
+                <button 
+                  type="button" 
+                  className="fb-action-btn"
+                  onClick={() => setIsCreateModalOpen(true)}
+                >
+                  <Tag size={20} color="#3B82F6" />
+                  <span>Tag Pet</span>
+                </button>
+
+                {/* Category Button */}
+                <button 
+                  type="button" 
+                  className="fb-action-btn"
+                  onClick={() => setIsCreateModalOpen(true)}
+                >
+                  <Sparkles size={20} color="#F59E0B" />
+                  <span>Category</span>
                 </button>
               </div>
             </div>
@@ -491,7 +456,7 @@ export default function Community() {
             </span>
           </div>
 
-          {/* ── POSTS FEED (INSTAGRAM & FACEBOOK STYLE) ── */}
+          {/* ── POSTS FEED ── */}
           <AppleStagger className="apple-grid-stagger" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             
             {/* Shimmer Skeleton Loading while fetching real Firestore posts */}
@@ -519,7 +484,7 @@ export default function Community() {
                 <button 
                   className="apple-btn-blue" 
                   style={{ margin: '0 auto' }}
-                  onClick={() => { setFeedFilter('all'); fileInputRef.current?.click(); }}
+                  onClick={() => setIsCreateModalOpen(true)}
                 >
                   <Camera size={14} />
                   <span>Share First Story</span>
@@ -825,6 +790,207 @@ export default function Community() {
         </aside>
 
       </div>
+
+      {/* ── AUTHENTIC FACEBOOK CREATE POST MODAL ── */}
+      {isCreateModalOpen && (
+        <div className="modal-backdrop" onClick={() => setIsCreateModalOpen(false)}>
+          <div 
+            className="modal-dialog" 
+            style={{ maxWidth: '540px', width: '100%', padding: '0', overflow: 'hidden', borderRadius: 'var(--radius-md)', background: 'var(--surface)', border: '1px solid var(--border)' }} 
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', padding: '16px 20px', borderBottom: '1px solid var(--border)' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: 700, margin: 0, textAlign: 'center' }}>Create post</h3>
+              <button 
+                className="icon-btn" 
+                style={{ position: 'absolute', right: 14, top: 14, width: 34, height: 34 }} 
+                onClick={() => setIsCreateModalOpen(false)}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '14px', maxHeight: '78vh', overflowY: 'auto' }}>
+              
+              {/* Author & Selectors Info Row */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <img 
+                  src={currentUser?.photoUrl || 'assets/images/tail_wagging_logo.png'} 
+                  alt="User" 
+                  style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover' }} 
+                />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <strong style={{ fontSize: '15px', fontWeight: 700 }}>
+                    {currentUser ? currentUser.name : 'Pet Parent'}
+                  </strong>
+
+                  {/* Badges Selector Row */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                    {/* Public Badge */}
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'var(--surface-alt)', padding: '3px 8px', borderRadius: '12px', fontSize: '11.5px', fontWeight: 600, color: 'var(--text-muted)' }}>
+                      <Globe size={11} />
+                      <span>Public</span>
+                    </span>
+
+                    {/* Pet Tag Selector */}
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'var(--surface-alt)', padding: '3px 8px', borderRadius: '12px', fontSize: '11.5px', fontWeight: 600 }}>
+                      <Tag size={11} color="var(--primary)" />
+                      <select 
+                        value={selectedPetTag} 
+                        onChange={(e) => setSelectedPetTag(e.target.value)}
+                        style={{ background: 'transparent', border: 'none', color: 'var(--text-main)', fontSize: '11.5px', fontWeight: 600, outline: 'none', cursor: 'pointer' }}
+                      >
+                        {pets.map(p => (
+                          <option key={p.id} value={p.name} style={{ background: 'var(--surface)', color: 'var(--text-main)' }}>
+                            {p.name} ({p.breed || 'Pet'})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Category Selector */}
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'var(--surface-alt)', padding: '3px 8px', borderRadius: '12px', fontSize: '11.5px', fontWeight: 600 }}>
+                      <select 
+                        value={selectedCategory} 
+                        onChange={(e) => setSelectedCategory(e.target.value)}
+                        style={{ background: 'transparent', border: 'none', color: 'var(--text-main)', fontSize: '11.5px', fontWeight: 600, outline: 'none', cursor: 'pointer' }}
+                      >
+                        <option value="Moment" style={{ background: 'var(--surface)' }}>Moment</option>
+                        <option value="Health" style={{ background: 'var(--surface)' }}>Health Milestone</option>
+                        <option value="Adoption" style={{ background: 'var(--surface)' }}>Rescue Story</option>
+                        <option value="Question" style={{ background: 'var(--surface)' }}>Advice Needed</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Large Content Textarea */}
+              <textarea 
+                className="input-clean" 
+                rows={postImagePreview ? 3 : 5}
+                placeholder={`What's on your pet's mind, ${currentUser ? currentUser.name.split(' ')[0] : 'Pet Parent'}?`}
+                value={postText}
+                onChange={(e) => setPostText(e.target.value)}
+                style={{ 
+                  resize: 'none', 
+                  fontSize: postText.length > 70 ? '15px' : '18px', 
+                  lineHeight: 1.45,
+                  padding: '10px 0', 
+                  border: 'none', 
+                  background: 'transparent' 
+                }}
+                autoFocus
+              />
+
+              {/* Hidden File Input */}
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                accept="image/*" 
+                style={{ display: 'none' }} 
+                onChange={handleImageSelect} 
+              />
+
+              {/* Attached Image Preview */}
+              {postImagePreview ? (
+                <div style={{ position: 'relative', borderRadius: 'var(--radius-sm)', overflow: 'hidden', border: '1px solid var(--border)', background: '#000' }}>
+                  <img src={postImagePreview} alt="Attached Preview" style={{ width: '100%', maxHeight: 280, objectFit: 'cover', display: 'block' }} />
+                  <button 
+                    className="icon-btn" 
+                    style={{ position: 'absolute', top: 10, right: 10, background: 'rgba(0,0,0,0.65)', color: '#fff', border: 'none' }}
+                    onClick={() => { setPostImagePreview(null); setShowPhotoDropzone(false); }}
+                    title="Remove Photo"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              ) : showPhotoDropzone ? (
+                <div 
+                  style={{ 
+                    border: '2px dashed var(--border)', 
+                    borderRadius: 'var(--radius-sm)', 
+                    padding: '28px 16px', 
+                    textAlign: 'center', 
+                    background: 'var(--surface-alt)',
+                    cursor: 'pointer'
+                  }}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'var(--surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px', color: '#10B981' }}>
+                    <ImageIcon size={22} />
+                  </div>
+                  <strong style={{ fontSize: '14px', display: 'block' }}>Add photos/videos</strong>
+                  <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>or click to browse files</span>
+                </div>
+              ) : null}
+
+              {/* Facebook-style "Add to your post" Toolbar */}
+              <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'space-between', 
+                padding: '10px 14px', 
+                borderRadius: 'var(--radius-sm)', 
+                border: '1px solid var(--border)', 
+                background: 'var(--surface-alt)' 
+              }}>
+                <span style={{ fontSize: '13.5px', fontWeight: 600 }}>Add to your post</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <button 
+                    type="button" 
+                    className="icon-btn"
+                    style={{ color: '#10B981', width: 34, height: 34 }}
+                    onClick={() => { setShowPhotoDropzone(true); fileInputRef.current?.click(); }}
+                    title="Add Photo"
+                  >
+                    <ImageIcon size={18} />
+                  </button>
+
+                  <button 
+                    type="button" 
+                    className="icon-btn"
+                    style={{ color: '#3B82F6', width: 34, height: 34 }}
+                    title="Tag Pet"
+                  >
+                    <Tag size={18} />
+                  </button>
+
+                  <button 
+                    type="button" 
+                    className="icon-btn"
+                    style={{ color: '#F59E0B', width: 34, height: 34 }}
+                    title="Category"
+                  >
+                    <Sparkles size={18} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Full Width Post Button */}
+              <button 
+                type="button" 
+                className="apple-btn-blue" 
+                style={{ 
+                  width: '100%', 
+                  padding: '11px', 
+                  fontSize: '14.5px', 
+                  fontWeight: 700, 
+                  borderRadius: 'var(--radius-sm)', 
+                  opacity: (postText.trim() || postImagePreview) ? 1 : 0.45,
+                  cursor: (postText.trim() || postImagePreview) ? 'pointer' : 'not-allowed'
+                }}
+                onClick={handlePostSubmit}
+                disabled={(!postText.trim() && !postImagePreview) || isUploadingImage}
+              >
+                Post
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
