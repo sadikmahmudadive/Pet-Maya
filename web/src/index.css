@@ -657,3 +657,43 @@ body {
   align-items: center;
   gap: 8px;
 }
+
+/* ── CHIP & PILL SELECTORS ── */
+.chip-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.chip-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
+  background: var(--surface-alt);
+  color: var(--text-muted);
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s var(--apple-spring);
+  outline: none;
+}
+
+.chip-pill:hover {
+  background: var(--border);
+  color: var(--text-main);
+}
+
+.chip-pill:active {
+  transform: scale(0.96);
+}
+
+.chip-pill.active {
+  background: var(--text-main);
+  color: var(--bg-pure);
+  border-color: var(--text-main);
+  font-weight: 600;
+}
