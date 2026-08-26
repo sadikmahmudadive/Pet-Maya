@@ -33,18 +33,18 @@ export default function LandingPage() {
     target: heroRef,
     offset: ["start start", "end start"]
   });
-  // Smooth the scroll progress so it feels like Apple's fluid scrolling
-  const heroProgress = useSpring(heroProgressRaw, { stiffness: 100, damping: 30, restDelta: 0.001 });
+  // Snappy responsive spring for instant scroll response
+  const heroProgress = useSpring(heroProgressRaw, { stiffness: 260, damping: 24, restDelta: 0.001 });
 
-  const heroOpacity = useTransform(heroProgress, [0, 0.4], [1, 0]);
-  const heroScale = useTransform(heroProgress, [0, 0.4], [1, 1.2]);
-  const heroBlur = useTransform(heroProgress, [0, 0.4], ["blur(0px)", "blur(20px)"]);
-  const heroY = useTransform(heroProgress, [0, 0.4], [0, -100]);
+  const heroOpacity = useTransform(heroProgress, [0, 0.22], [1, 0]);
+  const heroScale = useTransform(heroProgress, [0, 0.22], [1, 1.06]);
+  const heroBlur = useTransform(heroProgress, [0, 0.22], ["blur(0px)", "blur(8px)"]);
+  const heroY = useTransform(heroProgress, [0, 0.22], [0, -40]);
 
-  // Ecosystem grid comes in as hero text fades
-  const gridOpacity = useTransform(heroProgress, [0.3, 0.6], [0, 1]);
-  const gridY = useTransform(heroProgress, [0.3, 0.6], [100, 0]);
-  const gridScale = useTransform(heroProgress, [0.3, 0.6], [0.9, 1]);
+  // Ecosystem grid comes in quickly as hero text fades
+  const gridOpacity = useTransform(heroProgress, [0.12, 0.38], [0, 1]);
+  const gridY = useTransform(heroProgress, [0.12, 0.38], [40, 0]);
+  const gridScale = useTransform(heroProgress, [0.12, 0.38], [0.96, 1]);
 
   // --- Scroll Animations: Hero 2 (Sticky Showcase) ---
   const showcaseRef = useRef(null);
@@ -52,12 +52,12 @@ export default function LandingPage() {
     target: showcaseRef,
     offset: ["start start", "end end"]
   });
-  const showcaseProgress = useSpring(showcaseProgressRaw, { stiffness: 100, damping: 30 });
+  const showcaseProgress = useSpring(showcaseProgressRaw, { stiffness: 260, damping: 24 });
   
-  // Showcase text sections cross-fading
-  const text1Opacity = useTransform(showcaseProgress, [0, 0.2, 0.3], [0, 1, 0]);
-  const text2Opacity = useTransform(showcaseProgress, [0.3, 0.5, 0.6], [0, 1, 0]);
-  const text3Opacity = useTransform(showcaseProgress, [0.6, 0.8, 1], [0, 1, 0]);
+  // Fast, engaging cross-fades without long tedious pauses
+  const text1Opacity = useTransform(showcaseProgress, [0, 0.18, 0.34], [0, 1, 0]);
+  const text2Opacity = useTransform(showcaseProgress, [0.34, 0.52, 0.68], [0, 1, 0]);
+  const text3Opacity = useTransform(showcaseProgress, [0.68, 0.84, 1], [0, 1, 0]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', margin: '-24px -16px 0', width: 'calc(100% + 32px)', backgroundColor: '#000' }}>
@@ -65,7 +65,7 @@ export default function LandingPage() {
       {/* ══════════════════════════════════════════════════════
           HERO 1: SPATIAL REVEAL (VISION PRO STYLE)
           ══════════════════════════════════════════════════════ */}
-      <section ref={heroRef} style={{ height: '200vh', position: 'relative' }}>
+      <section ref={heroRef} style={{ height: '115vh', position: 'relative' }}>
         <div style={{ 
           position: 'sticky', 
           top: 0, 
@@ -80,9 +80,9 @@ export default function LandingPage() {
           {/* Main Title that scales up and blurs out */}
           <motion.div style={{ opacity: heroOpacity, scale: heroScale, filter: heroBlur, y: heroY, textAlign: 'center', zIndex: 10 }}>
             <motion.span 
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.8 }}
+              transition={{ delay: 0.05, duration: 0.35 }}
               className="apple-hero-eyebrow" 
               style={{ color: 'var(--primary)', marginBottom: '16px', display: 'block' }}
             >
@@ -90,9 +90,9 @@ export default function LandingPage() {
             </motion.span>
             
             <motion.h1 
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4, duration: 1 }}
+              transition={{ delay: 0.1, duration: 0.35 }}
               style={{ fontSize: 'clamp(3rem, 8vw, 7rem)', fontWeight: 700, letterSpacing: '-0.04em', color: '#FFF', lineHeight: 1.1, margin: '0 0 24px 0' }}
             >
               Titanium <br/>intelligence.
@@ -101,16 +101,16 @@ export default function LandingPage() {
             <motion.p 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.8, duration: 1 }}
+              transition={{ delay: 0.15, duration: 0.35 }}
               style={{ fontSize: 'clamp(1.2rem, 2vw, 1.5rem)', color: '#A1A1A6', maxWidth: '600px', margin: '0 auto 40px' }}
             >
               Next-generation pet healthcare, live GPS radar, and clinical AI triage. All in one place.
             </motion.p>
             
             <motion.div 
-              initial={{ opacity: 0, scale: 0.9 }}
+              initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 1, duration: 0.5 }}
+              transition={{ delay: 0.2, duration: 0.3 }}
               className="apple-cta-group" 
               style={{ justifyContent: 'center' }}
             >
@@ -180,7 +180,7 @@ export default function LandingPage() {
       {/* ══════════════════════════════════════════════════════
           HERO 2: STICKY SHOWCASE (VISION PRO HARDWARE SCROLL)
           ══════════════════════════════════════════════════════ */}
-      <section ref={showcaseRef} style={{ height: '300vh', position: 'relative', background: '#000' }}>
+      <section ref={showcaseRef} style={{ height: '130vh', position: 'relative', background: '#000' }}>
         <div style={{ 
           position: 'sticky', 
           top: 0, 
@@ -249,10 +249,10 @@ export default function LandingPage() {
         ].map((item, idx) => (
           <motion.div 
             key={item.id}
-            initial={{ opacity: 0, y: 50 }}
+            initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.6, delay: idx * 0.1 }}
+            viewport={{ once: true, margin: "-20px" }}
+            transition={{ duration: 0.35, delay: idx * 0.05 }}
             className="apple-promo-card"
           >
             <span className="apple-card-eyebrow" style={{ color: item.color }}>{item.eyebrow}</span>

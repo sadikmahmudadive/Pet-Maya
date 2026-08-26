@@ -4,8 +4,8 @@ import { motion } from 'framer-motion';
 export const AppleReveal = ({ 
   children, 
   delay = 0, 
-  duration = 0.8,
-  yOffset = 30,
+  duration = 0.35, 
+  yOffset = 14,
   className = '',
   style = {}
 }) => {
@@ -13,11 +13,11 @@ export const AppleReveal = ({
     <motion.div
       initial={{ opacity: 0, y: yOffset }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-50px" }}
+      viewport={{ once: true, margin: "-10px" }}
       transition={{ 
         duration, 
         delay, 
-        ease: [0.25, 0.1, 0.25, 1], // Apple-style smooth ease-out curve
+        ease: [0.2, 0, 0, 1], // Ultra-responsive Apple ease curve
       }}
       className={className}
       style={style}

@@ -2,11 +2,11 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 export const AppleStagger = ({ 
-  children,
-  staggerDelay = 0.1,
+  children, 
+  staggerDelay = 0.04, 
   delayChildren = 0,
-  duration = 0.6,
-  yOffset = 20,
+  duration = 0.35, 
+  yOffset = 12,
   className = '',
   style = {}
 }) => {
@@ -28,7 +28,7 @@ export const AppleStagger = ({
       y: 0,
       transition: {
         duration: duration,
-        ease: [0.25, 0.1, 0.25, 1], // Apple-style smooth ease-out curve
+        ease: [0.2, 0, 0, 1],
       }
     }
   };
@@ -38,15 +38,18 @@ export const AppleStagger = ({
       variants={containerVariants}
       initial="hidden"
       whileInView="show"
-      viewport={{ once: true, margin: "-50px" }}
+      viewport={{ once: true, margin: "-10px" }}
       className={className}
       style={style}
     >
-      {React.Children.map(children, (child) => (
-        <motion.div variants={itemVariants}>
-          {child}
-        </motion.div>
-      ))}
+      {React.Children.map(children, child => {
+        if (!React.isValidElement(child)) return child;
+        return (
+          <motion.div variants={itemVariants}>
+            {child}
+          </motion.div>
+        );
+      })}
     </motion.div>
   );
 };
