@@ -835,3 +835,117 @@ body {
   border-color: var(--text-main);
   font-weight: 600;
 }
+
+/* ── RICH TEXT ARTICLE EDITOR ─────────────────────────── */
+.article-editor-body {
+  caret-color: var(--primary);
+}
+
+.article-editor-body:empty::before {
+  content: attr(data-placeholder);
+  color: var(--text-muted);
+  pointer-events: none;
+  font-style: italic;
+}
+
+.article-editor-body h1,
+.article-preview h1 {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin: 32px 0 16px;
+  line-height: 1.15;
+  color: var(--text-main);
+}
+
+.article-editor-body h2,
+.article-preview h2 {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 28px 0 12px;
+  line-height: 1.25;
+  color: var(--text-main);
+}
+
+.article-editor-body h3,
+.article-preview h3 {
+  font-size: 19px;
+  font-weight: 700;
+  margin: 22px 0 10px;
+  color: var(--text-main);
+}
+
+.article-editor-body blockquote,
+.article-preview blockquote {
+  margin: 24px 0;
+  padding: 16px 24px;
+  border-left: 4px solid var(--primary);
+  background: var(--primary-tint);
+  border-radius: 0 12px 12px 0;
+  font-style: italic;
+  color: var(--text-subtle);
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.article-editor-body ul,
+.article-preview ul {
+  margin: 16px 0;
+  padding-left: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.article-editor-body ol,
+.article-preview ol {
+  margin: 16px 0;
+  padding-left: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.article-editor-body li,
+.article-preview li {
+  font-size: 17px;
+  line-height: 1.65;
+  color: var(--text-main);
+}
+
+.article-editor-body code,
+.article-preview code {
+  background: var(--surface-alt);
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-family: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
+  font-size: 0.88em;
+  color: var(--primary);
+}
+
+.article-editor-body hr,
+.article-preview hr {
+  border: none;
+  height: 1px;
+  background: var(--border);
+  margin: 36px 0;
+}
+
+.article-editor-body a,
+.article-preview a {
+  color: var(--apple-blue);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.article-editor-body p,
+.article-preview p {
+  margin: 0 0 16px;
+}
+
+/* Selection highlight in editor */
+.article-editor-body ::selection {
+  background: rgba(16, 185, 129, 0.2);
+}
+

@@ -3,12 +3,13 @@ import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  BookOpen, Clock, User, Tag, X, ChevronLeft, 
-  Send, Image, Plus, Share2, PenLine, Search
+  BookOpen, Clock, User, X, ChevronLeft, 
+  Share2, PenLine, Search
 } from 'lucide-react';
 import { 
-  db, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp 
+  db, collection, query, orderBy, onSnapshot
 } from '../../config/firebase';
+import ArticleEditor from './ArticleEditor';
 
 const CATEGORIES = ['ALL', 'HEALTH', 'NUTRITION', 'TRAINING', 'LIFESTYLE'];
 
@@ -93,15 +94,7 @@ export default function Blog() {
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [showCreateModal, setShowCreateModal] = useState(false);
-
-  // Create article form state
-  const [newTitle, setNewTitle] = useState('');
-  const [newContent, setNewContent] = useState('');
-  const [newCategory, setNewCategory] = useState('Health');
-  const [newImageUrl, setNewImageUrl] = useState('');
-  const [newTags, setNewTags] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showEditor, setShowEditor] = useState(false);
 
   // Real-time Firestore sync
   useEffect(() => {
@@ -125,38 +118,6 @@ export default function Blog() {
     }
   }, []);
 
-  const handlePublish = async () => {
-    if (!newTitle.trim() || !newContent.trim()) {
-      showToast('Please fill in title and content', 'error');
-      return;
-    }
-    if (!currentUser || currentUser.uid?.startsWith('demo_guest')) {
-      showToast('🔒 Please sign in to publish articles', 'info');
-      return;
-    }
-    setIsSubmitting(true);
-    try {
-      await addDoc(collection(db, 'blogs'), {
-        title: newTitle.trim(),
-        content: newContent.trim(),
-        category: newCategory,
-        imageUrl: newImageUrl.trim() || 'https://images.unsplash.com/photo-1548191265-cc70d3d45ba1?w=800',
-        authorId: currentUser.uid,
-        authorName: currentUser.name || currentUser.displayName || 'Pet Maya User',
-        authorPhoto: currentUser.photoUrl || null,
-        timestamp: Date.now(),
-        readTimeMinutes: Math.max(1, Math.ceil(newContent.split(' ').length / 200)),
-        tags: newTags.split(',').map(t => t.trim().toLowerCase()).filter(Boolean)
-      });
-      showToast('🎉 Article published!', 'success');
-      setShowCreateModal(false);
-      setNewTitle(''); setNewContent(''); setNewImageUrl(''); setNewTags('');
-    } catch {
-      showToast('Failed to publish. Try again.', 'error');
-    }
-    setIsSubmitting(false);
-  };
-
   const filteredBlogs = blogs.filter(b => {
     const matchesCat = selectedCategory === 'ALL' || (b.category || '').toUpperCase() === selectedCategory;
     const matchesSearch = !searchQuery || 
@@ -172,6 +133,20 @@ export default function Blog() {
   };
 
   const catColor = CATEGORY_COLORS[selectedCategory] || '#10B981';
+
+  // If editor is open, render it full-screen
+  if (showEditor) {
+    return (
+      <AnimatePresence>
+        <ArticleEditor
+          key="editor"
+          onClose={() => setShowEditor(false)}
+          onPublished={() => setShowEditor(false)}
+          showToast={showToast}
+        />
+      </AnimatePresence>
+    );
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px', width: '100%' }}>
@@ -446,69 +421,7 @@ export default function Blog() {
       </AnimatePresence>
 
       {/* ══════════════ CREATE ARTICLE MODAL ══════════════ */}
-      <AnimatePresence>
-        {showCreateModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}
-            onClick={() => setShowCreateModal(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.92, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.92, opacity: 0 }}
-              onClick={e => e.stopPropagation()}
-              style={{ width: '100%', maxWidth: '600px', maxHeight: '90vh', background: 'var(--bg-pure)', borderRadius: '28px', overflow: 'auto', padding: '32px', display: 'flex', flexDirection: 'column', gap: '16px' }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h2 style={{ fontWeight: 800, fontSize: '22px', letterSpacing: '-0.02em' }}>Write Article</h2>
-                <button onClick={() => setShowCreateModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex' }}><X size={22} /></button>
-              </div>
-
-              <div>
-                <label className="label-mini">Category</label>
-                <select className="input-clean" value={newCategory} onChange={e => setNewCategory(e.target.value)}>
-                  {['Health', 'Nutrition', 'Training', 'Lifestyle'].map(c => <option key={c}>{c}</option>)}
-                </select>
-              </div>
-
-              <div>
-                <label className="label-mini">Article Title</label>
-                <input className="input-clean" type="text" placeholder="E.g. How to keep your dog hydrated..." value={newTitle} onChange={e => setNewTitle(e.target.value)} />
-              </div>
-
-              <div>
-                <label className="label-mini">Cover Image URL</label>
-                <input className="input-clean" type="text" placeholder="https://images.unsplash.com/..." value={newImageUrl} onChange={e => setNewImageUrl(e.target.value)} />
-              </div>
-
-              <div>
-                <label className="label-mini">Content</label>
-                <textarea
-                  className="input-clean"
-                  rows={8}
-                  placeholder="Write your article here..."
-                  value={newContent}
-                  onChange={e => setNewContent(e.target.value)}
-                  style={{ resize: 'vertical', minHeight: '180px', lineHeight: 1.6 }}
-                />
-              </div>
-
-              <div>
-                <label className="label-mini">Tags (comma separated)</label>
-                <input className="input-clean" type="text" placeholder="cats, nutrition, health" value={newTags} onChange={e => setNewTags(e.target.value)} />
-              </div>
-
-              <button className="apple-btn-blue" onClick={handlePublish} disabled={isSubmitting} style={{ marginTop: '8px', width: '100%', justifyContent: 'center', padding: '12px' }}>
-                <Send size={15} />
-                <span>{isSubmitting ? 'Publishing...' : 'Publish Article'}</span>
-              </button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {showEditor && <ArticleEditor onClose={() => setShowEditor(false)} />}
     </div>
   );
 }
