@@ -11,6 +11,7 @@ import '../../../data/repositories/app_state_repository.dart';
 import '../../../core/services/firebase_storage_service.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
+import '../../common_widgets/lottie_upload_icon.dart';
 
 class CreateBlogScreen extends StatefulWidget {
   const CreateBlogScreen({super.key});
@@ -160,7 +161,7 @@ class _CreateBlogScreenState extends State<CreateBlogScreen> {
                           ? Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.add_photo_alternate_rounded, size: 40, color: Colors.grey[400]),
+                                const LottieUploadIcon(size: 56),
                                 const SizedBox(height: 8),
                                 Text('Add Cover Image', style: TextStyle(color: Colors.grey[500], fontWeight: FontWeight.w600)),
                               ],

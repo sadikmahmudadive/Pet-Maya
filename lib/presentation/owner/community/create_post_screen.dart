@@ -10,6 +10,7 @@ import '../../../data/repositories/app_state_repository.dart';
 import '../../../data/models/feed_post_model.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
+import '../../common_widgets/lottie_upload_icon.dart';
 import '../../../core/services/firebase_storage_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
@@ -272,12 +273,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.1), shape: BoxShape.circle),
-                              child: const Icon(Icons.add_photo_alternate_rounded, color: AppColors.primary, size: 28),
-                            ),
-                            const SizedBox(height: 12),
+                            const LottieUploadIcon(size: 52),
+                            const SizedBox(height: 8),
                             const Text(
                               'Attach a photo from gallery',
                               style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.primary, fontSize: 11, letterSpacing: 0.5),

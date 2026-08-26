@@ -11,6 +11,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { AppleReveal } from '../Animations/AppleReveal';
+import LottieUploadIcon from '../Common/LottieUploadIcon';
 
 const SAMPLE_CASES = {
   dermatitis: {
@@ -139,7 +140,7 @@ export default function HealthTriage() {
         {/* ── PHOTO DROPZONE ── */}
         <label className="vision-dropzone" style={{ display: 'block' }}>
           <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFileUpload} />
-          <UploadCloud size={40} color="#10B981" style={{ margin: '0 auto 8px' }} />
+          <LottieUploadIcon size={64} style={{ margin: '0 auto 8px' }} />
           <strong style={{ fontSize: '16px', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
             Drag &amp; Drop or Click to Upload Symptom Photo
           </strong>

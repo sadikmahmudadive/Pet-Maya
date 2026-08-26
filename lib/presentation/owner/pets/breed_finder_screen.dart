@@ -7,6 +7,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../../data/repositories/app_state_repository.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
+import '../../common_widgets/lottie_upload_icon.dart';
 
 class BreedFinderScreen extends StatefulWidget {
   const BreedFinderScreen({super.key});
@@ -98,7 +99,7 @@ class _BreedFinderScreenState extends State<BreedFinderScreen> {
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.add_a_photo_rounded, size: 54, color: AppColors.primary.withValues(alpha: 0.4)),
+                                const LottieUploadIcon(size: 64),
                                 const SizedBox(height: 16),
                                 Text('Tap to capture or upload', 
                                   style: AppTypography.labelSmall.copyWith(fontWeight: FontWeight.w800, color: AppColors.primary)),

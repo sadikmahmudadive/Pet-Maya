@@ -14,6 +14,7 @@ import '../../../core/services/firebase_storage_service.dart';
 import '../common_widgets/glass_scaffold.dart';
 import '../common_widgets/premium_card.dart';
 import '../common_widgets/empty_state.dart';
+import '../common_widgets/lottie_upload_icon.dart';
 
 class AdminShopManagerScreen extends StatefulWidget {
   const AdminShopManagerScreen({super.key});
@@ -606,8 +607,8 @@ class _ProductEditorSheetState extends State<_ProductEditorSheet> {
             : Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.add_a_photo_rounded, color: AppColors.primary, size: 24),
-                  const SizedBox(height: 4),
+                  const LottieUploadIcon(size: 34),
+                  const SizedBox(height: 2),
                   Text('ADD', style: TextStyle(fontSize: 8, fontWeight: FontWeight.w900, color: AppColors.primary)),
                 ],
               ),
