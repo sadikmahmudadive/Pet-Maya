@@ -327,22 +327,56 @@ body {
 }
 
 .apple-promo-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  box-shadow: var(--border-specular), var(--shadow-sm);
-  border-radius: var(--radius-lg);
-  padding: 44px 32px 36px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
   position: relative;
-  overflow: hidden;
-  transition: transform 0.3s var(--apple-spring), box-shadow 0.3s var(--apple-spring);
+  overflow: visible;
 }
 
-.apple-promo-card:hover {
-  box-shadow: var(--shadow-md);
+.apple-card-image-box {
+  width: 100%;
+  aspect-ratio: 1 / 1.1;
+  border-radius: 28px;
+  background: var(--surface-alt);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+  overflow: hidden;
+  position: relative;
+  padding: 20px;
+}
+
+.apple-card-image-box img {
+  width: 85%;
+  height: 85%;
+  object-fit: contain;
+  transition: transform 0.4s ease;
+}
+
+.apple-promo-card:hover .apple-card-image-box img {
+  transform: scale(1.03);
+}
+
+.apple-card-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.apple-card-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.1);
 }
 
 .apple-card-eyebrow {
@@ -354,18 +388,38 @@ body {
 }
 
 .apple-card-title {
-  font-size: 32px;
-  font-weight: 700;
-  letter-spacing: -0.03em;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
   margin-bottom: 8px;
+  color: var(--text-main);
 }
 
 .apple-card-desc {
-  font-size: 15px;
+  font-size: 13px;
   color: var(--text-muted);
-  max-width: 400px;
+  max-width: 280px;
   line-height: 1.45;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.apple-card-price {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-main);
+  margin-bottom: 24px;
+}
+
+.apple-card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: auto;
 }
 
 /* ── APPLE.COM GLOBAL DIRECTORY FOOTER ── */

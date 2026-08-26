@@ -88,70 +88,45 @@ export default function Shop() {
       {/* ── PRODUCT GRID (APPLE STORE STYLE) ── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '20px' }}>
         {filteredProducts.map((p) => (
-          <div 
-            key={p.id} 
-            className="apple-promo-card" 
-            style={{ display: 'flex', flexDirection: 'column', padding: '22px', textAlign: 'left', alignItems: 'stretch' }}
-          >
-            <div 
-              style={{ position: 'relative', borderRadius: 'var(--radius-md)', overflow: 'hidden', marginBottom: '14px', background: '#FFFFFF', cursor: 'pointer' }}
-              onClick={() => setSelectedProduct(p)}
-            >
-              <img 
-                src={p.image} 
-                alt={p.name} 
-                style={{ width: '100%', height: 180, objectFit: 'contain', padding: '12px', transition: 'transform 0.3s ease' }} 
-              />
+          <div key={p.id} className="apple-promo-card">
+            
+            <div className="apple-card-image-box" onClick={() => setSelectedProduct(p)} style={{ cursor: 'pointer', background: p.category.includes('Food') ? '#f3f4f6' : '#f8fafc' }}>
+              <img src={p.image} alt={p.name} />
               {p.isRx && (
-                <span className="badge badge-red" style={{ position: 'absolute', top: 10, left: 10 }}>
-                  Rx Required
+                <span className="badge badge-red" style={{ position: 'absolute', top: 14, left: 14, zIndex: 10 }}>
+                  Rx
                 </span>
               )}
             </div>
 
-            <span style={{ fontSize: '11.5px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 600 }}>
-              {p.category}
-            </span>
+            <div className="apple-card-dots">
+              <div className="apple-card-dot" style={{ background: '#3b82f6' }} />
+              <div className="apple-card-dot" style={{ background: '#10b981' }} />
+              <div className="apple-card-dot" style={{ background: '#f43f5e' }} />
+            </div>
 
-            <h3 
-              style={{ fontSize: '16.5px', fontWeight: 700, margin: '4px 0 6px', lineHeight: 1.3, cursor: 'pointer' }}
-              onClick={() => setSelectedProduct(p)}
-            >
+            <h3 className="apple-card-title" onClick={() => setSelectedProduct(p)} style={{ cursor: 'pointer' }}>
               {p.name}
             </h3>
 
-            <p style={{ 
-              fontSize: '12.5px', 
-              color: 'var(--text-muted)', 
-              lineHeight: 1.45, 
-              marginBottom: '14px', 
-              display: '-webkit-box',
-              WebkitLineClamp: 3,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden'
-            }}>
+            <p className="apple-card-desc">
               {p.description}
             </p>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border)', paddingTop: '12px', marginTop: 'auto' }}>
-              <div>
-                <strong style={{ fontSize: '18px', fontWeight: 700 }}>${p.price.toFixed(2)}</strong>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', color: 'var(--text-muted)' }}>
-                  <Star size={11} fill="#F59E0B" color="#F59E0B" />
-                  <span>{p.rating || 4.9}</span>
-                  <span>({p.ratingCount || 100})</span>
-                </div>
-              </div>
+            <div className="apple-card-price">
+              From ${p.price.toFixed(2)} or ${(p.price / 24).toFixed(2)}/mo. for 24 mo.
+            </div>
 
-              <button 
-                className="apple-btn-blue" 
-                style={{ padding: '8px 16px', fontSize: '13px' }}
-                onClick={() => addToCart(p)}
-              >
-                <Plus size={14} />
-                <span>Add</span>
+            <div className="apple-card-actions">
+              <button className="apple-btn-blue" style={{ fontSize: '13px', padding: '6px 16px' }} onClick={() => setSelectedProduct(p)}>
+                Learn more
+              </button>
+              <button className="apple-link-cta" style={{ fontSize: '14px' }} onClick={() => addToCart(p)}>
+                <span>Buy</span>
+                <ChevronRight size={14} />
               </button>
             </div>
+            
           </div>
         ))}
       </div>
