@@ -12,6 +12,8 @@ import {
   Clock, 
   Video 
 } from 'lucide-react';
+import { AppleReveal } from '../Animations/AppleReveal';
+import { AppleStagger } from '../Animations/AppleStagger';
 
 export default function Dashboard() {
   const { pets, vets, appointments, removeAppointment, setActiveTab, openModal, showToast } = useApp();
@@ -96,8 +98,9 @@ export default function Dashboard() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', width: '100%' }}>
       
       {/* ── 1. USER GREETING HEADER BANNER ── */}
-      <div 
-        className="apple-solid-card" 
+      <AppleReveal duration={0.8} yOffset={25}>
+        <div 
+          className="apple-solid-card" 
         style={{
           padding: '24px 30px',
           display: 'flex',
@@ -153,9 +156,10 @@ export default function Dashboard() {
           </button>
         </div>
       </div>
+      </AppleReveal>
 
       {/* ── 2. MY PETS SECTION ── */}
-      <div>
+      <AppleReveal delay={0.1} yOffset={25}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <h2 style={{ fontSize: '20px', fontWeight: 700, letterSpacing: '-0.02em' }}>My Pets</h2>
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
@@ -166,7 +170,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px' }}>
+        <AppleStagger className="apple-grid-stagger" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px' }}>
           {pets.map((pet) => (
             <div 
               key={pet.id || pet.petID} 
@@ -198,23 +202,24 @@ export default function Dashboard() {
             style={{ 
               justifyContent: 'center', 
               alignItems: 'center', 
-              padding: '24px', 
+              padding: '30px', 
               cursor: 'pointer',
-              minHeight: '180px'
+              border: '2px dashed var(--border)',
+              background: 'transparent'
             }}
             onClick={() => openModal('addPet')}
           >
-            <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'var(--primary-tint)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '8px' }}>
-              <Plus size={20} />
+            <div style={{ width: 60, height: 60, borderRadius: '20px', background: 'var(--surface-alt)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+              <Plus size={24} color="var(--primary)" />
             </div>
-            <strong style={{ fontSize: '14px', fontWeight: 600 }}>Add New Pet</strong>
-            <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Dog, Cat, Bird or Rabbit</span>
+            <strong style={{ fontSize: '16px', color: 'var(--text-main)' }}>Add Another Pet</strong>
+            <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Sync records & AI trackers</span>
           </div>
-        </div>
-      </div>
+        </AppleStagger>
+      </AppleReveal>
 
       {/* ── 3. UPCOMING EVENTS SECTION ── */}
-      <div>
+      <AppleReveal delay={0.15} yOffset={25}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <h2 style={{ fontSize: '20px', fontWeight: 700, letterSpacing: '-0.02em' }}>Upcoming Events</h2>
           <button 
@@ -259,7 +264,7 @@ export default function Dashboard() {
             </div>
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <AppleStagger className="apple-grid-stagger" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             {appointments.map((apt) => {
               const displayTitle = (apt.title?.startsWith('Veterinarian:') || apt.title?.includes(':'))
                 ? apt.title
@@ -310,12 +315,12 @@ export default function Dashboard() {
                 </div>
               );
             })}
-          </div>
+          </AppleStagger>
         )}
-      </div>
+      </AppleReveal>
 
       {/* ── 4. TOP VETERINARIANS SECTION ── */}
-      <div>
+      <AppleReveal delay={0.2} yOffset={25}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <h2 style={{ fontSize: '20px', fontWeight: 700, letterSpacing: '-0.02em' }}>Top Veterinarians</h2>
           <button className="apple-link-cta" onClick={() => setActiveTab('vets')}>
@@ -324,7 +329,7 @@ export default function Dashboard() {
           </button>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <AppleStagger className="apple-grid-stagger" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {topVets.map((v) => (
             <div 
               key={v.id} 
@@ -387,8 +392,8 @@ export default function Dashboard() {
               </div>
             </div>
           ))}
-        </div>
-      </div>
+        </AppleStagger>
+      </AppleReveal>
 
     </div>
   );

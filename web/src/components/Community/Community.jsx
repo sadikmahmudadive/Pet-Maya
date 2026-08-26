@@ -9,6 +9,8 @@ import {
   Sparkles,
   ChevronRight
 } from 'lucide-react';
+import { AppleReveal } from '../Animations/AppleReveal';
+import { AppleStagger } from '../Animations/AppleStagger';
 
 export default function Community() {
   const { posts, createPost, toggleLike, addComment, pets } = useApp();
@@ -42,6 +44,7 @@ export default function Community() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%' }}>
       {/* ── CREATE POST BOX ── */}
+      <AppleReveal duration={0.8} yOffset={25}>
       <div className="apple-solid-card" style={{ padding: '24px', alignItems: 'stretch', textAlign: 'left' }}>
         <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Sparkles size={16} color="var(--primary)" />
@@ -80,9 +83,10 @@ export default function Community() {
           </div>
         </form>
       </div>
+      </AppleReveal>
 
       {/* ── COMMUNITY STORIES FEED ── */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+      <AppleStagger className="apple-grid-stagger" style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
         {posts.map((post) => (
           <div key={post.id} className="apple-solid-card" style={{ padding: '24px', alignItems: 'stretch', textAlign: 'left' }}>
             {/* Author Meta */}
@@ -163,7 +167,7 @@ export default function Community() {
             </div>
           </div>
         ))}
-      </div>
+      </AppleStagger>
     </div>
   );
 }

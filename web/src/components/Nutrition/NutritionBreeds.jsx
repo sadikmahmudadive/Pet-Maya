@@ -10,6 +10,8 @@ import {
   db, collection, query, orderBy, onSnapshot
 } from '../../config/firebase';
 import ArticleEditor from './ArticleEditor';
+import { AppleReveal } from '../Animations/AppleReveal';
+import { AppleStagger } from '../Animations/AppleStagger';
 
 const CATEGORIES = ['ALL', 'HEALTH', 'NUTRITION', 'TRAINING', 'LIFESTYLE'];
 
@@ -152,7 +154,8 @@ export default function Blog() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px', width: '100%' }}>
 
       {/* ── HEADER ── */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '16px' }}>
+      <AppleReveal duration={0.8} yOffset={25}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <span className="apple-card-eyebrow" style={{ color: '#EC4899' }}>Pet Care Blog</span>
           <h1 style={{ fontSize: '32px', fontWeight: 700, letterSpacing: '-0.03em', margin: '4px 0 6px' }}>
@@ -167,8 +170,10 @@ export default function Blog() {
           <span>Write Article</span>
         </button>
       </div>
+      </AppleReveal>
 
       {/* ── SEARCH BAR ── */}
+      <AppleReveal delay={0.1} yOffset={25}>
       <div style={{ position: 'relative', maxWidth: '440px' }}>
         <Search size={15} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
         <input
@@ -205,6 +210,7 @@ export default function Blog() {
           </button>
         ))}
       </div>
+      </AppleReveal>
 
       {/* ── ARTICLE GRID ── */}
       {loading ? (
@@ -219,13 +225,10 @@ export default function Blog() {
           <p style={{ fontSize: '14px' }}>Try a different category or be the first to write one!</p>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
-          {filteredBlogs.map((article, idx) => (
-            <motion.div
+        <AppleStagger className="apple-grid-stagger" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
+          {filteredBlogs.map((article) => (
+            <div
               key={article.id}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: idx * 0.06 }}
               className="apple-solid-card"
               style={{ padding: 0, overflow: 'hidden', cursor: 'pointer' }}
               onClick={() => setSelectedArticle(article)}
@@ -293,9 +296,9 @@ export default function Blog() {
                   </span>
                 </div>
               </div>
-            </motion.div>
+            </div>
           ))}
-        </div>
+        </AppleStagger>
       )}
 
       {/* ══════════════ ARTICLE DETAIL PANEL ══════════════ */}

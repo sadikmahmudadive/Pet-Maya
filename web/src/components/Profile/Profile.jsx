@@ -25,9 +25,10 @@ import {
   Clock,
   Sun,
   Gift,
-  Share2,
   ArrowRight
 } from 'lucide-react';
+import { AppleReveal } from '../Animations/AppleReveal';
+import { AppleStagger } from '../Animations/AppleStagger';
 
 export default function Profile() {
   const { pets, orders, theme, toggleTheme, medicalRecords, openModal, showToast } = useApp();
@@ -97,6 +98,7 @@ export default function Profile() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px', width: '100%' }}>
       
       {/* ── 1. MOBILE-APP INSPIRED PROFILE HEADER ── */}
+      <AppleReveal duration={0.8} yOffset={25}>
       <div className="apple-solid-card" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
         {/* Green Top Section */}
         <div style={{ background: 'var(--primary)', padding: '40px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
@@ -154,8 +156,10 @@ export default function Profile() {
           </div>
         </div>
       </div>
+      </AppleReveal>
 
       {/* ── 2. PERSONAL DETAILS ── */}
+      <AppleReveal delay={0.1} yOffset={25}>
       <div className="apple-solid-card" style={{ padding: '24px 20px', textAlign: 'left', alignItems: 'stretch' }}>
         <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--primary)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '16px', display: 'block' }}>Personal Details</span>
         
@@ -191,8 +195,10 @@ export default function Profile() {
           </div>
         </div>
       </div>
+      </AppleReveal>
 
       {/* ── 3. ACCOUNT & SECURITY ── */}
+      <AppleReveal delay={0.15} yOffset={25}>
       <div style={{ textAlign: 'left' }}>
         <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--primary)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '16px', display: 'block', paddingLeft: '8px' }}>Account & Security</span>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
@@ -214,8 +220,10 @@ export default function Profile() {
           </div>
         </div>
       </div>
+      </AppleReveal>
 
       {/* ── 4. REFERRAL PROGRAM ── */}
+      <AppleReveal delay={0.2} yOffset={25}>
       <div className="apple-solid-card" style={{ padding: '30px', textAlign: 'left', alignItems: 'stretch', background: 'linear-gradient(135deg, rgba(16,185,129,0.1), rgba(0,0,0,0))' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
           <div>
@@ -243,8 +251,10 @@ export default function Profile() {
           <span>Have a code?</span>
         </button>
       </div>
+      </AppleReveal>
 
-      {/* ── 2. CLINICAL EHR MEDICAL RECORDS ── */}
+      {/* ── 5. CLINICAL EHR MEDICAL RECORDS ── */}
+      <AppleReveal delay={0.25} yOffset={25}>
       <div className="apple-solid-card" style={{ display: 'flex', flexDirection: 'column', gap: '20px', alignItems: 'stretch', textAlign: 'left', padding: '32px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
           <div>
@@ -310,8 +320,10 @@ export default function Profile() {
           </div>
         )}
       </div>
+      </AppleReveal>
 
-      {/* ── 3. BANGLADESH 24/7 EMERGENCY SOS HOTLINES ── */}
+      {/* ── 6. BANGLADESH 24/7 EMERGENCY SOS HOTLINES ── */}
+      <AppleReveal delay={0.3} yOffset={25}>
       <div className="apple-solid-card" style={{ display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'stretch', textAlign: 'left', padding: '28px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(239, 68, 68, 0.15)', color: '#EF4444', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -343,6 +355,7 @@ export default function Profile() {
           </div>
         </div>
       </div>
+      </AppleReveal>
 
     </div>
   );

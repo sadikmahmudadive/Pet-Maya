@@ -13,6 +13,8 @@ import {
   Info,
   X
 } from 'lucide-react';
+import { AppleReveal } from '../Animations/AppleReveal';
+import { AppleStagger } from '../Animations/AppleStagger';
 
 export default function Shop() {
   const { products, addToCart, openModal, orders } = useApp();
@@ -41,7 +43,8 @@ export default function Shop() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px', width: '100%' }}>
       {/* ── HEADER & SEARCH ── */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
+      <AppleReveal duration={0.8} yOffset={25}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
         <div>
           <span className="apple-card-eyebrow" style={{ color: '#10B981' }}>Pharmacy &amp; Supplies</span>
           <h1 style={{ fontSize: '28px', fontWeight: 700, letterSpacing: '-0.03em' }}>Pet Shop</h1>
@@ -61,9 +64,11 @@ export default function Shop() {
           </button>
         </div>
       </div>
+      </AppleReveal>
 
       {/* ── SEARCH & CATEGORIES ── */}
-      <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+      <AppleReveal delay={0.1} yOffset={25}>
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
         <div style={{ flex: 1, minWidth: '260px', position: 'relative' }}>
           <Search size={16} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }} />
           <input 
@@ -84,9 +89,10 @@ export default function Shop() {
           <button className={`chip-pill ${selectedCategory === 'supplies' ? 'active' : ''}`} onClick={() => setSelectedCategory('supplies')}>🛏️ Beds &amp; Supplies</button>
         </div>
       </div>
+      </AppleReveal>
 
       {/* ── PRODUCT GRID (APPLE STORE STYLE) ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '20px' }}>
+      <AppleStagger className="apple-grid-stagger" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '20px' }}>
         {filteredProducts.map((p) => (
           <div key={p.id} className="apple-promo-card">
             
@@ -129,7 +135,7 @@ export default function Shop() {
             
           </div>
         ))}
-      </div>
+      </AppleStagger>
 
       {/* ── PRODUCT DETAILS MODAL ── */}
       {selectedProduct && (

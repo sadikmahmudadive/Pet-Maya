@@ -10,6 +10,7 @@ import {
   HeartPulse,
   ChevronRight
 } from 'lucide-react';
+import { AppleReveal } from '../Animations/AppleReveal';
 
 const SAMPLE_CASES = {
   dermatitis: {
@@ -121,6 +122,7 @@ export default function HealthTriage() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+      <AppleReveal duration={0.8} yOffset={25}>
       <div className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '32px' }}>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '24px' }}>
@@ -287,6 +289,7 @@ export default function HealthTriage() {
           </div>
         )}
       </div>
+      </AppleReveal>
     </div>
   );
 }

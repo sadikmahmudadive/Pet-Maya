@@ -12,6 +12,8 @@ import {
   Radio,
   Volume2
 } from 'lucide-react';
+import { AppleReveal } from '../Animations/AppleReveal';
+import { AppleStagger } from '../Animations/AppleStagger';
 
 export default function PetTracker() {
   const { pets, showToast } = useApp();
@@ -235,6 +237,8 @@ export default function PetTracker() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+      <AppleReveal duration={0.8} yOffset={25}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
       {/* ── LOST MODE BEACON BANNER ── */}
       {isLostMode && (
         <div 
@@ -290,8 +294,11 @@ export default function PetTracker() {
           </button>
         </div>
       </div>
+        </div>
+      </AppleReveal>
 
       {/* ── RADAR CANVAS DISPLAY ── */}
+      <AppleReveal delay={0.1} yOffset={25}>
       <div className="radar-screen-wrap">
         <canvas ref={canvasRef} className="radar-canvas" />
         <div className="radar-overlay-badge">
@@ -315,9 +322,10 @@ export default function PetTracker() {
           {telemetry.lat.toFixed(4)}° N, {telemetry.lng.toFixed(4)}° E (±1.8m)
         </div>
       </div>
+      </AppleReveal>
 
       {/* ── TELEMETRY TILES ── */}
-      <div className="radar-telemetry-grid">
+      <AppleStagger className="radar-telemetry-grid" delayChildren={0.2}>
         <div className="telemetry-tile">
           <span className="t-lbl" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <Battery size={14} /> Collar Battery
@@ -349,9 +357,10 @@ export default function PetTracker() {
           <span className="t-val">{telemetry.temp}°C</span>
           <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Normal &amp; Comfortable</span>
         </div>
-      </div>
+      </AppleStagger>
 
       {/* ── GEOFENCE SLIDER CARD ── */}
+      <AppleReveal delay={0.3} yOffset={25}>
       <div className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '24px 30px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
           <div>
@@ -372,6 +381,7 @@ export default function PetTracker() {
           style={{ width: '100%', accentColor: 'var(--primary)', cursor: 'pointer' }} 
         />
       </div>
+      </AppleReveal>
     </div>
   );
 }

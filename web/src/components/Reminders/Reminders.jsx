@@ -10,6 +10,8 @@ import {
   CheckCircle2,
   ChevronRight
 } from 'lucide-react';
+import { AppleReveal } from '../Animations/AppleReveal';
+import { AppleStagger } from '../Animations/AppleStagger';
 
 const SCHEDULES = {
   dog: [
@@ -61,6 +63,7 @@ END:VCALENDAR`;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
       {/* ── HEADER ── */}
+      <AppleReveal duration={0.8} yOffset={25}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
         <div>
           <span className="apple-card-eyebrow" style={{ color: '#10B981' }}>Medical Records</span>
@@ -79,8 +82,10 @@ END:VCALENDAR`;
           </button>
         </div>
       </div>
+      </AppleReveal>
 
       {/* ── IMMUNIZATION MATRIX TABLE ── */}
+      <AppleReveal delay={0.1} yOffset={25}>
       <div className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '28px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
           <h3 style={{ fontSize: '18px', fontWeight: 700 }}>Core Immunization &amp; Wellness Matrix</h3>
@@ -124,8 +129,10 @@ END:VCALENDAR`;
           </table>
         </div>
       </div>
+      </AppleReveal>
 
       {/* ── ACTIVE SCHEDULED ALARMS ── */}
+      <AppleReveal delay={0.2} yOffset={25}>
       <div className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '28px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <h3 style={{ fontSize: '18px', fontWeight: 700 }}>Active Scheduled Alarms &amp; Visits</h3>
@@ -138,7 +145,7 @@ END:VCALENDAR`;
         {appointments.length === 0 ? (
           <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '24px' }}>No active alarms configured.</p>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <AppleStagger className="apple-grid-stagger" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {appointments.map(a => (
               <div 
                 key={a.id} 
@@ -169,9 +176,10 @@ END:VCALENDAR`;
                 </div>
               </div>
             ))}
-          </div>
+          </AppleStagger>
         )}
       </div>
+      </AppleReveal>
     </div>
   );
 }
