@@ -17,6 +17,8 @@ import Reminders from './components/Reminders/Reminders';
 import Profile from './components/Profile/Profile';
 import AdminPortal from './components/Admin/AdminPortal';
 
+import { motion, AnimatePresence } from 'framer-motion';
+
 function MainContent() {
   const { activeTab } = useApp();
   const { currentUser } = useAuth();
@@ -44,32 +46,32 @@ function MainContent() {
 
   const renderActiveScreen = () => {
     if (isLanding) {
-      return <LandingPage />;
+      return <LandingPage key="landing" />;
     }
 
     switch (activeTab) {
       case 'landing':
-        return <LandingPage />;
+        return <LandingPage key="landing" />;
       case 'dashboard':
-        return <Dashboard />;
+        return <Dashboard key="dashboard" />;
       case 'tracker':
-        return <PetTracker />;
+        return <PetTracker key="tracker" />;
       case 'vets':
-        return <Specialists />;
+        return <Specialists key="vets" />;
       case 'ai':
-        return <HealthTriage />;
+        return <HealthTriage key="ai" />;
       case 'food':
-        return <NutritionBreeds />;
+        return <NutritionBreeds key="food" />;
       case 'community':
-        return <Community />;
+        return <Community key="community" />;
       case 'shop':
-        return <Shop />;
+        return <Shop key="shop" />;
       case 'vaccines':
-        return <Reminders />;
+        return <Reminders key="vaccines" />;
       case 'profile':
-        return <Profile />;
+        return <Profile key="profile" />;
       default:
-        return currentUser ? <Dashboard /> : <LandingPage />;
+        return currentUser ? <Dashboard key="dashboard" /> : <LandingPage key="landing" />;
     }
   };
 
@@ -77,7 +79,18 @@ function MainContent() {
     <div className="app-container">
       <Header />
       <main className={isLanding ? "apple-landing-main" : "app-main"}>
-        {renderActiveScreen()}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -15 }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            style={{ width: '100%', height: '100%' }}
+          >
+            {renderActiveScreen()}
+          </motion.div>
+        </AnimatePresence>
       </main>
       <ModalRoot />
       <Toast />
