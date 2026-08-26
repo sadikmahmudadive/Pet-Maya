@@ -269,7 +269,7 @@ export default function Community() {
                   {currentUser ? currentUser.name : 'Pet Parent'}
                 </strong>
                 <span style={{ fontSize: '12px', color: 'var(--primary)', fontWeight: 600 }}>
-                  🐾 {pets.length} Registered {pets.length === 1 ? 'Pet' : 'Pets'}
+                  {pets.length} Registered {pets.length === 1 ? 'Pet' : 'Pets'}
                 </span>
               </div>
             </div>
@@ -277,11 +277,11 @@ export default function Community() {
             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 12px', background: 'var(--surface-alt)', borderRadius: 'var(--radius-sm)', fontSize: '12px' }}>
               <div>
                 <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '10.5px' }}>Paw Points</span>
-                <strong style={{ color: '#F59E0B', fontSize: '13px' }}>✨ 480 pts</strong>
+                <strong style={{ color: '#F59E0B', fontSize: '13px' }}>480 pts</strong>
               </div>
               <div style={{ borderLeft: '1px solid var(--border)', paddingLeft: '12px' }}>
                 <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '10.5px' }}>Community Rank</span>
-                <strong style={{ color: 'var(--primary)', fontSize: '13px' }}>🏅 Guardian</strong>
+                <strong style={{ color: 'var(--primary)', fontSize: '13px' }}>Guardian</strong>
               </div>
             </div>
           </div>
@@ -444,10 +444,10 @@ export default function Community() {
                     onChange={(e) => setSelectedCategory(e.target.value)}
                     style={{ background: 'var(--surface-alt)', border: '1px solid var(--border)', color: 'var(--text-main)', fontSize: '12px', fontWeight: 600, borderRadius: '20px', padding: '4px 10px', outline: 'none', cursor: 'pointer' }}
                   >
-                    <option value="Moment" style={{ background: 'var(--surface)' }}>📸 Moment</option>
-                    <option value="Health" style={{ background: 'var(--surface)' }}>🩺 Health Milestone</option>
-                    <option value="Adoption" style={{ background: 'var(--surface)' }}>🏠 Rescue Story</option>
-                    <option value="Question" style={{ background: 'var(--surface)' }}>💡 Advice Needed</option>
+                    <option value="Moment" style={{ background: 'var(--surface)' }}>Moment</option>
+                    <option value="Health" style={{ background: 'var(--surface)' }}>Health Milestone</option>
+                    <option value="Adoption" style={{ background: 'var(--surface)' }}>Rescue Story</option>
+                    <option value="Question" style={{ background: 'var(--surface)' }}>Advice Needed</option>
                   </select>
                 </div>
 
@@ -470,19 +470,19 @@ export default function Community() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
             <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px', scrollbarWidth: 'none' }}>
               <button className={`chip-pill ${feedFilter === 'all' ? 'active' : ''}`} onClick={() => setFeedFilter('all')}>
-                🔥 Trending
+                Trending
               </button>
               <button className={`chip-pill ${feedFilter === 'moments' ? 'active' : ''}`} onClick={() => setFeedFilter('moments')}>
-                📸 Moments
+                Moments
               </button>
               <button className={`chip-pill ${feedFilter === 'health' ? 'active' : ''}`} onClick={() => setFeedFilter('health')}>
-                🩺 Health
+                Health
               </button>
               <button className={`chip-pill ${feedFilter === 'adoption' ? 'active' : ''}`} onClick={() => setFeedFilter('adoption')}>
-                🏠 Rescue
+                Rescue
               </button>
               <button className={`chip-pill ${feedFilter === 'qa' ? 'active' : ''}`} onClick={() => setFeedFilter('qa')}>
-                💡 Q&amp;A
+                Q&amp;A
               </button>
             </div>
 
@@ -565,7 +565,7 @@ export default function Community() {
                             <CheckCircle size={14} color="#10B981" fill="#10B981" />
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--text-muted)' }}>
-                            <span style={{ color: 'var(--primary)', fontWeight: 600 }}>🐾 {post.petTag}</span>
+                            <span style={{ color: 'var(--primary)', fontWeight: 600 }}>{post.petTag}</span>
                             <span>•</span>
                             <span>{post.time || 'Recent'}</span>
                           </div>
@@ -818,7 +818,7 @@ export default function Community() {
           {/* Community Guidelines */}
           <div className="apple-solid-card" style={{ padding: '16px 20px', textAlign: 'left', background: 'var(--surface-alt)', fontSize: '12px', color: 'var(--text-muted)' }}>
             <span style={{ fontWeight: 600, color: 'var(--text-main)', display: 'block', marginBottom: '4px' }}>
-              🛡️ Verified Safe Community
+              Verified Safe Community
             </span>
             All pet health milestones are moderated with certified veterinary oversight.
           </div>

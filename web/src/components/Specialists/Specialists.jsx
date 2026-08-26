@@ -123,13 +123,13 @@ export default function Specialists() {
           All Specialists ({vets.length})
         </button>
         <button className={`chip-pill ${selectedCategory === 'vet' ? 'active' : ''}`} onClick={() => setSelectedCategory('vet')}>
-          Veterinarians 🩺
+          Veterinarians
         </button>
         <button className={`chip-pill ${selectedCategory === 'grooming' ? 'active' : ''}`} onClick={() => setSelectedCategory('grooming')}>
-          Grooming Spas ✂️
+          Grooming Spas
         </button>
         <button className={`chip-pill ${selectedCategory === 'boarding' ? 'active' : ''}`} onClick={() => setSelectedCategory('boarding')}>
-          Boarding Resorts 🏨
+          Boarding Resorts
         </button>
       </div>
 

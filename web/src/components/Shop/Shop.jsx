@@ -83,10 +83,10 @@ export default function Shop() {
 
         <div className="chip-row" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           <button className={`chip-pill ${selectedCategory === 'all' ? 'active' : ''}`} onClick={() => setSelectedCategory('all')}>All</button>
-          <button className={`chip-pill ${selectedCategory === 'food' ? 'active' : ''}`} onClick={() => setSelectedCategory('food')}>🥣 Diets &amp; Nutrition</button>
-          <button className={`chip-pill ${selectedCategory === 'pharma' ? 'active' : ''}`} onClick={() => setSelectedCategory('pharma')}>💊 Pharmacy &amp; Rx</button>
-          <button className={`chip-pill ${selectedCategory === 'tech' ? 'active' : ''}`} onClick={() => setSelectedCategory('tech')}>📍 Smart Tech</button>
-          <button className={`chip-pill ${selectedCategory === 'supplies' ? 'active' : ''}`} onClick={() => setSelectedCategory('supplies')}>🛏️ Beds &amp; Supplies</button>
+          <button className={`chip-pill ${selectedCategory === 'food' ? 'active' : ''}`} onClick={() => setSelectedCategory('food')}>Diets &amp; Nutrition</button>
+          <button className={`chip-pill ${selectedCategory === 'pharma' ? 'active' : ''}`} onClick={() => setSelectedCategory('pharma')}>Pharmacy &amp; Rx</button>
+          <button className={`chip-pill ${selectedCategory === 'tech' ? 'active' : ''}`} onClick={() => setSelectedCategory('tech')}>Smart Tech</button>
+          <button className={`chip-pill ${selectedCategory === 'supplies' ? 'active' : ''}`} onClick={() => setSelectedCategory('supplies')}>Beds &amp; Supplies</button>
         </div>
       </div>
       </AppleReveal>
