@@ -25,8 +25,7 @@ import {
   CheckCircle,
   HelpCircle,
   Camera,
-  Activity,
-  Award
+  Activity
 } from 'lucide-react';
 import { AppleReveal } from '../Animations/AppleReveal';
 import { AppleStagger } from '../Animations/AppleStagger';
@@ -69,76 +68,7 @@ export default function Community() {
   const [followedParents, setFollowedParents] = useState({});
   const [heartAnimPostId, setHeartAnimPostId] = useState(null);
 
-  // User Custom Added Stories
-  const [userCustomStories, setUserCustomStories] = useState(() => {
-    try {
-      const saved = localStorage.getItem('pm_user_stories');
-      return saved ? JSON.parse(saved) : [];
-    } catch (_) { return []; }
-  });
-
-  // Story Viewer Modal
-  const [activeStoryIndex, setActiveStoryIndex] = useState(null);
-
-  // ── DYNAMIC STORIES REEL (Derived directly from live posts, registered pets, and vets) ──
-  const dynamicStories = useMemo(() => {
-    const stories = [];
-
-    // 1. User custom uploaded stories
-    userCustomStories.forEach(s => stories.push(s));
-
-    // 2. Stories from actual fetched posts with images
-    posts.filter(p => p.image).slice(0, 6).forEach((p, idx) => {
-      stories.push({
-        id: `story_post_${p.id || idx}`,
-        author: p.author ? p.author.split(' ')[0] : 'Pet Parent',
-        owner: p.author || 'Pet Parent',
-        avatar: p.authorPhoto || 'assets/images/tail_wagging_logo.png',
-        storyMedia: p.image,
-        tag: p.petTag || p.category || 'Community Moment',
-        caption: p.content || 'Sharing a lovely pet moment!',
-        time: p.time || 'Recent',
-        hasUnseen: true
-      });
-    });
-
-    // 3. Stories from verified specialists
-    vets.slice(0, 2).forEach(v => {
-      stories.push({
-        id: `story_vet_${v.id}`,
-        author: v.name.split(' ')[0],
-        owner: v.name,
-        avatar: v.photo || 'assets/images/Pet_1.jpg',
-        storyMedia: v.photo || 'https://images.unsplash.com/photo-1576201836106-db1758fd1c97?w=800&auto=format&fit=crop&q=80',
-        tag: `${v.qualification} Tip`,
-        caption: `💡 Clinical Tip: Keep hydration optimal and schedule routine checks with ${v.clinic || 'your clinic'}!`,
-        time: 'Verified Vet',
-        isVet: true,
-        hasUnseen: true
-      });
-    });
-
-    // 4. Fallback to registered pets if list is small
-    if (stories.length === 0) {
-      pets.forEach(pet => {
-        stories.push({
-          id: `story_pet_${pet.id}`,
-          author: pet.name,
-          owner: currentUser ? currentUser.name : 'Pet Parent',
-          avatar: pet.photoUrl || 'assets/images/Pet_1.jpg',
-          storyMedia: pet.photoUrl || 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=800&auto=format&fit=crop&q=80',
-          tag: pet.breed || 'Pet',
-          caption: `${pet.name} is happy and healthy today! 🐾`,
-          time: 'Pet Profile',
-          hasUnseen: false
-        });
-      });
-    }
-
-    return stories;
-  }, [userCustomStories, posts, vets, pets, currentUser]);
-
-  // ── DYNAMIC SUGGESTED CLINICIANS & PARENTS ──
+  // ── DYNAMIC SUGGESTED CLINICIANS & MEMBERS ──
   const dynamicSuggested = useMemo(() => {
     const list = [];
     vets.slice(0, 3).forEach(v => {
@@ -151,7 +81,6 @@ export default function Community() {
       });
     });
 
-    // Also include unique post authors
     const seenAuthors = new Set(vets.map(v => v.name));
     posts.forEach(p => {
       if (p.author && !seenAuthors.has(p.author) && p.author !== (currentUser?.name)) {
@@ -240,35 +169,6 @@ export default function Community() {
     setPostImagePreview(null);
   };
 
-  // ── Add User Story ──
-  const handleAddStory = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const newStory = {
-        id: `story_user_${Date.now()}`,
-        author: currentUser ? currentUser.name.split(' ')[0] : 'My Pet',
-        owner: currentUser ? currentUser.name : 'You',
-        avatar: currentUser?.photoUrl || 'assets/images/tail_wagging_logo.png',
-        storyMedia: event.target.result,
-        tag: selectedPetTag || '24h Story',
-        caption: `New moment from ${currentUser ? currentUser.name : 'Pet Parent'}! ✨`,
-        time: 'Just now',
-        hasUnseen: true
-      };
-
-      const updated = [newStory, ...userCustomStories];
-      setUserCustomStories(updated);
-      try {
-        localStorage.setItem('pm_user_stories', JSON.stringify(updated));
-      } catch (_) {}
-      showToast('✨ Story published to community reel!', 'success');
-    };
-    reader.readAsDataURL(file);
-  };
-
   // ── Comment Submission ──
   const handleCommentSubmit = (postId) => {
     const text = commentInputs[postId];
@@ -337,92 +237,20 @@ export default function Community() {
   });
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
       
-      {/* ── 1. INSTAGRAM / FACEBOOK STORIES REEL ── */}
+      {/* ── HEADER ── */}
       <AppleReveal duration={0.6} yOffset={15}>
-        <div 
-          className="apple-solid-card" 
-          style={{ 
-            padding: '16px 20px', 
-            overflowX: 'auto', 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '18px',
-            scrollbarWidth: 'none',
-            WebkitOverflowScrolling: 'touch'
-          }}
-        >
-          {/* Create Your Story */}
-          <div 
-            className="story-avatar-container"
-            onClick={() => {
-              const fileInput = document.getElementById('pm-story-uploader');
-              if (fileInput) fileInput.click();
-            }}
-          >
-            <input 
-              id="pm-story-uploader"
-              type="file" 
-              accept="image/*" 
-              style={{ display: 'none' }} 
-              onChange={handleAddStory} 
-            />
-            <div style={{ position: 'relative', width: 62, height: 62 }}>
-              <img 
-                src={currentUser?.photoUrl || 'assets/images/tail_wagging_logo.png'} 
-                alt="Your Profile" 
-                style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--border)' }} 
-              />
-              <div 
-                style={{ 
-                  position: 'absolute', 
-                  bottom: -2, 
-                  right: -2, 
-                  background: 'var(--primary)', 
-                  color: '#fff', 
-                  width: 22, 
-                  height: 22, 
-                  borderRadius: '50%', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  border: '2px solid var(--bg)',
-                  boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
-                }}
-              >
-                <Plus size={14} strokeWidth={3} />
-              </div>
-            </div>
-            <span style={{ fontSize: '11.5px', fontWeight: 600, color: 'var(--text-main)', maxWidth: 66, textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              Your Story
-            </span>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+          <div>
+            <span className="apple-card-eyebrow" style={{ color: 'var(--primary)' }}>Pet Parent Network</span>
+            <h1 style={{ fontSize: '26px', fontWeight: 700, letterSpacing: '-0.03em' }}>Community Moments</h1>
+            <p style={{ fontSize: '13.5px', color: 'var(--text-muted)' }}>Share milestones, adorable pet moments, health updates &amp; questions.</p>
           </div>
-
-          {/* Dynamic Community Stories */}
-          {dynamicStories.map((story, idx) => (
-            <div 
-              key={story.id} 
-              className="story-avatar-container"
-              onClick={() => setActiveStoryIndex(idx)}
-            >
-              <div className={story.isVet ? "story-ring-verified" : (story.hasUnseen ? "story-ring-active" : "story-ring-seen")}>
-                <img 
-                  src={story.avatar} 
-                  alt={story.author} 
-                  className="story-avatar-inner"
-                  style={{ width: 56, height: 56, objectFit: 'cover' }} 
-                />
-              </div>
-              <span style={{ fontSize: '11.5px', fontWeight: 600, color: 'var(--text-main)', maxWidth: 66, textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {story.author}
-              </span>
-            </div>
-          ))}
         </div>
       </AppleReveal>
 
-      {/* ── 2. THREE-COLUMN COMMUNITY LAYOUT ── */}
+      {/* ── THREE-COLUMN COMMUNITY LAYOUT ── */}
       <div className="community-layout">
 
         {/* ── LEFT SIDEBAR (Shortcuts & Pet Profile) ── */}
@@ -466,7 +294,7 @@ export default function Community() {
               onClick={() => { setFeedFilter('all'); setSearchTopic(''); }}
             >
               <Compass size={16} color="var(--primary)" />
-              <span>All Community Stories</span>
+              <span>All Stories</span>
             </button>
 
             <button 
@@ -722,14 +550,12 @@ export default function Community() {
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         
-                        {/* Avatar with Story Ring */}
-                        <div className="story-ring-active" style={{ padding: '2px' }}>
-                          <img 
-                            src={post.authorPhoto || 'assets/images/tail_wagging_logo.png'} 
-                            alt={post.author} 
-                            style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover', display: 'block' }} 
-                          />
-                        </div>
+                        {/* Avatar */}
+                        <img 
+                          src={post.authorPhoto || 'assets/images/tail_wagging_logo.png'} 
+                          alt={post.author} 
+                          style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover', display: 'block', border: '1px solid var(--border)' }} 
+                        />
 
                         <div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -780,7 +606,7 @@ export default function Community() {
                         <img 
                           src={post.image} 
                           alt="Story visual" 
-                          style={{ width: '100%', maxHeight: 480, objectFit: 'cover', display: 'block' }} 
+                          style={{ width: '100%', maxHeight: 520, objectFit: 'cover', display: 'block' }} 
                         />
 
                         {/* Floating Heart on Double Tap */}
@@ -999,113 +825,6 @@ export default function Community() {
         </aside>
 
       </div>
-
-      {/* ── 3. INTERACTIVE STORY VIEWER MODAL (INSTAGRAM REEL STYLE) ── */}
-      {activeStoryIndex !== null && dynamicStories[activeStoryIndex] && (
-        <div 
-          className="modal-backdrop" 
-          style={{ background: 'rgba(0,0,0,0.92)', zIndex: 10000 }}
-          onClick={() => setActiveStoryIndex(null)}
-        >
-          <div 
-            style={{ 
-              position: 'relative', 
-              width: '100%', 
-              maxWidth: 420, 
-              height: '85vh', 
-              maxHeight: 740, 
-              background: '#000', 
-              borderRadius: 'var(--radius-md)', 
-              overflow: 'hidden',
-              display: 'flex',
-              flexDirection: 'column',
-              boxShadow: '0 25px 60px rgba(0,0,0,0.8)'
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Story Progress Bar */}
-            <div style={{ position: 'absolute', top: 12, left: 12, right: 12, zIndex: 10, display: 'flex', gap: '4px' }}>
-              {dynamicStories.map((_, i) => (
-                <div 
-                  key={i} 
-                  style={{ 
-                    flex: 1, 
-                    height: 3, 
-                    background: i < activeStoryIndex ? '#fff' : (i === activeStoryIndex ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.2)'), 
-                    borderRadius: 2,
-                    overflow: 'hidden' 
-                  }}
-                >
-                  {i === activeStoryIndex && (
-                    <div style={{ height: '100%', background: '#fff', animation: 'storyTimer 5s linear forwards' }} />
-                  )}
-                </div>
-              ))}
-            </div>
-
-            {/* Story Header Meta */}
-            <div style={{ position: 'absolute', top: 24, left: 14, right: 14, zIndex: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#fff' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <img 
-                  src={dynamicStories[activeStoryIndex].avatar} 
-                  alt="Story author" 
-                  style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', border: '2px solid #fff' }} 
-                />
-                <div>
-                  <strong style={{ fontSize: '13.5px', textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}>
-                    {dynamicStories[activeStoryIndex].author}
-                  </strong>
-                  <span style={{ fontSize: '11px', opacity: 0.85, display: 'block' }}>
-                    {dynamicStories[activeStoryIndex].tag} • {dynamicStories[activeStoryIndex].time}
-                  </span>
-                </div>
-              </div>
-
-              <button 
-                className="icon-btn" 
-                style={{ color: '#fff', background: 'rgba(0,0,0,0.5)', border: 'none' }}
-                onClick={() => setActiveStoryIndex(null)}
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            {/* Story Visual Media */}
-            <img 
-              src={dynamicStories[activeStoryIndex].storyMedia} 
-              alt="Story Content" 
-              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} 
-            />
-
-            {/* Story Bottom Caption & Reply Bar */}
-            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '20px 16px', background: 'linear-gradient(to top, rgba(0,0,0,0.9), transparent)', color: '#fff', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <p style={{ fontSize: '14px', margin: 0, textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>
-                {dynamicStories[activeStoryIndex].caption}
-              </p>
-
-              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                <input 
-                  type="text" 
-                  placeholder={`Reply to ${dynamicStories[activeStoryIndex].author}...`}
-                  style={{ flex: 1, background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '20px', padding: '8px 14px', color: '#fff', fontSize: '13px', outline: 'none' }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && e.target.value.trim()) {
-                      showToast(`💌 Reply sent to ${dynamicStories[activeStoryIndex].owner}!`, 'success');
-                      e.target.value = '';
-                    }
-                  }}
-                />
-                <button 
-                  style={{ background: 'rgba(255,255,255,0.25)', border: 'none', color: '#EF4444', width: 36, height: 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-                  onClick={() => showToast('❤️ Liked story!', 'success')}
-                >
-                  <Heart size={18} fill="#EF4444" />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
     </div>
   );
