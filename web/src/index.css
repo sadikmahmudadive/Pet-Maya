@@ -125,12 +125,12 @@ body {
 }
 
 .mobile-menu-toggle {
-  display: none;
+  display: none !important;
 }
 
 @media (max-width: 1040px) {
   .mobile-menu-toggle {
-    display: flex;
+    display: inline-flex !important;
   }
   .apple-nav-wrapper {
     height: 48px !important;
