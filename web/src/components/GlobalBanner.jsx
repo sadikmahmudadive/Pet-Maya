@@ -9,7 +9,7 @@ export default function GlobalBanner() {
   if (!globalBanner || !globalBanner.isActive) return null;
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: -6 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
@@ -23,11 +23,11 @@ export default function GlobalBanner() {
         borderBottom: '1px solid rgba(0,0,0,0.06)'
       }}
     >
-      <div 
-        className="global-promo-banner" 
-        style={{ 
+      <div
+        className="global-promo-banner"
+        style={{
           padding: '6px 14px',
-          minHeight: '30px',
+          minHeight: '26px',
           textAlign: 'center',
           fontSize: '11.5px',
           fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
@@ -42,12 +42,12 @@ export default function GlobalBanner() {
         }}
       >
         <span style={{ fontWeight: 500 }}>{globalBanner.text}</span>
-        
+
         {globalBanner.linkText && (
-          <a 
-            href={globalBanner.linkUrl || '#'} 
-            style={{ 
-              color: '#0066cc', 
+          <a
+            href={globalBanner.linkUrl || '#'}
+            style={{
+              color: '#0066cc',
               textDecoration: 'none',
               fontWeight: 500,
               display: 'inline-flex',
