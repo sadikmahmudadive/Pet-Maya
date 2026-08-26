@@ -33,9 +33,6 @@ export function AuthProvider({ children }) {
   };
 
   useEffect(() => {
-    // Check if user explicitly chose to stay in guest mode
-    const isSignedOut = localStorage.getItem('pm_signed_out') === 'true';
-
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         localStorage.removeItem('pm_signed_out');
@@ -96,7 +93,8 @@ export function AuthProvider({ children }) {
       } else {
         // No active Firebase user
         const savedDemo = localStorage.getItem('pm_demo_user');
-        if (savedDemo && !isSignedOut) {
+        const isCurrentlySignedOut = localStorage.getItem('pm_signed_out') === 'true';
+        if (savedDemo && !isCurrentlySignedOut) {
           try {
             setCurrentUser(JSON.parse(savedDemo));
           } catch (_) {

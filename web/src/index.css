@@ -120,7 +120,7 @@ body {
 .apple-nav-links {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 16px;
   list-style: none;
 }
 
@@ -128,7 +128,7 @@ body {
   display: none;
 }
 
-@media (max-width: 860px) {
+@media (max-width: 1040px) {
   .mobile-menu-toggle {
     display: flex;
   }
@@ -278,6 +278,7 @@ body {
   align-items: center;
   gap: 6px;
   text-decoration: none;
+  white-space: nowrap;
   transition: background-color 0.2s ease, transform 0.2s ease;
 }
 
