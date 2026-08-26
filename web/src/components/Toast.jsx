@@ -14,7 +14,7 @@ export default function Toast() {
           {t.type === 'success' && <CheckCircle2 size={18} color="#4ade80" />}
           {t.type === 'error' && <AlertCircle size={18} color="#f87171" />}
           {t.type === 'info' && <Info size={18} color="#60a5fa" />}
-          <span>{t.msg}</span>
+          <span>{t.message || t.msg}</span>
         </div>
       ))}
     </div>

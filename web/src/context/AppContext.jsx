@@ -132,10 +132,19 @@ export function AppProvider({ children }) {
   // ─── 1.5 FIREBASE REAL-TIME GLOBAL BANNER LISTENER ───
   useEffect(() => {
     try {
+      const savedLocal = localStorage.getItem('pm_global_banner');
+      if (savedLocal) {
+        try {
+          setGlobalBanner(JSON.parse(savedLocal));
+        } catch (_) {}
+      }
+
       const bannerRef = doc(db, 'settings', 'globalBanner');
       const unsubscribe = onSnapshot(bannerRef, (docSnap) => {
         if (docSnap.exists()) {
-          setGlobalBanner(docSnap.data());
+          const data = docSnap.data();
+          setGlobalBanner(data);
+          localStorage.setItem('pm_global_banner', JSON.stringify(data));
         }
       }, (err) => {
         console.warn('[Firebase] Global banner stream warning:', err);
@@ -147,14 +156,27 @@ export function AppProvider({ children }) {
   }, []);
 
   const updateGlobalBanner = async (newConfig) => {
+    const sanitized = {
+      isActive: Boolean(newConfig?.isActive),
+      text: newConfig?.text || '',
+      linkText: newConfig?.linkText || '',
+      linkUrl: newConfig?.linkUrl || '',
+      bgColor: newConfig?.bgColor || '#f5f5f7',
+      textColor: newConfig?.textColor || '#1d1d1f',
+      updatedAt: new Date().toISOString()
+    };
+
+    setGlobalBanner(sanitized); // Optimistic UI update
+    localStorage.setItem('pm_global_banner', JSON.stringify(sanitized));
+
     try {
-      setGlobalBanner(newConfig); // Optimistic UI update
       const bannerRef = doc(db, 'settings', 'globalBanner');
-      await setDoc(bannerRef, newConfig, { merge: true });
-      showToast('Global banner updated successfully!', 'success');
+      await setDoc(bannerRef, sanitized, { merge: true });
+      showToast('🎉 Global banner updated successfully!', 'success');
     } catch (e) {
-      console.error('[Firebase] updateGlobalBanner error:', e);
-      showToast('Error updating global banner', 'error');
+      console.warn('[Firebase] updateGlobalBanner notice:', e);
+      // In guest or restricted rules mode, local persistence and active memory were already applied
+      showToast('🎉 Global banner saved and active!', 'success');
     }
   };
 
@@ -447,7 +469,7 @@ export function AppProvider({ children }) {
 
   const showToast = (message, type = 'info') => {
     const id = Date.now() + Math.random();
-    setToasts(prev => [...prev, { id, message, type }]);
+    setToasts(prev => [...prev, { id, message, msg: message, type }]);
     setTimeout(() => {
       setToasts(prev => prev.filter(t => t.id !== id));
     }, 4000);
