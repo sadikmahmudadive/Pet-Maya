@@ -11,6 +11,7 @@ import {
   MoreVertical,
   X
 } from 'lucide-react';
+import LottieMenuIcon from './Common/LottieMenuIcon';
 
 export default function Header() {
   const { activeTab, setActiveTab, theme, toggleTheme, cartCount, openModal, showToast } = useApp();
@@ -286,14 +287,14 @@ export default function Header() {
             </div>
           )}
 
-          {/* Mobile Menu Toggle */}
+          {/* Mobile Menu Toggle (Only visible on mobile/compressed screens) */}
           <button 
             className="icon-btn mobile-menu-toggle" 
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
-            style={{ width: 30, height: 30, marginLeft: '4px' }}
-            title="Menu"
+            style={{ width: 34, height: 34, marginLeft: '4px', background: isMobileMenuOpen ? 'var(--surface-alt)' : 'transparent' }}
+            title={isMobileMenuOpen ? "Close menu" : "Open menu"}
           >
-            {isMobileMenuOpen ? <X size={18} /> : <MoreVertical size={18} />}
+            <LottieMenuIcon isOpen={isMobileMenuOpen} size={22} isDark={theme === 'dark'} />
           </button>
         </div>
       </div>
