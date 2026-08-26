@@ -26,6 +26,10 @@
       {
         "source": "/terms-of-service",
         "destination": "/terms_of_service.html"
+      },
+      {
+        "source": "**",
+        "destination": "/index.html"
       }
     ]
   },
