@@ -974,3 +974,144 @@ body {
   background: rgba(16, 185, 129, 0.2);
 }
 
+/* ── INSTAGRAM / FACEBOOK COMMUNITY STYLES ── */
+.community-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr 300px;
+  gap: 24px;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  align-items: start;
+}
+
+@media (max-width: 1140px) {
+  .community-layout {
+    grid-template-columns: 1fr 280px;
+  }
+  .community-left-sidebar {
+    display: none;
+  }
+}
+
+@media (max-width: 860px) {
+  .community-layout {
+    grid-template-columns: 1fr;
+  }
+  .community-right-sidebar {
+    display: none;
+  }
+}
+
+/* Story Ring */
+.story-avatar-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform 0.2s var(--apple-spring);
+}
+
+.story-avatar-container:hover {
+  transform: scale(1.05);
+}
+
+.story-ring-active {
+  padding: 2.5px;
+  border-radius: 50%;
+  background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.story-ring-verified {
+  padding: 2.5px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #10B981, #059669);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.story-ring-seen {
+  padding: 2.5px;
+  border-radius: 50%;
+  background: var(--border);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.story-avatar-inner {
+  border: 2px solid var(--bg);
+  border-radius: 50%;
+  display: block;
+}
+
+/* Instagram Double-Tap Floating Heart */
+@keyframes heartPop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0);
+  }
+  40% {
+    opacity: 0.95;
+    transform: translate(-50%, -50%) scale(1.3);
+  }
+  70% {
+    opacity: 0.9;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.6);
+  }
+}
+
+.instagram-heart-pop {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  pointer-events: none;
+  z-index: 20;
+  animation: heartPop 0.8s ease-out forwards;
+  filter: drop-shadow(0 10px 25px rgba(239, 68, 68, 0.6));
+}
+
+/* Facebook style reaction button */
+.reaction-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  flex: 1;
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.reaction-btn:hover {
+  background: var(--surface-alt);
+  color: var(--text-main);
+}
+
+.reaction-btn.liked {
+  color: #EF4444;
+}
+
+/* Story Viewer Progress Bar */
+@keyframes storyTimer {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+
+
