@@ -61,13 +61,19 @@ export function AppProvider({ children }) {
   const [toasts, setToasts] = useState([]);
 
   // Global Promotional Banner
-  const [globalBanner, setGlobalBanner] = useState({
-    isActive: false,
-    text: "Shop online and get specialist help, free delivery, and more.",
-    linkText: "store's services",
-    linkUrl: "#",
-    bgColor: "#f5f5f7",
-    textColor: "#1d1d1f"
+  const [globalBanner, setGlobalBanner] = useState(() => {
+    try {
+      const saved = localStorage.getItem('pm_global_banner');
+      if (saved) return JSON.parse(saved);
+    } catch (_) {}
+    return {
+      isActive: true,
+      text: "Shop online and get specialist help, free delivery, and more.",
+      linkText: "store's services",
+      linkUrl: "#",
+      bgColor: "#f5f5f7",
+      textColor: "#1d1d1f"
+    };
   });
 
   // ─── THEME SYNCHRONIZATION ───
