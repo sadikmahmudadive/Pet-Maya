@@ -795,6 +795,29 @@ export default function Community() {
                       </div>
                     )}
 
+                    {/* Shared Post Embedded Card */}
+                    {(post.sharedPostContent || post.sharedPostImageUrl) && (
+                      <div style={{ margin: '0 20px 14px', padding: '12px 14px', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', background: 'var(--surface-alt)' }}>
+                        {post.sharedPostAuthor && (
+                          <strong style={{ fontSize: '13px', display: 'block', marginBottom: '6px', color: 'var(--primary)' }}>
+                            Shared from {post.sharedPostAuthor}
+                          </strong>
+                        )}
+                        {post.sharedPostContent && (
+                          <p style={{ fontSize: '13.5px', margin: '0 0 8px', color: 'var(--text-main)' }}>
+                            {post.sharedPostContent}
+                          </p>
+                        )}
+                        {post.sharedPostImageUrl && (
+                          <img 
+                            src={post.sharedPostImageUrl} 
+                            alt="Shared content" 
+                            style={{ width: '100%', maxHeight: 300, objectFit: 'cover', borderRadius: 'var(--radius-sm)', display: 'block' }} 
+                          />
+                        )}
+                      </div>
+                    )}
+
                     {/* Engagement Actions Bar (Facebook & Instagram Style) */}
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 18px', borderTop: '1px solid var(--border)' }}>
                       

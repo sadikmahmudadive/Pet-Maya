@@ -509,37 +509,65 @@ export function AppProvider({ children }) {
               if (likesCount === 0) likesCount = Object.keys(likedBy).length;
             }
 
-            // Timestamp formatter
-            let displayTime = 'Recent';
+            // Robust timestamp parser
+            let rawTs = 0;
             if (typeof data.timestamp === 'number') {
-              const diffSec = Math.floor((Date.now() - data.timestamp) / 1000);
+              rawTs = data.timestamp;
+            } else if (data.timestamp && typeof data.timestamp.toMillis === 'function') {
+              rawTs = data.timestamp.toMillis();
+            } else if (data.timestamp && typeof data.timestamp.seconds === 'number') {
+              rawTs = data.timestamp.seconds * 1000;
+            } else if (data.createdAt) {
+              const parsed = new Date(data.createdAt).getTime();
+              if (!isNaN(parsed)) rawTs = parsed;
+            } else if (typeof data.timestamp === 'string') {
+              const parsed = Date.parse(data.timestamp);
+              if (!isNaN(parsed)) rawTs = parsed;
+            }
+
+            // Display time formatter matching mobile app (e.g. "Aug 15" or "2h ago")
+            let displayTime = 'Recent';
+            if (rawTs > 0) {
+              const diffSec = Math.floor((Date.now() - rawTs) / 1000);
               if (diffSec < 60) displayTime = 'Just now';
               else if (diffSec < 3600) displayTime = `${Math.floor(diffSec / 60)}m ago`;
               else if (diffSec < 86400) displayTime = `${Math.floor(diffSec / 3600)}h ago`;
-              else displayTime = `${Math.floor(diffSec / 86400)}d ago`;
+              else if (diffSec < 604800) displayTime = `${Math.floor(diffSec / 86400)}d ago`;
+              else {
+                const dateObj = new Date(rawTs);
+                displayTime = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+              }
             } else if (typeof data.time === 'string' && data.time) {
               displayTime = data.time;
-            } else if (typeof data.timestamp === 'string' && data.timestamp) {
-              displayTime = data.timestamp;
             }
+
+            const postType = (data.postType || data.category || 'MOMENT').toUpperCase();
 
             return {
               id: docSnap.id,
+              postId: data.postId || docSnap.id,
               author: data.userName || data.authorName || data.author || 'Pet Parent',
-              authorPhoto: data.userPhoto || data.authorPhoto || 'assets/images/tail_wagging_logo.png',
-              petTag: data.petTag || (data.postType ? `Pet • ${data.postType}` : 'Pet Friend'),
-              category: data.postType || data.category || 'Moment',
+              authorPhoto: data.userPhoto || data.authorPhoto || data.userPhotoUrl || data.photoUrl || 'assets/images/tail_wagging_logo.png',
+              petTag: data.petTag || (postType ? `${postType}` : 'Pet'),
+              category: postType,
               time: displayTime,
+              timestamp: rawTs || Date.now(),
               content: data.content || '',
-              image: data.imageUrl || data.image || '',
+              image: data.imageUrl || data.image || data.photoUrl || data.photo || '',
               likes: likesCount,
               isLiked: isLiked,
               likedBy: Array.isArray(likedBy) ? likedBy : (likedBy ? Object.keys(likedBy) : []),
-              comments: Array.isArray(data.comments) ? data.comments : []
+              comments: Array.isArray(data.comments) ? data.comments : [],
+              commentsCount: data.commentsCount || (data.comments?.length || 0),
+              sharesCount: data.sharesCount || 0,
+              sharedPostId: data.sharedPostId,
+              sharedPostAuthor: data.sharedPostAuthor,
+              sharedPostContent: data.sharedPostContent,
+              sharedPostImageUrl: data.sharedPostImageUrl
             };
           });
 
-          // Sort posts by newest first
+          // Sort posts by newest timestamp first
           fetchedPosts.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
           setPosts(fetchedPosts);
