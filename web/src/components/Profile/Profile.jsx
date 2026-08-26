@@ -25,7 +25,8 @@ import {
   Clock,
   Sun,
   Gift,
-  ArrowRight
+  ArrowRight,
+  Share2
 } from 'lucide-react';
 import { AppleReveal } from '../Animations/AppleReveal';
 import { AppleStagger } from '../Animations/AppleStagger';
