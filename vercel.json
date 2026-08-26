@@ -1,26 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "cleanUrls": true,
-  "trailingSlash": false,
   "installCommand": "npm install",
   "buildCommand": "npm run build",
   "outputDirectory": "web/dist",
   "rewrites": [
-    { "source": "/privacy-policy", "destination": "/privacy_policy" },
-    { "source": "/terms-of-service", "destination": "/terms_of_service" },
-    { "source": "/privacy", "destination": "/privacy_policy" },
-    { "source": "/terms", "destination": "/terms_of_service" },
-    { "source": "/terms-and-conditions", "destination": "/terms_of_service" },
     { "source": "/(.*)", "destination": "/index.html" }
-  ],
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "X-Frame-Options", "value": "DENY" },
-        { "key": "X-XSS-Protection", "value": "1; mode=block" }
-      ]
-    }
   ]
 }
