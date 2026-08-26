@@ -17,7 +17,7 @@ import { AppleReveal } from '../Animations/AppleReveal';
 import { AppleStagger } from '../Animations/AppleStagger';
 
 export default function Shop() {
-  const { products, addToCart, openModal, orders } = useApp();
+  const { products, isProductsLoading, addToCart, openModal, orders } = useApp();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -93,10 +93,20 @@ export default function Shop() {
 
       {/* ── PRODUCT GRID (APPLE STORE STYLE) ── */}
       <AppleStagger className="apple-grid-stagger" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '20px' }}>
-        {filteredProducts.map((p) => (
+        {isProductsLoading && products.length === 0 ? (
+          [1, 2, 3, 4].map((n) => (
+            <div key={n} className="apple-promo-card" style={{ opacity: 0.6 }}>
+              <div className="apple-card-image-box" style={{ background: 'var(--surface-alt)' }} />
+              <div style={{ width: '70%', height: 18, background: 'var(--surface-alt)', borderRadius: 4, margin: '14px 0 8px' }} />
+              <div style={{ width: '90%', height: 14, background: 'var(--surface-alt)', borderRadius: 4, marginBottom: 12 }} />
+              <div style={{ width: '50%', height: 16, background: 'var(--surface-alt)', borderRadius: 4, marginTop: 'auto' }} />
+            </div>
+          ))
+        ) : (
+          filteredProducts.map((p) => (
           <div key={p.id} className="apple-promo-card">
             
-            <div className="apple-card-image-box" onClick={() => setSelectedProduct(p)} style={{ cursor: 'pointer', background: p.category.includes('Food') ? '#f3f4f6' : '#f8fafc' }}>
+            <div className="apple-card-image-box" onClick={() => setSelectedProduct(p)} style={{ cursor: 'pointer', background: (p.category || '').includes('Food') ? '#f3f4f6' : '#f8fafc' }}>
               <img src={p.image} alt={p.name} />
               {p.isRx && (
                 <span className="badge badge-red" style={{ position: 'absolute', top: 14, left: 14, zIndex: 10 }}>
@@ -134,7 +144,7 @@ export default function Shop() {
             </div>
             
           </div>
-        ))}
+        )))}
       </AppleStagger>
 
       {/* ── PRODUCT DETAILS MODAL ── */}

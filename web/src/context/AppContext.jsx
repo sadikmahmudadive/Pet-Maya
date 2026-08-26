@@ -129,11 +129,54 @@ export function AppProvider({ children }) {
   const [activeModal, setActiveModal] = useState(null);
   const [modalData, setModalData] = useState(null);
 
-  // Core Datasets with Firebase Real-time Synchronization
-  const [pets, setPets] = useState(INITIAL_PETS);
-  const [vets, setVets] = useState(INITIAL_VETS);
-  const [products, setProducts] = useState(INITIAL_PRODUCTS);
-  const [posts, setPosts] = useState(INITIAL_POSTS);
+  // Core Datasets with Client-Side Cache to eliminate initial flash of hardcoded mock data
+  const [pets, setPets] = useState(() => {
+    try {
+      const saved = localStorage.getItem('pm_cached_pets');
+      if (saved) return JSON.parse(saved);
+    } catch (_) {}
+    return INITIAL_PETS;
+  });
+
+  const [vets, setVets] = useState(() => {
+    try {
+      const saved = localStorage.getItem('pm_cached_vets');
+      if (saved) return JSON.parse(saved);
+    } catch (_) {}
+    return [];
+  });
+  const [isVetsLoading, setIsVetsLoading] = useState(() => {
+    try {
+      return !localStorage.getItem('pm_cached_vets');
+    } catch (_) { return true; }
+  });
+
+  const [products, setProducts] = useState(() => {
+    try {
+      const saved = localStorage.getItem('pm_cached_products');
+      if (saved) return JSON.parse(saved);
+    } catch (_) {}
+    return [];
+  });
+  const [isProductsLoading, setIsProductsLoading] = useState(() => {
+    try {
+      return !localStorage.getItem('pm_cached_products');
+    } catch (_) { return true; }
+  });
+
+  const [posts, setPosts] = useState(() => {
+    try {
+      const saved = localStorage.getItem('pm_cached_posts');
+      if (saved) return JSON.parse(saved);
+    } catch (_) {}
+    return [];
+  });
+  const [isPostsLoading, setIsPostsLoading] = useState(() => {
+    try {
+      return !localStorage.getItem('pm_cached_posts');
+    } catch (_) { return true; }
+  });
+
   const [appointments, setAppointments] = useState([]);
   const [medicalRecords, setMedicalRecords] = useState([]);
 
@@ -385,35 +428,22 @@ export function AppProvider({ children }) {
             };
           });
           setVets(fetchedVets);
+          setIsVetsLoading(false);
+          try {
+            localStorage.setItem('pm_cached_vets', JSON.stringify(fetchedVets));
+          } catch (_) {}
         } else {
-          // Fallback to initial verified clinicians
-          setVets(INITIAL_VETS);
-          // Auto-seed Firestore 'vets' collection if completely empty
-          INITIAL_VETS.forEach(v => {
-            setDoc(doc(db, 'vets', v.id), {
-              id: v.id,
-              name: v.name,
-              qualification: v.qualification,
-              tag: v.tag,
-              rating: v.rating,
-              reviewsCount: v.reviewsCount,
-              distance: v.distance,
-              price: v.price,
-              isVerified: v.isVerified,
-              bio: v.bio,
-              photoUrl: v.photo,
-              clinic: v.clinic
-            }, { merge: true }).catch(() => {});
-          });
+          setIsVetsLoading(false);
         }
       }, (err) => {
         console.warn('[Firebase] Vets listener warning:', err);
-        setVets(INITIAL_VETS);
+        setIsVetsLoading(false);
       });
 
       return () => unsubscribe();
     } catch (e) {
       console.warn('[Firebase] Vets setup error:', e);
+      setIsVetsLoading(false);
     }
   }, []);
 
@@ -438,29 +468,22 @@ export function AppProvider({ children }) {
             };
           });
           setProducts(fetchedProducts);
+          setIsProductsLoading(false);
+          try {
+            localStorage.setItem('pm_cached_products', JSON.stringify(fetchedProducts));
+          } catch (_) {}
         } else {
-          setProducts(INITIAL_PRODUCTS);
-          // Seed products
-          INITIAL_PRODUCTS.forEach(p => {
-            setDoc(doc(db, 'products', p.id), {
-              id: p.id,
-              name: p.name,
-              category: p.category,
-              price: p.price,
-              rating: p.rating,
-              ratingCount: p.ratingCount,
-              imageUrl: p.image,
-              description: p.description
-            }, { merge: true }).catch(() => {});
-          });
+          setIsProductsLoading(false);
         }
       }, (err) => {
         console.warn('[Firebase] Products listener warning:', err);
+        setIsProductsLoading(false);
       });
 
       return () => unsubscribe();
     } catch (e) {
       console.warn('[Firebase] Products setup error:', e);
+      setIsProductsLoading(false);
     }
   }, []);
 
@@ -949,7 +972,9 @@ export function AppProvider({ children }) {
       addPet,
       deletePet,
       vets,
+      isVetsLoading,
       products,
+      isProductsLoading,
       posts,
       createPost,
       toggleLike,

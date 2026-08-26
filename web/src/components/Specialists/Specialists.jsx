@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 
 export default function Specialists() {
-  const { vets, openModal } = useApp();
+  const { vets, isVetsLoading, openModal } = useApp();
   const { currentUser, toggleFavoriteVet } = useAuth();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -24,20 +24,20 @@ export default function Specialists() {
   const [sortBy, setSortBy] = useState('rating');
 
   const filteredVets = vets.filter(v => {
-    const matchesSearch = v.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          v.qualification.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          v.clinic.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = (v.name || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          (v.qualification || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          (v.clinic || '').toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesCat = selectedCategory === 'all' || 
-                       (selectedCategory === 'vet' && v.tag.toLowerCase().includes('vet')) ||
-                       (selectedCategory === 'grooming' && v.tag.toLowerCase().includes('groom')) ||
-                       (selectedCategory === 'boarding' && v.tag.toLowerCase().includes('board'));
+                       (selectedCategory === 'vet' && (v.tag || '').toLowerCase().includes('vet')) ||
+                       (selectedCategory === 'grooming' && (v.tag || '').toLowerCase().includes('groom')) ||
+                       (selectedCategory === 'boarding' && (v.tag || '').toLowerCase().includes('board'));
 
     return matchesSearch && matchesCat;
   }).sort((a, b) => {
     if (sortBy === 'rating') return (b.rating || 0) - (a.rating || 0);
     if (sortBy === 'distance') return parseFloat(a.distance) - parseFloat(b.distance);
-    if (sortBy === 'name') return a.name.localeCompare(b.name);
+    if (sortBy === 'name') return (a.name || '').localeCompare(b.name || '');
     return 0;
   });
 
@@ -135,9 +135,28 @@ export default function Specialists() {
 
       {/* ── SPECIALISTS GRID ── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '18px' }}>
-        {filteredVets.map((v) => {
+        {isVetsLoading && vets.length === 0 ? (
+          [1, 2, 3].map((n) => (
+            <div 
+              key={n} 
+              className="apple-solid-card" 
+              style={{ display: 'flex', flexDirection: 'column', gap: '14px', padding: '22px', opacity: 0.6 }}
+            >
+              <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
+                <div style={{ width: 54, height: 54, borderRadius: '50%', background: 'var(--surface-alt)' }} />
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <div style={{ width: '60%', height: 16, background: 'var(--surface-alt)', borderRadius: 4 }} />
+                  <div style={{ width: '40%', height: 12, background: 'var(--surface-alt)', borderRadius: 4 }} />
+                </div>
+              </div>
+              <div style={{ width: '100%', height: 38, background: 'var(--surface-alt)', borderRadius: 6 }} />
+              <div style={{ width: '100%', height: 34, background: 'var(--surface-alt)', borderRadius: 8, marginTop: 'auto' }} />
+            </div>
+          ))
+        ) : (
+          filteredVets.map((v) => {
           const isFav = currentUser?.favoriteVetIds?.includes(v.id);
-          const isVet = v.tag.toLowerCase().includes('vet');
+          const isVet = (v.tag || '').toLowerCase().includes('vet');
 
           return (
             <div 
@@ -230,7 +249,7 @@ export default function Specialists() {
               </div>
             </div>
           );
-        })}
+        }))}
       </div>
     </div>
   );
