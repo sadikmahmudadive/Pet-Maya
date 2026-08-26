@@ -78,8 +78,8 @@ function MainContent() {
 
   return (
     <div className="app-container">
-      <GlobalBanner />
       <Header />
+      <GlobalBanner />
       <main className={isLanding ? "apple-landing-main" : "app-main"}>
         <AnimatePresence mode="wait">
           <motion.div
