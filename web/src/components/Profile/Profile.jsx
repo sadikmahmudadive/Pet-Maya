@@ -16,11 +16,21 @@ import {
   CheckCircle2,
   Calendar,
   Stethoscope,
-  HeartHandshake
+  HeartHandshake,
+  ShoppingBag,
+  Mail,
+  Phone,
+  MapPin,
+  Heart,
+  Clock,
+  Sun,
+  Gift,
+  Share2,
+  ArrowRight
 } from 'lucide-react';
 
 export default function Profile() {
-  const { medicalRecords, openModal, showToast } = useApp();
+  const { pets, orders, theme, toggleTheme, medicalRecords, openModal, showToast } = useApp();
   const { currentUser, logout, loginAsGuest, awardPoints } = useAuth();
 
   const [pointsRedeemed, setPointsRedeemed] = useState(false);
@@ -86,85 +96,152 @@ export default function Profile() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px', maxWidth: '880px', margin: '0 auto', width: '100%' }}>
       
-      {/* ── 1. USER PROFILE OVERVIEW CARD ── */}
-      <div className="apple-promo-card" style={{ display: 'flex', flexDirection: 'column', gap: '20px', alignItems: 'stretch', textAlign: 'left', padding: '32px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
+      {/* ── 1. MOBILE-APP INSPIRED PROFILE HEADER ── */}
+      <div className="apple-promo-card" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', background: 'var(--surface-solid)' }}>
+        {/* Green Top Section */}
+        <div style={{ background: 'var(--primary)', padding: '40px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
+          <button style={{ position: 'absolute', top: '20px', right: '20px', background: 'rgba(0,0,0,0.2)', border: 'none', color: '#fff', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }} onClick={handleSignOut}>
+            <LogOut size={16} />
+          </button>
+          
+          <div style={{ position: 'relative', marginBottom: '16px' }}>
             <img 
               src={currentUser?.photoUrl || 'assets/images/tail_wagging_logo.png'} 
               alt={currentUser?.name} 
-              style={{ width: 70, height: 70, borderRadius: '50%', objectFit: 'cover', border: '2.5px solid var(--primary)' }} 
+              style={{ width: 100, height: 100, borderRadius: '50%', objectFit: 'cover', border: '3px solid #FFF' }} 
             />
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <h2 style={{ fontSize: '22px', fontWeight: 700, letterSpacing: '-0.02em', margin: 0 }}>{currentUser?.name || 'Pet Parent'}</h2>
-                <span className="badge badge-green">{currentUser?.role || 'Pet Owner'}</span>
+          </div>
+          
+          <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#FFF', margin: '0 0 8px' }}>{currentUser?.name || 'Sm Adive'}</h2>
+          <span style={{ background: 'rgba(255,255,255,0.25)', color: '#FFF', padding: '4px 14px', borderRadius: 'var(--radius-full)', fontSize: '11px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+            {currentUser?.role || 'Pet Owner'}
+          </span>
+        </div>
+
+        {/* Stats Row */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', padding: '20px' }}>
+          <div style={{ background: 'var(--surface-alt)', padding: '16px 10px', borderRadius: 'var(--radius-md)', textAlign: 'center', border: '1px solid var(--border)' }}>
+            <div style={{ color: 'var(--primary)', display: 'flex', justifyContent: 'center', marginBottom: '8px' }}><User size={20} /></div>
+            <strong style={{ fontSize: '20px', display: 'block', lineHeight: 1 }}>{pets?.length || 2}</strong>
+            <span style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>Pets</span>
+          </div>
+          <div style={{ background: 'var(--surface-alt)', padding: '16px 10px', borderRadius: 'var(--radius-md)', textAlign: 'center', border: '1px solid var(--border)' }}>
+            <div style={{ color: 'var(--primary)', display: 'flex', justifyContent: 'center', marginBottom: '8px' }}><ShoppingBag size={20} /></div>
+            <strong style={{ fontSize: '20px', display: 'block', lineHeight: 1 }}>{orders?.length || 0}</strong>
+            <span style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>Orders</span>
+          </div>
+          <div style={{ background: 'var(--surface-alt)', padding: '16px 10px', borderRadius: 'var(--radius-md)', textAlign: 'center', border: '1px solid var(--border)' }}>
+            <div style={{ color: '#F59E0B', display: 'flex', justifyContent: 'center', marginBottom: '8px' }}><Award size={20} /></div>
+            <strong style={{ fontSize: '20px', display: 'block', lineHeight: 1 }}>{currentUser?.points || 20}</strong>
+            <span style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>Points</span>
+          </div>
+        </div>
+
+        {/* Pet Family */}
+        <div style={{ padding: '0 20px 20px', textAlign: 'left' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--primary)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Pet Family</span>
+            <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--primary)', cursor: 'pointer' }}>VIEW ALL</span>
+          </div>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            {pets && pets.length > 0 ? pets.map(p => (
+              <img key={p.id} src={p.photo} alt={p.name} style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--surface-alt)' }} />
+            )) : (
+              <div style={{ width: 64, height: 64, borderRadius: '50%', border: '2px dashed var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
+                <Plus size={20} />
               </div>
-              <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{currentUser?.email}</span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ── 2. PERSONAL DETAILS ── */}
+      <div className="apple-promo-card" style={{ padding: '24px 20px', textAlign: 'left', alignItems: 'stretch' }}>
+        <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--primary)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '16px', display: 'block' }}>Personal Details</span>
+        
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(16,185,129,0.1)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+               <Mail size={18} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Email</span>
+              <strong style={{ fontSize: '14px', display: 'block' }}>{currentUser?.email || 'siradive137@gmail.com'}</strong>
             </div>
           </div>
 
-          <button className="btn-ghost" style={{ color: 'var(--danger)' }} onClick={handleSignOut}>
-            <LogOut size={15} />
-            <span>Sign Out</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(16,185,129,0.1)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+               <Phone size={18} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Phone</span>
+              <strong style={{ fontSize: '14px', display: 'block' }}>{currentUser?.phone || '+8801835120307'}</strong>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(16,185,129,0.1)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+               <MapPin size={18} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Address</span>
+              <strong style={{ fontSize: '14px', display: 'block' }}>{currentUser?.address || '25 Rd No. 9, Mirpur, Dhaka, Bangladesh'}</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── 3. ACCOUNT & SECURITY ── */}
+      <div style={{ textAlign: 'left' }}>
+        <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--primary)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '16px', display: 'block', paddingLeft: '8px' }}>Account & Security</span>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          <div className="apple-promo-card" style={{ padding: '20px', flexDirection: 'row', alignItems: 'center', gap: '12px', justifyContent: 'flex-start' }}>
+            <Clock size={18} color="var(--primary)" />
+            <span style={{ fontSize: '13px', fontWeight: 600 }}>My Orders</span>
+          </div>
+          <div className="apple-promo-card" style={{ padding: '20px', flexDirection: 'row', alignItems: 'center', gap: '12px', justifyContent: 'flex-start' }}>
+            <Heart size={18} color="var(--primary)" />
+            <span style={{ fontSize: '13px', fontWeight: 600 }}>Favorite Vets</span>
+          </div>
+          <div className="apple-promo-card" style={{ padding: '20px', flexDirection: 'row', alignItems: 'center', gap: '12px', justifyContent: 'flex-start', cursor: 'pointer' }} onClick={toggleTheme}>
+            <Sun size={18} color="var(--primary)" />
+            <span style={{ fontSize: '13px', fontWeight: 600 }}>System ({theme})</span>
+          </div>
+          <div className="apple-promo-card" style={{ padding: '20px', flexDirection: 'row', alignItems: 'center', gap: '12px', justifyContent: 'flex-start' }}>
+            <ShieldCheck size={18} color="var(--primary)" />
+            <span style={{ fontSize: '13px', fontWeight: 600 }}>Privacy & Terms</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ── 4. REFERRAL PROGRAM ── */}
+      <div className="apple-promo-card" style={{ padding: '30px', textAlign: 'left', alignItems: 'stretch', background: 'linear-gradient(135deg, rgba(16,185,129,0.1), rgba(0,0,0,0))', borderColor: 'rgba(16,185,129,0.3)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+          <div>
+            <span style={{ background: 'rgba(16,185,129,0.15)', color: 'var(--primary)', padding: '4px 10px', borderRadius: '12px', fontSize: '10px', fontWeight: 700, letterSpacing: '0.05em' }}>REFERRAL PROGRAM 🎁</span>
+            <h3 style={{ fontSize: '18px', fontWeight: 700, marginTop: '12px' }}>Invite Friends & Earn Points!</h3>
+            <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '6px', maxWidth: '300px' }}>New users get 15 initial points. Earn +5 points for every friend who joins with your code!</p>
+          </div>
+          <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', boxShadow: '0 0 20px rgba(16,185,129,0.4)' }}>
+            <Gift size={24} />
+          </div>
+        </div>
+        
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+          <div style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border)', padding: '10px 16px', borderRadius: 'var(--radius-full)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ color: 'var(--primary)', fontWeight: 700, fontSize: '14px', letterSpacing: '1px' }}>{currentUser?.referralCode || 'PMKELG15'}</span>
+            <Copy size={14} color="var(--text-muted)" style={{ cursor: 'pointer' }} onClick={copyReferral} />
+          </div>
+          <button className="apple-btn-blue" style={{ padding: '10px 20px', borderRadius: 'var(--radius-full)' }}>
+            <Share2 size={16} />
+            <span>Share Invite</span>
           </button>
         </div>
-
-        {/* ── REFERRAL & REWARDS BANNER ── */}
-        <div 
-          style={{
-            background: 'var(--surface-alt)',
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--radius-md)',
-            padding: '20px 24px',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: '14px'
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <Award size={32} color="#F59E0B" />
-            <div>
-              <strong style={{ fontSize: '16.5px', fontWeight: 700, display: 'block' }}>
-                {currentUser?.points || 0} Care Reward Points
-              </strong>
-              <span style={{ fontSize: '12.5px', color: 'var(--text-muted)' }}>
-                Invite friends with your referral code to earn +15 points per signup!
-              </span>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ background: 'var(--surface-solid)', padding: '6px 12px', borderRadius: '6px', fontWeight: 800, fontSize: '13px', border: '1px solid var(--border)' }}>
-              {currentUser?.referralCode || 'PM89AC12'}
-            </span>
-            <button className="apple-btn-blue" style={{ padding: '6px 14px', fontSize: '12px' }} onClick={copyReferral}>
-              <Copy size={13} />
-              <span>Copy Code</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Points Redemption Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
-          <div style={{ background: 'var(--surface-alt)', padding: '14px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <strong style={{ fontSize: '13px', display: 'block' }}>$5 Pharmacy Voucher</strong>
-              <span style={{ fontSize: '11.5px', color: '#F59E0B', fontWeight: 700 }}>25 Points</span>
-            </div>
-            <button className="btn-ghost" style={{ fontSize: '11.5px', padding: '4px 10px' }} onClick={() => handleRedeemPoints(25, '$5 Pharmacy Voucher')}>Redeem</button>
-          </div>
-
-          <div style={{ background: 'var(--surface-alt)', padding: '14px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <strong style={{ fontSize: '13px', display: 'block' }}>Free Express Delivery</strong>
-              <span style={{ fontSize: '11.5px', color: '#F59E0B', fontWeight: 700 }}>40 Points</span>
-            </div>
-            <button className="btn-ghost" style={{ fontSize: '11.5px', padding: '4px 10px' }} onClick={() => handleRedeemPoints(40, 'Free Express Shipping')}>Redeem</button>
-          </div>
-        </div>
+        <button className="btn-ghost" style={{ marginTop: '16px', alignSelf: 'flex-start', padding: '8px 16px' }}>
+          <ArrowRight size={14} />
+          <span>Have a code?</span>
+        </button>
       </div>
 
       {/* ── 2. CLINICAL EHR MEDICAL RECORDS ── */}
