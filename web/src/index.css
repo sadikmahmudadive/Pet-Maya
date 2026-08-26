@@ -125,7 +125,25 @@ body {
 }
 
 @media (max-width: 860px) {
+  .apple-nav-wrapper {
+    height: auto !important;
+  }
+  .apple-nav-inner {
+    flex-wrap: wrap;
+    padding-top: 12px;
+  }
   .apple-nav-links {
+    display: flex;
+    width: 100%;
+    overflow-x: auto;
+    padding: 12px 0 14px;
+    gap: 20px;
+    -webkit-overflow-scrolling: touch;
+    border-top: 1px solid var(--border);
+    margin-top: 12px;
+    justify-content: flex-start;
+  }
+  .apple-nav-links::-webkit-scrollbar {
     display: none;
   }
 }
