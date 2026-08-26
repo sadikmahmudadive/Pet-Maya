@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
@@ -11,6 +12,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../../../core/services/connectivity_service.dart';
 import '../../common_widgets/premium_toast.dart';
+import '../services/pet_services_screen.dart';
 
 class AiHealthScannerScreen extends StatefulWidget {
   final PetModel? initialPet;
@@ -84,18 +86,33 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
     }
   }
 
-  void _saveToMedicalRecords() {
+  void _saveToMedicalRecords() async {
     if (_selectedPet == null || _diagnosisResult == null) return;
     final repo = context.read<AppStateRepository>();
-    repo.saveAiDiagnosisToPetRecord(
+    
+    HapticFeedback.mediumImpact();
+    
+    await repo.saveAiDiagnosisToPetRecord(
       petId: _selectedPet!.petID,
       petName: _selectedPet!.name,
       title: 'AI Health Assessment (${DateTime.now().toString().substring(0, 10)})',
       diagnosis: _diagnosisResult!,
       suggestion: 'Check with local veterinarian if symptoms persist after 48 hours.',
     );
-    repo.showToast('Diagnosis saved to ${_selectedPet!.name}\'s Medical History! ✅');
-    Navigator.pop(context);
+    
+    if (mounted) {
+      repo.showToast('Diagnosis saved to ${_selectedPet!.name}\'s Medical History! ✅');
+      Navigator.pop(context);
+    }
+  }
+
+  void _findVet() {
+    HapticFeedback.lightImpact();
+    // Redirect to the Pet Services list
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const PetServicesScreen()),
+    );
   }
 
   @override
@@ -369,7 +386,7 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: _findVet,
                       style: ElevatedButton.styleFrom(
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                         padding: const EdgeInsets.symmetric(vertical: 16),

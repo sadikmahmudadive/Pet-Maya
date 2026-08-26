@@ -75,7 +75,10 @@ service cloud.firestore {
         resource.data.providerId == request.auth.uid ||
         get(/databases/$(database)/documents/pets/$(resource.data.petId)).data.ownerID == request.auth.uid
       );
-      allow create: if isAuthenticated() && request.resource.data.providerId == request.auth.uid;
+      allow create: if isAuthenticated() && (
+        request.resource.data.providerId == request.auth.uid ||
+        get(/databases/$(database)/documents/pets/$(request.resource.data.petId)).data.ownerID == request.auth.uid
+      );
       allow update, delete: if isAuthenticated() && resource.data.providerId == request.auth.uid;
     }
 

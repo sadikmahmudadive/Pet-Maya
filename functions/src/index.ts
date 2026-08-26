@@ -41,13 +41,13 @@ export const openai_proxy = onCall({ secrets: ["OPENAI_API_KEY"] }, async (reque
         );
     }
   } catch (error: any) {
-    console.error("OpenAI Error:", error);
-    // Even if OpenAI fails, return a graceful error instead of crashing the call
+    console.error("CRITICAL AI Error:", error);
+    // Return detailed error to the app logs
     return {
-      response: `AI Error: ${error.message}. Please try again later.`,
+      response: `AI Connection Error: ${error.message}. Ensure your Firebase project is on the BLAZE plan.`,
       schedule: ["08:00", "13:00", "19:00"],
-      breed: "Unknown",
-      recommendation: {}
+      breed: `Error: ${error.message}`,
+      recommendation: { error: error.message }
     };
   }
 });

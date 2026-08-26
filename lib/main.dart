@@ -25,10 +25,10 @@ void main() async {
   // Initialize Firebase before the app runs
   await Firebase.initializeApp();
 
-  // Initialize App Check (Crucial for Cloud Functions security)
+  // Initialize App Check with Debug support for Emulators
   await FirebaseAppCheck.instance.activate(
-    androidProvider: AndroidProvider.playIntegrity,
-    appleProvider: AppleProvider.deviceCheck,
+    androidProvider: kDebugMode ? AndroidProvider.debug : AndroidProvider.playIntegrity,
+    appleProvider: kDebugMode ? AppleProvider.debug : AppleProvider.deviceCheck,
   );
 
   // Initialize Google Maps Android Renderer with Latest Vector Map Engine
