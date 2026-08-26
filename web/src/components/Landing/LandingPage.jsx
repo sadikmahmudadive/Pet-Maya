@@ -1,26 +1,11 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
+import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
 import { 
-  Radar, 
-  Activity, 
-  Utensils, 
-  Stethoscope, 
-  ShoppingBag, 
-  Bell, 
-  Download, 
-  Smartphone, 
-  ChevronRight, 
-  ShieldCheck, 
-  ExternalLink,
-  Sparkles,
-  Play,
-  Heart,
-  BookOpen,
-  DollarSign,
-  MapPin,
-  MessageCircle,
-  Calendar
+  Radar, Activity, Utensils, Stethoscope, ShoppingBag, Bell, 
+  Download, Smartphone, ChevronRight, ShieldCheck, ExternalLink,
+  Sparkles, Play, Heart, BookOpen, DollarSign, MapPin, MessageCircle, Calendar
 } from 'lucide-react';
 
 export default function LandingPage() {
@@ -42,223 +27,258 @@ export default function LandingPage() {
     }
   };
 
+  // --- Scroll Animations: Hero 1 (Spatial Computing Reveal) ---
+  const heroRef = useRef(null);
+  const { scrollYProgress: heroProgressRaw } = useScroll({
+    target: heroRef,
+    offset: ["start start", "end start"]
+  });
+  // Smooth the scroll progress so it feels like Apple's fluid scrolling
+  const heroProgress = useSpring(heroProgressRaw, { stiffness: 100, damping: 30, restDelta: 0.001 });
+
+  const heroOpacity = useTransform(heroProgress, [0, 0.4], [1, 0]);
+  const heroScale = useTransform(heroProgress, [0, 0.4], [1, 1.2]);
+  const heroBlur = useTransform(heroProgress, [0, 0.4], ["blur(0px)", "blur(20px)"]);
+  const heroY = useTransform(heroProgress, [0, 0.4], [0, -100]);
+
+  // Ecosystem grid comes in as hero text fades
+  const gridOpacity = useTransform(heroProgress, [0.3, 0.6], [0, 1]);
+  const gridY = useTransform(heroProgress, [0.3, 0.6], [100, 0]);
+  const gridScale = useTransform(heroProgress, [0.3, 0.6], [0.9, 1]);
+
+  // --- Scroll Animations: Hero 2 (Sticky Showcase) ---
+  const showcaseRef = useRef(null);
+  const { scrollYProgress: showcaseProgressRaw } = useScroll({
+    target: showcaseRef,
+    offset: ["start start", "end end"]
+  });
+  const showcaseProgress = useSpring(showcaseProgressRaw, { stiffness: 100, damping: 30 });
+  
+  // Showcase text sections cross-fading
+  const text1Opacity = useTransform(showcaseProgress, [0, 0.2, 0.3], [0, 1, 0]);
+  const text2Opacity = useTransform(showcaseProgress, [0.3, 0.5, 0.6], [0, 1, 0]);
+  const text3Opacity = useTransform(showcaseProgress, [0.6, 0.8, 1], [0, 1, 0]);
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', margin: '-24px -16px 0', width: 'calc(100% + 32px)' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', margin: '-24px -16px 0', width: 'calc(100% + 32px)', backgroundColor: '#000' }}>
       
       {/* ══════════════════════════════════════════════════════
-          HERO 1: TITANIUM CARE FLAGSHIP (APPLE.COM STYLE)
+          HERO 1: SPATIAL REVEAL (VISION PRO STYLE)
           ══════════════════════════════════════════════════════ */}
-      <section className="apple-hero-section apple-hero-dark" style={{ minHeight: '82vh', justifyContent: 'center' }}>
-        <span className="apple-hero-eyebrow" style={{ color: 'var(--primary)' }}>
-          Pet Maya 2.0
-        </span>
-        <h1 className="apple-hero-headline" style={{ color: '#FFFFFF' }}>
-          Titanium intelligence.
-        </h1>
-        <p className="apple-hero-subhead" style={{ color: '#A1A1A6' }}>
-          Next-generation pet healthcare, live GPS radar, and clinical AI triage. All in one place.
-        </p>
+      <section ref={heroRef} style={{ height: '200vh', position: 'relative' }}>
+        <div style={{ 
+          position: 'sticky', 
+          top: 0, 
+          height: '100vh', 
+          display: 'flex', 
+          flexDirection: 'column', 
+          alignItems: 'center', 
+          justifyContent: 'center',
+          overflow: 'hidden',
+          padding: '0 20px'
+        }}>
+          {/* Main Title that scales up and blurs out */}
+          <motion.div style={{ opacity: heroOpacity, scale: heroScale, filter: heroBlur, y: heroY, textAlign: 'center', zIndex: 10 }}>
+            <motion.span 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.8 }}
+              className="apple-hero-eyebrow" 
+              style={{ color: 'var(--primary)', marginBottom: '16px', display: 'block' }}
+            >
+              Pet Maya 2.0
+            </motion.span>
+            
+            <motion.h1 
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4, duration: 1 }}
+              style={{ fontSize: 'clamp(3rem, 8vw, 7rem)', fontWeight: 700, letterSpacing: '-0.04em', color: '#FFF', lineHeight: 1.1, margin: '0 0 24px 0' }}
+            >
+              Titanium <br/>intelligence.
+            </motion.h1>
+            
+            <motion.p 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.8, duration: 1 }}
+              style={{ fontSize: 'clamp(1.2rem, 2vw, 1.5rem)', color: '#A1A1A6', maxWidth: '600px', margin: '0 auto 40px' }}
+            >
+              Next-generation pet healthcare, live GPS radar, and clinical AI triage. All in one place.
+            </motion.p>
+            
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 1, duration: 0.5 }}
+              className="apple-cta-group" 
+              style={{ justifyContent: 'center' }}
+            >
+              <button className="apple-btn-blue" onClick={() => openModal('auth')}>
+                <span>Get Started</span>
+              </button>
+              <button className="apple-link-cta" onClick={handleTryDemo} style={{ color: '#FFF' }}>
+                <span>Explore Live Demo</span>
+                <ChevronRight size={16} />
+              </button>
+            </motion.div>
+          </motion.div>
 
-        <div className="apple-cta-group">
-          <button className="apple-btn-blue" onClick={() => openModal('auth')}>
-            <span>Get Started</span>
-          </button>
-
-          <button className="apple-link-cta" onClick={handleTryDemo}>
-            <span>Explore Live Demo</span>
-            <ChevronRight size={16} />
-          </button>
+          {/* Ecosystem Visual that zooms in from below */}
+          <motion.div 
+            style={{ 
+              position: 'absolute', 
+              opacity: gridOpacity, 
+              y: gridY,
+              scale: gridScale,
+              width: '100%',
+              maxWidth: '920px',
+              zIndex: 20
+            }}
+          >
+            <div style={{
+              background: 'rgba(28, 28, 30, 0.7)',
+              backdropFilter: 'blur(24px)',
+              WebkitBackdropFilter: 'blur(24px)',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
+              borderRadius: '24px',
+              padding: '32px',
+              boxShadow: '0 30px 80px rgba(0, 0, 0, 0.9)',
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: '24px',
+              textAlign: 'left'
+            }}>
+              {/* Feature Cards with hover effects */}
+              {[
+                { id: 'tracker', icon: Radar, title: 'Tracker', subtitle: 'Live GPS location', color: '#10B981', bg: 'rgba(16, 185, 129, 0.18)' },
+                { id: 'ai', icon: Activity, title: 'Wellness', subtitle: 'AI health scan', color: '#3B82F6', bg: 'rgba(59, 130, 246, 0.18)' },
+                { id: 'vets', icon: Stethoscope, title: 'Specialists', subtitle: '500+ Verified clinicians', color: '#F59E0B', bg: 'rgba(245, 158, 11, 0.18)' },
+                { id: 'food', icon: BookOpen, title: 'Blog', subtitle: 'Expert advice & diet', color: '#EC4899', bg: 'rgba(236, 72, 153, 0.18)' }
+              ].map((item) => (
+                <motion.div 
+                  key={item.id}
+                  whileHover={{ scale: 1.05, y: -5 }}
+                  whileTap={{ scale: 0.95 }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer' }}
+                  onClick={() => handleFeatureAccess(item.id, item.title)}
+                >
+                  <div style={{ width: 48, height: 48, borderRadius: '50%', background: item.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: item.color }}>
+                    <item.icon size={24} />
+                  </div>
+                  <div>
+                    <strong style={{ fontSize: '16px', color: '#FFFFFF', display: 'block' }}>{item.title}</strong>
+                    <span style={{ fontSize: '13px', color: '#86868B' }}>{item.subtitle}</span>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
         </div>
+      </section>
 
-        {/* Hero Ecosystem Visual */}
-        <div 
-          style={{
-            maxWidth: '920px',
+      {/* ══════════════════════════════════════════════════════
+          HERO 2: STICKY SHOWCASE (VISION PRO HARDWARE SCROLL)
+          ══════════════════════════════════════════════════════ */}
+      <section ref={showcaseRef} style={{ height: '300vh', position: 'relative', background: '#000' }}>
+        <div style={{ 
+          position: 'sticky', 
+          top: 0, 
+          height: '100vh', 
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          overflow: 'hidden'
+        }}>
+          {/* Background Image / Hardware Video placeholder */}
+          <div style={{
+            position: 'absolute',
             width: '100%',
-            background: 'rgba(28, 28, 30, 0.7)',
-            backdropFilter: 'blur(24px)',
-            border: '1px solid rgba(255, 255, 255, 0.12)',
-            borderRadius: '24px',
-            padding: '24px 32px',
-            boxShadow: '0 30px 80px rgba(0, 0, 0, 0.9)',
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: '20px',
-            textAlign: 'left'
-          }}
-        >
-          <div 
-            style={{ display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer' }}
-            onClick={() => handleFeatureAccess('tracker', 'Tracker')}
-          >
-            <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(16, 185, 129, 0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#10B981' }}>
-              <Radar size={22} />
-            </div>
-            <div>
-              <strong style={{ fontSize: '15px', color: '#FFFFFF', display: 'block' }}>Tracker</strong>
-              <span style={{ fontSize: '12px', color: '#86868B' }}>Live GPS location</span>
-            </div>
-          </div>
+            height: '100%',
+            background: 'radial-gradient(circle at center, rgba(30,40,60,0.4) 0%, #000 70%)',
+            zIndex: 1
+          }} />
 
-          <div 
-            style={{ display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer' }}
-            onClick={() => handleFeatureAccess('ai', 'Wellness')}
-          >
-            <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(59, 130, 246, 0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3B82F6' }}>
-              <Activity size={22} />
-            </div>
-            <div>
-              <strong style={{ fontSize: '15px', color: '#FFFFFF', display: 'block' }}>Wellness</strong>
-              <span style={{ fontSize: '12px', color: '#86868B' }}>AI health scan</span>
-            </div>
-          </div>
+          <div style={{ position: 'relative', zIndex: 10, width: '100%', maxWidth: '800px', padding: '0 20px', textAlign: 'center' }}>
+            
+            {/* Text 1: Tracker */}
+            <motion.div style={{ position: 'absolute', width: '100%', left: 0, opacity: text1Opacity, transform: 'translateY(-50%)' }}>
+              <span className="apple-hero-eyebrow" style={{ color: 'var(--primary)' }}>Pet Radar & Smart Collar</span>
+              <h2 style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', fontWeight: 700, color: '#FFF', margin: '16px 0' }}>
+                Wonderfully fast. <br /> Astoundingly precise.
+              </h2>
+              <p style={{ fontSize: '1.2rem', color: '#A1A1A6' }}>
+                Multi-constellation GPS tracking with geofence breach alarms.
+              </p>
+            </motion.div>
 
-          <div 
-            style={{ display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer' }}
-            onClick={() => handleFeatureAccess('vets', 'Specialists')}
-          >
-            <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(245, 158, 11, 0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#F59E0B' }}>
-              <Stethoscope size={22} />
-            </div>
-            <div>
-              <strong style={{ fontSize: '15px', color: '#FFFFFF', display: 'block' }}>Specialists</strong>
-              <span style={{ fontSize: '12px', color: '#86868B' }}>500+ Verified clinicians</span>
-            </div>
-          </div>
+            {/* Text 2: AI Vision */}
+            <motion.div style={{ position: 'absolute', width: '100%', left: 0, opacity: text2Opacity, transform: 'translateY(-50%)' }}>
+              <span className="apple-hero-eyebrow" style={{ color: '#3B82F6' }}>AI Health Vision</span>
+              <h2 style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', fontWeight: 700, color: '#FFF', margin: '16px 0' }}>
+                Clinical intelligence. <br /> Right on your camera.
+              </h2>
+              <p style={{ fontSize: '1.2rem', color: '#A1A1A6' }}>
+                Instant severity analysis and first aid advice from a photo.
+              </p>
+            </motion.div>
 
-          <div 
-            style={{ display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer' }}
-            onClick={() => handleFeatureAccess('food', 'Blog')}
-          >
-            <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(236, 72, 153, 0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#EC4899' }}>
-              <BookOpen size={22} />
-            </div>
-            <div>
-              <strong style={{ fontSize: '15px', color: '#FFFFFF', display: 'block' }}>Blog</strong>
-              <span style={{ fontSize: '12px', color: '#86868B' }}>Expert advice &amp; diet</span>
-            </div>
+            {/* Text 3: Pet Shop */}
+            <motion.div style={{ position: 'absolute', width: '100%', left: 0, opacity: text3Opacity, transform: 'translateY(-50%)' }}>
+              <span className="apple-hero-eyebrow" style={{ color: '#F59E0B' }}>Pet Pharmacy</span>
+              <h2 style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', fontWeight: 700, color: '#FFF', margin: '16px 0' }}>
+                Everything they need. <br /> Delivered today.
+              </h2>
+              <p style={{ fontSize: '1.2rem', color: '#A1A1A6' }}>
+                Genuine prescription preventatives and specialty food.
+              </p>
+            </motion.div>
           </div>
         </div>
       </section>
 
       {/* ══════════════════════════════════════════════════════
-          HERO 2: REAL-TIME TRACKER
+          BENTO GRID (Animated Fade-In)
           ══════════════════════════════════════════════════════ */}
-      <section className="apple-hero-section apple-hero-light" style={{ minHeight: '65vh', justifyContent: 'center' }}>
-        <span className="apple-hero-eyebrow" style={{ color: 'var(--primary)' }}>
-          Pet Radar &amp; Smart Collar
-        </span>
-        <h2 className="apple-hero-headline">
-          Wonderfully fast. <br />
-          Astoundingly precise.
-        </h2>
-        <p className="apple-hero-subhead">
-          Multi-constellation GPS tracking with geofence breach alarms and collar audio buzzer.
-        </p>
-
-        <div className="apple-cta-group">
-          <button className="apple-btn-blue" onClick={() => handleFeatureAccess('tracker', 'Tracker')}>
-            <span>Launch Tracker</span>
-          </button>
-          <button className="apple-link-cta" onClick={() => handleFeatureAccess('tracker', 'Tracker Live Telemetry')}>
-            <span>See live telemetry</span>
-            <ChevronRight size={16} />
-          </button>
-        </div>
+      <section className="apple-bento-grid" style={{ padding: '60px 20px', background: 'var(--surface-solid)' }}>
+        {[
+          { id: 'vets', title: 'Specialists', eyebrow: 'Specialist Network', color: '#F59E0B', desc: 'In-clinic visits, surgery consultations, and HD teleconsultations with verified doctors.' },
+          { id: 'food', title: 'Blog & Nutrition', eyebrow: 'Precision Diet', color: '#EC4899', desc: 'Scientific RER/MER calorie calculators, dry/wet portion splits, and breed guides.' },
+          { id: 'shop', title: 'Pet Shop', eyebrow: 'Pharmacy & Store', color: '#6366F1', desc: 'Genuine prescription flea/tick preventatives and specialty food with live order dispatch.' },
+          { id: 'vaccines', title: 'Reminders', eyebrow: 'Medical Passport', color: '#10B981', desc: 'Automated immunization schedules, rabies tracking, and 1-click export to Apple Calendar.' }
+        ].map((item, idx) => (
+          <motion.div 
+            key={item.id}
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.6, delay: idx * 0.1 }}
+            className="apple-promo-card"
+          >
+            <span className="apple-card-eyebrow" style={{ color: item.color }}>{item.eyebrow}</span>
+            <h3 className="apple-card-title">{item.title}</h3>
+            <p className="apple-card-desc">{item.desc}</p>
+            <button className="apple-link-cta" onClick={() => handleFeatureAccess(item.id, item.title)}>
+              <span>Explore {item.title.toLowerCase()}</span>
+              <ChevronRight size={15} />
+            </button>
+          </motion.div>
+        ))}
       </section>
 
       {/* ══════════════════════════════════════════════════════
-          HERO 3: WELLNESS AI CLINICAL TRIAGE
+          MOBILE DOWNLOADS
           ══════════════════════════════════════════════════════ */}
-      <section className="apple-hero-section apple-hero-dark" style={{ minHeight: '65vh', justifyContent: 'center' }}>
-        <span className="apple-hero-eyebrow" style={{ color: '#3B82F6' }}>
-          AI Health Vision
-        </span>
-        <h2 className="apple-hero-headline" style={{ color: '#FFFFFF' }}>
-          Clinical intelligence. <br />
-          Right on your camera.
-        </h2>
-        <p className="apple-hero-subhead" style={{ color: '#A1A1A6' }}>
-          Upload photos of skin irritation, eye discharge, or ear discomfort for instant severity analysis and first aid advice.
-        </p>
-
-        <div className="apple-cta-group">
-          <button className="apple-btn-blue" onClick={() => handleFeatureAccess('ai', 'Wellness Scan')}>
-            <span>Test Wellness Scan</span>
-          </button>
-          <button className="apple-link-cta" onClick={() => handleFeatureAccess('vets', 'Specialists Directory')}>
-            <span>Consult a specialist</span>
-            <ChevronRight size={16} />
-          </button>
-        </div>
-      </section>
-
-      {/* ══════════════════════════════════════════════════════
-          APPLE 2X2 BENTO PROMO MATRIX
-          ══════════════════════════════════════════════════════ */}
-      <section className="apple-bento-grid">
-        {/* Bento 1: Specialists */}
-        <div className="apple-promo-card">
-          <span className="apple-card-eyebrow" style={{ color: '#F59E0B' }}>Specialist Network</span>
-          <h3 className="apple-card-title">Specialists</h3>
-          <p className="apple-card-desc">
-            In-clinic visits, surgery consultations, and HD teleconsultations with verified doctors.
-          </p>
-          <button className="apple-link-cta" onClick={() => handleFeatureAccess('vets', 'Specialists')}>
-            <span>Explore directory</span>
-            <ChevronRight size={15} />
-          </button>
-        </div>
-
-        {/* Bento 2: Blog */}
-        <div className="apple-promo-card">
-          <span className="apple-card-eyebrow" style={{ color: '#EC4899' }}>Precision Diet</span>
-          <h3 className="apple-card-title">Blog &amp; Nutrition</h3>
-          <p className="apple-card-desc">
-            Scientific RER/MER calorie calculators, dry/wet portion splits, and breed guides.
-          </p>
-          <button className="apple-link-cta" onClick={() => handleFeatureAccess('food', 'Blog')}>
-            <span>Read guide</span>
-            <ChevronRight size={15} />
-          </button>
-        </div>
-
-        {/* Bento 3: Pet Shop */}
-        <div className="apple-promo-card">
-          <span className="apple-card-eyebrow" style={{ color: '#6366F1' }}>Pharmacy &amp; Store</span>
-          <h3 className="apple-card-title">Pet Shop</h3>
-          <p className="apple-card-desc">
-            Genuine prescription flea/tick preventatives (Simparica) and specialty food with live order dispatch.
-          </p>
-          <button className="apple-link-cta" onClick={() => handleFeatureAccess('shop', 'Pet Shop')}>
-            <span>Visit Pet Shop</span>
-            <ChevronRight size={15} />
-          </button>
-        </div>
-
-        {/* Bento 4: Reminders */}
-        <div className="apple-promo-card">
-          <span className="apple-card-eyebrow" style={{ color: '#10B981' }}>Medical Passport</span>
-          <h3 className="apple-card-title">Reminders</h3>
-          <p className="apple-card-desc">
-            Automated immunization schedules, rabies tracking, and 1-click export to Apple Calendar (.ICS).
-          </p>
-          <button className="apple-link-cta" onClick={() => handleFeatureAccess('vaccines', 'Reminders')}>
-            <span>View Reminders</span>
-            <ChevronRight size={15} />
-          </button>
-        </div>
-      </section>
-
-      {/* ══════════════════════════════════════════════════════
-          APPLE MOBILE DOWNLOADS & SIDELOADING SECTION
-          ══════════════════════════════════════════════════════ */}
-      <section id="mobile-downloads" style={{ maxWidth: '1240px', margin: '30px auto', padding: '0 16px', width: '100%', scrollMarginTop: '80px' }}>
-        <div 
+      <section id="mobile-downloads" style={{ maxWidth: '1240px', margin: '30px auto', padding: '0 16px', width: '100%' }}>
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
           className="apple-promo-card" 
           style={{ padding: '60px 40px', textAlign: 'center', background: 'var(--surface-solid)' }}
         >
-          <span className="apple-card-eyebrow" style={{ color: 'var(--primary)' }}>Apple &amp; Android Ecosystem</span>
+          <span className="apple-card-eyebrow" style={{ color: 'var(--primary)' }}>Apple & Android Ecosystem</span>
           <h2 style={{ fontSize: 'clamp(32px, 4vw, 48px)', fontWeight: 700, letterSpacing: '-0.03em', marginBottom: '14px' }}>
             Connected seamlessly.
           </h2>
@@ -266,12 +286,12 @@ export default function LandingPage() {
             Enjoy full Bluetooth collar telemetry, background boundary alarms, push notifications, and camera triage on your phone.
           </p>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', width: '100%', maxWidth: '980px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', width: '100%', maxWidth: '980px', margin: '0 auto' }}>
             {/* iOS Column */}
             <div style={{ background: 'var(--surface-alt)', padding: '28px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '14px', textAlign: 'left' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <Smartphone size={22} color="#0071E3" />
-                <strong style={{ fontSize: '17px', fontWeight: 600 }}>iPhone &amp; iPad</strong>
+                <strong style={{ fontSize: '17px', fontWeight: 600 }}>iPhone & iPad</strong>
               </div>
               <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
                 Install directly via Wireless OTA Manifest or download the <strong>.ipa</strong> package for AltStore, Sideloadly, TrollStore or Scarlet.
@@ -330,26 +350,11 @@ export default function LandingPage() {
                 </a>
               </div>
             </div>
-
-            {/* QR Scan Column */}
-            <div style={{ background: 'var(--surface-alt)', padding: '28px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '12px' }}>
-              <img 
-                src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=https%3A%2F%2Fwww.petmaya.app%2F" 
-                alt="Scan with Camera" 
-                style={{ width: 120, height: 120, borderRadius: '8px', border: '1px solid var(--border)', background: '#FFFFFF', padding: '4px' }} 
-              />
-              <strong style={{ fontSize: '15px' }}>Scan with Phone Camera</strong>
-              <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                Instantly opens Pet Maya web app or downloads mobile application on your device.
-              </p>
-            </div>
           </div>
-        </div>
+        </motion.div>
       </section>
 
-      {/* ══════════════════════════════════════════════════════
-          APPLE.COM GLOBAL DIRECTORY FOOTER
-          ══════════════════════════════════════════════════════ */}
+      {/* FOOTER */}
       <footer className="apple-footer-wrap">
         <div className="apple-footer-inner">
           <div className="apple-footer-grid">
