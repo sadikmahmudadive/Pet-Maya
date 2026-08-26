@@ -162,7 +162,7 @@ export default function Blog() {
             Expert articles on health, nutrition, training & lifestyle — by veterinarians.
           </p>
         </div>
-        <button className="apple-btn-blue" onClick={() => setShowCreateModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <button className="apple-btn-blue" onClick={() => setShowEditor(true)} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <PenLine size={15} />
           <span>Write Article</span>
         </button>
