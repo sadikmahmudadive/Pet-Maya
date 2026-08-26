@@ -120,7 +120,16 @@ export default function Shop() {
               {p.name}
             </h3>
 
-            <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', lineHeight: 1.45, marginBottom: '14px', flex: 1 }}>
+            <p style={{ 
+              fontSize: '12.5px', 
+              color: 'var(--text-muted)', 
+              lineHeight: 1.45, 
+              marginBottom: '14px', 
+              display: '-webkit-box',
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden'
+            }}>
               {p.description}
             </p>
 
