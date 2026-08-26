@@ -25,7 +25,9 @@ import {
   HelpCircle,
   Camera,
   Activity,
-  Globe
+  Globe,
+  ThumbsUp,
+  MessageSquare
 } from 'lucide-react';
 import { AppleReveal } from '../Animations/AppleReveal';
 import { AppleStagger } from '../Animations/AppleStagger';
@@ -511,10 +513,9 @@ export default function Community() {
                     }}
                   >
                     
-                    {/* Post Header */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        
+                    {/* ── Facebook Post Header ── */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px 10px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         {/* Avatar */}
                         <img 
                           src={post.authorPhoto || 'assets/images/tail_wagging_logo.png'} 
@@ -522,47 +523,61 @@ export default function Community() {
                           style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover', display: 'block', border: '1px solid var(--border)' }} 
                         />
 
-                        <div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <strong style={{ fontSize: '14.5px', fontWeight: 700, color: 'var(--text-main)' }}>
+                            <strong style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-main)' }}>
                               {post.author}
                             </strong>
-                            <CheckCircle size={14} color="#10B981" fill="#10B981" />
+                            {post.category && (
+                              <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 400 }}>
+                                shared a {post.category.toLowerCase()}
+                              </span>
+                            )}
                           </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--text-muted)' }}>
-                            <span style={{ color: 'var(--primary)', fontWeight: 600 }}>{post.petTag}</span>
-                            <span>•</span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', color: 'var(--text-muted)' }}>
                             <span>{post.time || 'Recent'}</span>
+                            <span>·</span>
+                            <Globe size={12} />
+                            {post.petTag && (
+                              <>
+                                <span>·</span>
+                                <span style={{ color: 'var(--primary)', fontWeight: 500 }}>{post.petTag}</span>
+                              </>
+                            )}
                           </div>
                         </div>
                       </div>
 
-                      {/* More / Category Badge */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        {post.category && (
-                          <span className="badge badge-green" style={{ fontSize: '11px' }}>
-                            {post.category}
-                          </span>
-                        )}
+                      {/* Top Right Options: More & Bookmark */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <button 
                           className="icon-btn" 
-                          style={{ width: 30, height: 30, border: 'none', background: 'transparent' }}
-                          onClick={() => handleSharePost(post.id)}
-                          title="Share post"
+                          style={{ width: 32, height: 32, border: 'none', background: 'transparent' }}
+                          onClick={() => handleToggleBookmark(post.id)}
+                          title={isBookmarked ? "Saved" : "Save post"}
                         >
-                          <Share2 size={16} />
+                          <Bookmark size={18} fill={isBookmarked ? '#F59E0B' : 'none'} color={isBookmarked ? '#F59E0B' : 'var(--text-muted)'} />
+                        </button>
+
+                        <button 
+                          className="icon-btn" 
+                          style={{ width: 32, height: 32, border: 'none', background: 'transparent' }}
+                          onClick={() => handleSharePost(post.id)}
+                          title="More options"
+                        >
+                          <MoreHorizontal size={18} />
                         </button>
                       </div>
                     </div>
 
-                    {/* Post Caption */}
+                    {/* ── Post Text Content ── */}
                     {post.content && (
-                      <p style={{ fontSize: '14.5px', color: 'var(--text-main)', lineHeight: 1.55, padding: '0 20px 14px', margin: 0 }}>
+                      <p style={{ fontSize: '15px', color: 'var(--text-main)', lineHeight: 1.5, padding: '2px 16px 12px', margin: 0, whiteSpace: 'pre-line' }}>
                         {post.content}
                       </p>
                     )}
 
-                    {/* Edge-to-Edge Visual Image with Double-Tap Heart */}
+                    {/* ── Attached Visual Image with Double-Tap Heart ── */}
                     {post.image && (
                       <div 
                         style={{ position: 'relative', background: '#000', cursor: 'pointer', overflow: 'hidden' }}
@@ -570,8 +585,8 @@ export default function Community() {
                       >
                         <img 
                           src={post.image} 
-                          alt="Story visual" 
-                          style={{ width: '100%', maxHeight: 520, objectFit: 'cover', display: 'block' }} 
+                          alt="Post visual" 
+                          style={{ width: '100%', maxHeight: 540, objectFit: 'contain', display: 'block', background: '#080808' }} 
                         />
 
                         {/* Floating Heart on Double Tap */}
@@ -586,9 +601,9 @@ export default function Community() {
                       </div>
                     )}
 
-                    {/* Shared Post Embedded Card */}
+                    {/* ── Embedded Shared Post if present ── */}
                     {(post.sharedPostContent || post.sharedPostImageUrl) && (
-                      <div style={{ margin: '0 20px 14px', padding: '12px 14px', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', background: 'var(--surface-alt)' }}>
+                      <div style={{ margin: '0 16px 12px', padding: '12px 14px', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', background: 'var(--surface-alt)' }}>
                         {post.sharedPostAuthor && (
                           <strong style={{ fontSize: '13px', display: 'block', marginBottom: '6px', color: 'var(--primary)' }}>
                             Shared from {post.sharedPostAuthor}
@@ -609,91 +624,127 @@ export default function Community() {
                       </div>
                     )}
 
-                    {/* Engagement Actions Bar (Facebook & Instagram Style) */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 18px', borderTop: '1px solid var(--border)' }}>
-                      
+                    {/* ── Facebook Reaction & Comment Stats Row ── */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px 8px', fontSize: '13px', color: 'var(--text-muted)' }}>
+                      {/* Left: Like/Reaction Count */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        {/* Like Button */}
-                        <button 
-                          className={`reaction-btn ${post.isLiked ? 'liked' : ''}`}
-                          onClick={() => toggleLike(post.id)}
-                        >
-                          <Heart size={18} fill={post.isLiked ? '#EF4444' : 'none'} />
-                          <span>{likesCount > 0 ? likesCount : 'Like'}</span>
-                        </button>
-
-                        {/* Comment Button */}
-                        <button 
-                          className="reaction-btn"
-                          onClick={() => setActiveCommentPostId(isCommentSectionOpen ? null : post.id)}
-                        >
-                          <MessageCircle size={18} />
-                          <span>{post.comments?.length || 0} Comments</span>
-                        </button>
+                        {likesCount > 0 ? (
+                          <>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                              <span style={{ width: 18, height: 18, borderRadius: '50%', background: '#1877F2', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '10px' }}>
+                                <ThumbsUp size={10} fill="#fff" />
+                              </span>
+                              <span style={{ width: 18, height: 18, borderRadius: '50%', background: '#EF4444', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '10px', marginLeft: '-4px' }}>
+                                <Heart size={10} fill="#fff" />
+                              </span>
+                            </div>
+                            <span>{likesCount}</span>
+                          </>
+                        ) : (
+                          <span>Be the first to react</span>
+                        )}
                       </div>
 
-                      {/* Bookmark Icon */}
-                      <button 
-                        className="icon-btn" 
-                        style={{ width: 34, height: 34, border: 'none', background: 'transparent', color: isBookmarked ? '#F59E0B' : 'var(--text-muted)' }}
-                        onClick={() => handleToggleBookmark(post.id)}
-                        title="Save to bookmarks"
+                      {/* Right: Comments Count */}
+                      <div 
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => setActiveCommentPostId(isCommentSectionOpen ? null : post.id)}
                       >
-                        <Bookmark size={18} fill={isBookmarked ? '#F59E0B' : 'none'} />
+                        <span>{post.comments?.length || 0} comments</span>
+                      </div>
+                    </div>
+
+                    {/* Divider Line */}
+                    <div style={{ height: '1px', background: 'var(--border)', margin: '0 16px' }} />
+
+                    {/* ── Facebook 3-Button Action Row ── */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around', padding: '3px 8px' }}>
+                      {/* Like Button */}
+                      <button 
+                        className={`fb-action-btn ${post.isLiked ? 'liked' : ''}`}
+                        onClick={() => toggleLike(post.id)}
+                        style={{ color: post.isLiked ? '#1877F2' : 'var(--text-muted)' }}
+                      >
+                        <ThumbsUp size={18} fill={post.isLiked ? '#1877F2' : 'none'} />
+                        <span>Like</span>
+                      </button>
+
+                      {/* Comment Button */}
+                      <button 
+                        className="fb-action-btn"
+                        onClick={() => setActiveCommentPostId(isCommentSectionOpen ? null : post.id)}
+                      >
+                        <MessageSquare size={18} />
+                        <span>Comment</span>
+                      </button>
+
+                      {/* Share Button */}
+                      <button 
+                        className="fb-action-btn"
+                        onClick={() => handleSharePost(post.id)}
+                      >
+                        <Share2 size={18} />
+                        <span>Share</span>
                       </button>
                     </div>
 
-                    {/* Social Proof Text */}
-                    {likesCount > 0 && (
-                      <div style={{ padding: '0 20px 10px', fontSize: '12.5px', color: 'var(--text-muted)' }}>
-                        Liked by <strong style={{ color: 'var(--text-main)' }}>{likesCount} {likesCount === 1 ? 'pet parent' : 'pet parents'}</strong>
-                      </div>
-                    )}
-
-                    {/* Comments Section Drawer */}
+                    {/* ── Facebook Comments Drawer ── */}
                     {isCommentSectionOpen && (
-                      <div style={{ background: 'var(--surface-alt)', padding: '16px 20px', borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      <div style={{ background: 'var(--surface-alt)', padding: '12px 16px 16px', borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         
-                        {/* Comments List */}
-                        {post.comments && post.comments.length > 0 ? (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: 220, overflowY: 'auto', paddingRight: '4px' }}>
+                        {/* Write a comment input bar with current user avatar */}
+                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                          <img 
+                            src={currentUser?.photoUrl || 'assets/images/tail_wagging_logo.png'} 
+                            alt="Current User" 
+                            style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} 
+                          />
+                          <div style={{ display: 'flex', flex: 1, gap: '8px', alignItems: 'center', background: 'var(--surface)', borderRadius: '20px', padding: '4px 6px 4px 14px', border: '1px solid var(--border)' }}>
+                            <input 
+                              type="text" 
+                              placeholder="Write a comment..." 
+                              value={commentInputs[post.id] || ''}
+                              onChange={(e) => setCommentInputs({ ...commentInputs, [post.id]: e.target.value })}
+                              onKeyDown={(e) => { if (e.key === 'Enter') handleCommentSubmit(post.id); }}
+                              style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: 'var(--text-main)', fontSize: '13px' }}
+                            />
+                            <button 
+                              type="button"
+                              className="icon-btn"
+                              style={{ width: 28, height: 28, color: (commentInputs[post.id]?.trim()) ? 'var(--primary)' : 'var(--text-muted)' }}
+                              onClick={() => handleCommentSubmit(post.id)}
+                              disabled={!commentInputs[post.id]?.trim()}
+                            >
+                              <Send size={14} />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Existing Comments List */}
+                        {post.comments && post.comments.length > 0 && (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: 240, overflowY: 'auto', paddingTop: '4px' }}>
                             {post.comments.map((c, i) => (
                               <div key={i} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', fontSize: '13px' }}>
-                                <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 700, flexShrink: 0 }}>
-                                  {c.author ? c.author[0] : 'P'}
+                                <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 700, flexShrink: 0 }}>
+                                  {c.author ? c.author[0].toUpperCase() : 'P'}
                                 </div>
-                                <div style={{ background: 'var(--surface)', padding: '8px 12px', borderRadius: 'var(--radius-sm)', flex: 1 }}>
-                                  <strong style={{ color: 'var(--text-main)', fontSize: '12.5px', display: 'block', marginBottom: '2px' }}>
-                                    {c.author}
-                                  </strong>
-                                  <span style={{ color: 'var(--text-muted)', lineHeight: 1.4 }}>{c.text}</span>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', maxWidth: '85%' }}>
+                                  <div style={{ background: 'var(--surface)', padding: '8px 14px', borderRadius: '16px', border: '1px solid var(--border)' }}>
+                                    <strong style={{ color: 'var(--text-main)', fontSize: '13px', display: 'block', marginBottom: '2px' }}>
+                                      {c.author}
+                                    </strong>
+                                    <span style={{ color: 'var(--text-main)', lineHeight: 1.4, wordBreak: 'break-word' }}>{c.text}</span>
+                                  </div>
+                                  <div style={{ display: 'flex', gap: '12px', fontSize: '11.5px', color: 'var(--text-muted)', paddingLeft: '8px' }}>
+                                    <span style={{ fontWeight: 600, cursor: 'pointer' }}>Like</span>
+                                    <span style={{ fontWeight: 600, cursor: 'pointer' }}>Reply</span>
+                                    <span>Just now</span>
+                                  </div>
                                 </div>
                               </div>
                             ))}
                           </div>
-                        ) : (
-                          <span style={{ fontSize: '12.5px', color: 'var(--text-muted)' }}>No comments yet. Start the conversation!</span>
                         )}
-
-                        {/* Sticky Inline Add Comment Bar */}
-                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '4px' }}>
-                          <input 
-                            type="text" 
-                            className="input-clean" 
-                            placeholder="Add a comment for pet parents..." 
-                            value={commentInputs[post.id] || ''}
-                            onChange={(e) => setCommentInputs({ ...commentInputs, [post.id]: e.target.value })}
-                            onKeyDown={(e) => { if (e.key === 'Enter') handleCommentSubmit(post.id); }}
-                            style={{ fontSize: '13px', padding: '8px 14px', borderRadius: '20px' }}
-                          />
-                          <button 
-                            className="apple-btn-blue" 
-                            style={{ padding: '8px 16px', fontSize: '12.5px', borderRadius: '20px' }}
-                            onClick={() => handleCommentSubmit(post.id)}
-                          >
-                            Post
-                          </button>
-                        </div>
                       </div>
                     )}
                   </article>
