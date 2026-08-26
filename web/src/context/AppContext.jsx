@@ -493,20 +493,27 @@ export function AppProvider({ children }) {
       const postsRef = collection(db, 'community_posts');
       const unsubscribe = onSnapshot(postsRef, (snapshot) => {
         if (!snapshot.empty) {
+          const myUid = currentUser?.uid || localStorage.getItem('pm_guest_uid') || '';
+
           const fetchedPosts = snapshot.docs.map(docSnap => {
             const data = docSnap.data();
             
             // Flexible likedBy parser (handles Array, Map, and numeric counts)
             let isLiked = false;
-            let likesCount = typeof data.likesCount === 'number' ? data.likesCount : 0;
+            let likesCount = typeof data.likesCount === 'number' ? data.likesCount : (typeof data.likes === 'number' ? data.likes : 0);
             const likedBy = data.likedBy;
+            const likedByUserIds = data.likedByUserIds;
 
+            if (Array.isArray(likedByUserIds)) {
+              if (myUid && likedByUserIds.includes(myUid)) isLiked = true;
+              if (likesCount === 0) likesCount = likedByUserIds.length;
+            }
             if (Array.isArray(likedBy)) {
-              if (currentUser && likedBy.includes(currentUser.uid)) isLiked = true;
+              if (myUid && likedBy.includes(myUid)) isLiked = true;
               if (likesCount === 0) likesCount = likedBy.length;
             } else if (likedBy && typeof likedBy === 'object') {
-              if (currentUser && likedBy[currentUser.uid]) isLiked = true;
-              if (likesCount === 0) likesCount = Object.keys(likedBy).length;
+              if (myUid && (likedBy[myUid] === true || likedBy[myUid] === 'true' || likedBy[myUid] === 1)) isLiked = true;
+              if (likesCount === 0) likesCount = Object.keys(likedBy).filter(k => likedBy[k] === true || likedBy[k] === 1).length;
             }
 
             // Robust timestamp parser
@@ -543,6 +550,14 @@ export function AppProvider({ children }) {
 
             const postType = (data.postType || data.category || 'MOMENT').toUpperCase();
 
+            // Normalize comments array from Firestore
+            const rawComments = Array.isArray(data.comments) ? data.comments.map(c => ({
+              commentId: c.commentId || c.id || '',
+              author: c.author || c.userName || 'Pet Parent',
+              text: c.commentText || c.text || '',
+              createdAt: c.createdAt || (c.timestamp ? new Date(c.timestamp).toISOString() : new Date().toISOString())
+            })) : [];
+
             return {
               id: docSnap.id,
               postId: data.postId || docSnap.id,
@@ -557,8 +572,8 @@ export function AppProvider({ children }) {
               likes: likesCount,
               isLiked: isLiked,
               likedBy: Array.isArray(likedBy) ? likedBy : (likedBy ? Object.keys(likedBy) : []),
-              comments: Array.isArray(data.comments) ? data.comments : [],
-              commentsCount: data.commentsCount || (data.comments?.length || 0),
+              comments: rawComments,
+              commentsCount: typeof data.commentsCount === 'number' ? data.commentsCount : rawComments.length,
               sharesCount: data.sharesCount || 0,
               sharedPostId: data.sharedPostId,
               sharedPostAuthor: data.sharedPostAuthor,
@@ -568,25 +583,19 @@ export function AppProvider({ children }) {
           });
 
           // Sort posts by newest timestamp first
-          fetchedPosts.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+          fetchedPosts.sort((a, b) => b.timestamp - a.timestamp);
 
           setPosts(fetchedPosts);
-          setIsPostsLoading(false);
-          try {
-            localStorage.setItem('pm_cached_posts', JSON.stringify(fetchedPosts));
-          } catch (_) {}
-        } else {
-          setPosts([]);
-          setIsPostsLoading(false);
         }
+        setIsPostsLoading(false);
       }, (err) => {
-        console.warn('[Firebase] Community posts listener warning:', err);
+        console.warn('[Firebase] community_posts onSnapshot error:', err);
         setIsPostsLoading(false);
       });
 
       return () => unsubscribe();
     } catch (e) {
-      console.warn('[Firebase] Posts setup error:', e);
+      console.warn('[Firebase] community_posts init listener error:', e);
       setIsPostsLoading(false);
     }
   }, [currentUser]);
@@ -832,69 +841,112 @@ export function AppProvider({ children }) {
     showToast('✨ Story published to community feed!', 'success');
   };
 
-  // Toggle Like Post
+  // Toggle Like Post (Reliable Sync with Firestore and Flutter)
   const toggleLike = async (postId) => {
-    if (!currentUser) {
-      openModal('auth');
-      showToast('🔒 Please sign in to like posts', 'info');
-      return;
-    }
-
     const post = posts.find(p => p.id === postId);
     if (!post) return;
 
-    const isLiked = post.isLiked;
-
-    if (!currentUser.uid.startsWith('demo_guest')) {
-      try {
-        const postDocRef = doc(db, 'community_posts', postId);
-        await updateDoc(postDocRef, {
-          likedBy: isLiked ? arrayRemove(currentUser.uid) : arrayUnion(currentUser.uid),
-          likesCount: increment(isLiked ? -1 : 1)
-        });
-      } catch (e) {
-        console.warn('[Firebase] toggleLike error:', e);
+    let myUid = currentUser?.uid;
+    if (!myUid) {
+      myUid = localStorage.getItem('pm_guest_uid');
+      if (!myUid) {
+        myUid = 'usr_' + Math.random().toString(36).substring(2, 9);
+        localStorage.setItem('pm_guest_uid', myUid);
       }
-    } else {
-      setPosts(prev => prev.map(p => {
-        if (p.id === postId) {
-          return {
-            ...p,
-            likes: isLiked ? Math.max(0, p.likes - 1) : p.likes + 1,
-            isLiked: !isLiked
-          };
-        }
-        return p;
-      }));
+    }
+
+    const isCurrentlyLiked = !!post.isLiked;
+    const newLiked = !isCurrentlyLiked;
+    const newLikesCount = newLiked ? (post.likes + 1) : Math.max(0, post.likes - 1);
+
+    // 1. Instant Optimistic UI Update
+    setPosts(prev => prev.map(p => {
+      if (p.id === postId) {
+        return {
+          ...p,
+          likes: newLikesCount,
+          isLiked: newLiked,
+          likedBy: newLiked ? [...(p.likedBy || []), myUid] : (p.likedBy || []).filter(u => u !== myUid)
+        };
+      }
+      return p;
+    }));
+
+    // 2. Persist to Firestore with SetOptions merge
+    try {
+      const postDocRef = doc(db, 'community_posts', postId);
+      await setDoc(postDocRef, {
+        likesCount: increment(newLiked ? 1 : -1),
+        likes: increment(newLiked ? 1 : -1),
+        likedByUserIds: newLiked ? arrayUnion(myUid) : arrayRemove(myUid),
+        likedBy: { [myUid]: newLiked }
+      }, { merge: true });
+    } catch (e) {
+      console.warn('[Firebase] toggleLike error:', e);
     }
   };
 
-  // Add Comment to Post
+  // Add Comment to Post (Reliable Sync with Firestore Document and Subcollection)
   const addComment = async (postId, text, authorName) => {
+    if (!text || !text.trim()) return;
+
+    let myUid = currentUser?.uid;
+    if (!myUid) {
+      myUid = localStorage.getItem('pm_guest_uid');
+      if (!myUid) {
+        myUid = 'usr_' + Math.random().toString(36).substring(2, 9);
+        localStorage.setItem('pm_guest_uid', myUid);
+      }
+    }
+
+    const myName = authorName || currentUser?.name || 'Pet Parent';
+    const myPhoto = currentUser?.photoUrl || '';
+    const nowTs = Date.now();
+    const commentId = 'cmt_' + Math.random().toString(36).substring(2, 9);
+
     const commentObj = {
-      author: authorName || (currentUser ? currentUser.name : 'Pet Parent'),
-      text,
+      commentId,
+      postId,
+      userId: myUid,
+      userName: myName,
+      author: myName,
+      userPhoto: myPhoto,
+      commentText: text.trim(),
+      text: text.trim(),
+      timestamp: nowTs,
       createdAt: new Date().toISOString()
     };
 
-    if (currentUser && !currentUser.uid.startsWith('demo_guest')) {
-      try {
-        const postDocRef = doc(db, 'community_posts', postId);
-        await updateDoc(postDocRef, {
-          comments: arrayUnion(commentObj)
-        });
-      } catch (e) {
-        console.warn('[Firebase] addComment error:', e);
+    // 1. Instant Optimistic UI Update
+    setPosts(prev => prev.map(p => {
+      if (p.id === postId) {
+        return { 
+          ...p, 
+          comments: [...(p.comments || []), commentObj],
+          commentsCount: (p.commentsCount || (p.comments?.length || 0)) + 1
+        };
       }
-    } else {
-      setPosts(prev => prev.map(p => {
-        if (p.id === postId) {
-          return { ...p, comments: [...(p.comments || []), commentObj] };
-        }
-        return p;
-      }));
+      return p;
+    }));
+
+    // 2. Persist to Firestore: update main document and subcollection
+    try {
+      const postDocRef = doc(db, 'community_posts', postId);
+      
+      // Update comments array and count on post doc
+      await setDoc(postDocRef, {
+        commentsCount: increment(1),
+        comments: arrayUnion(commentObj)
+      }, { merge: true });
+
+      // Add to subcollection for Flutter app comments stream
+      const subColRef = collection(db, 'community_posts', postId, 'comments');
+      await addDoc(subColRef, commentObj);
+    } catch (e) {
+      console.warn('[Firebase] addComment error:', e);
     }
-    showToast('💬 Comment posted!', 'success');
+
+    showToast('Comment posted!', 'success');
   };
 
   // Add Appointment / Event

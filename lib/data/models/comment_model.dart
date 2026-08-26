@@ -22,10 +22,10 @@ class CommentModel {
       commentId: id,
       postId: map['postId'] ?? '',
       userId: map['userId'] ?? '',
-      userName: map['userName'] ?? 'User',
-      userPhoto: map['userPhoto'],
+      userName: map['userName'] ?? map['author'] ?? 'Pet Parent',
+      userPhoto: map['userPhoto'] ?? map['authorPhoto'],
       text: map['commentText'] ?? map['text'] ?? '',
-      timestamp: (map['timestamp'] as num?)?.toInt() ?? DateTime.now().millisecondsSinceEpoch,
+      timestamp: (map['timestamp'] as num?)?.toInt() ?? (map['createdAt'] is String ? (DateTime.tryParse(map['createdAt'])?.millisecondsSinceEpoch ?? DateTime.now().millisecondsSinceEpoch) : DateTime.now().millisecondsSinceEpoch),
     );
   }
 
@@ -35,9 +35,12 @@ class CommentModel {
       'postId': postId,
       'userId': userId,
       'userName': userName,
+      'author': userName,
       'userPhoto': userPhoto,
       'commentText': text,
+      'text': text,
       'timestamp': timestamp,
+      'createdAt': DateTime.fromMillisecondsSinceEpoch(timestamp).toIso8601String(),
     };
   }
 }

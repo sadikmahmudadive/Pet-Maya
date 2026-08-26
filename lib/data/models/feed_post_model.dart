@@ -74,20 +74,30 @@ class FeedPostModel {
     Map<String, bool> likesMap = {};
     if (map['likedBy'] is Map) {
       (map['likedBy'] as Map).forEach((k, v) {
-        likesMap[k.toString()] = true;
+        if (v == true || v == 1 || v == 'true') {
+          likesMap[k.toString()] = true;
+        }
       });
     }
+    if (map['likedByUserIds'] is List) {
+      for (var u in (map['likedByUserIds'] as List)) {
+        likesMap[u.toString()] = true;
+      }
+    }
+    final int lCount = (map['likesCount'] as num?)?.toInt() ?? (map['likes'] as num?)?.toInt() ?? likesMap.length;
+    final int cCount = (map['commentsCount'] as num?)?.toInt() ?? ((map['comments'] is List) ? (map['comments'] as List).length : 0);
+
     return FeedPostModel(
       postId: id,
       userId: map['userId'] ?? '',
-      userName: map['userName'] ?? 'Pet Lover',
-      userPhoto: map['userPhoto'],
-      postType: map['postType'] ?? 'MOMENT',
+      userName: map['userName'] ?? map['author'] ?? map['authorName'] ?? 'Pet Lover',
+      userPhoto: map['userPhoto'] ?? map['authorPhoto'],
+      postType: map['postType'] ?? map['category'] ?? 'MOMENT',
       content: map['content'] ?? '',
-      imageUrl: map['imageUrl'],
+      imageUrl: map['imageUrl'] ?? map['image'],
       timestamp: (map['timestamp'] as num?)?.toInt() ?? DateTime.now().millisecondsSinceEpoch,
-      likesCount: (map['likesCount'] as num?)?.toInt() ?? likesMap.length,
-      commentsCount: (map['commentsCount'] as num?)?.toInt() ?? 0,
+      likesCount: lCount,
+      commentsCount: cCount,
       sharesCount: (map['sharesCount'] as num?)?.toInt() ?? 0,
       sharedPostId: map['sharedPostId'],
       sharedPostAuthor: map['sharedPostAuthor'],

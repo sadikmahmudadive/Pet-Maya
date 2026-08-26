@@ -484,14 +484,24 @@ class FirebaseService {
   Future<void> togglePostLike(String postId, String userId, bool liked) async {
     final ref = _postsCol.doc(postId);
     if (liked) {
-      await ref.update({'likedByUserIds': FieldValue.arrayUnion([userId])});
+      await ref.set({
+        'likesCount': FieldValue.increment(1),
+        'likes': FieldValue.increment(1),
+        'likedByUserIds': FieldValue.arrayUnion([userId]),
+        'likedBy': {userId: true},
+      }, SetOptions(merge: true));
     } else {
-      await ref.update({'likedByUserIds': FieldValue.arrayRemove([userId])});
+      await ref.set({
+        'likesCount': FieldValue.increment(-1),
+        'likes': FieldValue.increment(-1),
+        'likedByUserIds': FieldValue.arrayRemove([userId]),
+        'likedBy': {userId: false},
+      }, SetOptions(merge: true));
     }
   }
 
   Future<void> incrementPostShares(String postId) async {
-    await _postsCol.doc(postId).update({'sharesCount': FieldValue.increment(1)});
+    await _postsCol.doc(postId).set({'sharesCount': FieldValue.increment(1)}, SetOptions(merge: true));
   }
 
   Stream<List<CommentModel>> streamComments(String postId) {
@@ -507,12 +517,16 @@ class FirebaseService {
   }
 
   Future<void> addComment(String postId, CommentModel comment) async {
-    await _postsCol.doc(postId).update({'commentsCount': FieldValue.increment(1)});
+    final cMap = comment.toMap();
+    await _postsCol.doc(postId).set({
+      'commentsCount': FieldValue.increment(1),
+      'comments': FieldValue.arrayUnion([cMap]),
+    }, SetOptions(merge: true));
     await _postsCol
         .doc(postId)
         .collection('comments')
         .doc(comment.commentId)
-        .set(comment.toMap());
+        .set(cMap, SetOptions(merge: true));
   }
 
   // ─── REVIEWS ─────────────────────────────────────────────────────────────
