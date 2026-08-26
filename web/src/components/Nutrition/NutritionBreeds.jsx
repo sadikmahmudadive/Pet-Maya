@@ -1,461 +1,514 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
+import { useAuth } from '../../context/AuthContext';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Utensils, 
-  Search, 
-  Droplet, 
-  Beef, 
-  Cookie, 
-  Sparkles,
-  Heart,
-  ChevronRight,
-  BookOpen,
-  Clock,
-  User,
-  Tag,
-  CheckCircle2,
-  Calendar,
-  X
+  BookOpen, Clock, User, Tag, X, ChevronLeft, 
+  Send, Image, Plus, Share2, PenLine, Search
 } from 'lucide-react';
+import { 
+  db, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp 
+} from '../../config/firebase';
 
-const BREEDS_DATABASE = [
-  {
-    name: 'Golden Retriever',
-    species: 'dog',
-    image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&auto=format&fit=crop&q=80',
-    tags: ['dog', 'family', 'active'],
-    exercise: 90,
-    shedding: 80,
-    trainability: 95,
-    lifespan: '10 - 12 Yrs',
-    health: 'Prone to hip dysplasia, ear moisture, and seasonal allergies. Requires joint supplements.'
-  },
-  {
-    name: 'British Shorthair',
-    species: 'cat',
-    image: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=400&auto=format&fit=crop&q=80',
-    tags: ['cat', 'apartment', 'calm'],
-    exercise: 40,
-    shedding: 50,
-    trainability: 70,
-    lifespan: '12 - 17 Yrs',
-    health: 'Prone to hypertrophic cardiomyopathy (HCM) and weight gain. Requires controlled portions.'
-  },
-  {
-    name: 'Ring-necked Dove',
-    species: 'bird',
-    image: 'https://images.unsplash.com/photo-1552728089-57bdde30beb3?w=400&auto=format&fit=crop&q=80',
-    tags: ['bird', 'calm', 'apartment'],
-    exercise: 50,
-    shedding: 30,
-    trainability: 85,
-    lifespan: '15 - 20 Yrs',
-    health: 'Gentle temperament. Needs diverse seed mix, calcium grit, clean flight cage, and fresh water.'
-  },
-  {
-    name: 'Poodle (Standard & Toy)',
-    species: 'dog',
-    image: 'https://images.unsplash.com/photo-1576201836106-db1758fd1c97?w=400&auto=format&fit=crop&q=80',
-    tags: ['dog', 'hypo', 'apartment'],
-    exercise: 75,
-    shedding: 20,
-    trainability: 98,
-    lifespan: '12 - 15 Yrs',
-    health: 'Hypoallergenic non-shedding coat. Regular ear cleaning and professional grooming needed.'
-  },
-  {
-    name: 'French Bulldog',
-    species: 'dog',
-    image: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=400&auto=format&fit=crop&q=80',
-    tags: ['dog', 'apartment', 'low-exercise'],
-    exercise: 35,
-    shedding: 45,
-    trainability: 75,
-    lifespan: '10 - 12 Yrs',
-    health: 'Brachycephalic airway syndrome. Maintain cool indoor environments and avoid overexertion.'
-  },
-  {
-    name: 'Persian Cat',
-    species: 'cat',
-    image: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=400&auto=format&fit=crop&q=80',
-    tags: ['cat', 'calm', 'indoor'],
-    exercise: 30,
-    shedding: 85,
-    trainability: 60,
-    lifespan: '12 - 15 Yrs',
-    health: 'Requires daily coat brushing and ocular tear cleaning to prevent staining.'
-  },
-  {
-    name: 'German Shepherd',
-    species: 'dog',
-    image: 'https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=400&auto=format&fit=crop&q=80',
-    tags: ['dog', 'active', 'guard'],
-    exercise: 95,
-    shedding: 85,
-    trainability: 99,
-    lifespan: '9 - 13 Yrs',
-    health: 'High stamina. Needs high-protein diet, joint mobility support, and daily mental stimulation.'
-  }
-];
+const CATEGORIES = ['ALL', 'HEALTH', 'NUTRITION', 'TRAINING', 'LIFESTYLE'];
 
-const BLOG_ARTICLES = [
+const CATEGORY_COLORS = {
+  HEALTH: '#10B981',
+  NUTRITION: '#F59E0B',
+  TRAINING: '#3B82F6',
+  LIFESTYLE: '#EC4899',
+  ALL: '#86868B'
+};
+
+// Fallback articles if Firestore is empty
+const FALLBACK_ARTICLES = [
   {
     id: 'b1',
     title: 'Optimal Macronutrient Ratios for Adult Canines & Felines',
-    category: 'Nutrition',
-    author: 'Dr. Sarah Jenkins, DVM',
-    date: 'Aug 20, 2026',
-    readTime: '4 min read',
-    image: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=600&auto=format&fit=crop&q=80',
-    excerpt: 'Discover the exact protein, fat, and fiber ratios required to sustain lean muscle mass and prevent renal stress in adult pets.',
-    content: `Maintaining optimal canine and feline health starts with understanding resting metabolic energy (RER). Dogs thrive on a balanced diet containing 22-28% bioavailable crude protein and 12-16% healthy lipids rich in Omega-3 (EPA/DHA) fatty acids. Cats, as obligate carnivores, require higher dietary protein (30-40%) and essential taurine to prevent dilated cardiomyopathy.
-
-When choosing between dry kibble and wet canned food, a 70/30 split provides superior dental scraping benefits from kibble alongside increased urinary hydration from wet food toppers.`
+    category: 'NUTRITION',
+    authorName: 'Dr. Sarah Jenkins, DVM',
+    authorPhoto: null,
+    timestamp: Date.now() - 5 * 24 * 3600 * 1000,
+    readTimeMinutes: 4,
+    imageUrl: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=800&auto=format&fit=crop&q=80',
+    content: 'Maintaining optimal canine and feline health starts with understanding resting metabolic energy (RER). Dogs thrive on a balanced diet containing 22-28% bioavailable crude protein and 12-16% healthy lipids rich in Omega-3 (EPA/DHA) fatty acids. Cats, as obligate carnivores, require higher dietary protein (30-40%) and essential taurine to prevent dilated cardiomyopathy.\n\nWhen choosing between dry kibble and wet canned food, a 70/30 split provides superior dental scraping benefits from kibble alongside increased urinary hydration from wet food toppers.',
+    tags: ['nutrition', 'cats', 'dogs']
   },
   {
     id: 'b2',
     title: 'Recognizing Early Warning Signs of Seasonal Atopic Dermatitis',
-    category: 'Health',
-    author: 'Dr. Aris Thorne, BVSc',
-    date: 'Aug 18, 2026',
-    readTime: '5 min read',
-    image: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=600&auto=format&fit=crop&q=80',
-    excerpt: 'How to differentiate between environmental pollen allergies, flea bite hypersensitivity, and food protein intolerances.',
-    content: `Allergic skin disease in companion animals often begins with subtle symptoms: persistent paw licking, face rubbing, and erythema along the groin or inner pinna. If left untreated, self-mutilation leads to secondary bacterial (Staphylococcus) and fungal (Malassezia) infections.
-
-Immediate management includes antiseptic chlorhexidine wipes, hypoallergenic omega-3 skin barrier supplements, and consulting your veterinary clinician for cytological swabs or targeted anti-IL-31 therapeutics.`
+    category: 'HEALTH',
+    authorName: 'Dr. Aris Thorne, BVSc',
+    authorPhoto: null,
+    timestamp: Date.now() - 7 * 24 * 3600 * 1000,
+    readTimeMinutes: 5,
+    imageUrl: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=800&auto=format&fit=crop&q=80',
+    content: 'Allergic skin disease in companion animals often begins with subtle symptoms: persistent paw licking, face rubbing, and erythema along the groin or inner pinna. If left untreated, self-mutilation leads to secondary bacterial (Staphylococcus) and fungal (Malassezia) infections.\n\nImmediate management includes antiseptic chlorhexidine wipes, hypoallergenic omega-3 skin barrier supplements, and consulting your veterinary clinician for cytological swabs or targeted anti-IL-31 therapeutics.',
+    tags: ['health', 'skin', 'allergies']
   },
   {
     id: 'b3',
     title: 'Hydration Protocols: Preventing Feline Chronic Kidney Disease',
-    category: 'Longevity',
-    author: 'Dr. Emily Vance, DVM',
-    date: 'Aug 14, 2026',
-    readTime: '3 min read',
-    image: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=600&auto=format&fit=crop&q=80',
-    excerpt: 'Why domestic cats have a naturally low thirst drive and practical strategies to double their daily fluid intake.',
-    content: `Desert-adapted feline ancestors derived the majority of moisture from fresh prey. Consequently, domestic cats feeding exclusively on dry food consume only 50% of their daily physiological hydration needs (50-60ml per kg).
-
-To support glomerular filtration and prevent calcium oxalate bladder crystals:
-1. Introduce stainless steel or ceramic circulating water fountains.
-2. Incorporate warm bone broth or wet gravy food at every meal.
-3. Place water bowls away from food and litter stations.`
+    category: 'HEALTH',
+    authorName: 'Dr. Emily Vance, DVM',
+    authorPhoto: null,
+    timestamp: Date.now() - 11 * 24 * 3600 * 1000,
+    readTimeMinutes: 3,
+    imageUrl: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=800&auto=format&fit=crop&q=80',
+    content: 'Desert-adapted feline ancestors derived the majority of moisture from fresh prey. Consequently, domestic cats feeding exclusively on dry food consume only 50% of their daily physiological hydration needs.\n\nTo support glomerular filtration:\n1. Introduce stainless steel or ceramic circulating water fountains.\n2. Incorporate warm bone broth or wet gravy food at every meal.\n3. Place water bowls away from food and litter stations.',
+    tags: ['cats', 'kidney', 'hydration']
+  },
+  {
+    id: 'b4',
+    title: 'Positive Reinforcement Training: The Science Behind It',
+    category: 'TRAINING',
+    authorName: 'Dr. Marcus Reid',
+    authorPhoto: null,
+    timestamp: Date.now() - 14 * 24 * 3600 * 1000,
+    readTimeMinutes: 6,
+    imageUrl: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=800&auto=format&fit=crop&q=80',
+    content: 'Positive reinforcement is the most scientifically validated training method for companion animals. Operant conditioning relies on reinforcing desired behaviors with immediate rewards — within a 1.5 second window — to build reliable neural pathways.\n\nFor dogs, high-value protein treats (chicken, salmon) combined with a clear verbal marker ("yes!" or a clicker) creates predictable behavioral responses within 5-10 repetitions.',
+    tags: ['training', 'dogs', 'behavior']
+  },
+  {
+    id: 'b5',
+    title: 'Creating an Enriching Indoor Environment for Cats',
+    category: 'LIFESTYLE',
+    authorName: 'Dr. Anna Lewin',
+    authorPhoto: null,
+    timestamp: Date.now() - 18 * 24 * 3600 * 1000,
+    readTimeMinutes: 4,
+    imageUrl: 'https://images.unsplash.com/photo-1573865526739-10659fec78a5?w=800&auto=format&fit=crop&q=80',
+    content: 'Indoor cats face significant behavioral challenges due to understimulation. Without prey-simulating activities, cats develop stress-induced conditions including overgrooming, aggression, and inappropriate elimination.\n\nAn enriched environment should include: multi-level climbing structures (cat trees), puzzle feeders for foraging instincts, window perches for visual stimulation, and at minimum 15 minutes of interactive wand-toy play per day.',
+    tags: ['cats', 'lifestyle', 'indoor']
   }
 ];
 
-export default function NutritionBreeds() {
-  const { pets, showToast } = useApp();
+export default function Blog() {
+  const { showToast } = useApp();
+  const { currentUser } = useAuth();
 
-  const [selectedPet, setSelectedPet] = useState(pets[0]?.id || 'custom');
-  const [weight, setWeight] = useState(pets[0]?.weight ? parseFloat(pets[0].weight) : 12.5);
-  const [lifeStage, setLifeStage] = useState('adult');
-  const [activity, setActivity] = useState('active');
-
-  const [breedSearch, setBreedSearch] = useState('');
-  const [breedFilter, setBreedFilter] = useState('all');
-
+  const [blogs, setBlogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [selectedArticle, setSelectedArticle] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
-  const handlePetChange = (petId) => {
-    setSelectedPet(petId);
-    if (petId === 'custom') return;
-    const p = pets.find(x => x.id === petId);
-    if (p && p.weight) setWeight(parseFloat(p.weight) || 10);
+  // Create article form state
+  const [newTitle, setNewTitle] = useState('');
+  const [newContent, setNewContent] = useState('');
+  const [newCategory, setNewCategory] = useState('Health');
+  const [newImageUrl, setNewImageUrl] = useState('');
+  const [newTags, setNewTags] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Real-time Firestore sync
+  useEffect(() => {
+    try {
+      const q = query(collection(db, 'blogs'), orderBy('timestamp', 'desc'));
+      const unsub = onSnapshot(q, (snap) => {
+        if (snap.empty) {
+          setBlogs(FALLBACK_ARTICLES);
+        } else {
+          setBlogs(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        }
+        setLoading(false);
+      }, () => {
+        setBlogs(FALLBACK_ARTICLES);
+        setLoading(false);
+      });
+      return () => unsub();
+    } catch {
+      setBlogs(FALLBACK_ARTICLES);
+      setLoading(false);
+    }
+  }, []);
+
+  const handlePublish = async () => {
+    if (!newTitle.trim() || !newContent.trim()) {
+      showToast('Please fill in title and content', 'error');
+      return;
+    }
+    if (!currentUser || currentUser.uid?.startsWith('demo_guest')) {
+      showToast('🔒 Please sign in to publish articles', 'info');
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      await addDoc(collection(db, 'blogs'), {
+        title: newTitle.trim(),
+        content: newContent.trim(),
+        category: newCategory,
+        imageUrl: newImageUrl.trim() || 'https://images.unsplash.com/photo-1548191265-cc70d3d45ba1?w=800',
+        authorId: currentUser.uid,
+        authorName: currentUser.name || currentUser.displayName || 'Pet Maya User',
+        authorPhoto: currentUser.photoUrl || null,
+        timestamp: Date.now(),
+        readTimeMinutes: Math.max(1, Math.ceil(newContent.split(' ').length / 200)),
+        tags: newTags.split(',').map(t => t.trim().toLowerCase()).filter(Boolean)
+      });
+      showToast('🎉 Article published!', 'success');
+      setShowCreateModal(false);
+      setNewTitle(''); setNewContent(''); setNewImageUrl(''); setNewTags('');
+    } catch {
+      showToast('Failed to publish. Try again.', 'error');
+    }
+    setIsSubmitting(false);
   };
 
-  // Scientific RER & MER Formula (Resting / Maintenance Energy Requirement)
-  const rer = 70 * Math.pow(Math.max(weight, 0.5), 0.75);
-
-  let factor = 1.6;
-  if (activity === 'neutered') factor = 1.4;
-  if (activity === 'active') factor = 1.8;
-  if (activity === 'working') factor = 2.4;
-  if (activity === 'weightloss') factor = 1.0;
-  if (lifeStage === 'puppy') factor = 2.8;
-  if (lifeStage === 'senior') factor = 1.2;
-
-  const mer = Math.round(rer * factor);
-  const dryGrams = Math.round((mer * 0.75) / 3.75);
-  const cups = (dryGrams / 120).toFixed(1);
-  const wetGrams = Math.round((mer * 0.15) / 1.0);
-  const treatKcal = Math.round(mer * 0.1);
-  const waterMl = Math.round(weight * 60);
-
-  const filteredBreeds = BREEDS_DATABASE.filter(b => {
-    const matchesQuery = b.name.toLowerCase().includes(breedSearch.toLowerCase()) || 
-                          b.health.toLowerCase().includes(breedSearch.toLowerCase());
-    const matchesTag = breedFilter === 'all' || b.tags.includes(breedFilter);
-    return matchesQuery && matchesTag;
+  const filteredBlogs = blogs.filter(b => {
+    const matchesCat = selectedCategory === 'ALL' || (b.category || '').toUpperCase() === selectedCategory;
+    const matchesSearch = !searchQuery || 
+      b.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      b.content?.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCat && matchesSearch;
   });
 
+  const formatDate = (ts) => {
+    if (!ts) return '';
+    const d = new Date(typeof ts === 'number' ? ts : ts.seconds * 1000);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
+  const catColor = CATEGORY_COLORS[selectedCategory] || '#10B981';
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', width: '100%' }}>
-      
-      {/* ── 1. NUTRITION CALCULATOR ── */}
-      <div className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '32px' }}>
-        <div style={{ marginBottom: '24px' }}>
-          <span className="apple-card-eyebrow" style={{ color: '#EC4899' }}>Precision Diet</span>
-          <h1 style={{ fontSize: '28px', fontWeight: 700, letterSpacing: '-0.03em' }}>Daily Calorie &amp; Portion Calculator</h1>
-          <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Scientifically balanced daily caloric intake (RER/MER) based on breed, weight, and activity level.</p>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '28px', width: '100%' }}>
+
+      {/* ── HEADER ── */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '16px' }}>
+        <div>
+          <span className="apple-card-eyebrow" style={{ color: '#EC4899' }}>Pet Care Blog</span>
+          <h1 style={{ fontSize: '32px', fontWeight: 700, letterSpacing: '-0.03em', margin: '4px 0 6px' }}>
+            Advice & Insights
+          </h1>
+          <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
+            Expert articles on health, nutrition, training & lifestyle — by veterinarians.
+          </p>
         </div>
+        <button className="apple-btn-blue" onClick={() => setShowCreateModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <PenLine size={15} />
+          <span>Write Article</span>
+        </button>
+      </div>
 
-        <div className="nutrition-calc-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
-          {/* Inputs Column */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-              <div>
-                <label className="label-mini">Select Patient</label>
-                <select className="input-clean" value={selectedPet} onChange={(e) => handlePetChange(e.target.value)}>
-                  {pets.map(p => (
-                    <option key={p.id} value={p.id}>{p.name} ({p.breed})</option>
-                  ))}
-                  <option value="custom">Custom Entry...</option>
-                </select>
-              </div>
+      {/* ── SEARCH BAR ── */}
+      <div style={{ position: 'relative', maxWidth: '440px' }}>
+        <Search size={15} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+        <input
+          className="input-clean"
+          type="text"
+          placeholder="Search articles..."
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+          style={{ paddingLeft: '38px' }}
+        />
+      </div>
 
-              <div>
-                <label className="label-mini">Body Weight (kg)</label>
-                <input 
-                  type="number" 
-                  step="0.1" 
-                  min="0.5" 
-                  className="input-clean" 
-                  value={weight} 
-                  onChange={(e) => setWeight(parseFloat(e.target.value) || 1)} 
-                />
-              </div>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-              <div>
-                <label className="label-mini">Life Stage</label>
-                <select className="input-clean" value={lifeStage} onChange={(e) => setLifeStage(e.target.value)}>
-                  <option value="adult">Adult (1 - 7 Years)</option>
-                  <option value="puppy">Puppy / Kitten (&lt; 1 Year)</option>
-                  <option value="senior">Senior (7+ Years)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="label-mini">Activity Level</label>
-                <select className="input-clean" value={activity} onChange={(e) => setActivity(e.target.value)}>
-                  <option value="neutered">Neutered / Moderate Indoor</option>
-                  <option value="active">Active Daily (Walks &amp; Play)</option>
-                  <option value="working">High Performance / Agility</option>
-                  <option value="weightloss">Weight Management (Diet)</option>
-                </select>
-              </div>
-            </div>
-
-            <button 
-              className="apple-btn-blue" 
-              style={{ marginTop: '8px', padding: '12px' }}
-              onClick={() => showToast('🥣 Portion recommendations refreshed!', 'success')}
-            >
-              <Utensils size={15} />
-              <span>Calculate Daily Portions</span>
-            </button>
-          </div>
-
-          {/* Results Card */}
-          <div 
+      {/* ── CATEGORY FILTER CHIPS ── */}
+      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+        {CATEGORIES.map(cat => (
+          <button
+            key={cat}
+            onClick={() => setSelectedCategory(cat)}
+            className="chip-pill"
             style={{
-              background: 'var(--surface-alt)',
-              borderRadius: 'var(--radius-lg)',
-              padding: '24px'
+              background: selectedCategory === cat ? (CATEGORY_COLORS[cat] || 'var(--primary)') : 'var(--surface-alt)',
+              color: selectedCategory === cat ? '#fff' : 'var(--text-muted)',
+              fontWeight: selectedCategory === cat ? 700 : 500,
+              border: 'none',
+              borderRadius: '999px',
+              padding: '6px 16px',
+              fontSize: '12px',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              letterSpacing: '0.03em'
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <span style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-muted)' }}>
-                Target Daily Energy
-              </span>
-              <span className="badge badge-green" style={{ fontSize: '15px', fontWeight: 800, padding: '6px 14px' }}>
-                {mer.toLocaleString()} kcal/day
-              </span>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13.5px' }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Beef size={16} color="#10B981" /> Dry Kibble Portion:
-                </span>
-                <strong style={{ color: 'var(--text-main)' }}>{dryGrams} g / {cups} cups</strong>
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13.5px' }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Utensils size={16} color="#F59E0B" /> Wet Food / Topper:
-                </span>
-                <strong style={{ color: 'var(--text-main)' }}>{wetGrams} g / day</strong>
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13.5px' }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Cookie size={16} color="#EC4899" /> Treat Allowance (Max 10%):
-                </span>
-                <strong style={{ color: 'var(--text-main)' }}>{treatKcal} kcal max</strong>
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13.5px', borderTop: '1px solid var(--border)', paddingTop: '12px' }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Droplet size={16} color="#0071E3" /> Daily Hydration Target:
-                </span>
-                <strong style={{ color: '#0071E3' }}>{waterMl.toLocaleString()} ml / day</strong>
-              </div>
-            </div>
-          </div>
-        </div>
+            {cat}
+          </button>
+        ))}
       </div>
 
-      {/* ── 2. VETERINARY BLOG & EXPERT ADVICE ── */}
-      <div className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '32px' }}>
-        <div style={{ marginBottom: '20px' }}>
-          <span className="apple-card-eyebrow" style={{ color: '#F97316' }}>Knowledge Base</span>
-          <h2 style={{ fontSize: '22px', fontWeight: 700, letterSpacing: '-0.02em' }}>Veterinary Blog &amp; Care Advice</h2>
-          <p style={{ fontSize: '13.5px', color: 'var(--text-muted)' }}>Evidence-based articles written by licensed veterinary clinicians and animal behaviorists.</p>
+      {/* ── ARTICLE GRID ── */}
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>
+          <BookOpen size={40} style={{ opacity: 0.3, marginBottom: 12 }} />
+          <p>Loading articles...</p>
         </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
-          {BLOG_ARTICLES.map((art) => (
-            <div 
-              key={art.id} 
-              className="apple-solid-card" 
-              style={{
-                padding: '20px',
-                textAlign: 'left',
-                alignItems: 'stretch',
-                display: 'flex',
-                flexDirection: 'column',
-                cursor: 'pointer',
-                background: 'var(--surface-alt)'
-              }}
-              onClick={() => setSelectedArticle(art)}
+      ) : filteredBlogs.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '80px 0', color: 'var(--text-muted)' }}>
+          <BookOpen size={48} style={{ opacity: 0.25, marginBottom: 16 }} />
+          <h3 style={{ fontWeight: 600, marginBottom: 8 }}>No articles found</h3>
+          <p style={{ fontSize: '14px' }}>Try a different category or be the first to write one!</p>
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
+          {filteredBlogs.map((article, idx) => (
+            <motion.div
+              key={article.id}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: idx * 0.06 }}
+              className="apple-solid-card"
+              style={{ padding: 0, overflow: 'hidden', cursor: 'pointer' }}
+              onClick={() => setSelectedArticle(article)}
             >
-              <div style={{ borderRadius: 'var(--radius-sm)', overflow: 'hidden', height: '160px', marginBottom: '14px' }}>
-                <img src={art.image} alt={art.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              {/* Cover Image */}
+              <div style={{ width: '100%', aspectRatio: '16/9', overflow: 'hidden', borderRadius: '22px 22px 0 0', background: 'var(--surface-alt)', flexShrink: 0 }}>
+                <img
+                  src={article.imageUrl}
+                  alt={article.title}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.4s ease' }}
+                  onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.04)'}
+                  onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                  onError={e => { e.currentTarget.src = 'https://images.unsplash.com/photo-1548191265-cc70d3d45ba1?w=800'; }}
+                />
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <span className="badge badge-green" style={{ fontSize: '11px' }}>{art.category}</span>
-                <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>{art.readTime}</span>
-              </div>
-
-              <h3 style={{ fontSize: '16px', fontWeight: 700, lineHeight: 1.35, marginBottom: '8px' }}>{art.title}</h3>
-              <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', lineHeight: 1.45, marginBottom: '14px', flex: 1 }}>{art.excerpt}</p>
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border)', paddingTop: '10px', fontSize: '12px', color: 'var(--text-muted)' }}>
-                <span>{art.author}</span>
-                <span className="apple-link-cta" style={{ fontSize: '12px', color: '#F97316' }}>
-                  <span>Read Article</span>
-                  <ChevronRight size={13} />
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ── 3. BREED TRAIT EXPLORER ── */}
-      <div className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '32px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '16px' }}>
-          <div>
-            <span className="apple-card-eyebrow" style={{ color: 'var(--primary)' }}>Breed Profiles</span>
-            <h3 style={{ fontSize: '20px', fontWeight: 700, letterSpacing: '-0.02em' }}>Breed Trait &amp; Care Explorer</h3>
-            <p style={{ fontSize: '13.5px', color: 'var(--text-muted)' }}>Discover energy levels, shedding, trainability, and clinical health tendencies.</p>
-          </div>
-          <div style={{ position: 'relative', minWidth: '240px' }}>
-            <Search size={15} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }} />
-            <input 
-              type="text" 
-              className="input-clean" 
-              placeholder="Search breed (e.g. Retriever, Dove)..." 
-              value={breedSearch}
-              onChange={(e) => setBreedSearch(e.target.value)}
-              style={{ paddingLeft: '34px' }}
-            />
-          </div>
-        </div>
-
-        <div className="chip-row" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '18px' }}>
-          <button className={`chip-pill ${breedFilter === 'all' ? 'active' : ''}`} onClick={() => setBreedFilter('all')}>All Breeds</button>
-          <button className={`chip-pill ${breedFilter === 'dog' ? 'active' : ''}`} onClick={() => setBreedFilter('dog')}>🐕 Dogs</button>
-          <button className={`chip-pill ${breedFilter === 'cat' ? 'active' : ''}`} onClick={() => setBreedFilter('cat')}>🐈 Cats</button>
-          <button className={`chip-pill ${breedFilter === 'bird' ? 'active' : ''}`} onClick={() => setBreedFilter('bird')}>🕊️ Birds</button>
-          <button className={`chip-pill ${breedFilter === 'hypo' ? 'active' : ''}`} onClick={() => setBreedFilter('hypo')}>🌿 Hypoallergenic</button>
-          <button className={`chip-pill ${breedFilter === 'apartment' ? 'active' : ''}`} onClick={() => setBreedFilter('apartment')}>🏢 Apartment Friendly</button>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px' }}>
-          {filteredBreeds.map(b => (
-            <div key={b.name} className="apple-solid-card" style={{ padding: '18px', textAlign: 'left', alignItems: 'stretch' }}>
-              <div style={{ borderRadius: 'var(--radius-sm)', overflow: 'hidden', height: 130, marginBottom: '12px' }}>
-                <img src={b.image} alt={b.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              </div>
-              <div style={{ marginBottom: '10px' }}>
+              {/* Card Body */}
+              <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '10px', flex: 1 }}>
+                {/* Category & Read Time */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <h4 style={{ fontSize: '15.5px', fontWeight: 700, margin: 0 }}>{b.name}</h4>
-                  <span className="badge badge-blue">{b.lifespan}</span>
-                </div>
-                <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px', lineHeight: 1.4 }}>{b.health}</p>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: 'auto' }}>
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)' }}>
-                    <span>Exercise Needs</span><span>{b.exercise}%</span>
-                  </div>
-                  <div style={{ width: '100%', height: '5px', background: 'var(--border)', borderRadius: '999px', overflow: 'hidden', marginTop: '2px' }}>
-                    <div style={{ width: `${b.exercise}%`, height: '100%', background: 'var(--primary)' }} />
-                  </div>
+                  <span style={{
+                    background: `${CATEGORY_COLORS[(article.category || '').toUpperCase()] || '#10B981'}18`,
+                    color: CATEGORY_COLORS[(article.category || '').toUpperCase()] || '#10B981',
+                    fontSize: '10px', fontWeight: 900, letterSpacing: '0.05em',
+                    padding: '4px 10px', borderRadius: '8px', textTransform: 'uppercase'
+                  }}>
+                    {article.category}
+                  </span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600 }}>
+                    <Clock size={11} />
+                    {article.readTimeMinutes} min read
+                  </span>
                 </div>
 
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)' }}>
-                    <span>Trainability</span><span>{b.trainability}%</span>
+                {/* Title */}
+                <h3 style={{ fontSize: '18px', fontWeight: 800, lineHeight: 1.3, letterSpacing: '-0.01em', margin: 0 }}>
+                  {article.title}
+                </h3>
+
+                {/* Excerpt */}
+                <p style={{
+                  fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.55, margin: 0,
+                  display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden'
+                }}>
+                  {article.content}
+                </p>
+
+                {/* Author Row */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px', paddingTop: '12px', borderTop: '1px solid var(--border)' }}>
+                  <div style={{
+                    width: 28, height: 28, borderRadius: '50%', background: 'var(--surface-alt)',
+                    overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+                  }}>
+                    {article.authorPhoto ? (
+                      <img src={article.authorPhoto} alt={article.authorName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <User size={14} color="var(--text-muted)" />
+                    )}
                   </div>
-                  <div style={{ width: '100%', height: '5px', background: 'var(--border)', borderRadius: '999px', overflow: 'hidden', marginTop: '2px' }}>
-                    <div style={{ width: `${b.trainability}%`, height: '100%', background: '#3B82F6' }} />
-                  </div>
+                  <span style={{ fontSize: '12px', fontWeight: 700, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {article.authorName}
+                  </span>
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted)', flexShrink: 0 }}>
+                    {formatDate(article.timestamp)}
+                  </span>
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
-      </div>
-
-      {/* ── 4. ARTICLE READER MODAL ── */}
-      {selectedArticle && (
-        <div className="modal-backdrop" onClick={() => setSelectedArticle(null)}>
-          <div className="modal-dialog" style={{ maxWidth: '640px' }} onClick={e => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <span className="badge badge-green">{selectedArticle.category}</span>
-              <button className="icon-btn" onClick={() => setSelectedArticle(null)}><X size={18} /></button>
-            </div>
-
-            <div style={{ borderRadius: 'var(--radius-md)', overflow: 'hidden', height: 220, marginBottom: '16px' }}>
-              <img src={selectedArticle.image} alt={selectedArticle.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            </div>
-
-            <h2 style={{ fontSize: '22px', fontWeight: 700, lineHeight: 1.3, marginBottom: '8px' }}>{selectedArticle.title}</h2>
-            <div style={{ display: 'flex', gap: '14px', fontSize: '12.5px', color: 'var(--text-muted)', marginBottom: '16px' }}>
-              <span>✍️ {selectedArticle.author}</span>
-              <span>📅 {selectedArticle.date}</span>
-              <span>⏱️ {selectedArticle.readTime}</span>
-            </div>
-
-            <div style={{ fontSize: '14.5px', color: 'var(--text-main)', lineHeight: 1.6, whiteSpace: 'pre-line', borderTop: '1px solid var(--border)', paddingTop: '16px' }}>
-              {selectedArticle.content}
-            </div>
-
-            <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'flex-end' }}>
-              <button className="apple-btn-blue" onClick={() => setSelectedArticle(null)}>
-                <span>Close Article</span>
-              </button>
-            </div>
-          </div>
         </div>
       )}
 
+      {/* ══════════════ ARTICLE DETAIL PANEL ══════════════ */}
+      <AnimatePresence>
+        {selectedArticle && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: 'fixed', inset: 0, zIndex: 9999,
+              background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(12px)',
+              display: 'flex', alignItems: 'flex-end',
+              WebkitBackdropFilter: 'blur(12px)'
+            }}
+            onClick={() => setSelectedArticle(null)}
+          >
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+              onClick={e => e.stopPropagation()}
+              style={{
+                width: '100%', maxHeight: '92vh', borderRadius: '28px 28px 0 0',
+                background: 'var(--bg-pure)', overflow: 'hidden',
+                display: 'flex', flexDirection: 'column'
+              }}
+            >
+              {/* Hero Image */}
+              <div style={{ position: 'relative', flexShrink: 0 }}>
+                <img
+                  src={selectedArticle.imageUrl}
+                  alt={selectedArticle.title}
+                  style={{ width: '100%', height: '260px', objectFit: 'cover', display: 'block' }}
+                  onError={e => { e.currentTarget.src = 'https://images.unsplash.com/photo-1548191265-cc70d3d45ba1?w=800'; }}
+                />
+                {/* Floating Back Button */}
+                <button
+                  onClick={() => setSelectedArticle(null)}
+                  style={{
+                    position: 'absolute', top: 16, left: 16,
+                    width: 36, height: 36, borderRadius: '50%',
+                    background: 'rgba(0,0,0,0.5)', border: 'none',
+                    color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
+                  }}
+                >
+                  <ChevronLeft size={20} />
+                </button>
+                {/* Share Button */}
+                <button
+                  onClick={() => { navigator.share?.({ title: selectedArticle.title, url: window.location.href }); }}
+                  style={{
+                    position: 'absolute', top: 16, right: 16,
+                    width: 36, height: 36, borderRadius: '50%',
+                    background: 'rgba(0,0,0,0.5)', border: 'none',
+                    color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
+                  }}
+                >
+                  <Share2 size={16} />
+                </button>
+              </div>
+
+              {/* Content (scrollable) */}
+              <div style={{ overflow: 'auto', flex: 1, padding: '28px 28px 60px' }}>
+                {/* Category + Read Time */}
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '16px' }}>
+                  <span style={{
+                    background: `${CATEGORY_COLORS[(selectedArticle.category || '').toUpperCase()] || '#10B981'}18`,
+                    color: CATEGORY_COLORS[(selectedArticle.category || '').toUpperCase()] || '#10B981',
+                    fontSize: '10px', fontWeight: 900, letterSpacing: '0.06em',
+                    padding: '5px 12px', borderRadius: '10px', textTransform: 'uppercase'
+                  }}>
+                    {selectedArticle.category}
+                  </span>
+                  <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <Clock size={12} /> {selectedArticle.readTimeMinutes} min read
+                  </span>
+                </div>
+
+                {/* Title */}
+                <h2 style={{ fontSize: 'clamp(22px, 4vw, 30px)', fontWeight: 800, lineHeight: 1.2, letterSpacing: '-0.02em', marginBottom: '20px' }}>
+                  {selectedArticle.title}
+                </h2>
+
+                {/* Author Info */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '28px', paddingBottom: '20px', borderBottom: '1px solid var(--border)' }}>
+                  <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--surface-alt)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {selectedArticle.authorPhoto ? (
+                      <img src={selectedArticle.authorPhoto} alt={selectedArticle.authorName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <User size={18} color="var(--text-muted)" />
+                    )}
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 800, fontSize: '14px' }}>{selectedArticle.authorName}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{formatDate(selectedArticle.timestamp)}</div>
+                  </div>
+                </div>
+
+                {/* Article Body */}
+                <div style={{ fontSize: '16px', lineHeight: 1.75, color: 'var(--text-main)', whiteSpace: 'pre-line' }}>
+                  {selectedArticle.content}
+                </div>
+
+                {/* Tags */}
+                {selectedArticle.tags?.length > 0 && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '36px' }}>
+                    {selectedArticle.tags.map(tag => (
+                      <span key={tag} style={{
+                        padding: '6px 14px', borderRadius: '10px',
+                        background: 'var(--surface-alt)', fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)'
+                      }}>
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ══════════════ CREATE ARTICLE MODAL ══════════════ */}
+      <AnimatePresence>
+        {showCreateModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}
+            onClick={() => setShowCreateModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.92, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.92, opacity: 0 }}
+              onClick={e => e.stopPropagation()}
+              style={{ width: '100%', maxWidth: '600px', maxHeight: '90vh', background: 'var(--bg-pure)', borderRadius: '28px', overflow: 'auto', padding: '32px', display: 'flex', flexDirection: 'column', gap: '16px' }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h2 style={{ fontWeight: 800, fontSize: '22px', letterSpacing: '-0.02em' }}>Write Article</h2>
+                <button onClick={() => setShowCreateModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex' }}><X size={22} /></button>
+              </div>
+
+              <div>
+                <label className="label-mini">Category</label>
+                <select className="input-clean" value={newCategory} onChange={e => setNewCategory(e.target.value)}>
+                  {['Health', 'Nutrition', 'Training', 'Lifestyle'].map(c => <option key={c}>{c}</option>)}
+                </select>
+              </div>
+
+              <div>
+                <label className="label-mini">Article Title</label>
+                <input className="input-clean" type="text" placeholder="E.g. How to keep your dog hydrated..." value={newTitle} onChange={e => setNewTitle(e.target.value)} />
+              </div>
+
+              <div>
+                <label className="label-mini">Cover Image URL</label>
+                <input className="input-clean" type="text" placeholder="https://images.unsplash.com/..." value={newImageUrl} onChange={e => setNewImageUrl(e.target.value)} />
+              </div>
+
+              <div>
+                <label className="label-mini">Content</label>
+                <textarea
+                  className="input-clean"
+                  rows={8}
+                  placeholder="Write your article here..."
+                  value={newContent}
+                  onChange={e => setNewContent(e.target.value)}
+                  style={{ resize: 'vertical', minHeight: '180px', lineHeight: 1.6 }}
+                />
+              </div>
+
+              <div>
+                <label className="label-mini">Tags (comma separated)</label>
+                <input className="input-clean" type="text" placeholder="cats, nutrition, health" value={newTags} onChange={e => setNewTags(e.target.value)} />
+              </div>
+
+              <button className="apple-btn-blue" onClick={handlePublish} disabled={isSubmitting} style={{ marginTop: '8px', width: '100%', justifyContent: 'center', padding: '12px' }}>
+                <Send size={15} />
+                <span>{isSubmitting ? 'Publishing...' : 'Publish Article'}</span>
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
