@@ -70,7 +70,7 @@ export default function AdminPortal() {
       <div style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
         <div 
           className="apple-solid-card" 
-          style={{ maxWidth: '440px', width: '100%', padding: '40px 32px', textAlign: 'center' }}
+          style={{ width: '100%', padding: '40px 32px', textAlign: 'center' }}
         >
           <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'rgba(239, 68, 68, 0.14)', color: '#EF4444', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
             <Lock size={26} />
@@ -106,12 +106,11 @@ export default function AdminPortal() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '28px', maxWidth: '1100px', margin: '0 auto', width: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '28px', width: '100%' }}>
       {/* ── SUBDOMAIN ADMIN HEADER ── */}
       <div 
         className="apple-solid-card" 
         style={{
-          background: 'var(--surface-solid)',
           padding: '28px 32px',
           alignItems: 'center',
           flexDirection: 'row',

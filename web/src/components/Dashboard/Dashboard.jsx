@@ -93,13 +93,12 @@ export default function Dashboard() {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', maxWidth: '1120px', margin: '0 auto', width: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', width: '100%' }}>
       
       {/* ── 1. USER GREETING HEADER BANNER ── */}
       <div 
         className="apple-solid-card" 
         style={{
-          background: 'var(--surface-solid)',
           padding: '24px 30px',
           display: 'flex',
           flexDirection: 'row',
@@ -201,7 +200,6 @@ export default function Dashboard() {
               alignItems: 'center', 
               padding: '24px', 
               cursor: 'pointer',
-              background: 'transparent',
               minHeight: '180px'
             }}
             onClick={() => openModal('addPet')}
@@ -278,8 +276,7 @@ export default function Dashboard() {
                     textAlign: 'left',
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: '10px',
-                    background: 'var(--surface-solid)'
+                    gap: '10px'
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -361,13 +358,10 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Professional Profile Inner Card */}
-              <div style={{ background: 'var(--surface-alt)', padding: '14px 18px', borderRadius: 'var(--radius-sm)' }}>
-                <span className="label-mini" style={{ color: 'var(--text-muted)', marginBottom: '4px' }}>PROFESSIONAL PROFILE</span>
-                <p style={{ fontSize: '13px', color: 'var(--text-main)', lineHeight: 1.45, margin: 0 }}>
-                  {v.bio || 'Experienced in complex surgeries and preventive care for small animals.'}
-                </p>
-              </div>
+              {/* Professional Profile — inline, no nested box */}
+              <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.5, margin: 0 }}>
+                {v.bio || 'Experienced in complex surgeries and preventive care for small animals.'}
+              </p>
 
               {/* Bottom Tags & Start Button */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>

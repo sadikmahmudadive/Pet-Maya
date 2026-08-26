@@ -189,7 +189,7 @@ export default function NutritionBreeds() {
   });
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', maxWidth: '1120px', margin: '0 auto', width: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', width: '100%' }}>
       
       {/* ── 1. NUTRITION CALCULATOR ── */}
       <div className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '32px' }}>

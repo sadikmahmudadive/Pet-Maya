@@ -60,7 +60,6 @@ export default function Specialists() {
       <div 
         className="apple-solid-card"
         style={{
-          background: 'var(--surface-solid)',
           padding: '24px 30px',
           alignItems: 'center',
           flexDirection: 'row',

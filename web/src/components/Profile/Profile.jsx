@@ -70,13 +70,13 @@ export default function Profile() {
 
   if (!currentUser) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '28px', maxWidth: '640px', margin: '40px auto', width: '100%' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '28px', margin: '40px auto', width: '100%' }}>
         <div className="apple-solid-card" style={{ padding: '44px 30px', textAlign: 'center' }}>
           <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--primary-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)', margin: '0 auto 16px' }}>
             <User size={30} />
           </div>
           <h2 style={{ fontSize: '24px', fontWeight: 700, letterSpacing: '-0.02em', marginBottom: '8px' }}>You are currently signed out</h2>
-          <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '24px', maxWidth: '440px', margin: '0 auto 24px' }}>
+          <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '24px', margin: '0 auto 24px' }}>
             Sign in to manage your pets, view medical records, earn rewards, and access clinical consultations.
           </p>
 
@@ -94,10 +94,10 @@ export default function Profile() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '28px', maxWidth: '880px', margin: '0 auto', width: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '28px', width: '100%' }}>
       
       {/* ── 1. MOBILE-APP INSPIRED PROFILE HEADER ── */}
-      <div className="apple-solid-card" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', background: 'var(--surface-solid)', alignItems: 'stretch' }}>
+      <div className="apple-solid-card" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
         {/* Green Top Section */}
         <div style={{ background: 'var(--primary)', padding: '40px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
           <button style={{ position: 'absolute', top: '20px', right: '20px', background: 'rgba(0,0,0,0.2)', color: '#fff', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }} onClick={handleSignOut}>

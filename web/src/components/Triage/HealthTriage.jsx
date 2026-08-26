@@ -258,7 +258,7 @@ export default function HealthTriage() {
             </h3>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', marginBottom: '20px' }}>
-              <div style={{ background: 'var(--surface-solid)', padding: '18px', borderRadius: 'var(--radius-sm)' }}>
+              <div style={{ padding: '18px', borderRadius: 'var(--radius-sm)' }}>
                 <strong style={{ fontSize: '12px', color: 'var(--primary)', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                   🛡️ Immediate First Aid Protocol
                 </strong>
@@ -267,7 +267,7 @@ export default function HealthTriage() {
                 </p>
               </div>
 
-              <div style={{ background: 'var(--surface-solid)', padding: '18px', borderRadius: 'var(--radius-sm)' }}>
+              <div style={{ padding: '18px', borderRadius: 'var(--radius-sm)' }}>
                 <strong style={{ fontSize: '12px', color: 'var(--primary)', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                   🩺 Recommended Clinical Step
                 </strong>

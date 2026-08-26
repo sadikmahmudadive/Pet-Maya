@@ -507,15 +507,61 @@ body {
 
 .app-main {
   width: 100%;
-  padding: 24px 20px 80px;
+  padding: 32px 28px 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
 }
 
+/* Apple TV/Home solid card — theme-aware, borderless */
 .apple-solid-card {
-  background: #f5f5f7;
-  border-radius: 28px;
+  background: var(--surface-alt);
+  border-radius: 22px;
   border: none;
   box-shadow: none;
   padding: 24px;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.25s var(--apple-spring);
+}
+
+.apple-solid-card:where(button, a, [role=button]) {
+  cursor: pointer;
+}
+
+/* ── section wrappers (replace maxWidth + margin:auto containers) ── */
+.apple-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.apple-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.apple-section-title {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--text-main);
+}
+
+.apple-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+  width: 100%;
+}
+
+.apple-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
 }
 
 .apple-full-bleed {

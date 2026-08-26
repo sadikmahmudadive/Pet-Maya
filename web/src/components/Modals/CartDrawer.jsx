@@ -26,7 +26,7 @@ export default function CartDrawer() {
     <div className="modal-backdrop" onClick={closeModal}>
       <div 
         className="modal-dialog" 
-        style={{ maxWidth: '440px', width: '100%', height: '100%', maxHeight: '100vh', borderRadius: '0', position: 'fixed', right: 0, top: 0, bottom: 0, display: 'flex', flexDirection: 'column', margin: 0 }}
+        style={{ width: '100%', height: '100%', maxHeight: '100vh', borderRadius: '0', position: 'fixed', right: 0, top: 0, bottom: 0, display: 'flex', flexDirection: 'column', margin: 0 }}
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}

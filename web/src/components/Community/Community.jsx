@@ -40,7 +40,7 @@ export default function Community() {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '720px', margin: '0 auto', width: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%' }}>
       {/* ── CREATE POST BOX ── */}
       <div className="apple-solid-card" style={{ padding: '24px', alignItems: 'stretch', textAlign: 'left' }}>
         <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
