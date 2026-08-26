@@ -687,6 +687,7 @@ export function AppProvider({ children }) {
   };
 
   const cartCount = cart.reduce((acc, item) => acc + item.qty, 0);
+  const cartTotal = cart.reduce((acc, item) => acc + item.price * item.qty, 0);
 
   return (
     <AppContext.Provider value={{
@@ -716,6 +717,7 @@ export function AppProvider({ children }) {
       addMedicalRecord,
       cart,
       cartCount,
+      cartTotal,
       addToCart,
       updateCartQty,
       removeFromCart,
