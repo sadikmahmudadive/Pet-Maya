@@ -1,6 +1,7 @@
 import React from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AppProvider, useApp } from './context/AppContext';
+import GlobalBanner from './components/GlobalBanner';
 import Header from './components/Header';
 import Toast from './components/Toast';
 import ModalRoot from './components/Modals/ModalRoot';
@@ -77,6 +78,7 @@ function MainContent() {
 
   return (
     <div className="app-container">
+      <GlobalBanner />
       <Header />
       <main className={isLanding ? "apple-landing-main" : "app-main"}>
         <AnimatePresence mode="wait">

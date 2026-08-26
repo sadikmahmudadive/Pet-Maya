@@ -60,6 +60,16 @@ export function AppProvider({ children }) {
   // Toasts
   const [toasts, setToasts] = useState([]);
 
+  // Global Promotional Banner
+  const [globalBanner, setGlobalBanner] = useState({
+    isActive: false,
+    text: "Shop online and get specialist help, free delivery, and more.",
+    linkText: "store's services",
+    linkUrl: "#",
+    bgColor: "#f5f5f7",
+    textColor: "#1d1d1f"
+  });
+
   // ─── THEME SYNCHRONIZATION ───
   useEffect(() => {
     if (theme === 'dark') {
@@ -118,6 +128,35 @@ export function AppProvider({ children }) {
       console.warn('[Firebase] Error setting up pets listener:', e);
     }
   }, [currentUser]);
+
+  // ─── 1.5 FIREBASE REAL-TIME GLOBAL BANNER LISTENER ───
+  useEffect(() => {
+    try {
+      const bannerRef = doc(db, 'settings', 'globalBanner');
+      const unsubscribe = onSnapshot(bannerRef, (docSnap) => {
+        if (docSnap.exists()) {
+          setGlobalBanner(docSnap.data());
+        }
+      }, (err) => {
+        console.warn('[Firebase] Global banner stream warning:', err);
+      });
+      return () => unsubscribe();
+    } catch (e) {
+      console.warn('[Firebase] Error setting up global banner listener:', e);
+    }
+  }, []);
+
+  const updateGlobalBanner = async (newConfig) => {
+    try {
+      setGlobalBanner(newConfig); // Optimistic UI update
+      const bannerRef = doc(db, 'settings', 'globalBanner');
+      await setDoc(bannerRef, newConfig, { merge: true });
+      showToast('Global banner updated successfully!', 'success');
+    } catch (e) {
+      console.error('[Firebase] updateGlobalBanner error:', e);
+      showToast('Error updating global banner', 'error');
+    }
+  };
 
   // ─── 2. FIREBASE REAL-TIME VETS LISTENER ───
   useEffect(() => {
@@ -729,7 +768,9 @@ export function AppProvider({ children }) {
       appliedCoupon,
       applyCoupon,
       orders,
-      checkoutOrder
+      checkoutOrder,
+      globalBanner,
+      updateGlobalBanner
     }}>
       {children}
     </AppContext.Provider>
