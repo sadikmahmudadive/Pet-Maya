@@ -28,46 +28,46 @@ export default function Dashboard() {
   };
 
   // Filter ONLY doctors and veterinary medical specialists (exclude grooming, boarding, pet shop)
-  const topVets = vets
-    .filter((v) => {
-      const tag = (v.tag || '').toLowerCase();
-      const qual = (v.qualification || '').toLowerCase();
-      const role = (v.role || '').toLowerCase();
-      const name = (v.name || '').toLowerCase();
+  const filteredVets = vets.filter((v) => {
+    const tag = (v.tag || '').toLowerCase();
+    const qual = (v.qualification || '').toLowerCase();
+    const role = (v.role || '').toLowerCase();
+    const name = (v.name || '').toLowerCase();
 
-      // Exclude explicit non-vet services
-      if (
-        tag.includes('groom') || 
-        tag.includes('board') || 
-        tag.includes('spa') || 
-        tag.includes('shop') || 
-        tag.includes('hotel') ||
-        tag.includes('store') ||
-        qual.includes('groom') ||
-        qual.includes('boarding') ||
-        qual.includes('hotel') ||
-        name.includes('groom') ||
-        name.includes('boarding') ||
-        name.includes('spa')
-      ) {
-        return false;
-      }
+    // Exclude explicit non-vet services
+    if (
+      tag.includes('groom') || 
+      tag.includes('board') || 
+      tag.includes('spa') || 
+      tag.includes('shop') || 
+      tag.includes('hotel') ||
+      tag.includes('store') ||
+      qual.includes('groom') ||
+      qual.includes('boarding') ||
+      qual.includes('hotel') ||
+      name.includes('groom') ||
+      name.includes('boarding') ||
+      name.includes('spa')
+    ) {
+      return false;
+    }
 
-      // Include confirmed veterinarians
-      return (
-        tag.includes('vet') || 
-        role.includes('vet') || 
-        name.startsWith('dr.') || 
-        name.startsWith('dr ') ||
-        qual.includes('dvm') || 
-        qual.includes('bvsc') || 
-        qual.includes('mrcvs') || 
-        qual.includes('officer') ||
-        qual.includes('surgeon') ||
-        qual.includes('veterin')
-      );
-    })
-    .slice(0, 3);
+    // Include confirmed veterinarians
+    return (
+      tag.includes('vet') || 
+      role.includes('vet') || 
+      name.startsWith('dr.') || 
+      name.startsWith('dr ') ||
+      qual.includes('dvm') || 
+      qual.includes('bvsc') || 
+      qual.includes('mrcvs') || 
+      qual.includes('officer') ||
+      qual.includes('surgeon') ||
+      qual.includes('veterin')
+    );
+  });
+
+  const topVets = (filteredVets.length > 0 ? filteredVets : vets).slice(0, 3);
 
   // Format ISO / string dates to clean Apple format e.g. "Aug 26, 2026"
   const formatEventDate = (rawDate) => {

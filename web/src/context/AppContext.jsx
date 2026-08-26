@@ -308,6 +308,17 @@ export function AppProvider({ children }) {
 
   // ─── 1. FIREBASE REAL-TIME PETS LISTENER ───
   useEffect(() => {
+    // Initial hydration from local cache
+    const savedLocal = localStorage.getItem('pm_pets');
+    if (savedLocal) {
+      try {
+        const parsed = JSON.parse(savedLocal);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setPets(parsed);
+        }
+      } catch (_) {}
+    }
+
     if (!currentUser || currentUser.uid.startsWith('demo_guest')) {
       const saved = localStorage.getItem('pm_pets');
       setPets(saved ? JSON.parse(saved) : INITIAL_PETS);
@@ -326,28 +337,45 @@ export function AppProvider({ children }) {
               id: docSnap.id,
               petID: docSnap.id,
               name: data.name || 'Pet',
-              species: data.species || data.type || 'Dog',
-              breed: data.breed || 'Mixed',
+              species: data.species || data.type || 'Dove',
+              breed: data.breed || 'Ring-necked Dove',
               gender: data.gender || 'Unknown',
               age: data.age || '1 Yr',
-              weight: data.weight || '10 kg',
+              weight: data.weight || '160 g',
               photo: data.photoUrl || data.photo || 'assets/images/Pet_1.jpg',
               microchip: data.microchip || data.microchipId || `PM-${docSnap.id.slice(0, 5).toUpperCase()}`,
               nextVaccine: data.nextVaccine || '2026-09-30'
             };
           });
           setPets(fetchedPets);
+          try {
+            localStorage.setItem('pm_pets', JSON.stringify(fetchedPets));
+          } catch (_) {}
         } else {
-          // If user has no pets in Firestore yet, start with default
-          setPets([]);
+          // If query returned empty, check local storage or use initial pets
+          const saved = localStorage.getItem('pm_pets');
+          if (saved) {
+            try {
+              const parsed = JSON.parse(saved);
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                setPets(parsed);
+                return;
+              }
+            } catch (_) {}
+          }
+          setPets(INITIAL_PETS);
         }
       }, (err) => {
         console.warn('[Firebase] Pets stream warning:', err);
+        const saved = localStorage.getItem('pm_pets');
+        setPets(saved ? JSON.parse(saved) : INITIAL_PETS);
       });
 
       return () => unsubscribe();
     } catch (e) {
       console.warn('[Firebase] Error setting up pets listener:', e);
+      const saved = localStorage.getItem('pm_pets');
+      setPets(saved ? JSON.parse(saved) : INITIAL_PETS);
     }
   }, [currentUser]);
 

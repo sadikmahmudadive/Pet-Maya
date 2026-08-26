@@ -37,8 +37,7 @@ export const AppleStagger = ({
     <motion.div
       variants={containerVariants}
       initial="hidden"
-      whileInView="show"
-      viewport={{ once: true, margin: "-10px" }}
+      animate="show"
       className={className}
       style={style}
     >
