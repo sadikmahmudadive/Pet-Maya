@@ -109,7 +109,16 @@ const googleMapsDarkTheme = [
 ];
 
 export default function PetTracker() {
-  const { pets, showToast } = useApp();
+  const { 
+    pets, 
+    showToast,
+    userLiveLocation,
+    requestLocationPermission,
+    requestNotificationPermission,
+    sendPushNotification,
+    locationPermission,
+    notificationPermission
+  } = useApp();
   
   // Tracked Pet Selection
   const [selectedPetId, setSelectedPetId] = useState(pets[0]?.id || 'piku_01');
@@ -142,9 +151,15 @@ export default function PetTracker() {
   const [isPlayingSound, setIsPlayingSound] = useState(false);
   const [googleMapsLoaded, setGoogleMapsLoaded] = useState(false);
 
-  // Lat/Lng Coordinates
+  // Lat/Lng Coordinates (Synced with user's live device location)
   const [petLatLng, setPetLatLng] = useState({ lat: 23.8103, lng: 90.4125 });
-  const [userLatLng, setUserLatLng] = useState({ lat: 23.8120, lng: 90.4150 });
+  const [userLatLng, setUserLatLng] = useState(userLiveLocation || { lat: 23.8120, lng: 90.4150 });
+
+  useEffect(() => {
+    if (userLiveLocation) {
+      setUserLatLng(userLiveLocation);
+    }
+  }, [userLiveLocation]);
   const [breadcrumbs, setBreadcrumbs] = useState([
     { lat: 23.8095, lng: 90.4110 },
     { lat: 23.8099, lng: 90.4118 },
@@ -496,13 +511,18 @@ export default function PetTracker() {
     showToast(`🎯 Centered Google Map on ${activePet.name}`, 'info');
   };
 
-  // Center on Home
-  const handleCenterUser = () => {
-    if (googleMapInstanceRef.current) {
-      googleMapInstanceRef.current.panTo(userLatLng);
+  // Center on Home / Me (with Live GPS permission request)
+  const handleCenterUser = async () => {
+    let loc = userLiveLocation;
+    if (!loc || locationPermission !== 'granted') {
+      loc = await requestLocationPermission();
+    }
+    const targetLoc = loc || userLatLng;
+    if (googleMapInstanceRef.current && targetLoc) {
+      googleMapInstanceRef.current.panTo(targetLoc);
       googleMapInstanceRef.current.setZoom(17);
     }
-    showToast('📍 Centered on your position', 'info');
+    showToast('📍 Centered on your live device location', 'info');
   };
 
   return (

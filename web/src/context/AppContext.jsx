@@ -76,6 +76,89 @@ export function AppProvider({ children }) {
     };
   });
 
+  // Permissions & Device Geolocation
+  const [locationPermission, setLocationPermission] = useState('prompt'); // 'prompt', 'granted', 'denied'
+  const [notificationPermission, setNotificationPermission] = useState(
+    typeof window !== 'undefined' && 'Notification' in window ? Notification.permission : 'default'
+  );
+  const [userLiveLocation, setUserLiveLocation] = useState(() => {
+    try {
+      const saved = localStorage.getItem('pm_user_location');
+      if (saved) return JSON.parse(saved);
+    } catch (_) {}
+    return { lat: 23.8120, lng: 90.4150 };
+  });
+
+  // Request Device Location
+  const requestLocationPermission = () => {
+    return new Promise((resolve) => {
+      if (!navigator.geolocation) {
+        showToast('Geolocation is not supported by your browser', 'info');
+        resolve(null);
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          setUserLiveLocation(coords);
+          setLocationPermission('granted');
+          localStorage.setItem('pm_user_location', JSON.stringify(coords));
+          showToast('📍 Live GPS location active & synced!', 'success');
+          resolve(coords);
+        },
+        (err) => {
+          console.warn('[Geolocation] Error:', err);
+          setLocationPermission('denied');
+          showToast('Location access was denied in browser settings', 'info');
+          resolve(null);
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+      );
+    });
+  };
+
+  // Request Web Push Notifications
+  const requestNotificationPermission = async () => {
+    if (typeof window === 'undefined' || !('Notification' in window)) {
+      showToast('Notifications are not supported by this browser', 'info');
+      return 'unsupported';
+    }
+    try {
+      const permission = await Notification.requestPermission();
+      setNotificationPermission(permission);
+      if (permission === 'granted') {
+        showToast('🔔 Live push alerts & boundary sirens enabled!', 'success');
+        try {
+          new Notification('Pet Maya Smart Care', {
+            body: 'Live GPS boundary alarms and healthcare reminders are now active.',
+            icon: '/assets/images/tail_wagging_logo.png'
+          });
+        } catch (_) {}
+      } else if (permission === 'denied') {
+        showToast('Notifications blocked in browser settings', 'info');
+      }
+      return permission;
+    } catch (e) {
+      console.warn('[Notification] request error:', e);
+      return 'denied';
+    }
+  };
+
+  // Dispatch Native Notification
+  const sendPushNotification = (title, body, icon = '/assets/images/tail_wagging_logo.png') => {
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+      try {
+        new Notification(title, { body, icon });
+      } catch (_) {}
+    }
+  };
+
+  // Request both permissions in one click
+  const requestAllPermissions = async () => {
+    await requestNotificationPermission();
+    await requestLocationPermission();
+  };
+
   // ─── THEME SYNCHRONIZATION ───
   useEffect(() => {
     if (theme === 'dark') {
@@ -798,7 +881,14 @@ export function AppProvider({ children }) {
       orders,
       checkoutOrder,
       globalBanner,
-      updateGlobalBanner
+      updateGlobalBanner,
+      locationPermission,
+      notificationPermission,
+      userLiveLocation,
+      requestLocationPermission,
+      requestNotificationPermission,
+      sendPushNotification,
+      requestAllPermissions
     }}>
       {children}
     </AppContext.Provider>
