@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { 
@@ -7,12 +7,15 @@ import {
   ShoppingBag, 
   Sparkles,
   ShieldAlert,
-  ChevronDown
+  ChevronDown,
+  MoreVertical,
+  X
 } from 'lucide-react';
 
 export default function Header() {
   const { activeTab, setActiveTab, theme, toggleTheme, cartCount, openModal, showToast } = useApp();
   const { currentUser, loginAsGuest } = useAuth();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleBrandClick = (e) => {
     e.preventDefault();
@@ -48,13 +51,13 @@ export default function Header() {
         </div>
 
         {/* Global Navigation Links - Perfectly Aligned with Discover More */}
-        <ul className="apple-nav-links">
+        <ul className={`apple-nav-links ${isMobileMenuOpen ? 'open' : ''}`}>
           {currentUser ? (
             <>
               <li>
                 <button 
                   className={`apple-nav-item ${activeTab === 'dashboard' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('dashboard')}
+                  onClick={() => { setActiveTab('dashboard'); setIsMobileMenuOpen(false); }}
                 >
                   Dashboard
                 </button>
@@ -62,7 +65,7 @@ export default function Header() {
               <li>
                 <button 
                   className={`apple-nav-item ${activeTab === 'shop' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('shop')}
+                  onClick={() => { setActiveTab('shop'); setIsMobileMenuOpen(false); }}
                 >
                   Pet Shop
                 </button>
@@ -70,7 +73,7 @@ export default function Header() {
               <li>
                 <button 
                   className={`apple-nav-item ${activeTab === 'tracker' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('tracker')}
+                  onClick={() => { setActiveTab('tracker'); setIsMobileMenuOpen(false); }}
                 >
                   Tracker
                 </button>
@@ -78,7 +81,7 @@ export default function Header() {
               <li>
                 <button 
                   className={`apple-nav-item ${activeTab === 'ai' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('ai')}
+                  onClick={() => { setActiveTab('ai'); setIsMobileMenuOpen(false); }}
                 >
                   Wellness
                 </button>
@@ -86,7 +89,7 @@ export default function Header() {
               <li>
                 <button 
                   className={`apple-nav-item ${activeTab === 'vets' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('vets')}
+                  onClick={() => { setActiveTab('vets'); setIsMobileMenuOpen(false); }}
                 >
                   Specialists
                 </button>
@@ -94,7 +97,7 @@ export default function Header() {
               <li>
                 <button 
                   className={`apple-nav-item ${activeTab === 'community' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('community')}
+                  onClick={() => { setActiveTab('community'); setIsMobileMenuOpen(false); }}
                 >
                   Community
                 </button>
@@ -102,7 +105,7 @@ export default function Header() {
               <li>
                 <button 
                   className={`apple-nav-item ${activeTab === 'food' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('food')}
+                  onClick={() => { setActiveTab('food'); setIsMobileMenuOpen(false); }}
                 >
                   Blog
                 </button>
@@ -110,7 +113,7 @@ export default function Header() {
               <li>
                 <button 
                   className={`apple-nav-item ${activeTab === 'vaccines' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('vaccines')}
+                  onClick={() => { setActiveTab('vaccines'); setIsMobileMenuOpen(false); }}
                 >
                   Reminders
                 </button>
@@ -118,7 +121,7 @@ export default function Header() {
               <li>
                 <button 
                   className={`apple-nav-item ${activeTab === 'landing' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('landing')}
+                  onClick={() => { setActiveTab('landing'); setIsMobileMenuOpen(false); }}
                 >
                   Overview
                 </button>
@@ -129,7 +132,7 @@ export default function Header() {
               <li>
                 <button 
                   className={`apple-nav-item ${activeTab === 'landing' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('landing')}
+                  onClick={() => { setActiveTab('landing'); setIsMobileMenuOpen(false); }}
                 >
                   Overview
                 </button>
@@ -137,7 +140,7 @@ export default function Header() {
               <li>
                 <button 
                   className="apple-nav-item"
-                  onClick={() => handleProtectedNav('shop', 'Pet Shop')}
+                  onClick={() => { handleProtectedNav('shop', 'Pet Shop'); setIsMobileMenuOpen(false); }}
                 >
                   Pet Shop
                 </button>
@@ -145,7 +148,7 @@ export default function Header() {
               <li>
                 <button 
                   className="apple-nav-item"
-                  onClick={() => handleProtectedNav('tracker', 'Tracker')}
+                  onClick={() => { handleProtectedNav('tracker', 'Tracker'); setIsMobileMenuOpen(false); }}
                 >
                   Tracker
                 </button>
@@ -153,7 +156,7 @@ export default function Header() {
               <li>
                 <button 
                   className="apple-nav-item"
-                  onClick={() => handleProtectedNav('ai', 'Wellness')}
+                  onClick={() => { handleProtectedNav('ai', 'Wellness'); setIsMobileMenuOpen(false); }}
                 >
                   Wellness
                 </button>
@@ -161,7 +164,7 @@ export default function Header() {
               <li>
                 <button 
                   className="apple-nav-item"
-                  onClick={() => handleProtectedNav('vets', 'Specialists')}
+                  onClick={() => { handleProtectedNav('vets', 'Specialists'); setIsMobileMenuOpen(false); }}
                 >
                   Specialists
                 </button>
@@ -169,7 +172,7 @@ export default function Header() {
               <li>
                 <button 
                   className="apple-nav-item"
-                  onClick={() => handleProtectedNav('community', 'Community')}
+                  onClick={() => { handleProtectedNav('community', 'Community'); setIsMobileMenuOpen(false); }}
                 >
                   Community
                 </button>
@@ -177,7 +180,7 @@ export default function Header() {
               <li>
                 <button 
                   className="apple-nav-item"
-                  onClick={() => handleProtectedNav('food', 'Blog')}
+                  onClick={() => { handleProtectedNav('food', 'Blog'); setIsMobileMenuOpen(false); }}
                 >
                   Blog
                 </button>
@@ -185,7 +188,7 @@ export default function Header() {
               <li>
                 <button 
                   className="apple-nav-item"
-                  onClick={() => handleProtectedNav('vaccines', 'Reminders')}
+                  onClick={() => { handleProtectedNav('vaccines', 'Reminders'); setIsMobileMenuOpen(false); }}
                 >
                   Reminders
                 </button>
@@ -194,7 +197,7 @@ export default function Header() {
                 <a 
                   href="#mobile-downloads" 
                   className="apple-nav-item"
-                  onClick={() => setActiveTab('landing')}
+                  onClick={() => { setActiveTab('landing'); setIsMobileMenuOpen(false); }}
                 >
                   iOS &amp; Android App
                 </a>
@@ -255,7 +258,7 @@ export default function Header() {
           {currentUser ? (
             <div 
               style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
-              onClick={() => setActiveTab('profile')}
+              onClick={() => { setActiveTab('profile'); setIsMobileMenuOpen(false); }}
               title="Account & EHR"
             >
               <img 
@@ -282,6 +285,16 @@ export default function Header() {
               </button>
             </div>
           )}
+
+          {/* Mobile Menu Toggle */}
+          <button 
+            className="icon-btn mobile-menu-toggle" 
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
+            style={{ width: 30, height: 30, marginLeft: '4px' }}
+            title="Menu"
+          >
+            {isMobileMenuOpen ? <X size={18} /> : <MoreVertical size={18} />}
+          </button>
         </div>
       </div>
     </header>

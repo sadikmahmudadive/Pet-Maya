@@ -124,27 +124,41 @@ body {
   list-style: none;
 }
 
+.mobile-menu-toggle {
+  display: none;
+}
+
 @media (max-width: 860px) {
+  .mobile-menu-toggle {
+    display: flex;
+  }
   .apple-nav-wrapper {
-    height: auto !important;
+    height: 48px !important;
   }
   .apple-nav-inner {
-    flex-wrap: wrap;
-    padding-top: 12px;
+    flex-wrap: nowrap;
+    padding-top: 0;
   }
   .apple-nav-links {
-    display: flex;
-    width: 100%;
-    overflow-x: auto;
-    padding: 12px 0 14px;
-    gap: 20px;
-    -webkit-overflow-scrolling: touch;
-    border-top: 1px solid var(--border);
-    margin-top: 12px;
-    justify-content: flex-start;
-  }
-  .apple-nav-links::-webkit-scrollbar {
     display: none;
+    position: absolute;
+    top: 48px;
+    left: 0;
+    right: 0;
+    background: var(--nav-bg);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 16px 20px 24px;
+    gap: 20px;
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    z-index: 99;
+    margin-top: 0;
+  }
+  .apple-nav-links.open {
+    display: flex;
   }
 }
 
