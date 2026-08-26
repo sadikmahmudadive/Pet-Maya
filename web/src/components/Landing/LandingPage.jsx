@@ -242,30 +242,59 @@ export default function LandingPage() {
       {/* ══════════════════════════════════════════════════════
           BENTO GRID (Animated Fade-In)
           ══════════════════════════════════════════════════════ */}
-      <section className="apple-bento-grid" style={{ padding: '60px 20px', background: 'var(--surface-solid)' }}>
-        {[
-          { id: 'vets', title: 'Specialists', eyebrow: 'Specialist Network', color: '#F59E0B', desc: 'In-clinic visits, surgery consultations, and HD teleconsultations with verified doctors.' },
-          { id: 'food', title: 'Blog & Nutrition', eyebrow: 'Precision Diet', color: '#EC4899', desc: 'Scientific RER/MER calorie calculators, dry/wet portion splits, and breed guides.' },
-          { id: 'shop', title: 'Pet Shop', eyebrow: 'Pharmacy & Store', color: '#6366F1', desc: 'Genuine prescription flea/tick preventatives and specialty food with live order dispatch.' },
-          { id: 'vaccines', title: 'Reminders', eyebrow: 'Medical Passport', color: '#10B981', desc: 'Automated immunization schedules, rabies tracking, and 1-click export to Apple Calendar.' }
-        ].map((item, idx) => (
-          <motion.div 
-            key={item.id}
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-20px" }}
-            transition={{ duration: 0.35, delay: idx * 0.05 }}
-            className="apple-promo-card"
-          >
-            <span className="apple-card-eyebrow" style={{ color: item.color }}>{item.eyebrow}</span>
-            <h3 className="apple-card-title">{item.title}</h3>
-            <p className="apple-card-desc">{item.desc}</p>
-            <button className="apple-link-cta" onClick={() => handleFeatureAccess(item.id, item.title)}>
-              <span>Explore {item.title.toLowerCase()}</span>
-              <ChevronRight size={15} />
-            </button>
-          </motion.div>
-        ))}
+      <section style={{ maxWidth: '1240px', margin: '40px auto', padding: '0 16px', width: '100%' }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+          gap: '20px',
+          width: '100%'
+        }}>
+          {[
+            { id: 'tracker', title: 'Live GPS Radar', eyebrow: 'Radar Telemetry', color: '#10B981', desc: 'Sub-meter satellite tracking, safe perimeter geofencing, and smart biometric collar sensors.' },
+            { id: 'ai', title: 'Wellness Vision AI', eyebrow: 'AI Diagnostics', color: '#3B82F6', desc: 'Instant multi-modal neural network triage for skin, eye, dental, and mobility conditions.' },
+            { id: 'vets', title: 'Specialists', eyebrow: 'Specialist Network', color: '#F59E0B', desc: 'In-clinic visits, surgery consultations, and HD teleconsultations with verified doctors.' },
+            { id: 'food', title: 'Blog & Nutrition', eyebrow: 'Precision Diet', color: '#EC4899', desc: 'Scientific RER/MER calorie calculators, dry/wet portion splits, and breed guides.' },
+            { id: 'shop', title: 'Pet Shop & Pharmacy', eyebrow: 'Pharmacy & Store', color: '#8B5CF6', desc: 'Genuine prescription flea/tick preventatives and specialty food with live order dispatch.' },
+            { id: 'vaccines', title: 'Medical Passport', eyebrow: 'Immunization Reminders', color: '#06B6D4', desc: 'Automated immunization schedules, rabies tracking, and 1-click export to Apple Calendar.' }
+          ].map((item, idx) => (
+            <motion.div 
+              key={item.id}
+              initial={{ opacity: 0, y: 25 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-20px" }}
+              transition={{ duration: 0.35, delay: idx * 0.04 }}
+              style={{
+                background: 'var(--surface-solid)',
+                border: '1px solid var(--border)',
+                borderRadius: '24px',
+                padding: '36px 30px',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                textAlign: 'center',
+                justifyContent: 'space-between',
+                gap: '14px',
+                boxShadow: 'var(--shadow-sm)',
+                transition: 'transform 0.2s ease, box-shadow 0.2s ease'
+              }}
+              whileHover={{ y: -4, boxShadow: 'var(--shadow-md)' }}
+            >
+              <div>
+                <span className="apple-card-eyebrow" style={{ color: item.color, display: 'block', marginBottom: '8px' }}>{item.eyebrow}</span>
+                <h3 className="apple-card-title" style={{ fontSize: '24px', fontWeight: 700, margin: '0 0 10px', color: 'var(--text-main)' }}>{item.title}</h3>
+                <p className="apple-card-desc" style={{ fontSize: '13.5px', color: 'var(--text-muted)', lineHeight: 1.5, margin: 0 }}>{item.desc}</p>
+              </div>
+              <button 
+                className="apple-link-cta" 
+                onClick={() => handleFeatureAccess(item.id, item.title)}
+                style={{ marginTop: '8px', fontSize: '13.5px' }}
+              >
+                <span>Explore {item.title.toLowerCase()}</span>
+                <ChevronRight size={15} />
+              </button>
+            </motion.div>
+          ))}
+        </div>
       </section>
 
       {/* ══════════════════════════════════════════════════════
