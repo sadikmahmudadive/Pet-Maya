@@ -495,34 +495,71 @@ export function AppProvider({ children }) {
         if (!snapshot.empty) {
           const fetchedPosts = snapshot.docs.map(docSnap => {
             const data = docSnap.data();
-            const likedList = data.likedBy || [];
-            const isLiked = currentUser ? likedList.includes(currentUser.uid) : false;
+            
+            // Flexible likedBy parser (handles Array, Map, and numeric counts)
+            let isLiked = false;
+            let likesCount = typeof data.likesCount === 'number' ? data.likesCount : 0;
+            const likedBy = data.likedBy;
+
+            if (Array.isArray(likedBy)) {
+              if (currentUser && likedBy.includes(currentUser.uid)) isLiked = true;
+              if (likesCount === 0) likesCount = likedBy.length;
+            } else if (likedBy && typeof likedBy === 'object') {
+              if (currentUser && likedBy[currentUser.uid]) isLiked = true;
+              if (likesCount === 0) likesCount = Object.keys(likedBy).length;
+            }
+
+            // Timestamp formatter
+            let displayTime = 'Recent';
+            if (typeof data.timestamp === 'number') {
+              const diffSec = Math.floor((Date.now() - data.timestamp) / 1000);
+              if (diffSec < 60) displayTime = 'Just now';
+              else if (diffSec < 3600) displayTime = `${Math.floor(diffSec / 60)}m ago`;
+              else if (diffSec < 86400) displayTime = `${Math.floor(diffSec / 3600)}h ago`;
+              else displayTime = `${Math.floor(diffSec / 86400)}d ago`;
+            } else if (typeof data.time === 'string' && data.time) {
+              displayTime = data.time;
+            } else if (typeof data.timestamp === 'string' && data.timestamp) {
+              displayTime = data.timestamp;
+            }
 
             return {
               id: docSnap.id,
-              author: data.authorName || data.author || 'Pet Parent',
-              authorPhoto: data.authorPhoto || 'assets/images/tail_wagging_logo.png',
-              petTag: data.petTag || 'Pet',
-              time: data.time || data.timestamp || 'Recent',
+              author: data.userName || data.authorName || data.author || 'Pet Parent',
+              authorPhoto: data.userPhoto || data.authorPhoto || 'assets/images/tail_wagging_logo.png',
+              petTag: data.petTag || (data.postType ? `Pet • ${data.postType}` : 'Pet Friend'),
+              category: data.postType || data.category || 'Moment',
+              time: displayTime,
               content: data.content || '',
               image: data.imageUrl || data.image || '',
-              likes: data.likesCount ?? (likedList.length || 0),
+              likes: likesCount,
               isLiked: isLiked,
-              likedBy: likedList,
-              comments: data.comments || []
+              likedBy: Array.isArray(likedBy) ? likedBy : (likedBy ? Object.keys(likedBy) : []),
+              comments: Array.isArray(data.comments) ? data.comments : []
             };
           });
+
+          // Sort posts by newest first
+          fetchedPosts.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
           setPosts(fetchedPosts);
+          setIsPostsLoading(false);
+          try {
+            localStorage.setItem('pm_cached_posts', JSON.stringify(fetchedPosts));
+          } catch (_) {}
         } else {
-          setPosts(INITIAL_POSTS);
+          setPosts([]);
+          setIsPostsLoading(false);
         }
       }, (err) => {
         console.warn('[Firebase] Community posts listener warning:', err);
+        setIsPostsLoading(false);
       });
 
       return () => unsubscribe();
     } catch (e) {
       console.warn('[Firebase] Posts setup error:', e);
+      setIsPostsLoading(false);
     }
   }, [currentUser]);
 
@@ -713,17 +750,32 @@ export function AppProvider({ children }) {
 
   // Add Community Post
   const createPost = async (postData) => {
+    const userDisplayName = postData.author || (currentUser ? currentUser.name : 'Pet Parent');
+    const userPhotoUrl = currentUser?.photoUrl || 'assets/images/tail_wagging_logo.png';
+    const postType = (postData.category || 'MOMENT').toUpperCase();
+
     const newPost = {
-      authorName: postData.author || (currentUser ? currentUser.name : 'Pet Parent'),
-      authorId: currentUser ? currentUser.uid : 'guest',
-      authorPhoto: currentUser?.photoUrl || 'assets/images/tail_wagging_logo.png',
-      petTag: postData.petTag || 'Pet',
-      content: postData.content,
+      // Modern App Schema
+      userId: currentUser ? currentUser.uid : 'guest',
+      userName: userDisplayName,
+      userPhoto: userPhotoUrl,
+      postType: postType,
+      content: postData.content || '',
       imageUrl: postData.image || '',
+      timestamp: Date.now(),
       likesCount: 0,
-      likedBy: [],
+      commentsCount: 0,
+      sharesCount: 0,
+      likedBy: {},
+      
+      // Web Legacy compatibility fields
+      authorName: userDisplayName,
+      authorId: currentUser ? currentUser.uid : 'guest',
+      authorPhoto: userPhotoUrl,
+      petTag: postData.petTag || 'Pet',
+      category: postData.category || 'Moment',
+      mood: postData.mood || '🐾 Playful & Energetic',
       comments: [],
-      timestamp: 'Just now',
       createdAt: new Date().toISOString()
     };
 
@@ -734,7 +786,19 @@ export function AppProvider({ children }) {
         console.warn('[Firebase] createPost error:', e);
       }
     } else {
-      setPosts(prev => [{ id: 'p_' + Date.now(), ...newPost, likes: 0, isLiked: false }, ...prev]);
+      setPosts(prev => [{ 
+        id: 'p_' + Date.now(), 
+        author: userDisplayName,
+        authorPhoto: userPhotoUrl,
+        petTag: postData.petTag || 'Pet',
+        category: postData.category || 'Moment',
+        time: 'Just now',
+        content: postData.content || '',
+        image: postData.image || '',
+        likes: 0, 
+        isLiked: false, 
+        comments: [] 
+      }, ...prev]);
     }
     awardPoints(5);
     showToast('✨ Story published to community feed!', 'success');
@@ -976,6 +1040,7 @@ export function AppProvider({ children }) {
       products,
       isProductsLoading,
       posts,
+      isPostsLoading,
       createPost,
       toggleLike,
       addComment,

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { 
@@ -30,80 +30,6 @@ import {
 } from 'lucide-react';
 import { AppleReveal } from '../Animations/AppleReveal';
 import { AppleStagger } from '../Animations/AppleStagger';
-import LottieUploadIcon from '../Common/LottieUploadIcon';
-
-const SAMPLE_STORIES = [
-  {
-    id: 's1',
-    author: 'Max',
-    owner: 'Alex Johnson',
-    avatar: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=300&auto=format&fit=crop&q=80',
-    storyMedia: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=800&auto=format&fit=crop&q=80',
-    tag: 'Golden Retriever',
-    caption: 'Sunset beach sprint! 🌅 Golden hour energy is real!',
-    time: '2h ago',
-    hasUnseen: true
-  },
-  {
-    id: 's2',
-    author: 'Luna',
-    owner: 'Elena Vance',
-    avatar: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=300&auto=format&fit=crop&q=80',
-    storyMedia: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=800&auto=format&fit=crop&q=80',
-    tag: 'British Shorthair',
-    caption: 'Afternoon sunbathing spot claimed. No moving for 4 hours. 💤',
-    time: '4h ago',
-    hasUnseen: true
-  },
-  {
-    id: 's3',
-    author: 'Dr. Nazmul',
-    owner: 'Vet Clinic Hub',
-    avatar: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=300&auto=format&fit=crop&q=80',
-    storyMedia: 'https://images.unsplash.com/photo-1576201836106-db1758fd1c97?w=800&auto=format&fit=crop&q=80',
-    tag: 'Vet Tip of the Day',
-    caption: '💧 Reminder: Keep freshwater bowls clean in summer to avoid heat distress!',
-    time: '6h ago',
-    isVet: true,
-    hasUnseen: true
-  },
-  {
-    id: 's4',
-    author: 'Bella',
-    owner: 'Sarah M.',
-    avatar: 'https://images.unsplash.com/photo-1537151625747-768eb6cf92b2?w=300&auto=format&fit=crop&q=80',
-    storyMedia: 'https://images.unsplash.com/photo-1537151625747-768eb6cf92b2?w=800&auto=format&fit=crop&q=80',
-    tag: 'Border Collie',
-    caption: 'Learned the new frisbee catch on first try! 🥏🐶',
-    time: '8h ago',
-    hasUnseen: false
-  },
-  {
-    id: 's5',
-    author: 'Rocky',
-    owner: 'David K.',
-    avatar: 'https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=300&auto=format&fit=crop&q=80',
-    storyMedia: 'https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=800&auto=format&fit=crop&q=80',
-    tag: 'German Shepherd',
-    caption: 'Post-walk nap with his favorite squeaky bone. 🦴',
-    time: '11h ago',
-    hasUnseen: false
-  }
-];
-
-const TRENDING_TOPICS = [
-  { tag: '#GoldenRetrieverLife', posts: '4.2k stories', icon: Flame },
-  { tag: '#ParvoFreeZone', posts: '1.8k clinical checks', icon: Stethoscope },
-  { tag: '#AdoptDontShop', posts: '3.1k rescues', icon: Heart },
-  { tag: '#CatHydroTherapy', posts: '890 moments', icon: Sparkles },
-  { tag: '#SmartCollarTrack', posts: '620 radar alerts', icon: TrendingUp }
-];
-
-const SUGGESTED_PARENTS = [
-  { id: 'f1', name: 'Dr. Emily Vance', pet: 'Milo (Beagle)', avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&auto=format&fit=crop&q=80', badge: 'Veterinarian' },
-  { id: 'f2', name: 'Marcus Sterling', pet: 'Duke (Doberman)', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80', badge: 'Agility Trainer' },
-  { id: 'f3', name: 'Sophia Chen', pet: 'Boba (Ragdoll Cat)', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80', badge: 'Pet Nutritionist' }
-];
 
 const MOOD_ACTIVITIES = [
   '🐾 Playful & Energetic',
@@ -115,21 +41,20 @@ const MOOD_ACTIVITIES = [
 ];
 
 export default function Community() {
-  const { posts, createPost, toggleLike, addComment, pets, showToast, openModal } = useApp();
+  const { posts, isPostsLoading, createPost, toggleLike, addComment, pets, vets, showToast, openModal } = useApp();
   const { currentUser } = useAuth();
 
   // State for Create Post
   const [postText, setPostText] = useState('');
-  const [selectedPetTag, setSelectedPetTag] = useState(pets[0]?.name || 'Max');
+  const [selectedPetTag, setSelectedPetTag] = useState(pets[0]?.name || 'My Pet');
   const [selectedCategory, setSelectedCategory] = useState('Moment');
   const [selectedMood, setSelectedMood] = useState(MOOD_ACTIVITIES[0]);
-  const [showMoodPicker, setShowMoodPicker] = useState(false);
   const [postImagePreview, setPostImagePreview] = useState(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const fileInputRef = useRef(null);
 
   // Feed Filter & Search
-  const [feedFilter, setFeedFilter] = useState('all'); // 'all', 'moments', 'health', 'adoption', 'qa'
+  const [feedFilter, setFeedFilter] = useState('all'); // 'all', 'moments', 'health', 'adoption', 'qa', 'saved'
   const [searchTopic, setSearchTopic] = useState('');
 
   // Interactive Comments & Bookmarks
@@ -144,8 +69,137 @@ export default function Community() {
   const [followedParents, setFollowedParents] = useState({});
   const [heartAnimPostId, setHeartAnimPostId] = useState(null);
 
+  // User Custom Added Stories
+  const [userCustomStories, setUserCustomStories] = useState(() => {
+    try {
+      const saved = localStorage.getItem('pm_user_stories');
+      return saved ? JSON.parse(saved) : [];
+    } catch (_) { return []; }
+  });
+
   // Story Viewer Modal
   const [activeStoryIndex, setActiveStoryIndex] = useState(null);
+
+  // ── DYNAMIC STORIES REEL (Derived directly from live posts, registered pets, and vets) ──
+  const dynamicStories = useMemo(() => {
+    const stories = [];
+
+    // 1. User custom uploaded stories
+    userCustomStories.forEach(s => stories.push(s));
+
+    // 2. Stories from actual fetched posts with images
+    posts.filter(p => p.image).slice(0, 6).forEach((p, idx) => {
+      stories.push({
+        id: `story_post_${p.id || idx}`,
+        author: p.author ? p.author.split(' ')[0] : 'Pet Parent',
+        owner: p.author || 'Pet Parent',
+        avatar: p.authorPhoto || 'assets/images/tail_wagging_logo.png',
+        storyMedia: p.image,
+        tag: p.petTag || p.category || 'Community Moment',
+        caption: p.content || 'Sharing a lovely pet moment!',
+        time: p.time || 'Recent',
+        hasUnseen: true
+      });
+    });
+
+    // 3. Stories from verified specialists
+    vets.slice(0, 2).forEach(v => {
+      stories.push({
+        id: `story_vet_${v.id}`,
+        author: v.name.split(' ')[0],
+        owner: v.name,
+        avatar: v.photo || 'assets/images/Pet_1.jpg',
+        storyMedia: v.photo || 'https://images.unsplash.com/photo-1576201836106-db1758fd1c97?w=800&auto=format&fit=crop&q=80',
+        tag: `${v.qualification} Tip`,
+        caption: `💡 Clinical Tip: Keep hydration optimal and schedule routine checks with ${v.clinic || 'your clinic'}!`,
+        time: 'Verified Vet',
+        isVet: true,
+        hasUnseen: true
+      });
+    });
+
+    // 4. Fallback to registered pets if list is small
+    if (stories.length === 0) {
+      pets.forEach(pet => {
+        stories.push({
+          id: `story_pet_${pet.id}`,
+          author: pet.name,
+          owner: currentUser ? currentUser.name : 'Pet Parent',
+          avatar: pet.photoUrl || 'assets/images/Pet_1.jpg',
+          storyMedia: pet.photoUrl || 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=800&auto=format&fit=crop&q=80',
+          tag: pet.breed || 'Pet',
+          caption: `${pet.name} is happy and healthy today! 🐾`,
+          time: 'Pet Profile',
+          hasUnseen: false
+        });
+      });
+    }
+
+    return stories;
+  }, [userCustomStories, posts, vets, pets, currentUser]);
+
+  // ── DYNAMIC SUGGESTED CLINICIANS & PARENTS ──
+  const dynamicSuggested = useMemo(() => {
+    const list = [];
+    vets.slice(0, 3).forEach(v => {
+      list.push({
+        id: v.id,
+        name: v.name,
+        subtitle: `${v.qualification} • ${v.clinic || 'Animal Hospital'}`,
+        avatar: v.photo || 'assets/images/Pet_1.jpg',
+        isVet: true
+      });
+    });
+
+    // Also include unique post authors
+    const seenAuthors = new Set(vets.map(v => v.name));
+    posts.forEach(p => {
+      if (p.author && !seenAuthors.has(p.author) && p.author !== (currentUser?.name)) {
+        seenAuthors.add(p.author);
+        list.push({
+          id: `author_${p.author}`,
+          name: p.author,
+          subtitle: p.petTag || 'Pet Parent',
+          avatar: p.authorPhoto || 'assets/images/tail_wagging_logo.png',
+          isVet: false
+        });
+      }
+    });
+
+    return list.slice(0, 4);
+  }, [vets, posts, currentUser]);
+
+  // ── DYNAMIC TRENDING TOPICS ──
+  const dynamicTopics = useMemo(() => {
+    const tagCounts = {};
+    posts.forEach(p => {
+      const words = (p.content || '').split(/\s+/);
+      words.forEach(w => {
+        if (w.startsWith('#') && w.length > 2) {
+          tagCounts[w] = (tagCounts[w] || 0) + 1;
+        }
+      });
+      if (p.category) {
+        const catTag = `#${p.category.replace(/\s+/g, '')}`;
+        tagCounts[catTag] = (tagCounts[catTag] || 0) + 1;
+      }
+    });
+
+    const topicList = Object.keys(tagCounts).map(tag => ({
+      tag,
+      count: `${tagCounts[tag]} ${tagCounts[tag] === 1 ? 'post' : 'posts'}`
+    }));
+
+    if (topicList.length < 3) {
+      return [
+        { tag: '#PetCareMoments', count: `${Math.max(1, posts.length)} stories` },
+        { tag: '#HealthyPets', count: 'Live veterinary updates' },
+        { tag: '#PetMayaCommunity', count: 'Active network' }
+      ];
+    }
+
+    return topicList.slice(0, 5);
+  }, [posts]);
 
   // ── Image Upload Handling ──
   const handleImageSelect = (e) => {
@@ -179,12 +233,40 @@ export default function Community() {
       content: postText.trim(),
       category: selectedCategory,
       mood: selectedMood,
-      image: postImagePreview || 'https://images.unsplash.com/photo-1548767797-d8c844163c4c?w=800&auto=format&fit=crop&q=80'
+      image: postImagePreview || ''
     });
 
     setPostText('');
     setPostImagePreview(null);
-    setShowMoodPicker(false);
+  };
+
+  // ── Add User Story ──
+  const handleAddStory = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const newStory = {
+        id: `story_user_${Date.now()}`,
+        author: currentUser ? currentUser.name.split(' ')[0] : 'My Pet',
+        owner: currentUser ? currentUser.name : 'You',
+        avatar: currentUser?.photoUrl || 'assets/images/tail_wagging_logo.png',
+        storyMedia: event.target.result,
+        tag: selectedPetTag || '24h Story',
+        caption: `New moment from ${currentUser ? currentUser.name : 'Pet Parent'}! ✨`,
+        time: 'Just now',
+        hasUnseen: true
+      };
+
+      const updated = [newStory, ...userCustomStories];
+      setUserCustomStories(updated);
+      try {
+        localStorage.setItem('pm_user_stories', JSON.stringify(updated));
+      } catch (_) {}
+      showToast('✨ Story published to community reel!', 'success');
+    };
+    reader.readAsDataURL(file);
   };
 
   // ── Comment Submission ──
@@ -275,10 +357,17 @@ export default function Community() {
           <div 
             className="story-avatar-container"
             onClick={() => {
-              if (fileInputRef.current) fileInputRef.current.click();
-              showToast('📸 Select a photo or story to share with pet parents!', 'info');
+              const fileInput = document.getElementById('pm-story-uploader');
+              if (fileInput) fileInput.click();
             }}
           >
+            <input 
+              id="pm-story-uploader"
+              type="file" 
+              accept="image/*" 
+              style={{ display: 'none' }} 
+              onChange={handleAddStory} 
+            />
             <div style={{ position: 'relative', width: 62, height: 62 }}>
               <img 
                 src={currentUser?.photoUrl || 'assets/images/tail_wagging_logo.png'} 
@@ -310,8 +399,8 @@ export default function Community() {
             </span>
           </div>
 
-          {/* Community Stories */}
-          {SAMPLE_STORIES.map((story, idx) => (
+          {/* Dynamic Community Stories */}
+          {dynamicStories.map((story, idx) => (
             <div 
               key={story.id} 
               className="story-avatar-container"
@@ -349,7 +438,7 @@ export default function Community() {
               />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <strong style={{ fontSize: '15px', fontWeight: 700, display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {currentUser ? currentUser.name : 'Alex Johnson'}
+                  {currentUser ? currentUser.name : 'Pet Parent'}
                 </strong>
                 <span style={{ fontSize: '12px', color: 'var(--primary)', fontWeight: 600 }}>
                   🐾 {pets.length} Registered {pets.length === 1 ? 'Pet' : 'Pets'}
@@ -374,7 +463,7 @@ export default function Community() {
             <button 
               className={`apple-nav-item ${feedFilter === 'all' ? 'active' : ''}`}
               style={{ padding: '10px 12px', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', gap: '10px', width: '100%', background: feedFilter === 'all' ? 'var(--surface-alt)' : 'transparent', fontWeight: 600 }}
-              onClick={() => setFeedFilter('all')}
+              onClick={() => { setFeedFilter('all'); setSearchTopic(''); }}
             >
               <Compass size={16} color="var(--primary)" />
               <span>All Community Stories</span>
@@ -383,7 +472,7 @@ export default function Community() {
             <button 
               className={`apple-nav-item ${feedFilter === 'moments' ? 'active' : ''}`}
               style={{ padding: '10px 12px', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', gap: '10px', width: '100%', background: feedFilter === 'moments' ? 'var(--surface-alt)' : 'transparent', fontWeight: 600 }}
-              onClick={() => setFeedFilter('moments')}
+              onClick={() => { setFeedFilter('moments'); setSearchTopic(''); }}
             >
               <Camera size={16} color="#EC4899" />
               <span>Photo Moments</span>
@@ -392,7 +481,7 @@ export default function Community() {
             <button 
               className={`apple-nav-item ${feedFilter === 'health' ? 'active' : ''}`}
               style={{ padding: '10px 12px', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', gap: '10px', width: '100%', background: feedFilter === 'health' ? 'var(--surface-alt)' : 'transparent', fontWeight: 600 }}
-              onClick={() => setFeedFilter('health')}
+              onClick={() => { setFeedFilter('health'); setSearchTopic(''); }}
             >
               <Stethoscope size={16} color="#10B981" />
               <span>Health &amp; Recovery</span>
@@ -401,7 +490,7 @@ export default function Community() {
             <button 
               className={`apple-nav-item ${feedFilter === 'adoption' ? 'active' : ''}`}
               style={{ padding: '10px 12px', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', gap: '10px', width: '100%', background: feedFilter === 'adoption' ? 'var(--surface-alt)' : 'transparent', fontWeight: 600 }}
-              onClick={() => setFeedFilter('adoption')}
+              onClick={() => { setFeedFilter('adoption'); setSearchTopic(''); }}
             >
               <Heart size={16} color="#EF4444" />
               <span>Rescue &amp; Adoption</span>
@@ -410,7 +499,7 @@ export default function Community() {
             <button 
               className={`apple-nav-item ${feedFilter === 'saved' ? 'active' : ''}`}
               style={{ padding: '10px 12px', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', gap: '10px', width: '100%', background: feedFilter === 'saved' ? 'var(--surface-alt)' : 'transparent', fontWeight: 600 }}
-              onClick={() => setFeedFilter('saved')}
+              onClick={() => { setFeedFilter('saved'); setSearchTopic(''); }}
             >
               <Bookmark size={16} color="#F59E0B" />
               <span>Saved Bookmarks ({bookmarkedPosts.length})</span>
@@ -461,7 +550,7 @@ export default function Community() {
                 <textarea 
                   className="input-clean" 
                   rows={postImagePreview || postText.length > 60 ? 3 : 2} 
-                  placeholder={`What's on your pet's mind, ${currentUser ? currentUser.name.split(' ')[0] : 'Alex'}?`}
+                  placeholder={`What's on your pet's mind, ${currentUser ? currentUser.name.split(' ')[0] : 'Pet Parent'}?`}
                   value={postText}
                   onChange={(e) => setPostText(e.target.value)}
                   style={{ resize: 'none', fontSize: '14px', borderRadius: 'var(--radius-sm)', padding: '12px 14px' }}
@@ -515,7 +604,7 @@ export default function Community() {
                     >
                       {pets.map(p => (
                         <option key={p.id} value={p.name} style={{ background: 'var(--surface)', color: 'var(--text-main)' }}>
-                          {p.name} ({p.breed})
+                          {p.name} ({p.breed || 'Pet'})
                         </option>
                       ))}
                     </select>
@@ -576,7 +665,23 @@ export default function Community() {
 
           {/* ── POSTS FEED (INSTAGRAM & FACEBOOK STYLE) ── */}
           <AppleStagger className="apple-grid-stagger" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            {filteredPosts.length === 0 ? (
+            
+            {/* Shimmer Skeleton Loading while fetching real Firestore posts */}
+            {isPostsLoading && posts.length === 0 ? (
+              [1, 2].map((n) => (
+                <div key={n} className="apple-solid-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px', opacity: 0.6 }}>
+                  <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                    <div style={{ width: 42, height: 42, borderRadius: '50%', background: 'var(--surface-alt)' }} />
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <div style={{ width: '40%', height: 16, background: 'var(--surface-alt)', borderRadius: 4 }} />
+                      <div style={{ width: '25%', height: 12, background: 'var(--surface-alt)', borderRadius: 4 }} />
+                    </div>
+                  </div>
+                  <div style={{ width: '90%', height: 16, background: 'var(--surface-alt)', borderRadius: 4 }} />
+                  <div style={{ width: '100%', height: 260, background: 'var(--surface-alt)', borderRadius: 8 }} />
+                </div>
+              ))
+            ) : filteredPosts.length === 0 ? (
               <div className="apple-solid-card" style={{ padding: '48px 24px', textAlign: 'center' }}>
                 <Sparkles size={36} color="var(--primary)" style={{ margin: '0 auto 12px' }} />
                 <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '6px' }}>No community stories here yet</h3>
@@ -636,7 +741,7 @@ export default function Community() {
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--text-muted)' }}>
                             <span style={{ color: 'var(--primary)', fontWeight: 600 }}>🐾 {post.petTag}</span>
                             <span>•</span>
-                            <span>{post.time || '2h'}</span>
+                            <span>{post.time || 'Recent'}</span>
                           </div>
                         </div>
                       </div>
@@ -727,7 +832,7 @@ export default function Community() {
                     {/* Social Proof Text */}
                     {likesCount > 0 && (
                       <div style={{ padding: '0 20px 10px', fontSize: '12.5px', color: 'var(--text-muted)' }}>
-                        Liked by <strong style={{ color: 'var(--text-main)' }}>Dr. Nazmul Hoda</strong> and <strong style={{ color: 'var(--text-main)' }}>{likesCount} others</strong>
+                        Liked by <strong style={{ color: 'var(--text-main)' }}>{likesCount} {likesCount === 1 ? 'pet parent' : 'pet parents'}</strong>
                       </div>
                     )}
 
@@ -784,10 +889,10 @@ export default function Community() {
           </AppleStagger>
         </main>
 
-        {/* ── RIGHT SIDEBAR (Trending Topics & Suggested Parents) ── */}
+        {/* ── RIGHT SIDEBAR (Dynamic Topics & Verified Community Clinicians) ── */}
         <aside className="community-right-sidebar" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           
-          {/* Trending Community Topics */}
+          {/* Dynamic Trending Topics */}
           <div className="apple-solid-card" style={{ padding: '20px', textAlign: 'left' }}>
             <h4 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <TrendingUp size={16} color="var(--primary)" />
@@ -795,69 +900,71 @@ export default function Community() {
             </h4>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {TRENDING_TOPICS.map((topic, i) => {
-                const IconComp = topic.icon;
-                return (
-                  <div 
-                    key={i} 
-                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', padding: '4px 0' }}
-                    onClick={() => setSearchTopic(topic.tag.replace('#', ''))}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <div style={{ width: 32, height: 32, borderRadius: '8px', background: 'var(--surface-alt)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)' }}>
-                        <IconComp size={15} />
-                      </div>
-                      <div>
-                        <strong style={{ fontSize: '13px', fontWeight: 600, display: 'block', color: 'var(--text-main)' }}>{topic.tag}</strong>
-                        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{topic.posts}</span>
-                      </div>
+              {dynamicTopics.map((topic, i) => (
+                <div 
+                  key={i} 
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', padding: '4px 0' }}
+                  onClick={() => setSearchTopic(topic.tag.replace('#', ''))}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ width: 32, height: 32, borderRadius: '8px', background: 'var(--surface-alt)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)' }}>
+                      <Flame size={15} />
                     </div>
-                    <ChevronRight size={14} color="var(--text-muted)" />
+                    <div>
+                      <strong style={{ fontSize: '13px', fontWeight: 600, display: 'block', color: 'var(--text-main)' }}>{topic.tag}</strong>
+                      <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{topic.count}</span>
+                    </div>
                   </div>
-                );
-              })}
+                  <ChevronRight size={14} color="var(--text-muted)" />
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Suggested Pet Parents to Follow */}
-          <div className="apple-solid-card" style={{ padding: '20px', textAlign: 'left' }}>
-            <h4 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Users size={16} color="#EC4899" />
-              <span>Pet Parents to Follow</span>
-            </h4>
+          {/* Dynamic Suggested Specialists & Pet Parents */}
+          {dynamicSuggested.length > 0 && (
+            <div className="apple-solid-card" style={{ padding: '20px', textAlign: 'left' }}>
+              <h4 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Users size={16} color="#EC4899" />
+                <span>Specialists &amp; Members</span>
+              </h4>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {SUGGESTED_PARENTS.map((parent) => {
-                const isFollowing = followedParents[parent.id];
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                {dynamicSuggested.map((parent) => {
+                  const isFollowing = followedParents[parent.id];
 
-                return (
-                  <div key={parent.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
-                      <img 
-                        src={parent.avatar} 
-                        alt={parent.name} 
-                        style={{ width: 38, height: 38, borderRadius: '50%', objectFit: 'cover' }} 
-                      />
-                      <div style={{ minWidth: 0 }}>
-                        <strong style={{ fontSize: '13px', fontWeight: 600, display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {parent.name}
-                        </strong>
-                        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{parent.pet}</span>
+                  return (
+                    <div key={parent.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                        <img 
+                          src={parent.avatar} 
+                          alt={parent.name} 
+                          style={{ width: 38, height: 38, borderRadius: '50%', objectFit: 'cover' }} 
+                        />
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <strong style={{ fontSize: '13px', fontWeight: 600, display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {parent.name}
+                            </strong>
+                            {parent.isVet && <ShieldCheck size={13} color="#10B981" />}
+                          </div>
+                          <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{parent.subtitle}</span>
+                        </div>
                       </div>
-                    </div>
 
-                    <button 
-                      className={isFollowing ? "btn-ghost" : "apple-btn-blue"}
-                      style={{ padding: '5px 12px', fontSize: '11.5px', borderRadius: '16px', flexShrink: 0 }}
-                      onClick={() => handleToggleFollow(parent.id, parent.name)}
-                    >
-                      {isFollowing ? 'Following' : '+ Follow'}
-                    </button>
-                  </div>
-                );
-              })}
+                      <button 
+                        className={isFollowing ? "btn-ghost" : "apple-btn-blue"}
+                        style={{ padding: '5px 12px', fontSize: '11.5px', borderRadius: '16px', flexShrink: 0 }}
+                        onClick={() => handleToggleFollow(parent.id, parent.name)}
+                      >
+                        {isFollowing ? 'Following' : '+ Follow'}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Community Guidelines */}
           <div className="apple-solid-card" style={{ padding: '16px 20px', textAlign: 'left', background: 'var(--surface-alt)', fontSize: '12px', color: 'var(--text-muted)' }}>
@@ -871,7 +978,7 @@ export default function Community() {
       </div>
 
       {/* ── 3. INTERACTIVE STORY VIEWER MODAL (INSTAGRAM REEL STYLE) ── */}
-      {activeStoryIndex !== null && (
+      {activeStoryIndex !== null && dynamicStories[activeStoryIndex] && (
         <div 
           className="modal-backdrop" 
           style={{ background: 'rgba(0,0,0,0.92)', zIndex: 10000 }}
@@ -895,7 +1002,7 @@ export default function Community() {
           >
             {/* Story Progress Bar */}
             <div style={{ position: 'absolute', top: 12, left: 12, right: 12, zIndex: 10, display: 'flex', gap: '4px' }}>
-              {SAMPLE_STORIES.map((_, i) => (
+              {dynamicStories.map((_, i) => (
                 <div 
                   key={i} 
                   style={{ 
@@ -917,16 +1024,16 @@ export default function Community() {
             <div style={{ position: 'absolute', top: 24, left: 14, right: 14, zIndex: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#fff' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <img 
-                  src={SAMPLE_STORIES[activeStoryIndex].avatar} 
+                  src={dynamicStories[activeStoryIndex].avatar} 
                   alt="Story author" 
                   style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', border: '2px solid #fff' }} 
                 />
                 <div>
                   <strong style={{ fontSize: '13.5px', textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}>
-                    {SAMPLE_STORIES[activeStoryIndex].author}
+                    {dynamicStories[activeStoryIndex].author}
                   </strong>
                   <span style={{ fontSize: '11px', opacity: 0.85, display: 'block' }}>
-                    {SAMPLE_STORIES[activeStoryIndex].tag} • {SAMPLE_STORIES[activeStoryIndex].time}
+                    {dynamicStories[activeStoryIndex].tag} • {dynamicStories[activeStoryIndex].time}
                   </span>
                 </div>
               </div>
@@ -942,7 +1049,7 @@ export default function Community() {
 
             {/* Story Visual Media */}
             <img 
-              src={SAMPLE_STORIES[activeStoryIndex].storyMedia} 
+              src={dynamicStories[activeStoryIndex].storyMedia} 
               alt="Story Content" 
               style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} 
             />
@@ -950,17 +1057,17 @@ export default function Community() {
             {/* Story Bottom Caption & Reply Bar */}
             <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '20px 16px', background: 'linear-gradient(to top, rgba(0,0,0,0.9), transparent)', color: '#fff', display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <p style={{ fontSize: '14px', margin: 0, textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>
-                {SAMPLE_STORIES[activeStoryIndex].caption}
+                {dynamicStories[activeStoryIndex].caption}
               </p>
 
               <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                 <input 
                   type="text" 
-                  placeholder={`Reply to ${SAMPLE_STORIES[activeStoryIndex].author}...`}
+                  placeholder={`Reply to ${dynamicStories[activeStoryIndex].author}...`}
                   style={{ flex: 1, background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '20px', padding: '8px 14px', color: '#fff', fontSize: '13px', outline: 'none' }}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && e.target.value.trim()) {
-                      showToast(`💌 Reply sent to ${SAMPLE_STORIES[activeStoryIndex].owner}!`, 'success');
+                      showToast(`💌 Reply sent to ${dynamicStories[activeStoryIndex].owner}!`, 'success');
                       e.target.value = '';
                     }
                   }}
