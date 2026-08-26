@@ -137,7 +137,7 @@ export default function LandingPage() {
             }}
           >
             <div style={{
-              background: 'rgba(28, 28, 30, 0.7)',
+              background: 'rgba(28, 28, 30, 0.8)',
               backdropFilter: 'blur(24px)',
               WebkitBackdropFilter: 'blur(24px)',
               border: '1px solid rgba(255, 255, 255, 0.15)',
@@ -145,7 +145,7 @@ export default function LandingPage() {
               padding: '32px',
               boxShadow: '0 30px 80px rgba(0, 0, 0, 0.9)',
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
               gap: '24px',
               textAlign: 'left'
             }}>
@@ -154,21 +154,23 @@ export default function LandingPage() {
                 { id: 'tracker', icon: Radar, title: 'Tracker', subtitle: 'Live GPS location', color: '#10B981', bg: 'rgba(16, 185, 129, 0.18)' },
                 { id: 'ai', icon: Activity, title: 'Wellness', subtitle: 'AI health scan', color: '#3B82F6', bg: 'rgba(59, 130, 246, 0.18)' },
                 { id: 'vets', icon: Stethoscope, title: 'Specialists', subtitle: '500+ Verified clinicians', color: '#F59E0B', bg: 'rgba(245, 158, 11, 0.18)' },
+                { id: 'shop', icon: ShoppingBag, title: 'Pet Shop', subtitle: 'Nutrition & essentials', color: '#8B5CF6', bg: 'rgba(139, 92, 246, 0.18)' },
+                { id: 'community', icon: MessageCircle, title: 'Community', subtitle: 'Pet parent network', color: '#06B6D4', bg: 'rgba(6, 182, 212, 0.18)' },
                 { id: 'food', icon: BookOpen, title: 'Blog', subtitle: 'Expert advice & diet', color: '#EC4899', bg: 'rgba(236, 72, 153, 0.18)' }
               ].map((item) => (
                 <motion.div 
                   key={item.id}
-                  whileHover={{ scale: 1.05, y: -5 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.04, y: -4 }}
+                  whileTap={{ scale: 0.96 }}
                   style={{ display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer' }}
                   onClick={() => handleFeatureAccess(item.id, item.title)}
                 >
-                  <div style={{ width: 48, height: 48, borderRadius: '50%', background: item.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: item.color }}>
-                    <item.icon size={24} />
+                  <div style={{ width: 48, height: 48, borderRadius: '50%', background: item.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: item.color, flexShrink: 0 }}>
+                    <item.icon size={22} />
                   </div>
                   <div>
-                    <strong style={{ fontSize: '16px', color: '#FFFFFF', display: 'block' }}>{item.title}</strong>
-                    <span style={{ fontSize: '13px', color: '#86868B' }}>{item.subtitle}</span>
+                    <strong style={{ fontSize: '15.5px', color: '#FFFFFF', display: 'block', letterSpacing: '-0.01em' }}>{item.title}</strong>
+                    <span style={{ fontSize: '12.5px', color: '#86868B' }}>{item.subtitle}</span>
                   </div>
                 </motion.div>
               ))}
