@@ -264,7 +264,7 @@ export default function Header() {
               <img 
                 src={currentUser.photoUrl || 'assets/images/tail_wagging_logo.png'} 
                 alt={currentUser.name} 
-                style={{ width: 26, height: 26, borderRadius: '50%', objectFit: 'cover', border: '1.5px solid var(--primary)' }} 
+                style={{ width: 26, height: 26, borderRadius: '50%', objectFit: 'cover' }} 
               />
             </div>
           ) : (

@@ -109,7 +109,7 @@ export default function TeleConsultModal() {
         </div>
 
         {/* Prescription Box */}
-        <div style={{ background: 'var(--surface-alt)', padding: '14px 18px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', marginBottom: '18px' }}>
+        <div style={{ background: 'var(--surface-alt)', padding: '14px 18px', borderRadius: 'var(--radius-sm)', marginBottom: '18px' }}>
           <label className="label-mini" style={{ color: 'var(--primary)', fontWeight: 800 }}>Digital Rx Prescription Generator</label>
           <input 
             type="text" 

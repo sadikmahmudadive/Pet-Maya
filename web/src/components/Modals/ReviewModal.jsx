@@ -41,7 +41,7 @@ export default function ReviewModal() {
                   key={star}
                   type="button" 
                   className="icon-btn"
-                  style={{ background: star <= rating ? '#FEF3C7' : 'var(--surface-alt)', color: star <= rating ? '#f59e0b' : 'var(--text-muted)', border: 'none' }}
+                  style={{ background: star <= rating ? '#FEF3C7' : 'var(--surface-alt)', color: star <= rating ? '#f59e0b' : 'var(--text-muted)' }}
                   onClick={() => setRating(star)}
                 >
                   <Star size={20} fill={star <= rating ? '#f59e0b' : 'none'} />

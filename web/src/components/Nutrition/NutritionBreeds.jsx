@@ -192,7 +192,7 @@ export default function NutritionBreeds() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', maxWidth: '1120px', margin: '0 auto', width: '100%' }}>
       
       {/* ── 1. NUTRITION CALCULATOR ── */}
-      <div className="apple-promo-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '32px' }}>
+      <div className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '32px' }}>
         <div style={{ marginBottom: '24px' }}>
           <span className="apple-card-eyebrow" style={{ color: '#EC4899' }}>Precision Diet</span>
           <h1 style={{ fontSize: '28px', fontWeight: 700, letterSpacing: '-0.03em' }}>Daily Calorie &amp; Portion Calculator</h1>
@@ -261,7 +261,6 @@ export default function NutritionBreeds() {
           <div 
             style={{
               background: 'var(--surface-alt)',
-              border: '1px solid var(--border)',
               borderRadius: 'var(--radius-lg)',
               padding: '24px'
             }}
@@ -309,7 +308,7 @@ export default function NutritionBreeds() {
       </div>
 
       {/* ── 2. VETERINARY BLOG & EXPERT ADVICE ── */}
-      <div className="apple-promo-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '32px' }}>
+      <div className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '32px' }}>
         <div style={{ marginBottom: '20px' }}>
           <span className="apple-card-eyebrow" style={{ color: '#F97316' }}>Knowledge Base</span>
           <h2 style={{ fontSize: '22px', fontWeight: 700, letterSpacing: '-0.02em' }}>Veterinary Blog &amp; Care Advice</h2>
@@ -320,7 +319,7 @@ export default function NutritionBreeds() {
           {BLOG_ARTICLES.map((art) => (
             <div 
               key={art.id} 
-              className="apple-promo-card" 
+              className="apple-solid-card" 
               style={{
                 padding: '20px',
                 textAlign: 'left',
@@ -357,7 +356,7 @@ export default function NutritionBreeds() {
       </div>
 
       {/* ── 3. BREED TRAIT EXPLORER ── */}
-      <div className="apple-promo-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '32px' }}>
+      <div className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '32px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '16px' }}>
           <div>
             <span className="apple-card-eyebrow" style={{ color: 'var(--primary)' }}>Breed Profiles</span>
@@ -388,7 +387,7 @@ export default function NutritionBreeds() {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px' }}>
           {filteredBreeds.map(b => (
-            <div key={b.name} className="apple-promo-card" style={{ padding: '18px', textAlign: 'left', alignItems: 'stretch' }}>
+            <div key={b.name} className="apple-solid-card" style={{ padding: '18px', textAlign: 'left', alignItems: 'stretch' }}>
               <div style={{ borderRadius: 'var(--radius-sm)', overflow: 'hidden', height: 130, marginBottom: '12px' }}>
                 <img src={b.image} alt={b.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>

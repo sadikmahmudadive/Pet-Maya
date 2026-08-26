@@ -121,7 +121,7 @@ export default function HealthTriage() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-      <div className="apple-promo-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '32px' }}>
+      <div className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '32px' }}>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '24px' }}>
           <div>
@@ -223,7 +223,7 @@ export default function HealthTriage() {
 
         {/* ── SCAN PROGRESS BAR ── */}
         {isScanning && (
-          <div style={{ marginTop: '22px', background: 'var(--surface-alt)', padding: '18px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
+          <div style={{ marginTop: '22px', background: 'var(--surface-alt)', padding: '18px', borderRadius: 'var(--radius-md)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 600, marginBottom: '8px' }}>
               <span>{statusMsg}</span>
               <span>{scanProgress}%</span>
@@ -241,7 +241,6 @@ export default function HealthTriage() {
               marginTop: '24px',
               padding: '24px',
               borderRadius: 'var(--radius-lg)',
-              border: '1px solid var(--primary)',
               background: 'var(--primary-tint)'
             }}
           >
@@ -259,7 +258,7 @@ export default function HealthTriage() {
             </h3>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', marginBottom: '20px' }}>
-              <div style={{ background: 'var(--surface-solid)', padding: '18px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
+              <div style={{ background: 'var(--surface-solid)', padding: '18px', borderRadius: 'var(--radius-sm)' }}>
                 <strong style={{ fontSize: '12px', color: 'var(--primary)', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                   🛡️ Immediate First Aid Protocol
                 </strong>
@@ -268,7 +267,7 @@ export default function HealthTriage() {
                 </p>
               </div>
 
-              <div style={{ background: 'var(--surface-solid)', padding: '18px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
+              <div style={{ background: 'var(--surface-solid)', padding: '18px', borderRadius: 'var(--radius-sm)' }}>
                 <strong style={{ fontSize: '12px', color: 'var(--primary)', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                   🩺 Recommended Clinical Step
                 </strong>

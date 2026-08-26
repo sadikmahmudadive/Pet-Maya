@@ -69,7 +69,7 @@ export default function AdminPortal() {
     return (
       <div style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
         <div 
-          className="apple-promo-card" 
+          className="apple-solid-card" 
           style={{ maxWidth: '440px', width: '100%', padding: '40px 32px', textAlign: 'center' }}
         >
           <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'rgba(239, 68, 68, 0.14)', color: '#EF4444', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
@@ -109,7 +109,7 @@ export default function AdminPortal() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px', maxWidth: '1100px', margin: '0 auto', width: '100%' }}>
       {/* ── SUBDOMAIN ADMIN HEADER ── */}
       <div 
-        className="apple-promo-card" 
+        className="apple-solid-card" 
         style={{
           background: 'var(--surface-solid)',
           padding: '28px 32px',
@@ -141,25 +141,25 @@ export default function AdminPortal() {
 
       {/* ── METRICS OVERVIEW ── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
-        <div className="apple-promo-card" style={{ padding: '20px', textAlign: 'left', alignItems: 'flex-start' }}>
+        <div className="apple-solid-card" style={{ padding: '20px', textAlign: 'left', alignItems: 'flex-start' }}>
           <span className="label-mini">Registered Pets</span>
           <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px' }}>12,840</strong>
           <span style={{ fontSize: '12px', color: '#10B981', marginTop: '4px' }}>+18% this month</span>
         </div>
 
-        <div className="apple-promo-card" style={{ padding: '20px', textAlign: 'left', alignItems: 'flex-start' }}>
+        <div className="apple-solid-card" style={{ padding: '20px', textAlign: 'left', alignItems: 'flex-start' }}>
           <span className="label-mini">Verified Clinicians</span>
           <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px' }}>{vets.length} Active</strong>
           <span style={{ fontSize: '12px', color: '#3B82F6', marginTop: '4px' }}>100% License Verified</span>
         </div>
 
-        <div className="apple-promo-card" style={{ padding: '20px', textAlign: 'left', alignItems: 'flex-start' }}>
+        <div className="apple-solid-card" style={{ padding: '20px', textAlign: 'left', alignItems: 'flex-start' }}>
           <span className="label-mini">Active Sonar Collars</span>
           <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px' }}>3,412</strong>
           <span style={{ fontSize: '12px', color: '#10B981', marginTop: '4px' }}>Telemetry Online</span>
         </div>
 
-        <div className="apple-promo-card" style={{ padding: '20px', textAlign: 'left', alignItems: 'flex-start' }}>
+        <div className="apple-solid-card" style={{ padding: '20px', textAlign: 'left', alignItems: 'flex-start' }}>
           <span className="label-mini">AI Scans Today</span>
           <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px' }}>1,894</strong>
           <span style={{ fontSize: '12px', color: '#F59E0B', marginTop: '4px' }}>96.4% Accuracy</span>
@@ -167,7 +167,7 @@ export default function AdminPortal() {
       </div>
 
       {/* ── BROADCAST PUSH MESSENGER ── */}
-      <div className="apple-promo-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '28px' }}>
+      <div className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '28px' }}>
         <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Radio size={18} color="var(--primary)" />
           <span>System Broadcast Push Messenger</span>
@@ -214,7 +214,7 @@ export default function AdminPortal() {
           <span className="label-mini">Recent Broadcast Log</span>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '6px' }}>
             {broadcasts.map(b => (
-              <div key={b.id} style={{ background: 'var(--surface-alt)', border: '1px solid var(--border)', padding: '12px 16px', borderRadius: 'var(--radius-sm)' }}>
+              <div key={b.id} style={{ background: 'var(--surface-alt)', padding: '12px 16px', borderRadius: 'var(--radius-sm)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <strong style={{ fontSize: '14px' }}>{b.title}</strong>
                   <span className="badge badge-green">{b.target} • {b.date}</span>
@@ -227,13 +227,13 @@ export default function AdminPortal() {
       </div>
 
       {/* ── CLINICIAN LICENSING & FEE CONTROL ── */}
-      <div className="apple-promo-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '28px' }}>
+      <div className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '28px' }}>
         <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '16px' }}>Verified Clinicians &amp; Pricing Directory</h3>
 
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13.5px' }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid var(--border)', textAlign: 'left', color: 'var(--text-muted)' }}>
+              <tr style={{ textAlign: 'left', color: 'var(--text-muted)' }}>
                 <th style={{ padding: '12px 10px', fontWeight: 600 }}>Doctor / Clinic</th>
                 <th style={{ padding: '12px 10px', fontWeight: 600 }}>Specialization</th>
                 <th style={{ padding: '12px 10px', fontWeight: 600 }}>License Status</th>

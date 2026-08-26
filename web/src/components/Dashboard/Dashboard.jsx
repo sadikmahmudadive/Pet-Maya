@@ -97,7 +97,7 @@ export default function Dashboard() {
       
       {/* ── 1. USER GREETING HEADER BANNER ── */}
       <div 
-        className="apple-promo-card" 
+        className="apple-solid-card" 
         style={{
           background: 'var(--surface-solid)',
           padding: '24px 30px',
@@ -114,7 +114,7 @@ export default function Dashboard() {
           <img 
             src={currentUser?.photoUrl || 'assets/images/tail_wagging_logo.png'} 
             alt={currentUser?.name || 'User'} 
-            style={{ width: 54, height: 54, borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--primary)' }} 
+            style={{ width: 54, height: 54, borderRadius: '50%', objectFit: 'cover' }} 
           />
           <div>
             <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{getGreeting()}</span>
@@ -130,7 +130,6 @@ export default function Dashboard() {
             style={{ 
               background: 'rgba(147, 51, 234, 0.15)', 
               color: '#A855F7',
-              border: '1px solid rgba(147, 51, 234, 0.3)',
               padding: '6px 14px', 
               borderRadius: '999px', 
               display: 'flex', 
@@ -147,7 +146,7 @@ export default function Dashboard() {
           {/* Notification Bell */}
           <button 
             className="icon-btn" 
-            style={{ width: 40, height: 40, background: 'rgba(14, 165, 233, 0.15)', color: '#0EA5E9', border: '1px solid rgba(14, 165, 233, 0.3)' }}
+            style={{ width: 40, height: 40, background: 'rgba(14, 165, 233, 0.15)', color: '#0EA5E9' }}
             onClick={() => showToast('🔔 No unread push notifications.', 'info')}
             title="Notifications"
           >
@@ -172,7 +171,7 @@ export default function Dashboard() {
           {pets.map((pet) => (
             <div 
               key={pet.id || pet.petID} 
-              className="apple-promo-card" 
+              className="apple-solid-card" 
               style={{
                 padding: '20px',
                 textAlign: 'center',
@@ -182,7 +181,7 @@ export default function Dashboard() {
               }}
               onClick={() => setActiveTab('tracker')}
             >
-              <div style={{ width: 110, height: 110, borderRadius: '24px', overflow: 'hidden', marginBottom: '12px', border: '1.5px solid var(--border)', background: '#000' }}>
+              <div style={{ width: 110, height: 110, borderRadius: '24px', overflow: 'hidden', marginBottom: '12px', background: '#000' }}>
                 <img 
                   src={pet.photo || pet.photoUrl || 'assets/images/Pet_1.jpg'} 
                   alt={pet.name} 
@@ -196,9 +195,8 @@ export default function Dashboard() {
 
           {/* Add Pet Card */}
           <div 
-            className="apple-promo-card" 
+            className="apple-solid-card" 
             style={{ 
-              border: '2px dashed var(--border)', 
               justifyContent: 'center', 
               alignItems: 'center', 
               padding: '24px', 
@@ -232,7 +230,7 @@ export default function Dashboard() {
 
         {appointments.length === 0 ? (
           <div 
-            className="apple-promo-card" 
+            className="apple-solid-card" 
             style={{ 
               padding: '24px 28px', 
               borderRadius: '24px', 
@@ -272,7 +270,7 @@ export default function Dashboard() {
               return (
                 <div 
                   key={apt.id} 
-                  className="apple-promo-card"
+                  className="apple-solid-card"
                   style={{
                     padding: '24px 28px',
                     borderRadius: '24px',
@@ -281,8 +279,7 @@ export default function Dashboard() {
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '10px',
-                    background: 'var(--surface-solid)',
-                    border: '1px solid var(--border)'
+                    background: 'var(--surface-solid)'
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -334,7 +331,7 @@ export default function Dashboard() {
           {topVets.map((v) => (
             <div 
               key={v.id} 
-              className="apple-promo-card" 
+              className="apple-solid-card" 
               style={{
                 padding: '24px',
                 alignItems: 'stretch',
@@ -349,7 +346,7 @@ export default function Dashboard() {
                 <img 
                   src={v.photo || 'assets/images/Pet_1.jpg'} 
                   alt={v.name} 
-                  style={{ width: 56, height: 56, borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--primary)' }} 
+                  style={{ width: 56, height: 56, borderRadius: '50%', objectFit: 'cover' }} 
                 />
                 <div>
                   <strong style={{ fontSize: '17px', fontWeight: 700, display: 'block' }}>{v.name}</strong>
@@ -365,7 +362,7 @@ export default function Dashboard() {
               </div>
 
               {/* Professional Profile Inner Card */}
-              <div style={{ background: 'var(--surface-alt)', padding: '14px 18px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
+              <div style={{ background: 'var(--surface-alt)', padding: '14px 18px', borderRadius: 'var(--radius-sm)' }}>
                 <span className="label-mini" style={{ color: 'var(--text-muted)', marginBottom: '4px' }}>PROFESSIONAL PROFILE</span>
                 <p style={{ fontSize: '13px', color: 'var(--text-main)', lineHeight: 1.45, margin: 0 }}>
                   {v.bio || 'Experienced in complex surgeries and preventive care for small animals.'}
@@ -375,11 +372,11 @@ export default function Dashboard() {
               {/* Bottom Tags & Start Button */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                  <span style={{ background: 'var(--surface-alt)', border: '1px solid var(--border)', padding: '4px 10px', borderRadius: '6px', fontSize: '11.5px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <span style={{ background: 'var(--surface-alt)', padding: '4px 10px', borderRadius: '6px', fontSize: '11.5px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <Briefcase size={12} />
                     <span>{v.experience || '10 Years Exp'}</span>
                   </span>
-                  <span style={{ background: 'var(--surface-alt)', border: '1px solid var(--border)', padding: '4px 10px', borderRadius: '6px', fontSize: '11.5px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <span style={{ background: 'var(--surface-alt)', padding: '4px 10px', borderRadius: '6px', fontSize: '11.5px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <Clock size={12} />
                     <span>{v.availability?.split('•')[0] || 'Daily Slots'}</span>
                   </span>

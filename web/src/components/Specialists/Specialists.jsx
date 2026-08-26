@@ -58,7 +58,7 @@ export default function Specialists() {
 
       {/* ── 24/7 EMERGENCY ON-CALL BANNER ── */}
       <div 
-        className="apple-promo-card"
+        className="apple-solid-card"
         style={{
           background: 'var(--surface-solid)',
           padding: '24px 30px',
@@ -143,7 +143,7 @@ export default function Specialists() {
           return (
             <div 
               key={v.id} 
-              className="apple-promo-card" 
+              className="apple-solid-card" 
               style={{ display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'stretch', textAlign: 'left', padding: '22px' }}
             >
               {/* Card Header */}
@@ -152,7 +152,7 @@ export default function Specialists() {
                   <img 
                     src={v.photo || 'assets/images/Pet_1.jpg'} 
                     alt={v.name} 
-                    style={{ width: 54, height: 54, borderRadius: '50%', objectFit: 'cover', border: '1.5px solid var(--primary)' }} 
+                    style={{ width: 54, height: 54, borderRadius: '50%', objectFit: 'cover' }} 
                   />
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>

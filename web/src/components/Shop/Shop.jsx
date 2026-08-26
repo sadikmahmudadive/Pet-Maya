@@ -153,7 +153,7 @@ export default function Shop() {
               {selectedProduct.description}
             </p>
 
-            <div style={{ background: 'var(--surface-alt)', padding: '14px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', marginBottom: '20px', fontSize: '12.5px' }}>
+            <div style={{ background: 'var(--surface-alt)', padding: '14px', borderRadius: 'var(--radius-sm)', marginBottom: '20px', fontSize: '12.5px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700, marginBottom: '4px' }}>
                 <ShieldCheck size={15} color="#10B981" />
                 <span>Veterinary Quality Certified</span>
@@ -209,7 +209,7 @@ export default function Shop() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {orders.map((ord, idx) => (
-                <div key={ord.id || idx} style={{ background: 'var(--surface-alt)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '18px' }}>
+                <div key={ord.id || idx} style={{ background: 'var(--surface-alt)', borderRadius: 'var(--radius-md)', padding: '18px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                     <div>
                       <strong style={{ fontSize: '15px' }}>Order #{ord.id || `PM-ORD-${idx + 1}`}</strong>

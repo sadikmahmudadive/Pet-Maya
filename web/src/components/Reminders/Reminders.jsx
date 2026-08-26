@@ -81,7 +81,7 @@ END:VCALENDAR`;
       </div>
 
       {/* ── IMMUNIZATION MATRIX TABLE ── */}
-      <div className="apple-promo-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '28px' }}>
+      <div className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '28px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
           <h3 style={{ fontSize: '18px', fontWeight: 700 }}>Core Immunization &amp; Wellness Matrix</h3>
           
@@ -102,7 +102,7 @@ END:VCALENDAR`;
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13.5px' }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid var(--border)', textAlign: 'left', color: 'var(--text-muted)' }}>
+              <tr style={{ textAlign: 'left', color: 'var(--text-muted)' }}>
                 <th style={{ padding: '12px 10px', fontWeight: 600 }}>Milestone</th>
                 <th style={{ padding: '12px 10px', fontWeight: 600 }}>Preventive Care / Vaccine</th>
                 <th style={{ padding: '12px 10px', fontWeight: 600 }}>Frequency</th>
@@ -126,7 +126,7 @@ END:VCALENDAR`;
       </div>
 
       {/* ── ACTIVE SCHEDULED ALARMS ── */}
-      <div className="apple-promo-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '28px' }}>
+      <div className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '28px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <h3 style={{ fontSize: '18px', fontWeight: 700 }}>Active Scheduled Alarms &amp; Visits</h3>
           <button className="apple-link-cta" onClick={() => openModal('booking')}>
@@ -148,8 +148,7 @@ END:VCALENDAR`;
                   alignItems: 'center',
                   background: 'var(--surface-alt)',
                   padding: '14px 18px',
-                  borderRadius: 'var(--radius-sm)',
-                  border: '1px solid var(--border)'
+                  borderRadius: 'var(--radius-sm)'
                 }}
               >
                 <div>

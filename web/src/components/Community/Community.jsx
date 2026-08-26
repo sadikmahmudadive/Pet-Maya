@@ -42,7 +42,7 @@ export default function Community() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '720px', margin: '0 auto', width: '100%' }}>
       {/* ── CREATE POST BOX ── */}
-      <div className="apple-promo-card" style={{ padding: '24px', alignItems: 'stretch', textAlign: 'left' }}>
+      <div className="apple-solid-card" style={{ padding: '24px', alignItems: 'stretch', textAlign: 'left' }}>
         <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Sparkles size={16} color="var(--primary)" />
           <span>Share with Pet Parents</span>
@@ -84,14 +84,14 @@ export default function Community() {
       {/* ── COMMUNITY STORIES FEED ── */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
         {posts.map((post) => (
-          <div key={post.id} className="apple-promo-card" style={{ padding: '24px', alignItems: 'stretch', textAlign: 'left' }}>
+          <div key={post.id} className="apple-solid-card" style={{ padding: '24px', alignItems: 'stretch', textAlign: 'left' }}>
             {/* Author Meta */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <img 
                   src={post.authorPhoto || 'assets/images/tail_wagging_logo.png'} 
                   alt={post.author} 
-                  style={{ width: 38, height: 38, borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--border)' }} 
+                  style={{ width: 38, height: 38, borderRadius: '50%', objectFit: 'cover' }} 
                 />
                 <div>
                   <strong style={{ fontSize: '15px', fontWeight: 600, display: 'block' }}>{post.author}</strong>
@@ -108,7 +108,7 @@ export default function Community() {
 
             {/* Post Photo */}
             {post.image && (
-              <div style={{ borderRadius: 'var(--radius-sm)', overflow: 'hidden', marginBottom: '14px', border: '1px solid var(--border)' }}>
+              <div style={{ borderRadius: 'var(--radius-sm)', overflow: 'hidden', marginBottom: '14px' }}>
                 <img src={post.image} alt="Story visual" style={{ width: '100%', height: 260, objectFit: 'cover', display: 'block' }} />
               </div>
             )}

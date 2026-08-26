@@ -71,7 +71,7 @@ export default function Profile() {
   if (!currentUser) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '28px', maxWidth: '640px', margin: '40px auto', width: '100%' }}>
-        <div className="apple-promo-card" style={{ padding: '44px 30px', textAlign: 'center' }}>
+        <div className="apple-solid-card" style={{ padding: '44px 30px', textAlign: 'center' }}>
           <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--primary-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)', margin: '0 auto 16px' }}>
             <User size={30} />
           </div>
@@ -97,10 +97,10 @@ export default function Profile() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px', maxWidth: '880px', margin: '0 auto', width: '100%' }}>
       
       {/* ── 1. MOBILE-APP INSPIRED PROFILE HEADER ── */}
-      <div className="apple-promo-card" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', background: 'var(--surface-solid)', alignItems: 'stretch' }}>
+      <div className="apple-solid-card" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', background: 'var(--surface-solid)', alignItems: 'stretch' }}>
         {/* Green Top Section */}
         <div style={{ background: 'var(--primary)', padding: '40px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
-          <button style={{ position: 'absolute', top: '20px', right: '20px', background: 'rgba(0,0,0,0.2)', border: 'none', color: '#fff', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }} onClick={handleSignOut}>
+          <button style={{ position: 'absolute', top: '20px', right: '20px', background: 'rgba(0,0,0,0.2)', color: '#fff', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }} onClick={handleSignOut}>
             <LogOut size={16} />
           </button>
           
@@ -108,7 +108,7 @@ export default function Profile() {
             <img 
               src={currentUser?.photoUrl || 'assets/images/tail_wagging_logo.png'} 
               alt={currentUser?.name} 
-              style={{ width: 100, height: 100, borderRadius: '50%', objectFit: 'cover', border: '3px solid #FFF' }} 
+              style={{ width: 100, height: 100, borderRadius: '50%', objectFit: 'cover' }} 
             />
           </div>
           
@@ -120,17 +120,17 @@ export default function Profile() {
 
         {/* Stats Row */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', padding: '20px' }}>
-          <div style={{ background: 'var(--surface-alt)', padding: '16px 10px', borderRadius: 'var(--radius-md)', textAlign: 'center', border: '1px solid var(--border)' }}>
+          <div style={{ background: 'var(--surface-alt)', padding: '16px 10px', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
             <div style={{ color: 'var(--primary)', display: 'flex', justifyContent: 'center', marginBottom: '8px' }}><User size={20} /></div>
             <strong style={{ fontSize: '20px', display: 'block', lineHeight: 1 }}>{pets?.length || 2}</strong>
             <span style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>Pets</span>
           </div>
-          <div style={{ background: 'var(--surface-alt)', padding: '16px 10px', borderRadius: 'var(--radius-md)', textAlign: 'center', border: '1px solid var(--border)' }}>
+          <div style={{ background: 'var(--surface-alt)', padding: '16px 10px', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
             <div style={{ color: 'var(--primary)', display: 'flex', justifyContent: 'center', marginBottom: '8px' }}><ShoppingBag size={20} /></div>
             <strong style={{ fontSize: '20px', display: 'block', lineHeight: 1 }}>{orders?.length || 0}</strong>
             <span style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>Orders</span>
           </div>
-          <div style={{ background: 'var(--surface-alt)', padding: '16px 10px', borderRadius: 'var(--radius-md)', textAlign: 'center', border: '1px solid var(--border)' }}>
+          <div style={{ background: 'var(--surface-alt)', padding: '16px 10px', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
             <div style={{ color: '#F59E0B', display: 'flex', justifyContent: 'center', marginBottom: '8px' }}><Award size={20} /></div>
             <strong style={{ fontSize: '20px', display: 'block', lineHeight: 1 }}>{currentUser?.points || 20}</strong>
             <span style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>Points</span>
@@ -145,9 +145,9 @@ export default function Profile() {
           </div>
           <div style={{ display: 'flex', gap: '12px' }}>
             {pets && pets.length > 0 ? pets.map(p => (
-              <img key={p.id} src={p.photo} alt={p.name} style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--surface-alt)' }} />
+              <img key={p.id} src={p.photo} alt={p.name} style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover' }} />
             )) : (
-              <div style={{ width: 64, height: 64, borderRadius: '50%', border: '2px dashed var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
+              <div style={{ width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
                 <Plus size={20} />
               </div>
             )}
@@ -156,7 +156,7 @@ export default function Profile() {
       </div>
 
       {/* ── 2. PERSONAL DETAILS ── */}
-      <div className="apple-promo-card" style={{ padding: '24px 20px', textAlign: 'left', alignItems: 'stretch' }}>
+      <div className="apple-solid-card" style={{ padding: '24px 20px', textAlign: 'left', alignItems: 'stretch' }}>
         <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--primary)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '16px', display: 'block' }}>Personal Details</span>
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -196,19 +196,19 @@ export default function Profile() {
       <div style={{ textAlign: 'left' }}>
         <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--primary)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '16px', display: 'block', paddingLeft: '8px' }}>Account & Security</span>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-          <div className="apple-promo-card" style={{ padding: '20px', flexDirection: 'row', alignItems: 'center', gap: '12px', justifyContent: 'flex-start' }}>
+          <div className="apple-solid-card" style={{ padding: '20px', flexDirection: 'row', alignItems: 'center', gap: '12px', justifyContent: 'flex-start' }}>
             <Clock size={18} color="var(--primary)" />
             <span style={{ fontSize: '13px', fontWeight: 600 }}>My Orders</span>
           </div>
-          <div className="apple-promo-card" style={{ padding: '20px', flexDirection: 'row', alignItems: 'center', gap: '12px', justifyContent: 'flex-start' }}>
+          <div className="apple-solid-card" style={{ padding: '20px', flexDirection: 'row', alignItems: 'center', gap: '12px', justifyContent: 'flex-start' }}>
             <Heart size={18} color="var(--primary)" />
             <span style={{ fontSize: '13px', fontWeight: 600 }}>Favorite Vets</span>
           </div>
-          <div className="apple-promo-card" style={{ padding: '20px', flexDirection: 'row', alignItems: 'center', gap: '12px', justifyContent: 'flex-start', cursor: 'pointer' }} onClick={toggleTheme}>
+          <div className="apple-solid-card" style={{ padding: '20px', flexDirection: 'row', alignItems: 'center', gap: '12px', justifyContent: 'flex-start', cursor: 'pointer' }} onClick={toggleTheme}>
             <Sun size={18} color="var(--primary)" />
             <span style={{ fontSize: '13px', fontWeight: 600 }}>System ({theme})</span>
           </div>
-          <div className="apple-promo-card" style={{ padding: '20px', flexDirection: 'row', alignItems: 'center', gap: '12px', justifyContent: 'flex-start' }}>
+          <div className="apple-solid-card" style={{ padding: '20px', flexDirection: 'row', alignItems: 'center', gap: '12px', justifyContent: 'flex-start' }}>
             <ShieldCheck size={18} color="var(--primary)" />
             <span style={{ fontSize: '13px', fontWeight: 600 }}>Privacy & Terms</span>
           </div>
@@ -216,20 +216,20 @@ export default function Profile() {
       </div>
 
       {/* ── 4. REFERRAL PROGRAM ── */}
-      <div className="apple-promo-card" style={{ padding: '30px', textAlign: 'left', alignItems: 'stretch', background: 'linear-gradient(135deg, rgba(16,185,129,0.1), rgba(0,0,0,0))', borderColor: 'rgba(16,185,129,0.3)' }}>
+      <div className="apple-solid-card" style={{ padding: '30px', textAlign: 'left', alignItems: 'stretch', background: 'linear-gradient(135deg, rgba(16,185,129,0.1), rgba(0,0,0,0))' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
           <div>
             <span style={{ background: 'rgba(16,185,129,0.15)', color: 'var(--primary)', padding: '4px 10px', borderRadius: '12px', fontSize: '10px', fontWeight: 700, letterSpacing: '0.05em' }}>REFERRAL PROGRAM 🎁</span>
             <h3 style={{ fontSize: '18px', fontWeight: 700, marginTop: '12px' }}>Invite Friends & Earn Points!</h3>
             <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '6px', maxWidth: '300px' }}>New users get 15 initial points. Earn +5 points for every friend who joins with your code!</p>
           </div>
-          <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', boxShadow: '0 0 20px rgba(16,185,129,0.4)' }}>
+          <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
             <Gift size={24} />
           </div>
         </div>
         
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-          <div style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border)', padding: '10px 16px', borderRadius: 'var(--radius-full)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ background: 'rgba(0,0,0,0.3)', padding: '10px 16px', borderRadius: 'var(--radius-full)', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ color: 'var(--primary)', fontWeight: 700, fontSize: '14px', letterSpacing: '1px' }}>{currentUser?.referralCode || 'PMKELG15'}</span>
             <Copy size={14} color="var(--text-muted)" style={{ cursor: 'pointer' }} onClick={copyReferral} />
           </div>
@@ -245,7 +245,7 @@ export default function Profile() {
       </div>
 
       {/* ── 2. CLINICAL EHR MEDICAL RECORDS ── */}
-      <div className="apple-promo-card" style={{ display: 'flex', flexDirection: 'column', gap: '20px', alignItems: 'stretch', textAlign: 'left', padding: '32px' }}>
+      <div className="apple-solid-card" style={{ display: 'flex', flexDirection: 'column', gap: '20px', alignItems: 'stretch', textAlign: 'left', padding: '32px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
           <div>
             <span className="apple-card-eyebrow" style={{ color: '#10B981' }}>Cloud Health Records</span>
@@ -276,7 +276,6 @@ export default function Profile() {
                 key={r.id} 
                 style={{ 
                   background: 'var(--surface-alt)', 
-                  border: '1px solid var(--border)', 
                   borderRadius: 'var(--radius-md)', 
                   padding: '18px 22px', 
                   display: 'flex', 
@@ -313,7 +312,7 @@ export default function Profile() {
       </div>
 
       {/* ── 3. BANGLADESH 24/7 EMERGENCY SOS HOTLINES ── */}
-      <div className="apple-promo-card" style={{ display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'stretch', textAlign: 'left', padding: '28px' }}>
+      <div className="apple-solid-card" style={{ display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'stretch', textAlign: 'left', padding: '28px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(239, 68, 68, 0.15)', color: '#EF4444', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Flame size={18} />
@@ -325,7 +324,7 @@ export default function Profile() {
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '12px' }}>
-          <div style={{ background: 'var(--surface-alt)', padding: '14px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
+          <div style={{ background: 'var(--surface-alt)', padding: '14px', borderRadius: 'var(--radius-sm)' }}>
             <strong style={{ fontSize: '13px', display: 'block' }}>Central Veterinary Hospital (CVH)</strong>
             <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Dhaka • 24/7 Casualty Unit</span>
             <a href="tel:+88029331908" style={{ color: '#EF4444', fontSize: '12.5px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px', marginTop: '6px', textDecoration: 'none' }}>
@@ -334,7 +333,7 @@ export default function Profile() {
             </a>
           </div>
 
-          <div style={{ background: 'var(--surface-alt)', padding: '14px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
+          <div style={{ background: 'var(--surface-alt)', padding: '14px', borderRadius: 'var(--radius-sm)' }}>
             <strong style={{ fontSize: '13px', display: 'block' }}>Pet Maya Emergency Response</strong>
             <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>On-Call Tele-Triage Helpline</span>
             <a href="tel:+8801800738629" style={{ color: '#EF4444', fontSize: '12.5px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px', marginTop: '6px', textDecoration: 'none' }}>

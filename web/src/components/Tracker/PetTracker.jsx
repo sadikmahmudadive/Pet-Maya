@@ -247,8 +247,7 @@ export default function PetTracker() {
             alignItems: 'center',
             justifyContent: 'space-between',
             flexWrap: 'wrap',
-            gap: '14px',
-            boxShadow: '0 10px 30px rgba(239, 68, 68, 0.4)'
+            gap: '14px'
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -353,7 +352,7 @@ export default function PetTracker() {
       </div>
 
       {/* ── GEOFENCE SLIDER CARD ── */}
-      <div className="apple-promo-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '24px 30px' }}>
+      <div className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '24px 30px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
           <div>
             <h4 style={{ fontSize: '17px', fontWeight: 700 }}>Safe-Zone Boundary Perimeter</h4>

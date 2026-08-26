@@ -56,8 +56,7 @@ export default function CartDrawer() {
                   alignItems: 'center',
                   background: 'var(--surface-alt)',
                   padding: '12px',
-                  borderRadius: 'var(--radius-sm)',
-                  border: '1px solid var(--border)'
+                  borderRadius: 'var(--radius-sm)'
                 }}
               >
                 <img src={item.image} alt={item.name} style={{ width: 52, height: 52, borderRadius: 'var(--radius-xs)', objectFit: 'cover' }} />
