@@ -188,7 +188,7 @@ export default function Shop() {
 
             <div style={{ display: 'flex', gap: '12px' }}>
               <button 
-                className="apple-btn-blue" 
+                className="btn-ghost" 
                 style={{ flex: 1, padding: '12px' }}
                 onClick={() => {
                   addToCart(selectedProduct);
@@ -196,7 +196,24 @@ export default function Shop() {
                 }}
               >
                 <Plus size={16} />
-                <span>Add to Shopping Bag</span>
+                <span>Add to Bag</span>
+              </button>
+
+              <button 
+                className="apple-btn-blue" 
+                style={{ flex: 1, padding: '12px', justifyContent: 'center' }}
+                onClick={() => {
+                  addToCart(selectedProduct);
+                  setSelectedProduct(null);
+                  openModal('checkout', { 
+                    subtotal: selectedProduct.price,
+                    shipping: selectedProduct.price > 100 ? 0 : 5.00,
+                    total: selectedProduct.price + (selectedProduct.price > 100 ? 0 : 5.00)
+                  });
+                }}
+              >
+                <ShoppingBag size={16} />
+                <span>Buy Now</span>
               </button>
             </div>
           </div>
