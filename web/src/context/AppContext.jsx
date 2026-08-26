@@ -28,8 +28,12 @@ export function AppProvider({ children }) {
   const { currentUser, awardPoints } = useAuth();
 
   // Navigation
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState(() => localStorage.getItem('pm_active_tab') || 'dashboard');
   const [theme, setTheme] = useState(() => localStorage.getItem('pm_theme') || 'dark');
+
+  useEffect(() => {
+    localStorage.setItem('pm_active_tab', activeTab);
+  }, [activeTab]);
 
   // Modals & Drawers
   const [activeModal, setActiveModal] = useState(null);
