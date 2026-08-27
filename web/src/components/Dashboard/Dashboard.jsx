@@ -289,7 +289,7 @@ export default function Dashboard() {
         </AppleStagger>
       </AppleReveal>
 
-      {/* ── 3. UPCOMING EVENTS SECTION ── */}
+      {/* ── 3. UPCOMING EVENTS SECTION (ONLY NEXT / UPCOMING EVENTS) ── */}
       <AppleReveal delay={0.15} yOffset={25}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <h2 style={{ fontSize: '20px', fontWeight: 700, letterSpacing: '-0.02em' }}>Upcoming Events</h2>
@@ -302,41 +302,48 @@ export default function Dashboard() {
           </button>
         </div>
 
-        {appointments.length === 0 ? (
+        {upcomingAppointments.length === 0 ? (
           <div 
             className="apple-solid-card" 
             style={{ 
-              padding: '24px 28px', 
+              padding: '28px 24px', 
               borderRadius: '24px', 
-              textAlign: 'left',
-              alignItems: 'stretch',
+              textAlign: 'center',
               display: 'flex',
               flexDirection: 'column',
-              gap: '10px'
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '12px'
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <span style={{ fontSize: '11px', fontWeight: 800, color: '#10B981', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                VET APPOINTMENT
-              </span>
-              <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: '11.5px', fontWeight: 600, color: 'var(--text-muted)' }}>Aug 26, 2026</span>
-                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>10:30 AM - 11:15 AM</span>
-              </div>
+            <div style={{
+              width: 44,
+              height: 44,
+              borderRadius: '50%',
+              background: 'rgba(16,185,129,0.12)',
+              color: '#10B981',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <Calendar size={20} />
             </div>
-
-            <h3 style={{ fontSize: '18px', fontWeight: 700, margin: 0, letterSpacing: '-0.01em' }}>
-              Veterinarian: Dr. Nazmul Hoda
-            </h3>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', fontSize: '13px', fontWeight: 600 }}>
-              <span>🐾</span>
-              <span>Piku</span>
+            <div>
+              <strong style={{ fontSize: '15px', display: 'block', color: 'var(--text-main)' }}>No upcoming events</strong>
+              <span style={{ fontSize: '12.5px', color: 'var(--text-muted)' }}>You have no scheduled appointments for today or upcoming dates.</span>
             </div>
+            <button 
+              className="apple-btn-blue" 
+              style={{ marginTop: '4px', padding: '6px 16px', fontSize: '12px' }}
+              onClick={() => openModal('booking')}
+            >
+              <Plus size={14} />
+              <span>Book Appointment</span>
+            </button>
           </div>
         ) : (
           <AppleStagger className="apple-grid-stagger" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            {appointments.map((apt) => {
+            {upcomingAppointments.slice(0, 3).map((apt) => {
               const displayTitle = (apt.title?.startsWith('Veterinarian:') || apt.title?.includes(':'))
                 ? apt.title
                 : `Veterinarian: ${apt.doctor || 'Dr. Nazmul Hoda'}`;
@@ -370,7 +377,7 @@ export default function Dashboard() {
                         {formatEventDate(apt.date)}
                       </span>
                       <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                        {formatEventTime(apt.time)}
+                        {formatEventTime(apt.time, apt.fromTime, apt.toTime)}
                       </span>
                     </div>
                   </div>
