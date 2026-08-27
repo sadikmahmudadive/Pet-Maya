@@ -106,6 +106,15 @@ body {
   transition: background-color 0.3s ease;
 }
 
+.global-promo-banner-wrapper {
+  position: sticky !important;
+  top: 48px !important;
+  left: 0 !important;
+  right: 0 !important;
+  z-index: 9998 !important;
+  width: 100% !important;
+}
+
 .apple-nav-inner {
   max-width: 1024px;
   height: 100%;

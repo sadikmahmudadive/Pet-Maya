@@ -16,11 +16,14 @@ export default function GlobalBanner() {
       className="global-promo-banner-wrapper"
       style={{
         width: '100%',
-        position: 'relative',
+        position: 'sticky',
+        top: '48px',
         zIndex: 9998,
         backgroundColor: globalBanner.bgColor || '#f5f5f7',
         color: globalBanner.textColor || '#1d1d1f',
-        borderBottom: '1px solid rgba(0,0,0,0.06)'
+        borderBottom: '1px solid rgba(0,0,0,0.06)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)'
       }}
     >
       <div
