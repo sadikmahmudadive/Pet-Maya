@@ -130,7 +130,7 @@ export default function Header() {
 
           {/* More dropdown (logged-in only, desktop) */}
           {currentUser && (
-            <li style={{ position: 'relative' }}>
+            <li style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
               <MoreDropdown
                 items={moreNavItems}
                 activeTab={activeTab}
@@ -345,7 +345,7 @@ function MoreDropdown({ items, activeTab, navTo }) {
   const hasActive = items.some(i => i.id === activeTab);
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
       <button
         className={`apple-nav-item ${hasActive ? 'active' : ''}`}
         onClick={() => setOpen(!open)}
