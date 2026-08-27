@@ -668,19 +668,29 @@ export function AppProvider({ children }) {
           const toTime = data.toTime || '';
           const timeStr = data.time || (fromTime && toTime ? `${fromTime} - ${toTime}` : fromTime);
 
+          let dateVal = data.date || '';
+          if (dateVal && typeof dateVal.toDate === 'function') {
+            dateVal = dateVal.toDate().toISOString();
+          } else if (dateVal && typeof dateVal.seconds === 'number') {
+            dateVal = new Date(dateVal.seconds * 1000).toISOString();
+          }
+
+          let modeVal = data.category || data.mode || data.type || 'VET APPOINTMENT';
+          if (modeVal.toLowerCase() === 'vet visit') modeVal = 'VET APPOINTMENT';
+
           return {
             id: docSnap.id,
             title: data.title || 'Veterinary Appointment',
             doctor: data.doctor || data.providerName || data.vetName || 'Dr. Specialist',
             clinic: data.clinic || data.location || 'Clinic',
             petName: data.petName || 'Pet',
-            date: data.date || '',
+            date: dateVal,
             fromTime: fromTime,
             toTime: toTime,
             time: timeStr,
-            mode: data.mode || data.category || data.type || 'VET APPOINTMENT',
+            mode: modeVal,
             status: data.status || 'CONFIRMED',
-            isCompleted: data.isCompleted === true || data.status === 'COMPLETED'
+            isCompleted: data.isCompleted === true || data.status === 'COMPLETED' || data.status === 'Completed'
           };
         });
         setAppointments(fetched);

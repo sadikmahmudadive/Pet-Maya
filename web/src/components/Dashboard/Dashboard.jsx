@@ -102,21 +102,44 @@ export default function Dashboard() {
   const parseEventDate = (rawDate) => {
     if (!rawDate) return null;
     try {
-      if (typeof rawDate === 'string') {
-        const cleanStr = rawDate.split('T')[0];
-        const parts = cleanStr.split('-');
-        if (parts.length === 3) {
-          const y = parseInt(parts[0], 10);
-          const m = parseInt(parts[1], 10) - 1;
-          const d = parseInt(parts[2], 10);
-          if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
-            return new Date(y, m, d);
-          }
+      // 1. If Firestore Timestamp / object
+      if (typeof rawDate === 'object' && rawDate !== null) {
+        if (typeof rawDate.toDate === 'function') {
+          const d = rawDate.toDate();
+          return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        }
+        if (typeof rawDate.seconds === 'number') {
+          const d = new Date(rawDate.seconds * 1000);
+          return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        }
+        if (rawDate instanceof Date && !isNaN(rawDate.getTime())) {
+          return new Date(rawDate.getFullYear(), rawDate.getMonth(), rawDate.getDate());
         }
       }
-      const d = new Date(rawDate);
-      if (!isNaN(d.getTime())) {
-        return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+
+      // 2. If string
+      if (typeof rawDate === 'string') {
+        const str = rawDate.trim();
+        // Check standard YYYY-MM-DD
+        if (str.includes('-')) {
+          const datePart = str.split('T')[0];
+          const parts = datePart.split('-');
+          if (parts.length === 3) {
+            const y = parseInt(parts[0], 10);
+            const m = parseInt(parts[1], 10) - 1;
+            const d = parseInt(parts[2], 10);
+            if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
+              return new Date(y, m, d);
+            }
+          }
+        }
+
+        // Try standard Date.parse (handles "Aug 27, 2026", "2026/08/27", etc.)
+        const parsedMs = Date.parse(str);
+        if (!isNaN(parsedMs)) {
+          const d = new Date(parsedMs);
+          return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        }
       }
     } catch (_) {}
     return null;
@@ -128,11 +151,12 @@ export default function Dashboard() {
 
   const upcomingAppointments = appointments
     .filter((apt) => {
-      if (apt.isCompleted === true || apt.status === 'COMPLETED' || apt.status === 'CANCELLED') {
+      const statusLower = (apt.status || '').toLowerCase();
+      if (apt.isCompleted === true || statusLower === 'completed' || statusLower === 'cancelled') {
         return false;
       }
       const evDate = parseEventDate(apt.date);
-      if (!evDate) return true;
+      if (!evDate) return false;
       return evDate.getTime() >= today.getTime();
     })
     .sort((a, b) => {
