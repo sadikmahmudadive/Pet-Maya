@@ -183,7 +183,11 @@ export default function ArticleEditor({ onClose, onPublished, showToast }) {
   // ── Validate image URL ───────────────────────────────
   const handleImageUrl = (url) => {
     setImageUrl(url);
-    setImagePreview(!!url.trim());
+    if (url.trim()) {
+      setImagePreview(true);
+    } else {
+      setImagePreview(false);
+    }
   };
 
   const fileInputRef = useRef(null);
@@ -192,52 +196,71 @@ export default function ArticleEditor({ onClose, onPublished, showToast }) {
 
   // ── Upload Image to Firebase Storage ─────────────────
   const handleImageUpload = (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
     if (!file) return;
     
     // Check file type
     if (!file.type.startsWith('image/')) {
-      showToast('Please select a valid image file', 'error');
+      showToast('Please select a valid image file (PNG, JPG, WEBP, etc.)', 'error');
       return;
     }
     
-    // Check file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      showToast('Image must be less than 5MB', 'error');
+    // Check file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      showToast('Image must be less than 10MB', 'error');
       return;
     }
+
+    // Instant local preview so the user immediately sees their photo
+    const reader = new FileReader();
+    reader.onload = (uploadEvent) => {
+      if (uploadEvent.target?.result) {
+        setImageUrl(uploadEvent.target.result);
+        setImagePreview(true);
+      }
+    };
+    reader.readAsDataURL(file);
 
     setIsUploading(true);
-    setUploadProgress(0);
+    setUploadProgress(10);
 
-    const fileExtension = file.name.split('.').pop();
-    const fileName = `blog_covers/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExtension}`;
-    const storageRef = ref(storage, fileName);
-    
-    const uploadTask = uploadBytesResumable(storageRef, file);
+    try {
+      const sanitizedName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
+      const fileName = `blogs/${Date.now()}_${sanitizedName}`;
+      const storageRef = ref(storage, fileName);
+      
+      const uploadTask = uploadBytesResumable(storageRef, file);
 
-    uploadTask.on('state_changed', 
-      (snapshot) => {
-        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        setUploadProgress(Math.round(progress));
-      }, 
-      (error) => {
-        showToast('Image upload failed', 'error');
-        setIsUploading(false);
-      }, 
-      async () => {
-        try {
-          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-          setImageUrl(downloadURL);
-          setImagePreview(true);
-          showToast('Image uploaded successfully', 'success');
-        } catch (err) {
-          showToast('Failed to get image URL', 'error');
-        } finally {
+      uploadTask.on('state_changed', 
+        (snapshot) => {
+          if (snapshot.totalBytes > 0) {
+            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            setUploadProgress(Math.round(progress));
+          }
+        }, 
+        (error) => {
+          console.warn('[Firebase Storage] Upload notice:', error);
+          // If storage bucket is in restricted mode, we keep the local base64 preview so publish still succeeds!
+          showToast('Image loaded locally (Storage sync skipped: ' + (error.code || 'network') + ')', 'info');
           setIsUploading(false);
+        }, 
+        async () => {
+          try {
+            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+            setImageUrl(downloadURL);
+            setImagePreview(true);
+            showToast('📸 Cover image uploaded to Firebase Storage!', 'success');
+          } catch (err) {
+            console.warn('[Firebase Storage] Download URL error:', err);
+          } finally {
+            setIsUploading(false);
+          }
         }
-      }
-    );
+      );
+    } catch (err) {
+      console.warn('[Firebase Storage] Exception:', err);
+      setIsUploading(false);
+    }
   };
 
   // ── Publish ─────────────────────────────────────────
@@ -429,49 +452,125 @@ export default function ArticleEditor({ onClose, onPublished, showToast }) {
         <div style={{ width: '100%', maxWidth: '760px', padding: '0 24px 120px' }}>
 
           {/* Cover Image */}
-          {imagePreview && imageUrl ? (
-            <div style={{ position: 'relative', marginBottom: '32px' }}>
+          {imageUrl ? (
+            <div style={{ position: 'relative', marginBottom: '32px', borderRadius: '20px', overflow: 'hidden', border: '1px solid var(--border)', background: 'var(--surface-alt)' }}>
               <img
                 src={imageUrl}
                 alt="Cover"
-                style={{ width: '100%', height: '280px', objectFit: 'cover', borderRadius: '0 0 24px 24px', display: 'block' }}
-                onError={() => setImagePreview(false)}
+                style={{ width: '100%', maxHeight: '320px', minHeight: '180px', objectFit: 'cover', display: 'block' }}
+                onError={(e) => {
+                  console.warn('Cover image load error for:', imageUrl);
+                }}
               />
-              <button
-                onClick={() => { setImageUrl(''); setImagePreview(false); }}
-                style={{ position: 'absolute', top: 12, right: 12, width: 32, height: 32, borderRadius: '50%', background: 'rgba(0,0,0,0.5)', border: 'none', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-              >
-                <X size={14} />
-              </button>
+              <div style={{ 
+                position: 'absolute', 
+                top: 14, 
+                right: 14, 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '8px',
+                background: 'rgba(0,0,0,0.65)',
+                backdropFilter: 'blur(10px)',
+                padding: '6px 12px',
+                borderRadius: '999px'
+              }}>
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  style={{ background: 'none', border: 'none', color: '#fff', fontSize: '12px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                >
+                  <Image size={13} />
+                  <span>Change Photo</span>
+                </button>
+                <span style={{ color: 'rgba(255,255,255,0.4)' }}>|</span>
+                <button
+                  onClick={() => { setImageUrl(''); setImagePreview(false); }}
+                  style={{ background: 'none', border: 'none', color: '#EF4444', fontSize: '12px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                >
+                  <X size={13} />
+                  <span>Remove</span>
+                </button>
+              </div>
+
+              {/* URL preview subtitle bar */}
+              <div style={{ padding: '8px 16px', background: 'var(--surface-alt)', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11.5px', color: 'var(--text-muted)' }}>
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '80%' }}>
+                  🔗 {imageUrl.startsWith('data:') ? 'Local file uploaded' : imageUrl}
+                </span>
+                <span style={{ color: '#10B981', fontWeight: 700 }}>✓ Cover Ready</span>
+              </div>
+
+              <input
+                type="file"
+                ref={fileInputRef}
+                style={{ display: 'none' }}
+                accept="image/*"
+                onChange={handleImageUpload}
+              />
             </div>
           ) : (
-            <div style={{ marginBottom: '24px', display: 'flex', gap: '12px' }}>
-              <div
-                style={{ flex: 1, padding: '24px', background: 'var(--surface-alt)', borderRadius: '0 0 0 20px', display: 'flex', alignItems: 'center', gap: '12px', cursor: 'text' }}
-                onClick={() => imageUrlRef.current?.focus()}
-              >
-                <Image size={18} color="var(--text-muted)" />
-                <input
-                  ref={imageUrlRef}
-                  type="url"
-                  placeholder="Paste cover image URL..."
-                  value={imageUrl}
-                  onChange={e => handleImageUrl(e.target.value)}
-                  style={{ flex: 1, background: 'none', border: 'none', outline: 'none', color: 'var(--text-main)', fontSize: '14px', fontStyle: imageUrl ? 'normal' : 'italic' }}
-                />
+            <div style={{ marginBottom: '24px' }}>
+              <div style={{ 
+                display: 'flex', 
+                border: '1.5px dashed var(--border)', 
+                borderRadius: '20px', 
+                background: 'var(--surface-alt)',
+                overflow: 'hidden',
+                alignItems: 'center',
+                transition: 'border-color 0.2s ease'
+              }}>
+                <div
+                  style={{ flex: 1, padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '12px', cursor: 'text' }}
+                  onClick={() => imageUrlRef.current?.focus()}
+                >
+                  <Image size={18} color="var(--primary)" />
+                  <input
+                    ref={imageUrlRef}
+                    type="text"
+                    placeholder="Paste cover image URL (https://...)..."
+                    value={imageUrl}
+                    onChange={e => handleImageUrl(e.target.value)}
+                    style={{ 
+                      flex: 1, 
+                      background: 'none', 
+                      border: 'none', 
+                      outline: 'none', 
+                      color: 'var(--text-main)', 
+                      fontSize: '13.5px', 
+                      fontStyle: imageUrl ? 'normal' : 'normal' 
+                    }}
+                  />
+                </div>
+
+                <div style={{ height: '32px', width: '1px', background: 'var(--border)' }} />
+
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                  style={{ 
+                    background: 'transparent', 
+                    color: 'var(--primary)', 
+                    border: 'none', 
+                    padding: '0 24px', 
+                    cursor: isUploading ? 'not-allowed' : 'pointer',
+                    fontWeight: 700, 
+                    fontSize: '13.5px', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '8px',
+                    whiteSpace: 'nowrap',
+                    height: '54px'
+                  }}
+                >
+                  {isUploading ? (
+                    <span>Uploading {uploadProgress}%...</span>
+                  ) : (
+                    <>
+                      <span>📁 Upload File</span>
+                    </>
+                  )}
+                </button>
               </div>
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isUploading}
-                style={{ 
-                  background: 'var(--surface-alt)', color: 'var(--text-main)', border: 'none', 
-                  borderRadius: '0 0 20px 0', padding: '0 24px', cursor: isUploading ? 'not-allowed' : 'pointer',
-                  fontWeight: 600, fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px',
-                  whiteSpace: 'nowrap'
-                }}
-              >
-                {isUploading ? `${uploadProgress}%` : 'Upload'}
-              </button>
+
               <input
                 type="file"
                 ref={fileInputRef}

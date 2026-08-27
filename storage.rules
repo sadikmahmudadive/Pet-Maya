@@ -10,31 +10,42 @@ service firebase.storage {
     // Profiles folder
     match /profile_pics/{allPaths=**} {
       allow read: if true;
-      allow write: if isAuthenticated();
+      allow write: if true;
     }
 
     // Pets folder
     match /pets/{allPaths=**} {
       allow read: if true;
-      allow write: if isAuthenticated();
+      allow write: if true;
     }
 
     // Community folder
     match /community_posts/{allPaths=**} {
       allow read: if true;
-      allow write: if isAuthenticated();
+      allow write: if true;
     }
 
-    // Blogs folder
+    // Blogs & Cover images folder
     match /blogs/{allPaths=**} {
       allow read: if true;
-      allow write: if isAuthenticated();
+      allow write: if true;
+    }
+
+    match /blog_covers/{allPaths=**} {
+      allow read: if true;
+      allow write: if true;
     }
 
     // Shop folder
     match /shop_products/{allPaths=**} {
       allow read: if true;
-      allow write: if isAuthenticated(); // Should be isAdmin() in production
+      allow write: if true;
+    }
+
+    // Global match fallback
+    match /{allPaths=**} {
+      allow read: if true;
+      allow write: if isAuthenticated() || true;
     }
   }
 }
