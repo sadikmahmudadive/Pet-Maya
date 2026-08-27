@@ -245,6 +245,8 @@ class _AdminShopManagerScreenState extends State<AdminShopManagerScreen> {
                         children: [
                           _badge('৳${p.price.toStringAsFixed(0)}', AppColors.healthGreen),
                           _badge('STOCK: ${p.stockQuantity}', isLowStock ? AppColors.dangerRed : Colors.blueGrey),
+                          if (p.isRxRequired)
+                            _badge('Rx', AppColors.primary),
                         ],
                       ),
                     ],
@@ -410,6 +412,7 @@ class _ProductEditorSheetState extends State<_ProductEditorSheet> {
   final List<String> _imageGallery = [];
   bool _isUploading = false;
   bool _isSaving = false;
+  bool _isRxRequired = false;
 
   @override
   void initState() {
@@ -420,6 +423,7 @@ class _ProductEditorSheetState extends State<_ProductEditorSheet> {
     _brandController = TextEditingController(text: widget.product?.brand ?? '');
     _descController = TextEditingController(text: widget.product?.description ?? '');
     _category = widget.product?.category ?? 'Food';
+    _isRxRequired = widget.product?.isRxRequired ?? false;
     if (widget.product != null) {
       _imageGallery.addAll(widget.product!.imageGallery);
     }
@@ -460,6 +464,7 @@ class _ProductEditorSheetState extends State<_ProductEditorSheet> {
       imageGallery: _imageGallery.isNotEmpty ? _imageGallery : ['https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=400'],
       description: _descController.text,
       brand: _brandController.text,
+      isRxRequired: _isRxRequired,
     );
 
     if (widget.product == null) {
@@ -565,6 +570,15 @@ class _ProductEditorSheetState extends State<_ProductEditorSheet> {
                     )).toList(),
                   ),
                   const SizedBox(height: 24),
+                  
+                  // Rx Required Toggle
+                  _buildToggleTile(
+                    label: 'Rx REQUIRED (VETERINARY MEDICINE)',
+                    value: _isRxRequired,
+                    onChanged: (v) => setState(() => _isRxRequired = v),
+                  ),
+                  const SizedBox(height: 24),
+
                   _input('MARKETING DESCRIPTION', _descController, maxLines: 4),
                   const SizedBox(height: 40),
                 ],
@@ -640,6 +654,28 @@ class _ProductEditorSheetState extends State<_ProductEditorSheet> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildToggleTile({required String label, required bool value, required ValueChanged<bool> onChanged}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.grey, letterSpacing: 1)),
+          CupertinoSwitch(
+            value: value,
+            activeColor: AppColors.primary,
+            onChanged: onChanged,
+          ),
+        ],
+      ),
     );
   }
 

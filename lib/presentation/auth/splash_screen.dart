@@ -71,12 +71,14 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         case UserRole.veterinarian:
         case UserRole.grooming:
         case UserRole.boarding:
+        case UserRole.shelter:
           destination = const VetDashboardScreen();
           break;
         case UserRole.petShop:
           destination = const PetShopDashboardScreen();
           break;
         case UserRole.admin:
+        case UserRole.superAdmin:
           destination = const AdminDashboardScreen();
           break;
         default:

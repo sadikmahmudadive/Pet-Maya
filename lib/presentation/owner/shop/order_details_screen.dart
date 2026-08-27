@@ -252,18 +252,20 @@ class OrderDetailsScreen extends StatelessWidget {
   Color _getStatusColor(OrderStatus status) {
     switch (status) {
       case OrderStatus.pending: return AppColors.accentAmber;
+      case OrderStatus.processing: return AppColors.primary;
+      case OrderStatus.dispatched: return Colors.blue;
       case OrderStatus.delivered: return AppColors.healthGreen;
       case OrderStatus.cancelled: return AppColors.dangerRed;
-      default: return AppColors.primary;
     }
   }
 
   IconData _getStatusIcon(OrderStatus status) {
     switch (status) {
       case OrderStatus.pending: return Icons.timer_outlined;
+      case OrderStatus.processing: return Icons.sync_rounded;
+      case OrderStatus.dispatched: return Icons.local_shipping_outlined;
       case OrderStatus.delivered: return Icons.check_circle_outline;
       case OrderStatus.cancelled: return Icons.cancel_outlined;
-      default: return Icons.local_shipping_outlined;
     }
   }
 }

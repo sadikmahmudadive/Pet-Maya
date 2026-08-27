@@ -623,6 +623,16 @@ class FirebaseService {
   Future<void> deleteBlog(String blogId) async {
     await _blogsCol.doc(blogId).delete();
   }
+
+  // ─── GLOBAL SETTINGS ────────────────────────────────────────────────────
+
+  Future<void> saveGlobalSetting(String key, dynamic value) async {
+    await _db.collection('settings').doc('global').set({key: value}, SetOptions(merge: true));
+  }
+
+  Stream<DocumentSnapshot> streamGlobalSettings() {
+    return _db.collection('settings').doc('global').snapshots();
+  }
 }
 
 

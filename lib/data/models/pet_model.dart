@@ -120,4 +120,26 @@ class PetModel {
       longitude: (map['longitude'] as num?)?.toDouble(),
     );
   }
+
+  PetModel copyWith({
+    String? petID, String? ownerID, String? name, String? type, String? breed, String? gender,
+    String? age, String? dob, String? color, String? sound, String? height, String? weight,
+    String? photoUrl, String? vaccinationDetails, String? medicationTime, String? description,
+    List<String>? feedingTimes, String? currentFoodName, String? foodType, String? allergies,
+    String? mood, String? hungerStatus, int? healthIndex, int? dailyCalorieGoal, String? lastFedTime,
+    double? latitude, double? longitude,
+  }) {
+    return PetModel(
+      petID: petID ?? this.petID, ownerID: ownerID ?? this.ownerID, name: name ?? this.name,
+      type: type ?? this.type, breed: breed ?? this.breed, gender: gender ?? this.gender,
+      age: age ?? this.age, dob: dob ?? this.dob, color: color ?? this.color, sound: sound ?? this.sound,
+      height: height ?? this.height, weight: weight ?? this.weight, photoUrl: photoUrl ?? this.photoUrl,
+      vaccinationDetails: vaccinationDetails ?? this.vaccinationDetails, medicationTime: medicationTime ?? this.medicationTime,
+      description: description ?? this.description, feedingTimes: feedingTimes ?? this.feedingTimes,
+      currentFoodName: currentFoodName ?? this.currentFoodName, foodType: foodType ?? this.foodType,
+      allergies: allergies ?? this.allergies, mood: mood ?? this.mood, hungerStatus: hungerStatus ?? this.hungerStatus,
+      healthIndex: healthIndex ?? this.healthIndex, dailyCalorieGoal: dailyCalorieGoal ?? this.dailyCalorieGoal,
+      lastFedTime: lastFedTime ?? this.lastFedTime, latitude: latitude ?? this.latitude, longitude: longitude ?? this.longitude,
+    );
+  }
 }

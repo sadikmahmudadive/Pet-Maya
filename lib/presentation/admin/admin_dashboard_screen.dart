@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
+import '../../data/models/user_model.dart';
 import '../../data/repositories/app_state_repository.dart';
 import '../common_widgets/glass_scaffold.dart';
 import '../common_widgets/premium_card.dart';
@@ -26,6 +27,8 @@ class AdminDashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = context.select((AppStateRepository repo) => repo.currentUser);
+    final isSuper = user?.role == UserRole.superAdmin;
+    
     final vets = context.select((AppStateRepository repo) => repo.vets);
     final usersCount = context.select((AppStateRepository repo) => repo.allUsers.length);
     final ordersCount = context.select((AppStateRepository repo) => repo.orders.length);
@@ -37,10 +40,15 @@ class AdminDashboardScreen extends StatelessWidget {
 
     return GlassScaffold(
       appBar: AppBar(
-        title: const Text('Master Console'),
+        title: Text(isSuper ? 'Overlord Console' : 'Master Console'),
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
+          if (isSuper)
+            IconButton(
+              icon: const Icon(Icons.settings_suggest_rounded, color: AppColors.primary),
+              onPressed: () {},
+            ),
           IconButton(
             icon: const Icon(Icons.logout_rounded, color: AppColors.dangerRed),
             onPressed: () {

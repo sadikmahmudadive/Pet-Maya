@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 import 'dart:io';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../data/models/user_model.dart';
 import '../../../data/models/blog_post_model.dart';
 import '../../../data/repositories/app_state_repository.dart';
 import '../../../core/services/firebase_storage_service.dart';

@@ -19,7 +19,7 @@ class ShopOrdersScreen extends StatefulWidget {
 
 class _ShopOrdersScreenState extends State<ShopOrdersScreen> {
   int _selectedTabIndex = 0;
-  final List<String> _tabs = ['Processing', 'Shipped', 'Delivered'];
+  final List<String> _tabs = ['Processing', 'Dispatched', 'Delivered'];
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +29,7 @@ class _ShopOrdersScreenState extends State<ShopOrdersScreen> {
 
     final filteredOrders = orders.where((o) {
       if (_selectedTabIndex == 0) return o.status == OrderStatus.pending || o.status == OrderStatus.processing;
-      if (_selectedTabIndex == 1) return o.status == OrderStatus.shipped;
+      if (_selectedTabIndex == 1) return o.status == OrderStatus.dispatched;
       return o.status == OrderStatus.delivered;
     }).toList();
 
@@ -156,7 +156,7 @@ class _ShopOrdersScreenState extends State<ShopOrdersScreen> {
                                           height: 44,
                                           child: ElevatedButton(
                                             onPressed: () {
-                                              state.updateOrderStatus(order.orderId, OrderStatus.shipped);
+                                              state.updateOrderStatus(order.orderId, OrderStatus.dispatched);
                                               HapticFeedback.mediumImpact();
                                               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Dispatched successfully! 🚚'), behavior: SnackBarBehavior.floating, backgroundColor: AppColors.healthGreen));
                                             },
@@ -164,7 +164,7 @@ class _ShopOrdersScreenState extends State<ShopOrdersScreen> {
                                             child: const Text('DISPATCH', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 0.5, fontSize: 11)),
                                           ),
                                         )
-                                      else if (order.status == OrderStatus.shipped)
+                                      else if (order.status == OrderStatus.dispatched)
                                         SizedBox(
                                           height: 44,
                                           child: OutlinedButton(

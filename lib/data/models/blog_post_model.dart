@@ -10,7 +10,7 @@ class BlogPostModel {
   final int timestamp;
   final int readTimeMinutes;
   final List<String> tags;
-  final String status; // 'PENDING', 'APPROVED', 'REJECTED'
+  final String status; // 'PENDING', 'APPROVED', 'REJECTED', 'UNPUBLISHED'
   final bool isApproved;
 
   BlogPostModel({

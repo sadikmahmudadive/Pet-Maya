@@ -120,7 +120,7 @@ class OrdersScreen extends StatelessWidget {
     switch (status) {
       case OrderStatus.pending: color = AppColors.accentAmber; break;
       case OrderStatus.processing: color = AppColors.primary; break;
-      case OrderStatus.shipped: color = Colors.blue; break;
+      case OrderStatus.dispatched: color = Colors.blue; break;
       case OrderStatus.delivered: color = AppColors.healthGreen; break;
       case OrderStatus.cancelled: color = AppColors.dangerRed; break;
     }

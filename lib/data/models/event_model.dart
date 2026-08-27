@@ -68,4 +68,38 @@ class EventModel {
       isCompleted: map['isCompleted'] ?? false,
     );
   }
+
+  EventModel copyWith({
+    String? id,
+    String? userId,
+    String? title,
+    String? category,
+    String? note,
+    String? petName,
+    String? petId,
+    String? providerId,
+    DateTime? date,
+    String? fromTime,
+    String? toTime,
+    String? status,
+    bool? isReminderEnabled,
+    bool? isCompleted,
+  }) {
+    return EventModel(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      title: title ?? this.title,
+      category: category ?? this.category,
+      note: note ?? this.note,
+      petName: petName ?? this.petName,
+      petId: petId ?? this.petId,
+      providerId: providerId ?? this.providerId,
+      date: date ?? this.date,
+      fromTime: fromTime ?? this.fromTime,
+      toTime: toTime ?? this.toTime,
+      status: status ?? this.status,
+      isReminderEnabled: isReminderEnabled ?? this.isReminderEnabled,
+      isCompleted: isCompleted ?? this.isCompleted,
+    );
+  }
 }

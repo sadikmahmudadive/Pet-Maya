@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:provider/provider.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../data/repositories/app_state_repository.dart';
 import '../common_widgets/glass_scaffold.dart';
 import '../common_widgets/premium_card.dart';
@@ -16,7 +17,14 @@ class AdminBroadcastScreen extends StatefulWidget {
 class _AdminBroadcastScreenState extends State<AdminBroadcastScreen> {
   final _titleController = TextEditingController(text: '🚨 Health Alert: Free Vaccination Drive');
   final _msgController = TextEditingController(text: 'Join us at Central Dog Park this Saturday from 9 AM to 3 PM for a free rabies immunization drive hosted by the City Health Dept.');
+  final _bannerController = TextEditingController();
   String _targetGroup = 'All Pet Owners';
+
+  @override
+  void initState() {
+    super.initState();
+    _bannerController.text = context.read<AppStateRepository>().systemBanner ?? '';
+  }
 
   void _sendBroadcast() async {
     if (_titleController.text.isEmpty || _msgController.text.isEmpty) return;
@@ -133,6 +141,70 @@ class _AdminBroadcastScreenState extends State<AdminBroadcastScreen> {
                   icon: const Icon(Icons.campaign_rounded, color: Colors.white, size: 24),
                   label: const Text('DISPATCH BROADCAST', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 1, fontSize: 13)),
                 ),
+              ),
+            ),
+            const SizedBox(height: 48),
+
+            // ─── GLOBAL BANNER CONTROL ─────────────────────────────────────
+            FadeInUp(
+              delay: const Duration(milliseconds: 300),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildSectionLabel('Global System Banner'),
+                  const SizedBox(height: 8),
+                  PremiumCard(
+                    opacity: 0.1,
+                    borderRadius: 24,
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        children: [
+                          const Text(
+                            'This banner appears at the very top of the app for all users in real-time.',
+                            style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w600),
+                          ),
+                          const SizedBox(height: 20),
+                          _buildPremiumInput('Banner Message', _bannerController, hint: 'e.g. 20% off on all grooming!'),
+                          const SizedBox(height: 24),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton(
+                                  onPressed: () => context.read<AppStateRepository>().setSystemBanner(null),
+                                  style: OutlinedButton.styleFrom(
+                                    side: const BorderSide(color: AppColors.dangerRed),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                    padding: const EdgeInsets.symmetric(vertical: 16),
+                                  ),
+                                  child: const Text('REMOVE BANNER', style: TextStyle(color: AppColors.dangerRed, fontWeight: FontWeight.w800, fontSize: 11)),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    final msg = _bannerController.text.trim();
+                                    if (msg.isNotEmpty) {
+                                      context.read<AppStateRepository>().setSystemBanner(msg);
+                                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Banner pushed live! 📢')));
+                                    }
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.primary,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                    padding: const EdgeInsets.symmetric(vertical: 16),
+                                  ),
+                                  child: const Text('PUSH LIVE', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 11)),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 100),

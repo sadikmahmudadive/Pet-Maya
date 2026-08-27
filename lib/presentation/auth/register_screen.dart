@@ -9,6 +9,7 @@ import 'package:animate_do/animate_do.dart';
 import '../owner/home/owner_home_screen.dart';
 import '../provider/vet_dashboard_screen.dart';
 import '../merchant/pet_shop_dashboard_screen.dart';
+import '../admin/admin_dashboard_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -101,10 +102,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
       case UserRole.veterinarian:
       case UserRole.grooming:
       case UserRole.boarding:
+      case UserRole.shelter:
         destination = const VetDashboardScreen();
         break;
       case UserRole.petShop:
         destination = const PetShopDashboardScreen();
+        break;
+      case UserRole.admin:
+      case UserRole.superAdmin:
+        destination = AdminDashboardScreen();
         break;
       default:
         destination = const OwnerHomeScreen();

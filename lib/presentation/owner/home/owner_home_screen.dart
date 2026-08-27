@@ -53,17 +53,24 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
         children: [
           Padding(
             padding: EdgeInsets.only(right: isLandscape ? 100 : 0),
-            child: IndexedStack(
-              index: _currentNavIndex,
+            child: Column(
               children: [
-                HomeDashboardFragment(
-                  onNavRequested: (index) =>
-                      setState(() => _currentNavIndex = index),
-                ), // 0
-                const PetServicesScreen(), // 1
-                const CommunityFeedScreen(), // 2
-                const UserProfileScreen(), // 3
-                const ShopScreen(), // 4
+                _buildSystemBanner(context),
+                Expanded(
+                  child: IndexedStack(
+                    index: _currentNavIndex,
+                    children: [
+                      HomeDashboardFragment(
+                        onNavRequested: (index) =>
+                            setState(() => _currentNavIndex = index),
+                      ), // 0
+                      const PetServicesScreen(), // 1
+                      const CommunityFeedScreen(), // 2
+                      const UserProfileScreen(), // 3
+                      const ShopScreen(), // 4
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
@@ -82,6 +89,47 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
                   ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSystemBanner(BuildContext context) {
+    final banner = context.select((AppStateRepository repo) => repo.systemBanner);
+    if (banner == null || banner.isEmpty) return const SizedBox.shrink();
+
+    return FadeInDown(
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [AppColors.primary, AppColors.primaryDark],
+          ),
+          boxShadow: [
+            BoxShadow(color: AppColors.primary.withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 4)),
+          ],
+        ),
+        child: SafeArea(
+          bottom: false,
+          child: Row(
+            children: [
+              const Icon(Icons.campaign_rounded, color: Colors.white, size: 18),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  banner,
+                  style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 0.3),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.close_rounded, color: Colors.white70, size: 16),
+                onPressed: () => context.read<AppStateRepository>().setSystemBanner(null),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

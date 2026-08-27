@@ -1,4 +1,6 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:animate_do/animate_do.dart';
@@ -11,6 +13,7 @@ import '../../data/models/blog_post_model.dart';
 import '../common_widgets/glass_scaffold.dart';
 import '../common_widgets/premium_card.dart';
 import '../common_widgets/empty_state.dart';
+import '../common_widgets/monogram_avatar.dart';
 
 class AdminBlogManagerScreen extends StatefulWidget {
   const AdminBlogManagerScreen({super.key});
@@ -205,28 +208,61 @@ class _AdminBlogManagerScreenState extends State<AdminBlogManagerScreen> {
                   ],
                 ),
               ),
-              if (!isApproved)
-                IconButton(
-                  icon: const Icon(Icons.check_circle_outline_rounded, color: Colors.green, size: 24),
-                  tooltip: 'Approve Article',
-                  onPressed: () {
-                    state.updateBlogStatus(blog.id, 'APPROVED', true);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('"${blog.title}" approved and live on web & app! 🎉'),
-                        backgroundColor: AppColors.healthGreen,
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
-                  },
-                ),
               IconButton(
-                icon: const Icon(Icons.delete_outline_rounded, color: AppColors.dangerRed, size: 22),
-                tooltip: 'Delete Article',
-                onPressed: () => _confirmDelete(context, blog, state),
+                icon: const Icon(Icons.more_vert_rounded, color: Colors.grey),
+                onPressed: () => _showModerationOptions(context, blog, state),
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  void _showModerationOptions(BuildContext context, BlogPostModel blog, AppStateRepository state) {
+    final isApproved = blog.isApproved || blog.status == 'APPROVED';
+
+    showCupertinoModalPopup(
+      context: context,
+      builder: (ctx) => CupertinoActionSheet(
+        title: Text('Moderate: ${blog.title}'),
+        actions: [
+          if (!isApproved)
+            CupertinoActionSheetAction(
+              onPressed: () {
+                state.updateBlogStatus(blog.id, 'APPROVED', true);
+                Navigator.pop(ctx);
+              },
+              child: const Text('Approve & Publish'),
+            ),
+          if (blog.status != 'REJECTED' && !isApproved)
+            CupertinoActionSheetAction(
+              onPressed: () {
+                state.updateBlogStatus(blog.id, 'REJECTED', false);
+                Navigator.pop(ctx);
+              },
+              child: const Text('Reject Submission'),
+            ),
+          if (isApproved)
+            CupertinoActionSheetAction(
+              onPressed: () {
+                state.updateBlogStatus(blog.id, 'UNPUBLISHED', false);
+                Navigator.pop(ctx);
+              },
+              child: const Text('Unpublish Article'),
+            ),
+          CupertinoActionSheetAction(
+            isDestructiveAction: true,
+            onPressed: () {
+              Navigator.pop(ctx);
+              _confirmDelete(context, blog, state);
+            },
+            child: const Text('Delete Permanently'),
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.pop(ctx),
+          child: const Text('Cancel'),
         ),
       ),
     );
