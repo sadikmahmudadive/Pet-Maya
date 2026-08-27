@@ -72,6 +72,20 @@ const PAGE_TITLES = {
   admin: 'Pet Maya — Administration Control Center',
 };
 
+const PAGE_DESCRIPTIONS = {
+  landing: 'Pet Maya is the next-generation pet healthcare ecosystem: Sub-meter satellite GPS radar, AI vision health diagnostics, 500+ verified veterinary specialists, and genuine pet pharmacy.',
+  dashboard: 'Monitor your pet’s health status, real-time GPS telemetry, upcoming clinic bookings, and biometric health score on the Pet Maya dashboard.',
+  shop: 'Shop genuine veterinary prescription medications, specialty food diets, tick preventatives, and smart GPS radar tracking collars on Pet Maya.',
+  tracker: 'Sub-meter satellite GPS pet radar with interactive sonar, geofence boundary breach alarms, and smart biometric collar sensors.',
+  ai: 'Instant AI neural health triage: Scan pet eye, skin, dental, and mobility conditions with your smartphone camera for rapid symptom assessment.',
+  vets: 'Book in-clinic consultations, surgeries, and HD video teleconsultations with 500+ verified veterinarians and livestock officers.',
+  community: 'Join the Pet Maya pet parent community. Share moments, ask veterinary questions, like, comment, and celebrate pet memories.',
+  food: 'Scientific RER/MER calorie calculators, dry/wet nutrition ratio guidelines, and expert veterinary dietary guides.',
+  vaccines: 'Never miss an immunization: Digital vaccination passport with automated rabies reminders and 1-click Apple Calendar sync.',
+  profile: 'Manage your verified pet owner profile, registered pets, electronic health records, and clinic appointment history.',
+  admin: 'Pet Maya administrative control center for specialist approvals, inventory management, and platform metrics.'
+};
+
 const resolveInitialTab = () => {
   if (typeof window === 'undefined') return 'dashboard';
   const pathname = window.location.pathname.toLowerCase().replace(/\/$/, '') || '/';
@@ -109,7 +123,7 @@ export function AppProvider({ children }) {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  // Synchronize Browser Address Bar & Document Title when activeTab changes
+  // Synchronize Browser Address Bar, Document Title & Meta Description when activeTab changes
   useEffect(() => {
     localStorage.setItem('pm_active_tab', activeTab);
     
@@ -121,6 +135,11 @@ export function AppProvider({ children }) {
 
       if (PAGE_TITLES[activeTab]) {
         document.title = PAGE_TITLES[activeTab];
+      }
+
+      const metaDescTag = document.querySelector('meta[name="description"]');
+      if (metaDescTag && PAGE_DESCRIPTIONS[activeTab]) {
+        metaDescTag.setAttribute('content', PAGE_DESCRIPTIONS[activeTab]);
       }
     }
   }, [activeTab]);

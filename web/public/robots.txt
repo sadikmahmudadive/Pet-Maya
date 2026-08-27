@@ -1,4 +1,36 @@
+# Pet Maya - Robots.txt
+# Modern Pet Healthcare, GPS Telemetry, and AI Vision Diagnostics Portal
+
 User-agent: *
 Allow: /
+Allow: /dashboard
+Allow: /shop
+Allow: /tracker
+Allow: /wellness
+Allow: /specialists
+Allow: /community
+Allow: /blog
+Allow: /reminders
+Allow: /about
+Allow: /privacy-policy
+Allow: /terms-of-service
+Disallow: /admin
+Disallow: /api/
 
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+# Host
+Host: https://www.petmaya.app
+
+# Sitemaps
 Sitemap: https://www.petmaya.app/sitemap.xml
