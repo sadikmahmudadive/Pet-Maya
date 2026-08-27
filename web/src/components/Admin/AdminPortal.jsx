@@ -64,6 +64,82 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+// ─── STYLISH INITIAL MONOGRAM / REAL AVATAR COMPONENT ───
+function UserAvatar({ user, size = 40 }) {
+  const [imgError, setImgError] = useState(false);
+  const name = user?.name || user?.displayName || user?.email?.split('@')[0] || 'User';
+  const avatarUrl = user?.avatar || user?.photoUrl || user?.photoURL;
+  const hasPhoto = avatarUrl && typeof avatarUrl === 'string' && avatarUrl.trim() !== '' && !imgError;
+
+  const getUserInitials = (str) => {
+    if (!str) return 'PM';
+    const parts = str.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  };
+
+  const getUserGradient = (idOrName) => {
+    const gradients = [
+      'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)',
+      'linear-gradient(135deg, #10B981 0%, #047857 100%)',
+      'linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%)',
+      'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+      'linear-gradient(135deg, #EC4899 0%, #BE185D 100%)',
+      'linear-gradient(135deg, #06B6D4 0%, #0E7490 100%)'
+    ];
+    let hash = 0;
+    const key = idOrName || 'petmaya';
+    for (let i = 0; i < key.length; i++) {
+      hash = key.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const idx = Math.abs(hash) % gradients.length;
+    return gradients[idx];
+  };
+
+  if (hasPhoto) {
+    return (
+      <img
+        src={avatarUrl}
+        alt={name}
+        onError={() => setImgError(true)}
+        style={{
+          width: `${size}px`,
+          height: `${size}px`,
+          borderRadius: '50%',
+          objectFit: 'cover',
+          border: '1.5px solid rgba(255,255,255,0.15)',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+          flexShrink: 0
+        }}
+      />
+    );
+  }
+
+  return (
+    <div
+      style={{
+        width: `${size}px`,
+        height: `${size}px`,
+        borderRadius: '50%',
+        background: getUserGradient(name + (user?.id || '')),
+        color: '#FFFFFF',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontWeight: 800,
+        fontSize: `${Math.round(size * 0.38)}px`,
+        letterSpacing: '0.04em',
+        border: '1.5px solid rgba(255,255,255,0.2)',
+        boxShadow: '0 2px 10px rgba(0,0,0,0.25)',
+        flexShrink: 0,
+        textTransform: 'uppercase'
+      }}
+    >
+      {getUserInitials(name)}
+    </div>
+  );
+}
+
 export default function AdminPortal() {
   const { 
     vets, 
@@ -172,18 +248,24 @@ export default function AdminPortal() {
         if (!snap.empty) {
           const fetched = snap.docs.map(d => {
             const data = d.data();
+            const rawName = data.name || data.displayName || data.email?.split('@')[0] || 'Pet Parent';
             return {
               id: d.id,
-              name: data.displayName || data.name || data.email?.split('@')[0] || 'Pet Maya User',
+              name: rawName,
+              displayName: data.displayName || rawName,
               email: data.email || 'user@petmaya.app',
               role: data.role || 'Pet Owner',
               isVerified: data.isVerified === true || data.verificationStatus === 'VERIFIED',
               verificationStatus: data.verificationStatus || (data.isVerified ? 'VERIFIED' : 'PENDING'),
               accountStatus: data.accountStatus || 'ACTIVE',
-              phone: data.phoneNumber || data.phone || '+880 1700-000000',
-              petsCount: data.petsCount || 1,
-              joinedDate: data.createdAt ? new Date(data.createdAt).toISOString().split('T')[0] : '2026-08-01',
-              avatar: data.photoURL || data.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150'
+              phone: data.phone || data.phoneNumber || '+880 1700-000000',
+              address: data.address || 'Dhaka, Bangladesh',
+              points: data.points ?? 25,
+              referralCode: data.referralCode || `PM-${d.id.slice(0, 5).toUpperCase()}`,
+              referredBy: data.referredBy || null,
+              petsCount: typeof data.petsCount === 'number' ? data.petsCount : (Array.isArray(data.pets) ? data.pets.length : 1),
+              joinedDate: data.createdAt ? (typeof data.createdAt === 'string' ? data.createdAt.split('T')[0] : new Date(data.createdAt).toISOString().split('T')[0]) : '2026-08-01',
+              avatar: data.photoUrl || data.photoURL || data.avatar || ''
             };
           });
           setUsersList(fetched);
@@ -1529,19 +1611,18 @@ export default function AdminPortal() {
                         <tr key={u.id} style={{ borderBottom: '1px solid var(--border)' }}>
                           {/* User Profile */}
                           <td style={{ padding: '14px 10px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                              <img
-                                src={u.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150'}
-                                alt={u.name}
-                                style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }}
-                                onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150'; }}
-                              />
+                            <div 
+                              style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
+                              onClick={() => setSelectedUserDetails(u)}
+                              title="Click to view full user profile & KYC dossier"
+                            >
+                              <UserAvatar user={u} size={42} />
                               <div>
                                 <strong style={{ fontSize: '14px', color: 'var(--text-main)', display: 'block' }}>
                                   {u.name}
                                 </strong>
                                 <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                                  {u.email} • {u.phone}
+                                  {u.email} {u.phone ? `• ${u.phone}` : ''}
                                 </span>
                               </div>
                             </div>
@@ -2994,39 +3075,97 @@ export default function AdminPortal() {
                 </button>
               </div>
 
+              {/* User Profile Header */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px', background: 'var(--surface-alt)', padding: '16px', borderRadius: '16px', marginBottom: '18px' }}>
-                <img
-                  src={selectedUserDetails.avatar}
-                  alt={selectedUserDetails.name}
-                  style={{ width: '60px', height: '60px', borderRadius: '50%', objectFit: 'cover' }}
-                />
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <strong style={{ fontSize: '17px', color: 'var(--text-main)' }}>{selectedUserDetails.name}</strong>
-                    {selectedUserDetails.isVerified && <BadgeCheck size={16} color="#10B981" />}
+                <UserAvatar user={selectedUserDetails} size={64} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <strong style={{ fontSize: '18px', color: 'var(--text-main)' }}>{selectedUserDetails.name}</strong>
+                    {selectedUserDetails.isVerified && <BadgeCheck size={18} color="#10B981" />}
                   </div>
-                  <span style={{ fontSize: '13px', color: 'var(--text-muted)', display: 'block' }}>{selectedUserDetails.email}</span>
-                  <span style={{ fontSize: '12px', color: 'var(--primary)', fontWeight: 600 }}>{selectedUserDetails.role} • UID: {selectedUserDetails.id}</span>
+                  <span style={{ fontSize: '13px', color: 'var(--text-muted)', display: 'block', wordBreak: 'break-all' }}>
+                    {selectedUserDetails.email}
+                  </span>
+                  <span style={{ fontSize: '11.5px', color: 'var(--primary)', fontWeight: 700, fontFamily: 'monospace', display: 'block', marginTop: '2px' }}>
+                    UID: {selectedUserDetails.id}
+                  </span>
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '18px', fontSize: '13px' }}>
-                <div style={{ background: 'var(--surface-alt)', padding: '12px', borderRadius: '12px' }}>
+              {/* Status and Role Badges */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px', fontSize: '13px' }}>
+                <div style={{ background: 'var(--surface-alt)', padding: '12px 14px', borderRadius: '12px' }}>
                   <span className="label-mini">KYC Status</span>
-                  <strong style={{ display: 'block', color: selectedUserDetails.isVerified ? '#10B981' : '#F59E0B', marginTop: '2px' }}>
+                  <strong style={{ display: 'block', color: selectedUserDetails.isVerified ? '#10B981' : '#F59E0B', marginTop: '2px', fontSize: '13px' }}>
                     {selectedUserDetails.isVerified ? 'VERIFIED PROFILE' : 'PENDING REVIEW'}
                   </strong>
                 </div>
 
-                <div style={{ background: 'var(--surface-alt)', padding: '12px', borderRadius: '12px' }}>
+                <div style={{ background: 'var(--surface-alt)', padding: '12px 14px', borderRadius: '12px' }}>
                   <span className="label-mini">Account State</span>
-                  <strong style={{ display: 'block', color: selectedUserDetails.accountStatus === 'SUSPENDED' ? '#EF4444' : '#10B981', marginTop: '2px' }}>
-                    {selectedUserDetails.accountStatus === 'SUSPENDED' ? 'SUSPENDED' : 'ACTIVE & IN GOOD STANDING'}
+                  <strong style={{ display: 'block', color: selectedUserDetails.accountStatus === 'SUSPENDED' ? '#EF4444' : '#10B981', marginTop: '2px', fontSize: '13px' }}>
+                    {selectedUserDetails.accountStatus === 'SUSPENDED' ? 'SUSPENDED' : 'ACTIVE'}
                   </strong>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
+              {/* Comprehensive User Profile Fields */}
+              <div style={{ background: 'var(--surface-alt)', padding: '14px 16px', borderRadius: '16px', marginBottom: '18px', display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Phone size={13} /> Phone:
+                  </span>
+                  <strong style={{ color: 'var(--text-main)' }}>{selectedUserDetails.phone || 'Not Provided'}</strong>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <MapPin size={13} /> Address:
+                  </span>
+                  <strong style={{ color: 'var(--text-main)', textAlign: 'right', maxWidth: '60%' }}>{selectedUserDetails.address || 'Dhaka, Bangladesh'}</strong>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Award size={13} /> Pet Maya Points:
+                  </span>
+                  <strong style={{ color: '#F59E0B' }}>{selectedUserDetails.points ?? 25} pts</strong>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Tag size={13} /> Referral Code:
+                  </span>
+                  <strong style={{ fontFamily: 'monospace', color: 'var(--primary)' }}>{selectedUserDetails.referralCode || 'N/A'}</strong>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Building2 size={13} /> Change Role:
+                  </span>
+                  <select
+                    className="input-clean"
+                    style={{ padding: '4px 10px', fontSize: '12px', fontWeight: 700, width: 'auto' }}
+                    value={selectedUserDetails.role || 'Pet Owner'}
+                    onChange={(e) => handleChangeUserRole(selectedUserDetails.id, e.target.value)}
+                  >
+                    <option value="Pet Owner">Pet Owner</option>
+                    <option value="Veterinarian">Veterinarian</option>
+                    <option value="Shelter & Spa">Shelter &amp; Spa</option>
+                    <option value="Super Admin">Super Admin</option>
+                  </select>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Calendar size={13} /> Member Since:
+                  </span>
+                  <span>{selectedUserDetails.joinedDate || '2026-08-01'}</span>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '8px' }}>
                 <button
                   className="apple-btn-blue"
                   style={{ width: '100%', justifyContent: 'center', background: selectedUserDetails.isVerified ? '#F59E0B' : '#10B981' }}
