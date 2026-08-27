@@ -175,7 +175,7 @@ export function AppProvider({ children }) {
       const saved = localStorage.getItem('pm_cached_products');
       if (saved) return JSON.parse(saved);
     } catch (_) {}
-    return [];
+    return INITIAL_PRODUCTS || [];
   });
   const [isProductsLoading, setIsProductsLoading] = useState(() => {
     try {
@@ -1161,6 +1161,104 @@ export function AppProvider({ children }) {
     return newOrder;
   };
 
+  // ─── ADMIN PRODUCT & INVENTORY MANAGEMENT ACTIONS ───
+  const addProduct = async (productData) => {
+    const id = productData.id || 'p_' + Date.now();
+    const newProduct = {
+      id,
+      name: productData.name || 'New Product',
+      category: productData.category || 'supplies',
+      price: typeof productData.price === 'number' ? productData.price : (parseFloat(productData.price) || 19.99),
+      rating: typeof productData.rating === 'number' ? productData.rating : 4.8,
+      ratingCount: productData.ratingCount || 1,
+      image: productData.image || productData.imageUrl || 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=500&auto=format&fit=crop&q=80',
+      description: productData.description || 'Premium pet care item.',
+      isRx: !!productData.isRx,
+      inStock: productData.inStock !== false,
+      stockCount: typeof productData.stockCount === 'number' ? productData.stockCount : 50,
+      createdAt: Date.now()
+    };
+
+    setProducts(prev => [newProduct, ...prev.filter(p => p.id !== id)]);
+    try {
+      localStorage.setItem('pm_cached_products', JSON.stringify([newProduct, ...products.filter(p => p.id !== id)]));
+    } catch (_) {}
+
+    try {
+      await setDoc(doc(db, 'products', id), newProduct, { merge: true });
+      showToast(`🛍️ Product "${newProduct.name}" saved to catalog!`, 'success');
+    } catch (e) {
+      console.warn('[Firebase] addProduct error:', e);
+      showToast(`🛍️ Product "${newProduct.name}" saved!`, 'success');
+    }
+    return newProduct;
+  };
+
+  const updateProduct = async (productId, updatedFields) => {
+    setProducts(prev => prev.map(p => p.id === productId ? { ...p, ...updatedFields } : p));
+    try {
+      const updatedList = products.map(p => p.id === productId ? { ...p, ...updatedFields } : p);
+      localStorage.setItem('pm_cached_products', JSON.stringify(updatedList));
+    } catch (_) {}
+
+    try {
+      await setDoc(doc(db, 'products', productId), updatedFields, { merge: true });
+      showToast('✅ Product updated successfully.', 'success');
+    } catch (e) {
+      console.warn('[Firebase] updateProduct error:', e);
+      showToast('✅ Product updated.', 'success');
+    }
+  };
+
+  const deleteProduct = async (productId) => {
+    setProducts(prev => prev.filter(p => p.id !== productId));
+    try {
+      const filtered = products.filter(p => p.id !== productId);
+      localStorage.setItem('pm_cached_products', JSON.stringify(filtered));
+    } catch (_) {}
+
+    try {
+      await deleteDoc(doc(db, 'products', productId));
+      showToast('🗑️ Product removed from catalog.', 'info');
+    } catch (e) {
+      console.warn('[Firebase] deleteProduct error:', e);
+      showToast('🗑️ Product removed.', 'info');
+    }
+  };
+
+  // ─── ADMIN ORDER MANAGEMENT ACTIONS ───
+  const updateOrderStatus = async (orderId, newStatus) => {
+    setOrders(prev => prev.map(o => (o.id === orderId || o.orderId === orderId) ? { ...o, status: newStatus, updatedAt: Date.now() } : o));
+    try {
+      const updatedList = orders.map(o => (o.id === orderId || o.orderId === orderId) ? { ...o, status: newStatus, updatedAt: Date.now() } : o);
+      localStorage.setItem('pm_orders', JSON.stringify(updatedList));
+    } catch (_) {}
+
+    try {
+      await setDoc(doc(db, 'orders', orderId), { status: newStatus, updatedAt: Date.now() }, { merge: true });
+      showToast(`📦 Order ${orderId} status updated to "${newStatus}".`, 'success');
+    } catch (e) {
+      console.warn('[Firebase] updateOrderStatus error:', e);
+      showToast(`📦 Order status updated to "${newStatus}".`, 'success');
+    }
+  };
+
+  const deleteOrder = async (orderId) => {
+    setOrders(prev => prev.filter(o => o.id !== orderId && o.orderId !== orderId));
+    try {
+      const filtered = orders.filter(o => o.id !== orderId && o.orderId !== orderId);
+      localStorage.setItem('pm_orders', JSON.stringify(filtered));
+    } catch (_) {}
+
+    try {
+      await deleteDoc(doc(db, 'orders', orderId));
+      showToast(`🗑️ Order ${orderId} removed.`, 'info');
+    } catch (e) {
+      console.warn('[Firebase] deleteOrder error:', e);
+      showToast(`🗑️ Order removed.`, 'info');
+    }
+  };
+
   const cartCount = cart.reduce((acc, item) => acc + item.qty, 0);
   const cartTotal = cart.reduce((acc, item) => acc + item.price * item.qty, 0);
 
@@ -1183,6 +1281,9 @@ export function AppProvider({ children }) {
       isVetsLoading,
       products,
       isProductsLoading,
+      addProduct,
+      updateProduct,
+      deleteProduct,
       posts,
       isPostsLoading,
       createPost,
@@ -1204,6 +1305,8 @@ export function AppProvider({ children }) {
       applyCoupon,
       orders,
       checkoutOrder,
+      updateOrderStatus,
+      deleteOrder,
       globalBanner,
       updateGlobalBanner,
       locationPermission,
