@@ -121,6 +121,8 @@ export default function Blog() {
   }, []);
 
   const filteredBlogs = blogs.filter(b => {
+    const isApproved = b.isApproved === true || b.status === 'APPROVED' || b.status === 'approved' || (!('status' in b) && !('isApproved' in b));
+    if (!isApproved) return false;
     const matchesCat = selectedCategory === 'ALL' || (b.category || '').toUpperCase() === selectedCategory;
     const matchesSearch = !searchQuery || 
       b.title.toLowerCase().includes(searchQuery.toLowerCase()) ||

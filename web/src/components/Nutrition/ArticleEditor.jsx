@@ -251,6 +251,10 @@ export default function ArticleEditor({ onClose, onPublished, showToast }) {
       showToast('🔒 Sign in to publish articles', 'info'); return;
     }
 
+    const isAdmin = currentUser?.role === 'Super Admin' || currentUser?.role === 'admin' || currentUser?.email === 'admin@petmaya.app';
+    const status = isAdmin ? 'APPROVED' : 'PENDING';
+    const isApproved = isAdmin ? true : false;
+
     setIsSubmitting(true);
     try {
       await addDoc(collection(db, 'blogs'), {
@@ -264,10 +268,17 @@ export default function ArticleEditor({ onClose, onPublished, showToast }) {
         authorPhoto: currentUser.photoUrl || null,
         timestamp: Date.now(),
         readTimeMinutes: readTime,
-        tags
+        tags,
+        status,
+        isApproved
       });
       localStorage.removeItem(DRAFT_KEY);
-      showToast('🎉 Article published successfully!', 'success');
+      showToast(
+        isAdmin 
+          ? '🎉 Article published directly to community feed!' 
+          : '📝 Article submitted for review! It will be live on web & app once approved by an admin.', 
+        'success'
+      );
       onPublished?.();
       onClose();
     } catch (err) {

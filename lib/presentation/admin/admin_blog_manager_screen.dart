@@ -21,6 +21,7 @@ class AdminBlogManagerScreen extends StatefulWidget {
 
 class _AdminBlogManagerScreenState extends State<AdminBlogManagerScreen> {
   String _searchQuery = '';
+  String _selectedStatus = 'ALL'; // ALL, PENDING, APPROVED
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +29,16 @@ class _AdminBlogManagerScreenState extends State<AdminBlogManagerScreen> {
     final blogs = state.blogs;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    final pendingCount = blogs.where((b) => !b.isApproved && b.status != 'APPROVED').length;
+
     final filteredBlogs = blogs.where((blog) {
+      // Status filter
+      if (_selectedStatus == 'PENDING') {
+        if (blog.isApproved || blog.status == 'APPROVED') return false;
+      } else if (_selectedStatus == 'APPROVED') {
+        if (!blog.isApproved && blog.status != 'APPROVED') return false;
+      }
+
       final query = _searchQuery.toLowerCase();
       return blog.title.toLowerCase().contains(query) ||
              blog.authorName.toLowerCase().contains(query) ||
@@ -44,6 +54,22 @@ class _AdminBlogManagerScreenState extends State<AdminBlogManagerScreen> {
       body: Column(
         children: [
           const SizedBox(height: 100),
+
+          // ─── STATUS FILTER TABS ──────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              children: [
+                _buildStatusTab('ALL', 'All (${blogs.length})', isDark),
+                const SizedBox(width: 8),
+                _buildStatusTab('PENDING', 'Pending ($pendingCount)', isDark, isWarning: pendingCount > 0),
+                const SizedBox(width: 8),
+                _buildStatusTab('APPROVED', 'Live (${blogs.length - pendingCount})', isDark),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+
           // Search Bar
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -90,9 +116,37 @@ class _AdminBlogManagerScreenState extends State<AdminBlogManagerScreen> {
     );
   }
 
+  Widget _buildStatusTab(String key, String label, bool isDark, {bool isWarning = false}) {
+    final isSelected = _selectedStatus == key;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _selectedStatus = key),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: isSelected 
+                ? (isWarning ? Colors.orange : AppColors.primary) 
+                : (isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05)),
+            borderRadius: BorderRadius.circular(14),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: isSelected ? Colors.white : (isDark ? Colors.white70 : Colors.black87),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildBlogAdminTile(BuildContext context, BlogPostModel blog, AppStateRepository state) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final dateStr = DateFormat('MMM d, yyyy').format(DateTime.fromMillisecondsSinceEpoch(blog.timestamp));
+    final isApproved = blog.isApproved || blog.status == 'APPROVED';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -118,14 +172,28 @@ class _AdminBlogManagerScreenState extends State<AdminBlogManagerScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(blog.category.toUpperCase(), 
-                        style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w900, fontSize: 8, letterSpacing: 0.5)),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(blog.category.toUpperCase(), 
+                            style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w900, fontSize: 8, letterSpacing: 0.5)),
+                        ),
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: (isApproved ? Colors.green : Colors.orange).withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(isApproved ? 'LIVE' : 'PENDING REVIEW', 
+                            style: TextStyle(color: isApproved ? Colors.green : Colors.orange, fontWeight: FontWeight.w900, fontSize: 8, letterSpacing: 0.5)),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 4),
                     Text(blog.title, 
@@ -137,8 +205,24 @@ class _AdminBlogManagerScreenState extends State<AdminBlogManagerScreen> {
                   ],
                 ),
               ),
+              if (!isApproved)
+                IconButton(
+                  icon: const Icon(Icons.check_circle_outline_rounded, color: Colors.green, size: 24),
+                  tooltip: 'Approve Article',
+                  onPressed: () {
+                    state.updateBlogStatus(blog.id, 'APPROVED', true);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('"${blog.title}" approved and live on web & app! 🎉'),
+                        backgroundColor: AppColors.healthGreen,
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  },
+                ),
               IconButton(
                 icon: const Icon(Icons.delete_outline_rounded, color: AppColors.dangerRed, size: 22),
+                tooltip: 'Delete Article',
                 onPressed: () => _confirmDelete(context, blog, state),
               ),
             ],

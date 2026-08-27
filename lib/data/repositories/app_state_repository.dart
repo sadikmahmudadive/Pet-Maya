@@ -567,6 +567,16 @@ class AppStateRepository extends ChangeNotifier {
     logAudit('Blog Created', 'User ${_currentUser?.name} published an article');
   }
 
+  Future<void> updateBlogStatus(String blogId, String status, bool isApproved) async {
+    final index = _blogs.indexWhere((b) => b.id == blogId);
+    if (index != -1) {
+      _blogs[index] = _blogs[index].copyWith(status: status, isApproved: isApproved);
+      notifyListeners();
+    }
+    await _firebase.updateBlogStatus(blogId, status, isApproved);
+    logAudit('Blog Status Updated', 'Article $blogId updated to $status (Approved: $isApproved)');
+  }
+
   Future<void> deleteBlog(String blogId) async {
     _blogs.removeWhere((b) => b.id == blogId);
     notifyListeners();

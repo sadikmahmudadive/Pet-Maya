@@ -613,6 +613,13 @@ class FirebaseService {
     await _blogsCol.doc(blog.id).set(blog.toMap(), SetOptions(merge: true));
   }
 
+  Future<void> updateBlogStatus(String blogId, String status, bool isApproved) async {
+    await _blogsCol.doc(blogId).set({
+      'status': status,
+      'isApproved': isApproved,
+    }, SetOptions(merge: true));
+  }
+
   Future<void> deleteBlog(String blogId) async {
     await _blogsCol.doc(blogId).delete();
   }

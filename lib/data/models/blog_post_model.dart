@@ -10,6 +10,8 @@ class BlogPostModel {
   final int timestamp;
   final int readTimeMinutes;
   final List<String> tags;
+  final String status; // 'PENDING', 'APPROVED', 'REJECTED'
+  final bool isApproved;
 
   BlogPostModel({
     required this.id,
@@ -23,6 +25,8 @@ class BlogPostModel {
     required this.timestamp,
     this.readTimeMinutes = 5,
     this.tags = const [],
+    this.status = 'PENDING',
+    this.isApproved = false,
   });
 
   Map<String, dynamic> toMap() {
@@ -38,10 +42,14 @@ class BlogPostModel {
       'timestamp': timestamp,
       'readTimeMinutes': readTimeMinutes,
       'tags': tags,
+      'status': status,
+      'isApproved': isApproved,
     };
   }
 
   factory BlogPostModel.fromMap(String id, Map<dynamic, dynamic> map) {
+    final status = map['status'] ?? (map['isApproved'] == true ? 'APPROVED' : (map.containsKey('isApproved') ? 'PENDING' : 'APPROVED'));
+    final isApproved = map['isApproved'] ?? (status == 'APPROVED');
     return BlogPostModel(
       id: id,
       authorId: map['authorId'] ?? '',
@@ -54,6 +62,40 @@ class BlogPostModel {
       timestamp: (map['timestamp'] as num?)?.toInt() ?? DateTime.now().millisecondsSinceEpoch,
       readTimeMinutes: (map['readTimeMinutes'] as num?)?.toInt() ?? 5,
       tags: (map['tags'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
+      status: status,
+      isApproved: isApproved,
+    );
+  }
+
+  BlogPostModel copyWith({
+    String? id,
+    String? authorId,
+    String? title,
+    String? content,
+    String? authorName,
+    String? authorPhoto,
+    String? imageUrl,
+    String? category,
+    int? timestamp,
+    int? readTimeMinutes,
+    List<String>? tags,
+    String? status,
+    bool? isApproved,
+  }) {
+    return BlogPostModel(
+      id: id ?? this.id,
+      authorId: authorId ?? this.authorId,
+      title: title ?? this.title,
+      content: content ?? this.content,
+      authorName: authorName ?? this.authorName,
+      authorPhoto: authorPhoto ?? this.authorPhoto,
+      imageUrl: imageUrl ?? this.imageUrl,
+      category: category ?? this.category,
+      timestamp: timestamp ?? this.timestamp,
+      readTimeMinutes: readTimeMinutes ?? this.readTimeMinutes,
+      tags: tags ?? this.tags,
+      status: status ?? this.status,
+      isApproved: isApproved ?? this.isApproved,
     );
   }
 }

@@ -78,6 +78,10 @@ class _CreateBlogScreenState extends State<CreateBlogScreen> {
       final imageUrl = await FirebaseStorageService().uploadImage(_imageFile!, 'blogs');
       if (imageUrl == null) throw Exception('Image upload failed');
 
+      final isAdmin = user?.role == UserRole.admin || user?.role == UserRole.superAdmin;
+      final status = isAdmin ? 'APPROVED' : 'PENDING';
+      final isApproved = isAdmin;
+
       // 2. Create blog model
       final blog = BlogPostModel(
         id: 'blog_${const Uuid().v4().substring(0, 8)}',
@@ -91,6 +95,8 @@ class _CreateBlogScreenState extends State<CreateBlogScreen> {
         timestamp: DateTime.now().millisecondsSinceEpoch,
         readTimeMinutes: (content.split(' ').length / 200).ceil().clamp(1, 60),
         tags: _tags,
+        status: status,
+        isApproved: isApproved,
       );
 
       // 3. Save to repository
@@ -99,7 +105,13 @@ class _CreateBlogScreenState extends State<CreateBlogScreen> {
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Blog published successfully! 📝'), backgroundColor: AppColors.healthGreen, behavior: SnackBarBehavior.floating),
+          SnackBar(
+            content: Text(isAdmin 
+                ? 'Blog published successfully! 📝' 
+                : 'Article submitted for review! It will go live after admin approval 📝'),
+            backgroundColor: AppColors.healthGreen,
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       }
     } catch (e) {

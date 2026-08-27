@@ -29,6 +29,7 @@ class _BlogScreenState extends State<BlogScreen> {
   Widget build(BuildContext context) {
     final state = context.watch<AppStateRepository>();
     final blogs = state.blogs.where((b) {
+      if (!b.isApproved && b.status != 'APPROVED') return false;
       if (_selectedCategory == 'ALL') return true;
       return b.category.toUpperCase() == _selectedCategory;
     }).toList();
