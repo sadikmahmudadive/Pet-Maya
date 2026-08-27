@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { 
@@ -50,7 +50,9 @@ import {
   Stethoscope,
   Sparkles,
   MapPin,
-  RefreshCw
+  RefreshCw,
+  Upload,
+  Image as ImageIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -78,7 +80,7 @@ export default function AdminPortal() {
   const [authError, setAuthError] = useState('');
 
   // Active Admin Sub-Tab
-  const [adminTab, setAdminTab] = useState('shop'); // 'overview', 'shop', 'orders', 'blogs', 'broadcasts', 'clinicians'
+  const [adminTab, setAdminTab] = useState('shop'); // 'shop', 'orders', 'blogs', 'overview', 'broadcasts', 'clinicians'
 
   // ─── SHOP & INVENTORY STATE ───
   const [productSearch, setProductSearch] = useState('');
@@ -87,16 +89,19 @@ export default function AdminPortal() {
   const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
 
+  const fileInputRef = useRef(null);
+
   // Form State for Add / Edit Product
   const [productFormData, setProductFormData] = useState({
     name: '',
+    brand: '',
     category: 'food',
     price: '',
+    stockCount: 50,
     image: '',
     description: '',
     isRx: false,
     inStock: true,
-    stockCount: 50,
     rating: 4.8
   });
 
@@ -109,6 +114,15 @@ export default function AdminPortal() {
     { label: 'Memory Bed', url: 'https://images.unsplash.com/photo-1541599540903-216a46ca1dc0?w=500&auto=format&fit=crop&q=80' },
     { label: 'Ear Drops', url: 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=500&auto=format&fit=crop&q=80' },
     { label: 'Supplements', url: 'https://images.unsplash.com/photo-1551884170-09fb70a3a2ed?w=500&auto=format&fit=crop&q=80' }
+  ];
+
+  // Categories list matching the UI image
+  const CATEGORIES = [
+    { id: 'food', label: 'Food' },
+    { id: 'toys', label: 'Toys' },
+    { id: 'health', label: 'Health' },
+    { id: 'gear', label: 'Gear' },
+    { id: 'grooming', label: 'Grooming' }
   ];
 
   // ─── ORDER MANAGEMENT STATE ───
@@ -127,7 +141,6 @@ export default function AdminPortal() {
           const fetched = snap.docs.map(d => ({ id: d.id, ...d.data() }));
           setAllOrders(fetched);
         } else {
-          // Merge with context orders or local fallback
           setAllOrders(contextOrders || []);
         }
       }, (err) => {
@@ -202,13 +215,14 @@ export default function AdminPortal() {
     setEditingProduct(null);
     setProductFormData({
       name: '',
+      brand: '',
       category: 'food',
       price: '',
+      stockCount: 50,
       image: PRESET_IMAGES[0].url,
       description: '',
       isRx: false,
       inStock: true,
-      stockCount: 50,
       rating: 4.8
     });
     setIsAddProductModalOpen(true);
@@ -218,16 +232,28 @@ export default function AdminPortal() {
     setEditingProduct(product);
     setProductFormData({
       name: product.name || '',
-      category: product.category || 'food',
+      brand: product.brand || '',
+      category: (product.category || 'food').toLowerCase(),
       price: product.price || '',
-      image: product.image || product.imageUrl || '',
+      stockCount: typeof product.stockCount === 'number' ? product.stockCount : 50,
+      image: product.image || product.imageUrl || PRESET_IMAGES[0].url,
       description: product.description || '',
       isRx: !!product.isRx,
       inStock: product.inStock !== false,
-      stockCount: typeof product.stockCount === 'number' ? product.stockCount : 50,
       rating: product.rating || 4.8
     });
     setIsAddProductModalOpen(true);
+  };
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (uploadEvent) => {
+      setProductFormData(prev => ({ ...prev, image: uploadEvent.target.result }));
+      showToast('📸 Photo loaded into gallery', 'success');
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSaveProduct = async (e) => {
@@ -243,13 +269,14 @@ export default function AdminPortal() {
 
     const payload = {
       name: productFormData.name.trim(),
+      brand: productFormData.brand.trim() || 'Pet Maya',
       category: productFormData.category,
       price: parseFloat(productFormData.price),
+      stockCount: parseInt(productFormData.stockCount, 10) || 0,
       image: productFormData.image || PRESET_IMAGES[0].url,
       description: productFormData.description.trim() || 'Veterinary-grade pet care formulation.',
       isRx: !!productFormData.isRx,
-      inStock: !!productFormData.inStock,
-      stockCount: parseInt(productFormData.stockCount, 10) || 0,
+      inStock: productFormData.inStock !== false && (parseInt(productFormData.stockCount, 10) || 0) > 0,
       rating: parseFloat(productFormData.rating) || 4.8,
     };
 
@@ -358,9 +385,10 @@ export default function AdminPortal() {
     if (productCatFilter !== 'ALL') {
       const cat = (p.category || '').toLowerCase();
       if (productCatFilter === 'food' && !cat.includes('food')) return false;
-      if (productCatFilter === 'pharma' && !cat.includes('pharma') && !p.isRx) return false;
-      if (productCatFilter === 'tech' && !cat.includes('tech') && !cat.includes('collar')) return false;
-      if (productCatFilter === 'supplies' && !cat.includes('suppl') && !cat.includes('bed')) return false;
+      if (productCatFilter === 'toys' && !cat.includes('toy')) return false;
+      if (productCatFilter === 'health' && !cat.includes('health') && !cat.includes('pharma') && !cat.includes('med') && !p.isRx) return false;
+      if (productCatFilter === 'gear' && !cat.includes('gear') && !cat.includes('tech') && !cat.includes('collar')) return false;
+      if (productCatFilter === 'grooming' && !cat.includes('groom') && !cat.includes('suppl') && !cat.includes('spa')) return false;
     }
 
     if (productStockFilter === 'IN_STOCK' && p.inStock === false) return false;
@@ -371,6 +399,7 @@ export default function AdminPortal() {
     const q = productSearch.toLowerCase();
     return (
       (p.name || '').toLowerCase().includes(q) ||
+      (p.brand || '').toLowerCase().includes(q) ||
       (p.description || '').toLowerCase().includes(q) ||
       (p.category || '').toLowerCase().includes(q)
     );
@@ -412,6 +441,13 @@ export default function AdminPortal() {
   });
 
   // Financial & Inventory Aggregations
+  // Total Valuation = sum(product.price * product.stockCount)
+  const totalValuation = products.reduce((acc, p) => {
+    const pr = typeof p.price === 'number' ? p.price : (parseFloat(p.price) || 0);
+    const stock = typeof p.stockCount === 'number' ? p.stockCount : 50;
+    return acc + (pr * stock);
+  }, 0);
+
   const totalRevenue = ordersList
     .filter(o => !((o.status || '').toLowerCase().includes('cancel')))
     .reduce((acc, o) => acc + (typeof o.total === 'number' ? o.total : parseFloat(o.total) || 0), 0);
@@ -531,7 +567,7 @@ export default function AdminPortal() {
         border: '1px solid var(--border)' 
       }}>
         {[
-          { id: 'shop', label: 'Shop & Inventory', icon: ShoppingBag, count: products.length },
+          { id: 'shop', label: 'Inventory Command', icon: ShoppingBag, count: products.length },
           { id: 'orders', label: 'Orders & Dispatch', icon: Package, count: inPrepOrdersCount > 0 ? inPrepOrdersCount : ordersList.length, highlight: inPrepOrdersCount > 0 },
           { id: 'blogs', label: 'Article Moderation', icon: BookOpen, count: pendingBlogs.length, highlight: pendingBlogs.length > 0 },
           { id: 'overview', label: 'Telemetry & Stats', icon: Activity },
@@ -585,34 +621,57 @@ export default function AdminPortal() {
       {adminTab === 'shop' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           
-          {/* Shop Metrics */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
-            <div className="apple-solid-card" style={{ padding: '18px 20px', textAlign: 'left' }}>
-              <span className="label-mini">Total Catalog Items</span>
-              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px' }}>{products.length} Products</strong>
-              <span style={{ fontSize: '12px', color: 'var(--primary)', marginTop: '4px' }}>Live in Pet Shop &amp; Pharmacy</span>
-            </div>
-
-            <div className="apple-solid-card" style={{ padding: '18px 20px', textAlign: 'left' }}>
-              <span className="label-mini">In Stock / Available</span>
-              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px', color: '#10B981' }}>{inStockProductsCount}</strong>
-              <span style={{ fontSize: '12px', color: '#10B981', marginTop: '4px' }}>Ready for Instant Dispatch</span>
-            </div>
-
-            <div className="apple-solid-card" style={{ padding: '18px 20px', textAlign: 'left' }}>
-              <span className="label-mini">Out of Stock Alerts</span>
-              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px', color: outOfStockProductsCount > 0 ? '#EF4444' : 'var(--text-muted)' }}>
-                {outOfStockProductsCount} Items
+          {/* Shop Metrics (Including Valuation Card) */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '14px' }}>
+            
+            {/* 💎 VALUATION CARD (Matches Image 1) */}
+            <div 
+              className="apple-solid-card" 
+              style={{ 
+                padding: '20px 22px', 
+                textAlign: 'left',
+                border: '1px solid rgba(16, 185, 129, 0.25)',
+                background: 'linear-gradient(135deg, var(--surface-alt) 0%, rgba(16, 185, 129, 0.06) 100%)',
+                boxShadow: '0 4px 20px rgba(16, 185, 129, 0.08)'
+              }}
+            >
+              <span style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '0.12em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                VALUATION
+              </span>
+              <strong style={{ fontSize: '30px', fontWeight: 800, marginTop: '4px', color: '#10B981', letterSpacing: '-0.02em', display: 'block' }}>
+                ৳{Math.round(totalValuation).toLocaleString()}
               </strong>
-              <span style={{ fontSize: '12px', color: outOfStockProductsCount > 0 ? '#EF4444' : '#10B981', marginTop: '4px' }}>
-                {outOfStockProductsCount > 0 ? 'Requires Restock Supply' : 'All SKUs Available'}
+              <span style={{ fontSize: '12px', color: '#10B981', marginTop: '4px', display: 'block' }}>
+                Total Warehouse Stock Value
               </span>
             </div>
 
-            <div className="apple-solid-card" style={{ padding: '18px 20px', textAlign: 'left' }}>
+            <div className="apple-solid-card" style={{ padding: '20px 22px', textAlign: 'left' }}>
+              <span className="label-mini">Total Catalog SKUs</span>
+              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px' }}>{products.length} Products</strong>
+              <span style={{ fontSize: '12px', color: 'var(--primary)', marginTop: '4px' }}>Active in Store Feed</span>
+            </div>
+
+            <div className="apple-solid-card" style={{ padding: '20px 22px', textAlign: 'left' }}>
+              <span className="label-mini">In Stock Units</span>
+              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px', color: '#10B981' }}>{inStockProductsCount}</strong>
+              <span style={{ fontSize: '12px', color: '#10B981', marginTop: '4px' }}>Available for 1-Click Buy</span>
+            </div>
+
+            <div className="apple-solid-card" style={{ padding: '20px 22px', textAlign: 'left' }}>
+              <span className="label-mini">Out of Stock Alerts</span>
+              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px', color: outOfStockProductsCount > 0 ? '#EF4444' : 'var(--text-muted)' }}>
+                {outOfStockProductsCount} SKUs
+              </strong>
+              <span style={{ fontSize: '12px', color: outOfStockProductsCount > 0 ? '#EF4444' : '#10B981', marginTop: '4px' }}>
+                {outOfStockProductsCount > 0 ? 'Requires Restock Supply' : 'All Stock Healthy'}
+              </span>
+            </div>
+
+            <div className="apple-solid-card" style={{ padding: '20px 22px', textAlign: 'left' }}>
               <span className="label-mini">Prescription Medications</span>
               <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px', color: '#8B5CF6' }}>{rxProductsCount} Rx SKUs</strong>
-              <span style={{ fontSize: '12px', color: '#8B5CF6', marginTop: '4px' }}>Requires Vet Verification</span>
+              <span style={{ fontSize: '12px', color: '#8B5CF6', marginTop: '4px' }}>Requires Clinical Verification</span>
             </div>
           </div>
 
@@ -622,20 +681,20 @@ export default function AdminPortal() {
               <div>
                 <h3 style={{ fontSize: '18px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
                   <ShoppingBag size={18} color="var(--primary)" />
-                  <span>Store Catalog &amp; Inventory Manager</span>
+                  <span>Inventory Command &amp; Catalog Management</span>
                 </h3>
                 <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-                  Create, update pricing, toggle stock availability, and manage pharmaceutical prescriptions.
+                  Manage catalog entries, brand specifications, list prices (৳), live stock quantities, and clinical prescription flags.
                 </span>
               </div>
 
               <button
                 className="apple-btn-blue"
                 onClick={handleOpenAddProduct}
-                style={{ padding: '8px 18px', fontSize: '13px' }}
+                style={{ padding: '9px 20px', fontSize: '13px', background: '#10B981' }}
               >
                 <Plus size={15} />
-                <span>Add New Product</span>
+                <span>ADD SKU</span>
               </button>
             </div>
 
@@ -646,31 +705,32 @@ export default function AdminPortal() {
                 <input
                   type="text"
                   className="input-clean"
-                  placeholder="Search products by title, description, or category..."
+                  placeholder="Search by product name, brand, description, or category..."
                   value={productSearch}
                   onChange={(e) => setProductSearch(e.target.value)}
                   style={{ paddingLeft: '38px' }}
                 />
               </div>
 
-              {/* Category Filter */}
+              {/* Category Filter Pills */}
               <div style={{ display: 'flex', gap: '6px', background: 'var(--surface-alt)', padding: '3px', borderRadius: '10px', overflowX: 'auto' }}>
                 {[
-                  { id: 'ALL', label: 'All Categories' },
-                  { id: 'food', label: 'Food & Nutrition' },
-                  { id: 'pharma', label: 'Rx & Pharmacy' },
-                  { id: 'tech', label: 'Collars & Tech' },
-                  { id: 'supplies', label: 'Beds & Supplies' }
+                  { id: 'ALL', label: 'All' },
+                  { id: 'food', label: 'Food' },
+                  { id: 'toys', label: 'Toys' },
+                  { id: 'health', label: 'Health' },
+                  { id: 'gear', label: 'Gear' },
+                  { id: 'grooming', label: 'Grooming' }
                 ].map((c) => (
                   <button
                     key={c.id}
                     onClick={() => setProductCatFilter(c.id)}
                     style={{
                       border: 'none',
-                      padding: '6px 12px',
+                      padding: '6px 14px',
                       borderRadius: '8px',
                       fontSize: '12px',
-                      fontWeight: 600,
+                      fontWeight: 700,
                       cursor: 'pointer',
                       background: productCatFilter === c.id ? 'var(--primary)' : 'transparent',
                       color: productCatFilter === c.id ? '#FFFFFF' : 'var(--text-muted)',
@@ -714,20 +774,25 @@ export default function AdminPortal() {
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13.5px' }}>
                   <thead>
                     <tr style={{ textAlign: 'left', color: 'var(--text-muted)', borderBottom: '1px solid var(--border)' }}>
-                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>Product</th>
+                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>Product &amp; Brand</th>
                       <th style={{ padding: '12px 10px', fontWeight: 600 }}>Category</th>
-                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>Price</th>
-                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>Stock Status</th>
-                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>Rx Required</th>
+                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>List Price (৳)</th>
+                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>Current Stock</th>
+                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>SKU Valuation</th>
+                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>Status</th>
                       <th style={{ padding: '12px 10px', fontWeight: 600, textAlign: 'right' }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredProducts.map((p) => {
                       const inStock = p.inStock !== false;
+                      const stockCount = typeof p.stockCount === 'number' ? p.stockCount : 50;
+                      const price = typeof p.price === 'number' ? p.price : (parseFloat(p.price) || 0);
+                      const itemValuation = price * stockCount;
+
                       return (
                         <tr key={p.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                          {/* Item Info */}
+                          {/* Item Info & Brand */}
                           <td style={{ padding: '14px 10px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                               <img
@@ -740,8 +805,8 @@ export default function AdminPortal() {
                                 <strong style={{ fontSize: '14px', color: 'var(--text-main)', display: 'block' }}>
                                   {p.name}
                                 </strong>
-                                <span style={{ fontSize: '11.5px', color: 'var(--text-muted)', maxWidth: '300px', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                  {p.description || 'Premium pet care item.'}
+                                <span style={{ fontSize: '11.5px', color: 'var(--primary)', fontWeight: 600 }}>
+                                  {p.brand || 'Pet Maya'} {p.isRx && '• Rx'}
                                 </span>
                               </div>
                             </div>
@@ -762,9 +827,21 @@ export default function AdminPortal() {
                             </span>
                           </td>
 
-                          {/* Price */}
+                          {/* List Price */}
                           <td style={{ padding: '14px 10px', fontWeight: 700, color: 'var(--text-main)' }}>
-                            ${Number(p.price || 0).toFixed(2)}
+                            ৳{price.toFixed(2)}
+                          </td>
+
+                          {/* Stock Quantity */}
+                          <td style={{ padding: '14px 10px', fontWeight: 600 }}>
+                            <span style={{ color: stockCount <= 5 ? '#EF4444' : 'var(--text-main)' }}>
+                              {stockCount} units
+                            </span>
+                          </td>
+
+                          {/* SKU Valuation */}
+                          <td style={{ padding: '14px 10px', fontWeight: 700, color: '#10B981' }}>
+                            ৳{Math.round(itemValuation).toLocaleString()}
                           </td>
 
                           {/* Stock Status & Toggle */}
@@ -791,17 +868,6 @@ export default function AdminPortal() {
                             </button>
                           </td>
 
-                          {/* Rx Required */}
-                          <td style={{ padding: '14px 10px' }}>
-                            {p.isRx ? (
-                              <span style={{ fontSize: '11px', fontWeight: 800, padding: '2px 8px', borderRadius: '6px', background: 'rgba(139, 92, 246, 0.15)', color: '#8B5CF6' }}>
-                                💊 Rx Required
-                              </span>
-                            ) : (
-                              <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>OTC</span>
-                            )}
-                          </td>
-
                           {/* Action Buttons */}
                           <td style={{ padding: '14px 10px', textAlign: 'right' }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '6px' }}>
@@ -809,7 +875,7 @@ export default function AdminPortal() {
                                 className="icon-btn"
                                 style={{ width: 32, height: 32, color: 'var(--apple-blue)' }}
                                 onClick={() => handleOpenEditProduct(p)}
-                                title="Edit Product"
+                                title="Edit Product Entry"
                               >
                                 <Edit size={14} />
                               </button>
@@ -846,7 +912,7 @@ export default function AdminPortal() {
             <div className="apple-solid-card" style={{ padding: '18px 20px', textAlign: 'left' }}>
               <span className="label-mini">Total Platform Revenue</span>
               <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px', color: '#10B981' }}>
-                ${totalRevenue.toFixed(2)}
+                ৳{totalRevenue.toFixed(2)}
               </strong>
               <span style={{ fontSize: '12px', color: '#10B981', marginTop: '4px' }}>Processed Orders</span>
             </div>
@@ -997,7 +1063,7 @@ export default function AdminPortal() {
 
                           {/* Total */}
                           <td style={{ padding: '14px 10px', fontWeight: 700, color: 'var(--text-main)' }}>
-                            ${Number(ord.total || 0).toFixed(2)}
+                            ৳{Number(ord.total || 0).toFixed(2)}
                           </td>
 
                           {/* Status Badge */}
@@ -1301,9 +1367,17 @@ export default function AdminPortal() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
             <div className="apple-solid-card" style={{ padding: '20px', textAlign: 'left', alignItems: 'flex-start' }}>
-              <span className="label-mini">Gross Store Revenue</span>
+              <span className="label-mini">Total Shop Valuation</span>
               <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px', color: '#10B981' }}>
-                ${totalRevenue.toFixed(2)}
+                ৳{Math.round(totalValuation).toLocaleString()}
+              </strong>
+              <span style={{ fontSize: '12px', color: '#10B981', marginTop: '4px' }}>Based on current SKU stock</span>
+            </div>
+
+            <div className="apple-solid-card" style={{ padding: '20px', textAlign: 'left', alignItems: 'flex-start' }}>
+              <span className="label-mini">Gross Processed Revenue</span>
+              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px', color: '#10B981' }}>
+                ৳{totalRevenue.toFixed(2)}
               </strong>
               <span style={{ fontSize: '12px', color: '#10B981', marginTop: '4px' }}>Across {ordersList.length} Customer Orders</span>
             </div>
@@ -1316,12 +1390,6 @@ export default function AdminPortal() {
               <span style={{ fontSize: '12px', color: inPrepOrdersCount > 0 ? '#0071E3' : '#10B981', marginTop: '4px' }}>
                 {inPrepOrdersCount > 0 ? 'Awaiting Dispatch' : 'Fulfillment Complete'}
               </span>
-            </div>
-
-            <div className="apple-solid-card" style={{ padding: '20px', textAlign: 'left', alignItems: 'flex-start' }}>
-              <span className="label-mini">Catalog SKUs</span>
-              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px' }}>{products.length} Products</strong>
-              <span style={{ fontSize: '12px', color: '#10B981', marginTop: '4px' }}>{inStockProductsCount} In Stock</span>
             </div>
 
             <div className="apple-solid-card" style={{ padding: '20px', textAlign: 'left', alignItems: 'flex-start' }}>
@@ -1527,7 +1595,7 @@ export default function AdminPortal() {
                     <td style={{ padding: '14px 10px' }}>
                       <span className="badge badge-green">Verified License</span>
                     </td>
-                    <td style={{ padding: '14px 10px', fontWeight: 700 }}>${v.price || 40}</td>
+                    <td style={{ padding: '14px 10px', fontWeight: 700 }}>৳{v.price || 400}</td>
                     <td style={{ padding: '14px 10px' }}>
                       <button 
                         className="btn-ghost" 
@@ -1547,7 +1615,7 @@ export default function AdminPortal() {
       )}
 
       {/* ══════════════════════════════════════════════════════
-          MODAL: ADD / EDIT PRODUCT
+          MODAL: NEW CATALOG ENTRY (Matches Image 2 UI)
           ══════════════════════════════════════════════════════ */}
       <AnimatePresence>
         {isAddProductModalOpen && (
@@ -1556,192 +1624,343 @@ export default function AdminPortal() {
               position: 'fixed',
               inset: 0,
               zIndex: 10000,
-              background: 'rgba(0,0,0,0.65)',
-              backdropFilter: 'blur(16px)',
-              WebkitBackdropFilter: 'blur(16px)',
+              background: 'rgba(0,0,0,0.75)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              padding: '20px'
+              padding: '16px'
             }}
             onClick={() => setIsAddProductModalOpen(false)}
           >
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              initial={{ opacity: 0, scale: 0.96, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              exit={{ opacity: 0, scale: 0.96, y: 15 }}
               transition={{ duration: 0.22, ease: [0.25, 1, 0.5, 1] }}
               style={{
                 width: '100%',
-                maxWidth: '560px',
-                background: 'var(--surface-solid)',
+                maxWidth: '480px',
+                background: '#0D0D0E',
+                color: '#FFFFFF',
                 borderRadius: '24px',
-                border: '1px solid var(--border)',
-                boxShadow: 'var(--shadow-xl)',
-                padding: '28px',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                boxShadow: '0 30px 90px rgba(0,0,0,0.95)',
+                padding: '24px 24px 28px',
                 textAlign: 'left',
-                maxHeight: '90vh',
+                maxHeight: '92vh',
                 overflowY: 'auto'
               }}
               onClick={(e) => e.stopPropagation()}
             >
+              {/* Modal Header */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <div>
-                  <span className="apple-card-eyebrow" style={{ color: 'var(--primary)' }}>Store Catalog</span>
-                  <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '2px 0 0' }}>
-                    {editingProduct ? 'Edit Product Item' : 'Add New Product to Store'}
-                  </h2>
-                </div>
-                <button className="icon-btn" onClick={() => setIsAddProductModalOpen(false)}>
-                  <X size={18} />
+                <h2 style={{ fontSize: '17px', fontWeight: 800, letterSpacing: '0.04em', margin: 0, textTransform: 'uppercase', color: '#FFFFFF' }}>
+                  {editingProduct ? 'EDIT CATALOG ENTRY' : 'NEW CATALOG ENTRY'}
+                </h2>
+                <button 
+                  className="icon-btn" 
+                  style={{ color: '#8E8E93' }} 
+                  onClick={() => setIsAddProductModalOpen(false)}
+                >
+                  <X size={20} />
                 </button>
               </div>
 
               <form onSubmit={handleSaveProduct} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {/* Product Name */}
+                
+                {/* 1. PRODUCT GALLERY */}
                 <div>
-                  <label className="label-mini">Product Title *</label>
+                  <label style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', color: '#8E8E93', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>
+                    PRODUCT GALLERY
+                  </label>
+                  
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileUpload}
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                  />
+
+                  <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                    {/* Upload / Photo Box */}
+                    <div
+                      onClick={() => fileInputRef.current?.click()}
+                      style={{
+                        width: '78px',
+                        height: '78px',
+                        borderRadius: '16px',
+                        border: '2px dashed rgba(16, 185, 129, 0.6)',
+                        background: productFormData.image ? `url("${productFormData.image}") center/cover no-repeat` : 'rgba(16, 185, 129, 0.06)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        flexShrink: 0,
+                        position: 'relative',
+                        overflow: 'hidden',
+                        transition: 'border-color 0.2s ease'
+                      }}
+                      title="Click to upload image file"
+                    >
+                      {!productFormData.image && (
+                        <>
+                          <Upload size={22} color="#10B981" />
+                          <span style={{ fontSize: '10px', fontWeight: 800, color: '#10B981', marginTop: '3px' }}>ADD</span>
+                        </>
+                      )}
+                      {productFormData.image && (
+                        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0, transition: 'opacity 0.2s' }}
+                          onMouseEnter={(e) => e.currentTarget.style.opacity = 1}
+                          onMouseLeave={(e) => e.currentTarget.style.opacity = 0}
+                        >
+                          <Upload size={16} color="#FFF" />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Presets & URL link */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <span style={{ fontSize: '11px', color: '#8E8E93', display: 'block', marginBottom: '6px' }}>Or pick preset / enter URL:</span>
+                      <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px' }}>
+                        {PRESET_IMAGES.map((preset, idx) => (
+                          <button
+                            type="button"
+                            key={idx}
+                            onClick={() => setProductFormData(prev => ({ ...prev, image: preset.url }))}
+                            style={{
+                              border: productFormData.image === preset.url ? '1.5px solid #10B981' : '1px solid rgba(255,255,255,0.1)',
+                              background: '#1A1A1D',
+                              color: '#FFFFFF',
+                              padding: '4px 8px',
+                              borderRadius: '8px',
+                              fontSize: '11px',
+                              cursor: 'pointer',
+                              whiteSpace: 'nowrap'
+                            }}
+                          >
+                            {preset.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. PRODUCT NAME */}
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', color: '#8E8E93', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
+                    PRODUCT NAME
+                  </label>
                   <input
                     type="text"
                     required
-                    className="input-clean"
-                    placeholder="e.g. Royal Canin Golden Retriever Adult (3kg)"
+                    style={{
+                      width: '100%',
+                      padding: '12px 14px',
+                      borderRadius: '12px',
+                      background: '#161618',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      color: '#FFFFFF',
+                      fontSize: '14px',
+                      outline: 'none',
+                      fontFamily: 'inherit'
+                    }}
+                    placeholder="Enter product title..."
                     value={productFormData.name}
                     onChange={(e) => setProductFormData(prev => ({ ...prev, name: e.target.value }))}
                   />
                 </div>
 
-                {/* Category & Price */}
+                {/* 3. LIST PRICE (৳) & CURRENT STOCK */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   <div>
-                    <label className="label-mini">Category *</label>
-                    <select
-                      className="input-clean"
-                      value={productFormData.category}
-                      onChange={(e) => setProductFormData(prev => ({ ...prev, category: e.target.value }))}
-                      style={{ fontWeight: 600 }}
-                    >
-                      <option value="food">Food &amp; Nutrition</option>
-                      <option value="pharma">Rx &amp; Pharmacy</option>
-                      <option value="tech">Smart Collars &amp; Tech</option>
-                      <option value="supplies">Beds, Toys &amp; Supplies</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="label-mini">Price ($ USD) *</label>
+                    <label style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', color: '#8E8E93', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
+                      LIST PRICE (৳)
+                    </label>
                     <input
                       type="number"
                       step="0.01"
-                      min="0.5"
+                      min="1"
                       required
-                      className="input-clean"
-                      placeholder="e.g. 42.50"
+                      style={{
+                        width: '100%',
+                        padding: '12px 14px',
+                        borderRadius: '12px',
+                        background: '#161618',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        color: '#FFFFFF',
+                        fontSize: '14px',
+                        outline: 'none',
+                        fontFamily: 'inherit'
+                      }}
+                      placeholder="e.g. 1250"
                       value={productFormData.price}
                       onChange={(e) => setProductFormData(prev => ({ ...prev, price: e.target.value }))}
                     />
                   </div>
-                </div>
 
-                {/* Stock Controls & Rx Toggle */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                  <div style={{ background: 'var(--surface-alt)', padding: '12px 14px', borderRadius: '12px', border: '1px solid var(--border)' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}>
-                      <span style={{ fontSize: '13px', fontWeight: 600 }}>In Stock Status</span>
-                      <input
-                        type="checkbox"
-                        checked={productFormData.inStock}
-                        onChange={(e) => setProductFormData(prev => ({ ...prev, inStock: e.target.checked }))}
-                        style={{ width: 18, height: 18 }}
-                      />
+                  <div>
+                    <label style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', color: '#8E8E93', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
+                      CURRENT STOCK
                     </label>
-                  </div>
-
-                  <div style={{ background: 'var(--surface-alt)', padding: '12px 14px', borderRadius: '12px', border: '1px solid var(--border)' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}>
-                      <span style={{ fontSize: '13px', fontWeight: 600, color: '#8B5CF6' }}>Prescription (Rx)</span>
-                      <input
-                        type="checkbox"
-                        checked={productFormData.isRx}
-                        onChange={(e) => setProductFormData(prev => ({ ...prev, isRx: e.target.checked }))}
-                        style={{ width: 18, height: 18 }}
-                      />
-                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      required
+                      style={{
+                        width: '100%',
+                        padding: '12px 14px',
+                        borderRadius: '12px',
+                        background: '#161618',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        color: '#FFFFFF',
+                        fontSize: '14px',
+                        outline: 'none',
+                        fontFamily: 'inherit'
+                      }}
+                      placeholder="e.g. 100"
+                      value={productFormData.stockCount}
+                      onChange={(e) => setProductFormData(prev => ({ ...prev, stockCount: e.target.value }))}
+                    />
                   </div>
                 </div>
 
-                {/* Image URL & Preset Selection */}
+                {/* 4. BRAND / MANUFACTURER */}
                 <div>
-                  <label className="label-mini">Product Image URL</label>
+                  <label style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', color: '#8E8E93', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
+                    BRAND / MANUFACTURER
+                  </label>
                   <input
-                    type="url"
-                    className="input-clean"
-                    placeholder="https://images.unsplash.com/..."
-                    value={productFormData.image}
-                    onChange={(e) => setProductFormData(prev => ({ ...prev, image: e.target.value }))}
+                    type="text"
+                    style={{
+                      width: '100%',
+                      padding: '12px 14px',
+                      borderRadius: '12px',
+                      background: '#161618',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      color: '#FFFFFF',
+                      fontSize: '14px',
+                      outline: 'none',
+                      fontFamily: 'inherit'
+                    }}
+                    placeholder="e.g. Royal Canin, Zoetis, Pet Maya"
+                    value={productFormData.brand}
+                    onChange={(e) => setProductFormData(prev => ({ ...prev, brand: e.target.value }))}
                   />
+                </div>
 
-                  {/* Preset Photos Quick Pick */}
-                  <div style={{ marginTop: '8px' }}>
-                    <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>Or pick a standard preset:</span>
-                    <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
-                      {PRESET_IMAGES.map((preset, idx) => (
+                {/* 5. CATEGORY (Pill selector with checkmark) */}
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', color: '#8E8E93', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>
+                    CATEGORY
+                  </label>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    {CATEGORIES.map((cat) => {
+                      const isSelected = productFormData.category === cat.id;
+                      return (
                         <button
                           type="button"
-                          key={idx}
-                          onClick={() => setProductFormData(prev => ({ ...prev, image: preset.url }))}
+                          key={cat.id}
+                          onClick={() => setProductFormData(prev => ({ ...prev, category: cat.id }))}
                           style={{
                             display: 'flex',
                             alignItems: 'center',
                             gap: '6px',
-                            padding: '4px 10px',
-                            borderRadius: '8px',
-                            border: productFormData.image === preset.url ? '2px solid var(--primary)' : '1px solid var(--border)',
-                            background: 'var(--surface-alt)',
+                            padding: '8px 16px',
+                            borderRadius: '10px',
+                            border: isSelected ? '1px solid #10B981' : '1px solid rgba(255, 255, 255, 0.2)',
+                            background: isSelected ? '#10B981' : 'transparent',
+                            color: isSelected ? '#FFFFFF' : '#D1D1D6',
+                            fontSize: '13px',
+                            fontWeight: isSelected ? 700 : 500,
                             cursor: 'pointer',
-                            fontSize: '11.5px',
-                            whiteSpace: 'nowrap'
+                            transition: 'all 0.15s ease'
                           }}
                         >
-                          <img src={preset.url} alt="" style={{ width: 18, height: 18, borderRadius: '4px', objectFit: 'cover' }} />
-                          <span>{preset.label}</span>
+                          {isSelected && <Check size={14} strokeWidth={3} />}
+                          <span>{cat.label}</span>
                         </button>
-                      ))}
-                    </div>
+                      );
+                    })}
                   </div>
                 </div>
 
-                {/* Description */}
+                {/* Extra Options: Rx and In Stock Switch */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '2px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: '10px', background: '#161618', border: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer', fontSize: '12.5px', color: '#D1D1D6' }}>
+                    <span>In Stock Active</span>
+                    <input
+                      type="checkbox"
+                      checked={productFormData.inStock}
+                      onChange={(e) => setProductFormData(prev => ({ ...prev, inStock: e.target.checked }))}
+                      style={{ width: 16, height: 16, accentColor: '#10B981' }}
+                    />
+                  </label>
+
+                  <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: '10px', background: '#161618', border: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer', fontSize: '12.5px', color: '#8B5CF6' }}>
+                    <span>Rx Prescription</span>
+                    <input
+                      type="checkbox"
+                      checked={productFormData.isRx}
+                      onChange={(e) => setProductFormData(prev => ({ ...prev, isRx: e.target.checked }))}
+                      style={{ width: 16, height: 16, accentColor: '#8B5CF6' }}
+                    />
+                  </label>
+                </div>
+
+                {/* 6. MARKETING DESCRIPTION */}
                 <div>
-                  <label className="label-mini">Description &amp; Key Details</label>
+                  <label style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', color: '#8E8E93', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
+                    MARKETING DESCRIPTION
+                  </label>
                   <textarea
                     rows={3}
-                    className="input-clean"
-                    placeholder="Provide dietary benefits, active ingredients, dosage recommendations or size specifications..."
+                    style={{
+                      width: '100%',
+                      padding: '12px 14px',
+                      borderRadius: '12px',
+                      background: '#161618',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      color: '#FFFFFF',
+                      fontSize: '13.5px',
+                      outline: 'none',
+                      fontFamily: 'inherit',
+                      resize: 'vertical'
+                    }}
+                    placeholder="Enter full marketing copy, dietary benefits, specifications..."
                     value={productFormData.description}
                     onChange={(e) => setProductFormData(prev => ({ ...prev, description: e.target.value }))}
-                    style={{ resize: 'vertical' }}
                   />
                 </div>
 
-                {/* Modal Footer Buttons */}
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
-                  <button
-                    type="button"
-                    className="btn-ghost"
-                    onClick={() => setIsAddProductModalOpen(false)}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="apple-btn-blue"
-                    style={{ padding: '9px 22px' }}
-                  >
-                    <CheckCircle2 size={15} />
-                    <span>{editingProduct ? 'Save Product Changes' : 'Publish Product to Store'}</span>
-                  </button>
-                </div>
+                {/* 7. FINALIZE SKU BUTTON (Matches Image 2) */}
+                <button
+                  type="submit"
+                  style={{
+                    width: '100%',
+                    padding: '14px',
+                    borderRadius: '14px',
+                    border: 'none',
+                    background: '#10B981',
+                    color: '#FFFFFF',
+                    fontSize: '15px',
+                    fontWeight: 800,
+                    letterSpacing: '0.04em',
+                    textTransform: 'uppercase',
+                    cursor: 'pointer',
+                    marginTop: '8px',
+                    boxShadow: '0 4px 20px rgba(16, 185, 129, 0.4)',
+                    transition: 'all 0.18s ease'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.filter = 'brightness(1.08)'}
+                  onMouseLeave={(e) => e.currentTarget.style.filter = 'none'}
+                >
+                  FINALIZE SKU
+                </button>
               </form>
             </motion.div>
           </div>
@@ -1848,10 +2067,10 @@ export default function AdminPortal() {
                     <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface-alt)', padding: '10px 14px', borderRadius: '10px' }}>
                       <div>
                         <strong style={{ fontSize: '13.5px', color: 'var(--text-main)', display: 'block' }}>{item.name}</strong>
-                        <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Qty: {item.qty || 1} × ${Number(item.price || 0).toFixed(2)}</span>
+                        <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Qty: {item.qty || 1} × ৳{Number(item.price || 0).toFixed(2)}</span>
                       </div>
                       <strong style={{ fontSize: '14px', color: 'var(--text-main)' }}>
-                        ${((item.qty || 1) * (item.price || 0)).toFixed(2)}
+                        ৳{((item.qty || 1) * (item.price || 0)).toFixed(2)}
                       </strong>
                     </div>
                   ))}
@@ -1862,21 +2081,21 @@ export default function AdminPortal() {
               <div style={{ borderTop: '1px solid var(--border)', paddingTop: '14px', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '13px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)' }}>
                   <span>Subtotal:</span>
-                  <span>${Number(selectedOrderDetails.subtotal || selectedOrderDetails.total || 0).toFixed(2)}</span>
+                  <span>৳{Number(selectedOrderDetails.subtotal || selectedOrderDetails.total || 0).toFixed(2)}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)' }}>
                   <span>Shipping:</span>
-                  <span>${Number(selectedOrderDetails.shipping || 0).toFixed(2)}</span>
+                  <span>৳{Number(selectedOrderDetails.shipping || 0).toFixed(2)}</span>
                 </div>
                 {selectedOrderDetails.discount > 0 && (
                   <div style={{ display: 'flex', justifyContent: 'space-between', color: '#10B981' }}>
                     <span>Discount Applied:</span>
-                    <span>-${Number(selectedOrderDetails.discount).toFixed(2)}</span>
+                    <span>-৳{Number(selectedOrderDetails.discount).toFixed(2)}</span>
                   </div>
                 )}
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '16px', fontWeight: 700, color: 'var(--text-main)', marginTop: '6px', borderTop: '1px solid var(--border)', paddingTop: '8px' }}>
                   <span>Total Amount Paid:</span>
-                  <span style={{ color: 'var(--primary)' }}>${Number(selectedOrderDetails.total || 0).toFixed(2)}</span>
+                  <span style={{ color: 'var(--primary)' }}>৳{Number(selectedOrderDetails.total || 0).toFixed(2)}</span>
                 </div>
               </div>
 

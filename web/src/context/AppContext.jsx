@@ -1167,6 +1167,7 @@ export function AppProvider({ children }) {
     const newProduct = {
       id,
       name: productData.name || 'New Product',
+      brand: productData.brand || 'Pet Maya',
       category: productData.category || 'supplies',
       price: typeof productData.price === 'number' ? productData.price : (parseFloat(productData.price) || 19.99),
       rating: typeof productData.rating === 'number' ? productData.rating : 4.8,
