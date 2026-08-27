@@ -52,13 +52,25 @@ import {
   MapPin,
   RefreshCw,
   Upload,
-  Image as ImageIcon
+  Image as ImageIcon,
+  UserCheck,
+  UserX,
+  BadgeCheck,
+  Building2,
+  Phone,
+  Mail,
+  UserPlus,
+  Hospital
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function AdminPortal() {
   const { 
     vets, 
+    addService,
+    updateService,
+    deleteService,
+    updateServiceVerification,
     products, 
     addProduct, 
     updateProduct, 
@@ -66,6 +78,9 @@ export default function AdminPortal() {
     orders: contextOrders, 
     updateOrderStatus, 
     deleteOrder, 
+    updateUserRole,
+    updateUserVerification,
+    updateUserAccountStatus,
     globalBanner, 
     updateGlobalBanner, 
     openModal, 
@@ -79,8 +94,8 @@ export default function AdminPortal() {
   const [adminKey, setAdminKey] = useState('');
   const [authError, setAuthError] = useState('');
 
-  // Active Admin Sub-Tab
-  const [adminTab, setAdminTab] = useState('shop'); // 'shop', 'orders', 'blogs', 'overview', 'broadcasts', 'clinicians'
+  // Active Admin Sub-Tab: 'shop', 'orders', 'users', 'services', 'blogs', 'overview', 'broadcasts'
+  const [adminTab, setAdminTab] = useState('shop');
 
   // ─── SHOP & INVENTORY STATE ───
   const [productSearch, setProductSearch] = useState('');
@@ -88,10 +103,9 @@ export default function AdminPortal() {
   const [productStockFilter, setProductStockFilter] = useState('ALL'); // 'ALL', 'IN_STOCK', 'OUT_OF_STOCK', 'RX_ONLY'
   const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
-
+  const [isSubmittingProduct, setIsSubmittingProduct] = useState(false);
   const fileInputRef = useRef(null);
 
-  // Form State for Add / Edit Product
   const [productFormData, setProductFormData] = useState({
     name: '',
     brand: '',
@@ -105,7 +119,6 @@ export default function AdminPortal() {
     rating: 4.8
   });
 
-  // Preset Product Images for Quick Picking
   const PRESET_IMAGES = [
     { label: 'Dog Kibble', url: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=500&auto=format&fit=crop&q=80' },
     { label: 'Rx Meds', url: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=500&auto=format&fit=crop&q=80' },
@@ -116,7 +129,6 @@ export default function AdminPortal() {
     { label: 'Supplements', url: 'https://images.unsplash.com/photo-1551884170-09fb70a3a2ed?w=500&auto=format&fit=crop&q=80' }
   ];
 
-  // Categories list matching the UI image
   const CATEGORIES = [
     { id: 'food', label: 'Food' },
     { id: 'toys', label: 'Toys' },
@@ -128,10 +140,85 @@ export default function AdminPortal() {
   // ─── ORDER MANAGEMENT STATE ───
   const [allOrders, setAllOrders] = useState([]);
   const [orderSearch, setOrderSearch] = useState('');
-  const [orderStatusFilter, setOrderStatusFilter] = useState('ALL'); // 'ALL', 'IN_PREP', 'SHIPPED', 'DELIVERED', 'CANCELLED'
+  const [orderStatusFilter, setOrderStatusFilter] = useState('ALL');
   const [selectedOrderDetails, setSelectedOrderDetails] = useState(null);
 
-  // Real-time Firestore sync for ALL platform orders
+  // ─── USERS VERIFICATION & MANAGEMENT STATE ───
+  const [usersList, setUsersList] = useState([
+    { id: 'u1', name: 'Sadik Mahmud', email: 'sadik@petmaya.app', role: 'Super Admin', isVerified: true, verificationStatus: 'VERIFIED', accountStatus: 'ACTIVE', phone: '+880 1711-000000', petsCount: 2, joinedDate: '2026-01-10', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150' },
+    { id: 'u2', name: 'Dr. Sarah Jenkins', email: 'dr.jenkins@vetclinic.com', role: 'Veterinarian', isVerified: true, verificationStatus: 'VERIFIED', accountStatus: 'ACTIVE', phone: '+880 1822-111111', petsCount: 1, joinedDate: '2026-02-14', avatar: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150' },
+    { id: 'u3', name: 'Elena Vance', email: 'elena@gmail.com', role: 'Pet Owner', isVerified: false, verificationStatus: 'PENDING', accountStatus: 'ACTIVE', phone: '+880 1933-222222', petsCount: 3, joinedDate: '2026-08-15', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150' },
+    { id: 'u4', name: 'Pawfect Grooming Hub', email: 'contact@pawfect.bd', role: 'Shelter & Spa', isVerified: true, verificationStatus: 'VERIFIED', accountStatus: 'ACTIVE', phone: '+880 1644-333333', petsCount: 0, joinedDate: '2026-03-20', avatar: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=150' },
+    { id: 'u5', name: 'Tanvir Hossain', email: 'tanvir.petcare@yahoo.com', role: 'Pet Owner', isVerified: false, verificationStatus: 'PENDING', accountStatus: 'ACTIVE', phone: '+880 1555-444444', petsCount: 1, joinedDate: '2026-08-22', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150' }
+  ]);
+  const [userSearch, setUserSearch] = useState('');
+  const [userRoleFilter, setUserRoleFilter] = useState('ALL'); // 'ALL', 'Pet Owner', 'Veterinarian', 'Admin', 'Shelter & Spa'
+  const [userStatusFilter, setUserStatusFilter] = useState('ALL'); // 'ALL', 'VERIFIED', 'PENDING', 'SUSPENDED'
+  const [selectedUserDetails, setSelectedUserDetails] = useState(null);
+  const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
+  const [userFormData, setUserFormData] = useState({
+    name: '',
+    email: '',
+    role: 'Pet Owner',
+    phone: '',
+    isVerified: true
+  });
+
+  // Real-time Firestore sync for Users
+  useEffect(() => {
+    try {
+      const usersRef = collection(db, 'users');
+      const unsub = onSnapshot(usersRef, (snap) => {
+        if (!snap.empty) {
+          const fetched = snap.docs.map(d => {
+            const data = d.data();
+            return {
+              id: d.id,
+              name: data.displayName || data.name || data.email?.split('@')[0] || 'Pet Maya User',
+              email: data.email || 'user@petmaya.app',
+              role: data.role || 'Pet Owner',
+              isVerified: data.isVerified === true || data.verificationStatus === 'VERIFIED',
+              verificationStatus: data.verificationStatus || (data.isVerified ? 'VERIFIED' : 'PENDING'),
+              accountStatus: data.accountStatus || 'ACTIVE',
+              phone: data.phoneNumber || data.phone || '+880 1700-000000',
+              petsCount: data.petsCount || 1,
+              joinedDate: data.createdAt ? new Date(data.createdAt).toISOString().split('T')[0] : '2026-08-01',
+              avatar: data.photoURL || data.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150'
+            };
+          });
+          setUsersList(fetched);
+        }
+      }, (err) => {
+        console.warn('Users listener warning:', err);
+      });
+      return () => unsub();
+    } catch (e) {
+      console.warn('Users query setup error:', e);
+    }
+  }, []);
+
+  // ─── SERVICES & CLINIC MANAGEMENT STATE ───
+  const [serviceSearch, setServiceSearch] = useState('');
+  const [serviceCatFilter, setServiceCatFilter] = useState('ALL'); // 'ALL', 'Veterinarian', 'Grooming Spa', 'Boarding Resort', 'Diagnostic Lab'
+  const [serviceVerifFilter, setServiceVerifFilter] = useState('ALL'); // 'ALL', 'VERIFIED', 'PENDING'
+  const [isAddServiceModalOpen, setIsAddServiceModalOpen] = useState(false);
+  const [editingService, setEditingService] = useState(null);
+  const [serviceFormData, setServiceFormData] = useState({
+    name: '',
+    tag: 'Veterinarian',
+    qualification: '',
+    clinic: '',
+    licenseNumber: '',
+    price: '400',
+    distance: '1.2 km away',
+    availability: 'Mon - Fri • 9am - 6pm',
+    bio: '',
+    photo: 'assets/images/Pet_1.jpg',
+    isVerified: true,
+    isEmergencyOnCall: false
+  });
+
+  // ─── ORDERS REAL-TIME SYNC ───
   useEffect(() => {
     try {
       const ordersRef = collection(db, 'orders');
@@ -154,7 +241,7 @@ export default function AdminPortal() {
     }
   }, [contextOrders]);
 
-  // ─── BROADCAST STATE ───
+  // ─── BROADCAST & BANNER STATE ───
   const [broadcastTitle, setBroadcastTitle] = useState('');
   const [broadcastMsg, setBroadcastMsg] = useState('');
   const [broadcastTarget, setBroadcastTarget] = useState('all');
@@ -162,7 +249,6 @@ export default function AdminPortal() {
     { id: 'b1', title: '🌧️ Monsoon Parasite Advisory', message: 'Flea and tick activity surges during wet season. Ensure Simparica/Nexgard preventative dosage.', date: '2026-08-24', target: 'All Users' }
   ]);
 
-  // ─── GLOBAL BANNER STATE ───
   const [bannerConfig, setBannerConfig] = useState({
     isActive: globalBanner?.isActive || false,
     text: globalBanner?.text || '',
@@ -174,7 +260,7 @@ export default function AdminPortal() {
 
   // ─── BLOG MODERATION STATE ───
   const [blogs, setBlogs] = useState([]);
-  const [blogFilter, setBlogFilter] = useState('ALL'); // ALL, PENDING, APPROVED
+  const [blogFilter, setBlogFilter] = useState('ALL');
   const [blogSearch, setBlogSearch] = useState('');
   const [expandedBlogId, setExpandedBlogId] = useState(null);
 
@@ -184,7 +270,6 @@ export default function AdminPortal() {
     }
   }, [globalBanner]);
 
-  // Real-time Firestore sync for blogs
   useEffect(() => {
     try {
       const q = query(collection(db, 'blogs'), orderBy('timestamp', 'desc'));
@@ -245,13 +330,10 @@ export default function AdminPortal() {
     setIsAddProductModalOpen(true);
   };
 
-  const [isSubmittingProduct, setIsSubmittingProduct] = useState(false);
-
   const handleFileUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Use FileReader + Canvas to resize large photos and compress to lightweight JPEG dataURL
     const reader = new FileReader();
     reader.onload = (uploadEvent) => {
       const img = new Image();
@@ -336,6 +418,147 @@ export default function AdminPortal() {
     await updateProduct(product.id, { inStock: nextState });
   };
 
+  // ─── USER MANAGEMENT ACTIONS ───
+  const handleToggleUserVerification = async (user) => {
+    const nextVerified = !user.isVerified;
+    setUsersList(prev => prev.map(u => u.id === user.id ? { ...u, isVerified: nextVerified, verificationStatus: nextVerified ? 'VERIFIED' : 'PENDING' } : u));
+    await updateUserVerification(user.id, nextVerified);
+    if (selectedUserDetails?.id === user.id) {
+      setSelectedUserDetails(prev => ({ ...prev, isVerified: nextVerified, verificationStatus: nextVerified ? 'VERIFIED' : 'PENDING' }));
+    }
+  };
+
+  const handleChangeUserRole = async (userId, newRole) => {
+    setUsersList(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
+    await updateUserRole(userId, newRole);
+    if (selectedUserDetails?.id === userId) {
+      setSelectedUserDetails(prev => ({ ...prev, role: newRole }));
+    }
+  };
+
+  const handleToggleUserStatus = async (user) => {
+    const nextStatus = user.accountStatus === 'SUSPENDED' ? 'ACTIVE' : 'SUSPENDED';
+    setUsersList(prev => prev.map(u => u.id === user.id ? { ...u, accountStatus: nextStatus } : u));
+    await updateUserAccountStatus(user.id, nextStatus);
+    if (selectedUserDetails?.id === user.id) {
+      setSelectedUserDetails(prev => ({ ...prev, accountStatus: nextStatus }));
+    }
+  };
+
+  const handleSaveNewUser = async (e) => {
+    e.preventDefault();
+    if (!userFormData.name.trim() || !userFormData.email.trim()) {
+      showToast('Please enter name and email', 'error');
+      return;
+    }
+
+    const newUser = {
+      id: 'u_' + Date.now(),
+      displayName: userFormData.name.trim(),
+      name: userFormData.name.trim(),
+      email: userFormData.email.trim(),
+      role: userFormData.role,
+      phoneNumber: userFormData.phone || '+880 1700-000000',
+      isVerified: !!userFormData.isVerified,
+      verificationStatus: userFormData.isVerified ? 'VERIFIED' : 'PENDING',
+      accountStatus: 'ACTIVE',
+      createdAt: Date.now()
+    };
+
+    setUsersList(prev => [newUser, ...prev]);
+    try {
+      await setDoc(doc(db, 'users', newUser.id), newUser, { merge: true });
+      showToast(`👤 User "${newUser.name}" profile registered and verified!`, 'success');
+    } catch (err) {
+      console.warn('Error saving user to Firestore:', err);
+      showToast(`👤 User "${newUser.name}" saved!`, 'success');
+    }
+
+    setIsAddUserModalOpen(false);
+    setUserFormData({ name: '', email: '', role: 'Pet Owner', phone: '', isVerified: true });
+  };
+
+  // ─── SERVICES & CLINIC MANAGEMENT ACTIONS ───
+  const handleOpenAddService = () => {
+    setEditingService(null);
+    setServiceFormData({
+      name: '',
+      tag: 'Veterinarian',
+      qualification: 'DVM, MRCVS • Small Animal Medicine',
+      clinic: 'Pet Maya Health Center',
+      licenseNumber: `BMDC-VET-${Math.floor(10000 + Math.random() * 90000)}`,
+      price: '400',
+      distance: '1.2 km away',
+      availability: 'Mon - Fri • 9am - 6pm',
+      bio: 'Licensed clinical specialist.',
+      photo: 'assets/images/Pet_1.jpg',
+      isVerified: true,
+      isEmergencyOnCall: false
+    });
+    setIsAddServiceModalOpen(true);
+  };
+
+  const handleOpenEditService = (service) => {
+    setEditingService(service);
+    setServiceFormData({
+      name: service.name || '',
+      tag: service.tag || 'Veterinarian',
+      qualification: service.qualification || '',
+      clinic: service.clinic || '',
+      licenseNumber: service.licenseNumber || `BMDC-VET-${Math.floor(10000 + Math.random() * 90000)}`,
+      price: service.price ? service.price.replace(/[^\d]/g, '') : '400',
+      distance: service.distance || '1.0 km away',
+      availability: service.availability || 'Mon - Fri • 9am - 6pm',
+      bio: service.bio || '',
+      photo: service.photo || 'assets/images/Pet_1.jpg',
+      isVerified: service.isVerified !== false,
+      isEmergencyOnCall: !!service.isEmergencyOnCall
+    });
+    setIsAddServiceModalOpen(true);
+  };
+
+  const handleSaveService = async (e) => {
+    e.preventDefault();
+    if (!serviceFormData.name.trim()) {
+      showToast('Please enter provider or clinic name', 'error');
+      return;
+    }
+
+    const payload = {
+      name: serviceFormData.name.trim(),
+      tag: serviceFormData.tag,
+      qualification: serviceFormData.qualification.trim() || 'Certified Specialist',
+      clinic: serviceFormData.clinic.trim() || 'Veterinary Facility',
+      licenseNumber: serviceFormData.licenseNumber.trim() || `BMDC-VET-${Math.floor(10000 + Math.random() * 90000)}`,
+      price: `৳${serviceFormData.price || 400}/visit`,
+      distance: serviceFormData.distance || '1.5 km away',
+      availability: serviceFormData.availability || 'Mon - Fri • 9am - 6pm',
+      bio: serviceFormData.bio.trim() || 'Comprehensive pet medical care.',
+      photo: serviceFormData.photo || 'assets/images/Pet_1.jpg',
+      isVerified: !!serviceFormData.isVerified,
+      isEmergencyOnCall: !!serviceFormData.isEmergencyOnCall
+    };
+
+    if (editingService) {
+      await updateService(editingService.id, payload);
+    } else {
+      await addService(payload);
+    }
+
+    setIsAddServiceModalOpen(false);
+    setEditingService(null);
+  };
+
+  const handleDeleteService = async (serviceId, serviceName) => {
+    if (!window.confirm(`Are you sure you want to remove "${serviceName}" from the specialist network?`)) return;
+    await deleteService(serviceId);
+  };
+
+  const handleToggleServiceLicense = async (service) => {
+    const nextVerified = !service.isVerified;
+    await updateServiceVerification(service.id, nextVerified);
+  };
+
   // ─── ORDER ACTIONS ───
   const handleUpdateStatus = async (orderId, newStatus) => {
     await updateOrderStatus(orderId, newStatus);
@@ -352,7 +575,7 @@ export default function AdminPortal() {
     }
   };
 
-  // ─── BROADCAST & BANNER ACTIONS ───
+  // ─── BROADCAST ACTIONS ───
   const handleBroadcast = (e) => {
     e.preventDefault();
     if (!broadcastTitle.trim() || !broadcastMsg.trim()) return;
@@ -457,6 +680,46 @@ export default function AdminPortal() {
     return id.includes(q) || addr.includes(q) || itemsMatch;
   });
 
+  // Filtered Users
+  const filteredUsers = usersList.filter(u => {
+    if (userRoleFilter !== 'ALL' && u.role !== userRoleFilter) return false;
+    if (userStatusFilter === 'VERIFIED' && !u.isVerified) return false;
+    if (userStatusFilter === 'PENDING' && u.isVerified) return false;
+    if (userStatusFilter === 'SUSPENDED' && u.accountStatus !== 'SUSPENDED') return false;
+
+    if (!userSearch) return true;
+    const q = userSearch.toLowerCase();
+    return (
+      (u.name || '').toLowerCase().includes(q) ||
+      (u.email || '').toLowerCase().includes(q) ||
+      (u.phone || '').toLowerCase().includes(q) ||
+      (u.id || '').toLowerCase().includes(q)
+    );
+  });
+
+  // Filtered Services
+  const filteredServices = vets.filter(s => {
+    if (serviceCatFilter !== 'ALL') {
+      const tag = (s.tag || '').toLowerCase();
+      if (serviceCatFilter === 'vet' && !tag.includes('vet')) return false;
+      if (serviceCatFilter === 'grooming' && !tag.includes('groom')) return false;
+      if (serviceCatFilter === 'boarding' && !tag.includes('board')) return false;
+      if (serviceCatFilter === 'lab' && !tag.includes('lab') && !tag.includes('diagnos')) return false;
+    }
+
+    if (serviceVerifFilter === 'VERIFIED' && !s.isVerified) return false;
+    if (serviceVerifFilter === 'PENDING' && s.isVerified) return false;
+
+    if (!serviceSearch) return true;
+    const q = serviceSearch.toLowerCase();
+    return (
+      (s.name || '').toLowerCase().includes(q) ||
+      (s.clinic || '').toLowerCase().includes(q) ||
+      (s.qualification || '').toLowerCase().includes(q) ||
+      (s.licenseNumber || '').toLowerCase().includes(q)
+    );
+  });
+
   const pendingBlogs = blogs.filter(b => !b.isApproved && b.status !== 'APPROVED');
   const approvedBlogs = blogs.filter(b => b.isApproved === true || b.status === 'APPROVED');
 
@@ -476,8 +739,7 @@ export default function AdminPortal() {
     );
   });
 
-  // Financial & Inventory Aggregations
-  // Total Valuation = sum(product.price * product.stockCount)
+  // Aggregate Metrics
   const totalValuation = products.reduce((acc, p) => {
     const pr = typeof p.price === 'number' ? p.price : (parseFloat(p.price) || 0);
     const stock = typeof p.stockCount === 'number' ? p.stockCount : 50;
@@ -493,12 +755,10 @@ export default function AdminPortal() {
     return s.includes('prep') || s.includes('placed') || s.includes('pending');
   }).length;
 
-  const shippedOrdersCount = ordersList.filter(o => (o.status || '').toLowerCase().includes('ship')).length;
-  const deliveredOrdersCount = ordersList.filter(o => (o.status || '').toLowerCase().includes('deliver')).length;
-
-  const inStockProductsCount = products.filter(p => p.inStock !== false).length;
-  const outOfStockProductsCount = products.filter(p => p.inStock === false).length;
-  const rxProductsCount = products.filter(p => p.isRx).length;
+  const verifiedUsersCount = usersList.filter(u => u.isVerified).length;
+  const pendingUsersCount = usersList.filter(u => !u.isVerified).length;
+  const verifiedServicesCount = vets.filter(v => v.isVerified).length;
+  const pendingServicesCount = vets.filter(v => !v.isVerified).length;
 
   const formatBlogDate = (ts) => {
     if (!ts) return '';
@@ -540,7 +800,7 @@ export default function AdminPortal() {
             Super Admin Terminal
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '13.5px', marginBottom: '24px' }}>
-            Enter your administrative cryptographic credentials to unlock product inventory controls, live order pipelines, and platform configuration.
+            Enter your administrative cryptographic credentials to unlock user profiles, medical licensing verification, inventory controls, and platform telemetry.
           </p>
 
           <form onSubmit={handleAdminLogin} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -605,10 +865,11 @@ export default function AdminPortal() {
         {[
           { id: 'shop', label: 'Inventory Command', icon: ShoppingBag, count: products.length },
           { id: 'orders', label: 'Orders & Dispatch', icon: Package, count: inPrepOrdersCount > 0 ? inPrepOrdersCount : ordersList.length, highlight: inPrepOrdersCount > 0 },
+          { id: 'users', label: 'Users & KYC', icon: Users, count: pendingUsersCount > 0 ? pendingUsersCount : usersList.length, highlight: pendingUsersCount > 0 },
+          { id: 'services', label: 'Clinics & Services', icon: Stethoscope, count: pendingServicesCount > 0 ? pendingServicesCount : vets.length, highlight: pendingServicesCount > 0 },
           { id: 'blogs', label: 'Article Moderation', icon: BookOpen, count: pendingBlogs.length, highlight: pendingBlogs.length > 0 },
           { id: 'overview', label: 'Telemetry & Stats', icon: Activity },
           { id: 'broadcasts', label: 'Broadcasts & Banner', icon: Radio },
-          { id: 'clinicians', label: 'Clinician Directory', icon: Stethoscope, count: vets.length },
         ].map((tab) => {
           const isActive = adminTab === tab.id;
           return (
@@ -690,23 +951,23 @@ export default function AdminPortal() {
 
             <div className="apple-solid-card" style={{ padding: '20px 22px', textAlign: 'left' }}>
               <span className="label-mini">In Stock Units</span>
-              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px', color: '#10B981' }}>{inStockProductsCount}</strong>
+              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px', color: '#10B981' }}>{products.filter(p => p.inStock !== false).length}</strong>
               <span style={{ fontSize: '12px', color: '#10B981', marginTop: '4px' }}>Available for 1-Click Buy</span>
             </div>
 
             <div className="apple-solid-card" style={{ padding: '20px 22px', textAlign: 'left' }}>
               <span className="label-mini">Out of Stock Alerts</span>
-              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px', color: outOfStockProductsCount > 0 ? '#EF4444' : 'var(--text-muted)' }}>
-                {outOfStockProductsCount} SKUs
+              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px', color: products.filter(p => p.inStock === false).length > 0 ? '#EF4444' : 'var(--text-muted)' }}>
+                {products.filter(p => p.inStock === false).length} SKUs
               </strong>
-              <span style={{ fontSize: '12px', color: outOfStockProductsCount > 0 ? '#EF4444' : '#10B981', marginTop: '4px' }}>
-                {outOfStockProductsCount > 0 ? 'Requires Restock Supply' : 'All Stock Healthy'}
+              <span style={{ fontSize: '12px', color: products.filter(p => p.inStock === false).length > 0 ? '#EF4444' : '#10B981', marginTop: '4px' }}>
+                {products.filter(p => p.inStock === false).length > 0 ? 'Requires Restock Supply' : 'All Stock Healthy'}
               </span>
             </div>
 
             <div className="apple-solid-card" style={{ padding: '20px 22px', textAlign: 'left' }}>
               <span className="label-mini">Prescription Medications</span>
-              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px', color: '#8B5CF6' }}>{rxProductsCount} Rx SKUs</strong>
+              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px', color: '#8B5CF6' }}>{products.filter(p => p.isRx).length} Rx SKUs</strong>
               <span style={{ fontSize: '12px', color: '#8B5CF6', marginTop: '4px' }}>Requires Clinical Verification</span>
             </div>
           </div>
@@ -748,7 +1009,6 @@ export default function AdminPortal() {
                 />
               </div>
 
-              {/* Category Filter Pills */}
               <div style={{ display: 'flex', gap: '6px', background: 'var(--surface-alt)', padding: '3px', borderRadius: '10px', overflowX: 'auto' }}>
                 {[
                   { id: 'ALL', label: 'All' },
@@ -778,7 +1038,6 @@ export default function AdminPortal() {
                 ))}
               </div>
 
-              {/* Stock Status Filter */}
               <select
                 className="input-clean"
                 style={{ width: 'auto', fontSize: '13px', fontWeight: 600 }}
@@ -797,13 +1056,6 @@ export default function AdminPortal() {
               <div style={{ textAlign: 'center', padding: '40px 16px', color: 'var(--text-muted)' }}>
                 <Boxes size={36} style={{ opacity: 0.4, marginBottom: '8px' }} />
                 <p style={{ margin: 0, fontWeight: 600 }}>No products matched your search or filters.</p>
-                <button
-                  className="btn-minimal"
-                  style={{ marginTop: '8px', color: 'var(--primary)' }}
-                  onClick={() => { setProductSearch(''); setProductCatFilter('ALL'); setProductStockFilter('ALL'); }}
-                >
-                  Clear all filters
-                </button>
               </div>
             ) : (
               <div style={{ overflowX: 'auto' }}>
@@ -828,7 +1080,6 @@ export default function AdminPortal() {
 
                       return (
                         <tr key={p.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                          {/* Item Info & Brand */}
                           <td style={{ padding: '14px 10px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                               <img
@@ -848,7 +1099,6 @@ export default function AdminPortal() {
                             </div>
                           </td>
 
-                          {/* Category */}
                           <td style={{ padding: '14px 10px' }}>
                             <span style={{
                               fontSize: '11px',
@@ -863,24 +1113,20 @@ export default function AdminPortal() {
                             </span>
                           </td>
 
-                          {/* List Price */}
                           <td style={{ padding: '14px 10px', fontWeight: 700, color: 'var(--text-main)' }}>
                             ৳{price.toFixed(2)}
                           </td>
 
-                          {/* Stock Quantity */}
                           <td style={{ padding: '14px 10px', fontWeight: 600 }}>
                             <span style={{ color: stockCount <= 5 ? '#EF4444' : 'var(--text-main)' }}>
                               {stockCount} units
                             </span>
                           </td>
 
-                          {/* SKU Valuation */}
                           <td style={{ padding: '14px 10px', fontWeight: 700, color: '#10B981' }}>
                             ৳{Math.round(itemValuation).toLocaleString()}
                           </td>
 
-                          {/* Stock Status & Toggle */}
                           <td style={{ padding: '14px 10px' }}>
                             <button
                               onClick={() => handleToggleStock(p)}
@@ -904,7 +1150,6 @@ export default function AdminPortal() {
                             </button>
                           </td>
 
-                          {/* Action Buttons */}
                           <td style={{ padding: '14px 10px', textAlign: 'right' }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '6px' }}>
                               <button
@@ -943,7 +1188,6 @@ export default function AdminPortal() {
       {adminTab === 'orders' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           
-          {/* Order Metrics */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
             <div className="apple-solid-card" style={{ padding: '18px 20px', textAlign: 'left' }}>
               <span className="label-mini">Total Platform Revenue</span>
@@ -966,19 +1210,20 @@ export default function AdminPortal() {
             <div className="apple-solid-card" style={{ padding: '18px 20px', textAlign: 'left' }}>
               <span className="label-mini">In Transit / Shipped</span>
               <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px', color: '#A855F7' }}>
-                {shippedOrdersCount} Orders
+                {ordersList.filter(o => (o.status || '').toLowerCase().includes('ship')).length} Orders
               </strong>
               <span style={{ fontSize: '12px', color: '#A855F7', marginTop: '4px' }}>Live Courier Tracking</span>
             </div>
 
             <div className="apple-solid-card" style={{ padding: '18px 20px', textAlign: 'left' }}>
               <span className="label-mini">Delivered / Completed</span>
-              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px' }}>{deliveredOrdersCount}</strong>
+              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px' }}>
+                {ordersList.filter(o => (o.status || '').toLowerCase().includes('deliver')).length}
+              </strong>
               <span style={{ fontSize: '12px', color: '#10B981', marginTop: '4px' }}>Successfully Delivered</span>
             </div>
           </div>
 
-          {/* Orders Queue Table Card */}
           <div className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '24px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '18px' }}>
               <div>
@@ -992,7 +1237,6 @@ export default function AdminPortal() {
               </div>
             </div>
 
-            {/* Filters & Search */}
             <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '18px' }}>
               <div style={{ flex: 1, minWidth: '240px', position: 'relative' }}>
                 <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
@@ -1006,13 +1250,12 @@ export default function AdminPortal() {
                 />
               </div>
 
-              {/* Status Filter Tabs */}
               <div style={{ display: 'flex', gap: '6px', background: 'var(--surface-alt)', padding: '3px', borderRadius: '10px', overflowX: 'auto' }}>
                 {[
                   { id: 'ALL', label: `All (${ordersList.length})` },
                   { id: 'IN_PREP', label: `In Prep (${inPrepOrdersCount})` },
-                  { id: 'SHIPPED', label: `Shipped (${shippedOrdersCount})` },
-                  { id: 'DELIVERED', label: `Delivered (${deliveredOrdersCount})` },
+                  { id: 'SHIPPED', label: `Shipped (${ordersList.filter(o => (o.status || '').toLowerCase().includes('ship')).length})` },
+                  { id: 'DELIVERED', label: `Delivered (${ordersList.filter(o => (o.status || '').toLowerCase().includes('deliver')).length})` },
                   { id: 'CANCELLED', label: 'Cancelled' }
                 ].map((tab) => (
                   <button
@@ -1036,7 +1279,6 @@ export default function AdminPortal() {
               </div>
             </div>
 
-            {/* Orders Table */}
             {filteredOrders.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '40px 16px', color: 'var(--text-muted)' }}>
                 <Package size={36} style={{ opacity: 0.4, marginBottom: '8px' }} />
@@ -1064,7 +1306,6 @@ export default function AdminPortal() {
 
                       return (
                         <tr key={orderId} style={{ borderBottom: '1px solid var(--border)' }}>
-                          {/* Order ID & Date */}
                           <td style={{ padding: '14px 10px' }}>
                             <strong style={{ fontSize: '13.5px', color: 'var(--primary)', display: 'block', fontFamily: 'monospace' }}>
                               {orderId}
@@ -1074,7 +1315,6 @@ export default function AdminPortal() {
                             </span>
                           </td>
 
-                          {/* Items Breakdown */}
                           <td style={{ padding: '14px 10px' }}>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                               <strong style={{ fontSize: '13.5px', color: 'var(--text-main)' }}>
@@ -1087,7 +1327,6 @@ export default function AdminPortal() {
                             </div>
                           </td>
 
-                          {/* Address */}
                           <td style={{ padding: '14px 10px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12.5px', color: 'var(--text-main)', maxWidth: '240px' }}>
                               <MapPin size={13} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
@@ -1097,26 +1336,21 @@ export default function AdminPortal() {
                             </div>
                           </td>
 
-                          {/* Total */}
                           <td style={{ padding: '14px 10px', fontWeight: 700, color: 'var(--text-main)' }}>
                             ৳{Number(ord.total || 0).toFixed(2)}
                           </td>
 
-                          {/* Status Badge */}
                           <td style={{ padding: '14px 10px' }}>
                             {getOrderStatusBadge(status)}
                           </td>
 
-                          {/* Action Buttons */}
                           <td style={{ padding: '14px 10px', textAlign: 'right' }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '6px' }}>
-                              {/* 1-Click Status Transitions */}
                               {(sLower.includes('prep') || sLower.includes('placed') || sLower.includes('pending')) && (
                                 <button
                                   className="apple-btn-blue"
                                   style={{ padding: '4px 10px', fontSize: '11.5px', background: '#A855F7' }}
                                   onClick={() => handleUpdateStatus(orderId, 'Shipped')}
-                                  title="Mark order as shipped"
                                 >
                                   <Truck size={12} />
                                   <span>Ship</span>
@@ -1128,30 +1362,25 @@ export default function AdminPortal() {
                                   className="apple-btn-blue"
                                   style={{ padding: '4px 10px', fontSize: '11.5px', background: '#10B981' }}
                                   onClick={() => handleUpdateStatus(orderId, 'Delivered')}
-                                  title="Mark order as delivered"
                                 >
                                   <CheckCircle size={12} />
                                   <span>Deliver</span>
                                 </button>
                               )}
 
-                              {/* Inspect details */}
                               <button
                                 className="btn-ghost"
                                 style={{ padding: '4px 10px', fontSize: '12px' }}
                                 onClick={() => setSelectedOrderDetails(ord)}
-                                title="Inspect order breakdown"
                               >
                                 <Eye size={13} />
                                 <span>Inspect</span>
                               </button>
 
-                              {/* Delete option */}
                               <button
                                 className="icon-btn"
                                 style={{ width: 28, height: 28, color: '#EF4444' }}
                                 onClick={() => handleDeleteOrder(orderId)}
-                                title="Delete Order Record"
                               >
                                 <Trash2 size={13} />
                               </button>
@@ -1169,7 +1398,468 @@ export default function AdminPortal() {
       )}
 
       {/* ══════════════════════════════════════════════════════
-          TAB 3: 📝 ARTICLE & COMMUNITY BLOG MODERATION
+          TAB 3: 👥 USERS VERIFICATION & ROLE MANAGEMENT
+          ══════════════════════════════════════════════════════ */}
+      {adminTab === 'users' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          
+          {/* User Metrics */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
+            <div className="apple-solid-card" style={{ padding: '18px 20px', textAlign: 'left' }}>
+              <span className="label-mini">Total Platform Users</span>
+              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px' }}>{usersList.length} Accounts</strong>
+              <span style={{ fontSize: '12px', color: 'var(--primary)', marginTop: '4px' }}>Active Community</span>
+            </div>
+
+            <div className="apple-solid-card" style={{ padding: '18px 20px', textAlign: 'left' }}>
+              <span className="label-mini">Verified KYC Profiles</span>
+              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px', color: '#10B981' }}>{verifiedUsersCount}</strong>
+              <span style={{ fontSize: '12px', color: '#10B981', marginTop: '4px' }}>ID &amp; Contact Verified</span>
+            </div>
+
+            <div className="apple-solid-card" style={{ padding: '18px 20px', textAlign: 'left' }}>
+              <span className="label-mini">Pending Verification</span>
+              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px', color: pendingUsersCount > 0 ? '#F59E0B' : 'var(--text-muted)' }}>
+                {pendingUsersCount} Users
+              </strong>
+              <span style={{ fontSize: '12px', color: pendingUsersCount > 0 ? '#F59E0B' : '#10B981', marginTop: '4px' }}>
+                {pendingUsersCount > 0 ? 'Requires Profile KYC Review' : 'All Profiles Clear'}
+              </span>
+            </div>
+
+            <div className="apple-solid-card" style={{ padding: '18px 20px', textAlign: 'left' }}>
+              <span className="label-mini">Clinicians &amp; Admins</span>
+              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px', color: '#8B5CF6' }}>
+                {usersList.filter(u => u.role === 'Veterinarian' || u.role === 'Super Admin' || u.role === 'Admin').length} Staff
+              </strong>
+              <span style={{ fontSize: '12px', color: '#8B5CF6', marginTop: '4px' }}>Elevated System Roles</span>
+            </div>
+          </div>
+
+          {/* Users Table Card */}
+          <div className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '18px' }}>
+              <div>
+                <h3 style={{ fontSize: '18px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+                  <Users size={18} color="var(--primary)" />
+                  <span>User Account &amp; KYC Verification Command</span>
+                </h3>
+                <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                  Verify user identities, promote roles to Veterinarians or Administrators, and moderate platform accounts.
+                </span>
+              </div>
+
+              <button
+                className="apple-btn-blue"
+                onClick={() => setIsAddUserModalOpen(true)}
+                style={{ padding: '9px 18px', fontSize: '13px', background: 'var(--primary)' }}
+              >
+                <UserPlus size={15} />
+                <span>Add / Invite User</span>
+              </button>
+            </div>
+
+            {/* Filters & Search */}
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '18px' }}>
+              <div style={{ flex: 1, minWidth: '240px', position: 'relative' }}>
+                <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                <input
+                  type="text"
+                  className="input-clean"
+                  placeholder="Search users by name, email, phone, or UID..."
+                  value={userSearch}
+                  onChange={(e) => setUserSearch(e.target.value)}
+                  style={{ paddingLeft: '38px' }}
+                />
+              </div>
+
+              {/* Role Filter */}
+              <select
+                className="input-clean"
+                style={{ width: 'auto', fontSize: '13px', fontWeight: 600 }}
+                value={userRoleFilter}
+                onChange={(e) => setUserRoleFilter(e.target.value)}
+              >
+                <option value="ALL">All Roles</option>
+                <option value="Pet Owner">Pet Owners</option>
+                <option value="Veterinarian">Veterinarians</option>
+                <option value="Shelter & Spa">Shelters &amp; Spas</option>
+                <option value="Super Admin">Super Admins</option>
+              </select>
+
+              {/* Verification Status Filter */}
+              <select
+                className="input-clean"
+                style={{ width: 'auto', fontSize: '13px', fontWeight: 600 }}
+                value={userStatusFilter}
+                onChange={(e) => setUserStatusFilter(e.target.value)}
+              >
+                <option value="ALL">All KYC Statuses</option>
+                <option value="VERIFIED">Verified KYC Only</option>
+                <option value="PENDING">Pending KYC Only</option>
+                <option value="SUSPENDED">Suspended Accounts</option>
+              </select>
+            </div>
+
+            {/* Users Table */}
+            {filteredUsers.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '40px 16px', color: 'var(--text-muted)' }}>
+                <Users size={36} style={{ opacity: 0.4, marginBottom: '8px' }} />
+                <p style={{ margin: 0, fontWeight: 600 }}>No users match the selected filters.</p>
+              </div>
+            ) : (
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13.5px' }}>
+                  <thead>
+                    <tr style={{ textAlign: 'left', color: 'var(--text-muted)', borderBottom: '1px solid var(--border)' }}>
+                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>User Profile</th>
+                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>System Role</th>
+                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>KYC Verification</th>
+                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>Status</th>
+                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>Registered Pets</th>
+                      <th style={{ padding: '12px 10px', fontWeight: 600, textAlign: 'right' }}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredUsers.map((u) => {
+                      const isVerified = u.isVerified;
+                      const isSuspended = u.accountStatus === 'SUSPENDED';
+
+                      return (
+                        <tr key={u.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                          {/* User Profile */}
+                          <td style={{ padding: '14px 10px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                              <img
+                                src={u.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150'}
+                                alt={u.name}
+                                style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }}
+                                onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150'; }}
+                              />
+                              <div>
+                                <strong style={{ fontSize: '14px', color: 'var(--text-main)', display: 'block' }}>
+                                  {u.name}
+                                </strong>
+                                <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                                  {u.email} • {u.phone}
+                                </span>
+                              </div>
+                            </div>
+                          </td>
+
+                          {/* Role with in-place switcher */}
+                          <td style={{ padding: '14px 10px' }}>
+                            <select
+                              className="input-clean"
+                              style={{ padding: '4px 8px', fontSize: '12px', fontWeight: 700 }}
+                              value={u.role || 'Pet Owner'}
+                              onChange={(e) => handleChangeUserRole(u.id, e.target.value)}
+                            >
+                              <option value="Pet Owner">Pet Owner</option>
+                              <option value="Veterinarian">Veterinarian</option>
+                              <option value="Shelter & Spa">Shelter &amp; Spa</option>
+                              <option value="Super Admin">Super Admin</option>
+                            </select>
+                          </td>
+
+                          {/* KYC Verification Badge & Toggle */}
+                          <td style={{ padding: '14px 10px' }}>
+                            <button
+                              onClick={() => handleToggleUserVerification(u)}
+                              style={{
+                                border: 'none',
+                                padding: '4px 10px',
+                                borderRadius: '8px',
+                                fontSize: '11.5px',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                background: isVerified ? 'rgba(16, 185, 129, 0.14)' : 'rgba(245, 158, 11, 0.14)',
+                                color: isVerified ? '#10B981' : '#F59E0B',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px'
+                              }}
+                              title="Click to toggle KYC verification status"
+                            >
+                              {isVerified ? <BadgeCheck size={13} /> : <AlertCircle size={13} />}
+                              <span>{isVerified ? 'KYC Verified' : 'Pending KYC'}</span>
+                            </button>
+                          </td>
+
+                          {/* Account Status */}
+                          <td style={{ padding: '14px 10px' }}>
+                            <span style={{
+                              fontSize: '11.5px',
+                              fontWeight: 700,
+                              padding: '3px 8px',
+                              borderRadius: '6px',
+                              background: isSuspended ? 'rgba(239, 68, 68, 0.14)' : 'rgba(16, 185, 129, 0.12)',
+                              color: isSuspended ? '#EF4444' : '#10B981'
+                            }}>
+                              {isSuspended ? 'Suspended' : 'Active'}
+                            </span>
+                          </td>
+
+                          {/* Pets Count */}
+                          <td style={{ padding: '14px 10px', fontWeight: 600 }}>
+                            {u.petsCount || 1} Registered
+                          </td>
+
+                          {/* Actions */}
+                          <td style={{ padding: '14px 10px', textAlign: 'right' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '6px' }}>
+                              <button
+                                className="btn-ghost"
+                                style={{ padding: '4px 10px', fontSize: '12px' }}
+                                onClick={() => setSelectedUserDetails(u)}
+                                title="Inspect user profile"
+                              >
+                                <Eye size={13} />
+                                <span>Inspect</span>
+                              </button>
+
+                              <button
+                                className="icon-btn"
+                                style={{ width: 28, height: 28, color: isSuspended ? '#10B981' : '#EF4444' }}
+                                onClick={() => handleToggleUserStatus(u)}
+                                title={isSuspended ? 'Reactivate User' : 'Suspend User'}
+                              >
+                                {isSuspended ? <UserCheck size={14} /> : <UserX size={14} />}
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ══════════════════════════════════════════════════════
+          TAB 4: 🩺 SERVICES & CLINIC LICENSING MANAGEMENT
+          ══════════════════════════════════════════════════════ */}
+      {adminTab === 'services' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          
+          {/* Services Metrics */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
+            <div className="apple-solid-card" style={{ padding: '18px 20px', textAlign: 'left' }}>
+              <span className="label-mini">Specialist Providers</span>
+              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px' }}>{vets.length} Facilities</strong>
+              <span style={{ fontSize: '12px', color: 'var(--primary)', marginTop: '4px' }}>Active in Booking Network</span>
+            </div>
+
+            <div className="apple-solid-card" style={{ padding: '18px 20px', textAlign: 'left' }}>
+              <span className="label-mini">Verified Medical Licenses</span>
+              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px', color: '#10B981' }}>{verifiedServicesCount}</strong>
+              <span style={{ fontSize: '12px', color: '#10B981', marginTop: '4px' }}>100% Board Certified</span>
+            </div>
+
+            <div className="apple-solid-card" style={{ padding: '18px 20px', textAlign: 'left' }}>
+              <span className="label-mini">Pending License Reviews</span>
+              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px', color: pendingServicesCount > 0 ? '#F59E0B' : 'var(--text-muted)' }}>
+                {pendingServicesCount} Providers
+              </strong>
+              <span style={{ fontSize: '12px', color: pendingServicesCount > 0 ? '#F59E0B' : '#10B981', marginTop: '4px' }}>
+                {pendingServicesCount > 0 ? 'Requires Document Audit' : 'All Credentials Verified'}
+              </span>
+            </div>
+
+            <div className="apple-solid-card" style={{ padding: '18px 20px', textAlign: 'left' }}>
+              <span className="label-mini">24/7 Emergency Facilities</span>
+              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px', color: '#EF4444' }}>
+                {vets.filter(v => v.isEmergencyOnCall || v.tag?.includes('Hospital') || v.tag?.includes('Emergency')).length || 2} Active
+              </strong>
+              <span style={{ fontSize: '12px', color: '#EF4444', marginTop: '4px' }}>Instant Triage Callout</span>
+            </div>
+          </div>
+
+          {/* Services Directory Table Card */}
+          <div className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '18px' }}>
+              <div>
+                <h3 style={{ fontSize: '18px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+                  <Stethoscope size={18} color="var(--primary)" />
+                  <span>Clinical Licensing &amp; Service Provider Management</span>
+                </h3>
+                <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                  Audit doctor credentials, verify BMDC medical registrations, set consultation slot fees (৳), and manage clinic listings.
+                </span>
+              </div>
+
+              <button
+                className="apple-btn-blue"
+                onClick={handleOpenAddService}
+                style={{ padding: '9px 18px', fontSize: '13px' }}
+              >
+                <Plus size={15} />
+                <span>Add Service Provider</span>
+              </button>
+            </div>
+
+            {/* Filters & Search */}
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '18px' }}>
+              <div style={{ flex: 1, minWidth: '240px', position: 'relative' }}>
+                <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                <input
+                  type="text"
+                  className="input-clean"
+                  placeholder="Search by doctor, clinic, license number, or specialization..."
+                  value={serviceSearch}
+                  onChange={(e) => setServiceSearch(e.target.value)}
+                  style={{ paddingLeft: '38px' }}
+                />
+              </div>
+
+              <select
+                className="input-clean"
+                style={{ width: 'auto', fontSize: '13px', fontWeight: 600 }}
+                value={serviceCatFilter}
+                onChange={(e) => setServiceCatFilter(e.target.value)}
+              >
+                <option value="ALL">All Service Categories</option>
+                <option value="vet">Veterinary Clinics</option>
+                <option value="grooming">Grooming Spas</option>
+                <option value="boarding">Luxury Boarding &amp; Hotels</option>
+                <option value="lab">Diagnostic Labs</option>
+              </select>
+
+              <select
+                className="input-clean"
+                style={{ width: 'auto', fontSize: '13px', fontWeight: 600 }}
+                value={serviceVerifFilter}
+                onChange={(e) => setServiceVerifFilter(e.target.value)}
+              >
+                <option value="ALL">All License Statuses</option>
+                <option value="VERIFIED">Verified Licenses Only</option>
+                <option value="PENDING">Pending Verification</option>
+              </select>
+            </div>
+
+            {/* Services Table */}
+            {filteredServices.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '40px 16px', color: 'var(--text-muted)' }}>
+                <Hospital size={36} style={{ opacity: 0.4, marginBottom: '8px' }} />
+                <p style={{ margin: 0, fontWeight: 600 }}>No clinical services match your filter.</p>
+              </div>
+            ) : (
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13.5px' }}>
+                  <thead>
+                    <tr style={{ textAlign: 'left', color: 'var(--text-muted)', borderBottom: '1px solid var(--border)' }}>
+                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>Doctor / Facility</th>
+                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>Category &amp; License</th>
+                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>Specialization</th>
+                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>Slot Fee (৳)</th>
+                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>License Status</th>
+                      <th style={{ padding: '12px 10px', fontWeight: 600, textAlign: 'right' }}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredServices.map((v) => {
+                      const isVerified = v.isVerified !== false;
+
+                      return (
+                        <tr key={v.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                          {/* Doctor / Facility */}
+                          <td style={{ padding: '14px 10px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                              <img
+                                src={v.photo || 'assets/images/Pet_1.jpg'}
+                                alt={v.name}
+                                style={{ width: '44px', height: '44px', borderRadius: '10px', objectFit: 'cover' }}
+                                onError={(e) => { e.currentTarget.src = 'assets/images/Pet_1.jpg'; }}
+                              />
+                              <div>
+                                <strong style={{ fontSize: '14px', color: 'var(--text-main)', display: 'block' }}>{v.name}</strong>
+                                <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{v.clinic}</span>
+                              </div>
+                            </div>
+                          </td>
+
+                          {/* Category & License */}
+                          <td style={{ padding: '14px 10px' }}>
+                            <span style={{ fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '6px', background: 'var(--surface-alt)', textTransform: 'uppercase', display: 'inline-block', marginBottom: '2px' }}>
+                              {v.tag || 'Veterinarian'}
+                            </span>
+                            <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', fontFamily: 'monospace' }}>
+                              {v.licenseNumber || 'BMDC-VET-8891'}
+                            </span>
+                          </td>
+
+                          {/* Specialization */}
+                          <td style={{ padding: '14px 10px', color: 'var(--text-main)', fontSize: '13px', maxWidth: '240px' }}>
+                            {v.qualification}
+                          </td>
+
+                          {/* Slot Fee */}
+                          <td style={{ padding: '14px 10px', fontWeight: 700, color: 'var(--text-main)' }}>
+                            {v.price ? (v.price.startsWith('৳') ? v.price : `৳${v.price}`) : '৳400/visit'}
+                          </td>
+
+                          {/* License Verification Badge & Toggle */}
+                          <td style={{ padding: '14px 10px' }}>
+                            <button
+                              onClick={() => handleToggleServiceLicense(v)}
+                              style={{
+                                border: 'none',
+                                padding: '4px 10px',
+                                borderRadius: '8px',
+                                fontSize: '11.5px',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                background: isVerified ? 'rgba(16, 185, 129, 0.14)' : 'rgba(245, 158, 11, 0.14)',
+                                color: isVerified ? '#10B981' : '#F59E0B',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px'
+                              }}
+                              title="Click to toggle medical license verification"
+                            >
+                              {isVerified ? <CheckCircle2 size={12} /> : <AlertCircle size={12} />}
+                              <span>{isVerified ? 'Verified License' : 'Pending Audit'}</span>
+                            </button>
+                          </td>
+
+                          {/* Actions */}
+                          <td style={{ padding: '14px 10px', textAlign: 'right' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '6px' }}>
+                              <button 
+                                className="icon-btn" 
+                                style={{ width: 32, height: 32, color: 'var(--apple-blue)' }}
+                                onClick={() => handleOpenEditService(v)}
+                                title="Edit Service"
+                              >
+                                <Edit size={14} />
+                              </button>
+
+                              <button 
+                                className="icon-btn" 
+                                style={{ width: 32, height: 32, color: '#EF4444' }}
+                                onClick={() => handleDeleteService(v.id, v.name)}
+                                title="Remove Service"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ══════════════════════════════════════════════════════
+          TAB 5: 📝 ARTICLE & COMMUNITY BLOG MODERATION
           ══════════════════════════════════════════════════════ */}
       {adminTab === 'blogs' && (
         <div className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '28px' }}>
@@ -1184,7 +1874,6 @@ export default function AdminPortal() {
               </span>
             </div>
 
-            {/* Filter Pills */}
             <div style={{ display: 'flex', gap: '8px', background: 'var(--surface-alt)', padding: '4px', borderRadius: '12px' }}>
               <button
                 onClick={() => setBlogFilter('ALL')}
@@ -1234,7 +1923,6 @@ export default function AdminPortal() {
             </div>
           </div>
 
-          {/* Search Bar */}
           <div style={{ position: 'relative', marginBottom: '16px' }}>
             <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
             <input
@@ -1247,7 +1935,6 @@ export default function AdminPortal() {
             />
           </div>
 
-          {/* Article Moderation List */}
           {filteredBlogs.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '32px 16px', color: 'var(--text-muted)' }}>
               <FileText size={32} style={{ opacity: 0.4, marginBottom: '8px' }} />
@@ -1326,7 +2013,6 @@ export default function AdminPortal() {
                         </div>
                       </div>
 
-                      {/* Action buttons */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         {!isApproved && (
                           <button
@@ -1363,14 +2049,12 @@ export default function AdminPortal() {
                           className="icon-btn"
                           style={{ width: 32, height: 32, color: '#EF4444' }}
                           onClick={() => handleDeleteBlog(article.id, article.title)}
-                          title="Delete Article"
                         >
                           <Trash2 size={14} />
                         </button>
                       </div>
                     </div>
 
-                    {/* Expanded Content preview */}
                     {isExpanded && (
                       <div
                         style={{
@@ -1397,7 +2081,7 @@ export default function AdminPortal() {
       )}
 
       {/* ══════════════════════════════════════════════════════
-          TAB 4: 📊 OVERVIEW & TELEMETRY
+          TAB 6: 📊 TELEMETRY & OVERVIEW
           ══════════════════════════════════════════════════════ */}
       {adminTab === 'overview' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -1407,7 +2091,7 @@ export default function AdminPortal() {
               <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px', color: '#10B981' }}>
                 ৳{Math.round(totalValuation).toLocaleString()}
               </strong>
-              <span style={{ fontSize: '12px', color: '#10B981', marginTop: '4px' }}>Based on current SKU stock</span>
+              <span style={{ fontSize: '12px', color: '#10B981', marginTop: '4px' }}>Based on current SKU inventory</span>
             </div>
 
             <div className="apple-solid-card" style={{ padding: '20px', textAlign: 'left', alignItems: 'flex-start' }}>
@@ -1419,19 +2103,15 @@ export default function AdminPortal() {
             </div>
 
             <div className="apple-solid-card" style={{ padding: '20px', textAlign: 'left', alignItems: 'flex-start' }}>
-              <span className="label-mini">Pending Orders</span>
-              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px', color: inPrepOrdersCount > 0 ? '#0071E3' : 'var(--text-main)' }}>
-                {inPrepOrdersCount} Orders
-              </strong>
-              <span style={{ fontSize: '12px', color: inPrepOrdersCount > 0 ? '#0071E3' : '#10B981', marginTop: '4px' }}>
-                {inPrepOrdersCount > 0 ? 'Awaiting Dispatch' : 'Fulfillment Complete'}
-              </span>
+              <span className="label-mini">Total Registered Users</span>
+              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px' }}>{usersList.length} Users</strong>
+              <span style={{ fontSize: '12px', color: '#3B82F6', marginTop: '4px' }}>{verifiedUsersCount} KYC Verified</span>
             </div>
 
             <div className="apple-solid-card" style={{ padding: '20px', textAlign: 'left', alignItems: 'flex-start' }}>
               <span className="label-mini">Verified Clinicians</span>
-              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px' }}>{vets.length} Active</strong>
-              <span style={{ fontSize: '12px', color: '#3B82F6', marginTop: '4px' }}>100% License Verified</span>
+              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px' }}>{verifiedServicesCount} Active</strong>
+              <span style={{ fontSize: '12px', color: '#10B981', marginTop: '4px' }}>100% License Verified</span>
             </div>
           </div>
 
@@ -1439,16 +2119,16 @@ export default function AdminPortal() {
             <div className="apple-solid-card" style={{ padding: '24px', textAlign: 'left' }}>
               <h4 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 12px' }}>Quick Control Hub</h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <button className="apple-btn-blue" onClick={() => setAdminTab('shop')} style={{ justifyContent: 'space-between' }}>
+                <button className="apple-btn-blue" onClick={() => setAdminTab('users')} style={{ justifyContent: 'space-between' }}>
+                  <span>Manage Users &amp; KYC Verification ({pendingUsersCount})</span>
+                  <ChevronDown size={14} style={{ transform: 'rotate(-90deg)' }} />
+                </button>
+                <button className="btn-ghost" onClick={() => setAdminTab('services')} style={{ justifyContent: 'space-between' }}>
+                  <span>Verify Clinic &amp; Medical Licenses ({pendingServicesCount})</span>
+                  <ChevronDown size={14} style={{ transform: 'rotate(-90deg)' }} />
+                </button>
+                <button className="btn-ghost" onClick={() => setAdminTab('shop')} style={{ justifyContent: 'space-between' }}>
                   <span>Manage Shop &amp; Inventory</span>
-                  <ChevronDown size={14} style={{ transform: 'rotate(-90deg)' }} />
-                </button>
-                <button className="btn-ghost" onClick={() => setAdminTab('orders')} style={{ justifyContent: 'space-between' }}>
-                  <span>Review Pending Orders ({inPrepOrdersCount})</span>
-                  <ChevronDown size={14} style={{ transform: 'rotate(-90deg)' }} />
-                </button>
-                <button className="btn-ghost" onClick={() => setAdminTab('blogs')} style={{ justifyContent: 'space-between' }}>
-                  <span>Review Pending Blogs ({pendingBlogs.length})</span>
                   <ChevronDown size={14} style={{ transform: 'rotate(-90deg)' }} />
                 </button>
               </div>
@@ -1476,12 +2156,11 @@ export default function AdminPortal() {
       )}
 
       {/* ══════════════════════════════════════════════════════
-          TAB 5: 📢 BROADCASTS & GLOBAL BANNER
+          TAB 7: 📢 BROADCASTS & GLOBAL BANNER
           ══════════════════════════════════════════════════════ */}
       {adminTab === 'broadcasts' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           
-          {/* Global Banner Config */}
           <div className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '28px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h3 style={{ fontSize: '18px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
@@ -1541,7 +2220,6 @@ export default function AdminPortal() {
             </form>
           </div>
 
-          {/* Broadcast Push Messenger */}
           <div className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '28px' }}>
             <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Radio size={18} color="var(--primary)" />
@@ -1603,55 +2281,7 @@ export default function AdminPortal() {
       )}
 
       {/* ══════════════════════════════════════════════════════
-          TAB 6: 🩺 CLINICIAN DIRECTORY & LICENSING
-          ══════════════════════════════════════════════════════ */}
-      {adminTab === 'clinicians' && (
-        <div className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '28px' }}>
-          <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '16px' }}>Verified Clinicians &amp; Pricing Directory</h3>
-
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13.5px' }}>
-              <thead>
-                <tr style={{ textAlign: 'left', color: 'var(--text-muted)' }}>
-                  <th style={{ padding: '12px 10px', fontWeight: 600 }}>Doctor / Clinic</th>
-                  <th style={{ padding: '12px 10px', fontWeight: 600 }}>Specialization</th>
-                  <th style={{ padding: '12px 10px', fontWeight: 600 }}>License Status</th>
-                  <th style={{ padding: '12px 10px', fontWeight: 600 }}>Slot Fee</th>
-                  <th style={{ padding: '12px 10px', fontWeight: 600 }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {vets.map(v => (
-                  <tr key={v.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                    <td style={{ padding: '14px 10px' }}>
-                      <strong style={{ display: 'block', color: 'var(--text-main)' }}>{v.name}</strong>
-                      <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{v.clinic}</span>
-                    </td>
-                    <td style={{ padding: '14px 10px', color: 'var(--text-muted)' }}>{v.qualification}</td>
-                    <td style={{ padding: '14px 10px' }}>
-                      <span className="badge badge-green">Verified License</span>
-                    </td>
-                    <td style={{ padding: '14px 10px', fontWeight: 700 }}>৳{v.price || 400}</td>
-                    <td style={{ padding: '14px 10px' }}>
-                      <button 
-                        className="btn-ghost" 
-                        style={{ padding: '5px 12px', fontSize: '12px' }}
-                        onClick={() => openModal('editPrice', v)}
-                      >
-                        <Edit size={13} />
-                        <span>Adjust Fee</span>
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {/* ══════════════════════════════════════════════════════
-          MODAL: NEW CATALOG ENTRY (Matches Image 2 UI)
+          MODAL 1: NEW CATALOG ENTRY (Product SKU)
           ══════════════════════════════════════════════════════ */}
       <AnimatePresence>
         {isAddProductModalOpen && (
@@ -1690,7 +2320,6 @@ export default function AdminPortal() {
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Modal Header */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2 style={{ fontSize: '17px', fontWeight: 800, letterSpacing: '0.04em', margin: 0, textTransform: 'uppercase', color: '#FFFFFF' }}>
                   {editingProduct ? 'EDIT CATALOG ENTRY' : 'NEW CATALOG ENTRY'}
@@ -1705,8 +2334,6 @@ export default function AdminPortal() {
               </div>
 
               <form onSubmit={handleSaveProduct} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                
-                {/* 1. PRODUCT GALLERY */}
                 <div>
                   <label style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', color: '#8E8E93', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>
                     PRODUCT GALLERY
@@ -1721,7 +2348,6 @@ export default function AdminPortal() {
                   />
 
                   <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                    {/* Upload / Photo Box */}
                     <div
                       onClick={() => fileInputRef.current?.click()}
                       style={{
@@ -1737,8 +2363,7 @@ export default function AdminPortal() {
                         cursor: 'pointer',
                         flexShrink: 0,
                         position: 'relative',
-                        overflow: 'hidden',
-                        transition: 'border-color 0.2s ease'
+                        overflow: 'hidden'
                       }}
                       title="Click to upload image file"
                     >
@@ -1758,7 +2383,6 @@ export default function AdminPortal() {
                       )}
                     </div>
 
-                    {/* Presets & URL link */}
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <span style={{ fontSize: '11px', color: '#8E8E93', display: 'block', marginBottom: '6px' }}>Or pick preset / enter URL:</span>
                       <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px' }}>
@@ -1786,7 +2410,6 @@ export default function AdminPortal() {
                   </div>
                 </div>
 
-                {/* 2. PRODUCT NAME */}
                 <div>
                   <label style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', color: '#8E8E93', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
                     PRODUCT NAME
@@ -1811,7 +2434,6 @@ export default function AdminPortal() {
                   />
                 </div>
 
-                {/* 3. LIST PRICE (৳) & CURRENT STOCK */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   <div>
                     <label style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', color: '#8E8E93', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
@@ -1865,7 +2487,6 @@ export default function AdminPortal() {
                   </div>
                 </div>
 
-                {/* 4. BRAND / MANUFACTURER */}
                 <div>
                   <label style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', color: '#8E8E93', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
                     BRAND / MANUFACTURER
@@ -1889,7 +2510,6 @@ export default function AdminPortal() {
                   />
                 </div>
 
-                {/* 5. CATEGORY (Pill selector with checkmark) */}
                 <div>
                   <label style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', color: '#8E8E93', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>
                     CATEGORY
@@ -1925,7 +2545,6 @@ export default function AdminPortal() {
                   </div>
                 </div>
 
-                {/* Extra Options: Rx and In Stock Switch */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '2px' }}>
                   <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: '10px', background: '#161618', border: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer', fontSize: '12.5px', color: '#D1D1D6' }}>
                     <span>In Stock Active</span>
@@ -1948,7 +2567,6 @@ export default function AdminPortal() {
                   </label>
                 </div>
 
-                {/* 6. MARKETING DESCRIPTION */}
                 <div>
                   <label style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', color: '#8E8E93', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
                     MARKETING DESCRIPTION
@@ -1973,7 +2591,6 @@ export default function AdminPortal() {
                   />
                 </div>
 
-                {/* 7. FINALIZE SKU BUTTON (Matches Image 2) */}
                 <button
                   type="submit"
                   disabled={isSubmittingProduct}
@@ -1994,8 +2611,6 @@ export default function AdminPortal() {
                     transition: 'all 0.18s ease',
                     opacity: isSubmittingProduct ? 0.8 : 1
                   }}
-                  onMouseEnter={(e) => { if (!isSubmittingProduct) e.currentTarget.style.filter = 'brightness(1.08)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.filter = 'none'; }}
                 >
                   {isSubmittingProduct ? 'SAVING SKU...' : (editingProduct ? 'UPDATE SKU' : 'FINALIZE SKU')}
                 </button>
@@ -2006,7 +2621,437 @@ export default function AdminPortal() {
       </AnimatePresence>
 
       {/* ══════════════════════════════════════════════════════
-          MODAL: INSPECT CUSTOMER ORDER DETAILS
+          MODAL 2: ADD / EDIT SERVICE PROVIDER
+          ══════════════════════════════════════════════════════ */}
+      <AnimatePresence>
+        {isAddServiceModalOpen && (
+          <div 
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 10000,
+              background: 'rgba(0,0,0,0.7)',
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '20px'
+            }}
+            onClick={() => setIsAddServiceModalOpen(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ duration: 0.22, ease: [0.25, 1, 0.5, 1] }}
+              style={{
+                width: '100%',
+                maxWidth: '540px',
+                background: 'var(--surface-solid)',
+                borderRadius: '24px',
+                border: '1px solid var(--border)',
+                boxShadow: 'var(--shadow-xl)',
+                padding: '28px',
+                textAlign: 'left',
+                maxHeight: '90vh',
+                overflowY: 'auto'
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <div>
+                  <span className="apple-card-eyebrow" style={{ color: 'var(--primary)' }}>Specialist Network</span>
+                  <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '2px 0 0' }}>
+                    {editingService ? 'Edit Service Provider' : 'Add Clinical Service Provider'}
+                  </h2>
+                </div>
+                <button className="icon-btn" onClick={() => setIsAddServiceModalOpen(false)}>
+                  <X size={18} />
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveService} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div>
+                  <label className="label-mini">Doctor or Facility Name *</label>
+                  <input
+                    type="text"
+                    required
+                    className="input-clean"
+                    placeholder="e.g. Dr. Emily Vance / Pawfect Spa"
+                    value={serviceFormData.name}
+                    onChange={(e) => setServiceFormData(prev => ({ ...prev, name: e.target.value }))}
+                  />
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div>
+                    <label className="label-mini">Service Category *</label>
+                    <select
+                      className="input-clean"
+                      value={serviceFormData.tag}
+                      onChange={(e) => setServiceFormData(prev => ({ ...prev, tag: e.target.value }))}
+                      style={{ fontWeight: 600 }}
+                    >
+                      <option value="Veterinarian">Veterinarian</option>
+                      <option value="Grooming Spa">Grooming Spa</option>
+                      <option value="Boarding Resort">Boarding Resort</option>
+                      <option value="Diagnostic Lab">Diagnostic Lab</option>
+                      <option value="Pet Hospital">Pet Hospital / ER</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="label-mini">Medical License Number *</label>
+                    <input
+                      type="text"
+                      required
+                      className="input-clean"
+                      placeholder="e.g. BMDC-VET-88492"
+                      value={serviceFormData.licenseNumber}
+                      onChange={(e) => setServiceFormData(prev => ({ ...prev, licenseNumber: e.target.value }))}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div>
+                    <label className="label-mini">Clinic / Hospital Name</label>
+                    <input
+                      type="text"
+                      className="input-clean"
+                      placeholder="e.g. City Vets & Diagnostics"
+                      value={serviceFormData.clinic}
+                      onChange={(e) => setServiceFormData(prev => ({ ...prev, clinic: e.target.value }))}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="label-mini">Slot Fee (৳ BDT) *</label>
+                    <input
+                      type="number"
+                      required
+                      className="input-clean"
+                      placeholder="e.g. 450"
+                      value={serviceFormData.price}
+                      onChange={(e) => setServiceFormData(prev => ({ ...prev, price: e.target.value }))}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="label-mini">Qualifications &amp; Specialization</label>
+                  <input
+                    type="text"
+                    className="input-clean"
+                    placeholder="e.g. DVM • Internal Medicine & Cardiology"
+                    value={serviceFormData.qualification}
+                    onChange={(e) => setServiceFormData(prev => ({ ...prev, qualification: e.target.value }))}
+                  />
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div>
+                    <label className="label-mini">Operating Schedule</label>
+                    <input
+                      type="text"
+                      className="input-clean"
+                      placeholder="e.g. Mon - Fri • 9am - 6pm"
+                      value={serviceFormData.availability}
+                      onChange={(e) => setServiceFormData(prev => ({ ...prev, availability: e.target.value }))}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="label-mini">Distance Label</label>
+                    <input
+                      type="text"
+                      className="input-clean"
+                      placeholder="e.g. 1.2 km away"
+                      value={serviceFormData.distance}
+                      onChange={(e) => setServiceFormData(prev => ({ ...prev, distance: e.target.value }))}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: '12px', background: 'var(--surface-alt)', border: '1px solid var(--border)', cursor: 'pointer', fontSize: '13px' }}>
+                    <span style={{ fontWeight: 600, color: '#10B981' }}>Medical License Verified</span>
+                    <input
+                      type="checkbox"
+                      checked={serviceFormData.isVerified}
+                      onChange={(e) => setServiceFormData(prev => ({ ...prev, isVerified: e.target.checked }))}
+                      style={{ width: 16, height: 16 }}
+                    />
+                  </label>
+
+                  <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: '12px', background: 'var(--surface-alt)', border: '1px solid var(--border)', cursor: 'pointer', fontSize: '13px' }}>
+                    <span style={{ fontWeight: 600, color: '#EF4444' }}>24/7 Emergency On-Call</span>
+                    <input
+                      type="checkbox"
+                      checked={serviceFormData.isEmergencyOnCall}
+                      onChange={(e) => setServiceFormData(prev => ({ ...prev, isEmergencyOnCall: e.target.checked }))}
+                      style={{ width: 16, height: 16 }}
+                    />
+                  </label>
+                </div>
+
+                <div>
+                  <label className="label-mini">Clinical Bio &amp; Specialty Notes</label>
+                  <textarea
+                    rows={2}
+                    className="input-clean"
+                    placeholder="Expertise in surgery, echocardiography, dental scaling..."
+                    value={serviceFormData.bio}
+                    onChange={(e) => setServiceFormData(prev => ({ ...prev, bio: e.target.value }))}
+                  />
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+                  <button type="button" className="btn-ghost" onClick={() => setIsAddServiceModalOpen(false)}>
+                    Cancel
+                  </button>
+                  <button type="submit" className="apple-btn-blue" style={{ padding: '9px 22px' }}>
+                    <CheckCircle2 size={15} />
+                    <span>{editingService ? 'Save Service Updates' : 'Publish Service Listing'}</span>
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ══════════════════════════════════════════════════════
+          MODAL 3: ADD / INVITE USER
+          ══════════════════════════════════════════════════════ */}
+      <AnimatePresence>
+        {isAddUserModalOpen && (
+          <div 
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 10000,
+              background: 'rgba(0,0,0,0.7)',
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '20px'
+            }}
+            onClick={() => setIsAddUserModalOpen(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ duration: 0.22, ease: [0.25, 1, 0.5, 1] }}
+              style={{
+                width: '100%',
+                maxWidth: '480px',
+                background: 'var(--surface-solid)',
+                borderRadius: '24px',
+                border: '1px solid var(--border)',
+                boxShadow: 'var(--shadow-xl)',
+                padding: '28px',
+                textAlign: 'left'
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <div>
+                  <span className="apple-card-eyebrow" style={{ color: 'var(--primary)' }}>User Provisioning</span>
+                  <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '2px 0 0' }}>Register / Invite User</h2>
+                </div>
+                <button className="icon-btn" onClick={() => setIsAddUserModalOpen(false)}>
+                  <X size={18} />
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveNewUser} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div>
+                  <label className="label-mini">Full Name *</label>
+                  <input
+                    type="text"
+                    required
+                    className="input-clean"
+                    placeholder="e.g. Sadik Mahmud"
+                    value={userFormData.name}
+                    onChange={(e) => setUserFormData(prev => ({ ...prev, name: e.target.value }))}
+                  />
+                </div>
+
+                <div>
+                  <label className="label-mini">Email Address *</label>
+                  <input
+                    type="email"
+                    required
+                    className="input-clean"
+                    placeholder="e.g. user@petmaya.app"
+                    value={userFormData.email}
+                    onChange={(e) => setUserFormData(prev => ({ ...prev, email: e.target.value }))}
+                  />
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div>
+                    <label className="label-mini">System Role *</label>
+                    <select
+                      className="input-clean"
+                      value={userFormData.role}
+                      onChange={(e) => setUserFormData(prev => ({ ...prev, role: e.target.value }))}
+                      style={{ fontWeight: 600 }}
+                    >
+                      <option value="Pet Owner">Pet Owner</option>
+                      <option value="Veterinarian">Veterinarian</option>
+                      <option value="Shelter & Spa">Shelter &amp; Spa</option>
+                      <option value="Super Admin">Super Admin</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="label-mini">Phone Number</label>
+                    <input
+                      type="text"
+                      className="input-clean"
+                      placeholder="+880 1700-000000"
+                      value={userFormData.phone}
+                      onChange={(e) => setUserFormData(prev => ({ ...prev, phone: e.target.value }))}
+                    />
+                  </div>
+                </div>
+
+                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: '12px', background: 'var(--surface-alt)', border: '1px solid var(--border)', cursor: 'pointer', fontSize: '13px', marginTop: '4px' }}>
+                  <span style={{ fontWeight: 600, color: '#10B981' }}>Mark KYC Profile as Verified</span>
+                  <input
+                    type="checkbox"
+                    checked={userFormData.isVerified}
+                    onChange={(e) => setUserFormData(prev => ({ ...prev, isVerified: e.target.checked }))}
+                    style={{ width: 16, height: 16 }}
+                  />
+                </label>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '12px' }}>
+                  <button type="button" className="btn-ghost" onClick={() => setIsAddUserModalOpen(false)}>
+                    Cancel
+                  </button>
+                  <button type="submit" className="apple-btn-blue" style={{ padding: '9px 22px' }}>
+                    <CheckCircle2 size={15} />
+                    <span>Create User Account</span>
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ══════════════════════════════════════════════════════
+          MODAL 4: INSPECT USER PROFILE DETAILS
+          ══════════════════════════════════════════════════════ */}
+      <AnimatePresence>
+        {selectedUserDetails && (
+          <div 
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 10000,
+              background: 'rgba(0,0,0,0.7)',
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '20px'
+            }}
+            onClick={() => setSelectedUserDetails(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ duration: 0.22, ease: [0.25, 1, 0.5, 1] }}
+              style={{
+                width: '100%',
+                maxWidth: '520px',
+                background: 'var(--surface-solid)',
+                borderRadius: '24px',
+                border: '1px solid var(--border)',
+                boxShadow: 'var(--shadow-xl)',
+                padding: '28px',
+                textAlign: 'left'
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <div>
+                  <span className="apple-card-eyebrow" style={{ color: 'var(--primary)' }}>User Dossier</span>
+                  <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '2px 0 0' }}>Profile &amp; Verification</h2>
+                </div>
+                <button className="icon-btn" onClick={() => setSelectedUserDetails(null)}>
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', background: 'var(--surface-alt)', padding: '16px', borderRadius: '16px', marginBottom: '18px' }}>
+                <img
+                  src={selectedUserDetails.avatar}
+                  alt={selectedUserDetails.name}
+                  style={{ width: '60px', height: '60px', borderRadius: '50%', objectFit: 'cover' }}
+                />
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <strong style={{ fontSize: '17px', color: 'var(--text-main)' }}>{selectedUserDetails.name}</strong>
+                    {selectedUserDetails.isVerified && <BadgeCheck size={16} color="#10B981" />}
+                  </div>
+                  <span style={{ fontSize: '13px', color: 'var(--text-muted)', display: 'block' }}>{selectedUserDetails.email}</span>
+                  <span style={{ fontSize: '12px', color: 'var(--primary)', fontWeight: 600 }}>{selectedUserDetails.role} • UID: {selectedUserDetails.id}</span>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '18px', fontSize: '13px' }}>
+                <div style={{ background: 'var(--surface-alt)', padding: '12px', borderRadius: '12px' }}>
+                  <span className="label-mini">KYC Status</span>
+                  <strong style={{ display: 'block', color: selectedUserDetails.isVerified ? '#10B981' : '#F59E0B', marginTop: '2px' }}>
+                    {selectedUserDetails.isVerified ? 'VERIFIED PROFILE' : 'PENDING REVIEW'}
+                  </strong>
+                </div>
+
+                <div style={{ background: 'var(--surface-alt)', padding: '12px', borderRadius: '12px' }}>
+                  <span className="label-mini">Account State</span>
+                  <strong style={{ display: 'block', color: selectedUserDetails.accountStatus === 'SUSPENDED' ? '#EF4444' : '#10B981', marginTop: '2px' }}>
+                    {selectedUserDetails.accountStatus === 'SUSPENDED' ? 'SUSPENDED' : 'ACTIVE & IN GOOD STANDING'}
+                  </strong>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
+                <button
+                  className="apple-btn-blue"
+                  style={{ width: '100%', justifyContent: 'center', background: selectedUserDetails.isVerified ? '#F59E0B' : '#10B981' }}
+                  onClick={() => handleToggleUserVerification(selectedUserDetails)}
+                >
+                  <BadgeCheck size={15} />
+                  <span>{selectedUserDetails.isVerified ? 'Revoke KYC Verification' : 'Verify KYC Identity'}</span>
+                </button>
+
+                <button
+                  className="btn-ghost"
+                  style={{ width: '100%', justifyContent: 'center', color: selectedUserDetails.accountStatus === 'SUSPENDED' ? '#10B981' : '#EF4444' }}
+                  onClick={() => handleToggleUserStatus(selectedUserDetails)}
+                >
+                  {selectedUserDetails.accountStatus === 'SUSPENDED' ? <UserCheck size={15} /> : <UserX size={15} />}
+                  <span>{selectedUserDetails.accountStatus === 'SUSPENDED' ? 'Reactivate User Access' : 'Suspend User Account'}</span>
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ══════════════════════════════════════════════════════
+          MODAL 5: INSPECT CUSTOMER ORDER DETAILS
           ══════════════════════════════════════════════════════ */}
       <AnimatePresence>
         {selectedOrderDetails && (
@@ -2056,7 +3101,6 @@ export default function AdminPortal() {
                 </button>
               </div>
 
-              {/* Status Header */}
               <div style={{ background: 'var(--surface-alt)', padding: '16px', borderRadius: '16px', marginBottom: '18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                   <span className="label-mini">Current Order Status</span>
@@ -2065,7 +3109,6 @@ export default function AdminPortal() {
                   </div>
                 </div>
 
-                {/* Status Changer Dropdown */}
                 <div>
                   <span className="label-mini">Change Status</span>
                   <select
@@ -2083,7 +3126,6 @@ export default function AdminPortal() {
                 </div>
               </div>
 
-              {/* Delivery Info */}
               <div style={{ marginBottom: '18px' }}>
                 <span className="label-mini">Shipping &amp; Delivery Destination</span>
                 <div style={{ background: 'var(--surface-alt)', padding: '12px 16px', borderRadius: '12px', marginTop: '6px', fontSize: '13.5px', color: 'var(--text-main)' }}>
@@ -2097,7 +3139,6 @@ export default function AdminPortal() {
                 </div>
               </div>
 
-              {/* Items List */}
               <div style={{ marginBottom: '18px' }}>
                 <span className="label-mini">Purchased Items ({selectedOrderDetails.items?.length || 0})</span>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '6px' }}>
@@ -2115,7 +3156,6 @@ export default function AdminPortal() {
                 </div>
               </div>
 
-              {/* Cost Summary Breakdown */}
               <div style={{ borderTop: '1px solid var(--border)', paddingTop: '14px', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '13px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)' }}>
                   <span>Subtotal:</span>
@@ -2137,7 +3177,6 @@ export default function AdminPortal() {
                 </div>
               </div>
 
-              {/* Actions */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '24px' }}>
                 <button
                   className="btn-destructive"

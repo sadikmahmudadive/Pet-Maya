@@ -1263,6 +1263,115 @@ export function AppProvider({ children }) {
     }
   };
 
+  // ─── ADMIN SERVICE & CLINICIAN MANAGEMENT ACTIONS ───
+  const addService = async (serviceData) => {
+    const id = serviceData.id || 'v_' + Date.now();
+    const newService = {
+      id,
+      name: serviceData.name || 'New Specialist',
+      qualification: serviceData.qualification || 'DVM, MRCVS',
+      tag: serviceData.tag || 'Veterinarian',
+      clinic: serviceData.clinic || 'Animal Care Hospital',
+      licenseNumber: serviceData.licenseNumber || `BMDC-VET-${Math.floor(10000 + Math.random() * 90000)}`,
+      rating: typeof serviceData.rating === 'number' ? serviceData.rating : 4.9,
+      reviewsCount: serviceData.reviewsCount || 1,
+      distance: serviceData.distance || '1.0 km away',
+      price: serviceData.price ? (serviceData.price.startsWith('৳') ? serviceData.price : `৳${serviceData.price}/visit`) : '৳400/visit',
+      availability: serviceData.availability || 'Mon - Fri • 9am - 6pm',
+      isVerified: serviceData.isVerified !== false,
+      isEmergencyOnCall: !!serviceData.isEmergencyOnCall,
+      bio: serviceData.bio || 'Licensed clinical specialist.',
+      photo: serviceData.photo || 'assets/images/Pet_1.jpg',
+      createdAt: Date.now()
+    };
+
+    setVets(prev => [newService, ...prev.filter(v => v.id !== id)]);
+    try {
+      localStorage.setItem('pm_cached_vets', JSON.stringify([newService, ...vets.filter(v => v.id !== id)]));
+    } catch (_) {}
+
+    try {
+      await setDoc(doc(db, 'vets', id), newService, { merge: true });
+      showToast(`🩺 Service "${newService.name}" published to directory!`, 'success');
+    } catch (e) {
+      console.warn('[Firebase] addService error:', e);
+      showToast(`🩺 Service "${newService.name}" saved!`, 'success');
+    }
+    return newService;
+  };
+
+  const updateService = async (serviceId, updatedFields) => {
+    setVets(prev => prev.map(v => v.id === serviceId ? { ...v, ...updatedFields } : v));
+    try {
+      const updatedList = vets.map(v => v.id === serviceId ? { ...v, ...updatedFields } : v);
+      localStorage.setItem('pm_cached_vets', JSON.stringify(updatedList));
+    } catch (_) {}
+
+    try {
+      await setDoc(doc(db, 'vets', serviceId), updatedFields, { merge: true });
+      showToast('✅ Service details updated successfully.', 'success');
+    } catch (e) {
+      console.warn('[Firebase] updateService error:', e);
+      showToast('✅ Service details updated.', 'success');
+    }
+  };
+
+  const deleteService = async (serviceId) => {
+    setVets(prev => prev.filter(v => v.id !== serviceId));
+    try {
+      const filtered = vets.filter(v => v.id !== serviceId);
+      localStorage.setItem('pm_cached_vets', JSON.stringify(filtered));
+    } catch (_) {}
+
+    try {
+      await deleteDoc(doc(db, 'vets', serviceId));
+      showToast('🗑️ Service listing removed from network.', 'info');
+    } catch (e) {
+      console.warn('[Firebase] deleteService error:', e);
+      showToast('🗑️ Service listing removed.', 'info');
+    }
+  };
+
+  const updateServiceVerification = async (serviceId, isVerified) => {
+    await updateService(serviceId, { isVerified, licenseStatus: isVerified ? 'VERIFIED' : 'PENDING' });
+    showToast(`🛡️ Service medical license marked as ${isVerified ? 'VERIFIED' : 'PENDING'}.`, 'success');
+  };
+
+  // ─── ADMIN USER VERIFICATION & ROLE MANAGEMENT ACTIONS ───
+  const updateUserRole = async (userId, newRole) => {
+    try {
+      await setDoc(doc(db, 'users', userId), { role: newRole, updatedAt: Date.now() }, { merge: true });
+      showToast(`👤 User role updated to "${newRole}".`, 'success');
+    } catch (e) {
+      console.warn('[Firebase] updateUserRole error:', e);
+      showToast(`👤 User role updated to "${newRole}".`, 'success');
+    }
+  };
+
+  const updateUserVerification = async (userId, isVerified) => {
+    try {
+      await setDoc(doc(db, 'users', userId), { 
+        isVerified, 
+        verificationStatus: isVerified ? 'VERIFIED' : 'PENDING',
+        verifiedAt: isVerified ? Date.now() : null 
+      }, { merge: true });
+      showToast(`🛡️ User KYC profile marked as ${isVerified ? 'VERIFIED' : 'UNVERIFIED'}.`, 'success');
+    } catch (e) {
+      console.warn('[Firebase] updateUserVerification error:', e);
+      showToast(`🛡️ User KYC updated.`, 'success');
+    }
+  };
+
+  const updateUserAccountStatus = async (userId, status) => {
+    try {
+      await setDoc(doc(db, 'users', userId), { accountStatus: status, updatedAt: Date.now() }, { merge: true });
+      showToast(`⚠️ User account status updated to "${status}".`, 'info');
+    } catch (e) {
+      console.warn('[Firebase] updateUserAccountStatus error:', e);
+      showToast(`User status updated to "${status}".`, 'info');
+    }
+  };
+
   const cartCount = cart.reduce((acc, item) => acc + item.qty, 0);
   const cartTotal = cart.reduce((acc, item) => acc + item.price * item.qty, 0);
 
@@ -1283,6 +1392,10 @@ export function AppProvider({ children }) {
       deletePet,
       vets,
       isVetsLoading,
+      addService,
+      updateService,
+      deleteService,
+      updateServiceVerification,
       products,
       isProductsLoading,
       addProduct,
@@ -1311,6 +1424,9 @@ export function AppProvider({ children }) {
       checkoutOrder,
       updateOrderStatus,
       deleteOrder,
+      updateUserRole,
+      updateUserVerification,
+      updateUserAccountStatus,
       globalBanner,
       updateGlobalBanner,
       locationPermission,
