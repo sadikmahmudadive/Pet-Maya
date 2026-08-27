@@ -5,7 +5,7 @@ import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
 import { 
   Radar, Activity, Utensils, Stethoscope, ShoppingBag, Bell, 
   Download, Smartphone, ChevronRight, ShieldCheck, ExternalLink,
-  Sparkles, Play, Heart, BookOpen, DollarSign, MapPin, MessageCircle, Calendar
+  Sparkles, Heart, BookOpen, MapPin, MessageCircle, Calendar, Syringe
 } from 'lucide-react';
 
 export default function LandingPage() {
@@ -27,177 +27,195 @@ export default function LandingPage() {
     }
   };
 
-  // --- Scroll Animations: Hero 1 (Spatial Computing Reveal) ---
+  // --- Scroll Animations: Hero 1 ---
   const heroRef = useRef(null);
   const { scrollYProgress: heroProgressRaw } = useScroll({
     target: heroRef,
-    offset: ["start start", "end end"]
+    offset: ['start start', 'end end']
   });
-  // Smooth responsive spring for natural scroll pacing
   const heroProgress = useSpring(heroProgressRaw, { stiffness: 220, damping: 26, restDelta: 0.001 });
 
-  // Stage 1: Titanium Title (Stays solid, then blurs and fades completely out before Stage 2 arrives)
   const heroOpacity = useTransform(heroProgress, [0, 0.22, 0.35], [1, 1, 0]);
-  const heroScale = useTransform(heroProgress, [0, 0.35], [1, 1.08]);
-  const heroBlur = useTransform(heroProgress, [0.18, 0.35], ["blur(0px)", "blur(14px)"]);
-  const heroY = useTransform(heroProgress, [0, 0.35], [0, -50]);
+  const heroScale  = useTransform(heroProgress, [0, 0.35], [1, 1.06]);
+  const heroBlur   = useTransform(heroProgress, [0.18, 0.35], ['blur(0px)', 'blur(14px)']);
+  const heroY      = useTransform(heroProgress, [0, 0.35], [0, -50]);
   const heroPointerEvents = useTransform(heroProgress, (v) => v > 0.32 ? 'none' : 'auto');
 
-  // Stage 2: Ecosystem Cards (Begins after Stage 1 is gone, stays centered in screen, then fades out at end)
   const gridOpacity = useTransform(heroProgress, [0.36, 0.48, 0.82, 0.96], [0, 1, 1, 0]);
-  const gridY = useTransform(heroProgress, [0.36, 0.48, 0.82, 0.96], [50, 0, 0, -40]);
-  const gridScale = useTransform(heroProgress, [0.36, 0.48, 0.82, 0.96], [0.92, 1, 1, 0.96]);
+  const gridY       = useTransform(heroProgress, [0.36, 0.48, 0.82, 0.96], [50, 0, 0, -40]);
+  const gridScale   = useTransform(heroProgress, [0.36, 0.48, 0.82, 0.96], [0.92, 1, 1, 0.96]);
 
-  // --- Scroll Animations: Hero 2 (Sticky Showcase) ---
+  // --- Scroll Animations: Hero 2 ---
   const showcaseRef = useRef(null);
   const { scrollYProgress: showcaseProgressRaw } = useScroll({
     target: showcaseRef,
-    offset: ["start start", "end end"]
+    offset: ['start start', 'end end']
   });
   const showcaseProgress = useSpring(showcaseProgressRaw, { stiffness: 220, damping: 26 });
-  
-  // Clean sequential cross-fades with clear rest times in the center of the screen
+
   const text1Opacity = useTransform(showcaseProgress, [0.05, 0.16, 0.28, 0.38], [0, 1, 1, 0]);
   const text2Opacity = useTransform(showcaseProgress, [0.38, 0.49, 0.61, 0.71], [0, 1, 1, 0]);
   const text3Opacity = useTransform(showcaseProgress, [0.71, 0.82, 0.93, 1.00], [0, 1, 1, 0]);
 
+  // Feature items for ecosystem card
+  const ecosystemFeatures = [
+    { id: 'tracker',   icon: Radar,         title: 'Tracker',     subtitle: 'Live GPS location',     color: '#10B981', bg: 'rgba(16,185,129,0.18)' },
+    { id: 'ai',        icon: Activity,      title: 'Wellness',    subtitle: 'AI health scan',        color: '#3B82F6', bg: 'rgba(59,130,246,0.18)' },
+    { id: 'vets',      icon: Stethoscope,   title: 'Specialists', subtitle: '500+ Verified doctors', color: '#F59E0B', bg: 'rgba(245,158,11,0.18)' },
+    { id: 'shop',      icon: ShoppingBag,   title: 'Pet Shop',    subtitle: 'Nutrition & essentials', color: '#8B5CF6', bg: 'rgba(139,92,246,0.18)' },
+    { id: 'community', icon: MessageCircle, title: 'Community',   subtitle: 'Pet parent network',    color: '#06B6D4', bg: 'rgba(6,182,212,0.18)' },
+    { id: 'food',      icon: BookOpen,      title: 'Blog',        subtitle: 'Expert advice & diet',  color: '#EC4899', bg: 'rgba(236,72,153,0.18)' },
+  ];
+
+  // Bento grid features
+  const bentoFeatures = [
+    { id: 'tracker',  title: 'Live GPS Radar',       eyebrow: 'Radar Telemetry',      color: '#10B981', icon: Radar,         desc: 'Sub-meter satellite tracking, safe perimeter geofencing, and smart biometric collar sensors.' },
+    { id: 'ai',       title: 'Wellness AI',          eyebrow: 'AI Diagnostics',       color: '#3B82F6', icon: Activity,      desc: 'Instant multi-modal neural triage for skin, eye, dental, and mobility conditions.' },
+    { id: 'vets',     title: 'Specialists',          eyebrow: 'Specialist Network',   color: '#F59E0B', icon: Stethoscope,   desc: 'In-clinic visits, surgery consultations, and HD teleconsultations with verified doctors.' },
+    { id: 'food',     title: 'Blog & Nutrition',     eyebrow: 'Precision Diet',       color: '#EC4899', icon: BookOpen,      desc: 'Scientific calorie calculators, portion guides, and breed-specific feeding plans.' },
+    { id: 'shop',     title: 'Pet Pharmacy',         eyebrow: 'Shop & Pharmacy',      color: '#8B5CF6', icon: ShoppingBag,   desc: 'Genuine prescription preventatives and specialty food with live order dispatch.' },
+    { id: 'vaccines', title: 'Medical Passport',     eyebrow: 'Immunization',         color: '#06B6D4', icon: Syringe,       desc: 'Automated immunization schedules, rabies tracking, and calendar export.' },
+  ];
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', margin: '-24px -16px 0', width: 'calc(100% + 32px)', backgroundColor: '#000' }}>
-      
-      {/* ══════════════════════════════════════════════════════
-          HERO 1: SPATIAL REVEAL (VISION PRO STYLE)
-          ══════════════════════════════════════════════════════ */}
+
+      {/* ═══ HERO 1: SPATIAL REVEAL ═══ */}
       <section ref={heroRef} style={{ height: '240vh', position: 'relative' }}>
-        <div style={{ 
-          position: 'sticky', 
-          top: 0, 
-          height: '100vh', 
-          display: 'flex', 
-          flexDirection: 'column', 
-          alignItems: 'center', 
+        <div style={{
+          position: 'sticky',
+          top: 0,
+          height: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
           justifyContent: 'center',
           overflow: 'hidden',
           padding: '0 16px',
           boxSizing: 'border-box'
         }}>
-          {/* Main Title that scales up and blurs out */}
-          <motion.div style={{ 
-            opacity: heroOpacity, 
-            scale: heroScale, 
-            filter: heroBlur, 
-            y: heroY, 
+          {/* Title stage */}
+          <motion.div style={{
+            opacity: heroOpacity,
+            scale: heroScale,
+            filter: heroBlur,
+            y: heroY,
             pointerEvents: heroPointerEvents,
-            textAlign: 'center', 
+            textAlign: 'center',
             zIndex: 10,
-            maxWidth: '800px',
+            maxWidth: '780px',
             padding: '0 16px'
           }}>
-            <motion.span 
-              initial={{ opacity: 0, y: 12 }}
+            {/* Animated pill eyebrow badge */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.05, duration: 0.35 }}
-              className="apple-hero-eyebrow" 
-              style={{ color: 'var(--primary)', marginBottom: '16px', display: 'block' }}
+              transition={{ delay: 0.05, duration: 0.4 }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginBottom: '20px' }}
             >
-              Pet Maya 2.0
-            </motion.span>
-            
-            <motion.h1 
+              <div style={{
+                display: 'inline-flex', alignItems: 'center', gap: '7px',
+                background: 'rgba(16,185,129,0.14)',
+                border: '1px solid rgba(16,185,129,0.28)',
+                borderRadius: '999px',
+                padding: '5px 14px 5px 8px',
+              }}>
+                <span style={{
+                  width: 7, height: 7, borderRadius: '50%', background: '#10B981',
+                  animation: 'pulseDot 2s ease-in-out infinite',
+                  display: 'inline-block',
+                  flexShrink: 0,
+                }} />
+                <span style={{ fontSize: '12px', fontWeight: 600, color: '#10B981', letterSpacing: '0.02em' }}>
+                  Pet Maya 2.0 — Now Live
+                </span>
+              </div>
+            </motion.div>
+
+            <motion.h1
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1, duration: 0.35 }}
-              style={{ 
-                fontSize: 'clamp(2.2rem, 7.5vw, 5.5rem)', 
-                fontWeight: 700, 
-                letterSpacing: '-0.04em', 
-                color: '#FFF', 
-                lineHeight: 1.1, 
-                margin: '0 0 20px 0',
+              transition={{ delay: 0.1, duration: 0.4 }}
+              style={{
+                fontSize: 'clamp(2.2rem, 7.5vw, 5.2rem)',
+                fontWeight: 700,
+                letterSpacing: '-0.04em',
+                color: '#FFF',
+                lineHeight: 1.08,
+                margin: '0 0 18px 0',
                 wordBreak: 'break-word',
-                overflowWrap: 'break-word',
-                maxWidth: '100%'
               }}
             >
-              Titanium <br className="hide-mobile" /> intelligence.
+              Titanium<br className="hide-mobile" /> intelligence.
             </motion.h1>
-            
-            <motion.p 
+
+            <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.15, duration: 0.35 }}
-              style={{ fontSize: 'clamp(1rem, 3.5vw, 1.4rem)', color: '#A1A1A6', maxWidth: '600px', margin: '0 auto 36px', lineHeight: 1.45, padding: '0 10px' }}
+              transition={{ delay: 0.18, duration: 0.4 }}
+              style={{ fontSize: 'clamp(1rem, 3.2vw, 1.3rem)', color: '#A1A1A6', maxWidth: '560px', margin: '0 auto 32px', lineHeight: 1.5, padding: '0 10px' }}
             >
               Next-generation pet healthcare, live GPS radar, and clinical AI triage. All in one place.
             </motion.p>
-            
-            <motion.div 
+
+            <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.2, duration: 0.3 }}
-              className="apple-cta-group" 
+              transition={{ delay: 0.24, duration: 0.32 }}
+              className="apple-cta-group"
               style={{ justifyContent: 'center' }}
             >
               <button className="apple-btn-blue" onClick={() => openModal('auth')}>
                 <span>Get Started</span>
               </button>
-              <button className="apple-link-cta" onClick={handleTryDemo} style={{ color: '#FFF' }}>
+              <button className="apple-link-cta" onClick={handleTryDemo} style={{ color: '#FFF', opacity: 0.85 }}>
                 <span>Explore Live Demo</span>
-                <ChevronRight size={16} />
+                <ChevronRight size={15} />
               </button>
             </motion.div>
           </motion.div>
 
-          {/* Ecosystem Visual that centers perfectly in the middle of screen */}
-          <motion.div 
-            style={{ 
-              position: 'absolute', 
-              top: '50%',
-              left: '50%',
-              x: '-50%',
-              y: '-50%',
-              translateY: gridY,
-              opacity: gridOpacity, 
-              scale: gridScale,
-              width: 'calc(100% - 32px)',
-              maxWidth: '920px',
-              zIndex: 20
-            }}
-          >
+          {/* Ecosystem card overlay */}
+          <motion.div style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            x: '-50%',
+            y: '-50%',
+            translateY: gridY,
+            opacity: gridOpacity,
+            scale: gridScale,
+            width: 'calc(100% - 32px)',
+            maxWidth: '880px',
+            zIndex: 20,
+          }}>
             <div style={{
-              background: 'rgba(24, 24, 26, 0.92)',
-              backdropFilter: 'blur(28px)',
-              WebkitBackdropFilter: 'blur(28px)',
-              border: '1px solid rgba(255, 255, 255, 0.15)',
-              borderRadius: '24px',
-              padding: 'clamp(16px, 3.5vw, 28px)',
-              boxShadow: '0 30px 80px rgba(0, 0, 0, 0.9)',
+              background: 'rgba(20,20,22,0.94)',
+              backdropFilter: 'blur(32px)',
+              WebkitBackdropFilter: 'blur(32px)',
+              border: '1px solid rgba(255,255,255,0.12)',
+              borderRadius: '26px',
+              padding: 'clamp(18px, 3.5vw, 28px)',
+              boxShadow: '0 40px 100px rgba(0,0,0,0.9)',
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-              gap: 'clamp(12px, 2.5vw, 22px)',
-              textAlign: 'left'
+              gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))',
+              gap: 'clamp(12px, 2.5vw, 20px)',
+              textAlign: 'left',
             }}>
-              {/* Feature Cards with hover effects */}
-              {[
-                { id: 'tracker', icon: Radar, title: 'Tracker', subtitle: 'Live GPS location', color: '#10B981', bg: 'rgba(16, 185, 129, 0.18)' },
-                { id: 'ai', icon: Activity, title: 'Wellness', subtitle: 'AI health scan', color: '#3B82F6', bg: 'rgba(59, 130, 246, 0.18)' },
-                { id: 'vets', icon: Stethoscope, title: 'Specialists', subtitle: '500+ Verified clinicians', color: '#F59E0B', bg: 'rgba(245, 158, 11, 0.18)' },
-                { id: 'shop', icon: ShoppingBag, title: 'Pet Shop', subtitle: 'Nutrition & essentials', color: '#8B5CF6', bg: 'rgba(139, 92, 246, 0.18)' },
-                { id: 'community', icon: MessageCircle, title: 'Community', subtitle: 'Pet parent network', color: '#06B6D4', bg: 'rgba(6, 182, 212, 0.18)' },
-                { id: 'food', icon: BookOpen, title: 'Blog', subtitle: 'Expert advice & diet', color: '#EC4899', bg: 'rgba(236, 72, 153, 0.18)' }
-              ].map((item) => (
-                <motion.div 
+              {ecosystemFeatures.map((item) => (
+                <motion.div
                   key={item.id}
-                  whileHover={{ scale: 1.04, y: -4 }}
+                  whileHover={{ scale: 1.04, y: -3 }}
                   whileTap={{ scale: 0.96 }}
-                  style={{ display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer' }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', padding: '4px 0' }}
                   onClick={() => handleFeatureAccess(item.id, item.title)}
                 >
-                  <div style={{ width: 44, height: 44, borderRadius: '50%', background: item.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: item.color, flexShrink: 0 }}>
-                    <item.icon size={20} />
+                  <div style={{ width: 40, height: 40, borderRadius: '12px', background: item.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: item.color, flexShrink: 0 }}>
+                    <item.icon size={18} />
                   </div>
                   <div>
-                    <strong style={{ fontSize: '15px', color: '#FFFFFF', display: 'block', letterSpacing: '-0.01em' }}>{item.title}</strong>
-                    <span style={{ fontSize: '12px', color: '#86868B' }}>{item.subtitle}</span>
+                    <strong style={{ fontSize: '14px', color: '#FFFFFF', display: 'block', letterSpacing: '-0.01em', fontWeight: 600 }}>{item.title}</strong>
+                    <span style={{ fontSize: '11.5px', color: '#86868B' }}>{item.subtitle}</span>
                   </div>
                 </motion.div>
               ))}
@@ -206,145 +224,61 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ══════════════════════════════════════════════════════
-          HERO 2: STICKY SHOWCASE (VISION PRO HARDWARE SCROLL)
-          ══════════════════════════════════════════════════════ */}
+      {/* ═══ HERO 2: STICKY SHOWCASE ═══ */}
       <section ref={showcaseRef} style={{ height: '280vh', position: 'relative', background: '#000' }}>
-        <div style={{ 
-          position: 'sticky', 
-          top: 0, 
-          height: '100vh', 
+        <div style={{
+          position: 'sticky',
+          top: 0,
+          height: '100vh',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          overflow: 'hidden'
+          overflow: 'hidden',
         }}>
-          {/* Background Image / Hardware Video placeholder */}
           <div style={{
             position: 'absolute',
-            width: '100%',
-            height: '100%',
-            background: 'radial-gradient(circle at center, rgba(30,40,60,0.4) 0%, #000 70%)',
-            zIndex: 1
+            width: '100%', height: '100%',
+            background: 'radial-gradient(circle at center, rgba(30,40,60,0.35) 0%, #000 70%)',
+            zIndex: 1,
           }} />
 
-          <div style={{ 
-            position: 'relative', 
-            zIndex: 10, 
-            width: '100%', 
-            maxWidth: '800px', 
-            padding: '0 16px', 
-            textAlign: 'center',
-            boxSizing: 'border-box' 
-          }}>
-            
+          <div style={{ position: 'relative', zIndex: 10, width: '100%', maxWidth: '760px', padding: '0 16px', textAlign: 'center', boxSizing: 'border-box' }}>
+
             {/* Text 1: Tracker */}
-            <motion.div style={{ 
-              position: 'absolute', 
-              width: '100%', 
-              left: 0, 
-              right: 0,
-              padding: '0 16px',
-              boxSizing: 'border-box',
-              opacity: text1Opacity, 
-              transform: 'translateY(-50%)' 
-            }}>
-              <span className="apple-hero-eyebrow" style={{ color: 'var(--primary)', fontSize: 'clamp(11.5px, 3.2vw, 14px)' }}>
+            <motion.div style={{ position: 'absolute', width: '100%', left: 0, right: 0, padding: '0 16px', boxSizing: 'border-box', opacity: text1Opacity, transform: 'translateY(-50%)' }}>
+              <span className="apple-hero-eyebrow" style={{ color: 'var(--primary)', fontSize: 'clamp(11px, 3vw, 13.5px)' }}>
                 Pet Radar & Smart Collar
               </span>
-              <h2 style={{ 
-                fontSize: 'clamp(1.65rem, 6.2vw, 3.75rem)', 
-                fontWeight: 700, 
-                color: '#FFF', 
-                margin: '12px 0 16px',
-                lineHeight: 1.15,
-                letterSpacing: '-0.025em',
-                wordBreak: 'break-word',
-                overflowWrap: 'break-word'
-              }}>
-                Wonderfully fast. <br className="hide-mobile" /> Astoundingly precise.
+              <h2 style={{ fontSize: 'clamp(1.6rem, 6vw, 3.6rem)', fontWeight: 700, color: '#FFF', margin: '12px 0 14px', lineHeight: 1.12, letterSpacing: '-0.025em' }}>
+                Wonderfully fast.<br className="hide-mobile" /> Astoundingly precise.
               </h2>
-              <p style={{ 
-                fontSize: 'clamp(0.95rem, 3.2vw, 1.25rem)', 
-                color: '#A1A1A6', 
-                maxWidth: '540px', 
-                margin: '0 auto', 
-                lineHeight: 1.45 
-              }}>
+              <p style={{ fontSize: 'clamp(0.95rem, 3vw, 1.2rem)', color: '#A1A1A6', maxWidth: '520px', margin: '0 auto', lineHeight: 1.5 }}>
                 Multi-constellation GPS tracking with geofence breach alarms.
               </p>
             </motion.div>
 
             {/* Text 2: AI Vision */}
-            <motion.div style={{ 
-              position: 'absolute', 
-              width: '100%', 
-              left: 0, 
-              right: 0,
-              padding: '0 16px',
-              boxSizing: 'border-box',
-              opacity: text2Opacity, 
-              transform: 'translateY(-50%)' 
-            }}>
-              <span className="apple-hero-eyebrow" style={{ color: '#3B82F6', fontSize: 'clamp(11.5px, 3.2vw, 14px)' }}>
+            <motion.div style={{ position: 'absolute', width: '100%', left: 0, right: 0, padding: '0 16px', boxSizing: 'border-box', opacity: text2Opacity, transform: 'translateY(-50%)' }}>
+              <span className="apple-hero-eyebrow" style={{ color: '#3B82F6', fontSize: 'clamp(11px, 3vw, 13.5px)' }}>
                 AI Health Vision
               </span>
-              <h2 style={{ 
-                fontSize: 'clamp(1.65rem, 6.2vw, 3.75rem)', 
-                fontWeight: 700, 
-                color: '#FFF', 
-                margin: '12px 0 16px',
-                lineHeight: 1.15,
-                letterSpacing: '-0.025em',
-                wordBreak: 'break-word',
-                overflowWrap: 'break-word'
-              }}>
-                Clinical intelligence. <br className="hide-mobile" /> Right on your camera.
+              <h2 style={{ fontSize: 'clamp(1.6rem, 6vw, 3.6rem)', fontWeight: 700, color: '#FFF', margin: '12px 0 14px', lineHeight: 1.12, letterSpacing: '-0.025em' }}>
+                Clinical intelligence.<br className="hide-mobile" /> Right on your camera.
               </h2>
-              <p style={{ 
-                fontSize: 'clamp(0.95rem, 3.2vw, 1.25rem)', 
-                color: '#A1A1A6', 
-                maxWidth: '540px', 
-                margin: '0 auto', 
-                lineHeight: 1.45 
-              }}>
+              <p style={{ fontSize: 'clamp(0.95rem, 3vw, 1.2rem)', color: '#A1A1A6', maxWidth: '520px', margin: '0 auto', lineHeight: 1.5 }}>
                 Instant severity analysis and first aid advice from a photo.
               </p>
             </motion.div>
 
             {/* Text 3: Pet Shop */}
-            <motion.div style={{ 
-              position: 'absolute', 
-              width: '100%', 
-              left: 0, 
-              right: 0,
-              padding: '0 16px',
-              boxSizing: 'border-box',
-              opacity: text3Opacity, 
-              transform: 'translateY(-50%)' 
-            }}>
-              <span className="apple-hero-eyebrow" style={{ color: '#F59E0B', fontSize: 'clamp(11.5px, 3.2vw, 14px)' }}>
+            <motion.div style={{ position: 'absolute', width: '100%', left: 0, right: 0, padding: '0 16px', boxSizing: 'border-box', opacity: text3Opacity, transform: 'translateY(-50%)' }}>
+              <span className="apple-hero-eyebrow" style={{ color: '#F59E0B', fontSize: 'clamp(11px, 3vw, 13.5px)' }}>
                 Pet Pharmacy
               </span>
-              <h2 style={{ 
-                fontSize: 'clamp(1.65rem, 6.2vw, 3.75rem)', 
-                fontWeight: 700, 
-                color: '#FFF', 
-                margin: '12px 0 16px',
-                lineHeight: 1.15,
-                letterSpacing: '-0.025em',
-                wordBreak: 'break-word',
-                overflowWrap: 'break-word'
-              }}>
-                Everything they need. <br className="hide-mobile" /> Delivered today.
+              <h2 style={{ fontSize: 'clamp(1.6rem, 6vw, 3.6rem)', fontWeight: 700, color: '#FFF', margin: '12px 0 14px', lineHeight: 1.12, letterSpacing: '-0.025em' }}>
+                Everything they need.<br className="hide-mobile" /> Delivered today.
               </h2>
-              <p style={{ 
-                fontSize: 'clamp(0.95rem, 3.2vw, 1.25rem)', 
-                color: '#A1A1A6', 
-                maxWidth: '540px', 
-                margin: '0 auto', 
-                lineHeight: 1.45 
-              }}>
+              <p style={{ fontSize: 'clamp(0.95rem, 3vw, 1.2rem)', color: '#A1A1A6', maxWidth: '520px', margin: '0 auto', lineHeight: 1.5 }}>
                 Genuine prescription preventatives and specialty food.
               </p>
             </motion.div>
@@ -352,145 +286,173 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ══════════════════════════════════════════════════════
-          BENTO GRID (Animated Fade-In)
-          ══════════════════════════════════════════════════════ */}
-      <section style={{ maxWidth: '1240px', margin: '40px auto', padding: '0 16px', width: '100%' }}>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-          gap: '20px',
-          width: '100%'
-        }}>
+      {/* ═══ STATS BAR ═══ */}
+      <section style={{ background: '#0A0A0A', borderTop: '1px solid rgba(255,255,255,0.07)', borderBottom: '1px solid rgba(255,255,255,0.07)', padding: '44px 20px' }}>
+        <div style={{ maxWidth: '800px', margin: '0 auto', display: 'flex', justifyContent: 'space-around', alignItems: 'center', flexWrap: 'wrap', gap: '32px', textAlign: 'center' }}>
           {[
-            { id: 'tracker', title: 'Live GPS Radar', eyebrow: 'Radar Telemetry', color: '#10B981', desc: 'Sub-meter satellite tracking, safe perimeter geofencing, and smart biometric collar sensors.' },
-            { id: 'ai', title: 'Wellness Vision AI', eyebrow: 'AI Diagnostics', color: '#3B82F6', desc: 'Instant multi-modal neural network triage for skin, eye, dental, and mobility conditions.' },
-            { id: 'vets', title: 'Specialists', eyebrow: 'Specialist Network', color: '#F59E0B', desc: 'In-clinic visits, surgery consultations, and HD teleconsultations with verified doctors.' },
-            { id: 'food', title: 'Blog & Nutrition', eyebrow: 'Precision Diet', color: '#EC4899', desc: 'Scientific RER/MER calorie calculators, dry/wet portion splits, and breed guides.' },
-            { id: 'shop', title: 'Pet Shop & Pharmacy', eyebrow: 'Pharmacy & Store', color: '#8B5CF6', desc: 'Genuine prescription flea/tick preventatives and specialty food with live order dispatch.' },
-            { id: 'vaccines', title: 'Medical Passport', eyebrow: 'Immunization Reminders', color: '#06B6D4', desc: 'Automated immunization schedules, rabies tracking, and 1-click export to Apple Calendar.' }
-          ].map((item, idx) => (
-            <motion.div 
-              key={item.id}
-              initial={{ opacity: 0, y: 25 }}
+            { value: '500+', label: 'Verified Vets' },
+            { value: '50K+', label: 'Pet Families' },
+            { value: '4.9★', label: 'App Rating' },
+          ].map((stat, i) => (
+            <motion.div
+              key={stat.label}
+              initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-20px" }}
-              transition={{ duration: 0.35, delay: idx * 0.04 }}
-              style={{
-                background: 'var(--surface-solid)',
-                border: '1px solid var(--border)',
-                borderRadius: '24px',
-                padding: '36px 30px',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                textAlign: 'center',
-                justifyContent: 'space-between',
-                gap: '14px',
-                boxShadow: 'var(--shadow-sm)',
-                transition: 'transform 0.2s ease, box-shadow 0.2s ease'
-              }}
-              whileHover={{ y: -4, boxShadow: 'var(--shadow-md)' }}
+              viewport={{ once: true, margin: '-30px' }}
+              transition={{ duration: 0.4, delay: i * 0.08 }}
+              style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}
             >
-              <div>
-                <span className="apple-card-eyebrow" style={{ color: item.color, display: 'block', marginBottom: '8px' }}>{item.eyebrow}</span>
-                <h3 className="apple-card-title" style={{ fontSize: '24px', fontWeight: 700, margin: '0 0 10px', color: 'var(--text-main)' }}>{item.title}</h3>
-                <p className="apple-card-desc" style={{ fontSize: '13.5px', color: 'var(--text-muted)', lineHeight: 1.5, margin: 0 }}>{item.desc}</p>
-              </div>
-              <button 
-                className="apple-link-cta" 
-                onClick={() => handleFeatureAccess(item.id, item.title)}
-                style={{ marginTop: '8px', fontSize: '13.5px' }}
-              >
-                <span>Explore {item.title.toLowerCase()}</span>
-                <ChevronRight size={15} />
-              </button>
+              <span style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', fontWeight: 700, color: '#FFF', letterSpacing: '-0.03em', lineHeight: 1 }}>
+                {stat.value}
+              </span>
+              <span style={{ fontSize: '13px', color: '#86868B', fontWeight: 500 }}>
+                {stat.label}
+              </span>
             </motion.div>
           ))}
         </div>
       </section>
 
-      {/* ══════════════════════════════════════════════════════
-          MOBILE DOWNLOADS
-          ══════════════════════════════════════════════════════ */}
-      <section id="mobile-downloads" style={{ maxWidth: '1240px', margin: '30px auto', padding: '0 16px', width: '100%' }}>
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }}
-          whileInView={{ opacity: 1, scale: 1 }}
+      {/* ═══ BENTO FEATURE GRID ═══ */}
+      <section style={{ background: 'var(--bg)', padding: '64px 20px' }}>
+        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+          {/* Section header */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.4 }}
+            style={{ textAlign: 'center', marginBottom: '40px' }}
+          >
+            <span style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', color: 'var(--primary)', textTransform: 'uppercase', display: 'block', marginBottom: '10px' }}>
+              Everything in one place
+            </span>
+            <h2 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.8rem)', fontWeight: 700, letterSpacing: '-0.03em', color: 'var(--text-main)', margin: 0, lineHeight: 1.15 }}>
+              Built for every pet parent.
+            </h2>
+          </motion.div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
+            {bentoFeatures.map((item, idx) => (
+              <motion.div
+                key={item.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-15px' }}
+                transition={{ duration: 0.38, delay: idx * 0.05 }}
+                whileHover={{ y: -4, boxShadow: 'var(--shadow-md)' }}
+                style={{
+                  background: 'var(--surface-solid)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '22px',
+                  padding: '28px 26px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                  cursor: 'pointer',
+                  transition: 'box-shadow 0.25s ease',
+                  borderTop: `3px solid ${item.color}`,
+                }}
+                onClick={() => handleFeatureAccess(item.id, item.title)}
+              >
+                <div style={{ width: 44, height: 44, borderRadius: '14px', background: `${item.color}14`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: item.color }}>
+                  <item.icon size={20} />
+                </div>
+                <div>
+                  <span style={{ fontSize: '10.5px', fontWeight: 700, letterSpacing: '0.06em', color: item.color, textTransform: 'uppercase', display: 'block', marginBottom: '5px' }}>
+                    {item.eyebrow}
+                  </span>
+                  <h3 style={{ fontSize: '18px', fontWeight: 700, letterSpacing: '-0.02em', margin: '0 0 6px', color: 'var(--text-main)' }}>
+                    {item.title}
+                  </h3>
+                  <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.55, margin: 0 }}>
+                    {item.desc}
+                  </p>
+                </div>
+                <div style={{ marginTop: 'auto', paddingTop: '4px' }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '13px', color: item.color, fontWeight: 600 }}>
+                    Explore <ChevronRight size={14} />
+                  </span>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ MOBILE DOWNLOADS ═══ */}
+      <section id="mobile-downloads" style={{ background: '#000', padding: '64px 20px' }}>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          className="apple-promo-card" 
-          style={{ padding: '60px 40px', textAlign: 'center', background: 'var(--surface-solid)' }}
+          transition={{ duration: 0.5 }}
+          style={{ maxWidth: '900px', margin: '0 auto', textAlign: 'center' }}
         >
-          <span className="apple-card-eyebrow" style={{ color: 'var(--primary)' }}>Apple & Android Ecosystem</span>
-          <h2 style={{ fontSize: 'clamp(32px, 4vw, 48px)', fontWeight: 700, letterSpacing: '-0.03em', marginBottom: '14px' }}>
+          <span style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', color: 'var(--primary)', textTransform: 'uppercase', display: 'block', marginBottom: '10px' }}>
+            Apple & Android Ecosystem
+          </span>
+          <h2 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.8rem)', fontWeight: 700, letterSpacing: '-0.03em', color: '#FFF', margin: '0 0 14px', lineHeight: 1.15 }}>
             Connected seamlessly.
           </h2>
-          <p style={{ fontSize: '16px', color: 'var(--text-muted)', maxWidth: '640px', margin: '0 auto 36px', lineHeight: 1.5 }}>
-            Enjoy full Bluetooth collar telemetry, background boundary alarms, push notifications, and camera triage on your phone.
+          <p style={{ fontSize: '16px', color: '#86868B', maxWidth: '580px', margin: '0 auto 40px', lineHeight: 1.5 }}>
+            Full Bluetooth collar telemetry, background boundary alarms, push notifications, and camera triage on your phone.
           </p>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', width: '100%', maxWidth: '980px', margin: '0 auto' }}>
-            {/* iOS Column */}
-            <div style={{ background: 'var(--surface-alt)', padding: '28px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '14px', textAlign: 'left' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px', maxWidth: '720px', margin: '0 auto' }}>
+            {/* iOS */}
+            <div style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', padding: '26px', borderRadius: '20px', display: 'flex', flexDirection: 'column', gap: '14px', textAlign: 'left' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Smartphone size={22} color="#0071E3" />
-                <strong style={{ fontSize: '17px', fontWeight: 600 }}>iPhone & iPad</strong>
+                <Smartphone size={20} color="#0071E3" />
+                <strong style={{ fontSize: '16px', fontWeight: 600, color: '#FFF' }}>iPhone & iPad</strong>
               </div>
-              <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-                Install directly via Wireless OTA Manifest or download the <strong>.ipa</strong> package for AltStore, Sideloadly, TrollStore or Scarlet.
+              <p style={{ fontSize: '13px', color: '#86868B', margin: 0, lineHeight: 1.5 }}>
+                Install via Wireless OTA Manifest or download the <strong style={{ color: '#A1A1A6' }}>.ipa</strong> package for AltStore, Sideloadly, or TrollStore.
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: 'auto' }}>
-                <a 
-                  href="itms-services://?action=download-manifest&url=https://www.petmaya.app/manifest.plist" 
-                  className="apple-btn-blue" 
+                <a
+                  href="itms-services://?action=download-manifest&url=https://www.petmaya.app/manifest.plist"
+                  className="apple-btn-blue"
                   style={{ justifyContent: 'center', textDecoration: 'none' }}
                 >
-                  <Download size={15} />
+                  <Download size={14} />
                   <span>1-Click Install on iPhone</span>
                 </a>
-                <a 
-                  href="https://github.com/sadikmahmudadive/Pet-Maya/releases" 
-                  target="_blank" 
-                  rel="noreferrer" 
+                <a href="https://github.com/sadikmahmudadive/Pet-Maya/releases" target="_blank" rel="noreferrer"
                   className="apple-link-cta"
-                  style={{ justifyContent: 'center', fontSize: '13px' }}
+                  style={{ justifyContent: 'center', fontSize: '13px', color: '#86868B' }}
                 >
-                  <span>Download .IPA Package</span>
-                  <ExternalLink size={13} />
+                  <span>Download .IPA</span>
+                  <ExternalLink size={12} />
                 </a>
               </div>
             </div>
 
-            {/* Android Column */}
-            <div style={{ background: 'var(--surface-alt)', padding: '28px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '14px', textAlign: 'left' }}>
+            {/* Android */}
+            <div style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', padding: '26px', borderRadius: '20px', display: 'flex', flexDirection: 'column', gap: '14px', textAlign: 'left' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Smartphone size={22} color="#10B981" />
-                <strong style={{ fontSize: '17px', fontWeight: 600 }}>Android</strong>
+                <Smartphone size={20} color="#10B981" />
+                <strong style={{ fontSize: '16px', fontWeight: 600, color: '#FFF' }}>Android</strong>
               </div>
-              <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-                Get the official application on Google Play Store or download the universal Android APK release binary.
+              <p style={{ fontSize: '13px', color: '#86868B', margin: 0, lineHeight: 1.5 }}>
+                Get the official app on Google Play Store or download the universal Android APK release binary.
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: 'auto' }}>
-                <a 
-                  href="https://play.google.com/store/apps/details?id=com.vertexhand.petmaya" 
-                  target="_blank" 
-                  rel="noreferrer" 
-                  className="apple-btn-blue" 
+                <a
+                  href="https://play.google.com/store/apps/details?id=com.vertexhand.petmaya"
+                  target="_blank" rel="noreferrer"
+                  className="apple-btn-blue"
                   style={{ background: '#10B981', justifyContent: 'center', textDecoration: 'none' }}
                 >
-                  <Download size={15} />
+                  <Download size={14} />
                   <span>Get on Google Play</span>
                 </a>
-                <a 
-                  href="https://github.com/sadikmahmudadive/Pet-Maya/releases" 
-                  target="_blank" 
-                  rel="noreferrer" 
+                <a href="https://github.com/sadikmahmudadive/Pet-Maya/releases" target="_blank" rel="noreferrer"
                   className="apple-link-cta"
-                  style={{ justifyContent: 'center', fontSize: '13px', color: '#10B981' }}
+                  style={{ justifyContent: 'center', fontSize: '13px', color: '#86868B' }}
                 >
-                  <span>Download APK Binary</span>
-                  <ExternalLink size={13} />
+                  <span>Download APK</span>
+                  <ExternalLink size={12} />
                 </a>
               </div>
             </div>
@@ -498,64 +460,79 @@ export default function LandingPage() {
         </motion.div>
       </section>
 
-      {/* FOOTER */}
-      <footer className="apple-footer-wrap">
-        <div className="apple-footer-inner">
-          <div className="apple-footer-grid">
-            <div className="apple-footer-col">
-              <h5>Explore Services</h5>
-              <ul>
-                <li><button onClick={() => handleFeatureAccess('shop', 'Pet Shop')}>Pet Shop</button></li>
-                <li><button onClick={() => handleFeatureAccess('tracker', 'Tracker')}>Tracker</button></li>
-                <li><button onClick={() => handleFeatureAccess('ai', 'Wellness')}>Wellness</button></li>
-                <li><button onClick={() => handleFeatureAccess('vets', 'Specialists')}>Specialists</button></li>
-                <li><button onClick={() => handleFeatureAccess('community', 'Community')}>Community</button></li>
-                <li><button onClick={() => handleFeatureAccess('food', 'Blog')}>Blog</button></li>
-                <li><button onClick={() => handleFeatureAccess('vaccines', 'Reminders')}>Reminders</button></li>
-              </ul>
+      {/* ═══ FOOTER (MINIMAL 3-COL) ═══ */}
+      <footer style={{ background: 'var(--bg)', borderTop: '1px solid var(--border)', padding: '40px 20px 28px', color: 'var(--text-muted)', fontSize: '12px' }}>
+        <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
+          {/* Brand + cols */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr repeat(3, auto)', gap: '28px', flexWrap: 'wrap', marginBottom: '32px' }}>
+            {/* Brand blurb */}
+            <div style={{ gridColumn: '1', display: 'flex', flexDirection: 'column', gap: '8px', maxWidth: '220px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '4px' }}>
+                <img src="assets/images/tail_wagging_logo.png" alt="Pet Maya" style={{ width: 22, height: 22, borderRadius: '50%' }} />
+                <strong style={{ fontSize: '13px', color: 'var(--text-main)', fontWeight: 700 }}>Pet Maya</strong>
+              </div>
+              <p style={{ fontSize: '11.5px', color: 'var(--text-muted)', lineHeight: 1.55, margin: 0 }}>
+                Next-generation pet healthcare platform for modern pet parents.
+              </p>
             </div>
 
-            <div className="apple-footer-col">
-              <h5>Account &amp; Pet EHR</h5>
-              <ul>
-                <li><button onClick={() => openModal('auth')}>Sign In to Account</button></li>
-                <li><button onClick={handleTryDemo}>Guest Demo Console</button></li>
-                <li><button onClick={() => handleFeatureAccess('vaccines', 'Reminders')}>Reminders</button></li>
-                <li><button onClick={() => handleFeatureAccess('shop', 'Pet Shop')}>Pet Shop</button></li>
-              </ul>
+            {/* Services */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <strong style={{ fontSize: '12px', color: 'var(--text-main)', fontWeight: 600 }}>Services</strong>
+              {[
+                ['shop', 'Pet Shop'], ['tracker', 'Tracker'], ['ai', 'Wellness'],
+                ['vets', 'Specialists'], ['community', 'Community'], ['food', 'Blog'], ['vaccines', 'Reminders'],
+              ].map(([id, label]) => (
+                <button key={id} onClick={() => handleFeatureAccess(id, label)}
+                  style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '12px', cursor: 'pointer', padding: 0, textAlign: 'left', fontFamily: 'inherit', transition: 'color 0.15s' }}
+                  onMouseEnter={e => e.currentTarget.style.color = 'var(--text-main)'}
+                  onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
+                >
+                  {label}
+                </button>
+              ))}
             </div>
 
-            <div className="apple-footer-col">
-              <h5>For Veterinarians</h5>
-              <ul>
-                <li><button onClick={() => handleFeatureAccess('vets', 'Clinician Network')}>Clinician Verification</button></li>
-                <li><button onClick={() => openModal('booking')}>Telehealth Guidelines</button></li>
-              </ul>
+            {/* Account */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <strong style={{ fontSize: '12px', color: 'var(--text-main)', fontWeight: 600 }}>Account</strong>
+              <button onClick={() => openModal('auth')} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '12px', cursor: 'pointer', padding: 0, textAlign: 'left', fontFamily: 'inherit' }}
+                onMouseEnter={e => e.currentTarget.style.color = 'var(--text-main)'}
+                onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
+              >Sign In</button>
+              <button onClick={handleTryDemo} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '12px', cursor: 'pointer', padding: 0, textAlign: 'left', fontFamily: 'inherit' }}
+                onMouseEnter={e => e.currentTarget.style.color = 'var(--text-main)'}
+                onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
+              >Guest Demo</button>
             </div>
 
-            <div className="apple-footer-col">
-              <h5>Pet Maya Values</h5>
-              <ul>
-                <li><a href="/privacy_policy.html" target="_blank">Privacy First</a></li>
-                <li><a href="/terms_of_service.html" target="_blank">Terms of Service</a></li>
-                <li><a href="/about.html" target="_blank">About Pet Maya</a></li>
-                <li><a href="https://github.com/sadikmahmudadive/Pet-Maya" target="_blank" rel="noreferrer">Open Source GitHub</a></li>
-              </ul>
+            {/* Legal */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <strong style={{ fontSize: '12px', color: 'var(--text-main)', fontWeight: 600 }}>Legal</strong>
+              {[
+                ['/privacy_policy.html', 'Privacy Policy'],
+                ['/terms_of_service.html', 'Terms of Use'],
+                ['/about.html', 'About'],
+                ['https://github.com/sadikmahmudadive/Pet-Maya', 'GitHub'],
+              ].map(([href, label]) => (
+                <a key={label} href={href} target="_blank" rel="noreferrer"
+                  style={{ color: 'var(--text-muted)', fontSize: '12px', textDecoration: 'none' }}
+                  onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-main)'; e.currentTarget.style.textDecoration = 'underline'; }}
+                  onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.textDecoration = 'none'; }}
+                >
+                  {label}
+                </a>
+              ))}
             </div>
           </div>
 
-          <div className="apple-footer-legal">
-            <div>
-              Copyright © 2026 Pet Maya Inc. All rights reserved.
-            </div>
-            <div style={{ display: 'flex', gap: '16px' }}>
-              <a href="/privacy_policy.html" target="_blank">Privacy Policy</a>
-              <span>|</span>
-              <a href="/terms_of_service.html" target="_blank">Terms of Use</a>
-              <span>|</span>
-              <a href="/about.html" target="_blank">Legal</a>
-              <span>|</span>
-              <a href="/sitemap.xml" target="_blank">Site Map</a>
+          {/* Copyright row */}
+          <div style={{ borderTop: '1px solid var(--border)', paddingTop: '18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', fontSize: '11px', color: 'var(--text-muted)' }}>
+            <span>Copyright © 2026 Pet Maya Inc. All rights reserved.</span>
+            <div style={{ display: 'flex', gap: '14px' }}>
+              <a href="/privacy_policy.html" target="_blank" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>Privacy</a>
+              <a href="/terms_of_service.html" target="_blank" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>Terms</a>
+              <a href="/sitemap.xml" target="_blank" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>Sitemap</a>
             </div>
           </div>
         </div>
