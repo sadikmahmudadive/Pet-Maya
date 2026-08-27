@@ -113,7 +113,7 @@ export default function Header() {
               <button
                 className={`apple-nav-item ${activeTab === item.id ? 'active' : ''}`}
                 onClick={() => navTo(item.id)}
-                style={{ position: 'relative', paddingBottom: '4px' }}
+                style={{ position: 'relative' }}
               >
                 {item.label}
                 {/* Framer Motion layoutId sliding underline indicator */}
@@ -349,7 +349,7 @@ function MoreDropdown({ items, activeTab, navTo }) {
       <button
         className={`apple-nav-item ${hasActive ? 'active' : ''}`}
         onClick={() => setOpen(!open)}
-        style={{ display: 'flex', alignItems: 'center', gap: '3px', position: 'relative', paddingBottom: '4px' }}
+        style={{ gap: '3px', position: 'relative' }}
       >
         More
         {hasActive && (
