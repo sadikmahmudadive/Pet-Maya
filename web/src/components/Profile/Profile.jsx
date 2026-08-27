@@ -26,7 +26,9 @@ import {
   Sun,
   Gift,
   ArrowRight,
-  Share2
+  Share2,
+  Pencil,
+  Camera
 } from 'lucide-react';
 import { AppleReveal } from '../Animations/AppleReveal';
 import { AppleStagger } from '../Animations/AppleStagger';
@@ -103,16 +105,54 @@ export default function Profile() {
       <div className="apple-solid-card" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
         {/* Green Top Section */}
         <div style={{ background: 'var(--primary)', padding: '40px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
-          <button style={{ position: 'absolute', top: '20px', right: '20px', background: 'rgba(0,0,0,0.2)', color: '#fff', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }} onClick={handleSignOut}>
-            <LogOut size={16} />
-          </button>
+          {/* Top Actions: Edit Profile & Sign Out */}
+          <div style={{ position: 'absolute', top: '20px', right: '20px', display: 'flex', gap: '8px' }}>
+            <button 
+              title="Edit Profile" 
+              style={{ background: 'rgba(0,0,0,0.22)', color: '#fff', border: 'none', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s ease' }} 
+              onClick={() => openModal('editProfile')}
+              onMouseOver={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.38)'}
+              onMouseOut={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.22)'}
+            >
+              <Pencil size={16} />
+            </button>
+            <button 
+              title="Sign Out" 
+              style={{ background: 'rgba(0,0,0,0.22)', color: '#fff', border: 'none', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s ease' }} 
+              onClick={handleSignOut}
+              onMouseOver={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.38)'}
+              onMouseOut={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.22)'}
+            >
+              <LogOut size={16} />
+            </button>
+          </div>
           
-          <div style={{ position: 'relative', marginBottom: '16px' }}>
+          <div style={{ position: 'relative', marginBottom: '16px', cursor: 'pointer' }} onClick={() => openModal('editProfile')}>
             <img 
               src={currentUser?.photoUrl || 'assets/images/tail_wagging_logo.png'} 
               alt={currentUser?.name} 
-              style={{ width: 100, height: 100, borderRadius: '50%', objectFit: 'cover' }} 
+              style={{ width: 100, height: 100, borderRadius: '50%', objectFit: 'cover', border: '3px solid rgba(255,255,255,0.45)', boxShadow: '0 8px 24px rgba(0,0,0,0.2)' }} 
             />
+            <div 
+              style={{ 
+                position: 'absolute', 
+                bottom: 0, 
+                right: 0, 
+                background: 'var(--surface, #1C1C1E)', 
+                color: 'var(--primary)', 
+                borderRadius: '50%', 
+                width: 30, 
+                height: 30, 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.35)',
+                border: '2px solid #FFF'
+              }}
+              title="Edit Profile"
+            >
+              <Camera size={14} />
+            </div>
           </div>
           
           <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#FFF', margin: '0 0 8px' }}>{currentUser?.name || 'Sm Adive'}</h2>
@@ -144,13 +184,13 @@ export default function Profile() {
         <div style={{ padding: '0 20px 20px', textAlign: 'left' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--primary)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Pet Family</span>
-            <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--primary)', cursor: 'pointer' }}>VIEW ALL</span>
+            <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--primary)', cursor: 'pointer' }} onClick={() => openModal('addPet')}>+ ADD PET</span>
           </div>
           <div style={{ display: 'flex', gap: '12px' }}>
             {pets && pets.length > 0 ? pets.map(p => (
               <img key={p.id} src={p.photo} alt={p.name} style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover' }} />
             )) : (
-              <div style={{ width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
+              <div style={{ width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', cursor: 'pointer' }} onClick={() => openModal('addPet')}>
                 <Plus size={20} />
               </div>
             )}
@@ -162,7 +202,29 @@ export default function Profile() {
       {/* ── 2. PERSONAL DETAILS ── */}
       <AppleReveal delay={0.1} yOffset={25}>
       <div className="apple-solid-card" style={{ padding: '24px 20px', textAlign: 'left', alignItems: 'stretch' }}>
-        <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--primary)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '16px', display: 'block' }}>Personal Details</span>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--primary)', letterSpacing: '0.05em', textTransform: 'uppercase', display: 'block' }}>Personal Details</span>
+          <button 
+            onClick={() => openModal('editProfile')}
+            style={{ 
+              background: 'rgba(16,185,129,0.12)', 
+              color: 'var(--primary)', 
+              border: 'none', 
+              borderRadius: 'var(--radius-full)', 
+              padding: '4px 12px', 
+              fontSize: '11px', 
+              fontWeight: 700, 
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            <Pencil size={12} />
+            <span>EDIT</span>
+          </button>
+        </div>
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>

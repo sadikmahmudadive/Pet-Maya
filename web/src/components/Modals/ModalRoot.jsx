@@ -10,6 +10,7 @@ import OrderTrackerModal from './OrderTrackerModal';
 import ReviewModal from './ReviewModal';
 import AddRecordModal from './AddRecordModal';
 import EditPriceModal from './EditPriceModal';
+import EditProfileModal from './EditProfileModal';
 
 export default function ModalRoot() {
   const { activeModal } = useApp();
@@ -21,6 +22,8 @@ export default function ModalRoot() {
       return <AuthModal />;
     case 'addPet':
       return <AddPetModal />;
+    case 'editProfile':
+      return <EditProfileModal />;
     case 'booking':
       return <BookingModal />;
     case 'teleconsult':

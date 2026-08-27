@@ -48,6 +48,8 @@ export function AuthProvider({ children }) {
               uid: user.uid,
               name: data.name || user.displayName || 'Pet Parent',
               email: data.email || user.email,
+              phone: data.phone || '',
+              address: data.address || '',
               photoUrl: data.photoUrl || user.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80',
               role: data.role || 'Pet Owner',
               points: data.points ?? 25,
@@ -229,6 +231,45 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const updateUserProfile = async (profileData) => {
+    if (!currentUser) return;
+    const updated = {
+      ...currentUser,
+      name: profileData.name !== undefined ? profileData.name : currentUser.name,
+      phone: profileData.phone !== undefined ? profileData.phone : (currentUser.phone || ''),
+      address: profileData.address !== undefined ? profileData.address : (currentUser.address || ''),
+      photoUrl: profileData.photoUrl !== undefined ? profileData.photoUrl : currentUser.photoUrl
+    };
+
+    if (currentUser.uid.startsWith('demo_guest')) {
+      localStorage.setItem('pm_demo_user', JSON.stringify(updated));
+      setCurrentUser(updated);
+      return;
+    }
+
+    try {
+      const userDocRef = doc(db, 'users', currentUser.uid);
+      await setDoc(userDocRef, {
+        name: updated.name,
+        phone: updated.phone,
+        address: updated.address,
+        photoUrl: updated.photoUrl
+      }, { merge: true });
+
+      if (auth.currentUser) {
+        await updateProfile(auth.currentUser, {
+          displayName: updated.name,
+          photoURL: updated.photoUrl
+        }).catch(() => {});
+      }
+
+      setCurrentUser(updated);
+    } catch (e) {
+      console.warn('[Firebase] updateUserProfile error:', e);
+      setCurrentUser(updated);
+    }
+  };
+
   return (
     <AuthContext.Provider value={{
       currentUser,
@@ -239,7 +280,8 @@ export function AuthProvider({ children }) {
       loginAsGuest,
       logout,
       awardPoints,
-      toggleFavoriteVet
+      toggleFavoriteVet,
+      updateUserProfile
     }}>
       {children}
     </AuthContext.Provider>
