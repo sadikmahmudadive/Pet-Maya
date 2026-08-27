@@ -93,16 +93,26 @@ export default function LandingPage() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1, duration: 0.35 }}
-              style={{ fontSize: 'clamp(3rem, 8vw, 7rem)', fontWeight: 700, letterSpacing: '-0.04em', color: '#FFF', lineHeight: 1.1, margin: '0 0 24px 0' }}
+              style={{ 
+                fontSize: 'clamp(2.2rem, 7.5vw, 5.5rem)', 
+                fontWeight: 700, 
+                letterSpacing: '-0.04em', 
+                color: '#FFF', 
+                lineHeight: 1.1, 
+                margin: '0 0 20px 0',
+                wordBreak: 'break-word',
+                overflowWrap: 'break-word',
+                maxWidth: '100%'
+              }}
             >
-              Titanium <br/>intelligence.
+              Titanium <br className="hide-mobile" /> intelligence.
             </motion.h1>
             
             <motion.p 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.15, duration: 0.35 }}
-              style={{ fontSize: 'clamp(1.2rem, 2vw, 1.5rem)', color: '#A1A1A6', maxWidth: '600px', margin: '0 auto 40px' }}
+              style={{ fontSize: 'clamp(1rem, 3.5vw, 1.4rem)', color: '#A1A1A6', maxWidth: '600px', margin: '0 auto 36px', lineHeight: 1.45, padding: '0 10px' }}
             >
               Next-generation pet healthcare, live GPS radar, and clinical AI triage. All in one place.
             </motion.p>
@@ -131,22 +141,22 @@ export default function LandingPage() {
               opacity: gridOpacity, 
               y: gridY,
               scale: gridScale,
-              width: '100%',
+              width: 'calc(100% - 32px)',
               maxWidth: '920px',
               zIndex: 20
             }}
           >
             <div style={{
-              background: 'rgba(28, 28, 30, 0.8)',
+              background: 'rgba(28, 28, 30, 0.85)',
               backdropFilter: 'blur(24px)',
               WebkitBackdropFilter: 'blur(24px)',
               border: '1px solid rgba(255, 255, 255, 0.15)',
               borderRadius: '24px',
-              padding: '32px',
+              padding: 'clamp(18px, 4vw, 32px)',
               boxShadow: '0 30px 80px rgba(0, 0, 0, 0.9)',
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-              gap: '24px',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+              gap: 'clamp(14px, 3vw, 24px)',
               textAlign: 'left'
             }}>
               {/* Feature Cards with hover effects */}
@@ -165,12 +175,12 @@ export default function LandingPage() {
                   style={{ display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer' }}
                   onClick={() => handleFeatureAccess(item.id, item.title)}
                 >
-                  <div style={{ width: 48, height: 48, borderRadius: '50%', background: item.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: item.color, flexShrink: 0 }}>
-                    <item.icon size={22} />
+                  <div style={{ width: 44, height: 44, borderRadius: '50%', background: item.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: item.color, flexShrink: 0 }}>
+                    <item.icon size={20} />
                   </div>
                   <div>
-                    <strong style={{ fontSize: '15.5px', color: '#FFFFFF', display: 'block', letterSpacing: '-0.01em' }}>{item.title}</strong>
-                    <span style={{ fontSize: '12.5px', color: '#86868B' }}>{item.subtitle}</span>
+                    <strong style={{ fontSize: '15px', color: '#FFFFFF', display: 'block', letterSpacing: '-0.01em' }}>{item.title}</strong>
+                    <span style={{ fontSize: '12px', color: '#86868B' }}>{item.subtitle}</span>
                   </div>
                 </motion.div>
               ))}
@@ -201,37 +211,123 @@ export default function LandingPage() {
             zIndex: 1
           }} />
 
-          <div style={{ position: 'relative', zIndex: 10, width: '100%', maxWidth: '800px', padding: '0 20px', textAlign: 'center' }}>
+          <div style={{ 
+            position: 'relative', 
+            zIndex: 10, 
+            width: '100%', 
+            maxWidth: '800px', 
+            padding: '0 16px', 
+            textAlign: 'center',
+            boxSizing: 'border-box' 
+          }}>
             
             {/* Text 1: Tracker */}
-            <motion.div style={{ position: 'absolute', width: '100%', left: 0, opacity: text1Opacity, transform: 'translateY(-50%)' }}>
-              <span className="apple-hero-eyebrow" style={{ color: 'var(--primary)' }}>Pet Radar & Smart Collar</span>
-              <h2 style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', fontWeight: 700, color: '#FFF', margin: '16px 0' }}>
-                Wonderfully fast. <br /> Astoundingly precise.
+            <motion.div style={{ 
+              position: 'absolute', 
+              width: '100%', 
+              left: 0, 
+              right: 0,
+              padding: '0 16px',
+              boxSizing: 'border-box',
+              opacity: text1Opacity, 
+              transform: 'translateY(-50%)' 
+            }}>
+              <span className="apple-hero-eyebrow" style={{ color: 'var(--primary)', fontSize: 'clamp(11.5px, 3.2vw, 14px)' }}>
+                Pet Radar & Smart Collar
+              </span>
+              <h2 style={{ 
+                fontSize: 'clamp(1.65rem, 6.2vw, 3.75rem)', 
+                fontWeight: 700, 
+                color: '#FFF', 
+                margin: '12px 0 16px',
+                lineHeight: 1.15,
+                letterSpacing: '-0.025em',
+                wordBreak: 'break-word',
+                overflowWrap: 'break-word'
+              }}>
+                Wonderfully fast. <br className="hide-mobile" /> Astoundingly precise.
               </h2>
-              <p style={{ fontSize: '1.2rem', color: '#A1A1A6' }}>
+              <p style={{ 
+                fontSize: 'clamp(0.95rem, 3.2vw, 1.25rem)', 
+                color: '#A1A1A6', 
+                maxWidth: '540px', 
+                margin: '0 auto', 
+                lineHeight: 1.45 
+              }}>
                 Multi-constellation GPS tracking with geofence breach alarms.
               </p>
             </motion.div>
 
             {/* Text 2: AI Vision */}
-            <motion.div style={{ position: 'absolute', width: '100%', left: 0, opacity: text2Opacity, transform: 'translateY(-50%)' }}>
-              <span className="apple-hero-eyebrow" style={{ color: '#3B82F6' }}>AI Health Vision</span>
-              <h2 style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', fontWeight: 700, color: '#FFF', margin: '16px 0' }}>
-                Clinical intelligence. <br /> Right on your camera.
+            <motion.div style={{ 
+              position: 'absolute', 
+              width: '100%', 
+              left: 0, 
+              right: 0,
+              padding: '0 16px',
+              boxSizing: 'border-box',
+              opacity: text2Opacity, 
+              transform: 'translateY(-50%)' 
+            }}>
+              <span className="apple-hero-eyebrow" style={{ color: '#3B82F6', fontSize: 'clamp(11.5px, 3.2vw, 14px)' }}>
+                AI Health Vision
+              </span>
+              <h2 style={{ 
+                fontSize: 'clamp(1.65rem, 6.2vw, 3.75rem)', 
+                fontWeight: 700, 
+                color: '#FFF', 
+                margin: '12px 0 16px',
+                lineHeight: 1.15,
+                letterSpacing: '-0.025em',
+                wordBreak: 'break-word',
+                overflowWrap: 'break-word'
+              }}>
+                Clinical intelligence. <br className="hide-mobile" /> Right on your camera.
               </h2>
-              <p style={{ fontSize: '1.2rem', color: '#A1A1A6' }}>
+              <p style={{ 
+                fontSize: 'clamp(0.95rem, 3.2vw, 1.25rem)', 
+                color: '#A1A1A6', 
+                maxWidth: '540px', 
+                margin: '0 auto', 
+                lineHeight: 1.45 
+              }}>
                 Instant severity analysis and first aid advice from a photo.
               </p>
             </motion.div>
 
             {/* Text 3: Pet Shop */}
-            <motion.div style={{ position: 'absolute', width: '100%', left: 0, opacity: text3Opacity, transform: 'translateY(-50%)' }}>
-              <span className="apple-hero-eyebrow" style={{ color: '#F59E0B' }}>Pet Pharmacy</span>
-              <h2 style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', fontWeight: 700, color: '#FFF', margin: '16px 0' }}>
-                Everything they need. <br /> Delivered today.
+            <motion.div style={{ 
+              position: 'absolute', 
+              width: '100%', 
+              left: 0, 
+              right: 0,
+              padding: '0 16px',
+              boxSizing: 'border-box',
+              opacity: text3Opacity, 
+              transform: 'translateY(-50%)' 
+            }}>
+              <span className="apple-hero-eyebrow" style={{ color: '#F59E0B', fontSize: 'clamp(11.5px, 3.2vw, 14px)' }}>
+                Pet Pharmacy
+              </span>
+              <h2 style={{ 
+                fontSize: 'clamp(1.65rem, 6.2vw, 3.75rem)', 
+                fontWeight: 700, 
+                color: '#FFF', 
+                margin: '12px 0 16px',
+                lineHeight: 1.15,
+                letterSpacing: '-0.025em',
+                wordBreak: 'break-word',
+                overflowWrap: 'break-word'
+              }}>
+                Everything they need. <br className="hide-mobile" /> Delivered today.
               </h2>
-              <p style={{ fontSize: '1.2rem', color: '#A1A1A6' }}>
+              <p style={{ 
+                fontSize: 'clamp(0.95rem, 3.2vw, 1.25rem)', 
+                color: '#A1A1A6', 
+                maxWidth: '540px', 
+                margin: '0 auto', 
+                lineHeight: 1.45 
+              }}>
                 Genuine prescription preventatives and specialty food.
               </p>
             </motion.div>
