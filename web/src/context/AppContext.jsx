@@ -664,16 +664,23 @@ export function AppProvider({ children }) {
       const unsubscribe = onSnapshot(q, (snapshot) => {
         const fetched = snapshot.docs.map(docSnap => {
           const data = docSnap.data();
+          const fromTime = data.fromTime || data.time || '';
+          const toTime = data.toTime || '';
+          const timeStr = data.time || (fromTime && toTime ? `${fromTime} - ${toTime}` : fromTime);
+
           return {
             id: docSnap.id,
             title: data.title || 'Veterinary Appointment',
-            doctor: data.doctor || data.providerName || 'Dr. Specialist',
+            doctor: data.doctor || data.providerName || data.vetName || 'Dr. Specialist',
             clinic: data.clinic || data.location || 'Clinic',
             petName: data.petName || 'Pet',
             date: data.date || '',
-            time: data.time || '',
-            mode: data.mode || data.type || 'In-Clinic Consultation',
-            status: data.status || 'Confirmed'
+            fromTime: fromTime,
+            toTime: toTime,
+            time: timeStr,
+            mode: data.mode || data.category || data.type || 'VET APPOINTMENT',
+            status: data.status || 'CONFIRMED',
+            isCompleted: data.isCompleted === true || data.status === 'COMPLETED'
           };
         });
         setAppointments(fetched);

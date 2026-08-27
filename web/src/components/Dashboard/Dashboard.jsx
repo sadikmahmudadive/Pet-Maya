@@ -69,9 +69,9 @@ export default function Dashboard() {
 
   const topVets = (filteredVets.length > 0 ? filteredVets : vets).slice(0, 3);
 
-  // Format ISO / string dates to clean Apple format e.g. "Aug 26, 2026"
+  // Format ISO / string dates to clean Apple format e.g. "Aug 27, 2026"
   const formatEventDate = (rawDate) => {
-    if (!rawDate) return 'Aug 26, 2026';
+    if (!rawDate) return 'Aug 27, 2026';
     try {
       const cleanStr = rawDate.split('T')[0];
       const [year, month, day] = cleanStr.split('-');
@@ -87,12 +87,59 @@ export default function Dashboard() {
     return rawDate;
   };
 
-  // Format time window e.g. "10:30 AM - 11:15 AM"
-  const formatEventTime = (rawTime) => {
-    if (!rawTime) return '10:30 AM - 11:15 AM';
-    if (rawTime.includes('-')) return rawTime;
-    return `${rawTime} - 11:15 AM`;
+  // Format time window e.g. "04:00 PM - 04:45 PM"
+  const formatEventTime = (rawTime, fromTime, toTime) => {
+    if (fromTime && toTime) return `${fromTime} - ${toTime}`;
+    if (rawTime) {
+      if (rawTime.includes('-')) return rawTime;
+      return `${rawTime} - 11:15 AM`;
+    }
+    if (fromTime) return fromTime;
+    return '10:30 AM - 11:15 AM';
   };
+
+  // Parse date safely to a normalized Date object at 00:00:00
+  const parseEventDate = (rawDate) => {
+    if (!rawDate) return null;
+    try {
+      if (typeof rawDate === 'string') {
+        const cleanStr = rawDate.split('T')[0];
+        const parts = cleanStr.split('-');
+        if (parts.length === 3) {
+          const y = parseInt(parts[0], 10);
+          const m = parseInt(parts[1], 10) - 1;
+          const d = parseInt(parts[2], 10);
+          if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
+            return new Date(y, m, d);
+          }
+        }
+      }
+      const d = new Date(rawDate);
+      if (!isNaN(d.getTime())) {
+        return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+      }
+    } catch (_) {}
+    return null;
+  };
+
+  // Filter for truly upcoming events: occurring today or in the future and not completed
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  const upcomingAppointments = appointments
+    .filter((apt) => {
+      if (apt.isCompleted === true || apt.status === 'COMPLETED' || apt.status === 'CANCELLED') {
+        return false;
+      }
+      const evDate = parseEventDate(apt.date);
+      if (!evDate) return true;
+      return evDate.getTime() >= today.getTime();
+    })
+    .sort((a, b) => {
+      const dateA = parseEventDate(a.date)?.getTime() || Infinity;
+      const dateB = parseEventDate(b.date)?.getTime() || Infinity;
+      return dateA - dateB;
+    });
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', width: '100%' }}>
@@ -101,61 +148,61 @@ export default function Dashboard() {
       <AppleReveal duration={0.8} yOffset={25}>
         <div 
           className="apple-solid-card" 
-        style={{
-          padding: '24px 30px',
-          display: 'flex',
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '16px',
-          textAlign: 'left'
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <img 
-            src={currentUser?.photoUrl || 'assets/images/tail_wagging_logo.png'} 
-            alt={currentUser?.name || 'User'} 
-            style={{ width: 54, height: 54, borderRadius: '50%', objectFit: 'cover' }} 
-          />
-          <div>
-            <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{getGreeting()}</span>
-            <h1 style={{ fontSize: '24px', fontWeight: 700, letterSpacing: '-0.02em', margin: 0 }}>
-              {currentUser?.name || 'Pet Parent'}
-            </h1>
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {/* Reward Points Badge */}
-          <div 
-            style={{ 
-              background: 'rgba(147, 51, 234, 0.15)', 
-              color: '#A855F7',
-              padding: '6px 14px', 
-              borderRadius: '999px', 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '6px',
-              fontWeight: 700,
-              fontSize: '13px'
-            }}
-          >
-            <Star size={14} fill="#A855F7" />
-            <span>{currentUser?.points ?? 15}</span>
+          style={{
+            padding: '24px 30px',
+            display: 'flex',
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '16px',
+            textAlign: 'left'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <img 
+              src={currentUser?.photoUrl || 'assets/images/tail_wagging_logo.png'} 
+              alt={currentUser?.name || 'User'} 
+              style={{ width: 54, height: 54, borderRadius: '50%', objectFit: 'cover' }} 
+            />
+            <div>
+              <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{getGreeting()}</span>
+              <h1 style={{ fontSize: '24px', fontWeight: 700, letterSpacing: '-0.02em', margin: 0 }}>
+                {currentUser?.name || 'Pet Parent'}
+              </h1>
+            </div>
           </div>
 
-          {/* Notification Bell */}
-          <button 
-            className="icon-btn" 
-            style={{ width: 40, height: 40, background: 'rgba(14, 165, 233, 0.15)', color: '#0EA5E9' }}
-            onClick={() => showToast('🔔 No unread push notifications.', 'info')}
-            title="Notifications"
-          >
-            <Bell size={18} />
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {/* Reward Points Badge */}
+            <div 
+              style={{ 
+                background: 'rgba(147, 51, 234, 0.15)', 
+                color: '#A855F7',
+                padding: '6px 14px', 
+                borderRadius: '999px', 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '6px',
+                fontWeight: 700,
+                fontSize: '13px'
+              }}
+            >
+              <Star size={14} fill="#A855F7" />
+              <span>{currentUser?.points ?? 15}</span>
+            </div>
+
+            {/* Notification Bell */}
+            <button 
+              className="icon-btn" 
+              style={{ width: 40, height: 40, background: 'rgba(14, 165, 233, 0.15)', color: '#0EA5E9' }}
+              onClick={() => showToast('🔔 No unread push notifications.', 'info')}
+              title="Notifications"
+            >
+              <Bell size={18} />
+            </button>
+          </div>
         </div>
-      </div>
       </AppleReveal>
 
       {/* ── 2. MY PETS SECTION ── */}
