@@ -31,20 +31,22 @@ export default function LandingPage() {
   const heroRef = useRef(null);
   const { scrollYProgress: heroProgressRaw } = useScroll({
     target: heroRef,
-    offset: ["start start", "end start"]
+    offset: ["start start", "end end"]
   });
-  // Snappy responsive spring for instant scroll response
-  const heroProgress = useSpring(heroProgressRaw, { stiffness: 260, damping: 24, restDelta: 0.001 });
+  // Smooth responsive spring for natural scroll pacing
+  const heroProgress = useSpring(heroProgressRaw, { stiffness: 220, damping: 26, restDelta: 0.001 });
 
-  const heroOpacity = useTransform(heroProgress, [0, 0.22], [1, 0]);
-  const heroScale = useTransform(heroProgress, [0, 0.22], [1, 1.06]);
-  const heroBlur = useTransform(heroProgress, [0, 0.22], ["blur(0px)", "blur(8px)"]);
-  const heroY = useTransform(heroProgress, [0, 0.22], [0, -40]);
+  // Stage 1: Titanium Title (Stays solid, then blurs and fades completely out before Stage 2 arrives)
+  const heroOpacity = useTransform(heroProgress, [0, 0.22, 0.35], [1, 1, 0]);
+  const heroScale = useTransform(heroProgress, [0, 0.35], [1, 1.08]);
+  const heroBlur = useTransform(heroProgress, [0.18, 0.35], ["blur(0px)", "blur(14px)"]);
+  const heroY = useTransform(heroProgress, [0, 0.35], [0, -50]);
+  const heroPointerEvents = useTransform(heroProgress, (v) => v > 0.32 ? 'none' : 'auto');
 
-  // Ecosystem grid comes in quickly as hero text fades
-  const gridOpacity = useTransform(heroProgress, [0.12, 0.38], [0, 1]);
-  const gridY = useTransform(heroProgress, [0.12, 0.38], [40, 0]);
-  const gridScale = useTransform(heroProgress, [0.12, 0.38], [0.96, 1]);
+  // Stage 2: Ecosystem Cards (Begins after Stage 1 is gone, stays centered in screen, then fades out at end)
+  const gridOpacity = useTransform(heroProgress, [0.36, 0.48, 0.82, 0.96], [0, 1, 1, 0]);
+  const gridY = useTransform(heroProgress, [0.36, 0.48, 0.82, 0.96], [50, 0, 0, -40]);
+  const gridScale = useTransform(heroProgress, [0.36, 0.48, 0.82, 0.96], [0.92, 1, 1, 0.96]);
 
   // --- Scroll Animations: Hero 2 (Sticky Showcase) ---
   const showcaseRef = useRef(null);
@@ -52,12 +54,12 @@ export default function LandingPage() {
     target: showcaseRef,
     offset: ["start start", "end end"]
   });
-  const showcaseProgress = useSpring(showcaseProgressRaw, { stiffness: 260, damping: 24 });
+  const showcaseProgress = useSpring(showcaseProgressRaw, { stiffness: 220, damping: 26 });
   
-  // Fast, engaging cross-fades without long tedious pauses
-  const text1Opacity = useTransform(showcaseProgress, [0, 0.18, 0.34], [0, 1, 0]);
-  const text2Opacity = useTransform(showcaseProgress, [0.34, 0.52, 0.68], [0, 1, 0]);
-  const text3Opacity = useTransform(showcaseProgress, [0.68, 0.84, 1], [0, 1, 0]);
+  // Clean sequential cross-fades with clear rest times in the center of the screen
+  const text1Opacity = useTransform(showcaseProgress, [0.05, 0.16, 0.28, 0.38], [0, 1, 1, 0]);
+  const text2Opacity = useTransform(showcaseProgress, [0.38, 0.49, 0.61, 0.71], [0, 1, 1, 0]);
+  const text3Opacity = useTransform(showcaseProgress, [0.71, 0.82, 0.93, 1.00], [0, 1, 1, 0]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', margin: '-24px -16px 0', width: 'calc(100% + 32px)', backgroundColor: '#000' }}>
@@ -65,7 +67,7 @@ export default function LandingPage() {
       {/* ══════════════════════════════════════════════════════
           HERO 1: SPATIAL REVEAL (VISION PRO STYLE)
           ══════════════════════════════════════════════════════ */}
-      <section ref={heroRef} style={{ height: '115vh', position: 'relative' }}>
+      <section ref={heroRef} style={{ height: '240vh', position: 'relative' }}>
         <div style={{ 
           position: 'sticky', 
           top: 0, 
@@ -75,10 +77,21 @@ export default function LandingPage() {
           alignItems: 'center', 
           justifyContent: 'center',
           overflow: 'hidden',
-          padding: '0 20px'
+          padding: '0 16px',
+          boxSizing: 'border-box'
         }}>
           {/* Main Title that scales up and blurs out */}
-          <motion.div style={{ opacity: heroOpacity, scale: heroScale, filter: heroBlur, y: heroY, textAlign: 'center', zIndex: 10 }}>
+          <motion.div style={{ 
+            opacity: heroOpacity, 
+            scale: heroScale, 
+            filter: heroBlur, 
+            y: heroY, 
+            pointerEvents: heroPointerEvents,
+            textAlign: 'center', 
+            zIndex: 10,
+            maxWidth: '800px',
+            padding: '0 16px'
+          }}>
             <motion.span 
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
@@ -134,12 +147,16 @@ export default function LandingPage() {
             </motion.div>
           </motion.div>
 
-          {/* Ecosystem Visual that zooms in from below */}
+          {/* Ecosystem Visual that centers perfectly in the middle of screen */}
           <motion.div 
             style={{ 
               position: 'absolute', 
+              top: '50%',
+              left: '50%',
+              x: '-50%',
+              y: '-50%',
+              translateY: gridY,
               opacity: gridOpacity, 
-              y: gridY,
               scale: gridScale,
               width: 'calc(100% - 32px)',
               maxWidth: '920px',
@@ -147,16 +164,16 @@ export default function LandingPage() {
             }}
           >
             <div style={{
-              background: 'rgba(28, 28, 30, 0.85)',
-              backdropFilter: 'blur(24px)',
-              WebkitBackdropFilter: 'blur(24px)',
+              background: 'rgba(24, 24, 26, 0.92)',
+              backdropFilter: 'blur(28px)',
+              WebkitBackdropFilter: 'blur(28px)',
               border: '1px solid rgba(255, 255, 255, 0.15)',
               borderRadius: '24px',
-              padding: 'clamp(18px, 4vw, 32px)',
+              padding: 'clamp(16px, 3.5vw, 28px)',
               boxShadow: '0 30px 80px rgba(0, 0, 0, 0.9)',
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-              gap: 'clamp(14px, 3vw, 24px)',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: 'clamp(12px, 2.5vw, 22px)',
               textAlign: 'left'
             }}>
               {/* Feature Cards with hover effects */}
@@ -192,7 +209,7 @@ export default function LandingPage() {
       {/* ══════════════════════════════════════════════════════
           HERO 2: STICKY SHOWCASE (VISION PRO HARDWARE SCROLL)
           ══════════════════════════════════════════════════════ */}
-      <section ref={showcaseRef} style={{ height: '130vh', position: 'relative', background: '#000' }}>
+      <section ref={showcaseRef} style={{ height: '280vh', position: 'relative', background: '#000' }}>
         <div style={{ 
           position: 'sticky', 
           top: 0, 
