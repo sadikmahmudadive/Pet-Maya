@@ -311,52 +311,63 @@ export default function Blog() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             style={{
-              position: 'fixed', inset: 0, zIndex: 9999,
-              background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(12px)',
-              display: 'flex', alignItems: 'flex-end',
-              WebkitBackdropFilter: 'blur(12px)'
+              position: 'fixed', inset: 0, zIndex: 10000,
+              background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(16px)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              padding: '24px 16px',
+              WebkitBackdropFilter: 'blur(16px)'
             }}
             onClick={() => setSelectedArticle(null)}
           >
             <motion.div
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              transition={{ type: 'spring', damping: 28, stiffness: 320 }}
               onClick={e => e.stopPropagation()}
               style={{
-                width: '100%', maxHeight: '92vh', borderRadius: '28px 28px 0 0',
+                width: '100%', maxWidth: '860px', maxHeight: '90vh', borderRadius: '24px',
                 background: 'var(--bg-pure)', overflow: 'hidden',
-                display: 'flex', flexDirection: 'column'
+                display: 'flex', flexDirection: 'column',
+                boxShadow: 'var(--shadow-lg)',
+                border: '1px solid var(--border)'
               }}
             >
               {/* Hero Image */}
-              <div style={{ position: 'relative', flexShrink: 0 }}>
+              <div style={{ position: 'relative', flexShrink: 0, background: 'var(--surface-alt)' }}>
                 <img
                   src={selectedArticle.imageUrl}
                   alt={selectedArticle.title}
-                  style={{ width: '100%', height: '260px', objectFit: 'cover', display: 'block' }}
+                  style={{ width: '100%', height: '360px', maxHeight: '420px', minHeight: '260px', objectFit: 'cover', objectPosition: 'center', display: 'block' }}
                   onError={e => { e.currentTarget.src = 'https://images.unsplash.com/photo-1548191265-cc70d3d45ba1?w=800'; }}
                 />
-                {/* Floating Back Button */}
+                {/* Floating Back / Close Button */}
                 <button
                   onClick={() => setSelectedArticle(null)}
                   style={{
                     position: 'absolute', top: 16, left: 16,
-                    width: 36, height: 36, borderRadius: '50%',
-                    background: 'rgba(0,0,0,0.5)', border: 'none',
-                    color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
+                    width: 38, height: 38, borderRadius: '50%',
+                    background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)', border: 'none',
+                    color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                    transition: 'transform 0.15s ease'
                   }}
                 >
-                  <ChevronLeft size={20} />
+                  <ChevronLeft size={22} />
                 </button>
                 {/* Share Button */}
                 <button
-                  onClick={() => { navigator.share?.({ title: selectedArticle.title, url: window.location.href }); }}
+                  onClick={() => { 
+                    if (navigator.share) {
+                      navigator.share({ title: selectedArticle.title, url: window.location.href }); 
+                    } else {
+                      navigator.clipboard.writeText(window.location.href);
+                      showToast('Article link copied to clipboard!', 'success');
+                    }
+                  }}
                   style={{
                     position: 'absolute', top: 16, right: 16,
-                    width: 36, height: 36, borderRadius: '50%',
-                    background: 'rgba(0,0,0,0.5)', border: 'none',
+                    width: 38, height: 38, borderRadius: '50%',
+                    background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)', border: 'none',
                     color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
                   }}
                 >
@@ -365,50 +376,57 @@ export default function Blog() {
               </div>
 
               {/* Content (scrollable) */}
-              <div style={{ overflow: 'auto', flex: 1, padding: '28px 28px 60px' }}>
+              <div style={{ overflow: 'auto', flex: 1, padding: '32px 36px 60px' }}>
                 {/* Category + Read Time */}
                 <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '16px' }}>
                   <span style={{
                     background: `${CATEGORY_COLORS[(selectedArticle.category || '').toUpperCase()] || '#10B981'}18`,
                     color: CATEGORY_COLORS[(selectedArticle.category || '').toUpperCase()] || '#10B981',
-                    fontSize: '10px', fontWeight: 900, letterSpacing: '0.06em',
+                    fontSize: '11px', fontWeight: 900, letterSpacing: '0.06em',
                     padding: '5px 12px', borderRadius: '10px', textTransform: 'uppercase'
                   }}>
                     {selectedArticle.category}
                   </span>
-                  <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <Clock size={12} /> {selectedArticle.readTimeMinutes} min read
+                  <span style={{ fontSize: '12.5px', color: 'var(--text-muted)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <Clock size={13} /> {selectedArticle.readTimeMinutes || 5} min read
                   </span>
                 </div>
 
                 {/* Title */}
-                <h2 style={{ fontSize: 'clamp(22px, 4vw, 30px)', fontWeight: 800, lineHeight: 1.2, letterSpacing: '-0.02em', marginBottom: '20px' }}>
+                <h2 style={{ fontSize: 'clamp(24px, 3.5vw, 32px)', fontWeight: 800, lineHeight: 1.25, letterSpacing: '-0.02em', marginBottom: '20px' }}>
                   {selectedArticle.title}
                 </h2>
 
                 {/* Author Info */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '28px', paddingBottom: '20px', borderBottom: '1px solid var(--border)' }}>
-                  <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--surface-alt)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ width: 42, height: 42, borderRadius: '50%', background: 'var(--surface-alt)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {selectedArticle.authorPhoto ? (
                       <img src={selectedArticle.authorPhoto} alt={selectedArticle.authorName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
-                      <User size={18} color="var(--text-muted)" />
+                      <User size={20} color="var(--text-muted)" />
                     )}
                   </div>
                   <div>
-                    <div style={{ fontWeight: 800, fontSize: '14px' }}>{selectedArticle.authorName}</div>
-                    <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{formatDate(selectedArticle.timestamp)}</div>
+                    <div style={{ fontWeight: 800, fontSize: '14.5px' }}>{selectedArticle.authorName || 'Pet Maya Author'}</div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{formatDate(selectedArticle.timestamp)}</div>
                   </div>
                 </div>
 
-                {/* Article Body */}
-                <div style={{ fontSize: '16px', lineHeight: 1.75, color: 'var(--text-main)', whiteSpace: 'pre-line' }}>
-                  {selectedArticle.content}
-                </div>
+                {/* Article Body - Rich HTML Formatting */}
+                {selectedArticle.htmlContent ? (
+                  <div 
+                    className="article-rich-content"
+                    dangerouslySetInnerHTML={{ __html: selectedArticle.htmlContent }}
+                  />
+                ) : (
+                  <div className="article-rich-content" style={{ whiteSpace: 'pre-line' }}>
+                    {selectedArticle.content}
+                  </div>
+                )}
 
                 {/* Tags */}
                 {selectedArticle.tags?.length > 0 && (
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '36px' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '40px', paddingTop: '20px', borderTop: '1px solid var(--border)' }}>
                     {selectedArticle.tags.map(tag => (
                       <span key={tag} style={{
                         padding: '6px 14px', borderRadius: '10px',
