@@ -245,20 +245,48 @@ export default function AdminPortal() {
     setIsAddProductModalOpen(true);
   };
 
+  const [isSubmittingProduct, setIsSubmittingProduct] = useState(false);
+
   const handleFileUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Use FileReader + Canvas to resize large photos and compress to lightweight JPEG dataURL
     const reader = new FileReader();
     reader.onload = (uploadEvent) => {
-      setProductFormData(prev => ({ ...prev, image: uploadEvent.target.result }));
-      showToast('📸 Photo loaded into gallery', 'success');
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_DIM = 600;
+        let width = img.width;
+        let height = img.height;
+        if (width > height) {
+          if (width > MAX_DIM) {
+            height = Math.round(height * (MAX_DIM / width));
+            width = MAX_DIM;
+          }
+        } else {
+          if (height > MAX_DIM) {
+            width = Math.round(width * (MAX_DIM / height));
+            height = MAX_DIM;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        setProductFormData(prev => ({ ...prev, image: compressedDataUrl }));
+        showToast('📸 Photo loaded and optimized into gallery', 'success');
+      };
+      img.src = uploadEvent.target.result;
     };
     reader.readAsDataURL(file);
   };
 
   const handleSaveProduct = async (e) => {
-    e.preventDefault();
-    if (!productFormData.name.trim()) {
+    if (e && e.preventDefault) e.preventDefault();
+    if (!productFormData.name || !productFormData.name.trim()) {
       showToast('Please enter a product name', 'error');
       return;
     }
@@ -267,27 +295,35 @@ export default function AdminPortal() {
       return;
     }
 
-    const payload = {
-      name: productFormData.name.trim(),
-      brand: productFormData.brand.trim() || 'Pet Maya',
-      category: productFormData.category,
-      price: parseFloat(productFormData.price),
-      stockCount: parseInt(productFormData.stockCount, 10) || 0,
-      image: productFormData.image || PRESET_IMAGES[0].url,
-      description: productFormData.description.trim() || 'Veterinary-grade pet care formulation.',
-      isRx: !!productFormData.isRx,
-      inStock: productFormData.inStock !== false && (parseInt(productFormData.stockCount, 10) || 0) > 0,
-      rating: parseFloat(productFormData.rating) || 4.8,
-    };
+    setIsSubmittingProduct(true);
+    try {
+      const payload = {
+        name: productFormData.name.trim(),
+        brand: productFormData.brand.trim() || 'Pet Maya',
+        category: (productFormData.category || 'food').toLowerCase(),
+        price: parseFloat(productFormData.price) || 0,
+        stockCount: typeof productFormData.stockCount === 'number' ? productFormData.stockCount : (parseInt(productFormData.stockCount, 10) || 50),
+        image: productFormData.image || PRESET_IMAGES[0].url,
+        description: productFormData.description.trim() || 'Veterinary-grade pet care formulation.',
+        isRx: !!productFormData.isRx,
+        inStock: productFormData.inStock !== false && (parseInt(productFormData.stockCount, 10) || 0) > 0,
+        rating: parseFloat(productFormData.rating) || 4.8,
+      };
 
-    if (editingProduct) {
-      await updateProduct(editingProduct.id, payload);
-    } else {
-      await addProduct(payload);
+      if (editingProduct) {
+        await updateProduct(editingProduct.id, payload);
+      } else {
+        await addProduct(payload);
+      }
+
+      setIsAddProductModalOpen(false);
+      setEditingProduct(null);
+    } catch (err) {
+      console.error('[Admin] Error saving product:', err);
+      showToast('Failed to save product: ' + (err.message || 'Error'), 'error');
+    } finally {
+      setIsSubmittingProduct(false);
     }
-
-    setIsAddProductModalOpen(false);
-    setEditingProduct(null);
   };
 
   const handleDeleteProduct = async (productId, productName) => {
@@ -1940,26 +1976,28 @@ export default function AdminPortal() {
                 {/* 7. FINALIZE SKU BUTTON (Matches Image 2) */}
                 <button
                   type="submit"
+                  disabled={isSubmittingProduct}
                   style={{
                     width: '100%',
                     padding: '14px',
                     borderRadius: '14px',
                     border: 'none',
-                    background: '#10B981',
+                    background: isSubmittingProduct ? '#059669' : '#10B981',
                     color: '#FFFFFF',
                     fontSize: '15px',
                     fontWeight: 800,
                     letterSpacing: '0.04em',
                     textTransform: 'uppercase',
-                    cursor: 'pointer',
+                    cursor: isSubmittingProduct ? 'wait' : 'pointer',
                     marginTop: '8px',
                     boxShadow: '0 4px 20px rgba(16, 185, 129, 0.4)',
-                    transition: 'all 0.18s ease'
+                    transition: 'all 0.18s ease',
+                    opacity: isSubmittingProduct ? 0.8 : 1
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.filter = 'brightness(1.08)'}
-                  onMouseLeave={(e) => e.currentTarget.style.filter = 'none'}
+                  onMouseEnter={(e) => { if (!isSubmittingProduct) e.currentTarget.style.filter = 'brightness(1.08)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.filter = 'none'; }}
                 >
-                  FINALIZE SKU
+                  {isSubmittingProduct ? 'SAVING SKU...' : (editingProduct ? 'UPDATE SKU' : 'FINALIZE SKU')}
                 </button>
               </form>
             </motion.div>

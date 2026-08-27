@@ -505,13 +505,16 @@ export function AppProvider({ children }) {
             return {
               id: docSnap.id,
               name: data.name || 'Product',
-              category: data.category || 'supplies',
+              brand: data.brand || 'Pet Maya',
+              category: (data.category || 'supplies').toLowerCase(),
               price: typeof data.price === 'number' ? data.price : (parseFloat(data.price) || 29.99),
-              rating: data.rating || 4.8,
+              rating: typeof data.rating === 'number' ? data.rating : 4.8,
               ratingCount: data.ratingCount || 50,
               image: data.imageUrl || data.image || 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=500&auto=format&fit=crop&q=80',
               description: data.description || 'High quality pet care supply.',
-              isRx: data.isRx || false
+              isRx: data.isRx === true || data.isRx === 'true',
+              inStock: data.inStock !== false && data.inStock !== 'false',
+              stockCount: typeof data.stockCount === 'number' ? data.stockCount : (parseInt(data.stockCount, 10) || 50)
             };
           });
           setProducts(fetchedProducts);
