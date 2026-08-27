@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
-import { db, collection, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc } from '../../config/firebase';
+import { db, collection, onSnapshot, query, orderBy, doc, setDoc, updateDoc, deleteDoc } from '../../config/firebase';
 import { 
   ShieldCheck, 
   Send, 
@@ -120,35 +120,50 @@ export default function AdminPortal() {
   };
 
   const handleApproveBlog = async (blogId, blogTitle) => {
+    // Optimistic local state update
+    setBlogs(prev => prev.map(b => b.id === blogId ? { ...b, status: 'APPROVED', isApproved: true } : b));
     try {
-      await updateDoc(doc(db, 'blogs', blogId), {
+      await setDoc(doc(db, 'blogs', blogId), {
         status: 'APPROVED',
         isApproved: true
-      });
+      }, { merge: true });
       showToast(`🎉 "${blogTitle}" approved! It is now live on web & app.`, 'success');
     } catch (e) {
-      showToast('Failed to approve article', 'error');
+      console.error('[Admin] Approve error:', e);
+      try {
+        await updateDoc(doc(db, 'blogs', blogId), {
+          status: 'APPROVED',
+          isApproved: true
+        });
+        showToast(`🎉 "${blogTitle}" approved! It is now live on web & app.`, 'success');
+      } catch (err2) {
+        showToast('Failed to approve article: ' + (e.message || e.code || 'Permission error'), 'error');
+      }
     }
   };
 
   const handleRejectBlog = async (blogId, blogTitle) => {
+    setBlogs(prev => prev.map(b => b.id === blogId ? { ...b, status: 'REJECTED', isApproved: false } : b));
     try {
-      await updateDoc(doc(db, 'blogs', blogId), {
+      await setDoc(doc(db, 'blogs', blogId), {
         status: 'REJECTED',
         isApproved: false
-      });
+      }, { merge: true });
       showToast(`Article "${blogTitle}" marked as rejected.`, 'info');
     } catch (e) {
+      console.error('[Admin] Reject error:', e);
       showToast('Failed to update article status', 'error');
     }
   };
 
   const handleDeleteBlog = async (blogId, blogTitle) => {
     if (!window.confirm(`Are you sure you want to permanently delete "${blogTitle}"?`)) return;
+    setBlogs(prev => prev.filter(b => b.id !== blogId));
     try {
       await deleteDoc(doc(db, 'blogs', blogId));
       showToast(`Article "${blogTitle}" permanently deleted.`, 'success');
     } catch (e) {
+      console.error('[Admin] Delete error:', e);
       showToast('Failed to delete article', 'error');
     }
   };

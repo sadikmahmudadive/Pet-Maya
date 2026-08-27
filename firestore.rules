@@ -91,9 +91,7 @@ service cloud.firestore {
 
     // Blogs
     match /blogs/{blogId} {
-      allow read: if true;
-      allow create: if isAuthenticated() && request.resource.data.authorId == request.auth.uid;
-      allow update, delete: if isAuthenticated() && (resource.data.authorId == request.auth.uid || isAdmin());
+      allow read, write: if true;
     }
   }
 }
