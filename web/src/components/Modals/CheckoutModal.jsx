@@ -83,7 +83,7 @@ export default function CheckoutModal() {
 
           <div style={{ background: 'var(--surface-alt)', padding: '14px', borderRadius: 'var(--radius-sm)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: '14px', fontWeight: 700 }}>Total Payable:</span>
-            <strong style={{ fontSize: '20px', color: 'var(--primary)' }}>${total.toFixed(2)}</strong>
+            <strong style={{ fontSize: '20px', color: 'var(--primary)' }}>৳{total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
           </div>
 
           <button type="submit" className="btn-primary" style={{ padding: '13px', fontSize: '15px' }}>

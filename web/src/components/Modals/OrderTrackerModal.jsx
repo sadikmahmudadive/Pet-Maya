@@ -79,7 +79,7 @@ export default function OrderTrackerModal() {
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span style={{ color: 'var(--text-muted)' }}>Order Total:</span>
-            <strong style={{ color: 'var(--primary)' }}>${order.total?.toFixed ? order.total.toFixed(2) : order.total}</strong>
+            <strong style={{ color: 'var(--primary)' }}>৳{order.total?.toFixed ? Number(order.total).toFixed(2) : order.total}</strong>
           </div>
         </div>
 

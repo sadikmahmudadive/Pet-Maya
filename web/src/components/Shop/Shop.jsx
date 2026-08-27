@@ -129,8 +129,8 @@ export default function Shop() {
               {p.description}
             </p>
 
-            <div className="apple-card-price">
-              From ${p.price.toFixed(2)} or ${(p.price / 24).toFixed(2)}/mo. for 24 mo.
+            <div className="apple-card-price" style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-main)', margin: '8px 0 12px' }}>
+              ৳{Number(p.price || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
 
             <div className="apple-card-actions">
@@ -162,7 +162,7 @@ export default function Shop() {
 
             <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 6px' }}>{selectedProduct.name}</h2>
             <strong style={{ fontSize: '22px', color: 'var(--primary)', display: 'block', marginBottom: '12px' }}>
-              ${selectedProduct.price.toFixed(2)}
+              ৳{Number(selectedProduct.price || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </strong>
 
             <p style={{ fontSize: '14px', color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: '20px' }}>
@@ -198,8 +198,8 @@ export default function Shop() {
                   setSelectedProduct(null);
                   openModal('checkout', { 
                     subtotal: selectedProduct.price,
-                    shipping: selectedProduct.price > 100 ? 0 : 5.00,
-                    total: selectedProduct.price + (selectedProduct.price > 100 ? 0 : 5.00)
+                    shipping: selectedProduct.price > 1000 ? 0 : 50.00,
+                    total: selectedProduct.price + (selectedProduct.price > 1000 ? 0 : 50.00)
                   });
                 }}
               >
@@ -253,7 +253,7 @@ export default function Shop() {
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', borderTop: '1px solid var(--border)', paddingTop: '10px' }}>
                     <span style={{ color: 'var(--text-muted)' }}>Delivery to: {ord.address || 'Banani, Dhaka'}</span>
-                    <strong>Total: ${(ord.total || 0).toFixed(2)}</strong>
+                    <strong>Total: ৳{Number(ord.total || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
                   </div>
                 </div>
               ))}

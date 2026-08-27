@@ -62,7 +62,7 @@ export default function CartDrawer() {
                 <img src={item.image} alt={item.name} style={{ width: 52, height: 52, borderRadius: 'var(--radius-xs)', objectFit: 'cover' }} />
                 <div style={{ flex: 1 }}>
                   <strong style={{ fontSize: '13.5px', display: 'block' }}>{item.name}</strong>
-                  <span style={{ fontSize: '13px', color: 'var(--primary)', fontWeight: 800 }}>${item.price.toFixed(2)}</span>
+                  <span style={{ fontSize: '13px', color: 'var(--primary)', fontWeight: 800 }}>৳{Number(item.price || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -112,21 +112,21 @@ export default function CartDrawer() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '13px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)' }}>
                 <span>Subtotal:</span>
-                <span>${cartTotal.toFixed(2)}</span>
+                <span>৳{cartTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
               </div>
               {discountAmount > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--primary)' }}>
                   <span>Discount:</span>
-                  <span>-${discountAmount.toFixed(2)}</span>
+                  <span>-৳{discountAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 </div>
               )}
               <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)' }}>
                 <span>Delivery:</span>
-                <span>{shippingFee === 0 ? 'FREE' : `$${shippingFee.toFixed(2)}`}</span>
+                <span>{shippingFee === 0 ? 'FREE' : `৳${shippingFee.toFixed(2)}`}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '16px', fontWeight: 900, borderTop: '1px solid var(--border)', paddingTop: '8px', marginTop: '4px' }}>
                 <span>Total:</span>
-                <span style={{ color: 'var(--primary)' }}>${finalTotal.toFixed(2)}</span>
+                <span style={{ color: 'var(--primary)' }}>৳{finalTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
               </div>
             </div>
 
