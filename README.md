@@ -1,16 +1,45 @@
-# Tail Wagging
+# Pet Maya 🐾
 
-A new Flutter project.
+Pet Maya is a premium, all-in-one pet care platform built with Flutter and Firebase. It offers a sophisticated ecosystem for pet owners, veterinarians, and service providers.
 
-## Getting Started
+## 🚀 Key Features
 
-This project is a starting point for a Flutter application.
+### 🦴 Core Ecosystem
+- **Digital Health Vault**: Secure storage for pet medical history, vaccinations, and allergies.
+- **AI Health Scanner**: Vision AI diagnostic tool for instant symptom insights (powered by OpenAI).
+- **Service Marketplace**: Book verified veterinarians, groomers, and boarding facilities.
+- **Premium Shop**: Integrated e-commerce experience with "Buy Now" flow and dynamic delivery pricing.
 
-A few resources to get you started if this is your first Flutter project:
+### 🏘️ Community & Content
+- **Community Feed**: Share moments, adoption posts, and rescue alerts with fellow pet lovers.
+- **Pet Care Blog**: Expert articles and community-contributed content on pet health and lifestyle.
+- **Dynamic Reviews**: 100% data-driven rating system for products and service providers.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+### 🛡️ Admin & Security
+- **Master Console**: Centralized command center for managing users, shop inventory, and editorial content.
+- **Broadcast System**: Real-time push notifications (FCM) and persistent system-wide alerts.
+- **Secure Storage**: On-device image compression and unified Firebase Storage with strict security rules.
+- **Performance Monitoring**: Integrated Firebase Performance Monitoring for optimized app speed and rendering.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## 🛠️ Technical Stack
+- **Framework**: Flutter (Multi-platform)
+- **Backend**: Firebase (Auth, Firestore, Storage, Cloud Functions, Messaging)
+- **AI**: OpenAI GPT-4o integration via Cloud Functions
+- **State Management**: Provider
+- **Theme**: Premium Clinical Design (Light & Dark Mode support)
+
+## 🏁 Getting Started
+
+1.  **Environment Setup**:
+    - Ensure you have the Flutter SDK installed.
+    - Create a `.env` file in the root directory for local configurations.
+2.  **Firebase Configuration**:
+    - Project is pre-configured with `firebase_options.dart`.
+    - Run `firebase deploy --only functions,firestore:rules,storage` to sync backend logic.
+3.  **Run the App**:
+    ```powershell
+    flutter run
+    ```
+
+---
+*Developed with ❤️ for pet health and wellness.*
