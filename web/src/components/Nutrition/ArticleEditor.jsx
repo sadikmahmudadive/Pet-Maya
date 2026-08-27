@@ -180,8 +180,14 @@ export default function ArticleEditor({ onClose, onPublished, showToast }) {
     }
   };
 
+  const [coverFile, setCoverFile] = useState(null);
+  const fileInputRef = useRef(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+
   // ── Validate image URL ───────────────────────────────
   const handleImageUrl = (url) => {
+    setCoverFile(null); // Clear any pending local file
     setImageUrl(url);
     if (url.trim()) {
       setImagePreview(true);
@@ -190,11 +196,7 @@ export default function ArticleEditor({ onClose, onPublished, showToast }) {
     }
   };
 
-  const fileInputRef = useRef(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-
-  // ── Upload Image to Firebase Storage ─────────────────
+  // ── Select Image File from Device (Local Preview Only) ──
   const handleImageUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -211,6 +213,9 @@ export default function ArticleEditor({ onClose, onPublished, showToast }) {
       return;
     }
 
+    // Keep the File object in memory - DO NOT upload to Storage yet
+    setCoverFile(file);
+
     // Instant local preview so the user immediately sees their photo
     const reader = new FileReader();
     reader.onload = (uploadEvent) => {
@@ -221,49 +226,45 @@ export default function ArticleEditor({ onClose, onPublished, showToast }) {
     };
     reader.readAsDataURL(file);
 
-    setIsUploading(true);
-    setUploadProgress(10);
+    showToast('📸 Cover image selected! It will save when you publish.', 'info');
+  };
 
-    try {
-      const sanitizedName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
-      const fileName = `blogs/${Date.now()}_${sanitizedName}`;
-      const storageRef = ref(storage, fileName);
-      
-      const uploadTask = uploadBytesResumable(storageRef, file);
+  // ── Helper: Upload Cover to Firebase Storage on Publish ──
+  const uploadCoverToStorage = async (file) => {
+    const sanitizedName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
+    const fileName = `blogs/${Date.now()}_${sanitizedName}`;
+    const storageRef = ref(storage, fileName);
 
-      uploadTask.on('state_changed', 
+    const uploadTask = uploadBytesResumable(storageRef, file);
+
+    return new Promise((resolve, reject) => {
+      uploadTask.on(
+        'state_changed',
         (snapshot) => {
           if (snapshot.totalBytes > 0) {
             const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
             setUploadProgress(Math.round(progress));
           }
-        }, 
+        },
         (error) => {
           console.warn('[Firebase Storage] Upload notice:', error);
-          // If storage bucket is in restricted mode, we keep the local base64 preview so publish still succeeds!
-          showToast('Image loaded locally (Storage sync skipped: ' + (error.code || 'network') + ')', 'info');
-          setIsUploading(false);
-        }, 
+          // If storage upload fails, return base64 / fallback
+          resolve(null);
+        },
         async () => {
           try {
             const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-            setImageUrl(downloadURL);
-            setImagePreview(true);
-            showToast('📸 Cover image uploaded to Firebase Storage!', 'success');
+            resolve(downloadURL);
           } catch (err) {
-            console.warn('[Firebase Storage] Download URL error:', err);
-          } finally {
-            setIsUploading(false);
+            console.warn('[Firebase Storage] Get URL error:', err);
+            resolve(null);
           }
         }
       );
-    } catch (err) {
-      console.warn('[Firebase Storage] Exception:', err);
-      setIsUploading(false);
-    }
+    });
   };
 
-  // ── Publish ─────────────────────────────────────────
+  // ── Publish (Uploads Cover File only on submit) ───────
   const handlePublish = async () => {
     const htmlContent = editorRef.current?.innerHTML || '';
     const plainText = editorRef.current?.innerText || '';
@@ -279,13 +280,35 @@ export default function ArticleEditor({ onClose, onPublished, showToast }) {
     const isApproved = isAdmin ? true : false;
 
     setIsSubmitting(true);
+
+    let finalImageUrl = imageUrl.trim();
+
+    // If user selected a local cover file from device, upload it now!
+    if (coverFile) {
+      try {
+        setIsUploading(true);
+        const uploadedUrl = await uploadCoverToStorage(coverFile);
+        if (uploadedUrl) {
+          finalImageUrl = uploadedUrl;
+        }
+      } catch (err) {
+        console.warn('Cover upload skipped:', err);
+      } finally {
+        setIsUploading(false);
+      }
+    }
+
+    if (!finalImageUrl) {
+      finalImageUrl = 'https://images.unsplash.com/photo-1548191265-cc70d3d45ba1?w=800';
+    }
+
     try {
       await addDoc(collection(db, 'blogs'), {
         title: title.trim(),
         content: plainText.trim(),
         htmlContent: htmlContent,
         category,
-        imageUrl: imageUrl.trim() || 'https://images.unsplash.com/photo-1548191265-cc70d3d45ba1?w=800',
+        imageUrl: finalImageUrl,
         authorId: currentUser.uid,
         authorName: currentUser.name || currentUser.displayName || 'Pet Maya User',
         authorPhoto: currentUser.photoUrl || null,
@@ -483,7 +506,7 @@ export default function ArticleEditor({ onClose, onPublished, showToast }) {
                 </button>
                 <span style={{ color: 'rgba(255,255,255,0.4)' }}>|</span>
                 <button
-                  onClick={() => { setImageUrl(''); setImagePreview(false); }}
+                  onClick={() => { setImageUrl(''); setCoverFile(null); setImagePreview(false); }}
                   style={{ background: 'none', border: 'none', color: '#EF4444', fontSize: '12px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
                 >
                   <X size={13} />
@@ -494,7 +517,7 @@ export default function ArticleEditor({ onClose, onPublished, showToast }) {
               {/* URL preview subtitle bar */}
               <div style={{ padding: '8px 16px', background: 'var(--surface-alt)', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11.5px', color: 'var(--text-muted)' }}>
                 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '80%' }}>
-                  🔗 {imageUrl.startsWith('data:') ? 'Local file uploaded' : imageUrl}
+                  🔗 {coverFile ? `Device photo selected: ${coverFile.name} (uploads upon publish)` : (imageUrl.startsWith('data:') ? 'Local file selected' : imageUrl)}
                 </span>
                 <span style={{ color: '#10B981', fontWeight: 700 }}>✓ Cover Ready</span>
               </div>
