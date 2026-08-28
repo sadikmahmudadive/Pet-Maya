@@ -324,6 +324,18 @@ class _ShopScreenState extends State<ShopScreen> {
                         child: Text('LIMITED', style: GoogleFonts.plusJakartaSans(color: Colors.white, fontSize: 8, fontWeight: FontWeight.w700, letterSpacing: 0.5)),
                       ),
                     ),
+                  if (product.isRxRequired)
+                    Positioned(
+                      top: 10, right: 10,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Text('Rx', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 10)),
+                      ),
+                    ),
                 ],
               ),
             ),

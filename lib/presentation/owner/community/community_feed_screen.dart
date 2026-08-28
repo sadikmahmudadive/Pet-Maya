@@ -273,7 +273,15 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
                                             child: Column(
                                               crossAxisAlignment: CrossAxisAlignment.start,
                                               children: [
-                                                Text(authorName, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+                                                Row(
+                                                  children: [
+                                                    Text(authorName, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+                                                    if (repo.userCache[post.userId]?.isVerified ?? false) ...[
+                                                      const SizedBox(width: 4),
+                                                      const Icon(Icons.verified_rounded, color: AppColors.healthGreen, size: 14),
+                                                    ],
+                                                  ],
+                                                ),
                                                 const SizedBox(height: 2),
                                                 Row(
                                                   children: [

@@ -160,6 +160,12 @@ class FirebaseService {
         .toList();
   }
 
+  Stream<List<app_models.UserModel>> streamAllUsers() {
+    return _usersCol.snapshots().map((snap) => snap.docs
+        .map((d) => app_models.UserModel.fromMap(d.id, d.data()! as Map<String, dynamic>))
+        .toList());
+  }
+
   Future<List<app_models.UserModel>> fetchUsersByRole(String role) async {
     final snap = await _usersCol.where('role', isEqualTo: role).get();
     return snap.docs

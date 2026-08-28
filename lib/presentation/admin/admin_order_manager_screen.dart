@@ -56,6 +56,7 @@ class _AdminOrderManagerScreenState extends State<AdminOrderManagerScreen> {
                           child: PremiumCard(
                             opacity: 0.15,
                             borderRadius: 24,
+                            onTap: () => _showDispatchManifest(context, order),
                             child: Padding(
                               padding: const EdgeInsets.all(20),
                               child: Column(
@@ -126,6 +127,136 @@ class _AdminOrderManagerScreenState extends State<AdminOrderManagerScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Text(label, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: isSelected ? AppColors.primary : Colors.grey)),
         ),
+      ),
+    );
+  }
+
+  void _showDispatchManifest(BuildContext context, OrderModel order) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final dateStr = DateFormat('MMMM dd, yyyy • hh:mm a').format(DateTime.fromMillisecondsSinceEpoch(order.timestamp));
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        height: MediaQuery.of(context).size.height * 0.85,
+        decoration: BoxDecoration(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(36)),
+        ),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(10)))),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('DISPATCH MANIFEST', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: AppColors.primary, letterSpacing: 1.5)),
+                    Text(order.orderId, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, fontFamily: 'monospace')),
+                  ],
+                ),
+                _buildStatusBadge(order.status),
+              ],
+            ),
+            const Divider(height: 48),
+            Expanded(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _manifestSection('CUSTOMER DETAILS', [
+                      _manifestRow('Name', order.userName),
+                      _manifestRow('Phone', order.phone),
+                      _manifestRow('Email', order.userId), // UID/Email fallback
+                    ]),
+                    const SizedBox(height: 32),
+                    _manifestSection('DELIVERY LOGISTICS', [
+                      _manifestRow('Address', order.address, isValueMultiline: true),
+                      _manifestRow('Date', dateStr),
+                      _manifestRow('Method', order.paymentMethod),
+                    ]),
+                    const SizedBox(height: 32),
+                    _manifestSection('INVENTORY MANIFEST', [
+                      ...order.items.map((item) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Row(
+                          children: [
+                            Container(width: 6, height: 6, decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle)),
+                            const SizedBox(width: 12),
+                            Text('${item.quantity}x ', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
+                            Expanded(child: Text(item.product.name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14))),
+                            Text('৳${item.totalPrice.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
+                          ],
+                        ),
+                      )),
+                    ]),
+                    const Divider(height: 48),
+                    _manifestRow('Subtotal', '৳${order.subtotal.toStringAsFixed(2)}'),
+                    _manifestRow('Shipping', '৳${order.shippingCharges.toStringAsFixed(2)}'),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('TOTAL PAYOUT', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+                        Text('৳${order.total.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 24, color: AppColors.healthGreen)),
+                      ],
+                    ),
+                    const SizedBox(height: 40),
+                  ],
+                ),
+              ),
+            ),
+            SizedBox(
+              width: double.infinity,
+              height: 64,
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isDark ? Colors.white10 : Colors.black87,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                ),
+                child: const Text('CLOSE MANIFEST', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 1)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _manifestSection(String title, List<Widget> children) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: Colors.grey, letterSpacing: 1)),
+        const SizedBox(height: 16),
+        ...children,
+      ],
+    );
+  }
+
+  Widget _manifestRow(String label, String value, {bool isValueMultiline = false}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(width: 80, child: Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.grey))),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(value, 
+              textAlign: TextAlign.right,
+              maxLines: isValueMultiline ? 3 : 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
+          ),
+        ],
       ),
     );
   }

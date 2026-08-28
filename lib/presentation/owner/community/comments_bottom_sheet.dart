@@ -123,7 +123,15 @@ class _CommentsBottomSheetState extends State<CommentsBottomSheet> {
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Text(c.userName, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
+                                        Row(
+                                          children: [
+                                            Text(c.userName, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
+                                            if (repo.userCache[c.userId]?.isVerified ?? false) ...[
+                                              const SizedBox(width: 4),
+                                              const Icon(Icons.verified_rounded, color: AppColors.healthGreen, size: 12),
+                                            ],
+                                          ],
+                                        ),
                                         const SizedBox(height: 4),
                                         Text(
                                           c.text,

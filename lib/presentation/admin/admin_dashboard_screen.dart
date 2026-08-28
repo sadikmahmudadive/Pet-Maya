@@ -17,6 +17,7 @@ import 'admin_analytics_screen.dart';
 import 'admin_shop_manager_screen.dart';
 import 'admin_order_manager_screen.dart';
 import 'admin_pet_directory_screen.dart';
+import 'admin_service_manager_screen.dart';
 import 'admin_service_pricing_screen.dart';
 import 'admin_blog_manager_screen.dart';
 import 'package:animate_do/animate_do.dart';
@@ -28,10 +29,14 @@ class AdminDashboardScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = context.select((AppStateRepository repo) => repo.currentUser);
     final isSuper = user?.role == UserRole.superAdmin;
-    
+
     final vets = context.select((AppStateRepository repo) => repo.vets);
-    final usersCount = context.select((AppStateRepository repo) => repo.allUsers.length);
-    final ordersCount = context.select((AppStateRepository repo) => repo.orders.length);
+    final usersCount = context.select(
+      (AppStateRepository repo) => repo.allUsers.length,
+    );
+    final ordersCount = context.select(
+      (AppStateRepository repo) => repo.orders.length,
+    );
     final logs = context.select((AppStateRepository repo) => repo.auditLogs);
     final state = context.read<AppStateRepository>();
 
@@ -46,21 +51,30 @@ class AdminDashboardScreen extends StatelessWidget {
         actions: [
           if (isSuper)
             IconButton(
-              icon: const Icon(Icons.settings_suggest_rounded, color: AppColors.primary),
+              icon: const Icon(
+                Icons.settings_suggest_rounded,
+                color: AppColors.primary,
+              ),
               onPressed: () {},
             ),
           IconButton(
             icon: const Icon(Icons.logout_rounded, color: AppColors.dangerRed),
             onPressed: () {
               state.logout();
-              Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const LoginScreen()), (r) => false);
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                (r) => false,
+              );
             },
           ),
           const SizedBox(width: 8),
         ],
       ),
       body: CustomScrollView(
-        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
         slivers: [
           CupertinoSliverRefreshControl(
             onRefresh: () async {
@@ -79,11 +93,23 @@ class AdminDashboardScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Hi, ${user?.name ?? 'Admin'}', 
-                          style: Theme.of(context).textTheme.displayLarge?.copyWith(fontSize: 26, fontWeight: FontWeight.w700)),
+                        Text(
+                          'Hi, ${user?.name ?? 'Admin'}',
+                          style: Theme.of(context).textTheme.displayLarge
+                              ?.copyWith(
+                                fontSize: 26,
+                                fontWeight: FontWeight.w700,
+                              ),
+                        ),
                         const SizedBox(height: 4),
-                        Text('Ecosystem performance is stable', 
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600, fontSize: 13)),
+                        Text(
+                          'Ecosystem performance is stable',
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                              ),
+                        ),
                       ],
                     ),
                   ),
@@ -96,11 +122,16 @@ class AdminDashboardScreen extends StatelessWidget {
                         child: FadeInLeft(
                           child: _buildKpiCard(
                             context,
-                            'USERS', 
-                            '$usersCount', 
-                            Icons.people_rounded, 
+                            'USERS',
+                            '$usersCount',
+                            Icons.people_rounded,
                             AppColors.primary,
-                            () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminUserListScreen())),
+                            () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const AdminUserListScreen(),
+                              ),
+                            ),
                           ),
                         ),
                       ),
@@ -109,9 +140,9 @@ class AdminDashboardScreen extends StatelessWidget {
                         child: FadeInDown(
                           child: _buildKpiCard(
                             context,
-                            'SALES', 
-                            '$ordersCount', 
-                            Icons.shopping_bag_rounded, 
+                            'SALES',
+                            '$ordersCount',
+                            Icons.shopping_bag_rounded,
                             AppColors.tertiary,
                             () => _navigateToOrderManager(context),
                           ),
@@ -122,11 +153,16 @@ class AdminDashboardScreen extends StatelessWidget {
                         child: FadeInRight(
                           child: _buildKpiCard(
                             context,
-                            'VERIFY', 
-                            '$unverifiedVetsCount', 
-                            Icons.verified_user_rounded, 
+                            'VERIFY',
+                            '$unverifiedVetsCount',
+                            Icons.verified_user_rounded,
                             AppColors.accentAmber,
-                            () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminVerifyVetsScreen())),
+                            () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const AdminVerifyVetsScreen(),
+                              ),
+                            ),
                           ),
                         ),
                       ),
@@ -140,7 +176,9 @@ class AdminDashboardScreen extends StatelessWidget {
                     child: GridView.count(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      crossAxisCount: size.width < 360 ? 1 : 2, // 1 column on tiny screens, 2 on others
+                      crossAxisCount: size.width < 360
+                          ? 1
+                          : 2, // 1 column on tiny screens, 2 on others
                       mainAxisSpacing: 12,
                       crossAxisSpacing: 12,
                       childAspectRatio: 2.8,
@@ -154,38 +192,65 @@ class AdminDashboardScreen extends StatelessWidget {
                         ),
                         _buildQuickActionTile(
                           context,
-                          'Pet Directory',
-                          Icons.pets_rounded,
-                          AppColors.healthGreen,
-                          () => _navigateToPetDirectory(context),
+                          'Clinics & Services',
+                          Icons.medical_services_rounded,
+                          AppColors.tertiary,
+                          () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => AdminServiceManagerScreen(),
+                            ),
+                          ),
                         ),
                         _buildQuickActionTile(
                           context,
-                          'Service Pricing',
-                          Icons.payments_rounded,
-                          AppColors.tertiary,
-                          () => _navigateToServicePricing(context),
+                          'Insights Console',
+                          Icons.insights_rounded,
+                          AppColors.accentAmber,
+                          () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => AdminAnalyticsScreen(),
+                            ),
+                          ),
                         ),
                         _buildQuickActionTile(
                           context,
                           'Blog Manager',
                           Icons.article_rounded,
-                          AppColors.accentAmber,
-                          () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminBlogManagerScreen())),
+                          AppColors.secondary,
+                          () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => AdminBlogManagerScreen(),
+                            ),
+                          ),
+                        ),
+                        _buildQuickActionTile(
+                          context,
+                          'Pet Directory',
+                          Icons.pets_rounded,
+                          AppColors.healthGreen,
+                          () => _navigateToPetDirectory(context),
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 24),
 
-                  // Broadcast Control
+                  // Broadcast & Banner Control
                   FadeInUp(
                     delay: const Duration(milliseconds: 200),
                     child: PremiumCard(
                       useGlass: false,
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminBroadcastScreen())),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const AdminBroadcastScreen(),
+                        ),
+                      ),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 22),
+                        padding: const EdgeInsets.all(24),
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
                             colors: [AppColors.primary, AppColors.primaryDark],
@@ -193,15 +258,72 @@ class AdminDashboardScreen extends StatelessWidget {
                             end: Alignment.bottomRight,
                           ),
                           borderRadius: BorderRadius.circular(24),
-                          boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 10))],
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withValues(alpha: 0.3),
+                              blurRadius: 20,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                        child: Column(
                           children: [
-                            const Icon(Icons.campaign_rounded, color: Colors.white, size: 24),
-                            const SizedBox(width: 12),
-                            Text('SEND SYSTEM BROADCAST', 
-                              style: AppTypography.titleMedium.copyWith(color: Colors.white, fontWeight: FontWeight.w700, letterSpacing: 0.8, fontSize: 13)),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  Icons.campaign_rounded,
+                                  color: Colors.white,
+                                  size: 24,
+                                ),
+                                const SizedBox(width: 12),
+                                Text(
+                                  'GLOBAL BROADCAST CENTER',
+                                  style: AppTypography.titleMedium.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 0.8,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            if (state.systemBanner != null &&
+                                state.systemBanner!.isNotEmpty) ...[
+                              const SizedBox(height: 16),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.info_outline_rounded,
+                                      color: Colors.white,
+                                      size: 14,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        'Active Banner: "${state.systemBanner}"',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                       ),
@@ -213,60 +335,126 @@ class AdminDashboardScreen extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Verification Pipeline', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700, fontSize: 22)),
+                      Text(
+                        'Verification Pipeline',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 22,
+                        ),
+                      ),
                       TextButton(
-                        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminVerifyVetsScreen())),
-                        child: Text('VIEW ALL', style: Theme.of(context).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700, color: AppColors.primary, letterSpacing: 0.5)),
+                        onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const AdminVerifyVetsScreen(),
+                          ),
+                        ),
+                        child: Text(
+                          'VIEW ALL',
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.primary,
+                                letterSpacing: 0.5,
+                              ),
+                        ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
                   if (unverifiedVetsCount == 0)
-                    _buildEmptyState(context, 'No pending verification requests.')
+                    _buildEmptyState(
+                      context,
+                      'No pending verification requests.',
+                    )
                   else
-                    ...vets.where((v) => !v.isVerified).take(2).map((v) => FadeInUp(
-                          child: Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: PremiumCard(
-                              opacity: 0.2,
-                              borderRadius: 24,
-                              child: Padding(
-                                padding: const EdgeInsets.all(20),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(10),
-                                      decoration: BoxDecoration(color: AppColors.accentAmber.withValues(alpha: 0.1), shape: BoxShape.circle),
-                                      child: const Icon(Icons.assignment_ind_rounded, color: AppColors.accentAmber, size: 20),
-                                    ),
-                                    const SizedBox(width: 16),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(v.name, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700, fontSize: 16)),
-                                          Text(v.tag.toUpperCase(), style: Theme.of(context).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w600, fontSize: 9)),
-                                        ],
+                    ...vets
+                        .where((v) => !v.isVerified)
+                        .take(2)
+                        .map(
+                          (v) => FadeInUp(
+                            child: Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: PremiumCard(
+                                opacity: 0.2,
+                                borderRadius: 24,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(20),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(10),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.accentAmber
+                                              .withValues(alpha: 0.1),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(
+                                          Icons.assignment_ind_rounded,
+                                          color: AppColors.accentAmber,
+                                          size: 20,
+                                        ),
                                       ),
-                                    ),
-                                    ElevatedButton(
-                                      onPressed: () {
-                                        HapticFeedback.mediumImpact();
-                                        state.toggleVetVerification(v.id);
-                                      },
-                                      style: ElevatedButton.styleFrom(
-                                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                                        minimumSize: const Size(0, 36),
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              v.name,
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .titleMedium
+                                                  ?.copyWith(
+                                                    fontWeight: FontWeight.w700,
+                                                    fontSize: 16,
+                                                  ),
+                                            ),
+                                            Text(
+                                              v.tag.toUpperCase(),
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .labelSmall
+                                                  ?.copyWith(
+                                                    fontWeight: FontWeight.w600,
+                                                    fontSize: 9,
+                                                  ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                      child: const Text('APPROVE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700)),
-                                    ),
-                                  ],
+                                      ElevatedButton(
+                                        onPressed: () {
+                                          HapticFeedback.mediumImpact();
+                                          state.toggleVetVerification(v.id);
+                                        },
+                                        style: ElevatedButton.styleFrom(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                          ),
+                                          minimumSize: const Size(0, 36),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                        ),
+                                        child: const Text(
+                                          'APPROVE',
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        )),
+                        ),
 
                   const SizedBox(height: 48),
 
@@ -274,10 +462,29 @@ class AdminDashboardScreen extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Audit Trail', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700, fontSize: 22)),
+                      Text(
+                        'Audit Trail',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 22,
+                        ),
+                      ),
                       TextButton(
-                        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminLogsScreen())),
-                        child: Text('FULL AUDIT', style: Theme.of(context).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700, color: AppColors.primary, letterSpacing: 0.5)),
+                        onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const AdminLogsScreen(),
+                          ),
+                        ),
+                        child: Text(
+                          'FULL AUDIT',
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.primary,
+                                letterSpacing: 0.5,
+                              ),
+                        ),
                       ),
                     ],
                   ),
@@ -285,7 +492,11 @@ class AdminDashboardScreen extends StatelessWidget {
                   if (logs.isEmpty)
                     _buildEmptyState(context, 'No system logs generated yet.')
                   else
-                    ...logs.take(4).map((log) => FadeInUp(child: _buildLogTile(context, log))),
+                    ...logs
+                        .take(4)
+                        .map(
+                          (log) => FadeInUp(child: _buildLogTile(context, log)),
+                        ),
                   const SizedBox(height: 40),
                 ],
               ),
@@ -303,13 +514,26 @@ class AdminDashboardScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5)),
+        border: Border.all(
+          color: Theme.of(
+            context,
+          ).colorScheme.outlineVariant.withValues(alpha: 0.5),
+        ),
       ),
-      child: Center(child: Text(msg, style: Theme.of(context).textTheme.bodyMedium)),
+      child: Center(
+        child: Text(msg, style: Theme.of(context).textTheme.bodyMedium),
+      ),
     );
   }
 
-  Widget _buildKpiCard(BuildContext context, String title, String value, IconData icon, Color color, VoidCallback onTap) {
+  Widget _buildKpiCard(
+    BuildContext context,
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+    VoidCallback onTap,
+  ) {
     return PremiumCard(
       onTap: onTap,
       opacity: 0.2,
@@ -321,20 +545,34 @@ class AdminDashboardScreen extends StatelessWidget {
           children: [
             Container(
               padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
               child: Icon(icon, color: color, size: 16),
             ),
             const SizedBox(height: 12),
             FittedBox(
               fit: BoxFit.scaleDown,
-              child: Text(value, 
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700, fontSize: 16)),
+              child: Text(
+                value,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 16,
+                ),
+              ),
             ),
             const SizedBox(height: 2),
             FittedBox(
               fit: BoxFit.scaleDown,
-              child: Text(title, 
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(fontSize: 8, fontWeight: FontWeight.w700, letterSpacing: 0.5)),
+              child: Text(
+                title,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  fontSize: 8,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.5,
+                ),
+              ),
             ),
           ],
         ),
@@ -342,7 +580,13 @@ class AdminDashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildQuickActionTile(BuildContext context, String label, IconData icon, Color color, VoidCallback onTap) {
+  Widget _buildQuickActionTile(
+    BuildContext context,
+    String label,
+    IconData icon,
+    Color color,
+    VoidCallback onTap,
+  ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return PremiumCard(
       onTap: onTap,
@@ -356,14 +600,16 @@ class AdminDashboardScreen extends StatelessWidget {
             Icon(icon, color: color, size: 18),
             const SizedBox(width: 8),
             Expanded(
-              child: Text(label, 
+              child: Text(
+                label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontWeight: FontWeight.w800, 
-                  fontSize: 12, 
-                  color: isDark ? Colors.white70 : Colors.black87
-                )),
+                  fontWeight: FontWeight.w800,
+                  fontSize: 12,
+                  color: isDark ? Colors.white70 : Colors.black87,
+                ),
+              ),
             ),
           ],
         ),
@@ -372,19 +618,31 @@ class AdminDashboardScreen extends StatelessWidget {
   }
 
   void _navigateToOrderManager(BuildContext context) {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminOrderManagerScreen()));
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => AdminOrderManagerScreen()),
+    );
   }
 
   void _navigateToShopManager(BuildContext context) {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminShopManagerScreen()));
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => AdminShopManagerScreen()),
+    );
   }
 
   void _navigateToPetDirectory(BuildContext context) {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminPetDirectoryScreen()));
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => AdminPetDirectoryScreen()),
+    );
   }
 
   void _navigateToServicePricing(BuildContext context) {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminServicePricingScreen()));
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => AdminServicePricingScreen()),
+    );
   }
 
   Widget _buildLogTile(BuildContext context, String log) {
@@ -400,18 +658,34 @@ class AdminDashboardScreen extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
-              Container(width: 6, height: 6, decoration: const BoxDecoration(shape: BoxShape.circle, color: AppColors.primary)),
+              Container(
+                width: 6,
+                height: 6,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.primary,
+                ),
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   content,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 12, fontWeight: FontWeight.w600),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
-              Text(time, style: Theme.of(context).textTheme.labelSmall?.copyWith(fontSize: 9, fontWeight: FontWeight.w700)),
+              Text(
+                time,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  fontSize: 9,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ],
           ),
         ),

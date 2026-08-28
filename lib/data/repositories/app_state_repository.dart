@@ -254,7 +254,7 @@ class AppStateRepository extends ChangeNotifier {
           break;
         case UserRole.admin:
         case UserRole.superAdmin:
-          _listenToPets(''); _listenToEvents(''); _listenToServiceRecords(''); _listenToAllOrders(); loadAllUsers();
+          _listenToPets(''); _listenToEvents(''); _listenToServiceRecords(''); _listenToAllOrders(); _listenToAllUsers();
           break;
       }
       _listenToNotifications(user.uid);
@@ -295,6 +295,7 @@ class AppStateRepository extends ChangeNotifier {
   void _listenToEventsForProvider(String providerId) { _firebase.streamEventsForProvider(providerId).listen((fetched) { _events..clear()..addAll(fetched); notifyListeners(); }); }
   void _listenToServiceRecords(String petId) { _firebase.streamServiceRecords(petId).listen((fetched) { _serviceRecords..clear()..addAll(fetched); notifyListeners(); }); }
   void _listenToAllOrders() { _firebase.streamAllOrders().listen((fetched) { _orders..clear()..addAll(fetched); notifyListeners(); }); }
+  void _listenToAllUsers() { _firebase.streamAllUsers().listen((fetched) { _allUsers..clear()..addAll(fetched); notifyListeners(); }); }
   void _listenToUserOrders(String userId) { _firebase.streamUserOrders(userId).listen((fetched) { _orders..clear()..addAll(fetched); notifyListeners(); }); }
   void _listenToNotifications(String userId) { _firebase.streamNotifications(userId).listen((fetched) { _notifications..clear()..addAll(fetched); notifyListeners(); }); }
 
@@ -552,6 +553,18 @@ class AppStateRepository extends ChangeNotifier {
   Future<void> updateUserRole(String userId, UserRole newRole) async {
     final idx = _allUsers.indexWhere((u) => u.uid == userId);
     if (idx != -1) { final updated = _allUsers[idx].copyWith(role: newRole); _allUsers[idx] = updated; notifyListeners(); await _firebase.saveUserProfile(updated); }
+  }
+
+  Future<void> saveVetProfile(VetModel vet) async {
+    final idx = _vets.indexWhere((v) => v.id == vet.id);
+    if (idx != -1) {
+      _vets[idx] = vet;
+    } else {
+      _vets.insert(0, vet);
+    }
+    notifyListeners();
+    await _firebase.saveVet(vet);
+    logAudit('Service Onboarded', 'Service ${vet.name} saved/updated');
   }
 
   Future<void> setSystemBanner(String? message) async { _systemBanner = message; notifyListeners(); await _firebase.saveGlobalSetting('system_banner', message); }
