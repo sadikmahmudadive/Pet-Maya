@@ -38,7 +38,11 @@ void main() async {
       GoogleMapsFlutterPlatform.instance;
   if (mapsImplementation is GoogleMapsFlutterAndroid) {
     mapsImplementation.useAndroidViewSurface = true;
-    mapsImplementation.initializeWithRenderer(AndroidMapRenderer.latest);
+    try {
+      await mapsImplementation.initializeWithRenderer(AndroidMapRenderer.latest);
+    } catch (e) {
+      debugPrint('[Google Maps] Renderer already initialized or error: $e');
+    }
   }
 
   // Pass all uncaught "fatal" errors from the framework to Crashlytics

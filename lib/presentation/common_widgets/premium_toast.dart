@@ -43,17 +43,14 @@ class PremiumToast extends StatefulWidget {
 
     late OverlayEntry entry;
     entry = OverlayEntry(
-      builder: (ctx) => Material(
-        type: MaterialType.transparency,
-        child: PremiumToast(
-          message: message,
-          type: type,
-          onDismiss: () {
-            if (entry.mounted) {
-              entry.remove();
-            }
-          },
-        ),
+      builder: (ctx) => PremiumToast(
+        message: message,
+        type: type,
+        onDismiss: () {
+          if (entry.mounted) {
+            entry.remove();
+          }
+        },
       ),
     );
     overlay.insert(entry);
@@ -93,47 +90,50 @@ class _PremiumToastState extends State<PremiumToast> {
       child: AnimatedOpacity(
         duration: const Duration(milliseconds: 400),
         opacity: _isVisible ? 0.95 : 0.0,
-        child: Center(
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 14,
-                ),
-                decoration: BoxDecoration(
-                  color: _getBgColor(widget.type).withValues(alpha: 0.85),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    width: 1.5,
+        child: Material(
+          type: MaterialType.transparency,
+          child: Center(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 14,
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
+                  decoration: BoxDecoration(
+                    color: _getBgColor(widget.type).withValues(alpha: 0.85),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      width: 1.5,
                     ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(_getIcon(widget.type), color: Colors.white, size: 18),
-                    const SizedBox(width: 12),
-                    Flexible(
-                      child: Text(
-                        widget.message,
-                        style: GoogleFonts.plusJakartaSans(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(_getIcon(widget.type), color: Colors.white, size: 18),
+                      const SizedBox(width: 12),
+                      Flexible(
+                        child: Text(
+                          widget.message,
+                          style: GoogleFonts.plusJakartaSans(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

@@ -11,6 +11,8 @@ class ServiceRecordModel {
   final String description;
   final String? diagnosis;
   final String? suggestion;
+  final String? reportUrl;
+  final bool isSharedWithVets;
   final int timestamp;
 
   ServiceRecordModel({
@@ -26,6 +28,8 @@ class ServiceRecordModel {
     required this.description,
     this.diagnosis,
     this.suggestion,
+    this.reportUrl,
+    this.isSharedWithVets = true,
     required this.timestamp,
   });
 
@@ -43,6 +47,8 @@ class ServiceRecordModel {
       'description': description,
       'diagnosis': diagnosis ?? description,
       'suggestion': suggestion ?? '',
+      'reportUrl': reportUrl,
+      'isSharedWithVets': isSharedWithVets,
       'timestamp': timestamp,
     };
   }
@@ -61,6 +67,8 @@ class ServiceRecordModel {
       description: map['description'] ?? map['diagnosis'] ?? '',
       diagnosis: map['diagnosis'],
       suggestion: map['suggestion'],
+      reportUrl: map['reportUrl'],
+      isSharedWithVets: map['isSharedWithVets'] ?? true,
       timestamp: (map['timestamp'] as num?)?.toInt() ?? DateTime.now().millisecondsSinceEpoch,
     );
   }

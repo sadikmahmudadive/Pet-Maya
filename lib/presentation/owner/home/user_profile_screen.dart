@@ -164,7 +164,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           SliverToBoxAdapter(
             child: Container(
               transform: Matrix4.translationValues(0, -30, 0),
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
+              padding: const EdgeInsets.fromLTRB(20, 40, 20, 100),
               decoration: BoxDecoration(
                 color: Theme.of(context).scaffoldBackgroundColor,
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),

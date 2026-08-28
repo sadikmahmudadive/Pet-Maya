@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter/foundation.dart';
+import 'dart:io';
 
 import '../models/pet_model.dart';
 import '../models/event_model.dart';
@@ -26,6 +28,7 @@ class FirebaseService {
 
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseStorage _storage = FirebaseStorage.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: [
       'email',
@@ -132,6 +135,20 @@ class FirebaseService {
     if (user != null) {
       await user.delete();
     }
+  }
+
+  // ─── STORAGE ─────────────────────────────────────────────────────────────
+
+  Future<String> uploadFile({
+    required String path,
+    required File file,
+    String? contentType,
+  }) async {
+    final ref = _storage.ref().child(path);
+    final metadata = SettableMetadata(contentType: contentType);
+    final uploadTask = ref.putFile(file, metadata);
+    final snapshot = await uploadTask;
+    return await snapshot.ref.getDownloadURL();
   }
 
   // ─── USER PROFILE ────────────────────────────────────────────────────────

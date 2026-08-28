@@ -6,34 +6,91 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'dart:io';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../data/repositories/app_state_repository.dart';
 import '../../../data/models/pet_model.dart';
+import '../../../data/models/user_model.dart';
 import '../../../data/models/service_record_model.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
 import '../../common_widgets/formatted_ai_report.dart';
+import '../../common_widgets/premium_toast.dart';
 import 'add_edit_pet_screen.dart';
 import 'pet_food_screen.dart';
 import 'pet_health_tracker_screen.dart';
 
-class PetDetailsScreen extends StatelessWidget {
+class PetDetailsScreen extends StatefulWidget {
   final String petId;
 
   const PetDetailsScreen({super.key, required this.petId});
 
   @override
+  State<PetDetailsScreen> createState() => _PetDetailsScreenState();
+}
+
+class _PetDetailsScreenState extends State<PetDetailsScreen> {
+  bool _isUploadingReport = false;
+
+  Future<void> _pickAndUploadReport(BuildContext context, PetModel pet) async {
+    try {
+      // In file_picker 8.3.x, use FilePicker.platform.pickFiles
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf'],
+        allowMultiple: false,
+      );
+
+      if (result != null && result.files.single.path != null) {
+        setState(() => _isUploadingReport = true);
+        final file = File(result.files.single.path!);
+        final repo = context.read<AppStateRepository>();
+
+        await repo.uploadDiagnosticReport(
+          petId: pet.petID,
+          petName: pet.name,
+          title: 'Lab Report: ${result.files.single.name}',
+          file: file,
+        );
+
+        if (mounted) {
+          repo.showToast('Diagnostic report uploaded successfully! 📄', context: context);
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        context.read<AppStateRepository>().showToast('Upload failed: $e', type: ToastType.error, context: context);
+      }
+    } finally {
+      if (mounted) setState(() => _isUploadingReport = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final state = context.watch<AppStateRepository>();
     final pet = state.pets.firstWhere(
-      (p) => p.petID == petId,
+      (p) => p.petID == widget.petId,
       orElse: () => state.pets.first,
     );
+
+    final currentUser = state.currentUser;
+    final isVet = currentUser?.role != UserRole.petOwner &&
+        currentUser?.role != UserRole.admin &&
+        currentUser?.role != UserRole.superAdmin;
+
     final records = state.serviceRecords
-        .where((r) => r.petId == petId)
-        .toList();
+        .where((r) => r.petId == widget.petId)
+        .where((r) {
+      if (!isVet) return true;
+      // Vets see: Shared records OR records they created themselves
+      return r.isSharedWithVets || r.providerId == currentUser?.uid;
+    }).toList();
+
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GlassScaffold(
@@ -64,7 +121,7 @@ class PetDetailsScreen extends StatelessWidget {
                         width: 38,
                         height: 38,
                         color: Colors.black.withValues(alpha: 0.35),
-                        child: const Center(
+                        child: Center(
                           child: Icon(
                             CupertinoIcons.back,
                             color: Colors.white,
@@ -78,29 +135,31 @@ class PetDetailsScreen extends StatelessWidget {
               ),
             ),
             actions: [
-              Padding(
-                padding: const EdgeInsets.only(right: 12),
-                child: Center(
-                  child: ClipOval(
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-                      child: GestureDetector(
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => AddEditPetScreen(petToEdit: pet),
+              if (!isVet)
+                Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: Center(
+                    child: ClipOval(
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                        child: GestureDetector(
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => AddEditPetScreen(petToEdit: pet),
+                            ),
                           ),
-                        ),
-                        behavior: HitTestBehavior.opaque,
-                        child: Container(
-                          width: 38,
-                          height: 38,
-                          color: Colors.black.withValues(alpha: 0.35),
-                          child: const Center(
-                            child: Icon(
-                              CupertinoIcons.pencil,
-                              color: Colors.white,
-                              size: 18,
+                          behavior: HitTestBehavior.opaque,
+                          child: Container(
+                            width: 38,
+                            height: 38,
+                            color: Colors.black.withValues(alpha: 0.35),
+                            child: Center(
+                              child: Icon(
+                                CupertinoIcons.pencil,
+                                color: Colors.white,
+                                size: 18,
+                              ),
                             ),
                           ),
                         ),
@@ -108,7 +167,6 @@ class PetDetailsScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-              ),
             ],
             flexibleSpace: FlexibleSpaceBar(
               stretchModes: const [StretchMode.zoomBackground],
@@ -121,7 +179,7 @@ class PetDetailsScreen extends StatelessWidget {
                             : CachedNetworkImage(
                                 imageUrl: pet.photoUrl!,
                                 fit: BoxFit.cover,
-                                placeholder: (c, u) => const Center(
+                                placeholder: (c, u) => Center(
                                   child: CupertinoActivityIndicator(
                                     color: Colors.white,
                                   ),
@@ -454,6 +512,17 @@ class PetDetailsScreen extends StatelessWidget {
                         const SizedBox(height: 10),
                         _buildStatusTile(
                           context,
+                          'Clinical Reports',
+                          'Upload and store medical PDFs',
+                          'EHR',
+                          Icons.picture_as_pdf_rounded,
+                          const Color(0xFFE8F1F6),
+                          AppColors.primary,
+                          () => _pickAndUploadReport(context, pet),
+                        ),
+                        const SizedBox(height: 10),
+                        _buildStatusTile(
+                          context,
                           'Current Mood',
                           pet.mood.isEmpty ? 'Happy & Active' : pet.mood,
                           'Stable',
@@ -468,7 +537,7 @@ class PetDetailsScreen extends StatelessWidget {
 
                   const SizedBox(height: 32),
 
-                  // ─── 5. Professional History ───
+                  // ─── 6. Professional History ───
                   FadeInUp(
                     delay: const Duration(milliseconds: 200),
                     child: Column(
@@ -517,35 +586,36 @@ class PetDetailsScreen extends StatelessWidget {
                             ),
                           )
                         else
-                          ...records.map((r) => _buildHistoryCard(context, r)),
+                          ...records.map((r) => _buildHistoryCard(context, r, isVet, currentUser)),
                       ],
                     ),
                   ),
 
                   const SizedBox(height: 48),
 
-                  // ─── 6. Delete Pet Action ───
-                  FadeInUp(
-                    delay: const Duration(milliseconds: 260),
-                    child: Center(
-                      child: TextButton.icon(
-                        onPressed: () => _confirmDeletePet(context, state, pet),
-                        icon: const Icon(
-                          CupertinoIcons.trash,
-                          color: AppColors.dangerRed,
-                          size: 18,
-                        ),
-                        label: Text(
-                          'Delete ${pet.name}\'s Profile',
-                          style: const TextStyle(
+                  // ─── 7. Delete Pet Action ───
+                  if (!isVet)
+                    FadeInUp(
+                      delay: const Duration(milliseconds: 260),
+                      child: Center(
+                        child: TextButton.icon(
+                          onPressed: () => _confirmDeletePet(context, state, pet),
+                          icon: Icon(
+                            CupertinoIcons.trash,
                             color: AppColors.dangerRed,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 14,
+                            size: 18,
+                          ),
+                          label: Text(
+                            'Delete ${pet.name}\'s Profile',
+                            style: const TextStyle(
+                              color: AppColors.dangerRed,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
                 ],
               ),
             ),
@@ -725,8 +795,10 @@ class PetDetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHistoryCard(BuildContext context, ServiceRecordModel record) {
+  Widget _buildHistoryCard(BuildContext context, ServiceRecordModel record, bool isVet, UserModel? currentUser) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final repo = context.read<AppStateRepository>();
+
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       child: PremiumCard(
@@ -742,7 +814,7 @@ class PetDetailsScreen extends StatelessWidget {
                 children: [
                   Text(
                     record.serviceType.toUpperCase(),
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontWeight: FontWeight.w800,
                       fontSize: 10,
                       color: AppColors.primary,
@@ -760,20 +832,32 @@ class PetDetailsScreen extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 8),
-              Text(
-                record.title,
-                style: AppTypography.titleMedium.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: isDark ? Colors.white : Colors.black87,
-                ),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      record.title,
+                      style: AppTypography.titleMedium.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
+                    ),
+                  ),
+                  if (record.reportUrl != null)
+                    IconButton(
+                      onPressed: () => launchUrl(Uri.parse(record.reportUrl!)),
+                      icon: const Icon(Icons.picture_as_pdf_rounded, color: AppColors.primary),
+                      tooltip: 'Open PDF Report',
+                    ),
+                ],
               ),
               const SizedBox(height: 4),
               Row(
                 children: [
-                  const Icon(
-                    Icons.verified_user_rounded,
+                  Icon(
+                    record.providerRole == 'Pet Owner' ? Icons.person_rounded : Icons.verified_user_rounded,
                     size: 14,
-                    color: AppColors.healthGreen,
+                    color: record.providerRole == 'Pet Owner' ? AppColors.primary : AppColors.healthGreen,
                   ),
                   const SizedBox(width: 6),
                   Text(
@@ -786,6 +870,62 @@ class PetDetailsScreen extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
+                  const Spacer(),
+                  // Share with Vets Toggle (Only owner can toggle)
+                  if (!isVet || record.providerId == currentUser?.uid)
+                    GestureDetector(
+                      onTap: () {
+                        HapticFeedback.selectionClick();
+                        repo.toggleReportSharing(record.recordId, !record.isSharedWithVets);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: record.isSharedWithVets
+                              ? AppColors.healthGreen.withValues(alpha: 0.1)
+                              : Colors.grey.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              record.isSharedWithVets ? Icons.share_rounded : Icons.lock_rounded,
+                              size: 12,
+                              color: record.isSharedWithVets ? AppColors.healthGreen : Colors.grey,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              record.isSharedWithVets ? 'Shared' : 'Private',
+                              style: TextStyle(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w800,
+                                color: record.isSharedWithVets ? AppColors.healthGreen : Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  else if (record.isSharedWithVets)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.healthGreen.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.share_rounded, size: 10, color: AppColors.healthGreen),
+                          SizedBox(width: 4),
+                          Text(
+                            'Shared with you',
+                            style: TextStyle(fontSize: 8, fontWeight: FontWeight.w800, color: AppColors.healthGreen),
+                          ),
+                        ],
+                      ),
+                    ),
                 ],
               ),
               if (record.description.isNotEmpty) ...[

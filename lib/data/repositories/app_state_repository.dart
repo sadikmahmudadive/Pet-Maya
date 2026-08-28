@@ -961,6 +961,7 @@ class AppStateRepository extends ChangeNotifier {
       description: diagnosis,
       diagnosis: diagnosis,
       suggestion: suggestion,
+      isSharedWithVets: true,
       timestamp: DateTime.now().millisecondsSinceEpoch,
     );
     _serviceRecords.insert(0, record);
@@ -974,6 +975,73 @@ class AppStateRepository extends ChangeNotifier {
     _localCache.saveRecords(_serviceRecords);
     notifyListeners();
     await _firebase.saveServiceRecord(record);
+  }
+
+  Future<void> uploadDiagnosticReport({
+    required String petId,
+    required String petName,
+    required String title,
+    required File file,
+    String? description,
+  }) async {
+    _setLoading(true);
+    try {
+      final fileName = 'report_${DateTime.now().millisecondsSinceEpoch}.pdf';
+      final storagePath = 'pets/$petId/reports/$fileName';
+      final reportUrl = await _firebase.uploadFile(
+        path: storagePath,
+        file: file,
+        contentType: 'application/pdf',
+      );
+
+      final record = ServiceRecordModel(
+        recordId: 'rec_${_uuid.v4().substring(0, 6)}',
+        petId: petId,
+        petName: petName,
+        serviceType: 'Diagnostic Report',
+        providerId: _currentUser?.uid ?? 'user',
+        providerName: _currentUser?.name ?? 'Owner',
+        providerRole: 'Pet Owner',
+        date: DateTime.now().toString().substring(0, 10),
+        title: title,
+        description: description ?? 'PDF Diagnostic Report uploaded by owner.',
+        reportUrl: reportUrl,
+        isSharedWithVets: true,
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+      );
+
+      await addServiceRecord(record);
+    } catch (e) {
+      debugPrint('[AppStateRepository] uploadDiagnosticReport error: $e');
+      rethrow;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> toggleReportSharing(String recordId, bool isShared) async {
+    final idx = _serviceRecords.indexWhere((r) => r.recordId == recordId);
+    if (idx != -1) {
+      _serviceRecords[idx] = ServiceRecordModel(
+        recordId: _serviceRecords[idx].recordId,
+        petId: _serviceRecords[idx].petId,
+        petName: _serviceRecords[idx].petName,
+        serviceType: _serviceRecords[idx].serviceType,
+        providerId: _serviceRecords[idx].providerId,
+        providerName: _serviceRecords[idx].providerName,
+        providerRole: _serviceRecords[idx].providerRole,
+        date: _serviceRecords[idx].date,
+        title: _serviceRecords[idx].title,
+        description: _serviceRecords[idx].description,
+        diagnosis: _serviceRecords[idx].diagnosis,
+        suggestion: _serviceRecords[idx].suggestion,
+        reportUrl: _serviceRecords[idx].reportUrl,
+        isSharedWithVets: isShared,
+        timestamp: _serviceRecords[idx].timestamp,
+      );
+      notifyListeners();
+      await _firebase.saveServiceRecord(_serviceRecords[idx]);
+    }
   }
 
   void addToCart(ProductModel product) {
