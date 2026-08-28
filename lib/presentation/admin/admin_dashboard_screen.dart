@@ -20,6 +20,7 @@ import 'admin_pet_directory_screen.dart';
 import 'admin_service_manager_screen.dart';
 import 'admin_service_pricing_screen.dart';
 import 'admin_blog_manager_screen.dart';
+import 'super_admin_settings_modal.dart';
 import 'package:animate_do/animate_do.dart';
 
 class AdminDashboardScreen extends StatelessWidget {
@@ -55,7 +56,7 @@ class AdminDashboardScreen extends StatelessWidget {
                 Icons.settings_suggest_rounded,
                 color: AppColors.primary,
               ),
-              onPressed: () {},
+              onPressed: () => SuperAdminSettingsModal.show(context),
             ),
           IconButton(
             icon: const Icon(Icons.logout_rounded, color: AppColors.dangerRed),
