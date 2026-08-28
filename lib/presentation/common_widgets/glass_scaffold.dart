@@ -18,7 +18,7 @@ class GlassScaffold extends StatelessWidget {
     this.floatingActionButton,
     this.floatingActionButtonLocation,
     this.extendBodyBehindAppBar = true,
-    this.backgroundColor = const Color(0xFFF3F9FF),
+    this.backgroundColor = const Color(0xFFA7C9B1),
   });
 
   @override
@@ -32,7 +32,7 @@ class GlassScaffold extends StatelessWidget {
         statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
       ),
       child: Scaffold(
-        backgroundColor: backgroundColor != const Color(0xFFF3F9FF) 
+        backgroundColor: backgroundColor != const Color(0xFFA7C9B1) 
             ? backgroundColor 
             : Theme.of(context).scaffoldBackgroundColor,
         extendBodyBehindAppBar: extendBodyBehindAppBar,

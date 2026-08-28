@@ -28,7 +28,7 @@ class AppColors {
   static const Color dangerRedLight = Color(0xFFFFEBEA);
 
   // Background & Surfaces (Apple iOS System Grouped Theme)
-  static const Color background = Color(0xFFF2F2F7);
+  static const Color background = Color(0xFFEDFFF3);
   static const Color backgroundDark = Color(0xFF000000); // True Apple Dark Mode
   static const Color surface = Color(0xFFFFFFFF);
   static const Color surfaceDark = Color(0xFF1C1C1E); // Apple Inset Card Dark
@@ -39,7 +39,6 @@ class AppColors {
   static const Color surfaceGlassDark = Color(0xCC1C1C1E);
 
   // Apple HIG Specific Tokens
-  static const Color iosSystemGroupedBg = Color(0xFFF2F2F7);
   static const Color iosSystemGroupedBgDark = Color(0xFF000000);
   static const Color iosCard = Color(0xFFFFFFFF);
   static const Color iosCardDark = Color(0xFF1C1C1E);
