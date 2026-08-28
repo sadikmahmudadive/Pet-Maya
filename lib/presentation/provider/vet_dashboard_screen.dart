@@ -34,9 +34,9 @@ class _VetDashboardScreenState extends State<VetDashboardScreen> {
             index: _currentNavIndex,
             children: [
               const VetConsoleHomeFragment(), // 0: Clinic Console
-              const ClientListScreen(),       // 1: Patients Directory
-              const CommunityFeedScreen(),    // 2: Clinical Community
-              const UserProfileScreen(),      // 3: Doctor Profile & Rewards
+              const ClientListScreen(), // 1: Patients Directory
+              const CommunityFeedScreen(), // 2: Clinical Community
+              const UserProfileScreen(), // 3: Doctor Profile & Rewards
             ],
           ),
           Positioned(
@@ -72,10 +72,16 @@ class VetConsoleHomeFragment extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user = context.select((AppStateRepository state) => state.currentUser);
-    final rawEvents = context.select((AppStateRepository state) => state.events);
+    final user = context.select(
+      (AppStateRepository state) => state.currentUser,
+    );
+    final rawEvents = context.select(
+      (AppStateRepository state) => state.events,
+    );
     final events = rawEvents.where((e) => e.category != 'Birthday').toList();
-    final records = context.select((AppStateRepository state) => state.serviceRecords);
+    final records = context.select(
+      (AppStateRepository state) => state.serviceRecords,
+    );
     final state = context.read<AppStateRepository>();
 
     // Count unique consulted patients for this doctor
@@ -84,7 +90,8 @@ class VetConsoleHomeFragment extends StatelessWidget {
       final uid = user.uid;
       final uName = user.name.trim().toLowerCase();
       for (final r in records) {
-        if (r.providerId == uid || (uName.isNotEmpty && r.providerName.toLowerCase() == uName)) {
+        if (r.providerId == uid ||
+            (uName.isNotEmpty && r.providerName.toLowerCase() == uName)) {
           consultedPetIds.add(r.petId);
         }
       }
@@ -96,16 +103,24 @@ class VetConsoleHomeFragment extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return CustomScrollView(
-      physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+      physics: const BouncingScrollPhysics(
+        parent: AlwaysScrollableScrollPhysics(),
+      ),
       slivers: [
         SliverAppBar(
-          title: const Text('Clinic Practice Console', style: TextStyle(fontWeight: FontWeight.w800)),
+          title: const Text(
+            'Clinic Practice Console',
+            style: TextStyle(fontWeight: FontWeight.w800),
+          ),
           backgroundColor: Colors.transparent,
           elevation: 0,
           floating: true,
           actions: [
             IconButton(
-              icon: const Icon(Icons.logout_rounded, color: AppColors.dangerRed),
+              icon: const Icon(
+                Icons.logout_rounded,
+                color: AppColors.dangerRed,
+              ),
               onPressed: () {
                 HapticFeedback.mediumImpact();
                 state.logout();
@@ -138,8 +153,12 @@ class VetConsoleHomeFragment extends StatelessWidget {
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          AppColors.primary.withValues(alpha: isDark ? 0.35 : 0.18),
-                          AppColors.secondary.withValues(alpha: isDark ? 0.20 : 0.10),
+                          AppColors.primary.withValues(
+                            alpha: isDark ? 0.35 : 0.18,
+                          ),
+                          AppColors.secondary.withValues(
+                            alpha: isDark ? 0.20 : 0.10,
+                          ),
                         ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
@@ -157,9 +176,14 @@ class VetConsoleHomeFragment extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: AppColors.primary.withValues(alpha: 0.2),
+                                  color: AppColors.primary.withValues(
+                                    alpha: 0.2,
+                                  ),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: const Text(
@@ -184,7 +208,9 @@ class VetConsoleHomeFragment extends StatelessWidget {
                               Text(
                                 'Your live practice queue & patient records are active.',
                                 style: AppTypography.bodyMedium.copyWith(
-                                  color: isDark ? Colors.white70 : Colors.black87,
+                                  color: isDark
+                                      ? Colors.white70
+                                      : Colors.black87,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -275,7 +301,9 @@ class VetConsoleHomeFragment extends StatelessWidget {
                               borderRadius: BorderRadius.circular(24),
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFF1AB680).withValues(alpha: 0.3),
+                                  color: const Color(
+                                    0xFF1AB680,
+                                  ).withValues(alpha: 0.3),
                                   blurRadius: 16,
                                   offset: const Offset(0, 8),
                                 ),
@@ -284,7 +312,11 @@ class VetConsoleHomeFragment extends StatelessWidget {
                             child: const Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.note_add_rounded, color: Colors.white, size: 20),
+                                Icon(
+                                  Icons.note_add_rounded,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
                                 SizedBox(width: 8),
                                 Text(
                                   'NEW EHR LOG',
@@ -307,7 +339,9 @@ class VetConsoleHomeFragment extends StatelessWidget {
                         child: PremiumCard(
                           onTap: () => Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => const ClientListScreen()),
+                            MaterialPageRoute(
+                              builder: (_) => const ClientListScreen(),
+                            ),
                           ),
                           opacity: 0.15,
                           borderRadius: 24,
@@ -316,12 +350,18 @@ class VetConsoleHomeFragment extends StatelessWidget {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Icon(Icons.people_alt_rounded, color: AppColors.primary, size: 20),
+                                const Icon(
+                                  Icons.people_alt_rounded,
+                                  color: AppColors.primary,
+                                  size: 20,
+                                ),
                                 const SizedBox(width: 8),
                                 Text(
                                   'PATIENTS',
                                   style: TextStyle(
-                                    color: isDark ? Colors.white : AppColors.primary,
+                                    color: isDark
+                                        ? Colors.white
+                                        : AppColors.primary,
                                     fontWeight: FontWeight.w900,
                                     letterSpacing: 1.0,
                                     fontSize: 12,
@@ -343,10 +383,15 @@ class VetConsoleHomeFragment extends StatelessWidget {
                   children: [
                     Text(
                       'Scheduled Consultations',
-                      style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w900),
+                      style: AppTypography.titleLarge.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.primary.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(12),
@@ -380,7 +425,9 @@ class VetConsoleHomeFragment extends StatelessWidget {
                                 Container(
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
-                                    color: AppColors.primary.withValues(alpha: 0.12),
+                                    color: AppColors.primary.withValues(
+                                      alpha: 0.12,
+                                    ),
                                     shape: BoxShape.circle,
                                   ),
                                   child: const Icon(
@@ -392,22 +439,25 @@ class VetConsoleHomeFragment extends StatelessWidget {
                                 const SizedBox(width: 14),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         '${evt.petName} • ${evt.title}',
-                                        style: AppTypography.titleMedium.copyWith(
-                                          fontWeight: FontWeight.w800,
-                                          fontSize: 15,
-                                        ),
+                                        style: AppTypography.titleMedium
+                                            .copyWith(
+                                              fontWeight: FontWeight.w800,
+                                              fontSize: 15,
+                                            ),
                                       ),
                                       const SizedBox(height: 2),
                                       Text(
                                         '${evt.fromTime} - ${evt.toTime}',
-                                        style: AppTypography.bodyMedium.copyWith(
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.grey[500],
-                                        ),
+                                        style: AppTypography.bodyMedium
+                                            .copyWith(
+                                              fontWeight: FontWeight.w600,
+                                              color: Colors.grey[500],
+                                            ),
                                       ),
                                     ],
                                   ),
@@ -433,7 +483,9 @@ class VetConsoleHomeFragment extends StatelessWidget {
                   children: [
                     Text(
                       'Recent Case Logs & EHR',
-                      style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w900),
+                      style: AppTypography.titleLarge.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                     Text(
                       '${records.length} TOTAL',
@@ -462,12 +514,18 @@ class VetConsoleHomeFragment extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 3,
+                                      ),
                                       decoration: BoxDecoration(
-                                        color: AppColors.primary.withValues(alpha: 0.15),
+                                        color: AppColors.primary.withValues(
+                                          alpha: 0.15,
+                                        ),
                                         borderRadius: BorderRadius.circular(8),
                                       ),
                                       child: Text(
@@ -502,7 +560,9 @@ class VetConsoleHomeFragment extends StatelessWidget {
                                   style: AppTypography.bodyMedium.copyWith(
                                     fontSize: 13,
                                     height: 1.4,
-                                    color: isDark ? Colors.white70 : Colors.black87,
+                                    color: isDark
+                                        ? Colors.white70
+                                        : Colors.black87,
                                   ),
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,

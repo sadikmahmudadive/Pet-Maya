@@ -1,9 +1,7 @@
 import 'dart:convert';
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -24,11 +22,11 @@ import '../models/notification_model.dart';
 import '../models/review_model.dart';
 import '../models/blog_post_model.dart';
 import '../services/firebase_service.dart';
+import '../services/local_cache_service.dart';
 import '../../core/services/notification_service.dart';
 import '../../core/services/native_bridge_service.dart';
 import '../../main.dart';
 import '../../presentation/common_widgets/premium_toast.dart';
-import '../../presentation/common_widgets/premium_notification.dart';
 
 class AppStateRepository extends ChangeNotifier {
   static final AppStateRepository _instance = AppStateRepository._internal();
@@ -37,6 +35,7 @@ class AppStateRepository extends ChangeNotifier {
   final _uuid = const Uuid();
   final _firebase = FirebaseService();
   final _functions = FirebaseFunctions.instanceFor(region: 'us-central1');
+  final _localCache = LocalCacheService();
 
   Future<dynamic> _callAiProxy(String method, Map<String, dynamic> data) async {
     final user = _firebase.currentFirebaseUser;
@@ -179,9 +178,98 @@ class AppStateRepository extends ChangeNotifier {
   int get cartCount => _cartItems.fold(0, (sum, item) => sum + item.quantity);
 
   AppStateRepository._internal() {
+    _hydrateFromLocalCache();
     _loadSavedThemeMode();
     _restoreExistingSession();
     _setupNotificationListener();
+  }
+
+  void _hydrateFromLocalCache() {
+    try {
+      final user = _localCache.loadCurrentUser();
+      if (user != null) _currentUser = user;
+
+      final pets = _localCache.loadPets();
+      if (pets.isNotEmpty) {
+        _pets
+          ..clear()
+          ..addAll(pets);
+      }
+
+      final events = _localCache.loadEvents();
+      if (events.isNotEmpty) {
+        _events
+          ..clear()
+          ..addAll(events);
+      }
+
+      final products = _localCache.loadProducts();
+      if (products.isNotEmpty) {
+        _products
+          ..clear()
+          ..addAll(products);
+      }
+
+      final vets = _localCache.loadVets();
+      if (vets.isNotEmpty) {
+        _vets
+          ..clear()
+          ..addAll(vets);
+      }
+
+      final posts = _localCache.loadPosts();
+      if (posts.isNotEmpty) {
+        _posts
+          ..clear()
+          ..addAll(posts);
+      }
+
+      final blogs = _localCache.loadBlogs();
+      if (blogs.isNotEmpty) {
+        _blogs
+          ..clear()
+          ..addAll(blogs);
+      }
+
+      final orders = _localCache.loadOrders();
+      if (orders.isNotEmpty) {
+        _orders
+          ..clear()
+          ..addAll(orders);
+      }
+
+      final records = _localCache.loadRecords();
+      if (records.isNotEmpty) {
+        _serviceRecords
+          ..clear()
+          ..addAll(records);
+      }
+
+      final settings = _localCache.loadGlobalSettings();
+      if (settings != null) {
+        if (settings.containsKey('maintenance_mode')) {
+          _isMaintenanceMode = settings['maintenance_mode'] == true;
+        }
+        if (settings.containsKey('ai_enabled')) {
+          _isAiEnabled = settings['ai_enabled'] == true;
+        }
+        if (settings.containsKey('registration_allowed')) {
+          _isRegistrationAllowed = settings['registration_allowed'] == true;
+        }
+        if (settings.containsKey('base_shipping_fee')) {
+          _baseShippingFee = (settings['base_shipping_fee'] as num).toDouble();
+        }
+        if (settings.containsKey('system_banner')) {
+          _systemBanner = settings['system_banner']?.toString();
+        }
+      }
+
+      debugPrint(
+        '[AppStateRepository] Offline data hydrated (0ms blank UI prevention).',
+      );
+    } catch (e) {
+      debugPrint('[AppStateRepository] Offline hydration error: $e');
+    }
   }
 
   Future<void> _loadSavedThemeMode() async {
@@ -251,11 +339,19 @@ class AppStateRepository extends ChangeNotifier {
         final profile = await _firebase.fetchUserProfile(fUser.uid);
         if (profile != null) {
           _currentUser = profile;
+          _localCache.saveCurrentUser(profile);
+          await syncFromFirebase(_currentUser!);
+        } else if (_currentUser != null) {
           await syncFromFirebase(_currentUser!);
         }
       } catch (e) {
         debugPrint('[AppStateRepository] Session restoration failed: $e');
+        if (_currentUser != null) {
+          await syncFromFirebase(_currentUser!);
+        }
       }
+    } else if (_currentUser != null) {
+      await syncFromFirebase(_currentUser!);
     }
     _isInitialized = true;
     notifyListeners();
@@ -268,8 +364,9 @@ class AppStateRepository extends ChangeNotifier {
   }) {
     final effectiveContext =
         context ?? TailWaggingApp.navigatorKey.currentContext;
-    if (effectiveContext != null)
+    if (effectiveContext != null) {
       PremiumToast.show(effectiveContext, message, type: type);
+    }
   }
 
   Future<void> syncFromFirebase(UserModel user) async {
@@ -402,6 +499,7 @@ class AppStateRepository extends ChangeNotifier {
       _serviceRecords
         ..clear()
         ..addAll(fetched);
+      _localCache.saveRecords(_serviceRecords);
       notifyListeners();
     });
   }
@@ -866,12 +964,14 @@ class AppStateRepository extends ChangeNotifier {
       timestamp: DateTime.now().millisecondsSinceEpoch,
     );
     _serviceRecords.insert(0, record);
+    _localCache.saveRecords(_serviceRecords);
     notifyListeners();
     await _firebase.saveServiceRecord(record);
   }
 
   Future<void> addServiceRecord(ServiceRecordModel record) async {
     _serviceRecords.insert(0, record);
+    _localCache.saveRecords(_serviceRecords);
     notifyListeners();
     await _firebase.saveServiceRecord(record);
   }

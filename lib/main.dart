@@ -27,12 +27,15 @@ void main() async {
 
   // Initialize App Check with Debug support for Emulators
   await FirebaseAppCheck.instance.activate(
-    androidProvider: kDebugMode ? AndroidProvider.debug : AndroidProvider.playIntegrity,
+    androidProvider: kDebugMode
+        ? AndroidProvider.debug
+        : AndroidProvider.playIntegrity,
     appleProvider: kDebugMode ? AppleProvider.debug : AppleProvider.deviceCheck,
   );
 
   // Initialize Google Maps Android Renderer with Latest Vector Map Engine
-  final GoogleMapsFlutterPlatform mapsImplementation = GoogleMapsFlutterPlatform.instance;
+  final GoogleMapsFlutterPlatform mapsImplementation =
+      GoogleMapsFlutterPlatform.instance;
   if (mapsImplementation is GoogleMapsFlutterAndroid) {
     mapsImplementation.useAndroidViewSurface = true;
     mapsImplementation.initializeWithRenderer(AndroidMapRenderer.latest);
@@ -52,7 +55,7 @@ void main() async {
   // Initialize Notification Service
   final notificationService = NotificationService();
   await notificationService.initialize();
-  
+
   // Set background messaging handler
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
@@ -61,9 +64,7 @@ void main() async {
 
   runApp(
     MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => AppStateRepository()),
-      ],
+      providers: [ChangeNotifierProvider(create: (_) => AppStateRepository())],
       child: const TailWaggingApp(),
     ),
   );
@@ -72,7 +73,8 @@ void main() async {
 class TailWaggingApp extends StatelessWidget {
   const TailWaggingApp({super.key});
 
-  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+  static final GlobalKey<NavigatorState> navigatorKey =
+      GlobalKey<NavigatorState>();
 
   @override
   Widget build(BuildContext context) {

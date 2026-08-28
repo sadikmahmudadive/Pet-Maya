@@ -28,8 +28,8 @@ class AppColors {
   static const Color dangerRedLight = Color(0xFFFFEBEA);
 
   // Background & Surfaces (Apple iOS System Grouped Theme)
-  static const Color background = Color(0xFFEDFFF3);
-  static const Color backgroundDark = Color(0xFF000000); // True Apple Dark Mode
+  static const Color background = Color(0xFFEFFCF2);
+  static const Color backgroundDark = Color(0xFF021E20); // True Apple Dark Mode
   static const Color surface = Color(0xFFFFFFFF);
   static const Color surfaceDark = Color(0xFF1C1C1E); // Apple Inset Card Dark
   static const Color surfaceContainer = Color(0xFFFFFFFF);

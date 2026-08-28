@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:lottie/lottie.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../common_widgets/premium_card.dart';
@@ -22,17 +23,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final List<OnboardingData> _pages = [
     OnboardingData(
       title: 'Digital Health Vault',
-      description: 'Store and track your pet\'s medical history, vaccinations, and allergies in one safe place.',
-      icon: Icons.health_and_safety_rounded,
+      description:
+          'Store and track your pet\'s medical history, vaccinations, and allergies in one safe place.',
+      lottieAsset: 'assets/lottie/lottie_health_shield.json',
     ),
     OnboardingData(
       title: 'AI Health Scanner',
-      description: 'Get instant insights on common pet symptoms using our advanced Vision AI diagnostic tool.',
-      icon: Icons.auto_awesome_rounded,
+      description:
+          'Get instant insights on common pet symptoms using our advanced Vision AI diagnostic tool.',
+      lottieAsset: 'assets/lottie/lottie_ai_sparkles.json',
     ),
     OnboardingData(
       title: 'Premium Services',
-      description: 'Book verified veterinarians, groomers, and boarding facilities with just a few taps.',
+      description:
+          'Book verified veterinarians, groomers, and boarding facilities with just a few taps.',
       icon: Icons.pets_rounded,
     ),
   ];
@@ -40,7 +44,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
@@ -62,9 +66,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 return _buildOnboardingPage(index - 1);
               },
             ),
-            
+
             // Floating Navigation UI (iOS style)
-            if (_currentPage != 0) 
+            if (_currentPage != 0)
               Positioned(
                 bottom: 40,
                 left: 40,
@@ -91,73 +95,81 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final orientation = MediaQuery.of(context).orientation;
     final isLandscape = orientation == Orientation.landscape;
 
-    return LayoutBuilder(builder: (context, constraints) {
-      final height = constraints.maxHeight;
-      final width = constraints.maxWidth;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final height = constraints.maxHeight;
+        final width = constraints.maxWidth;
 
-      return Stack(
-        alignment: Alignment.center,
-        children: [
-          // Background abstract gradients
-          Positioned(
-            top: -height * 0.1,
-            right: -width * 0.2,
-            child: _buildBlob(width * 0.8, AppColors.primary.withValues(alpha: isDark ? 0.12 : 0.08)),
-          ),
-          Positioned(
-            bottom: height * 0.1,
-            left: -width * 0.1,
-            child: _buildBlob(width * 0.6, AppColors.secondary.withValues(alpha: isDark ? 0.08 : 0.05)),
-          ),
-
-          Center(
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: width * 0.1),
-                child: isLandscape 
-                  ? Row(
-                      children: [
-                        Expanded(
-                          flex: 4,
-                          child: _buildWelcomeHero(height, isDark),
-                        ),
-                        const SizedBox(width: 40),
-                        Expanded(
-                          flex: 6,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              _buildWelcomeText(isDark),
-                              const SizedBox(height: 40),
-                              _buildGetStartedButton(width),
-                              const SizedBox(height: 40),
-                              _buildPartnerBrandingRow(isDark),
-                            ],
-                          ),
-                        ),
-                      ],
-                    )
-                  : Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const SizedBox(height: 60),
-                        _buildWelcomeHero(height, isDark),
-                        const SizedBox(height: 50),
-                        _buildWelcomeText(isDark),
-                        const SizedBox(height: 80),
-                        _buildGetStartedButton(width),
-                        const SizedBox(height: 60),
-                        _buildPartnerBrandingRow(isDark),
-                        const SizedBox(height: 40),
-                      ],
-                    ),
+        return Stack(
+          alignment: Alignment.center,
+          children: [
+            // Background abstract gradients
+            Positioned(
+              top: -height * 0.1,
+              right: -width * 0.2,
+              child: _buildBlob(
+                width * 0.8,
+                AppColors.primary.withValues(alpha: isDark ? 0.12 : 0.08),
               ),
             ),
-          ),
-        ],
-      );
-    });
+            Positioned(
+              bottom: height * 0.1,
+              left: -width * 0.1,
+              child: _buildBlob(
+                width * 0.6,
+                AppColors.secondary.withValues(alpha: isDark ? 0.08 : 0.05),
+              ),
+            ),
+
+            Center(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: width * 0.1),
+                  child: isLandscape
+                      ? Row(
+                          children: [
+                            Expanded(
+                              flex: 4,
+                              child: _buildWelcomeHero(height, isDark),
+                            ),
+                            const SizedBox(width: 40),
+                            Expanded(
+                              flex: 6,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  _buildWelcomeText(isDark),
+                                  const SizedBox(height: 40),
+                                  _buildGetStartedButton(width),
+                                  const SizedBox(height: 40),
+                                  _buildPartnerBrandingRow(isDark),
+                                ],
+                              ),
+                            ),
+                          ],
+                        )
+                      : Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const SizedBox(height: 60),
+                            _buildWelcomeHero(height, isDark),
+                            const SizedBox(height: 50),
+                            _buildWelcomeText(isDark),
+                            const SizedBox(height: 80),
+                            _buildGetStartedButton(width),
+                            const SizedBox(height: 60),
+                            _buildPartnerBrandingRow(isDark),
+                            const SizedBox(height: 40),
+                          ],
+                        ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Widget _buildWelcomeHero(double height, bool isDark) {
@@ -176,7 +188,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
           ],
         ),
-        child: Icon(Icons.pets_rounded, size: height * 0.12, color: AppColors.primary),
+        child: Icon(
+          Icons.pets_rounded,
+          size: height * 0.12,
+          color: AppColors.primary,
+        ),
       ),
     );
   }
@@ -205,7 +221,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             textAlign: TextAlign.center,
             style: AppTypography.bodyMedium.copyWith(
               fontSize: 18,
-              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+              color: isDark
+                  ? AppColors.textSecondaryDark
+                  : AppColors.textSecondary,
               fontWeight: FontWeight.w500,
               letterSpacing: 0.2,
             ),
@@ -227,21 +245,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               _buildPartnerSubSection(
                 isDark: isDark,
                 label: 'SUPPORTED BY',
-                logo: Text('VertexHand', 
+                logo: Text(
+                  'VertexHand',
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 16, 
+                    fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: isDark ? Colors.white : AppColors.primary,
-                  )),
+                  ),
+                ),
               ),
               const SizedBox(width: 40),
               _buildPartnerSubSection(
                 isDark: isDark,
                 label: 'DEVELOPED BY',
-                logo: Image.asset(
-                  'assets/images/masa_logo.png',
-                  height: 32,
-                ),
+                logo: Image.asset('assets/images/masa_logo.png', height: 32),
               ),
             ],
           ),
@@ -256,9 +273,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        gradient: RadialGradient(
-          colors: [color, color.withValues(alpha: 0)],
-        ),
+        gradient: RadialGradient(colors: [color, color.withValues(alpha: 0)]),
       ),
     );
   }
@@ -268,50 +283,79 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final orientation = MediaQuery.of(context).orientation;
     final isLandscape = orientation == Orientation.landscape;
 
-    return LayoutBuilder(builder: (context, constraints) {
-      final height = constraints.maxHeight;
-      final width = constraints.maxWidth;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final height = constraints.maxHeight;
+        final width = constraints.maxWidth;
 
-      return Padding(
-        padding: EdgeInsets.symmetric(horizontal: width * 0.12),
-        child: isLandscape 
-          ? Row(
-              children: [
-                Expanded(
-                  flex: 4,
-                  child: _buildOnboardingHero(index, width, height, isDark),
+        return Padding(
+          padding: EdgeInsets.symmetric(horizontal: width * 0.12),
+          child: isLandscape
+              ? Row(
+                  children: [
+                    Expanded(
+                      flex: 4,
+                      child: _buildOnboardingHero(index, width, height, isDark),
+                    ),
+                    const SizedBox(width: 40),
+                    Expanded(
+                      flex: 6,
+                      child: _buildOnboardingContent(index, isDark),
+                    ),
+                  ],
+                )
+              : Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Spacer(flex: 2),
+                    _buildOnboardingHero(index, width, height, isDark),
+                    const SizedBox(height: 60),
+                    _buildOnboardingContent(index, isDark),
+                    const Spacer(flex: 3),
+                  ],
                 ),
-                const SizedBox(width: 40),
-                Expanded(
-                  flex: 6,
-                  child: _buildOnboardingContent(index, isDark),
-                ),
-              ],
-            )
-          : Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Spacer(flex: 2),
-                _buildOnboardingHero(index, width, height, isDark),
-                const SizedBox(height: 60),
-                _buildOnboardingContent(index, isDark),
-                const Spacer(flex: 3),
-              ],
-            ),
-      );
-    });
+        );
+      },
+    );
   }
 
-  Widget _buildOnboardingHero(int index, double width, double height, bool isDark) {
+  Widget _buildOnboardingHero(
+    int index,
+    double width,
+    double height,
+    bool isDark,
+  ) {
+    final page = _pages[index];
+    final containerSize = height * 0.22;
     return FadeInDown(
       duration: const Duration(milliseconds: 600),
       child: Container(
-        padding: EdgeInsets.all(width * 0.05),
+        width: containerSize,
+        height: containerSize,
+        padding: EdgeInsets.all(page.lottieAsset != null ? 12 : width * 0.05),
         decoration: BoxDecoration(
           color: AppColors.primary.withValues(alpha: isDark ? 0.12 : 0.05),
           borderRadius: BorderRadius.circular(width * 0.1),
         ),
-        child: Icon(_pages[index].icon, size: height * 0.12, color: AppColors.primary),
+        child: Center(
+          child: page.lottieAsset != null
+              ? Lottie.asset(
+                  page.lottieAsset!,
+                  key: ValueKey(page.lottieAsset),
+                  width: containerSize * 0.85,
+                  height: containerSize * 0.85,
+                  fit: BoxFit.contain,
+                  repeat: true,
+                  animate: true,
+                )
+              : (page.icon != null
+                    ? Icon(
+                        page.icon,
+                        size: height * 0.12,
+                        color: AppColors.primary,
+                      )
+                    : const SizedBox.shrink()),
+        ),
       ),
     );
   }
@@ -336,7 +380,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             _pages[index].description,
             style: AppTypography.bodyMedium.copyWith(
               fontSize: 16,
-              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+              color: isDark
+                  ? AppColors.textSecondaryDark
+                  : AppColors.textSecondary,
               height: 1.6,
             ),
             textAlign: TextAlign.center,
@@ -358,7 +404,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           height: 6,
           width: _currentPage == index ? 24 : 6,
           decoration: BoxDecoration(
-            color: _currentPage == index ? AppColors.primary : AppColors.primary.withValues(alpha: isDark ? 0.3 : 0.2),
+            color: _currentPage == index
+                ? AppColors.primary
+                : AppColors.primary.withValues(alpha: isDark ? 0.3 : 0.2),
             borderRadius: BorderRadius.circular(3),
           ),
         ),
@@ -375,9 +423,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       child: PremiumCard(
         onTap: () {
           if (isLastPage) {
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const LoginScreen()),
+            );
           } else {
-            _pageController.nextPage(duration: const Duration(milliseconds: 600), curve: Curves.easeInOutCubic);
+            _pageController.nextPage(
+              duration: const Duration(milliseconds: 600),
+              curve: Curves.easeInOutCubic,
+            );
           }
         },
         useGlass: false,
@@ -389,7 +443,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF1AB680).withValues(alpha: isDark ? 0.4 : 0.3),
+                color: const Color(
+                  0xFF1AB680,
+                ).withValues(alpha: isDark ? 0.4 : 0.3),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               ),
@@ -411,7 +467,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Widget _buildGetStartedButton(double screenWidth) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return ActionSlider.standard(
       sliderBehavior: SliderBehavior.stretch,
       width: screenWidth * 0.8,
@@ -427,6 +483,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         );
         controller.success(); //reset slider
       },
+      icon: Icon(
+        Icons.arrow_forward_ios_rounded,
+        color: isDark ? Colors.white : AppColors.primaryDark,
+        size: 20,
+      ),
       child: const Text(
         'EXPLORE PET MAYA',
         style: TextStyle(
@@ -436,24 +497,25 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           letterSpacing: 0.8,
         ),
       ),
-      icon: Icon(
-        Icons.arrow_forward_ios_rounded,
-        color: isDark ? Colors.white : AppColors.primaryDark,
-        size: 20,
-      ),
     );
   }
 
-  Widget _buildPartnerSubSection({required bool isDark, required String label, required Widget logo}) {
+  Widget _buildPartnerSubSection({
+    required bool isDark,
+    required String label,
+    required Widget logo,
+  }) {
     return Column(
       children: [
         Text(
           label,
           style: AppTypography.labelSmall.copyWith(
-            fontSize: 8, 
-            fontWeight: FontWeight.w800, 
+            fontSize: 8,
+            fontWeight: FontWeight.w800,
             letterSpacing: 1.2,
-            color: isDark ? AppColors.textSecondaryDark.withValues(alpha: 0.5) : AppColors.textTertiary,
+            color: isDark
+                ? AppColors.textSecondaryDark.withValues(alpha: 0.5)
+                : AppColors.textTertiary,
           ),
         ),
         const SizedBox(height: 8),
@@ -466,8 +528,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 class OnboardingData {
   final String title;
   final String description;
-  final IconData icon;
+  final IconData? icon;
+  final String? lottieAsset;
 
-  OnboardingData({required this.title, required this.description, required this.icon});
+  OnboardingData({
+    required this.title,
+    required this.description,
+    this.icon,
+    this.lottieAsset,
+  });
 }
-

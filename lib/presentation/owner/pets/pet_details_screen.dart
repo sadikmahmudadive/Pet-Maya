@@ -14,6 +14,7 @@ import '../../../data/models/pet_model.dart';
 import '../../../data/models/service_record_model.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
+import '../../common_widgets/formatted_ai_report.dart';
 import 'add_edit_pet_screen.dart';
 import 'pet_food_screen.dart';
 import 'pet_health_tracker_screen.dart';
@@ -26,20 +27,29 @@ class PetDetailsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = context.watch<AppStateRepository>();
-    final pet = state.pets.firstWhere((p) => p.petID == petId, orElse: () => state.pets.first);
-    final records = state.serviceRecords.where((r) => r.petId == petId).toList();
+    final pet = state.pets.firstWhere(
+      (p) => p.petID == petId,
+      orElse: () => state.pets.first,
+    );
+    final records = state.serviceRecords
+        .where((r) => r.petId == petId)
+        .toList();
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GlassScaffold(
       body: CustomScrollView(
-        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
         slivers: [
           // ─── 1. Modern iOS Hero Image Header ───
           SliverAppBar(
             expandedHeight: 300,
             pinned: true,
             stretch: true,
-            backgroundColor: isDark ? const Color(0xFF131B24) : AppColors.primary,
+            backgroundColor: isDark
+                ? const Color(0xFF131B24)
+                : AppColors.primary,
             systemOverlayStyle: SystemUiOverlayStyle.light,
             leading: Padding(
               padding: const EdgeInsets.only(left: 12),
@@ -55,7 +65,11 @@ class PetDetailsScreen extends StatelessWidget {
                         height: 38,
                         color: Colors.black.withValues(alpha: 0.35),
                         child: const Center(
-                          child: Icon(CupertinoIcons.back, color: Colors.white, size: 20),
+                          child: Icon(
+                            CupertinoIcons.back,
+                            color: Colors.white,
+                            size: 20,
+                          ),
                         ),
                       ),
                     ),
@@ -73,7 +87,9 @@ class PetDetailsScreen extends StatelessWidget {
                       child: GestureDetector(
                         onTap: () => Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => AddEditPetScreen(petToEdit: pet)),
+                          MaterialPageRoute(
+                            builder: (_) => AddEditPetScreen(petToEdit: pet),
+                          ),
                         ),
                         behavior: HitTestBehavior.opaque,
                         child: Container(
@@ -81,7 +97,11 @@ class PetDetailsScreen extends StatelessWidget {
                           height: 38,
                           color: Colors.black.withValues(alpha: 0.35),
                           child: const Center(
-                            child: Icon(CupertinoIcons.pencil, color: Colors.white, size: 18),
+                            child: Icon(
+                              CupertinoIcons.pencil,
+                              color: Colors.white,
+                              size: 18,
+                            ),
                           ),
                         ),
                       ),
@@ -97,19 +117,31 @@ class PetDetailsScreen extends StatelessWidget {
                 children: [
                   pet.photoUrl != null && pet.photoUrl!.isNotEmpty
                       ? pet.photoUrl!.startsWith('assets')
-                          ? Image.asset(pet.photoUrl!, fit: BoxFit.cover)
-                          : CachedNetworkImage(
-                              imageUrl: pet.photoUrl!,
-                              fit: BoxFit.cover,
-                              placeholder: (c, u) => const Center(child: CupertinoActivityIndicator(color: Colors.white)),
-                              errorWidget: (c, u, e) => Container(
-                                color: AppColors.primaryDark,
-                                child: const Icon(Icons.pets_rounded, size: 60, color: Colors.white70),
-                              ),
-                            )
+                            ? Image.asset(pet.photoUrl!, fit: BoxFit.cover)
+                            : CachedNetworkImage(
+                                imageUrl: pet.photoUrl!,
+                                fit: BoxFit.cover,
+                                placeholder: (c, u) => const Center(
+                                  child: CupertinoActivityIndicator(
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                errorWidget: (c, u, e) => Container(
+                                  color: AppColors.primaryDark,
+                                  child: const Icon(
+                                    Icons.pets_rounded,
+                                    size: 60,
+                                    color: Colors.white70,
+                                  ),
+                                ),
+                              )
                       : Container(
                           color: AppColors.primaryDark,
-                          child: const Icon(Icons.pets_rounded, size: 60, color: Colors.white70),
+                          child: const Icon(
+                            Icons.pets_rounded,
+                            size: 60,
+                            color: Colors.white70,
+                          ),
                         ),
                   // Subtle top ambient shadow for button visibility
                   Container(
@@ -143,7 +175,10 @@ class PetDetailsScreen extends StatelessWidget {
                       opacity: isDark ? 0.35 : 0.90,
                       borderRadius: 24,
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 18,
+                        ),
                         child: Row(
                           children: [
                             Expanded(
@@ -156,7 +191,9 @@ class PetDetailsScreen extends StatelessWidget {
                                       fontWeight: FontWeight.w800,
                                       fontSize: 26,
                                       letterSpacing: -0.5,
-                                      color: isDark ? Colors.white : AppColors.textPrimary,
+                                      color: isDark
+                                          ? Colors.white
+                                          : AppColors.textPrimary,
                                     ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
@@ -198,27 +235,38 @@ class PetDetailsScreen extends StatelessWidget {
                               decoration: BoxDecoration(
                                 gradient: pet.gender.toLowerCase() == 'female'
                                     ? const LinearGradient(
-                                        colors: [Color(0xFFFF6B81), Color(0xFFFF4757)],
+                                        colors: [
+                                          Color(0xFFFF6B81),
+                                          Color(0xFFFF4757),
+                                        ],
                                         begin: Alignment.topLeft,
                                         end: Alignment.bottomRight,
                                       )
                                     : const LinearGradient(
-                                        colors: [Color(0xFF00B6D2), Color(0xFF38BDF8)],
+                                        colors: [
+                                          Color(0xFF00B6D2),
+                                          Color(0xFF38BDF8),
+                                        ],
                                         begin: Alignment.topLeft,
                                         end: Alignment.bottomRight,
                                       ),
                                 borderRadius: BorderRadius.circular(14),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: (pet.gender.toLowerCase() == 'female' ? const Color(0xFFFF4757) : const Color(0xFF00B6D2))
-                                        .withValues(alpha: 0.35),
+                                    color:
+                                        (pet.gender.toLowerCase() == 'female'
+                                                ? const Color(0xFFFF4757)
+                                                : const Color(0xFF00B6D2))
+                                            .withValues(alpha: 0.35),
                                     blurRadius: 10,
                                     offset: const Offset(0, 4),
                                   ),
                                 ],
                               ),
                               child: Icon(
-                                pet.gender.toLowerCase() == 'female' ? Icons.female_rounded : Icons.male_rounded,
+                                pet.gender.toLowerCase() == 'female'
+                                    ? Icons.female_rounded
+                                    : Icons.male_rounded,
                                 color: Colors.white,
                                 size: 24,
                               ),
@@ -239,7 +287,11 @@ class PetDetailsScreen extends StatelessWidget {
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.pets_rounded, size: 20, color: AppColors.primary),
+                            const Icon(
+                              Icons.pets_rounded,
+                              size: 20,
+                              color: AppColors.primary,
+                            ),
                             const SizedBox(width: 8),
                             Text(
                               'About ${pet.name}',
@@ -247,7 +299,9 @@ class PetDetailsScreen extends StatelessWidget {
                                 fontWeight: FontWeight.w800,
                                 fontSize: 18,
                                 letterSpacing: -0.3,
-                                color: isDark ? Colors.white : AppColors.textPrimary,
+                                color: isDark
+                                    ? Colors.white
+                                    : AppColors.textPrimary,
                               ),
                             ),
                           ],
@@ -256,13 +310,37 @@ class PetDetailsScreen extends StatelessWidget {
                         // Quick Stats Grid
                         Row(
                           children: [
-                            _buildStatCard(context, 'Age', pet.age.isEmpty ? 'N/A' : pet.age, const Color(0xFFE8F6F1), const Color(0xFF2D8C69)),
+                            _buildStatCard(
+                              context,
+                              'Age',
+                              pet.age.isEmpty ? 'N/A' : pet.age,
+                              const Color(0xFFE8F6F1),
+                              const Color(0xFF2D8C69),
+                            ),
                             const SizedBox(width: 8),
-                            _buildStatCard(context, 'Weight', pet.weight.isEmpty ? 'N/A' : pet.weight, const Color(0xFFE9F5F8), const Color(0xFF2D698C)),
+                            _buildStatCard(
+                              context,
+                              'Weight',
+                              pet.weight.isEmpty ? 'N/A' : pet.weight,
+                              const Color(0xFFE9F5F8),
+                              const Color(0xFF2D698C),
+                            ),
                             const SizedBox(width: 8),
-                            _buildStatCard(context, 'Height', pet.height.isEmpty ? 'N/A' : pet.height, const Color(0xFFF1F6E8), const Color(0xFF698C2D)),
+                            _buildStatCard(
+                              context,
+                              'Height',
+                              pet.height.isEmpty ? 'N/A' : pet.height,
+                              const Color(0xFFF1F6E8),
+                              const Color(0xFF698C2D),
+                            ),
                             const SizedBox(width: 8),
-                            _buildStatCard(context, 'Color', pet.color.isEmpty ? 'N/A' : pet.color, const Color(0xFFE8F1F6), const Color(0xFF2D698C)),
+                            _buildStatCard(
+                              context,
+                              'Color',
+                              pet.color.isEmpty ? 'N/A' : pet.color,
+                              const Color(0xFFE8F1F6),
+                              const Color(0xFF2D698C),
+                            ),
                           ],
                         ),
                         const SizedBox(height: 16),
@@ -278,17 +356,22 @@ class PetDetailsScreen extends StatelessWidget {
                                 Icon(
                                   CupertinoIcons.quote_bubble_fill,
                                   size: 18,
-                                  color: AppColors.primary.withValues(alpha: 0.7),
+                                  color: AppColors.primary.withValues(
+                                    alpha: 0.7,
+                                  ),
                                 ),
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Text(
-                                    (pet.description != null && pet.description!.trim().isNotEmpty)
+                                    (pet.description != null &&
+                                            pet.description!.trim().isNotEmpty)
                                         ? pet.description!
                                         : "${pet.name} is a wonderful ${pet.breed} with a joyful personality and lots of energy.",
                                     style: AppTypography.bodyMedium.copyWith(
                                       height: 1.5,
-                                      color: isDark ? Colors.white70 : Colors.black87,
+                                      color: isDark
+                                          ? Colors.white70
+                                          : Colors.black87,
                                     ),
                                   ),
                                 ),
@@ -310,7 +393,11 @@ class PetDetailsScreen extends StatelessWidget {
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.analytics_rounded, size: 20, color: AppColors.primary),
+                            const Icon(
+                              Icons.analytics_rounded,
+                              size: 20,
+                              color: AppColors.primary,
+                            ),
                             const SizedBox(width: 8),
                             Text(
                               '${pet.name}\'s Health & Care',
@@ -318,7 +405,9 @@ class PetDetailsScreen extends StatelessWidget {
                                 fontWeight: FontWeight.w800,
                                 fontSize: 18,
                                 letterSpacing: -0.3,
-                                color: isDark ? Colors.white : AppColors.textPrimary,
+                                color: isDark
+                                    ? Colors.white
+                                    : AppColors.textPrimary,
                               ),
                             ),
                           ],
@@ -327,23 +416,40 @@ class PetDetailsScreen extends StatelessWidget {
                         _buildStatusTile(
                           context,
                           'Health Condition',
-                          pet.healthIndex > 80 ? 'Optimal & Verified' : 'Checkup Recommended',
+                          pet.healthIndex > 80
+                              ? 'Optimal & Verified'
+                              : 'Checkup Recommended',
                           pet.healthIndex > 80 ? 'Healthy' : 'Checkup',
                           Icons.medical_services_rounded,
                           const Color(0xFFFFE8E8),
-                          pet.healthIndex > 80 ? AppColors.healthGreen : AppColors.accentAmber,
-                          () => Navigator.push(context, MaterialPageRoute(builder: (_) => PetHealthTrackerScreen(petId: pet.petID))),
+                          pet.healthIndex > 80
+                              ? AppColors.healthGreen
+                              : AppColors.accentAmber,
+                          () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  PetHealthTrackerScreen(petId: pet.petID),
+                            ),
+                          ),
                         ),
                         const SizedBox(height: 10),
                         _buildStatusTile(
                           context,
                           'Food & Nutrition',
-                          pet.feedingTimes.isEmpty ? 'Tap to schedule meals' : 'Daily Schedule: ${pet.feedingTimes.join(', ')}',
+                          pet.feedingTimes.isEmpty
+                              ? 'Tap to schedule meals'
+                              : 'Daily Schedule: ${pet.feedingTimes.join(', ')}',
                           'Schedule',
                           Icons.restaurant_rounded,
                           const Color(0xFFE8F6F1),
                           AppColors.primary,
-                          () => Navigator.push(context, MaterialPageRoute(builder: (_) => PetFoodScreen(petId: pet.petID))),
+                          () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => PetFoodScreen(petId: pet.petID),
+                            ),
+                          ),
                         ),
                         const SizedBox(height: 10),
                         _buildStatusTile(
@@ -374,7 +480,9 @@ class PetDetailsScreen extends StatelessWidget {
                             fontWeight: FontWeight.w800,
                             fontSize: 18,
                             letterSpacing: -0.3,
-                            color: isDark ? Colors.white : AppColors.textPrimary,
+                            color: isDark
+                                ? Colors.white
+                                : AppColors.textPrimary,
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -387,11 +495,22 @@ class PetDetailsScreen extends StatelessWidget {
                               padding: const EdgeInsets.symmetric(vertical: 32),
                               child: Column(
                                 children: [
-                                  Icon(Icons.history_edu_rounded, size: 40, color: isDark ? Colors.white24 : Theme.of(context).dividerColor),
+                                  Icon(
+                                    Icons.history_edu_rounded,
+                                    size: 40,
+                                    color: isDark
+                                        ? Colors.white24
+                                        : Theme.of(context).dividerColor,
+                                  ),
                                   const SizedBox(height: 10),
                                   Text(
                                     'No records logged yet.',
-                                    style: TextStyle(color: isDark ? Colors.white38 : Colors.grey[500], fontWeight: FontWeight.w600),
+                                    style: TextStyle(
+                                      color: isDark
+                                          ? Colors.white38
+                                          : Colors.grey[500],
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -411,7 +530,11 @@ class PetDetailsScreen extends StatelessWidget {
                     child: Center(
                       child: TextButton.icon(
                         onPressed: () => _confirmDeletePet(context, state, pet),
-                        icon: const Icon(CupertinoIcons.trash, color: AppColors.dangerRed, size: 18),
+                        icon: const Icon(
+                          CupertinoIcons.trash,
+                          color: AppColors.dangerRed,
+                          size: 18,
+                        ),
                         label: Text(
                           'Delete ${pet.name}\'s Profile',
                           style: const TextStyle(
@@ -432,12 +555,18 @@ class PetDetailsScreen extends StatelessWidget {
     );
   }
 
-  void _confirmDeletePet(BuildContext context, AppStateRepository state, PetModel pet) {
+  void _confirmDeletePet(
+    BuildContext context,
+    AppStateRepository state,
+    PetModel pet,
+  ) {
     showCupertinoDialog(
       context: context,
       builder: (ctx) => CupertinoAlertDialog(
         title: Text('Delete ${pet.name}?'),
-        content: const Text('This will permanently delete the pet profile and all associated medical logs.'),
+        content: const Text(
+          'This will permanently delete the pet profile and all associated medical logs.',
+        ),
         actions: [
           CupertinoDialogAction(
             child: const Text('Cancel'),
@@ -458,7 +587,13 @@ class PetDetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStatCard(BuildContext context, String label, String value, Color bgColor, Color textColor) {
+  Widget _buildStatCard(
+    BuildContext context,
+    String label,
+    String value,
+    Color bgColor,
+    Color textColor,
+  ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Expanded(
       child: Container(
@@ -468,7 +603,9 @@ class PetDetailsScreen extends StatelessWidget {
           color: isDark ? textColor.withValues(alpha: 0.15) : bgColor,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isDark ? textColor.withValues(alpha: 0.25) : textColor.withValues(alpha: 0.15),
+            color: isDark
+                ? textColor.withValues(alpha: 0.25)
+                : textColor.withValues(alpha: 0.15),
             width: 0.8,
           ),
         ),
@@ -480,7 +617,9 @@ class PetDetailsScreen extends StatelessWidget {
               style: TextStyle(
                 fontSize: 9,
                 fontWeight: FontWeight.w800,
-                color: isDark ? Colors.white54 : textColor.withValues(alpha: 0.70),
+                color: isDark
+                    ? Colors.white54
+                    : textColor.withValues(alpha: 0.70),
                 letterSpacing: 0.4,
               ),
             ),
@@ -536,7 +675,13 @@ class PetDetailsScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.w800, fontSize: 14)),
+                  Text(
+                    title,
+                    style: AppTypography.titleMedium.copyWith(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 14,
+                    ),
+                  ),
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
@@ -559,12 +704,20 @@ class PetDetailsScreen extends StatelessWidget {
               ),
               child: Text(
                 statusLabel,
-                style: TextStyle(color: iconColor, fontSize: 9, fontWeight: FontWeight.w800),
+                style: TextStyle(
+                  color: iconColor,
+                  fontSize: 9,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
             ),
             if (onTap != null) ...[
               const SizedBox(width: 6),
-              Icon(CupertinoIcons.chevron_forward, color: Theme.of(context).dividerColor, size: 14),
+              Icon(
+                CupertinoIcons.chevron_forward,
+                color: Theme.of(context).dividerColor,
+                size: 14,
+              ),
             ],
           ],
         ),
@@ -599,7 +752,9 @@ class PetDetailsScreen extends StatelessWidget {
                   Text(
                     record.date,
                     style: AppTypography.labelSmall.copyWith(
-                      color: isDark ? Colors.white38 : Theme.of(context).colorScheme.outline,
+                      color: isDark
+                          ? Colors.white38
+                          : Theme.of(context).colorScheme.outline,
                     ),
                   ),
                 ],
@@ -615,26 +770,27 @@ class PetDetailsScreen extends StatelessWidget {
               const SizedBox(height: 4),
               Row(
                 children: [
-                  const Icon(Icons.verified_user_rounded, size: 14, color: AppColors.healthGreen),
+                  const Icon(
+                    Icons.verified_user_rounded,
+                    size: 14,
+                    color: AppColors.healthGreen,
+                  ),
                   const SizedBox(width: 6),
                   Text(
                     record.providerName,
                     style: TextStyle(
                       fontSize: 12,
-                      color: isDark ? Colors.white54 : Theme.of(context).colorScheme.outline,
+                      color: isDark
+                          ? Colors.white54
+                          : Theme.of(context).colorScheme.outline,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
               ),
               if (record.description.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Text(
-                  record.description,
-                  style: AppTypography.bodyMedium.copyWith(
-                    color: isDark ? Colors.white70 : Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
+                const SizedBox(height: 12),
+                FormattedAiReport(text: record.description),
               ],
             ],
           ),
@@ -643,4 +799,3 @@ class PetDetailsScreen extends StatelessWidget {
     );
   }
 }
-

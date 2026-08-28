@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_colors.dart';
+import '../../main.dart';
 
 enum ToastType { success, error, info, warning }
 
@@ -17,16 +18,45 @@ class PremiumToast extends StatefulWidget {
     required this.onDismiss,
   });
 
-  static void show(BuildContext context, String message, {ToastType type = ToastType.success}) {
+  static void show(
+    BuildContext context,
+    String message, {
+    ToastType type = ToastType.success,
+  }) {
+    OverlayState? overlay;
+    try {
+      overlay =
+          Overlay.maybeOf(context, rootOverlay: true) ??
+          Overlay.maybeOf(context) ??
+          Navigator.maybeOf(context)?.overlay ??
+          TailWaggingApp.navigatorKey.currentState?.overlay;
+    } catch (_) {
+      overlay = TailWaggingApp.navigatorKey.currentState?.overlay;
+    }
+
+    if (overlay == null) {
+      debugPrint(
+        '[PremiumToast] Warning: No overlay available for toast message: $message',
+      );
+      return;
+    }
+
     late OverlayEntry entry;
     entry = OverlayEntry(
-      builder: (context) => PremiumToast(
-        message: message,
-        type: type,
-        onDismiss: () => entry.remove(),
+      builder: (ctx) => Material(
+        type: MaterialType.transparency,
+        child: PremiumToast(
+          message: message,
+          type: type,
+          onDismiss: () {
+            if (entry.mounted) {
+              entry.remove();
+            }
+          },
+        ),
       ),
     );
-    Overlay.of(context).insert(entry);
+    overlay.insert(entry);
   }
 
   @override
@@ -69,17 +99,23 @@ class _PremiumToastState extends State<PremiumToast> {
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 14,
+                ),
                 decoration: BoxDecoration(
                   color: _getBgColor(widget.type).withValues(alpha: 0.85),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.2), width: 1.5),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    width: 1.5,
+                  ),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.1),
                       blurRadius: 20,
                       offset: const Offset(0, 10),
-                    )
+                    ),
                   ],
                 ),
                 child: Row(
@@ -109,20 +145,27 @@ class _PremiumToastState extends State<PremiumToast> {
 
   IconData _getIcon(ToastType type) {
     switch (type) {
-      case ToastType.success: return Icons.check_circle_rounded;
-      case ToastType.error: return Icons.error_rounded;
-      case ToastType.warning: return Icons.warning_rounded;
-      case ToastType.info: return Icons.info_rounded;
+      case ToastType.success:
+        return Icons.check_circle_rounded;
+      case ToastType.error:
+        return Icons.error_rounded;
+      case ToastType.warning:
+        return Icons.warning_rounded;
+      case ToastType.info:
+        return Icons.info_rounded;
     }
   }
 
   Color _getBgColor(ToastType type) {
     switch (type) {
-      case ToastType.success: return AppColors.healthGreen;
-      case ToastType.error: return AppColors.dangerRed;
-      case ToastType.warning: return AppColors.accentAmber;
-      case ToastType.info: return AppColors.primary;
+      case ToastType.success:
+        return AppColors.healthGreen;
+      case ToastType.error:
+        return AppColors.dangerRed;
+      case ToastType.warning:
+        return AppColors.accentAmber;
+      case ToastType.info:
+        return AppColors.primary;
     }
   }
 }
-
