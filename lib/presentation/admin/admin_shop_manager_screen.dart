@@ -17,6 +17,7 @@ import '../common_widgets/premium_card.dart';
 import '../common_widgets/empty_state.dart';
 import '../common_widgets/lottie_upload_icon.dart';
 import '../../data/models/coupon_model.dart';
+import '../../data/models/promo_model.dart';
 import '../../presentation/common_widgets/premium_toast.dart';
 
 class AdminShopManagerScreen extends StatefulWidget {
@@ -52,6 +53,11 @@ class _AdminShopManagerScreenState extends State<AdminShopManagerScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.campaign_rounded, color: AppColors.primary),
+            onPressed: () => _showPromoManager(context),
+            tooltip: 'Global Promo',
+          ),
           IconButton(
             icon: const Icon(Icons.confirmation_number_rounded, color: AppColors.primary),
             onPressed: () => _showCouponManager(context),
@@ -392,6 +398,15 @@ class _AdminShopManagerScreenState extends State<AdminShopManagerScreen> {
     );
   }
 
+  void _showPromoManager(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => const _PromoManagerSheet(),
+    );
+  }
+
   void _showCouponManager(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -407,6 +422,221 @@ class _AdminShopManagerScreenState extends State<AdminShopManagerScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => _ProductEditorSheet(product: product),
+    );
+  }
+}
+
+class _PromoManagerSheet extends StatefulWidget {
+  const _PromoManagerSheet();
+
+  @override
+  State<_PromoManagerSheet> createState() => _PromoManagerSheetState();
+}
+
+class _PromoManagerSheetState extends State<_PromoManagerSheet> {
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _headerController = TextEditingController();
+  final TextEditingController _footerController = TextEditingController();
+  final TextEditingController _discountController = TextEditingController();
+  PromoModel? _editingPromo;
+
+  @override
+  void initState() {
+    super.initState();
+    // Manual refresh when opening the sheet to ensure latest data
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AppStateRepository>().refreshPromos();
+    });
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _headerController.dispose();
+    _footerController.dispose();
+    _discountController.dispose();
+    super.dispose();
+  }
+
+  void _savePromo() async {
+    if (_nameController.text.isEmpty || _discountController.text.isEmpty) return;
+
+    final state = context.read<AppStateRepository>();
+    final promo = PromoModel(
+      id: _editingPromo?.id ?? 'promo_${DateTime.now().millisecondsSinceEpoch}',
+      name: _nameController.text.trim(),
+      header: _headerController.text.trim(),
+      footer: _footerController.text.trim(),
+      discountPercent: int.tryParse(_discountController.text) ?? 0,
+      isActive: _editingPromo?.isActive ?? true,
+      timestamp: _editingPromo?.timestamp ?? DateTime.now().millisecondsSinceEpoch,
+    );
+
+    await state.savePromo(promo);
+    _clearFields();
+    state.showToast(_editingPromo == null ? 'Campaign created! 🎁' : 'Campaign updated! ✨');
+  }
+
+  void _clearFields() {
+    setState(() {
+      _editingPromo = null;
+      _nameController.clear();
+      _headerController.clear();
+      _footerController.clear();
+      _discountController.clear();
+    });
+  }
+
+  void _editPromo(PromoModel p) {
+    setState(() {
+      _editingPromo = p;
+      _nameController.text = p.name;
+      _headerController.text = p.header;
+      _footerController.text = p.footer;
+      _discountController.text = p.discountPercent.toString();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final state = context.watch<AppStateRepository>();
+    final promos = state.promos;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.9,
+      decoration: BoxDecoration(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(36)),
+      ),
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('PROMO COMMAND', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w900, fontSize: 16)),
+              IconButton(icon: const Icon(Icons.close_rounded), onPressed: () => Navigator.pop(context)),
+            ],
+          ),
+          const Divider(height: 32),
+          
+          // Form Section
+          PremiumCard(
+            opacity: 0.1,
+            borderRadius: 20,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  _input('CAMPAIGN NAME', _nameController, hint: 'e.g. Eid Special'),
+                  const SizedBox(height: 12),
+                  _input('HEADER TEXT', _headerController, hint: 'e.g. Save up to'),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(child: _input('DISCOUNT (%)', _discountController, keyboardType: TextInputType.number)),
+                      const SizedBox(width: 12),
+                      Expanded(child: _input('FOOTER TEXT', _footerController, hint: 'e.g. off for you')),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      if (_editingPromo != null)
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: _clearFields,
+                            child: const Text('CANCEL'),
+                          ),
+                        ),
+                      if (_editingPromo != null) const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: _savePromo,
+                          style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+                          child: Text(_editingPromo == null ? 'CREATE CAMPAIGN' : 'UPDATE CAMPAIGN', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 24),
+          Text('CAMPAIGN HISTORY', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: Colors.grey[500], letterSpacing: 1)),
+          const SizedBox(height: 12),
+          
+          Expanded(
+            child: promos.isEmpty
+              ? const Center(child: Text('No promo campaigns created yet.'))
+              : ListView.builder(
+                  itemCount: promos.length,
+                  itemBuilder: (context, index) {
+                    final p = promos[index];
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      child: PremiumCard(
+                        opacity: 0.15,
+                        borderRadius: 20,
+                        onTap: () => _editPromo(p),
+                        child: ListTile(
+                          title: Text(p.name, style: const TextStyle(fontWeight: FontWeight.w900, color: AppColors.primary)),
+                          subtitle: Text(
+                            '${p.header} ${p.discountPercent}% ${p.footer}',
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Switch(
+                                value: p.isActive,
+                                activeColor: AppColors.primary,
+                                onChanged: (val) async {
+                                  await state.savePromo(p.copyWith(isActive: val));
+                                },
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete_outline_rounded, color: AppColors.dangerRed),
+                                onPressed: () => state.deletePromo(p.id),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _input(String label, TextEditingController controller, {String? hint, TextInputType? keyboardType}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(fontSize: 8, fontWeight: FontWeight.w900, color: Colors.grey)),
+        const SizedBox(height: 4),
+        Container(
+          decoration: BoxDecoration(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(12)),
+          child: TextField(
+            controller: controller,
+            keyboardType: keyboardType,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+            decoration: InputDecoration(
+              hintText: hint,
+              border: InputBorder.none, 
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8)
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

@@ -15,6 +15,7 @@ import '../../common_widgets/premium_card.dart';
 import '../../common_widgets/tail_wagging_loader.dart';
 import 'cart_screen.dart';
 import 'product_details_screen.dart';
+import '../../common_widgets/micro_animations/bouncing_widget.dart';
 import '../../common_widgets/skeleton_loader.dart';
 
 class ShopScreen extends StatefulWidget {
@@ -430,6 +431,17 @@ class _ShopScreenState extends State<ShopScreen> {
 
   Widget _buildProductCard(BuildContext context, ProductModel product) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final state = context.read<AppStateRepository>();
+
+    // Dynamic Price Logic for Global Promo
+    double displayPrice = product.price;
+    double? oldPriceToDisplay = product.oldPrice;
+
+    final promoDiscount = state.currentAppliedDiscount;
+    if (promoDiscount > 0) {
+      displayPrice = product.price * (1 - (promoDiscount / 100));
+      oldPriceToDisplay = product.price; // The original price becomes the "old" price
+    }
 
     return PremiumCard(
       opacity: 0.15,
@@ -560,16 +572,16 @@ class _ShopScreenState extends State<ShopScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '৳${product.price.toStringAsFixed(0)}',
+                          '৳${displayPrice.toStringAsFixed(0)}',
                           style: GoogleFonts.plusJakartaSans(
                             color: AppColors.primary,
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
-                        if (product.oldPrice != null && product.oldPrice! > product.price)
+                        if (oldPriceToDisplay != null && oldPriceToDisplay > displayPrice)
                           Text(
-                            '৳${product.oldPrice!.toStringAsFixed(0)}',
+                            '৳${oldPriceToDisplay.toStringAsFixed(0)}',
                             style: TextStyle(
                               color: Colors.grey[400],
                               fontSize: 11,
@@ -591,7 +603,7 @@ class _ShopScreenState extends State<ShopScreen> {
   }
 
   Widget _buildAddButton(BuildContext context, ProductModel product) {
-    return GestureDetector(
+    return BouncingWidget(
       onTap: () {
         HapticFeedback.lightImpact();
         context.read<AppStateRepository>().addToCart(product);
@@ -681,9 +693,9 @@ class _ShopScreenState extends State<ShopScreen> {
           childAspectRatio: 0.7,
         ),
         delegate: SliverChildBuilderDelegate(
-          (context, index) => const SkeletonLoader(
-            width: double.infinity,
-            height: double.infinity,
+          (context, index) => SkeletonLoader(
+            width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.height,
             borderRadius: 28,
           ),
           childCount: 6,

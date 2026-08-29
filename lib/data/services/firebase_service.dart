@@ -17,6 +17,7 @@ import '../models/review_model.dart';
 import '../models/notification_model.dart';
 import '../models/blog_post_model.dart';
 import '../models/coupon_model.dart';
+import '../models/promo_model.dart';
 import '../models/user_model.dart' as app_models;
 
 /// FirebaseService handles all Firestore and Auth operations with offline-first persistence.
@@ -63,6 +64,7 @@ class FirebaseService {
   CollectionReference get _notificationsCol => _db.collection('notifications');
   CollectionReference get _blogsCol => _db.collection('blogs');
   CollectionReference get _couponsCol => _db.collection('coupons');
+  CollectionReference get _promosCol => _db.collection('promos');
 
   // ─── AUTH ────────────────────────────────────────────────────────────────
 
@@ -681,6 +683,31 @@ class FirebaseService {
 
   Future<void> deleteCoupon(String code) async {
     await _couponsCol.doc(code).delete();
+  }
+
+  // ─── PROMOS ─────────────────────────────────────────────────────────────
+
+  Future<List<PromoModel>> fetchPromos() async {
+    final snap = await _promosCol.get();
+    final list = snap.docs.map((d) => PromoModel.fromMap(d.data()! as Map<String, dynamic>)).toList();
+    list.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    return list;
+  }
+
+  Stream<List<PromoModel>> streamPromos() {
+    return _promosCol.snapshots().map((snap) {
+      final list = snap.docs.map((d) => PromoModel.fromMap(d.data()! as Map<String, dynamic>)).toList();
+      list.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      return list;
+    });
+  }
+
+  Future<void> savePromo(PromoModel promo) async {
+    await _promosCol.doc(promo.id).set(promo.toMap(), SetOptions(merge: true));
+  }
+
+  Future<void> deletePromo(String promoId) async {
+    await _promosCol.doc(promoId).delete();
   }
 
   // ─── GLOBAL SETTINGS ────────────────────────────────────────────────────

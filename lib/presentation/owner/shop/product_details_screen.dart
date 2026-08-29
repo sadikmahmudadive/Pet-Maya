@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:animate_do/animate_do.dart';
+import '../../common_widgets/micro_animations/shimmer_effect.dart';
+import '../../common_widgets/micro_animations/bouncing_widget.dart';
 import '../../../core/theme/app_colors.dart';
 //
 import '../../../data/repositories/app_state_repository.dart';
@@ -22,6 +24,16 @@ class ProductDetailsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final state = context.watch<AppStateRepository>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // Dynamic Price Logic for Global Promo
+    double displayPrice = product.price;
+    double? oldPriceToDisplay = product.oldPrice;
+
+    final promoDiscount = state.currentAppliedDiscount;
+    if (promoDiscount > 0) {
+      displayPrice = product.price * (1 - (promoDiscount / 100));
+      oldPriceToDisplay = product.price; // The original price becomes the "old" price
+    }
 
     return GlassScaffold(
       body: CustomScrollView(
@@ -116,13 +128,13 @@ class ProductDetailsScreen extends StatelessWidget {
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              Text('৳${product.price.toStringAsFixed(2)}',
+                              Text('৳${displayPrice.toStringAsFixed(2)}',
                                   style: const TextStyle(fontSize: 38, fontWeight: FontWeight.w900, color: AppColors.primary)),
-                              if (product.oldPrice != null && product.oldPrice! > product.price) ...[
+                              if (oldPriceToDisplay != null && oldPriceToDisplay > displayPrice) ...[
                                 const SizedBox(width: 12),
                                 Padding(
                                   padding: const EdgeInsets.only(bottom: 6),
-                                  child: Text('৳${product.oldPrice!.toStringAsFixed(2)}',
+                                  child: Text('৳${oldPriceToDisplay.toStringAsFixed(2)}',
                                       style: TextStyle(
                                           fontSize: 18,
                                           fontWeight: FontWeight.w700,
@@ -313,19 +325,37 @@ class ProductDetailsScreen extends StatelessWidget {
             Expanded(
               child: SizedBox(
                 height: 64,
-                child: ElevatedButton(
-                  onPressed: () {
+                child: BouncingWidget(
+                  onTap: () {
                     HapticFeedback.heavyImpact();
                     state.addToCart(product);
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const CheckoutScreen()));
                   },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1AB680),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                    elevation: 8,
-                    shadowColor: const Color(0xFF1AB680).withValues(alpha: 0.4),
+                  child: ShimmerEffect(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1AB680),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF1AB680).withValues(alpha: 0.4),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      alignment: Alignment.center,
+                      child: const Text(
+                        'BUY NOW',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
                   ),
-                  child: const Text('BUY NOW', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 1, fontSize: 13)),
                 ),
               ),
             ),

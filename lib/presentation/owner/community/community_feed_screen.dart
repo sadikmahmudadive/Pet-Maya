@@ -14,9 +14,11 @@ import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
 import '../../common_widgets/empty_state.dart';
 import '../../common_widgets/tail_wagging_loader.dart';
+import '../../common_widgets/skeleton_loader.dart';
 import 'create_post_screen.dart';
 import 'comments_bottom_sheet.dart';
-import '../../common_widgets/skeleton_loader.dart';
+import '../../common_widgets/micro_animations/animated_action_button.dart';
+import '../../common_widgets/micro_animations/bouncing_widget.dart';
 
 class CommunityFeedScreen extends StatefulWidget {
   const CommunityFeedScreen({super.key});
@@ -385,7 +387,7 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
                                                   width: double.infinity,
                                                   height: 180,
                                                   fit: BoxFit.cover,
-                                                  placeholder: (c, u) => const SkeletonLoader(width: double.infinity, height: 180, borderRadius: 16),
+                                                  placeholder: (c, u) => SkeletonLoader(width: MediaQuery.of(context).size.width, height: 180, borderRadius: 16),
                                                   errorWidget: (c, u, e) => const SizedBox.shrink(),
                                                 ),
                                               ),
@@ -407,7 +409,7 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
                                           width: double.infinity,
                                           height: 260,
                                           fit: BoxFit.cover,
-                                          placeholder: (c, u) => const SkeletonLoader(width: double.infinity, height: 260, borderRadius: 20),
+                                          placeholder: (c, u) => SkeletonLoader(width: MediaQuery.of(context).size.width, height: 260, borderRadius: 20),
                                           errorWidget: (c, u, e) => const Icon(Icons.error_outline_rounded),
                                         ),
                                       ),
@@ -476,37 +478,40 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
                                     child: Row(
                                       children: [
                                         Expanded(
-                                          child: _buildFacebookActionBtn(
-                                            icon: isLiked ? Icons.thumb_up_alt_rounded : Icons.thumb_up_alt_outlined,
+                                          child: AnimatedActionButton(
+                                            inactiveIcon: Icons.thumb_up_alt_outlined,
+                                            activeIcon: Icons.thumb_up_alt_rounded,
                                             label: 'Like',
-                                            color: isLiked ? const Color(0xFF1877F2) : (isDark ? Colors.white60 : Colors.grey[700]!),
-                                            onTap: () {
-                                              HapticFeedback.lightImpact();
-                                              state.togglePostLike(post.postId);
-                                            },
+                                            isActive: isLiked,
+                                            activeColor: const Color(0xFF1877F2),
+                                            inactiveColor: isDark ? Colors.white60 : Colors.grey[700]!,
+                                            onTap: () => state.togglePostLike(post.postId),
                                           ),
                                         ),
                                         Expanded(
-                                          child: _buildFacebookActionBtn(
-                                            icon: Icons.chat_bubble_outline_rounded,
+                                          child: AnimatedActionButton(
+                                            inactiveIcon: Icons.chat_bubble_outline_rounded,
+                                            activeIcon: Icons.chat_bubble_rounded,
                                             label: 'Comment',
-                                            color: isDark ? Colors.white60 : Colors.grey[700]!,
-                                            onTap: () {
-                                              HapticFeedback.lightImpact();
-                                              showModalBottomSheet(
-                                                context: context,
-                                                isScrollControlled: true,
-                                                backgroundColor: Colors.transparent,
-                                                builder: (_) => CommentsBottomSheet(post: post),
-                                              );
-                                            },
+                                            isActive: false,
+                                            activeColor: AppColors.primary,
+                                            inactiveColor: isDark ? Colors.white60 : Colors.grey[700]!,
+                                            onTap: () => showModalBottomSheet(
+                                              context: context,
+                                              isScrollControlled: true,
+                                              backgroundColor: Colors.transparent,
+                                              builder: (_) => CommentsBottomSheet(post: post),
+                                            ),
                                           ),
                                         ),
                                         Expanded(
-                                          child: _buildFacebookActionBtn(
-                                            icon: Icons.share_outlined,
+                                          child: AnimatedActionButton(
+                                            inactiveIcon: Icons.share_outlined,
+                                            activeIcon: Icons.share_rounded,
                                             label: 'Share',
-                                            color: isDark ? Colors.white60 : Colors.grey[700]!,
+                                            isActive: false,
+                                            activeColor: const Color(0xFF1877F2),
+                                            inactiveColor: isDark ? Colors.white60 : Colors.grey[700]!,
                                             onTap: () => _showShareModal(context, post),
                                           ),
                                         ),

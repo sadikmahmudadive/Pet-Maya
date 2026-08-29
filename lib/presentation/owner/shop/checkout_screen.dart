@@ -206,14 +206,26 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.w800, fontSize: 14)),
                             ],
                           ),
-                          if (state.cartDiscount > 0) ...[
+                          if (state.cartPromoDiscount > 0) ...[
                             const SizedBox(height: 12),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text('Discount (${state.appliedCoupon?.code})', 
+                                Text('${state.currentAppliedPromoName} (${state.currentAppliedDiscount}%)', 
+                                  style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.w600, color: const Color(0xFFFF5252))),
+                                Text('- ৳${state.cartPromoDiscount.toStringAsFixed(2)}', 
+                                  style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.w800, fontSize: 14, color: const Color(0xFFFF5252))),
+                              ],
+                            ),
+                          ],
+                          if (state.cartCouponDiscount > 0) ...[
+                            const SizedBox(height: 12),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('Coupon Discount (${state.appliedCoupon?.code})', 
                                   style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.w600, color: AppColors.healthGreen)),
-                                Text('- ৳${state.cartDiscount.toStringAsFixed(2)}', 
+                                Text('- ৳${state.cartCouponDiscount.toStringAsFixed(2)}', 
                                   style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.w800, fontSize: 14, color: AppColors.healthGreen)),
                               ],
                             ),

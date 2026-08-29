@@ -29,6 +29,7 @@ import '../community/create_blog_screen.dart';
 import 'pet_tracker_screen.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
+import '../../common_widgets/promo_container.dart';
 import 'user_profile_screen.dart';
 import '../../common_widgets/tail_wagging_loader.dart';
 import 'notification_screen.dart';
@@ -88,6 +89,8 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
                     onFabTapped: () => _showQuickActionSheet(context),
                   ),
           ),
+          // Floating Promo Overlay
+          const PromoContainer(),
         ],
       ),
     );

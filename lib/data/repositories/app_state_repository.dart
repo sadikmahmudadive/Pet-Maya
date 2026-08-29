@@ -22,6 +22,7 @@ import '../models/notification_model.dart';
 import '../models/review_model.dart';
 import '../models/blog_post_model.dart';
 import '../models/coupon_model.dart';
+import '../models/promo_model.dart';
 import '../services/firebase_service.dart';
 import '../services/local_cache_service.dart';
 import '../../core/services/notification_service.dart';
@@ -95,7 +96,9 @@ class AppStateRepository extends ChangeNotifier {
   final List<ReviewModel> _reviews = [];
   final List<BlogPostModel> _blogs = [];
   final List<CouponModel> _coupons = [];
+  final List<PromoModel> _promos = [];
   CouponModel? _appliedCoupon;
+  bool _isPromoDismissedInSession = false;
 
   final Map<String, String> _calculatedDistances = {};
   final Map<String, UserModel> _userCache = {};
@@ -108,6 +111,7 @@ class AppStateRepository extends ChangeNotifier {
   List<PetModel> get pets => List.unmodifiable(_pets);
   List<BlogPostModel> get blogs => List.unmodifiable(_blogs);
   List<CouponModel> get coupons => List.unmodifiable(_coupons);
+  List<PromoModel> get promos => List.unmodifiable(_promos);
   CouponModel? get appliedCoupon => _appliedCoupon;
   Map<String, UserModel> get userCache => Map.unmodifiable(_userCache);
   String? get systemBanner => _systemBanner;
@@ -115,6 +119,52 @@ class AppStateRepository extends ChangeNotifier {
   bool get isAiEnabled => _isAiEnabled;
   bool get isRegistrationAllowed => _isRegistrationAllowed;
   double get baseShippingFee => _baseShippingFee;
+
+  PromoModel? get activeUnclaimedPromo {
+    if (_currentUser == null) return null;
+    try {
+      return _promos.firstWhere(
+        (p) => p.isActive && !_currentUser!.claimedPromoIds.contains(p.id),
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  int get currentAppliedDiscount {
+    if (_currentUser == null) return 0;
+    int maxDiscount = 0;
+    for (final promo in _promos) {
+      if (promo.isActive && _currentUser!.claimedPromoIds.contains(promo.id)) {
+        if (promo.discountPercent > maxDiscount) maxDiscount = promo.discountPercent;
+      }
+    }
+    return maxDiscount;
+  }
+
+  String get currentAppliedPromoName {
+    if (_currentUser == null) return '';
+    PromoModel? best;
+    int maxD = 0;
+    for (final promo in _promos) {
+      if (promo.isActive && _currentUser!.claimedPromoIds.contains(promo.id)) {
+        if (promo.discountPercent > maxD) {
+          maxD = promo.discountPercent;
+          best = promo;
+        }
+      }
+    }
+    return best?.name ?? 'Promo';
+  }
+
+  bool get isGlobalPromoActive => currentAppliedDiscount > 0 || activeUnclaimedPromo != null;
+  bool get hasClaimedGlobalPromo => currentAppliedDiscount > 0;
+  bool get isPromoVisible => activeUnclaimedPromo != null && !_isPromoDismissedInSession;
+
+  void dismissPromoForSession() {
+    _isPromoDismissedInSession = true;
+    notifyListeners();
+  }
 
   List<EventModel> get events {
     final all = List<EventModel>.from(_events);
@@ -176,10 +226,22 @@ class AppStateRepository extends ChangeNotifier {
   int get unreadNotificationCount =>
       _notifications.where((n) => !n.isRead).length;
 
-  double get cartSubtotal =>
-      _cartItems.fold(0.0, (sum, item) => sum + item.totalPrice);
+  double get cartSubtotal => _cartItems.fold(0.0, (sum, item) => sum + item.totalPrice);
+  
   double get cartShipping => _cartItems.isEmpty ? 0.0 : _baseShippingFee;
-  double get cartDiscount => _appliedCoupon?.calculateDiscount(cartSubtotal) ?? 0.0;
+
+  double get cartPromoDiscount {
+    final discount = currentAppliedDiscount;
+    if (discount > 0) {
+      return cartSubtotal * (discount / 100);
+    }
+    return 0.0;
+  }
+
+  double get cartCouponDiscount => _appliedCoupon?.calculateDiscount(cartSubtotal) ?? 0.0;
+
+  double get cartDiscount => cartPromoDiscount + cartCouponDiscount;
+
   double get cartTotal => cartSubtotal + cartShipping - cartDiscount;
   int get cartCount => _cartItems.fold(0, (sum, item) => sum + item.quantity);
 
@@ -387,7 +449,7 @@ class AppStateRepository extends ChangeNotifier {
       });
       _subscribeToTopics(user);
       _currentUser = user;
-      Future.wait([_loadProducts(), _loadCommunityPosts(), _loadBlogs(), _loadCoupons()]);
+      Future.wait([_loadProducts(), _loadCommunityPosts(), _loadBlogs(), _loadCoupons(), _loadPromos()]);
       _listenToVets();
       _listenToCurrentUser(user.uid);
       _listenToGlobalSettings();
@@ -649,6 +711,30 @@ class AppStateRepository extends ChangeNotifier {
         ..addAll(fetchedCoupons);
       notifyListeners();
     });
+  }
+
+  Future<void> _loadPromos() async {
+    _firebase.streamPromos().listen((fetchedPromos) {
+      debugPrint('[AppStateRepository] Received ${fetchedPromos.length} promos from Firestore.');
+      _promos
+        ..clear()
+        ..addAll(fetchedPromos);
+      notifyListeners();
+    }, onError: (e) {
+      debugPrint('[AppStateRepository] Error streaming promos: $e');
+    });
+  }
+
+  Future<void> refreshPromos() async {
+    try {
+      final fetched = await _firebase.fetchPromos();
+      _promos
+        ..clear()
+        ..addAll(fetched);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('[AppStateRepository] refreshPromos error: $e');
+    }
   }
 
   bool applyCoupon(String code) {
@@ -1351,6 +1437,26 @@ class AppStateRepository extends ChangeNotifier {
     notifyListeners();
     await _firebase.saveGlobalSetting('base_shipping_fee', fee);
     logAudit('Base Shipping Fee', 'Updated to ৳${fee.toStringAsFixed(2)}');
+  }
+
+  Future<void> claimPromo(String promoId) async {
+    if (_currentUser == null) return;
+    final ids = List<String>.from(_currentUser!.claimedPromoIds);
+    if (!ids.contains(promoId)) {
+      ids.add(promoId);
+      _currentUser = _currentUser!.copyWith(claimedPromoIds: ids);
+      notifyListeners();
+      await _firebase.saveUserProfile(_currentUser!);
+      logAudit('Promo Claimed', 'User ${_currentUser?.name} claimed promo $promoId');
+    }
+  }
+
+  Future<void> savePromo(PromoModel promo) async {
+    await _firebase.savePromo(promo);
+  }
+
+  Future<void> deletePromo(String promoId) async {
+    await _firebase.deletePromo(promoId);
   }
 
   Future<void> addCoupon(CouponModel coupon) async {

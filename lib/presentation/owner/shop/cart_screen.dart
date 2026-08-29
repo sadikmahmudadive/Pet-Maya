@@ -221,13 +221,23 @@ class _CartScreenState extends State<CartScreen> {
                     _buildSummaryRow(context, 'Subtotal', state.cartSubtotal),
                     const SizedBox(height: 12),
                     _buildSummaryRow(context, 'Shipping', state.cartShipping),
-                    if (state.cartDiscount > 0) ...[
+                    if (state.cartPromoDiscount > 0) ...[
                       const SizedBox(height: 12),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('Discount', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.healthGreen, fontWeight: FontWeight.w600)),
-                          Text('- ৳${state.cartDiscount.toStringAsFixed(2)}', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: AppColors.healthGreen, fontWeight: FontWeight.w700)),
+                          Text('${state.currentAppliedPromoName} (${state.currentAppliedDiscount}%)', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: const Color(0xFFFF5252), fontWeight: FontWeight.w600)),
+                          Text('- ৳${state.cartPromoDiscount.toStringAsFixed(2)}', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: const Color(0xFFFF5252), fontWeight: FontWeight.w700)),
+                        ],
+                      ),
+                    ],
+                    if (state.cartCouponDiscount > 0) ...[
+                      const SizedBox(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('Coupon Discount', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.healthGreen, fontWeight: FontWeight.w600)),
+                          Text('- ৳${state.cartCouponDiscount.toStringAsFixed(2)}', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: AppColors.healthGreen, fontWeight: FontWeight.w700)),
                         ],
                       ),
                     ],

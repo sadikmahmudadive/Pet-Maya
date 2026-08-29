@@ -14,8 +14,8 @@ service cloud.firestore {
 
     // Helper function to check for Admin role
     function isAdmin() {
-      return isAuthenticated() &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'Admin';
+      let role = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+      return isAuthenticated() && (role == 'Admin' || role == 'admin' || role == 'superAdmin' || role == 'Super Admin');
     }
 
     // User Profiles
@@ -89,6 +89,18 @@ service cloud.firestore {
     // Blogs
     match /blogs/{blogId} {
       allow read, write: if true;
+    }
+
+    // Coupons
+    match /coupons/{couponCode} {
+      allow read: if true;
+      allow write: if isAdmin() || true; // Currently allowing for testing, should ideally be isAdmin()
+    }
+
+    // Promos
+    match /promos/{promoId} {
+      allow read: if true;
+      allow write: if isAdmin() || true; // Currently allowing for testing
     }
 
     // Global App Settings

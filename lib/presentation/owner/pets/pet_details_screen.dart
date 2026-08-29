@@ -9,6 +9,7 @@ import 'package:animate_do/animate_do.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:io';
+import '../../common_widgets/micro_animations/bouncing_widget.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
@@ -510,15 +511,18 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                           ),
                         ),
                         const SizedBox(height: 10),
-                        _buildStatusTile(
-                          context,
-                          'Clinical Reports',
-                          'Upload and store medical PDFs',
-                          'EHR',
-                          Icons.picture_as_pdf_rounded,
-                          const Color(0xFFE8F1F6),
-                          AppColors.primary,
-                          () => _pickAndUploadReport(context, pet),
+                        BouncingWidget(
+                          onTap: () => _pickAndUploadReport(context, pet),
+                          child: _buildStatusTile(
+                            context,
+                            'Clinical Reports',
+                            'Upload and store medical PDFs',
+                            'EHR',
+                            Icons.picture_as_pdf_rounded,
+                            const Color(0xFFE8F1F6),
+                            AppColors.primary,
+                            null, // null because we're wrapping it in BouncingWidget
+                          ),
                         ),
                         const SizedBox(height: 10),
                         _buildStatusTile(

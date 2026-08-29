@@ -47,12 +47,14 @@ class UserModel {
   final String? specialization;
   final String? clinicName;
   final int? yearsExperience;
+  final List<String> claimedPromoIds;
 
   UserModel({
     required this.uid, required this.name, required this.email, this.photoUrl, this.phone, this.address,
     this.role = UserRole.petOwner, this.isVerified = false, this.isSuspended = false, required this.joinedTimestamp,
     this.favoriteVetIds = const [], this.points = 15, this.referralCode, this.referredBy, this.fcmToken,
     this.latitude, this.longitude, this.bio, this.specialization, this.clinicName, this.yearsExperience,
+    this.claimedPromoIds = const [],
   });
 
   UserModel copyWith({
@@ -60,6 +62,7 @@ class UserModel {
     UserRole? role, bool? isVerified, bool? isSuspended, int? joinedTimestamp, List<String>? favoriteVetIds,
     int? points, String? referralCode, String? referredBy, String? fcmToken, double? latitude, double? longitude,
     String? bio, String? specialization, String? clinicName, int? yearsExperience,
+    List<String>? claimedPromoIds,
   }) {
     return UserModel(
       uid: uid ?? this.uid, name: name ?? this.name, email: email ?? this.email, photoUrl: photoUrl ?? this.photoUrl,
@@ -70,6 +73,7 @@ class UserModel {
       fcmToken: fcmToken ?? this.fcmToken, latitude: latitude ?? this.latitude, longitude: longitude ?? this.longitude,
       bio: bio ?? this.bio, specialization: specialization ?? this.specialization, clinicName: clinicName ?? this.clinicName,
       yearsExperience: yearsExperience ?? this.yearsExperience,
+      claimedPromoIds: claimedPromoIds ?? this.claimedPromoIds,
     );
   }
 
@@ -80,6 +84,7 @@ class UserModel {
       "favoriteVetIds": favoriteVetIds, "points": points, "referralCode": referralCode, "referredBy": referredBy,
       "fcmToken": fcmToken, "latitude": latitude, "longitude": longitude, "bio": bio, "specialization": specialization,
       "clinicName": clinicName, "yearsExperience": yearsExperience,
+      "claimedPromoIds": claimedPromoIds,
     };
   }
 
@@ -95,6 +100,7 @@ class UserModel {
       latitude: (map["latitude"] as num?)?.toDouble(), longitude: (map["longitude"] as num?)?.toDouble(),
       bio: map["bio"], specialization: map["specialization"], clinicName: map["clinicName"],
       yearsExperience: (map["yearsExperience"] as num?)?.toInt(),
+      claimedPromoIds: (map["claimedPromoIds"] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
     );
   }
 
