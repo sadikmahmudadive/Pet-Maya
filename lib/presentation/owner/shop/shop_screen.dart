@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -94,6 +95,10 @@ class _ShopScreenState extends State<ShopScreen> {
             stretch: true,
             backgroundColor: AppColors.primary,
             systemOverlayStyle: SystemUiOverlayStyle.light,
+            actions: [
+              _buildTopCartAction(context, state),
+              const SizedBox(width: 8),
+            ],
             flexibleSpace: FlexibleSpaceBar(
               stretchModes: const [
                 StretchMode.zoomBackground,
@@ -320,6 +325,72 @@ class _ShopScreenState extends State<ShopScreen> {
     );
   }
 
+  Widget _buildTopCartAction(BuildContext context, AppStateRepository state) {
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen()));
+      },
+      child: Container(
+        margin: const EdgeInsets.only(top: 8, bottom: 8),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOutCubic,
+              padding: EdgeInsets.symmetric(
+                  horizontal: state.cartCount > 0 ? 12 : 10,
+                  vertical: 8
+              ),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.25),
+                    width: 1.2
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                      Icons.shopping_bag_outlined,
+                      color: Colors.white,
+                      size: 22
+                  ),
+                  if (state.cartCount > 0) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [AppColors.accentAmber, Color(0xFFFFB300)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '${state.cartCount}',
+                        style: const TextStyle(
+                          color: Colors.black87,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                  ]
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildCategoryChip(String category) {
     final isSelected = _selectedCategory == category;
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -492,10 +563,20 @@ class _ShopScreenState extends State<ShopScreen> {
                           '৳${product.price.toStringAsFixed(0)}',
                           style: GoogleFonts.plusJakartaSans(
                             color: AppColors.primary,
-                            fontSize: 20,
+                            fontSize: 18,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
+                        if (product.oldPrice != null && product.oldPrice! > product.price)
+                          Text(
+                            '৳${product.oldPrice!.toStringAsFixed(0)}',
+                            style: TextStyle(
+                              color: Colors.grey[400],
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              decoration: TextDecoration.lineThrough,
+                            ),
+                          ),
                       ],
                     ),
                     _buildAddButton(context, product),

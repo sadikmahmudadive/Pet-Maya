@@ -113,8 +113,25 @@ class ProductDetailsScreen extends StatelessWidget {
                         children: [
                           Text('PRICE', style: TextStyle(fontWeight: FontWeight.w900, color: Colors.grey[500], fontSize: 9, letterSpacing: 1)),
                           const SizedBox(height: 6),
-                          Text('৳${product.price.toStringAsFixed(2)}',
-                              style: const TextStyle(fontSize: 38, fontWeight: FontWeight.w900, color: AppColors.primary)),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text('৳${product.price.toStringAsFixed(2)}',
+                                  style: const TextStyle(fontSize: 38, fontWeight: FontWeight.w900, color: AppColors.primary)),
+                              if (product.oldPrice != null && product.oldPrice! > product.price) ...[
+                                const SizedBox(width: 12),
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 6),
+                                  child: Text('৳${product.oldPrice!.toStringAsFixed(2)}',
+                                      style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w700,
+                                          color: Colors.grey[400],
+                                          decoration: TextDecoration.lineThrough)),
+                                ),
+                              ],
+                            ],
+                          ),
                         ],
                       ),
                       GestureDetector(

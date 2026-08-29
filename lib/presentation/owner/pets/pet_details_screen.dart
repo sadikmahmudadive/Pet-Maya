@@ -625,6 +625,36 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
     );
   }
 
+  void _confirmDeleteRecord(
+    BuildContext context,
+    AppStateRepository state,
+    ServiceRecordModel record,
+  ) {
+    showCupertinoDialog(
+      context: context,
+      builder: (ctx) => CupertinoAlertDialog(
+        title: const Text('Delete Medical Record?'),
+        content: Text('Are you sure you want to delete "${record.title}"? This cannot be undone.'),
+        actions: [
+          CupertinoDialogAction(
+            child: const Text('Cancel'),
+            onPressed: () => Navigator.pop(ctx),
+          ),
+          CupertinoDialogAction(
+            isDestructiveAction: true,
+            child: const Text('Delete'),
+            onPressed: () {
+              HapticFeedback.heavyImpact();
+              state.deleteServiceRecord(record.recordId);
+              Navigator.pop(ctx);
+              state.showToast('Record deleted successfully! 🗑️', context: context);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   void _confirmDeletePet(
     BuildContext context,
     AppStateRepository state,
@@ -872,7 +902,7 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                   ),
                   const Spacer(),
                   // Share with Vets Toggle (Only owner can toggle)
-                  if (!isVet || record.providerId == currentUser?.uid)
+                  if (!isVet || record.providerId == currentUser?.uid) ...[
                     GestureDetector(
                       onTap: () {
                         HapticFeedback.selectionClick();
@@ -906,8 +936,21 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                           ],
                         ),
                       ),
-                    )
-                  else if (record.isSharedWithVets)
+                    ),
+                    const SizedBox(width: 8),
+                    // Delete Record Button
+                    GestureDetector(
+                      onTap: () => _confirmDeleteRecord(context, repo, record),
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: AppColors.dangerRed.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(CupertinoIcons.trash, color: AppColors.dangerRed, size: 14),
+                      ),
+                    ),
+                  ] else if (record.isSharedWithVets)
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(

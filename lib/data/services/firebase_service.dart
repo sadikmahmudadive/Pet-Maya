@@ -16,6 +16,7 @@ import '../models/comment_model.dart';
 import '../models/review_model.dart';
 import '../models/notification_model.dart';
 import '../models/blog_post_model.dart';
+import '../models/coupon_model.dart';
 import '../models/user_model.dart' as app_models;
 
 /// FirebaseService handles all Firestore and Auth operations with offline-first persistence.
@@ -61,6 +62,7 @@ class FirebaseService {
   CollectionReference get _reviewsCol => _db.collection('reviews');
   CollectionReference get _notificationsCol => _db.collection('notifications');
   CollectionReference get _blogsCol => _db.collection('blogs');
+  CollectionReference get _couponsCol => _db.collection('coupons');
 
   // ─── AUTH ────────────────────────────────────────────────────────────────
 
@@ -488,6 +490,20 @@ class FirebaseService {
     await _recordsCol.doc(record.recordId).set(record.toMap(), SetOptions(merge: true));
   }
 
+  Future<void> deleteServiceRecord(String recordId, {String? reportUrl}) async {
+    // 1. Delete PDF from Storage if exists
+    if (reportUrl != null && reportUrl.isNotEmpty) {
+      try {
+        final ref = _storage.refFromURL(reportUrl);
+        await ref.delete();
+      } catch (e) {
+        debugPrint('[FirebaseService] Error deleting report file: $e');
+      }
+    }
+    // 2. Delete document from Firestore
+    await _recordsCol.doc(recordId).delete();
+  }
+
   // ─── COMMUNITY FEED ──────────────────────────────────────────────────────
 
   Stream<List<FeedPostModel>> streamPosts() {
@@ -645,6 +661,26 @@ class FirebaseService {
 
   Future<void> deleteBlog(String blogId) async {
     await _blogsCol.doc(blogId).delete();
+  }
+
+  // ─── COUPONS ────────────────────────────────────────────────────────────
+
+  Future<List<CouponModel>> fetchCoupons() async {
+    final snap = await _couponsCol.get();
+    return snap.docs.map((d) => CouponModel.fromMap(d.data()! as Map<String, dynamic>)).toList();
+  }
+
+  Stream<List<CouponModel>> streamCoupons() {
+    return _couponsCol.snapshots().map((snap) =>
+        snap.docs.map((d) => CouponModel.fromMap(d.data()! as Map<String, dynamic>)).toList());
+  }
+
+  Future<void> saveCoupon(CouponModel coupon) async {
+    await _couponsCol.doc(coupon.code).set(coupon.toMap(), SetOptions(merge: true));
+  }
+
+  Future<void> deleteCoupon(String code) async {
+    await _couponsCol.doc(code).delete();
   }
 
   // ─── GLOBAL SETTINGS ────────────────────────────────────────────────────

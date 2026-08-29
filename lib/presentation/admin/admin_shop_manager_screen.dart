@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import '../../core/theme/app_colors.dart';
@@ -15,6 +16,8 @@ import '../common_widgets/glass_scaffold.dart';
 import '../common_widgets/premium_card.dart';
 import '../common_widgets/empty_state.dart';
 import '../common_widgets/lottie_upload_icon.dart';
+import '../../data/models/coupon_model.dart';
+import '../../presentation/common_widgets/premium_toast.dart';
 
 class AdminShopManagerScreen extends StatefulWidget {
   const AdminShopManagerScreen({super.key});
@@ -49,6 +52,11 @@ class _AdminShopManagerScreenState extends State<AdminShopManagerScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.confirmation_number_rounded, color: AppColors.primary),
+            onPressed: () => _showCouponManager(context),
+            tooltip: 'Manage Coupons',
+          ),
           _buildAddButton(context),
           const SizedBox(width: 16),
         ],
@@ -384,12 +392,193 @@ class _AdminShopManagerScreenState extends State<AdminShopManagerScreen> {
     );
   }
 
+  void _showCouponManager(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => const _CouponManagerSheet(),
+    );
+  }
+
   void _showProfessionalEditModal(BuildContext context, {ProductModel? product}) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => _ProductEditorSheet(product: product),
+    );
+  }
+}
+
+class _CouponManagerSheet extends StatefulWidget {
+  const _CouponManagerSheet();
+
+  @override
+  State<_CouponManagerSheet> createState() => _CouponManagerSheetState();
+}
+
+class _CouponManagerSheetState extends State<_CouponManagerSheet> {
+  final TextEditingController _codeController = TextEditingController();
+  final TextEditingController _amountController = TextEditingController();
+  final TextEditingController _minAmountController = TextEditingController();
+  bool _isPercentage = true;
+  int _daysValid = 30;
+
+  @override
+  void dispose() {
+    _codeController.dispose();
+    _amountController.dispose();
+    _minAmountController.dispose();
+    super.dispose();
+  }
+
+  void _addCoupon() async {
+    if (_codeController.text.isEmpty || _amountController.text.isEmpty) return;
+    
+    final state = context.read<AppStateRepository>();
+    final coupon = CouponModel(
+      code: _codeController.text.trim().toUpperCase(),
+      discountAmount: double.tryParse(_amountController.text) ?? 0.0,
+      isPercentage: _isPercentage,
+      minOrderAmount: double.tryParse(_minAmountController.text) ?? 0.0,
+      expiryTimestamp: DateTime.now().add(Duration(days: _daysValid)).millisecondsSinceEpoch,
+    );
+
+    await state.addCoupon(coupon);
+    _codeController.clear();
+    _amountController.clear();
+    _minAmountController.clear();
+    state.showToast('Coupon added! 🎟️');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final state = context.watch<AppStateRepository>();
+    final coupons = state.coupons;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.85,
+      decoration: BoxDecoration(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(36)),
+      ),
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('COUPON COMMAND', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w900, fontSize: 16)),
+              IconButton(icon: const Icon(Icons.close_rounded), onPressed: () => Navigator.pop(context)),
+            ],
+          ),
+          const Divider(height: 32),
+          
+          // Add Coupon Section
+          PremiumCard(
+            opacity: 0.1,
+            borderRadius: 20,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(child: _input('CODE', _codeController)),
+                      const SizedBox(width: 12),
+                      Expanded(child: _input('AMOUNT', _amountController, keyboardType: TextInputType.number)),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(child: _input('MIN ORDER', _minAmountController, keyboardType: TextInputType.number)),
+                      const SizedBox(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('TYPE', style: TextStyle(fontSize: 8, fontWeight: FontWeight.w900, color: Colors.grey)),
+                          Row(
+                            children: [
+                              const Text('%', style: TextStyle(fontWeight: FontWeight.bold)),
+                              Switch(value: !_isPercentage, onChanged: (v) => setState(() => _isPercentage = !v)),
+                              const Text('৳', style: TextStyle(fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _addCoupon,
+                      child: const Text('CREATE COUPON', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 24),
+          Text('ACTIVE COUPONS', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: Colors.grey[500], letterSpacing: 1)),
+          const SizedBox(height: 12),
+          
+          Expanded(
+            child: coupons.isEmpty
+              ? const Center(child: Text('No active coupons found.'))
+              : ListView.builder(
+                  itemCount: coupons.length,
+                  itemBuilder: (context, index) {
+                    final c = coupons[index];
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      child: PremiumCard(
+                        opacity: 0.15,
+                        borderRadius: 16,
+                        child: ListTile(
+                          title: Text(c.code, style: const TextStyle(fontWeight: FontWeight.w900, color: AppColors.primary)),
+                          subtitle: Text(
+                            '${c.isPercentage ? "${c.discountAmount}%" : "৳${c.discountAmount}"} off • Min ৳${c.minOrderAmount}',
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                          ),
+                          trailing: IconButton(
+                            icon: const Icon(Icons.delete_outline_rounded, color: AppColors.dangerRed),
+                            onPressed: () => state.deleteCoupon(c.code),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _input(String label, TextEditingController controller, {TextInputType? keyboardType}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(fontSize: 8, fontWeight: FontWeight.w900, color: Colors.grey)),
+        const SizedBox(height: 4),
+        Container(
+          decoration: BoxDecoration(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(12)),
+          child: TextField(
+            controller: controller,
+            keyboardType: keyboardType,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+            decoration: const InputDecoration(border: InputBorder.none, contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -405,6 +594,7 @@ class _ProductEditorSheet extends StatefulWidget {
 class _ProductEditorSheetState extends State<_ProductEditorSheet> {
   late TextEditingController _nameController;
   late TextEditingController _priceController;
+  late TextEditingController _oldPriceController;
   late TextEditingController _stockController;
   late TextEditingController _brandController;
   late TextEditingController _descController;
@@ -419,6 +609,7 @@ class _ProductEditorSheetState extends State<_ProductEditorSheet> {
     super.initState();
     _nameController = TextEditingController(text: widget.product?.name ?? '');
     _priceController = TextEditingController(text: widget.product?.price.toString() ?? '');
+    _oldPriceController = TextEditingController(text: widget.product?.oldPrice?.toString() ?? '');
     _stockController = TextEditingController(text: widget.product?.stockQuantity.toString() ?? '');
     _brandController = TextEditingController(text: widget.product?.brand ?? '');
     _descController = TextEditingController(text: widget.product?.description ?? '');
@@ -460,6 +651,7 @@ class _ProductEditorSheetState extends State<_ProductEditorSheet> {
       name: _nameController.text,
       category: _category,
       price: double.tryParse(_priceController.text) ?? 0.0,
+      oldPrice: double.tryParse(_oldPriceController.text),
       stockQuantity: int.tryParse(_stockController.text) ?? 0,
       imageGallery: _imageGallery.isNotEmpty ? _imageGallery : ['https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=400'],
       description: _descController.text,
@@ -541,9 +733,11 @@ class _ProductEditorSheetState extends State<_ProductEditorSheet> {
                     children: [
                       Expanded(child: _input('LIST PRICE (৳)', _priceController, keyboardType: TextInputType.number)),
                       const SizedBox(width: 16),
-                      Expanded(child: _input('CURRENT STOCK', _stockController, keyboardType: TextInputType.number)),
+                      Expanded(child: _input('OLD PRICE (৳)', _oldPriceController, keyboardType: TextInputType.number)),
                     ],
                   ),
+                  const SizedBox(height: 20),
+                  _input('CURRENT STOCK', _stockController, keyboardType: TextInputType.number),
                   const SizedBox(height: 20),
                   _input('BRAND / MANUFACTURER', _brandController),
                   const SizedBox(height: 20),

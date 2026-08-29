@@ -206,12 +206,24 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.w800, fontSize: 14)),
                             ],
                           ),
+                          if (state.cartDiscount > 0) ...[
+                            const SizedBox(height: 12),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('Discount (${state.appliedCoupon?.code})', 
+                                  style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.w600, color: AppColors.healthGreen)),
+                                Text('- ৳${state.cartDiscount.toStringAsFixed(2)}', 
+                                  style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.w800, fontSize: 14, color: AppColors.healthGreen)),
+                              ],
+                            ),
+                          ],
                           const Divider(height: 32),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text('Total Amount', style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w800)),
-                              Text('৳${(state.cartSubtotal + _deliveryCharge).toStringAsFixed(2)}',
+                              Text('৳${state.cartTotal.toStringAsFixed(2)}',
                                 style: AppTypography.headlineSmall.copyWith(color: AppColors.primary, fontWeight: FontWeight.w900)),
                             ],
                           ),

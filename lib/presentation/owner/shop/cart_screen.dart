@@ -7,16 +7,42 @@ import '../../../data/repositories/app_state_repository.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
 import '../../common_widgets/empty_state.dart';
+import '../../common_widgets/premium_toast.dart';
 import 'package:animate_do/animate_do.dart';
 import 'checkout_screen.dart';
 
-class CartScreen extends StatelessWidget {
+class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
+
+  @override
+  State<CartScreen> createState() => _CartScreenState();
+}
+
+class _CartScreenState extends State<CartScreen> {
+  final TextEditingController _couponController = TextEditingController();
+
+  @override
+  void dispose() {
+    _couponController.dispose();
+    super.dispose();
+  }
+
+  void _applyCoupon(AppStateRepository state) {
+    if (_couponController.text.isEmpty) return;
+    try {
+      state.applyCoupon(_couponController.text);
+      state.showToast('Coupon applied successfully! 🎉');
+      _couponController.clear();
+    } catch (e) {
+      state.showToast(e.toString(), type: ToastType.error);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final state = context.watch<AppStateRepository>();
     final items = state.cartItems;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GlassScaffold(
       appBar: AppBar(
@@ -133,9 +159,78 @@ class CartScreen extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    // Coupon Input
+                    if (state.appliedCoupon == null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 20),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: _couponController,
+                                decoration: InputDecoration(
+                                  hintText: 'Enter coupon code',
+                                  filled: true,
+                                  fillColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey[100],
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            ElevatedButton(
+                              onPressed: () => _applyCoupon(state),
+                              style: ElevatedButton.styleFrom(
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                              ),
+                              child: const Text('APPLY', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),
+                            ),
+                          ],
+                        ),
+                      )
+                    else
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 20),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: AppColors.healthGreen.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: AppColors.healthGreen.withValues(alpha: 0.3)),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.confirmation_number_rounded, color: AppColors.healthGreen, size: 20),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  'Coupon "${state.appliedCoupon!.code}" applied!',
+                                  style: const TextStyle(color: AppColors.healthGreen, fontWeight: FontWeight.w700, fontSize: 13),
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () => state.removeCoupon(),
+                                child: const Icon(Icons.close_rounded, color: AppColors.healthGreen, size: 20),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
                     _buildSummaryRow(context, 'Subtotal', state.cartSubtotal),
                     const SizedBox(height: 12),
                     _buildSummaryRow(context, 'Shipping', state.cartShipping),
+                    if (state.cartDiscount > 0) ...[
+                      const SizedBox(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('Discount', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.healthGreen, fontWeight: FontWeight.w600)),
+                          Text('- ৳${state.cartDiscount.toStringAsFixed(2)}', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: AppColors.healthGreen, fontWeight: FontWeight.w700)),
+                        ],
+                      ),
+                    ],
                     const Padding(
                       padding: EdgeInsets.symmetric(vertical: 20),
                       child: Divider(height: 1),

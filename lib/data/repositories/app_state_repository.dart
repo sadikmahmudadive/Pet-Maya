@@ -21,6 +21,7 @@ import '../models/comment_model.dart';
 import '../models/notification_model.dart';
 import '../models/review_model.dart';
 import '../models/blog_post_model.dart';
+import '../models/coupon_model.dart';
 import '../services/firebase_service.dart';
 import '../services/local_cache_service.dart';
 import '../../core/services/notification_service.dart';
@@ -93,6 +94,8 @@ class AppStateRepository extends ChangeNotifier {
   final List<NotificationModel> _notifications = [];
   final List<ReviewModel> _reviews = [];
   final List<BlogPostModel> _blogs = [];
+  final List<CouponModel> _coupons = [];
+  CouponModel? _appliedCoupon;
 
   final Map<String, String> _calculatedDistances = {};
   final Map<String, UserModel> _userCache = {};
@@ -104,6 +107,8 @@ class AppStateRepository extends ChangeNotifier {
 
   List<PetModel> get pets => List.unmodifiable(_pets);
   List<BlogPostModel> get blogs => List.unmodifiable(_blogs);
+  List<CouponModel> get coupons => List.unmodifiable(_coupons);
+  CouponModel? get appliedCoupon => _appliedCoupon;
   Map<String, UserModel> get userCache => Map.unmodifiable(_userCache);
   String? get systemBanner => _systemBanner;
   bool get isMaintenanceMode => _isMaintenanceMode;
@@ -174,7 +179,8 @@ class AppStateRepository extends ChangeNotifier {
   double get cartSubtotal =>
       _cartItems.fold(0.0, (sum, item) => sum + item.totalPrice);
   double get cartShipping => _cartItems.isEmpty ? 0.0 : _baseShippingFee;
-  double get cartTotal => cartSubtotal + cartShipping;
+  double get cartDiscount => _appliedCoupon?.calculateDiscount(cartSubtotal) ?? 0.0;
+  double get cartTotal => cartSubtotal + cartShipping - cartDiscount;
   int get cartCount => _cartItems.fold(0, (sum, item) => sum + item.quantity);
 
   AppStateRepository._internal() {
@@ -381,7 +387,7 @@ class AppStateRepository extends ChangeNotifier {
       });
       _subscribeToTopics(user);
       _currentUser = user;
-      Future.wait([_loadProducts(), _loadCommunityPosts(), _loadBlogs()]);
+      Future.wait([_loadProducts(), _loadCommunityPosts(), _loadBlogs(), _loadCoupons()]);
       _listenToVets();
       _listenToCurrentUser(user.uid);
       _listenToGlobalSettings();
@@ -634,6 +640,37 @@ class AppStateRepository extends ChangeNotifier {
         ..addAll(fetchedBlogs);
       notifyListeners();
     });
+  }
+
+  Future<void> _loadCoupons() async {
+    _firebase.streamCoupons().listen((fetchedCoupons) {
+      _coupons
+        ..clear()
+        ..addAll(fetchedCoupons);
+      notifyListeners();
+    });
+  }
+
+  bool applyCoupon(String code) {
+    final coupon = _coupons.firstWhere(
+      (c) => c.code.toUpperCase() == code.trim().toUpperCase(),
+      orElse: () => throw 'Coupon not found',
+    );
+
+    if (coupon.isExpired) throw 'Coupon has expired';
+    if (!coupon.isActive) throw 'Coupon is not active';
+    if (cartSubtotal < coupon.minOrderAmount) {
+      throw 'Min order amount ৳${coupon.minOrderAmount} required';
+    }
+
+    _appliedCoupon = coupon;
+    notifyListeners();
+    return true;
+  }
+
+  void removeCoupon() {
+    _appliedCoupon = null;
+    notifyListeners();
   }
 
   void _subscribeToTopics(UserModel user) {
@@ -977,6 +1014,14 @@ class AppStateRepository extends ChangeNotifier {
     await _firebase.saveServiceRecord(record);
   }
 
+  Future<void> deleteServiceRecord(String recordId) async {
+    final record = _serviceRecords.firstWhere((r) => r.recordId == recordId);
+    _serviceRecords.removeWhere((r) => r.recordId == recordId);
+    _localCache.saveRecords(_serviceRecords);
+    notifyListeners();
+    await _firebase.deleteServiceRecord(recordId, reportUrl: record.reportUrl);
+  }
+
   Future<void> uploadDiagnosticReport({
     required String petId,
     required String petName,
@@ -1082,7 +1127,9 @@ class AppStateRepository extends ChangeNotifier {
       paymentMethod: paymentMethod,
       subtotal: cartSubtotal,
       shippingCharges: shippingCharges ?? cartShipping,
-      total: cartSubtotal + (shippingCharges ?? cartShipping),
+      discount: cartDiscount,
+      couponCode: _appliedCoupon?.code,
+      total: cartTotal,
       timestamp: DateTime.now().millisecondsSinceEpoch,
       status: OrderStatus.pending,
       items: List.from(_cartItems),
@@ -1304,6 +1351,14 @@ class AppStateRepository extends ChangeNotifier {
     notifyListeners();
     await _firebase.saveGlobalSetting('base_shipping_fee', fee);
     logAudit('Base Shipping Fee', 'Updated to ৳${fee.toStringAsFixed(2)}');
+  }
+
+  Future<void> addCoupon(CouponModel coupon) async {
+    await _firebase.saveCoupon(coupon);
+  }
+
+  Future<void> deleteCoupon(String code) async {
+    await _firebase.deleteCoupon(code);
   }
 
   void clearAuditLogs() {

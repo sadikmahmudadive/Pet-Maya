@@ -156,6 +156,16 @@ class OrderDetailsScreen extends StatelessWidget {
                     _buildSummaryRow('Cart Subtotal', order.subtotal),
                     const SizedBox(height: 14),
                     _buildSummaryRow('Shipping & Handling', order.shippingCharges),
+                    if (order.discount > 0) ...[
+                      const SizedBox(height: 14),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('Discount (${order.couponCode ?? "Coupon"})', style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.healthGreen, fontSize: 14)),
+                          Text('- ৳${order.discount.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppColors.healthGreen)),
+                        ],
+                      ),
+                    ],
                     const Padding(padding: EdgeInsets.symmetric(vertical: 24), child: Divider(height: 1)),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,

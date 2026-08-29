@@ -4,6 +4,7 @@ class ProductModel {
   final String name;
   final String category;
   final double price;
+  final double? oldPrice;
   final int stockQuantity;
   final List<String> imageGallery;
   final String description;
@@ -19,6 +20,7 @@ class ProductModel {
     required this.name,
     required this.category,
     required this.price,
+    this.oldPrice,
     required this.stockQuantity,
     this.imageGallery = const [],
     this.description = '',
@@ -35,7 +37,7 @@ class ProductModel {
 
   Map<String, dynamic> toMap() {
     return {
-      'id': id, 'shopId': shopId, 'name': name, 'category': category, 'price': price,
+      'id': id, 'shopId': shopId, 'name': name, 'category': category, 'price': price, 'oldPrice': oldPrice,
       'stockQuantity': stockQuantity, 'imageGallery': imageGallery, 'description': description,
       'brand': brand, 'soldCount': soldCount, 'rating': rating, 'reviewsCount': reviewsCount, 'isRxRequired': isRxRequired,
     };
@@ -47,6 +49,7 @@ class ProductModel {
     String? name,
     String? category,
     double? price,
+    double? oldPrice,
     int? stockQuantity,
     List<String>? imageGallery,
     String? description,
@@ -62,6 +65,7 @@ class ProductModel {
       name: name ?? this.name,
       category: category ?? this.category,
       price: price ?? this.price,
+      oldPrice: oldPrice ?? this.oldPrice,
       stockQuantity: stockQuantity ?? this.stockQuantity,
       imageGallery: imageGallery ?? this.imageGallery,
       description: description ?? this.description,
@@ -80,7 +84,9 @@ class ProductModel {
 
     return ProductModel(
       id: id, shopId: map['shopId'] ?? 'shop_1', name: map['name'] ?? '', category: map['category'] ?? 'Food',
-      price: (map['price'] as num?)?.toDouble() ?? 0.0, stockQuantity: (map['stockQuantity'] as num?)?.toInt() ?? 0,
+      price: (map['price'] as num?)?.toDouble() ?? 0.0, 
+      oldPrice: (map['oldPrice'] as num?)?.toDouble(),
+      stockQuantity: (map['stockQuantity'] as num?)?.toInt() ?? 0,
       imageGallery: gallery, description: map['description'] ?? '', brand: map['brand'] ?? '',
       soldCount: (map['soldCount'] as num?)?.toInt() ?? 0, rating: (map['rating'] as num?)?.toDouble() ?? 0.0,
       reviewsCount: (map['reviewsCount'] as num?)?.toInt() ?? 0, isRxRequired: map['isRxRequired'] ?? false,
