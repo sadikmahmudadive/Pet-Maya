@@ -1208,6 +1208,7 @@ class AppStateRepository extends ChangeNotifier {
       orderId: 'ORD-${_uuid.v4().substring(0, 5).toUpperCase()}',
       userId: _currentUser?.uid ?? 'guest',
       userName: _currentUser?.name ?? 'Guest',
+      userEmail: _currentUser?.email,
       address: address,
       phone: phone,
       paymentMethod: paymentMethod,

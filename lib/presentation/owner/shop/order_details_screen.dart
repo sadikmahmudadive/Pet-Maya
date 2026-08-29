@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:animate_do/animate_do.dart';
+import '../../../core/services/pdf_invoice_service.dart';
 import '../../../core/theme/app_colors.dart';
 //
 import '../../../data/models/order_model.dart';
@@ -144,7 +145,18 @@ class OrderDetailsScreen extends StatelessWidget {
             const SizedBox(height: 48),
 
             // 5. Financial Summary
-            _buildSectionHeader('Financial Summary'),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _buildSectionHeader('Financial Summary'),
+                TextButton.icon(
+                  onPressed: () => PdfInvoiceService.shareInvoice(order),
+                  icon: const Icon(Icons.download_rounded, size: 16),
+                  label: const Text('INVOICE', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11)),
+                  style: TextButton.styleFrom(foregroundColor: AppColors.primary),
+                ),
+              ],
+            ),
             const SizedBox(height: 20),
             PremiumCard(
               opacity: 0.25,

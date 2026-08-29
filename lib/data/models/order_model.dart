@@ -27,6 +27,7 @@ class OrderModel {
   final String orderId;
   final String userId;
   final String userName;
+  final String? userEmail;
   final String address;
   final String phone;
   final String paymentMethod;
@@ -40,7 +41,7 @@ class OrderModel {
   final List<CartItemModel> items;
 
   OrderModel({
-    required this.orderId, required this.userId, required this.userName, required this.address, required this.phone,
+    required this.orderId, required this.userId, required this.userName, this.userEmail, required this.address, required this.phone,
     required this.paymentMethod, required this.subtotal, this.shippingCharges = 5.0, 
     this.discount = 0.0, this.couponCode, required this.total,
     required this.timestamp, this.status = OrderStatus.pending, required this.items,
@@ -48,7 +49,7 @@ class OrderModel {
 
   Map<String, dynamic> toMap() {
     return {
-      'orderId': orderId, 'userId': userId, 'userName': userName, 'address': address, 'phone': phone,
+      'orderId': orderId, 'userId': userId, 'userName': userName, 'userEmail': userEmail, 'address': address, 'phone': phone,
       'paymentMethod': paymentMethod, 'subtotal': subtotal, 'shippingCharges': shippingCharges, 
       'discount': discount, 'couponCode': couponCode, 'total': total,
       'timestamp': timestamp, 'status': status.displayName, 'items': items.map((i) => i.toMap()).toList(),
@@ -57,7 +58,7 @@ class OrderModel {
 
   factory OrderModel.fromMap(String id, Map<dynamic, dynamic> map) {
     return OrderModel(
-      orderId: id, userId: map['userId'] ?? '', userName: map['userName'] ?? '', address: map['address'] ?? '',
+      orderId: id, userId: map['userId'] ?? '', userName: map['userName'] ?? '', userEmail: map['userEmail'], address: map['address'] ?? '',
       phone: map['phone'] ?? '', paymentMethod: map['paymentMethod'] ?? 'COD',
       subtotal: (map['subtotal'] as num?)?.toDouble() ?? 0.0, 
       shippingCharges: (map['shippingCharges'] as num?)?.toDouble() ?? 5.0,
@@ -71,7 +72,7 @@ class OrderModel {
 
   OrderModel copyWith({OrderStatus? status}) {
     return OrderModel(
-      orderId: orderId, userId: userId, userName: userName, address: address, phone: phone,
+      orderId: orderId, userId: userId, userName: userName, userEmail: userEmail, address: address, phone: phone,
       paymentMethod: paymentMethod, subtotal: subtotal, shippingCharges: shippingCharges, 
       discount: discount, couponCode: couponCode, total: total,
       timestamp: timestamp, status: status ?? this.status, items: items,

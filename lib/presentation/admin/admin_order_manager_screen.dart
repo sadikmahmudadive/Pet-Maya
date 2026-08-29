@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:intl/intl.dart';
+import '../../core/services/pdf_invoice_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../data/repositories/app_state_repository.dart';
@@ -139,93 +140,128 @@ class _AdminOrderManagerScreenState extends State<AdminOrderManagerScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        height: MediaQuery.of(context).size.height * 0.85,
-        decoration: BoxDecoration(
-          color: Theme.of(context).scaffoldBackgroundColor,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(36)),
-        ),
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(10)))),
-            const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('DISPATCH MANIFEST', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: AppColors.primary, letterSpacing: 1.5)),
-                    Text(order.orderId, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, fontFamily: 'monospace')),
-                  ],
-                ),
-                _buildStatusBadge(order.status),
-              ],
+      builder: (ctx) => Consumer<AppStateRepository>(
+        builder: (context, state, _) {
+          // Try to get email from cache if missing in order
+          String displayEmail = order.userEmail ?? order.userId;
+          if (order.userEmail == null || order.userEmail!.isEmpty) {
+            final cachedUser = state.userCache[order.userId];
+            if (cachedUser != null) {
+              displayEmail = cachedUser.email;
+            } else {
+              state.fetchAndCacheUser(order.userId);
+            }
+          }
+
+          return Container(
+            height: MediaQuery.of(context).size.height * 0.85,
+            decoration: BoxDecoration(
+              color: Theme.of(context).scaffoldBackgroundColor,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(36)),
             ),
-            const Divider(height: 48),
-            Expanded(
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              children: [
+                Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(10)))),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _manifestSection('CUSTOMER DETAILS', [
-                      _manifestRow('Name', order.userName),
-                      _manifestRow('Phone', order.phone),
-                      _manifestRow('Email', order.userId), // UID/Email fallback
-                    ]),
-                    const SizedBox(height: 32),
-                    _manifestSection('DELIVERY LOGISTICS', [
-                      _manifestRow('Address', order.address, isValueMultiline: true),
-                      _manifestRow('Date', dateStr),
-                      _manifestRow('Method', order.paymentMethod),
-                    ]),
-                    const SizedBox(height: 32),
-                    _manifestSection('INVENTORY MANIFEST', [
-                      ...order.items.map((item) => Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: Row(
-                          children: [
-                            Container(width: 6, height: 6, decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle)),
-                            const SizedBox(width: 12),
-                            Text('${item.quantity}x ', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
-                            Expanded(child: Text(item.product.name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14))),
-                            Text('৳${item.totalPrice.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
-                          ],
-                        ),
-                      )),
-                    ]),
-                    const Divider(height: 48),
-                    _manifestRow('Subtotal', '৳${order.subtotal.toStringAsFixed(2)}'),
-                    _manifestRow('Shipping', '৳${order.shippingCharges.toStringAsFixed(2)}'),
-                    const SizedBox(height: 12),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('TOTAL PAYOUT', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
-                        Text('৳${order.total.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 24, color: AppColors.healthGreen)),
+                        Text('DISPATCH MANIFEST', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: AppColors.primary, letterSpacing: 1.5)),
+                        Text(order.orderId, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, fontFamily: 'monospace')),
                       ],
                     ),
-                    const SizedBox(height: 40),
+                    _buildStatusBadge(order.status),
                   ],
                 ),
-              ),
-            ),
-            SizedBox(
-              width: double.infinity,
-              height: 64,
-              child: ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: isDark ? Colors.white10 : Colors.black87,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () => PdfInvoiceService.shareInvoice(order),
+                        icon: const Icon(Icons.picture_as_pdf_rounded, size: 18),
+                        label: const Text('GENERATE INVOICE', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                          foregroundColor: AppColors.primary,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                child: const Text('CLOSE MANIFEST', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 1)),
-              ),
+                const Divider(height: 32),
+                Expanded(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _manifestSection('CUSTOMER DETAILS', [
+                          _manifestRow('Name', order.userName),
+                          _manifestRow('Phone', order.phone),
+                          _manifestRow('Email', displayEmail),
+                        ]),
+                        const SizedBox(height: 32),
+                        _manifestSection('DELIVERY LOGISTICS', [
+                          _manifestRow('Address', order.address, isValueMultiline: true),
+                          _manifestRow('Date', dateStr),
+                          _manifestRow('Method', order.paymentMethod),
+                        ]),
+                        const SizedBox(height: 32),
+                        _manifestSection('INVENTORY MANIFEST', [
+                          ...order.items.map((item) => Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: Row(
+                              children: [
+                                Container(width: 6, height: 6, decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle)),
+                                const SizedBox(width: 12),
+                                Text('${item.quantity}x ', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
+                                Expanded(child: Text(item.product.name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14))),
+                                Text('৳${item.totalPrice.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
+                              ],
+                            ),
+                          )),
+                        ]),
+                        const Divider(height: 48),
+                        _manifestRow('Subtotal', '৳${order.subtotal.toStringAsFixed(2)}'),
+                        _manifestRow('Shipping', '৳${order.shippingCharges.toStringAsFixed(2)}'),
+                        if (order.discount > 0)
+                          _manifestRow('Discount', '- ৳${order.discount.toStringAsFixed(2)}'),
+                        const SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('TOTAL PAYOUT', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+                            Text('৳${order.total.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 24, color: AppColors.healthGreen)),
+                          ],
+                        ),
+                        const SizedBox(height: 40),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  width: double.infinity,
+                  height: 64,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: isDark ? Colors.white10 : Colors.black87,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    ),
+                    child: const Text('CLOSE MANIFEST', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 1)),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

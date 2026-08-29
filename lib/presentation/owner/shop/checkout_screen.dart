@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:animate_do/animate_do.dart';
+import '../../../core/services/pdf_invoice_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../data/repositories/app_state_repository.dart';
@@ -105,6 +106,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   },
                   style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
                   child: const Text('VIEW ORDER STATUS', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12)),
+                ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton.icon(
+                  onPressed: () => PdfInvoiceService.shareInvoice(order),
+                  icon: const Icon(Icons.picture_as_pdf_rounded),
+                  label: const Text('DOWNLOAD INVOICE', style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ),
             ],
