@@ -15,6 +15,7 @@ class FeedPostModel {
   final String? sharedPostContent;
   final String? sharedPostImageUrl;
   Map<String, bool> likedBy;
+  Map<String, String> userReactions;
 
   FeedPostModel({
     required this.postId,
@@ -33,20 +34,43 @@ class FeedPostModel {
     this.sharedPostContent,
     this.sharedPostImageUrl,
     Map<String, bool>? likedBy,
-  }) : likedBy = likedBy ?? {};
+    Map<String, String>? userReactions,
+  })  : likedBy = likedBy ?? {},
+        userReactions = userReactions ?? {};
 
   bool isLikedByUser(String currentUserId) {
-    return likedBy[currentUserId] == true;
+    return userReactions.containsKey(currentUserId) ||
+        (likedBy[currentUserId] == true);
   }
 
-  void toggleLike(String currentUserId) {
-    if (isLikedByUser(currentUserId)) {
+  String? getUserReaction(String currentUserId) {
+    if (userReactions.containsKey(currentUserId)) {
+      return userReactions[currentUserId];
+    }
+    if (likedBy[currentUserId] == true) {
+      return 'Like';
+    }
+    return null;
+  }
+
+  void setReaction(String currentUserId, String reactionType) {
+    final existing = getUserReaction(currentUserId);
+    if (existing == reactionType) {
+      // Toggle off if clicking the same active reaction
+      userReactions.remove(currentUserId);
       likedBy.remove(currentUserId);
       likesCount = (likesCount > 0) ? likesCount - 1 : 0;
     } else {
+      if (existing == null) {
+        likesCount += 1;
+      }
+      userReactions[currentUserId] = reactionType;
       likedBy[currentUserId] = true;
-      likesCount += 1;
     }
+  }
+
+  void toggleLike(String currentUserId) {
+    setReaction(currentUserId, 'Like');
   }
 
   Map<String, dynamic> toMap() {
@@ -67,6 +91,7 @@ class FeedPostModel {
       'sharedPostContent': sharedPostContent,
       'sharedPostImageUrl': sharedPostImageUrl,
       'likedBy': likedBy,
+      'userReactions': userReactions,
     };
   }
 
@@ -84,18 +109,43 @@ class FeedPostModel {
         likesMap[u.toString()] = true;
       }
     }
-    final int lCount = (map['likesCount'] as num?)?.toInt() ?? (map['likes'] as num?)?.toInt() ?? likesMap.length;
-    final int cCount = (map['commentsCount'] as num?)?.toInt() ?? ((map['comments'] is List) ? (map['comments'] as List).length : 0);
+
+    Map<String, String> reactionsMap = {};
+    if (map['userReactions'] is Map) {
+      (map['userReactions'] as Map).forEach((k, v) {
+        if (v != null && v.toString().isNotEmpty) {
+          reactionsMap[k.toString()] = v.toString();
+        }
+      });
+    } else if (map['reactions'] is Map) {
+      (map['reactions'] as Map).forEach((k, v) {
+        if (v != null && v.toString().isNotEmpty) {
+          reactionsMap[k.toString()] = v.toString();
+        }
+      });
+    }
+
+    final int lCount = (map['likesCount'] as num?)?.toInt() ??
+        (map['likes'] as num?)?.toInt() ??
+        (reactionsMap.isNotEmpty ? reactionsMap.length : likesMap.length);
+    final int cCount = (map['commentsCount'] as num?)?.toInt() ??
+        ((map['comments'] is List)
+            ? (map['comments'] as List).length
+            : 0);
 
     return FeedPostModel(
       postId: id,
       userId: map['userId'] ?? '',
-      userName: map['userName'] ?? map['author'] ?? map['authorName'] ?? 'Pet Lover',
+      userName: map['userName'] ??
+          map['author'] ??
+          map['authorName'] ??
+          'Pet Lover',
       userPhoto: map['userPhoto'] ?? map['authorPhoto'],
       postType: map['postType'] ?? map['category'] ?? 'MOMENT',
       content: map['content'] ?? '',
       imageUrl: map['imageUrl'] ?? map['image'],
-      timestamp: (map['timestamp'] as num?)?.toInt() ?? DateTime.now().millisecondsSinceEpoch,
+      timestamp: (map['timestamp'] as num?)?.toInt() ??
+          DateTime.now().millisecondsSinceEpoch,
       likesCount: lCount,
       commentsCount: cCount,
       sharesCount: (map['sharesCount'] as num?)?.toInt() ?? 0,
@@ -104,6 +154,7 @@ class FeedPostModel {
       sharedPostContent: map['sharedPostContent'],
       sharedPostImageUrl: map['sharedPostImageUrl'],
       likedBy: likesMap,
+      userReactions: reactionsMap,
     );
   }
 }

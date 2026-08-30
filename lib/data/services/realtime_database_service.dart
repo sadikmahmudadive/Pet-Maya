@@ -13,7 +13,8 @@ import '../models/notification_model.dart';
 import '../models/user_model.dart' as app_models;
 
 class RealtimeDatabaseService {
-  static final RealtimeDatabaseService _instance = RealtimeDatabaseService._internal();
+  static final RealtimeDatabaseService _instance =
+      RealtimeDatabaseService._internal();
   factory RealtimeDatabaseService() => _instance;
   RealtimeDatabaseService._internal();
 
@@ -56,7 +57,10 @@ class RealtimeDatabaseService {
     await _usersRef.child(userId).remove();
 
     // 2. Delete user's pets
-    final petsSnapshot = await _petsRef.orderByChild('ownerID').equalTo(userId).get();
+    final petsSnapshot = await _petsRef
+        .orderByChild('ownerID')
+        .equalTo(userId)
+        .get();
     if (petsSnapshot.exists) {
       final data = _parseSnapshot(petsSnapshot.value);
       for (var petId in data.keys) {
@@ -71,7 +75,10 @@ class RealtimeDatabaseService {
     await _notificationsRef.child(userId).remove();
 
     // 5. Delete user's orders
-    final ordersSnapshot = await _ordersRef.orderByChild('userId').equalTo(userId).get();
+    final ordersSnapshot = await _ordersRef
+        .orderByChild('userId')
+        .equalTo(userId)
+        .get();
     if (ordersSnapshot.exists) {
       final data = _parseSnapshot(ordersSnapshot.value);
       for (var orderId in data.keys) {
@@ -96,7 +103,10 @@ class RealtimeDatabaseService {
   Future<app_models.UserModel?> fetchUserProfile(String uid) async {
     final snapshot = await _usersRef.child(uid).get();
     if (!snapshot.exists) return null;
-    return app_models.UserModel.fromMap(uid, Map<String, dynamic>.from(snapshot.value as Map));
+    return app_models.UserModel.fromMap(
+      uid,
+      Map<String, dynamic>.from(snapshot.value as Map),
+    );
   }
 
   Future<List<app_models.UserModel>> fetchUsers() async {
@@ -120,7 +130,7 @@ class RealtimeDatabaseService {
     } else {
       snapshot = await _petsRef.orderByChild('ownerID').equalTo(ownerUID).get();
     }
-    
+
     if (!snapshot.exists) return [];
     final data = _parseSnapshot(snapshot.value);
 
@@ -182,15 +192,17 @@ class RealtimeDatabaseService {
     if (value == null) return [];
     final List<EventModel> events = [];
     final dateMap = _parseSnapshot(value);
-    
+
     for (var dateEntry in dateMap.entries) {
       final eventsForDate = _parseSnapshot(dateEntry.value);
       for (var eventEntry in eventsForDate.entries) {
         if (eventEntry.value != null) {
-          events.add(EventModel.fromMap(
-            eventEntry.key.toString(), 
-            Map<String, dynamic>.from(eventEntry.value as Map)
-          ));
+          events.add(
+            EventModel.fromMap(
+              eventEntry.key.toString(),
+              Map<String, dynamic>.from(eventEntry.value as Map),
+            ),
+          );
         }
       }
     }
@@ -209,7 +221,7 @@ class RealtimeDatabaseService {
   }
 
   Stream<List<EventModel>> streamEventsForProvider(String providerId) {
-    // Note: Cross-user queries are harder with date nesting. 
+    // Note: Cross-user queries are harder with date nesting.
     // We stream all for now and filter locally, or would need a flat 'index' node.
     return _eventsRef.onValue.map((event) {
       final all = _parseEventsFromDeepMap(event.snapshot.value);
@@ -236,7 +248,7 @@ class RealtimeDatabaseService {
   Future<List<ProductModel>> fetchProducts() async {
     final snapshot = await _productsRef.get();
     if (!snapshot.exists) return [];
-    
+
     final data = _parseSnapshot(snapshot.value);
     return data.entries.where((e) => e.value != null).map((e) {
       final key = e.key.toString();
@@ -256,9 +268,12 @@ class RealtimeDatabaseService {
   // ─── ORDERS ──────────────────────────────────────────────────────────────
 
   Future<List<OrderModel>> fetchOrders(String userId) async {
-    final snapshot = await _ordersRef.orderByChild('userId').equalTo(userId).get();
+    final snapshot = await _ordersRef
+        .orderByChild('userId')
+        .equalTo(userId)
+        .get();
     if (!snapshot.exists) return [];
-    
+
     final data = _parseSnapshot(snapshot.value);
     return data.entries.where((e) => e.value != null).map((e) {
       final key = e.key.toString();
@@ -270,7 +285,7 @@ class RealtimeDatabaseService {
   Future<List<OrderModel>> fetchAllOrders() async {
     final snapshot = await _ordersRef.get();
     if (!snapshot.exists) return [];
-    
+
     final data = _parseSnapshot(snapshot.value);
     return data.entries.where((e) => e.value != null).map((e) {
       final key = e.key.toString();
@@ -291,7 +306,9 @@ class RealtimeDatabaseService {
   }
 
   Stream<List<OrderModel>> streamUserOrders(String userId) {
-    return _ordersRef.orderByChild('userId').equalTo(userId).onValue.map((event) {
+    return _ordersRef.orderByChild('userId').equalTo(userId).onValue.map((
+      event,
+    ) {
       final data = _parseSnapshot(event.snapshot.value);
       return data.entries.where((e) => e.value != null).map((e) {
         final key = e.key.toString();
@@ -310,7 +327,7 @@ class RealtimeDatabaseService {
   Future<List<VetModel>> fetchVets() async {
     final snapshot = await _usersRef.get();
     if (!snapshot.exists) return [];
-    
+
     final data = _parseSnapshot(snapshot.value);
     return data.entries
         .where((e) {
@@ -319,17 +336,26 @@ class RealtimeDatabaseService {
           final role = val['role']?.toString().toLowerCase() ?? '';
           final email = val['email']?.toString().toLowerCase() ?? '';
           final name = val['name']?.toString().toLowerCase() ?? '';
-          
+
           // Filter out test/dummy profiles
-          if (email.contains('test') || email.contains('example') || 
-              name.contains('test') || name.contains('demo')) {
+          if (email.contains('test') ||
+              email.contains('example') ||
+              name.contains('test') ||
+              name.contains('demo')) {
             return false;
           }
 
-          return role.contains('veterinarian') || role.contains('vet') || 
-                 role.contains('grooming') || role.contains('boarding');
+          return role.contains('veterinarian') ||
+              role.contains('vet') ||
+              role.contains('grooming') ||
+              role.contains('boarding');
         })
-        .map((e) => VetModel.fromMap(e.key.toString(), Map<String, dynamic>.from(e.value as Map)))
+        .map(
+          (e) => VetModel.fromMap(
+            e.key.toString(),
+            Map<String, dynamic>.from(e.value as Map),
+          ),
+        )
         .toList();
   }
 
@@ -345,15 +371,24 @@ class RealtimeDatabaseService {
             final name = val['name']?.toString().toLowerCase() ?? '';
 
             // Filter out test/dummy profiles
-            if (email.contains('test') || email.contains('example') || 
-                name.contains('test') || name.contains('demo')) {
+            if (email.contains('test') ||
+                email.contains('example') ||
+                name.contains('test') ||
+                name.contains('demo')) {
               return false;
             }
 
-            return role.contains('veterinarian') || role.contains('vet') || 
-                   role.contains('grooming') || role.contains('boarding');
+            return role.contains('veterinarian') ||
+                role.contains('vet') ||
+                role.contains('grooming') ||
+                role.contains('boarding');
           })
-          .map((e) => VetModel.fromMap(e.key.toString(), Map<String, dynamic>.from(e.value as Map)))
+          .map(
+            (e) => VetModel.fromMap(
+              e.key.toString(),
+              Map<String, dynamic>.from(e.value as Map),
+            ),
+          )
           .toList();
     });
   }
@@ -367,7 +402,7 @@ class RealtimeDatabaseService {
   Future<List<ServiceRecordModel>> fetchAllServiceRecords() async {
     final snapshot = await _recordsRef.get();
     if (!snapshot.exists) return [];
-    
+
     final data = _parseSnapshot(snapshot.value);
     return data.entries.where((e) => e.value != null).map((e) {
       final key = e.key.toString();
@@ -428,8 +463,26 @@ class RealtimeDatabaseService {
     await ref.set(likedIds);
   }
 
+  Future<void> togglePostReaction(
+    String postId,
+    String userId,
+    String reactionType,
+    bool isReacted,
+    bool isNewReaction,
+  ) async {
+    final ref = _postsRef.child(postId).child('userReactions').child(userId);
+    if (isReacted) {
+      await ref.set(reactionType);
+    } else {
+      await ref.remove();
+    }
+    await togglePostLike(postId, userId, isReacted);
+  }
+
   Future<void> incrementPostShares(String postId) async {
-    await _postsRef.child(postId).child('sharesCount').runTransaction((Object? count) {
+    await _postsRef.child(postId).child('sharesCount').runTransaction((
+      Object? count,
+    ) {
       if (count == null) return Transaction.success(1);
       return Transaction.success((count as int) + 1);
     });
@@ -437,23 +490,31 @@ class RealtimeDatabaseService {
 
   Future<void> addComment(String postId, CommentModel comment) async {
     // Increment commentsCount transactionally in the post node
-    await _postsRef.child(postId).child('commentsCount').runTransaction((Object? count) {
+    await _postsRef.child(postId).child('commentsCount').runTransaction((
+      Object? count,
+    ) {
       if (count == null) return Transaction.success(1);
       return Transaction.success((count as int) + 1);
     });
-    
+
     // Save to the dedicated top-level comments node (matching your DB structure)
-    await _commentsRef.child(postId).child(comment.commentId).set(comment.toMap());
+    await _commentsRef
+        .child(postId)
+        .child(comment.commentId)
+        .set(comment.toMap());
   }
 
   Stream<List<CommentModel>> streamComments(String postId) {
     return _commentsRef.child(postId).onValue.map((event) {
       final value = event.snapshot.value;
       if (value == null) return [];
-      
+
       final data = _parseSnapshot(value);
       return data.entries.where((e) => e.value != null).map((e) {
-        return CommentModel.fromMap(e.key.toString(), Map<String, dynamic>.from(e.value as Map));
+        return CommentModel.fromMap(
+          e.key.toString(),
+          Map<String, dynamic>.from(e.value as Map),
+        );
       }).toList()..sort((a, b) => a.timestamp.compareTo(b.timestamp));
     });
   }
@@ -465,7 +526,10 @@ class RealtimeDatabaseService {
   }
 
   Future<List<ReviewModel>> fetchReviews(String targetId) async {
-    final snapshot = await _reviewsRef.orderByChild('targetId').equalTo(targetId).get();
+    final snapshot = await _reviewsRef
+        .orderByChild('targetId')
+        .equalTo(targetId)
+        .get();
     if (!snapshot.exists) return [];
 
     final data = _parseSnapshot(snapshot.value);
@@ -478,8 +542,14 @@ class RealtimeDatabaseService {
 
   // ─── NOTIFICATIONS ────────────────────────────────────────────────────────
 
-  Future<void> saveNotification(String userId, NotificationModel notification) async {
-    await _notificationsRef.child(userId).child(notification.id).set(notification.toMap());
+  Future<void> saveNotification(
+    String userId,
+    NotificationModel notification,
+  ) async {
+    await _notificationsRef
+        .child(userId)
+        .child(notification.id)
+        .set(notification.toMap());
   }
 
   Stream<List<NotificationModel>> streamNotifications(String userId) {
@@ -490,7 +560,7 @@ class RealtimeDatabaseService {
         final val = Map<String, dynamic>.from(e.value as Map);
         return NotificationModel.fromMap(key, val);
       }).toList();
-      
+
       // Sort newest first
       list.sort((a, b) => b.timestamp.compareTo(a.timestamp));
       return list;

@@ -32,11 +32,9 @@ class FirebaseService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn(
-    scopes: [
-      'email',
-      'profile',
-    ],
-    serverClientId: '335402911476-29mje5mt1utr9ttpkecf1gc8dsev2rgu.apps.googleusercontent.com',
+    scopes: ['email', 'profile'],
+    serverClientId:
+        '335402911476-29mje5mt1utr9ttpkecf1gc8dsev2rgu.apps.googleusercontent.com',
   );
 
   void _initPersistence() {
@@ -45,7 +43,9 @@ class FirebaseService {
         persistenceEnabled: true,
         cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
       );
-      debugPrint('[FirebaseService] Firestore offline persistence initialized (unlimited cache).');
+      debugPrint(
+        '[FirebaseService] Firestore offline persistence initialized (unlimited cache).',
+      );
     } catch (e) {
       debugPrint('[FirebaseService] Firestore settings notice: $e');
     }
@@ -87,19 +87,24 @@ class FirebaseService {
         } catch (_) {}
         googleUser = await _googleSignIn.signIn();
       } catch (playServicesError) {
-        debugPrint("[FirebaseService] Google Play Services sign-in attempt failed: $playServicesError");
+        debugPrint(
+          "[FirebaseService] Google Play Services sign-in attempt failed: $playServicesError",
+        );
         // Secondary Attempt: Auto-configured GoogleSignIn without hardcoded serverClientId
         try {
           final fallbackSignIn = GoogleSignIn();
           await fallbackSignIn.signOut().catchError((_) => null);
           googleUser = await fallbackSignIn.signIn();
         } catch (fallbackError) {
-          debugPrint("[FirebaseService] Fallback GoogleSignIn also failed: $fallbackError");
+          debugPrint(
+            "[FirebaseService] Fallback GoogleSignIn also failed: $fallbackError",
+          );
         }
       }
 
       if (googleUser != null) {
-        final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+        final GoogleSignInAuthentication googleAuth =
+            await googleUser.authentication;
         final OAuthCredential credential = GoogleAuthProvider.credential(
           accessToken: googleAuth.accessToken,
           idToken: googleAuth.idToken,
@@ -109,7 +114,9 @@ class FirebaseService {
 
       // 2. Resilient Fallback: Direct Firebase Google Auth Provider
       // This bypasses Google Play Services SHA-1 signature mismatch errors on Closed Testing builds
-      debugPrint("[FirebaseService] Attempting Firebase OAuth Provider flow for Google...");
+      debugPrint(
+        "[FirebaseService] Attempting Firebase OAuth Provider flow for Google...",
+      );
       final googleProvider = GoogleAuthProvider();
       googleProvider.addScope('email');
       googleProvider.addScope('profile');
@@ -164,33 +171,56 @@ class FirebaseService {
   Future<app_models.UserModel?> fetchUserProfile(String uid) async {
     final doc = await _usersCol.doc(uid).get();
     if (!doc.exists || doc.data() == null) return null;
-    return app_models.UserModel.fromMap(uid, doc.data()! as Map<String, dynamic>);
+    return app_models.UserModel.fromMap(
+      uid,
+      doc.data()! as Map<String, dynamic>,
+    );
   }
 
   Stream<app_models.UserModel?> streamUserProfile(String uid) {
     return _usersCol.doc(uid).snapshots().map((doc) {
       if (!doc.exists || doc.data() == null) return null;
-      return app_models.UserModel.fromMap(uid, doc.data()! as Map<String, dynamic>);
+      return app_models.UserModel.fromMap(
+        uid,
+        doc.data()! as Map<String, dynamic>,
+      );
     });
   }
 
   Future<List<app_models.UserModel>> fetchUsers() async {
     final snap = await _usersCol.get();
     return snap.docs
-        .map((d) => app_models.UserModel.fromMap(d.id, d.data()! as Map<String, dynamic>))
+        .map(
+          (d) => app_models.UserModel.fromMap(
+            d.id,
+            d.data()! as Map<String, dynamic>,
+          ),
+        )
         .toList();
   }
 
   Stream<List<app_models.UserModel>> streamAllUsers() {
-    return _usersCol.snapshots().map((snap) => snap.docs
-        .map((d) => app_models.UserModel.fromMap(d.id, d.data()! as Map<String, dynamic>))
-        .toList());
+    return _usersCol.snapshots().map(
+      (snap) => snap.docs
+          .map(
+            (d) => app_models.UserModel.fromMap(
+              d.id,
+              d.data()! as Map<String, dynamic>,
+            ),
+          )
+          .toList(),
+    );
   }
 
   Future<List<app_models.UserModel>> fetchUsersByRole(String role) async {
     final snap = await _usersCol.where('role', isEqualTo: role).get();
     return snap.docs
-        .map((d) => app_models.UserModel.fromMap(d.id, d.data()! as Map<String, dynamic>))
+        .map(
+          (d) => app_models.UserModel.fromMap(
+            d.id,
+            d.data()! as Map<String, dynamic>,
+          ),
+        )
         .toList();
   }
 
@@ -206,9 +236,16 @@ class FirebaseService {
       }
 
       // 1. Find referrer user with matching referralCode
-      final snap = await _usersCol.where('referralCode', isEqualTo: normalizedCode).limit(1).get();
+      final snap = await _usersCol
+          .where('referralCode', isEqualTo: normalizedCode)
+          .limit(1)
+          .get();
       if (snap.docs.isEmpty) {
-        return (success: false, errorMessage: 'Referral code "$normalizedCode" is invalid or does not exist');
+        return (
+          success: false,
+          errorMessage:
+              'Referral code "$normalizedCode" is invalid or does not exist',
+        );
       }
 
       final referrerDoc = snap.docs.first;
@@ -216,15 +253,22 @@ class FirebaseService {
 
       // 2. Prevent self-referral
       if (referrerUid == userUid) {
-        return (success: false, errorMessage: 'You cannot use your own referral code');
+        return (
+          success: false,
+          errorMessage: 'You cannot use your own referral code',
+        );
       }
 
       // 3. Prevent duplicate referral redemption by current user
       final userDoc = await _usersCol.doc(userUid).get();
       if (userDoc.exists && userDoc.data() != null) {
         final userData = userDoc.data() as Map<String, dynamic>;
-        if (userData['referredBy'] != null && (userData['referredBy'] as String).isNotEmpty) {
-          return (success: false, errorMessage: 'You have already redeemed a referral code');
+        if (userData['referredBy'] != null &&
+            (userData['referredBy'] as String).isNotEmpty) {
+          return (
+            success: false,
+            errorMessage: 'You have already redeemed a referral code',
+          );
         }
       }
 
@@ -240,19 +284,28 @@ class FirebaseService {
 
       // 6. Push notification to referrer
       final notifId = 'notif_${DateTime.now().millisecondsSinceEpoch}';
-      await _notificationsCol.doc(referrerUid).collection('items').doc(notifId).set({
-        'id': notifId,
-        'title': '🎉 +5 Referral Points Earned!',
-        'message': 'A friend just joined Pet Maya using your referral code $normalizedCode. You received 5 points!',
-        'type': 'reward',
-        'timestamp': DateTime.now().millisecondsSinceEpoch,
-        'isRead': false,
-      }).catchError((_) => null);
+      await _notificationsCol
+          .doc(referrerUid)
+          .collection('items')
+          .doc(notifId)
+          .set({
+            'id': notifId,
+            'title': '🎉 +5 Referral Points Earned!',
+            'message':
+                'A friend just joined Pet Maya using your referral code $normalizedCode. You received 5 points!',
+            'type': 'reward',
+            'timestamp': DateTime.now().millisecondsSinceEpoch,
+            'isRead': false,
+          })
+          .catchError((_) => null);
 
       return (success: true, errorMessage: null);
     } catch (e) {
       debugPrint('[FirebaseService] applyReferralCode error: $e');
-      return (success: false, errorMessage: 'Failed to apply referral code: ${e.toString()}');
+      return (
+        success: false,
+        errorMessage: 'Failed to apply referral code: ${e.toString()}',
+      );
     }
   }
 
@@ -268,20 +321,27 @@ class FirebaseService {
     }
 
     // 3. Delete user's events
-    final eventsSnap = await _eventsCol.where('userId', isEqualTo: userId).get();
+    final eventsSnap = await _eventsCol
+        .where('userId', isEqualTo: userId)
+        .get();
     for (var doc in eventsSnap.docs) {
       await doc.reference.delete();
     }
 
     // 4. Delete user's notifications
-    final notifsSnap = await _notificationsCol.doc(userId).collection('items').get();
+    final notifsSnap = await _notificationsCol
+        .doc(userId)
+        .collection('items')
+        .get();
     for (var doc in notifsSnap.docs) {
       await doc.reference.delete();
     }
     await _notificationsCol.doc(userId).delete();
 
     // 5. Delete user's orders
-    final ordersSnap = await _ordersCol.where('userId', isEqualTo: userId).get();
+    final ordersSnap = await _ordersCol
+        .where('userId', isEqualTo: userId)
+        .get();
     for (var doc in ordersSnap.docs) {
       await doc.reference.delete();
     }
@@ -295,7 +355,9 @@ class FirebaseService {
       query = _petsCol.where('ownerID', isEqualTo: ownerUID);
     }
     final snap = await query.get();
-    return snap.docs.map((d) => PetModel.fromMap(d.id, d.data()! as Map<String, dynamic>)).toList();
+    return snap.docs
+        .map((d) => PetModel.fromMap(d.id, d.data()! as Map<String, dynamic>))
+        .toList();
   }
 
   Stream<List<PetModel>> streamPets(String ownerUID) {
@@ -303,8 +365,11 @@ class FirebaseService {
     if (ownerUID.isNotEmpty) {
       query = _petsCol.where('ownerID', isEqualTo: ownerUID);
     }
-    return query.snapshots().map((snap) =>
-        snap.docs.map((d) => PetModel.fromMap(d.id, d.data()! as Map<String, dynamic>)).toList());
+    return query.snapshots().map(
+      (snap) => snap.docs
+          .map((d) => PetModel.fromMap(d.id, d.data()! as Map<String, dynamic>))
+          .toList(),
+    );
   }
 
   Future<void> savePet(PetModel pet) async {
@@ -323,7 +388,9 @@ class FirebaseService {
       query = _eventsCol.where('userId', isEqualTo: userId);
     }
     final snap = await query.get();
-    return snap.docs.map((d) => EventModel.fromMap(d.id, d.data()! as Map<String, dynamic>)).toList();
+    return snap.docs
+        .map((d) => EventModel.fromMap(d.id, d.data()! as Map<String, dynamic>))
+        .toList();
   }
 
   Stream<List<EventModel>> streamEvents(String userId) {
@@ -331,14 +398,28 @@ class FirebaseService {
     return _eventsCol
         .where('userId', isEqualTo: userId)
         .snapshots()
-        .map((snap) => snap.docs.map((d) => EventModel.fromMap(d.id, d.data()! as Map<String, dynamic>)).toList());
+        .map(
+          (snap) => snap.docs
+              .map(
+                (d) =>
+                    EventModel.fromMap(d.id, d.data()! as Map<String, dynamic>),
+              )
+              .toList(),
+        );
   }
 
   Stream<List<EventModel>> streamEventsForProvider(String providerId) {
     return _eventsCol
         .where('providerId', isEqualTo: providerId)
         .snapshots()
-        .map((snap) => snap.docs.map((d) => EventModel.fromMap(d.id, d.data()! as Map<String, dynamic>)).toList());
+        .map(
+          (snap) => snap.docs
+              .map(
+                (d) =>
+                    EventModel.fromMap(d.id, d.data()! as Map<String, dynamic>),
+              )
+              .toList(),
+        );
   }
 
   Future<void> saveEvent(EventModel event) async {
@@ -353,17 +434,28 @@ class FirebaseService {
 
   Future<List<ProductModel>> fetchProducts() async {
     final snap = await _productsCol.get();
-    return snap.docs.map((d) => ProductModel.fromMap(d.id, d.data()! as Map<String, dynamic>)).toList();
+    return snap.docs
+        .map(
+          (d) => ProductModel.fromMap(d.id, d.data()! as Map<String, dynamic>),
+        )
+        .toList();
   }
 
   Stream<List<ProductModel>> streamProducts() {
-    return _productsCol
-        .snapshots()
-        .map((snap) => snap.docs.map((d) => ProductModel.fromMap(d.id, d.data()! as Map<String, dynamic>)).toList());
+    return _productsCol.snapshots().map(
+      (snap) => snap.docs
+          .map(
+            (d) =>
+                ProductModel.fromMap(d.id, d.data()! as Map<String, dynamic>),
+          )
+          .toList(),
+    );
   }
 
   Future<void> saveProduct(ProductModel product) async {
-    await _productsCol.doc(product.id).set(product.toMap(), SetOptions(merge: true));
+    await _productsCol
+        .doc(product.id)
+        .set(product.toMap(), SetOptions(merge: true));
   }
 
   Future<void> deleteProduct(String productId) async {
@@ -377,40 +469,47 @@ class FirebaseService {
   // ─── ORDERS ──────────────────────────────────────────────────────────────
 
   Future<List<OrderModel>> fetchOrders(String userId) async {
-    final snap = await _ordersCol
-        .where('userId', isEqualTo: userId)
-        .get();
-    final list = snap.docs.map((d) => OrderModel.fromMap(d.id, d.data()! as Map<String, dynamic>)).toList();
+    final snap = await _ordersCol.where('userId', isEqualTo: userId).get();
+    final list = snap.docs
+        .map((d) => OrderModel.fromMap(d.id, d.data()! as Map<String, dynamic>))
+        .toList();
     list.sort((a, b) => b.timestamp.compareTo(a.timestamp));
     return list;
   }
 
   Future<List<OrderModel>> fetchAllOrders() async {
     final snap = await _ordersCol.get();
-    final list = snap.docs.map((d) => OrderModel.fromMap(d.id, d.data()! as Map<String, dynamic>)).toList();
+    final list = snap.docs
+        .map((d) => OrderModel.fromMap(d.id, d.data()! as Map<String, dynamic>))
+        .toList();
     list.sort((a, b) => b.timestamp.compareTo(a.timestamp));
     return list;
   }
 
   Stream<List<OrderModel>> streamAllOrders() {
-    return _ordersCol
-        .snapshots()
-        .map((snap) {
-          final list = snap.docs.map((d) => OrderModel.fromMap(d.id, d.data()! as Map<String, dynamic>)).toList();
-          list.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-          return list;
-        });
+    return _ordersCol.snapshots().map((snap) {
+      final list = snap.docs
+          .map(
+            (d) => OrderModel.fromMap(d.id, d.data()! as Map<String, dynamic>),
+          )
+          .toList();
+      list.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      return list;
+    });
   }
 
   Stream<List<OrderModel>> streamUserOrders(String userId) {
-    return _ordersCol
-        .where('userId', isEqualTo: userId)
-        .snapshots()
-        .map((snap) {
-          final list = snap.docs.map((d) => OrderModel.fromMap(d.id, d.data()! as Map<String, dynamic>)).toList();
-          list.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-          return list;
-        });
+    return _ordersCol.where('userId', isEqualTo: userId).snapshots().map((
+      snap,
+    ) {
+      final list = snap.docs
+          .map(
+            (d) => OrderModel.fromMap(d.id, d.data()! as Map<String, dynamic>),
+          )
+          .toList();
+      list.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      return list;
+    });
   }
 
   Future<void> placeOrder(OrderModel order) async {
@@ -426,14 +525,20 @@ class FirebaseService {
   Future<List<VetModel>> fetchVets() async {
     final snap = await _vetsCol.get();
     return snap.docs
-        .map((doc) => VetModel.fromMap(doc.id, doc.data()! as Map<String, dynamic>))
+        .map(
+          (doc) =>
+              VetModel.fromMap(doc.id, doc.data()! as Map<String, dynamic>),
+        )
         .toList();
   }
 
   Stream<List<VetModel>> streamVets() {
     return _vetsCol.snapshots().map((snap) {
       return snap.docs
-          .map((doc) => VetModel.fromMap(doc.id, doc.data()! as Map<String, dynamic>))
+          .map(
+            (doc) =>
+                VetModel.fromMap(doc.id, doc.data()! as Map<String, dynamic>),
+          )
           .toList();
     });
   }
@@ -464,14 +569,28 @@ class FirebaseService {
       query = _recordsCol.where('petId', isEqualTo: petId);
     }
     final snap = await query.get();
-    final list = snap.docs.map((d) => ServiceRecordModel.fromMap(d.id, d.data()! as Map<String, dynamic>)).toList();
+    final list = snap.docs
+        .map(
+          (d) => ServiceRecordModel.fromMap(
+            d.id,
+            d.data()! as Map<String, dynamic>,
+          ),
+        )
+        .toList();
     list.sort((a, b) => b.timestamp.compareTo(a.timestamp));
     return list;
   }
 
   Future<List<ServiceRecordModel>> fetchAllServiceRecords() async {
     final snap = await _recordsCol.get();
-    final list = snap.docs.map((d) => ServiceRecordModel.fromMap(d.id, d.data()! as Map<String, dynamic>)).toList();
+    final list = snap.docs
+        .map(
+          (d) => ServiceRecordModel.fromMap(
+            d.id,
+            d.data()! as Map<String, dynamic>,
+          ),
+        )
+        .toList();
     list.sort((a, b) => b.timestamp.compareTo(a.timestamp));
     return list;
   }
@@ -482,14 +601,23 @@ class FirebaseService {
       query = _recordsCol.where('petId', isEqualTo: petId);
     }
     return query.snapshots().map((snap) {
-      final list = snap.docs.map((d) => ServiceRecordModel.fromMap(d.id, d.data()! as Map<String, dynamic>)).toList();
+      final list = snap.docs
+          .map(
+            (d) => ServiceRecordModel.fromMap(
+              d.id,
+              d.data()! as Map<String, dynamic>,
+            ),
+          )
+          .toList();
       list.sort((a, b) => b.timestamp.compareTo(a.timestamp));
       return list;
     });
   }
 
   Future<void> saveServiceRecord(ServiceRecordModel record) async {
-    await _recordsCol.doc(record.recordId).set(record.toMap(), SetOptions(merge: true));
+    await _recordsCol
+        .doc(record.recordId)
+        .set(record.toMap(), SetOptions(merge: true));
   }
 
   Future<void> deleteServiceRecord(String recordId, {String? reportUrl}) async {
@@ -509,13 +637,16 @@ class FirebaseService {
   // ─── COMMUNITY FEED ──────────────────────────────────────────────────────
 
   Stream<List<FeedPostModel>> streamPosts() {
-    return _postsCol
-        .snapshots()
-        .map((snap) {
-          final list = snap.docs.map((d) => FeedPostModel.fromMap(d.id, d.data()! as Map<String, dynamic>)).toList();
-          list.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-          return list;
-        });
+    return _postsCol.snapshots().map((snap) {
+      final list = snap.docs
+          .map(
+            (d) =>
+                FeedPostModel.fromMap(d.id, d.data()! as Map<String, dynamic>),
+          )
+          .toList();
+      list.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      return list;
+    });
   }
 
   Future<void> savePost(FeedPostModel post) async {
@@ -523,38 +654,53 @@ class FirebaseService {
   }
 
   Future<void> togglePostLike(String postId, String userId, bool liked) async {
+    await togglePostReaction(postId, userId, 'Like', liked, true);
+  }
+
+  Future<void> togglePostReaction(
+    String postId,
+    String userId,
+    String reactionType,
+    bool isReacted,
+    bool isNewReaction,
+  ) async {
     final ref = _postsCol.doc(postId);
-    if (liked) {
-      await ref.set({
-        'likesCount': FieldValue.increment(1),
-        'likes': FieldValue.increment(1),
+    if (isReacted) {
+      final Map<String, dynamic> updateData = {
         'likedByUserIds': FieldValue.arrayUnion([userId]),
         'likedBy': {userId: true},
-      }, SetOptions(merge: true));
+        'userReactions.': reactionType,
+      };
+      if (isNewReaction) {
+        updateData['likesCount'] = FieldValue.increment(1);
+        updateData['likes'] = FieldValue.increment(1);
+      }
+      await ref.set(updateData, SetOptions(merge: true));
     } else {
       await ref.set({
         'likesCount': FieldValue.increment(-1),
         'likes': FieldValue.increment(-1),
         'likedByUserIds': FieldValue.arrayRemove([userId]),
         'likedBy': {userId: false},
+        'userReactions.': FieldValue.delete(),
       }, SetOptions(merge: true));
     }
   }
 
   Future<void> incrementPostShares(String postId) async {
-    await _postsCol.doc(postId).set({'sharesCount': FieldValue.increment(1)}, SetOptions(merge: true));
+    await _postsCol.doc(postId).set({
+      'sharesCount': FieldValue.increment(1),
+    }, SetOptions(merge: true));
   }
 
   Stream<List<CommentModel>> streamComments(String postId) {
-    return _postsCol
-        .doc(postId)
-        .collection('comments')
-        .snapshots()
-        .map((snap) {
-          final list = snap.docs.map((d) => CommentModel.fromMap(d.id, d.data())).toList();
-          list.sort((a, b) => a.timestamp.compareTo(b.timestamp));
-          return list;
-        });
+    return _postsCol.doc(postId).collection('comments').snapshots().map((snap) {
+      final list = snap.docs
+          .map((d) => CommentModel.fromMap(d.id, d.data()))
+          .toList();
+      list.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+      return list;
+    });
   }
 
   Future<void> addComment(String postId, CommentModel comment) async {
@@ -573,24 +719,42 @@ class FirebaseService {
   // ─── REVIEWS ─────────────────────────────────────────────────────────────
 
   Future<void> saveReview(ReviewModel review) async {
-    await _reviewsCol.doc(review.id).set(review.toMap(), SetOptions(merge: true));
+    await _reviewsCol
+        .doc(review.id)
+        .set(review.toMap(), SetOptions(merge: true));
   }
 
   Future<List<ReviewModel>> fetchReviews(String targetId) async {
     final snap = await _reviewsCol.where('targetId', isEqualTo: targetId).get();
-    return snap.docs.map((d) => ReviewModel.fromMap(d.id, d.data()! as Map<String, dynamic>)).toList();
+    return snap.docs
+        .map(
+          (d) => ReviewModel.fromMap(d.id, d.data()! as Map<String, dynamic>),
+        )
+        .toList();
   }
 
   Stream<List<ReviewModel>> streamReviews(String targetId) {
     return _reviewsCol
         .where('targetId', isEqualTo: targetId)
         .snapshots()
-        .map((snap) => snap.docs.map((d) => ReviewModel.fromMap(d.id, d.data()! as Map<String, dynamic>)).toList());
+        .map(
+          (snap) => snap.docs
+              .map(
+                (d) => ReviewModel.fromMap(
+                  d.id,
+                  d.data()! as Map<String, dynamic>,
+                ),
+              )
+              .toList(),
+        );
   }
 
   // ─── NOTIFICATIONS ────────────────────────────────────────────────────────
 
-  Future<void> saveNotification(String userId, NotificationModel notification) async {
+  Future<void> saveNotification(
+    String userId,
+    NotificationModel notification,
+  ) async {
     await _notificationsCol
         .doc(userId)
         .collection('items')
@@ -599,31 +763,25 @@ class FirebaseService {
   }
 
   Stream<List<NotificationModel>> streamNotifications(String userId) {
-    return _notificationsCol
-        .doc(userId)
-        .collection('items')
-        .snapshots()
-        .map((snap) {
-          final list = snap.docs.map((d) => NotificationModel.fromMap(d.id, d.data())).toList();
-          list.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-          return list;
-        });
+    return _notificationsCol.doc(userId).collection('items').snapshots().map((
+      snap,
+    ) {
+      final list = snap.docs
+          .map((d) => NotificationModel.fromMap(d.id, d.data()))
+          .toList();
+      list.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      return list;
+    });
   }
 
   Future<void> markNotificationAsRead(String userId, String id) async {
-    await _notificationsCol
-        .doc(userId)
-        .collection('items')
-        .doc(id)
-        .update({'isRead': true});
+    await _notificationsCol.doc(userId).collection('items').doc(id).update({
+      'isRead': true,
+    });
   }
 
   Future<void> removeNotification(String userId, String id) async {
-    await _notificationsCol
-        .doc(userId)
-        .collection('items')
-        .doc(id)
-        .delete();
+    await _notificationsCol.doc(userId).collection('items').doc(id).delete();
   }
 
   Future<void> clearAllNotifications(String userId) async {
@@ -637,14 +795,23 @@ class FirebaseService {
 
   Future<List<BlogPostModel>> fetchBlogs() async {
     final snap = await _blogsCol.get();
-    final list = snap.docs.map((d) => BlogPostModel.fromMap(d.id, d.data()! as Map<String, dynamic>)).toList();
+    final list = snap.docs
+        .map(
+          (d) => BlogPostModel.fromMap(d.id, d.data()! as Map<String, dynamic>),
+        )
+        .toList();
     list.sort((a, b) => b.timestamp.compareTo(a.timestamp));
     return list;
   }
 
   Stream<List<BlogPostModel>> streamBlogs() {
     return _blogsCol.snapshots().map((snap) {
-      final list = snap.docs.map((d) => BlogPostModel.fromMap(d.id, d.data()! as Map<String, dynamic>)).toList();
+      final list = snap.docs
+          .map(
+            (d) =>
+                BlogPostModel.fromMap(d.id, d.data()! as Map<String, dynamic>),
+          )
+          .toList();
       list.sort((a, b) => b.timestamp.compareTo(a.timestamp));
       return list;
     });
@@ -654,7 +821,11 @@ class FirebaseService {
     await _blogsCol.doc(blog.id).set(blog.toMap(), SetOptions(merge: true));
   }
 
-  Future<void> updateBlogStatus(String blogId, String status, bool isApproved) async {
+  Future<void> updateBlogStatus(
+    String blogId,
+    String status,
+    bool isApproved,
+  ) async {
     await _blogsCol.doc(blogId).set({
       'status': status,
       'isApproved': isApproved,
@@ -669,16 +840,23 @@ class FirebaseService {
 
   Future<List<CouponModel>> fetchCoupons() async {
     final snap = await _couponsCol.get();
-    return snap.docs.map((d) => CouponModel.fromMap(d.data()! as Map<String, dynamic>)).toList();
+    return snap.docs
+        .map((d) => CouponModel.fromMap(d.data()! as Map<String, dynamic>))
+        .toList();
   }
 
   Stream<List<CouponModel>> streamCoupons() {
-    return _couponsCol.snapshots().map((snap) =>
-        snap.docs.map((d) => CouponModel.fromMap(d.data()! as Map<String, dynamic>)).toList());
+    return _couponsCol.snapshots().map(
+      (snap) => snap.docs
+          .map((d) => CouponModel.fromMap(d.data()! as Map<String, dynamic>))
+          .toList(),
+    );
   }
 
   Future<void> saveCoupon(CouponModel coupon) async {
-    await _couponsCol.doc(coupon.code).set(coupon.toMap(), SetOptions(merge: true));
+    await _couponsCol
+        .doc(coupon.code)
+        .set(coupon.toMap(), SetOptions(merge: true));
   }
 
   Future<void> deleteCoupon(String code) async {
@@ -689,14 +867,18 @@ class FirebaseService {
 
   Future<List<PromoModel>> fetchPromos() async {
     final snap = await _promosCol.get();
-    final list = snap.docs.map((d) => PromoModel.fromMap(d.data()! as Map<String, dynamic>)).toList();
+    final list = snap.docs
+        .map((d) => PromoModel.fromMap(d.data()! as Map<String, dynamic>))
+        .toList();
     list.sort((a, b) => b.timestamp.compareTo(a.timestamp));
     return list;
   }
 
   Stream<List<PromoModel>> streamPromos() {
     return _promosCol.snapshots().map((snap) {
-      final list = snap.docs.map((d) => PromoModel.fromMap(d.data()! as Map<String, dynamic>)).toList();
+      final list = snap.docs
+          .map((d) => PromoModel.fromMap(d.data()! as Map<String, dynamic>))
+          .toList();
       list.sort((a, b) => b.timestamp.compareTo(a.timestamp));
       return list;
     });
@@ -713,13 +895,12 @@ class FirebaseService {
   // ─── GLOBAL SETTINGS ────────────────────────────────────────────────────
 
   Future<void> saveGlobalSetting(String key, dynamic value) async {
-    await _db.collection('settings').doc('global').set({key: value}, SetOptions(merge: true));
+    await _db.collection('settings').doc('global').set({
+      key: value,
+    }, SetOptions(merge: true));
   }
 
   Stream<DocumentSnapshot> streamGlobalSettings() {
     return _db.collection('settings').doc('global').snapshots();
   }
 }
-
-
-

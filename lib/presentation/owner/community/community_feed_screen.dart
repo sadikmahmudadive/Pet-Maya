@@ -65,24 +65,39 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
 
     return GlassScaffold(
       appBar: AppBar(
-        title: const Text('Community', style: TextStyle(fontWeight: FontWeight.w800)),
+        title: const Text(
+          'Community',
+          style: TextStyle(fontWeight: FontWeight.w800),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        systemOverlayStyle: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
-        actions: [
-          const SizedBox(width: 8),
-        ],
+        systemOverlayStyle: isDark
+            ? SystemUiOverlayStyle.light
+            : SystemUiOverlayStyle.dark,
+        actions: [const SizedBox(width: 8)],
       ),
       body: CustomScrollView(
-        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
         slivers: [
           // ─── TAIL WAGGING REFRESH CONTROL (Matching other screens) ───
           CupertinoSliverRefreshControl(
             refreshIndicatorExtent: 100,
             refreshTriggerPullDistance: 140,
-            builder: (context, refreshState, pulledExtent, refreshTriggerPullDistance, refreshIndicatorExtent) {
-              return const TailWaggingLoader(size: 350, useBottomPosition: true);
-            },
+            builder:
+                (
+                  context,
+                  refreshState,
+                  pulledExtent,
+                  refreshTriggerPullDistance,
+                  refreshIndicatorExtent,
+                ) {
+                  return const TailWaggingLoader(
+                    size: 350,
+                    useBottomPosition: true,
+                  );
+                },
             onRefresh: () async {
               HapticFeedback.mediumImpact();
               final user = state.currentUser;
@@ -103,7 +118,10 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
                       opacity: isDark ? 0.25 : 0.2,
                       borderRadius: 24,
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -112,32 +130,63 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
                                 CircleAvatar(
                                   radius: 18,
                                   backgroundColor: AppColors.primaryLight,
-                                  backgroundImage: (currentUser?.photoUrl != null && currentUser!.photoUrl!.isNotEmpty)
-                                      ? (currentUser.photoUrl!.startsWith('http')
-                                          ? NetworkImage(currentUser.photoUrl!) as ImageProvider
-                                          : AssetImage(currentUser.photoUrl!) as ImageProvider)
+                                  backgroundImage:
+                                      (currentUser?.photoUrl != null &&
+                                          currentUser!.photoUrl!.isNotEmpty)
+                                      ? (currentUser.photoUrl!.startsWith(
+                                              'http',
+                                            )
+                                            ? NetworkImage(
+                                                    currentUser.photoUrl!,
+                                                  )
+                                                  as ImageProvider
+                                            : AssetImage(currentUser.photoUrl!)
+                                                  as ImageProvider)
                                       : null,
-                                  child: (currentUser?.photoUrl == null || currentUser!.photoUrl!.isEmpty)
+                                  child:
+                                      (currentUser?.photoUrl == null ||
+                                          currentUser!.photoUrl!.isEmpty)
                                       ? const Icon(Icons.person, size: 18)
                                       : null,
                                 ),
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: GestureDetector(
-                                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CreatePostScreen())),
+                                    onTap: () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            const CreatePostScreen(),
+                                      ),
+                                    ),
                                     child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 14,
+                                        vertical: 10,
+                                      ),
                                       decoration: BoxDecoration(
-                                        color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.04),
+                                        color: isDark
+                                            ? Colors.white.withValues(
+                                                alpha: 0.08,
+                                              )
+                                            : Colors.black.withValues(
+                                                alpha: 0.04,
+                                              ),
                                         borderRadius: BorderRadius.circular(24),
-                                        border: Border.all(color: isDark ? Colors.white10 : Colors.black12),
+                                        border: Border.all(
+                                          color: isDark
+                                              ? Colors.white10
+                                              : Colors.black12,
+                                        ),
                                       ),
                                       child: Text(
                                         "What's on your mind${currentUser?.name != null ? ', ${currentUser!.name.split(' ').first}' : ''}?",
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                         style: TextStyle(
-                                          color: isDark ? Colors.white54 : Colors.black54,
+                                          color: isDark
+                                              ? Colors.white54
+                                              : Colors.black54,
                                           fontSize: 12,
                                           fontWeight: FontWeight.w500,
                                         ),
@@ -148,7 +197,12 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
                               ],
                             ),
                             const SizedBox(height: 10),
-                            Divider(height: 1, color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.06)),
+                            Divider(
+                              height: 1,
+                              color: isDark
+                                  ? Colors.white10
+                                  : Colors.black.withValues(alpha: 0.06),
+                            ),
                             const SizedBox(height: 6),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -157,19 +211,34 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
                                   icon: Icons.photo_library_rounded,
                                   label: 'Photo',
                                   color: AppColors.healthGreen,
-                                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CreatePostScreen())),
+                                  onTap: () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const CreatePostScreen(),
+                                    ),
+                                  ),
                                 ),
                                 _buildComposerActionBtn(
                                   icon: Icons.label_rounded,
                                   label: 'Category',
                                   color: AppColors.primary,
-                                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CreatePostScreen())),
+                                  onTap: () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const CreatePostScreen(),
+                                    ),
+                                  ),
                                 ),
                                 _buildComposerActionBtn(
                                   icon: Icons.sentiment_satisfied_alt_rounded,
                                   label: 'Feeling',
                                   color: AppColors.accentAmber,
-                                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CreatePostScreen())),
+                                  onTap: () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const CreatePostScreen(),
+                                    ),
+                                  ),
                                 ),
                               ],
                             ),
@@ -184,14 +253,29 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
                   // Filter Tabs
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 4,
+                    ),
                     physics: const BouncingScrollPhysics(),
                     child: Row(
                       children: [
                         _buildTabChip('ALL', 'All', Icons.grid_view_rounded),
-                        _buildTabChip('MOMENT', 'Moments', Icons.photo_camera_rounded),
-                        _buildTabChip('ADOPTION', 'Adoption', Icons.home_rounded),
-                        _buildTabChip('RESCUE', 'Rescue', Icons.warning_amber_rounded),
+                        _buildTabChip(
+                          'MOMENT',
+                          'Moments',
+                          Icons.photo_camera_rounded,
+                        ),
+                        _buildTabChip(
+                          'ADOPTION',
+                          'Adoption',
+                          Icons.home_rounded,
+                        ),
+                        _buildTabChip(
+                          'RESCUE',
+                          'Rescue',
+                          Icons.warning_amber_rounded,
+                        ),
                       ],
                     ),
                   ),
@@ -216,37 +300,42 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
             SliverPadding(
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 160),
               sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final post = posts[index];
-                    final isLiked = post.isLikedByUser(currentUserId);
-                    final formattedTime = _formatTimestamp(post.timestamp);
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  final post = posts[index];
+                  final isLiked = post.isLikedByUser(currentUserId);
+                  final formattedTime = _formatTimestamp(post.timestamp);
 
-                    return FadeInUp(
-                      delay: Duration(milliseconds: 80 * index),
-                      child: Center(
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 600),
-                          child: Padding(
-                            padding: const EdgeInsets.only(bottom: 20),
-                            child: PremiumCard(
-                              opacity: isDark ? 0.25 : 0.2,
-                              borderRadius: 28,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  // Author Header
-                                  Builder(builder: (context) {
+                  return FadeInUp(
+                    delay: Duration(milliseconds: 80 * index),
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 600),
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 20),
+                          child: PremiumCard(
+                            opacity: isDark ? 0.25 : 0.2,
+                            borderRadius: 28,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Author Header
+                                Builder(
+                                  builder: (context) {
                                     // Live Data Logic: Priority 1 (Current User), Priority 2 (Cached Other Users), Priority 3 (Post Data)
-                                    final repo = context.read<AppStateRepository>();
+                                    final repo = context
+                                        .read<AppStateRepository>();
                                     String authorName = post.userName;
                                     String? authorPhoto = post.userPhoto;
-                                    
-                                    if (post.userId == currentUserId && currentUser != null) {
+
+                                    if (post.userId == currentUserId &&
+                                        currentUser != null) {
                                       authorName = currentUser.name;
                                       authorPhoto = currentUser.photoUrl;
-                                    } else if (repo.userCache.containsKey(post.userId)) {
-                                      final cached = repo.userCache[post.userId]!;
+                                    } else if (repo.userCache.containsKey(
+                                      post.userId,
+                                    )) {
+                                      final cached =
+                                          repo.userCache[post.userId]!;
                                       authorName = cached.name;
                                       authorPhoto = cached.photoUrl;
                                     } else {
@@ -255,32 +344,68 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
                                     }
 
                                     return Padding(
-                                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+                                      padding: const EdgeInsets.fromLTRB(
+                                        16,
+                                        16,
+                                        16,
+                                        12,
+                                      ),
                                       child: Row(
                                         children: [
                                           CircleAvatar(
                                             radius: 20,
-                                            backgroundColor: AppColors.primaryLight,
-                                            backgroundImage: (authorPhoto != null && authorPhoto.isNotEmpty)
-                                                ? (authorPhoto.startsWith('http') 
-                                                    ? NetworkImage(authorPhoto) as ImageProvider
-                                                    : AssetImage(authorPhoto) as ImageProvider)
+                                            backgroundColor:
+                                                AppColors.primaryLight,
+                                            backgroundImage:
+                                                (authorPhoto != null &&
+                                                    authorPhoto.isNotEmpty)
+                                                ? (authorPhoto.startsWith(
+                                                        'http',
+                                                      )
+                                                      ? NetworkImage(
+                                                              authorPhoto,
+                                                            )
+                                                            as ImageProvider
+                                                      : AssetImage(authorPhoto)
+                                                            as ImageProvider)
                                                 : null,
-                                            child: (authorPhoto == null || authorPhoto.isEmpty)
-                                                ? const Icon(Icons.person, size: 20)
+                                            child:
+                                                (authorPhoto == null ||
+                                                    authorPhoto.isEmpty)
+                                                ? const Icon(
+                                                    Icons.person,
+                                                    size: 20,
+                                                  )
                                                 : null,
                                           ),
                                           const SizedBox(width: 12),
                                           Expanded(
                                             child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
                                               children: [
                                                 Row(
                                                   children: [
-                                                    Text(authorName, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
-                                                    if (repo.userCache[post.userId]?.isVerified ?? false) ...[
+                                                    Text(
+                                                      authorName,
+                                                      style: const TextStyle(
+                                                        fontSize: 15,
+                                                        fontWeight:
+                                                            FontWeight.w800,
+                                                      ),
+                                                    ),
+                                                    if (repo
+                                                            .userCache[post
+                                                                .userId]
+                                                            ?.isVerified ??
+                                                        false) ...[
                                                       const SizedBox(width: 4),
-                                                      const Icon(Icons.verified_rounded, color: AppColors.healthGreen, size: 14),
+                                                      const Icon(
+                                                        Icons.verified_rounded,
+                                                        color: AppColors
+                                                            .healthGreen,
+                                                        size: 14,
+                                                      ),
                                                     ],
                                                   ],
                                                 ),
@@ -289,12 +414,33 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
                                                   children: [
                                                     Text(
                                                       formattedTime,
-                                                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: isDark ? Colors.white54 : Colors.grey[600]),
+                                                      style: TextStyle(
+                                                        fontSize: 11,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        color: isDark
+                                                            ? Colors.white54
+                                                            : Colors.grey[600],
+                                                      ),
                                                     ),
                                                     const SizedBox(width: 4),
-                                                    Text('·', style: TextStyle(fontSize: 11, color: isDark ? Colors.white54 : Colors.grey[600])),
+                                                    Text(
+                                                      '·',
+                                                      style: TextStyle(
+                                                        fontSize: 11,
+                                                        color: isDark
+                                                            ? Colors.white54
+                                                            : Colors.grey[600],
+                                                      ),
+                                                    ),
                                                     const SizedBox(width: 4),
-                                                    Icon(Icons.public_rounded, size: 12, color: isDark ? Colors.white54 : Colors.grey[600]),
+                                                    Icon(
+                                                      Icons.public_rounded,
+                                                      size: 12,
+                                                      color: isDark
+                                                          ? Colors.white54
+                                                          : Colors.grey[600],
+                                                    ),
                                                   ],
                                                 ),
                                               ],
@@ -302,224 +448,334 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
                                           ),
                                           _buildPostBadge(post.postType),
                                           IconButton(
-                                            icon: Icon(Icons.more_horiz_rounded, color: isDark ? Colors.white54 : Colors.grey[600]),
+                                            icon: Icon(
+                                              Icons.more_horiz_rounded,
+                                              color: isDark
+                                                  ? Colors.white54
+                                                  : Colors.grey[600],
+                                            ),
                                             onPressed: () {},
                                           ),
                                         ],
                                       ),
                                     );
-                                  }),
+                                  },
+                                ),
 
-                                  // Post Content Text
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                                    child: Text(
-                                      post.content,
-                                      style: TextStyle(
-                                        height: 1.5,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
-                                        color: isDark ? Colors.white.withValues(alpha: 0.9) : Colors.black87,
-                                      ),
+                                // Post Content Text
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                  ),
+                                  child: Text(
+                                    post.content,
+                                    style: TextStyle(
+                                      height: 1.5,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      color: isDark
+                                          ? Colors.white.withValues(alpha: 0.9)
+                                          : Colors.black87,
                                     ),
                                   ),
+                                ),
 
-                                  // Quoted Shared Post (if this is a shared post)
-                                  if (post.sharedPostAuthor != null && post.sharedPostContent != null) ...[
-                                    const SizedBox(height: 12),
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
-                                          borderRadius: BorderRadius.circular(16),
-                                          border: Border.all(color: isDark ? Colors.white12 : Colors.black.withValues(alpha: 0.08)),
-                                        ),
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Padding(
-                                              padding: const EdgeInsets.all(12),
-                                              child: Row(
-                                                children: [
-                                                  CircleAvatar(
-                                                    radius: 14,
-                                                    backgroundColor: AppColors.primaryLight,
-                                                    child: const Icon(Icons.person, size: 14, color: AppColors.primary),
-                                                  ),
-                                                  const SizedBox(width: 8),
-                                                  Expanded(
-                                                    child: Column(
-                                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                                      children: [
-                                                        Text(
-                                                          post.sharedPostAuthor!,
-                                                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12),
-                                                        ),
-                                                        Text(
-                                                          'Original Post',
-                                                          style: TextStyle(fontSize: 9, color: isDark ? Colors.white54 : Colors.grey[600]),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                            Padding(
-                                              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-                                              child: Text(
-                                                post.sharedPostContent!,
-                                                maxLines: 3,
-                                                overflow: TextOverflow.ellipsis,
-                                                style: TextStyle(
-                                                  fontSize: 13,
-                                                  height: 1.4,
-                                                  color: isDark ? Colors.white70 : Colors.black87,
-                                                ),
-                                              ),
-                                            ),
-                                            if (post.sharedPostImageUrl != null && post.sharedPostImageUrl!.isNotEmpty)
-                                              ClipRRect(
-                                                borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
-                                                child: CachedNetworkImage(
-                                                  imageUrl: post.sharedPostImageUrl!,
-                                                  width: double.infinity,
-                                                  height: 180,
-                                                  fit: BoxFit.cover,
-                                                  placeholder: (c, u) => SkeletonLoader(width: MediaQuery.of(context).size.width, height: 180, borderRadius: 16),
-                                                  errorWidget: (c, u, e) => const SizedBox.shrink(),
-                                                ),
-                                              ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-
-                                  // Post Image Attachment
-                                  if (post.imageUrl != null) ...[
-                                    const SizedBox(height: 14),
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(20),
-                                        child: CachedNetworkImage(
-                                          imageUrl: post.imageUrl!,
-                                          width: double.infinity,
-                                          height: 260,
-                                          fit: BoxFit.cover,
-                                          placeholder: (c, u) => SkeletonLoader(width: MediaQuery.of(context).size.width, height: 260, borderRadius: 20),
-                                          errorWidget: (c, u, e) => const Icon(Icons.error_outline_rounded),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-
+                                // Quoted Shared Post (if this is a shared post)
+                                if (post.sharedPostAuthor != null &&
+                                    post.sharedPostContent != null) ...[
                                   const SizedBox(height: 12),
-
-                                  // Social Proof Bar
                                   Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                                    child: Row(
-                                      children: [
-                                        Container(
-                                          padding: const EdgeInsets.all(4),
-                                          decoration: const BoxDecoration(
-                                            color: Color(0xFF1877F2),
-                                            shape: BoxShape.circle,
-                                          ),
-                                          child: const Icon(Icons.thumb_up_alt_rounded, size: 10, color: Colors.white),
-                                        ),
-                                        const SizedBox(width: 6),
-                                        Text(
-                                          '${post.likesCount}',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w700,
-                                            color: isDark ? Colors.white60 : Colors.grey[700],
-                                          ),
-                                        ),
-                                        const Spacer(),
-                                        Text(
-                                          '${post.commentsCount} comments',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w600,
-                                            color: isDark ? Colors.white60 : Colors.grey[700],
-                                          ),
-                                        ),
-                                        if (post.sharesCount > 0) ...[
-                                          const SizedBox(width: 8),
-                                          Text('·', style: TextStyle(fontSize: 12, color: isDark ? Colors.white60 : Colors.grey[700])),
-                                          const SizedBox(width: 8),
-                                          Text(
-                                            '${post.sharesCount} shares',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w600,
-                                              color: isDark ? Colors.white60 : Colors.grey[700],
-                                            ),
-                                          ),
-                                        ],
-                                      ],
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
                                     ),
-                                  ),
-
-                                  const SizedBox(height: 8),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                                    child: Divider(height: 1, color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.08)),
-                                  ),
-
-                                  // Action Bar
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                    child: Row(
-                                      children: [
-                                        Expanded(
-                                          child: LottieReactionButton(post: post),
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: isDark
+                                            ? Colors.white.withValues(
+                                                alpha: 0.05,
+                                              )
+                                            : Colors.black.withValues(
+                                                alpha: 0.03,
+                                              ),
+                                        borderRadius: BorderRadius.circular(16),
+                                        border: Border.all(
+                                          color: isDark
+                                              ? Colors.white12
+                                              : Colors.black.withValues(
+                                                  alpha: 0.08,
+                                                ),
                                         ),
-                                        Expanded(
-                                          child: AnimatedActionButton(
-                                            inactiveIcon: Icons.chat_bubble_outline_rounded,
-                                            activeIcon: Icons.chat_bubble_rounded,
-                                            label: 'Comment',
-                                            isActive: false,
-                                            activeColor: AppColors.primary,
-                                            inactiveColor: isDark ? Colors.white60 : Colors.grey[700]!,
-                                            onTap: () => showModalBottomSheet(
-                                              context: context,
-                                              isScrollControlled: true,
-                                              backgroundColor: Colors.transparent,
-                                              builder: (_) => CommentsBottomSheet(post: post),
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.all(12),
+                                            child: Row(
+                                              children: [
+                                                CircleAvatar(
+                                                  radius: 14,
+                                                  backgroundColor:
+                                                      AppColors.primaryLight,
+                                                  child: const Icon(
+                                                    Icons.person,
+                                                    size: 14,
+                                                    color: AppColors.primary,
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 8),
+                                                Expanded(
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Text(
+                                                        post.sharedPostAuthor!,
+                                                        style: const TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.w700,
+                                                          fontSize: 12,
+                                                        ),
+                                                      ),
+                                                      Text(
+                                                        'Original Post',
+                                                        style: TextStyle(
+                                                          fontSize: 9,
+                                                          color: isDark
+                                                              ? Colors.white54
+                                                              : Colors
+                                                                    .grey[600],
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                           ),
-                                        ),
-                                        Expanded(
-                                          child: AnimatedActionButton(
-                                            inactiveIcon: Icons.share_outlined,
-                                            activeIcon: Icons.share_rounded,
-                                            label: 'Share',
-                                            isActive: false,
-                                            activeColor: const Color(0xFF1877F2),
-                                            inactiveColor: isDark ? Colors.white60 : Colors.grey[700]!,
-                                            onTap: () => _showShareModal(context, post),
+                                          Padding(
+                                            padding: const EdgeInsets.fromLTRB(
+                                              12,
+                                              0,
+                                              12,
+                                              12,
+                                            ),
+                                            child: Text(
+                                              post.sharedPostContent!,
+                                              maxLines: 3,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                height: 1.4,
+                                                color: isDark
+                                                    ? Colors.white70
+                                                    : Colors.black87,
+                                              ),
+                                            ),
                                           ),
-                                        ),
-                                      ],
+                                          if (post.sharedPostImageUrl != null &&
+                                              post
+                                                  .sharedPostImageUrl!
+                                                  .isNotEmpty)
+                                            ClipRRect(
+                                              borderRadius:
+                                                  const BorderRadius.vertical(
+                                                    bottom: Radius.circular(16),
+                                                  ),
+                                              child: CachedNetworkImage(
+                                                imageUrl:
+                                                    post.sharedPostImageUrl!,
+                                                width: double.infinity,
+                                                height: 180,
+                                                fit: BoxFit.cover,
+                                                placeholder: (c, u) =>
+                                                    SkeletonLoader(
+                                                      width: MediaQuery.of(
+                                                        context,
+                                                      ).size.width,
+                                                      height: 180,
+                                                      borderRadius: 16,
+                                                    ),
+                                                errorWidget: (c, u, e) =>
+                                                    const SizedBox.shrink(),
+                                              ),
+                                            ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ],
-                              ),
+
+                                // Post Image Attachment
+                                if (post.imageUrl != null) ...[
+                                  const SizedBox(height: 14),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                    ),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(20),
+                                      child: CachedNetworkImage(
+                                        imageUrl: post.imageUrl!,
+                                        width: double.infinity,
+                                        height: 260,
+                                        fit: BoxFit.cover,
+                                        placeholder: (c, u) => SkeletonLoader(
+                                          width: MediaQuery.of(
+                                            context,
+                                          ).size.width,
+                                          height: 260,
+                                          borderRadius: 20,
+                                        ),
+                                        errorWidget: (c, u, e) => const Icon(
+                                          Icons.error_outline_rounded,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+
+                                const SizedBox(height: 12),
+
+                                // Social Proof Bar
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(4),
+                                        decoration: const BoxDecoration(
+                                          color: Color(0xFF1877F2),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(
+                                          Icons.thumb_up_alt_rounded,
+                                          size: 10,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        '${post.likesCount}',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w700,
+                                          color: isDark
+                                              ? Colors.white60
+                                              : Colors.grey[700],
+                                        ),
+                                      ),
+                                      const Spacer(),
+                                      Text(
+                                        '${post.commentsCount} comments',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          color: isDark
+                                              ? Colors.white60
+                                              : Colors.grey[700],
+                                        ),
+                                      ),
+                                      if (post.sharesCount > 0) ...[
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          '·',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: isDark
+                                                ? Colors.white60
+                                                : Colors.grey[700],
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          '${post.sharesCount} shares',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
+                                            color: isDark
+                                                ? Colors.white60
+                                                : Colors.grey[700],
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ),
+
+                                const SizedBox(height: 8),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                  ),
+                                  child: Divider(
+                                    height: 1,
+                                    color: isDark
+                                        ? Colors.white10
+                                        : Colors.black.withValues(alpha: 0.08),
+                                  ),
+                                ),
+
+                                // Action Bar
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: LottieReactionButton(post: post),
+                                      ),
+                                      Expanded(
+                                        child: AnimatedActionButton(
+                                          inactiveIcon:
+                                              Icons.chat_bubble_outline_rounded,
+                                          activeIcon: Icons.chat_bubble_rounded,
+                                          label: 'Comment',
+                                          isActive: false,
+                                          activeColor: AppColors.primary,
+                                          inactiveColor: isDark
+                                              ? Colors.white60
+                                              : Colors.grey[700]!,
+                                          onTap: () => showModalBottomSheet(
+                                            context: context,
+                                            isScrollControlled: true,
+                                            backgroundColor: Colors.transparent,
+                                            builder: (_) =>
+                                                CommentsBottomSheet(post: post),
+                                          ),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: AnimatedActionButton(
+                                          inactiveIcon: Icons.share_outlined,
+                                          activeIcon: Icons.share_rounded,
+                                          label: 'Share',
+                                          isActive: false,
+                                          activeColor: const Color(0xFF1877F2),
+                                          inactiveColor: isDark
+                                              ? Colors.white60
+                                              : Colors.grey[700]!,
+                                          onTap: () =>
+                                              _showShareModal(context, post),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
                       ),
-                    );
-                  },
-                  childCount: posts.length,
-                ),
+                    ),
+                  );
+                }, childCount: posts.length),
               ),
             ),
         ],
@@ -527,7 +783,12 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
     );
   }
 
-  Widget _buildComposerActionBtn({required IconData icon, required String label, required Color color, required VoidCallback onTap}) {
+  Widget _buildComposerActionBtn({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Padding(
@@ -538,7 +799,11 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
             const SizedBox(width: 6),
             Text(
               label,
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: color),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: color,
+              ),
             ),
           ],
         ),
@@ -546,7 +811,12 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
     );
   }
 
-  Widget _buildFacebookActionBtn({required IconData icon, required String label, required Color color, required VoidCallback onTap}) {
+  Widget _buildFacebookActionBtn({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
@@ -559,7 +829,11 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
             const SizedBox(width: 6),
             Text(
               label,
-              style: TextStyle(fontSize: 13, color: color, fontWeight: FontWeight.w700),
+              style: TextStyle(
+                fontSize: 13,
+                color: color,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ],
         ),
@@ -587,7 +861,11 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 15, color: isSelected ? activeColor : inactiveColor),
+              Icon(
+                icon,
+                size: 15,
+                color: isSelected ? activeColor : inactiveColor,
+              ),
               const SizedBox(width: 6),
               Text(
                 label,
@@ -608,9 +886,14 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
   Widget _buildPostBadge(String postType) {
     Color color;
     switch (postType) {
-      case 'RESCUE': color = AppColors.dangerRed; break;
-      case 'ADOPTION': color = AppColors.accentAmber; break;
-      default: color = AppColors.primary;
+      case 'RESCUE':
+        color = AppColors.dangerRed;
+        break;
+      case 'ADOPTION':
+        color = AppColors.accentAmber;
+        break;
+      default:
+        color = AppColors.primary;
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -621,7 +904,12 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
       ),
       child: Text(
         postType,
-        style: TextStyle(color: color, fontWeight: FontWeight.w900, fontSize: 8, letterSpacing: 0.8),
+        style: TextStyle(
+          color: color,
+          fontWeight: FontWeight.w900,
+          fontSize: 8,
+          letterSpacing: 0.8,
+        ),
       ),
     );
   }
@@ -645,7 +933,8 @@ class FacebookShareBottomSheet extends StatefulWidget {
   const FacebookShareBottomSheet({super.key, required this.post});
 
   @override
-  State<FacebookShareBottomSheet> createState() => _FacebookShareBottomSheetState();
+  State<FacebookShareBottomSheet> createState() =>
+      _FacebookShareBottomSheetState();
 }
 
 class _FacebookShareBottomSheetState extends State<FacebookShareBottomSheet> {
@@ -682,33 +971,73 @@ class _FacebookShareBottomSheetState extends State<FacebookShareBottomSheet> {
               ),
             ),
             const SizedBox(height: 16),
-            const Text('Who can see this post?', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+            const Text(
+              'Who can see this post?',
+              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+            ),
             const SizedBox(height: 12),
             ListTile(
-              leading: const Icon(Icons.public_rounded, color: AppColors.primary),
-              title: const Text('Public', style: TextStyle(fontWeight: FontWeight.w700)),
+              leading: const Icon(
+                Icons.public_rounded,
+                color: AppColors.primary,
+              ),
+              title: const Text(
+                'Public',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
               subtitle: const Text('Anyone on Pet Maya can view this post'),
-              trailing: _selectedAudience == 'Public' ? const Icon(Icons.check_circle_rounded, color: AppColors.primary) : null,
+              trailing: _selectedAudience == 'Public'
+                  ? const Icon(
+                      Icons.check_circle_rounded,
+                      color: AppColors.primary,
+                    )
+                  : null,
               onTap: () {
                 setState(() => _selectedAudience = 'Public');
                 Navigator.pop(ctx);
               },
             ),
             ListTile(
-              leading: const Icon(Icons.people_alt_rounded, color: AppColors.primary),
-              title: const Text('Friends & Community', style: TextStyle(fontWeight: FontWeight.w700)),
-              subtitle: const Text('Only your pet friends and clinic connections'),
-              trailing: _selectedAudience == 'Friends' ? const Icon(Icons.check_circle_rounded, color: AppColors.primary) : null,
+              leading: const Icon(
+                Icons.people_alt_rounded,
+                color: AppColors.primary,
+              ),
+              title: const Text(
+                'Friends & Community',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+              subtitle: const Text(
+                'Only your pet friends and clinic connections',
+              ),
+              trailing: _selectedAudience == 'Friends'
+                  ? const Icon(
+                      Icons.check_circle_rounded,
+                      color: AppColors.primary,
+                    )
+                  : null,
               onTap: () {
                 setState(() => _selectedAudience = 'Friends');
                 Navigator.pop(ctx);
               },
             ),
             ListTile(
-              leading: const Icon(Icons.lock_outline_rounded, color: AppColors.primary),
-              title: const Text('Only Me', style: TextStyle(fontWeight: FontWeight.w700)),
-              subtitle: const Text('Only you can view this post on your profile'),
-              trailing: _selectedAudience == 'Only Me' ? const Icon(Icons.check_circle_rounded, color: AppColors.primary) : null,
+              leading: const Icon(
+                Icons.lock_outline_rounded,
+                color: AppColors.primary,
+              ),
+              title: const Text(
+                'Only Me',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+              subtitle: const Text(
+                'Only you can view this post on your profile',
+              ),
+              trailing: _selectedAudience == 'Only Me'
+                  ? const Icon(
+                      Icons.check_circle_rounded,
+                      color: AppColors.primary,
+                    )
+                  : null,
               onTap: () {
                 setState(() => _selectedAudience = 'Only Me');
                 Navigator.pop(ctx);
@@ -747,7 +1076,9 @@ class _FacebookShareBottomSheetState extends State<FacebookShareBottomSheet> {
     }
 
     for (final post in state.posts) {
-      if (post.userId != currentUid && !addedIds.contains(post.userId) && post.userName.isNotEmpty) {
+      if (post.userId != currentUid &&
+          !addedIds.contains(post.userId) &&
+          post.userName.isNotEmpty) {
         addedIds.add(post.userId);
         dynamicContacts.add(
           _ShareContact(
@@ -762,9 +1093,13 @@ class _FacebookShareBottomSheetState extends State<FacebookShareBottomSheet> {
 
     final filteredContacts = _searchQuery.isEmpty
         ? dynamicContacts
-        : dynamicContacts.where((c) =>
-            c.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-            c.role.toLowerCase().contains(_searchQuery.toLowerCase())).toList();
+        : dynamicContacts
+              .where(
+                (c) =>
+                    c.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+                    c.role.toLowerCase().contains(_searchQuery.toLowerCase()),
+              )
+              .toList();
 
     return Container(
       decoration: BoxDecoration(
@@ -806,11 +1141,19 @@ class _FacebookShareBottomSheetState extends State<FacebookShareBottomSheet> {
                   CircleAvatar(
                     radius: 22,
                     backgroundColor: AppColors.primaryLight,
-                    backgroundImage: (currentUser?.photoUrl != null && currentUser!.photoUrl!.isNotEmpty)
+                    backgroundImage:
+                        (currentUser?.photoUrl != null &&
+                            currentUser!.photoUrl!.isNotEmpty)
                         ? NetworkImage(currentUser.photoUrl!)
                         : null,
-                    child: (currentUser?.photoUrl == null || currentUser!.photoUrl!.isEmpty)
-                        ? const Icon(Icons.person, size: 22, color: AppColors.primary)
+                    child:
+                        (currentUser?.photoUrl == null ||
+                            currentUser!.photoUrl!.isEmpty)
+                        ? const Icon(
+                            Icons.person,
+                            size: 22,
+                            color: AppColors.primary,
+                          )
                         : null,
                   ),
                   const SizedBox(width: 12),
@@ -820,26 +1163,44 @@ class _FacebookShareBottomSheetState extends State<FacebookShareBottomSheet> {
                       children: [
                         Text(
                           currentUser?.name ?? 'Pet Lover',
-                          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 15,
+                          ),
                         ),
                         const SizedBox(height: 3),
                         GestureDetector(
                           onTap: () => _showAudienceSelector(context, cardBg),
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
                             decoration: BoxDecoration(
-                              color: isDark ? Colors.white10 : Colors.grey.withValues(alpha: 0.1),
+                              color: isDark
+                                  ? Colors.white10
+                                  : Colors.grey.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: isDark ? Colors.white12 : Colors.black12),
+                              border: Border.all(
+                                color: isDark ? Colors.white12 : Colors.black12,
+                              ),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(Icons.public_rounded, size: 12, color: AppColors.primary),
+                                const Icon(
+                                  Icons.public_rounded,
+                                  size: 12,
+                                  color: AppColors.primary,
+                                ),
                                 const SizedBox(width: 4),
                                 Text(
                                   '$_selectedAudience ▾',
-                                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.primary),
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.primary,
+                                  ),
                                 ),
                               ],
                             ),
@@ -849,7 +1210,10 @@ class _FacebookShareBottomSheetState extends State<FacebookShareBottomSheet> {
                     ),
                   ),
                   IconButton(
-                    icon: Icon(Icons.close_rounded, color: isDark ? Colors.white54 : Colors.grey[600]),
+                    icon: Icon(
+                      Icons.close_rounded,
+                      color: isDark ? Colors.white54 : Colors.grey[600],
+                    ),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -878,14 +1242,17 @@ class _FacebookShareBottomSheetState extends State<FacebookShareBottomSheet> {
                     _buildQuickActionCircle(
                       icon: Icons.edit_note_rounded,
                       label: 'Share to Feed\n(Caption)',
-                      bgColor: isDark ? Colors.white10 : const Color(0xFFE7F3FF),
+                      bgColor: isDark
+                          ? Colors.white10
+                          : const Color(0xFFE7F3FF),
                       iconColor: const Color(0xFF1877F2),
                       onTap: () {
                         Navigator.pop(context);
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => CreatePostScreen(sharedPost: widget.post),
+                            builder: (_) =>
+                                CreatePostScreen(sharedPost: widget.post),
                           ),
                         );
                       },
@@ -894,10 +1261,17 @@ class _FacebookShareBottomSheetState extends State<FacebookShareBottomSheet> {
                     _buildQuickActionCircle(
                       icon: Icons.link_rounded,
                       label: 'Copy\nLink',
-                      bgColor: isDark ? Colors.white10 : const Color(0xFFFFF3E0),
+                      bgColor: isDark
+                          ? Colors.white10
+                          : const Color(0xFFFFF3E0),
                       iconColor: AppColors.accentAmber,
                       onTap: () {
-                        Clipboard.setData(ClipboardData(text: 'https://petmaya.app/post/${widget.post.postId}'));
+                        Clipboard.setData(
+                          ClipboardData(
+                            text:
+                                'https://petmaya.app/post/${widget.post.postId}',
+                          ),
+                        );
                         HapticFeedback.lightImpact();
                         Navigator.pop(context);
                         state.showToast('Post link copied to clipboard! 📋');
@@ -907,24 +1281,31 @@ class _FacebookShareBottomSheetState extends State<FacebookShareBottomSheet> {
                     _buildQuickActionCircle(
                       icon: Icons.chat_rounded,
                       label: 'Send in\nChat',
-                      bgColor: isDark ? Colors.white10 : const Color(0xFFE8F5E9),
+                      bgColor: isDark
+                          ? Colors.white10
+                          : const Color(0xFFE8F5E9),
                       iconColor: AppColors.healthGreen,
                       onTap: () {
                         HapticFeedback.lightImpact();
-                        state.showToast('Select a pet friend or vet below to share! 💬');
+                        state.showToast(
+                          'Select a pet friend or vet below to share! 💬',
+                        );
                       },
                     ),
                     const SizedBox(width: 16),
                     _buildQuickActionCircle(
                       icon: Icons.more_horiz_rounded,
                       label: 'More\nOptions',
-                      bgColor: isDark ? Colors.white10 : Colors.grey.withValues(alpha: 0.15),
+                      bgColor: isDark
+                          ? Colors.white10
+                          : Colors.grey.withValues(alpha: 0.15),
                       iconColor: isDark ? Colors.white70 : Colors.black87,
                       onTap: () async {
                         Navigator.pop(context);
                         HapticFeedback.mediumImpact();
                         state.incrementPostShares(widget.post.postId);
-                        final shareText = 'Check out this post on Pet Maya by ${widget.post.userName}:\n\n"${widget.post.content}"\n\nhttps://petmaya.app/';
+                        final shareText =
+                            'Check out this post on Pet Maya by ${widget.post.userName}:\n\n"${widget.post.content}"\n\nhttps://petmaya.app/';
                         await SharePlus.instance.share(
                           ShareParams(
                             text: shareText,
@@ -938,7 +1319,12 @@ class _FacebookShareBottomSheetState extends State<FacebookShareBottomSheet> {
               ),
 
               const SizedBox(height: 24),
-              Divider(height: 1, color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.08)),
+              Divider(
+                height: 1,
+                color: isDark
+                    ? Colors.white10
+                    : Colors.black.withValues(alpha: 0.08),
+              ),
               const SizedBox(height: 16),
 
               // Facebook Send in Direct Message section
@@ -974,21 +1360,31 @@ class _FacebookShareBottomSheetState extends State<FacebookShareBottomSheet> {
                   margin: const EdgeInsets.only(bottom: 12),
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   decoration: BoxDecoration(
-                    color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey.withValues(alpha: 0.08),
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.05)
+                        : Colors.grey.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.search_rounded, size: 18, color: isDark ? Colors.white38 : Colors.grey[500]),
+                      Icon(
+                        Icons.search_rounded,
+                        size: 18,
+                        color: isDark ? Colors.white38 : Colors.grey[500],
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: TextField(
                           controller: _searchController,
-                          onChanged: (val) => setState(() => _searchQuery = val.trim()),
+                          onChanged: (val) =>
+                              setState(() => _searchQuery = val.trim()),
                           style: const TextStyle(fontSize: 12),
                           decoration: const InputDecoration(
                             hintText: 'Search pet friends and vets...',
-                            hintStyle: TextStyle(fontSize: 12, color: Colors.grey),
+                            hintStyle: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
                             border: InputBorder.none,
                             isDense: true,
                             contentPadding: EdgeInsets.zero,
@@ -1001,7 +1397,11 @@ class _FacebookShareBottomSheetState extends State<FacebookShareBottomSheet> {
                             _searchController.clear();
                             setState(() => _searchQuery = '');
                           },
-                          child: const Icon(Icons.close_rounded, size: 16, color: Colors.grey),
+                          child: const Icon(
+                            Icons.close_rounded,
+                            size: 16,
+                            color: Colors.grey,
+                          ),
                         ),
                     ],
                   ),
@@ -1010,14 +1410,23 @@ class _FacebookShareBottomSheetState extends State<FacebookShareBottomSheet> {
 
               if (filteredContacts.isEmpty)
                 Container(
-                  padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 24,
+                    horizontal: 16,
+                  ),
                   alignment: Alignment.center,
                   child: Column(
                     children: [
-                      Icon(Icons.people_outline_rounded, size: 36, color: isDark ? Colors.white24 : Colors.grey[400]),
+                      Icon(
+                        Icons.people_outline_rounded,
+                        size: 36,
+                        color: isDark ? Colors.white24 : Colors.grey[400],
+                      ),
                       const SizedBox(height: 8),
                       Text(
-                        _searchQuery.isNotEmpty ? 'No contacts match "$_searchQuery"' : 'No other active contacts found yet',
+                        _searchQuery.isNotEmpty
+                            ? 'No contacts match "$_searchQuery"'
+                            : 'No other active contacts found yet',
                         style: TextStyle(
                           fontSize: 12,
                           color: isDark ? Colors.white38 : Colors.grey[600],
@@ -1034,12 +1443,19 @@ class _FacebookShareBottomSheetState extends State<FacebookShareBottomSheet> {
 
                     return Container(
                       margin: const EdgeInsets.only(bottom: 10),
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 8,
+                      ),
                       decoration: BoxDecoration(
-                        color: isDark ? Colors.white.withValues(alpha: 0.03) : Colors.grey.withValues(alpha: 0.05),
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.03)
+                            : Colors.grey.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: isDark ? Colors.white.withValues(alpha: 0.06) : Colors.black.withValues(alpha: 0.04),
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.06)
+                              : Colors.black.withValues(alpha: 0.04),
                         ),
                       ),
                       child: Row(
@@ -1047,11 +1463,19 @@ class _FacebookShareBottomSheetState extends State<FacebookShareBottomSheet> {
                           CircleAvatar(
                             radius: 18,
                             backgroundColor: AppColors.primaryLight,
-                            backgroundImage: (contact.avatar != null && contact.avatar!.isNotEmpty)
+                            backgroundImage:
+                                (contact.avatar != null &&
+                                    contact.avatar!.isNotEmpty)
                                 ? CachedNetworkImageProvider(contact.avatar!)
                                 : null,
-                            child: (contact.avatar == null || contact.avatar!.isEmpty)
-                                ? const Icon(Icons.person, size: 18, color: AppColors.primary)
+                            child:
+                                (contact.avatar == null ||
+                                    contact.avatar!.isEmpty)
+                                ? const Icon(
+                                    Icons.person,
+                                    size: 18,
+                                    color: AppColors.primary,
+                                  )
                                 : null,
                           ),
                           const SizedBox(width: 12),
@@ -1059,12 +1483,23 @@ class _FacebookShareBottomSheetState extends State<FacebookShareBottomSheet> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(contact.name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                                Text(
+                                  contact.name,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 13,
+                                  ),
+                                ),
                                 Text(
                                   contact.role,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(fontSize: 10, color: isDark ? Colors.white54 : Colors.grey[600]),
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: isDark
+                                        ? Colors.white54
+                                        : Colors.grey[600],
+                                  ),
                                 ),
                               ],
                             ),
@@ -1074,26 +1509,43 @@ class _FacebookShareBottomSheetState extends State<FacebookShareBottomSheet> {
                                 ? null
                                 : () {
                                     HapticFeedback.lightImpact();
-                                    setState(() => _sentRecipients.add(contact.id));
-                                    state.incrementPostShares(widget.post.postId);
+                                    setState(
+                                      () => _sentRecipients.add(contact.id),
+                                    );
+                                    state.incrementPostShares(
+                                      widget.post.postId,
+                                    );
                                     state.addNotification(
                                       title: 'Post Shared 🐾',
-                                      message: 'You sent ${widget.post.userName}\'s story to ${contact.name}',
+                                      message:
+                                          'You sent ${widget.post.userName}\'s story to ${contact.name}',
                                       type: NotificationType.system,
                                     );
-                                    state.showToast('Sent to ${contact.name}! 🐾');
+                                    state.showToast(
+                                      'Sent to ${contact.name}! 🐾',
+                                    );
                                   },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: isSent ? AppColors.healthGreen : const Color(0xFF1877F2),
+                              backgroundColor: isSent
+                                  ? AppColors.healthGreen
+                                  : const Color(0xFF1877F2),
                               foregroundColor: Colors.white,
                               elevation: 0,
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 8,
+                              ),
                               minimumSize: const Size(64, 32),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
                             ),
                             child: Text(
                               isSent ? 'Sent ✓' : 'Send',
-                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w800,
+                              ),
                             ),
                           ),
                         ],
@@ -1123,17 +1575,18 @@ class _FacebookShareBottomSheetState extends State<FacebookShareBottomSheet> {
           Container(
             width: 54,
             height: 54,
-            decoration: BoxDecoration(
-              color: bgColor,
-              shape: BoxShape.circle,
-            ),
+            decoration: BoxDecoration(color: bgColor, shape: BoxShape.circle),
             child: Icon(icon, color: iconColor, size: 24),
           ),
           const SizedBox(height: 6),
           Text(
             label,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, height: 1.2),
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              height: 1.2,
+            ),
           ),
         ],
       ),

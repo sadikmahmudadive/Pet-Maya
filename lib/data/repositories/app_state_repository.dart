@@ -136,7 +136,8 @@ class AppStateRepository extends ChangeNotifier {
     int maxDiscount = 0;
     for (final promo in _promos) {
       if (promo.isActive && _currentUser!.claimedPromoIds.contains(promo.id)) {
-        if (promo.discountPercent > maxDiscount) maxDiscount = promo.discountPercent;
+        if (promo.discountPercent > maxDiscount)
+          maxDiscount = promo.discountPercent;
       }
     }
     return maxDiscount;
@@ -157,9 +158,11 @@ class AppStateRepository extends ChangeNotifier {
     return best?.name ?? 'Promo';
   }
 
-  bool get isGlobalPromoActive => currentAppliedDiscount > 0 || activeUnclaimedPromo != null;
+  bool get isGlobalPromoActive =>
+      currentAppliedDiscount > 0 || activeUnclaimedPromo != null;
   bool get hasClaimedGlobalPromo => currentAppliedDiscount > 0;
-  bool get isPromoVisible => activeUnclaimedPromo != null && !_isPromoDismissedInSession;
+  bool get isPromoVisible =>
+      activeUnclaimedPromo != null && !_isPromoDismissedInSession;
 
   void dismissPromoForSession() {
     _isPromoDismissedInSession = true;
@@ -226,8 +229,9 @@ class AppStateRepository extends ChangeNotifier {
   int get unreadNotificationCount =>
       _notifications.where((n) => !n.isRead).length;
 
-  double get cartSubtotal => _cartItems.fold(0.0, (sum, item) => sum + item.totalPrice);
-  
+  double get cartSubtotal =>
+      _cartItems.fold(0.0, (sum, item) => sum + item.totalPrice);
+
   double get cartShipping => _cartItems.isEmpty ? 0.0 : _baseShippingFee;
 
   double get cartPromoDiscount {
@@ -238,7 +242,8 @@ class AppStateRepository extends ChangeNotifier {
     return 0.0;
   }
 
-  double get cartCouponDiscount => _appliedCoupon?.calculateDiscount(cartSubtotal) ?? 0.0;
+  double get cartCouponDiscount =>
+      _appliedCoupon?.calculateDiscount(cartSubtotal) ?? 0.0;
 
   double get cartDiscount => cartPromoDiscount + cartCouponDiscount;
 
@@ -449,7 +454,13 @@ class AppStateRepository extends ChangeNotifier {
       });
       _subscribeToTopics(user);
       _currentUser = user;
-      Future.wait([_loadProducts(), _loadCommunityPosts(), _loadBlogs(), _loadCoupons(), _loadPromos()]);
+      Future.wait([
+        _loadProducts(),
+        _loadCommunityPosts(),
+        _loadBlogs(),
+        _loadCoupons(),
+        _loadPromos(),
+      ]);
       _listenToVets();
       _listenToCurrentUser(user.uid);
       _listenToGlobalSettings();
@@ -714,15 +725,20 @@ class AppStateRepository extends ChangeNotifier {
   }
 
   Future<void> _loadPromos() async {
-    _firebase.streamPromos().listen((fetchedPromos) {
-      debugPrint('[AppStateRepository] Received ${fetchedPromos.length} promos from Firestore.');
-      _promos
-        ..clear()
-        ..addAll(fetchedPromos);
-      notifyListeners();
-    }, onError: (e) {
-      debugPrint('[AppStateRepository] Error streaming promos: $e');
-    });
+    _firebase.streamPromos().listen(
+      (fetchedPromos) {
+        debugPrint(
+          '[AppStateRepository] Received ${fetchedPromos.length} promos from Firestore.',
+        );
+        _promos
+          ..clear()
+          ..addAll(fetchedPromos);
+        notifyListeners();
+      },
+      onError: (e) {
+        debugPrint('[AppStateRepository] Error streaming promos: $e');
+      },
+    );
   }
 
   Future<void> refreshPromos() async {
@@ -1305,13 +1321,27 @@ class AppStateRepository extends ChangeNotifier {
     await _firebase.incrementPostShares(postId);
   }
 
-  Future<void> togglePostLike(String postId) async {
+  Future<void> togglePostReaction(String postId, String reactionType) async {
     final post = _posts.firstWhere((p) => p.postId == postId);
     final userId = _currentUser?.uid ?? 'guest';
-    final wasLiked = post.isLikedByUser(userId);
-    post.toggleLike(userId);
+    final currentReaction = post.getUserReaction(userId);
+    final isNewReaction = (currentReaction == null);
+
+    post.setReaction(userId, reactionType);
+    final isStillReacted = post.isLikedByUser(userId);
     notifyListeners();
-    await _firebase.togglePostLike(postId, userId, !wasLiked);
+
+    await _firebase.togglePostReaction(
+      postId,
+      userId,
+      reactionType,
+      isStillReacted,
+      isNewReaction,
+    );
+  }
+
+  Future<void> togglePostLike(String postId) async {
+    await togglePostReaction(postId, 'Like');
   }
 
   void listenToComments(String postId) {
@@ -1448,7 +1478,10 @@ class AppStateRepository extends ChangeNotifier {
       _currentUser = _currentUser!.copyWith(claimedPromoIds: ids);
       notifyListeners();
       await _firebase.saveUserProfile(_currentUser!);
-      logAudit('Promo Claimed', 'User ${_currentUser?.name} claimed promo $promoId');
+      logAudit(
+        'Promo Claimed',
+        'User ${_currentUser?.name} claimed promo $promoId',
+      );
     }
   }
 
