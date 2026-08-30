@@ -18,7 +18,7 @@ import '../../common_widgets/skeleton_loader.dart';
 import 'create_post_screen.dart';
 import 'comments_bottom_sheet.dart';
 import '../../common_widgets/micro_animations/animated_action_button.dart';
-import '../../common_widgets/micro_animations/bouncing_widget.dart';
+import '../../common_widgets/micro_animations/lottie_reaction_button.dart';
 
 class CommunityFeedScreen extends StatefulWidget {
   const CommunityFeedScreen({super.key});
@@ -478,15 +478,7 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
                                     child: Row(
                                       children: [
                                         Expanded(
-                                          child: AnimatedActionButton(
-                                            inactiveIcon: Icons.thumb_up_alt_outlined,
-                                            activeIcon: Icons.thumb_up_alt_rounded,
-                                            label: 'Like',
-                                            isActive: isLiked,
-                                            activeColor: const Color(0xFF1877F2),
-                                            inactiveColor: isDark ? Colors.white60 : Colors.grey[700]!,
-                                            onTap: () => state.togglePostLike(post.postId),
-                                          ),
+                                          child: LottieReactionButton(post: post),
                                         ),
                                         Expanded(
                                           child: AnimatedActionButton(
