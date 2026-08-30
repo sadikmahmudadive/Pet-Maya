@@ -1341,7 +1341,14 @@ class AppStateRepository extends ChangeNotifier {
   }
 
   Future<void> togglePostLike(String postId) async {
-    await togglePostReaction(postId, 'Like');
+    final post = _posts.firstWhere((p) => p.postId == postId);
+    final userId = _currentUser?.uid ?? 'guest';
+    final currentReaction = post.getUserReaction(userId);
+    if (currentReaction != null) {
+      await togglePostReaction(postId, currentReaction);
+    } else {
+      await togglePostReaction(postId, 'Like');
+    }
   }
 
   void listenToComments(String postId) {

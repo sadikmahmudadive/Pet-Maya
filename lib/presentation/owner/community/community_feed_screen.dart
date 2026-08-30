@@ -18,6 +18,7 @@ import '../../common_widgets/skeleton_loader.dart';
 import 'create_post_screen.dart';
 import 'comments_bottom_sheet.dart';
 import '../../common_widgets/micro_animations/animated_action_button.dart';
+import 'package:lottie/lottie.dart';
 import '../../common_widgets/micro_animations/lottie_reaction_button.dart';
 
 class CommunityFeedScreen extends StatefulWidget {
@@ -28,6 +29,56 @@ class CommunityFeedScreen extends StatefulWidget {
 }
 
 class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
+  Widget _buildSocialProofReactions(FeedPostModel post) {
+    final reactions = post.userReactions.values.toSet().toList();
+    if (reactions.isEmpty && post.likesCount > 0) {
+      reactions.add('Like');
+    }
+    if (reactions.isEmpty) return const SizedBox.shrink();
+
+    final activeList = reactions.take(3).toList();
+    return SizedBox(
+      height: 20,
+      width: (activeList.length - 1) * 14.0 + 20.0,
+      child: Stack(
+        children: activeList.asMap().entries.map((entry) {
+          final idx = entry.key;
+          final rName = entry.value;
+          final config = kReactions.firstWhere(
+            (r) => r.label.toLowerCase() == rName.toLowerCase(),
+            orElse: () => kReactions.first,
+          );
+
+          return Positioned(
+            left: idx * 14.0,
+            child: Container(
+              width: 20,
+              height: 20,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 1.5),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.15),
+                    blurRadius: 3,
+                    offset: const Offset(0, 1),
+                  ),
+                ],
+              ),
+              child: ClipOval(
+                child: Lottie.asset(
+                  config.assetPath,
+                  fit: BoxFit.contain,
+                  repeat: false,
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
   String _selectedTab = 'ALL';
 
   String _formatTimestamp(int timestamp) {
@@ -640,35 +691,27 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
                                 const SizedBox(height: 12),
 
                                 // Social Proof Bar
+                                if (post.likesCount > 0 || post.commentsCount > 0 || post.sharesCount > 0)
                                 Padding(
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 16,
                                   ),
                                   child: Row(
                                     children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(4),
-                                        decoration: const BoxDecoration(
-                                          color: Color(0xFF1877F2),
-                                          shape: BoxShape.circle,
+                                      if (post.likesCount > 0) ...[
+                                        _buildSocialProofReactions(post),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          '${post.likesCount}',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w700,
+                                            color: isDark
+                                                ? Colors.white60
+                                                : Colors.grey[700],
+                                          ),
                                         ),
-                                        child: const Icon(
-                                          Icons.thumb_up_alt_rounded,
-                                          size: 10,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        '${post.likesCount}',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w700,
-                                          color: isDark
-                                              ? Colors.white60
-                                              : Colors.grey[700],
-                                        ),
-                                      ),
+                                      ],
                                       const Spacer(),
                                       Text(
                                         '${post.commentsCount} comments',

@@ -669,7 +669,7 @@ class FirebaseService {
       final Map<String, dynamic> updateData = {
         'likedByUserIds': FieldValue.arrayUnion([userId]),
         'likedBy': {userId: true},
-        'userReactions.': reactionType,
+        'userReactions.$userId': reactionType,
       };
       if (isNewReaction) {
         updateData['likesCount'] = FieldValue.increment(1);
@@ -682,7 +682,7 @@ class FirebaseService {
         'likes': FieldValue.increment(-1),
         'likedByUserIds': FieldValue.arrayRemove([userId]),
         'likedBy': {userId: false},
-        'userReactions.': FieldValue.delete(),
+        'userReactions.$userId': FieldValue.delete(),
       }, SetOptions(merge: true));
     }
   }
