@@ -97,7 +97,9 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
   }
 
   Widget _buildSystemBanner(BuildContext context) {
-    final banner = context.select((AppStateRepository repo) => repo.systemBanner);
+    final banner = context.select(
+      (AppStateRepository repo) => repo.systemBanner,
+    );
     if (banner == null || banner.isEmpty) return const SizedBox.shrink();
 
     return FadeInDown(
@@ -109,7 +111,11 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
             colors: [AppColors.primary, AppColors.primaryDark],
           ),
           boxShadow: [
-            BoxShadow(color: AppColors.primary.withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 4)),
+            BoxShadow(
+              color: AppColors.primary.withValues(alpha: 0.3),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
           ],
         ),
         child: SafeArea(
@@ -121,12 +127,22 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
               Expanded(
                 child: Text(
                   banner,
-                  style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 0.3),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.3,
+                  ),
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.close_rounded, color: Colors.white70, size: 16),
-                onPressed: () => context.read<AppStateRepository>().setSystemBanner(null),
+                icon: const Icon(
+                  Icons.close_rounded,
+                  color: Colors.white70,
+                  size: 16,
+                ),
+                onPressed: () =>
+                    context.read<AppStateRepository>().setSystemBanner(null),
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
               ),
@@ -1021,10 +1037,12 @@ class HomeDashboardFragment extends StatelessWidget {
               child: CircleAvatar(
                 radius: isLandscape ? 20 : 24,
                 backgroundColor: Theme.of(context).cardColor,
-                backgroundImage: (user?.photoUrl != null && user!.photoUrl!.isNotEmpty)
+                backgroundImage:
+                    (user?.photoUrl != null && user!.photoUrl!.isNotEmpty)
                     ? (user.photoUrl!.startsWith('http')
-                        ? CachedNetworkImageProvider(user.photoUrl!) as ImageProvider
-                        : AssetImage(user.photoUrl!) as ImageProvider)
+                          ? CachedNetworkImageProvider(user.photoUrl!)
+                                as ImageProvider
+                          : AssetImage(user.photoUrl!) as ImageProvider)
                     : null,
                 child: (user?.photoUrl == null || user!.photoUrl!.isEmpty)
                     ? Icon(
@@ -1239,12 +1257,18 @@ class HomeDashboardFragment extends StatelessWidget {
                             Text(
                               vet.reviewsCount == 0 ? 'NEW' : '${vet.rating}',
                               style: Theme.of(context).textTheme.labelSmall
-                                  ?.copyWith(fontWeight: FontWeight.w900, color: AppColors.accentAmber),
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w900,
+                                    color: AppColors.accentAmber,
+                                  ),
                             ),
                             Flexible(
                               child: Text(
-                                vet.reviewsCount == 0 ? '' : ' (${vet.reviewsCount} reviews)',
-                                style: Theme.of(context).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w600),
+                                vet.reviewsCount == 0
+                                    ? ''
+                                    : ' (${vet.reviewsCount} reviews)',
+                                style: Theme.of(context).textTheme.labelSmall
+                                    ?.copyWith(fontWeight: FontWeight.w600),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -1444,5 +1468,3 @@ class HomeDashboardFragment extends StatelessWidget {
     );
   }
 }
-
-

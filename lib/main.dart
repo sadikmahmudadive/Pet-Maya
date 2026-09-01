@@ -13,8 +13,14 @@ import 'core/theme/app_theme.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/notification_handlers.dart';
 import 'data/repositories/app_state_repository.dart';
+import 'data/models/pet_model.dart';
+import 'data/services/home_widget_service.dart';
 import 'presentation/auth/splash_screen.dart';
 import 'presentation/common_widgets/global_offline_banner.dart';
+import 'presentation/owner/home/pet_tracker_screen.dart';
+import 'presentation/owner/pets/ai_health_scanner_screen.dart';
+import 'presentation/owner/pets/my_pets_screen.dart';
+import 'presentation/owner/calendar/calendar_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,7 +45,9 @@ void main() async {
   if (mapsImplementation is GoogleMapsFlutterAndroid) {
     mapsImplementation.useAndroidViewSurface = true;
     try {
-      await mapsImplementation.initializeWithRenderer(AndroidMapRenderer.latest);
+      await mapsImplementation.initializeWithRenderer(
+        AndroidMapRenderer.latest,
+      );
     } catch (e) {
       debugPrint('[Google Maps] Renderer already initialized or error: $e');
     }
@@ -50,7 +58,7 @@ void main() async {
     FirebaseCrashlytics.instance.recordFlutterFatalError(errorDetails);
   };
 
-  // Pass all uncaught asynchronous errors that aren't handled by the Flutter framework to Crashlytics
+  // Pass all uncaught asynchronous errors that aren't handled by the framework to Crashlytics
   PlatformDispatcher.instance.onError = (error, stack) {
     FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
     return true;
@@ -66,12 +74,78 @@ void main() async {
   // Initialize Workmanager for battery-optimization-aware tasks
   Workmanager().initialize(callbackDispatcher);
 
+  // Initialize Home Widget Service and register deep-link dispatcher
+  await HomeWidgetService.init(onDeepLink: (uri) => handleWidgetDeepLink(uri));
+
   runApp(
     MultiProvider(
       providers: [ChangeNotifierProvider(create: (_) => AppStateRepository())],
       child: const TailWaggingApp(),
     ),
   );
+}
+
+void handleWidgetDeepLink(Uri uri) {
+  debugPrint('[HomeWidget] Handling Deep Link: $uri');
+  final host = uri.host.isNotEmpty ? uri.host : uri.path.replaceAll('/', '');
+
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    final navState = TailWaggingApp.navigatorKey.currentState;
+    final context = TailWaggingApp.navigatorKey.currentContext;
+    if (navState == null || context == null) {
+      // Retry if called while app is cold starting
+      Future.delayed(
+        const Duration(milliseconds: 600),
+        () => handleWidgetDeepLink(uri),
+      );
+      return;
+    }
+
+    final appState = Provider.of<AppStateRepository>(context, listen: false);
+    final pet = appState.pets.isNotEmpty
+        ? appState.pets.first
+        : PetModel(
+            petID: 'sample_max',
+            ownerUID: appState.currentUser?.uid ?? 'guest',
+            name: 'Max',
+            species: 'Dog',
+            breed: 'Golden Retriever',
+            age: 3,
+            weight: 28.5,
+            gender: 'Male',
+            microchipNumber: 'MC-88392104',
+            photoURL:
+                'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&q=80&w=600',
+            isVaccinated: true,
+            isSpayedNeutered: true,
+          );
+
+    switch (host) {
+      case 'radar':
+      case 'sos':
+        navState.push(
+          MaterialPageRoute(builder: (_) => PetTrackerScreen(pet: pet)),
+        );
+        break;
+      case 'ai_scan':
+        navState.push(
+          MaterialPageRoute(builder: (_) => const AiHealthScannerScreen()),
+        );
+        break;
+      case 'passport':
+        navState.push(MaterialPageRoute(builder: (_) => const MyPetsScreen()));
+        break;
+      case 'reminders':
+        navState.push(
+          MaterialPageRoute(builder: (_) => const CalendarScreen()),
+        );
+        break;
+      case 'home':
+      default:
+        navState.popUntil((route) => route.isFirst);
+        break;
+    }
+  });
 }
 
 class TailWaggingApp extends StatelessWidget {

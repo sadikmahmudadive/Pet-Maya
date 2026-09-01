@@ -35,15 +35,21 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   Future<void> _updateProfilePhoto() async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
-    
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 70,
+    );
+
     if (pickedFile != null) {
       setState(() => _isUpdatingPhoto = true);
       HapticFeedback.mediumImpact();
-      
+
       final file = File(pickedFile.path);
-      final uploadedUrl = await FirebaseStorageService().uploadImage(file, 'profile_pics');
-      
+      final uploadedUrl = await FirebaseStorageService().uploadImage(
+        file,
+        'profile_pics',
+      );
+
       if (uploadedUrl != null) {
         final repo = context.read<AppStateRepository>();
         await repo.updateProfile(
@@ -52,17 +58,23 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         );
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Profile photo updated! ✨'), backgroundColor: AppColors.healthGreen),
+            const SnackBar(
+              content: Text('Profile photo updated! ✨'),
+              backgroundColor: AppColors.healthGreen,
+            ),
           );
         }
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Failed to upload photo.'), backgroundColor: AppColors.dangerRed),
+            const SnackBar(
+              content: Text('Failed to upload photo.'),
+              backgroundColor: AppColors.dangerRed,
+            ),
           );
         }
       }
-      
+
       if (mounted) setState(() => _isUpdatingPhoto = false);
     }
   }
@@ -73,7 +85,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     final user = state.currentUser;
     final pets = state.pets;
 
-    if (user == null) return const Scaffold(body: TailWaggingLoader(useBottomPosition: true));
+    if (user == null)
+      return const Scaffold(body: TailWaggingLoader(useBottomPosition: true));
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -111,7 +124,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     top: -20,
                     child: Opacity(
                       opacity: 0.08,
-                      child: const Icon(Icons.pets_rounded, size: 300, color: Colors.white),
+                      child: const Icon(
+                        Icons.pets_rounded,
+                        size: 300,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                   // Centered Avatar
@@ -123,23 +140,35 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         _buildAvatarSection(user),
                         const SizedBox(height: 16),
                         FadeInDown(
-                          child: Text(user.name, 
+                          child: Text(
+                            user.name,
                             style: GoogleFonts.plusJakartaSans(
-                              color: Colors.white, 
-                              fontSize: 26, 
-                              fontWeight: FontWeight.w700
-                            )),
+                              color: Colors.white,
+                              fontSize: 26,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
                         ),
                         FadeInUp(
                           child: Container(
                             margin: const EdgeInsets.only(top: 6),
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.white.withValues(alpha: 0.24),
                               borderRadius: BorderRadius.circular(20),
                             ),
-                            child: Text(user.role.displayName.toUpperCase(), 
-                              style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1)),
+                            child: Text(
+                              user.role.displayName.toUpperCase(),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 1,
+                              ),
+                            ),
                           ),
                         ),
                       ],
@@ -152,8 +181,15 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               IconButton(
                 icon: Container(
                   padding: const EdgeInsets.all(8),
-                  decoration: const BoxDecoration(color: Colors.black26, shape: BoxShape.circle),
-                  child: const Icon(Icons.logout_rounded, color: Colors.white, size: 18),
+                  decoration: const BoxDecoration(
+                    color: Colors.black26,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.logout_rounded,
+                    color: Colors.white,
+                    size: 18,
+                  ),
                 ),
                 onPressed: () => _showLogoutDialog(context, state),
               ),
@@ -168,7 +204,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               padding: const EdgeInsets.fromLTRB(20, 40, 20, 100),
               decoration: BoxDecoration(
                 color: Theme.of(context).scaffoldBackgroundColor,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(32),
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -194,7 +232,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   _buildSectionHeader('Account & Security'),
                   const SizedBox(height: 8),
                   _buildSettingsGrid(context),
-                  
+
                   const SizedBox(height: 40),
                   _buildRewardsBanner(context, user),
 
@@ -216,8 +254,14 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('Supported by ', 
-                style: TextStyle(color: Colors.grey, fontSize: 10, fontWeight: FontWeight.w600)),
+              Text(
+                'Supported by ',
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
               GestureDetector(
                 onTap: () async {
                   final url = Uri.parse('https://vertexhand.vercel.app/');
@@ -227,20 +271,29 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     debugPrint('[PartnerLink] Could not launch: $e');
                   }
                 },
-                child: Text('VertexHand', 
+                child: Text(
+                  'VertexHand',
                   style: TextStyle(
-                    color: AppColors.primary, 
-                    fontSize: 11, 
+                    color: AppColors.primary,
+                    fontSize: 11,
                     fontWeight: FontWeight.w900,
                     decoration: TextDecoration.underline,
                     decorationColor: AppColors.primary.withValues(alpha: 0.3),
-                  )),
+                  ),
+                ),
               ),
             ],
           ),
           const SizedBox(height: 4),
-          Text('Developed by MASA', 
-            style: TextStyle(color: Colors.grey[400], fontSize: 9, fontWeight: FontWeight.w700, letterSpacing: 0.5)),
+          Text(
+            'Developed by MASA',
+            style: TextStyle(
+              color: Colors.grey[400],
+              fontSize: 9,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.5,
+            ),
+          ),
         ],
       ),
     );
@@ -259,10 +312,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           child: CircleAvatar(
             radius: 54,
             backgroundColor: Colors.white.withValues(alpha: 0.1),
-            backgroundImage: (user.photoUrl != null && user.photoUrl!.isNotEmpty)
-                ? (user.photoUrl!.startsWith('http') 
-                    ? NetworkImage(user.photoUrl!) as ImageProvider
-                    : AssetImage(user.photoUrl!) as ImageProvider)
+            backgroundImage:
+                (user.photoUrl != null && user.photoUrl!.isNotEmpty)
+                ? (user.photoUrl!.startsWith('http')
+                      ? NetworkImage(user.photoUrl!) as ImageProvider
+                      : AssetImage(user.photoUrl!) as ImageProvider)
                 : null,
             child: (user.photoUrl == null || user.photoUrl!.isEmpty)
                 ? const Icon(Icons.person, size: 50, color: Colors.white38)
@@ -271,7 +325,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         ),
         if (_isUpdatingPhoto)
           const Positioned.fill(
-            child: Center(child: CircularProgressIndicator(color: Colors.white)),
+            child: Center(
+              child: CircularProgressIndicator(color: Colors.white),
+            ),
           ),
         Positioned(
           bottom: 0,
@@ -280,8 +336,15 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             onTap: _isUpdatingPhoto ? null : _updateProfilePhoto,
             child: Container(
               padding: const EdgeInsets.all(10),
-              decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-              child: const Icon(Icons.camera_alt_rounded, color: AppColors.primary, size: 18),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.camera_alt_rounded,
+                color: AppColors.primary,
+                size: 18,
+              ),
             ),
           ),
         ),
@@ -292,16 +355,42 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   Widget _buildPlatformStats(AppStateRepository state) {
     return Row(
       children: [
-        Expanded(child: _buildStatItem('Pets', '${state.pets.length}', Icons.pets_rounded, AppColors.primary)),
+        Expanded(
+          child: _buildStatItem(
+            'Pets',
+            '${state.pets.length}',
+            Icons.pets_rounded,
+            AppColors.primary,
+          ),
+        ),
         const SizedBox(width: 12),
-        Expanded(child: _buildStatItem('Orders', '${state.orders.length}', Icons.shopping_bag_rounded, AppColors.healthGreen)),
+        Expanded(
+          child: _buildStatItem(
+            'Orders',
+            '${state.orders.length}',
+            Icons.shopping_bag_rounded,
+            AppColors.healthGreen,
+          ),
+        ),
         const SizedBox(width: 12),
-        Expanded(child: _buildStatItem('Points', '${state.currentUser?.points ?? 0}', Icons.stars_rounded, AppColors.accentAmber)),
+        Expanded(
+          child: _buildStatItem(
+            'Points',
+            '${state.currentUser?.points ?? 0}',
+            Icons.stars_rounded,
+            AppColors.accentAmber,
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildStatItem(String label, String value, IconData icon, Color color) {
+  Widget _buildStatItem(
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return BouncingWidget(
       onTap: () {},
       child: PremiumCard(
@@ -313,8 +402,22 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             children: [
               Icon(icon, color: color, size: 22),
               const SizedBox(height: 8),
-              Text(value, style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 18)),
-              Text(label.toUpperCase(), style: const TextStyle(fontSize: 8, fontWeight: FontWeight.w800, color: Colors.grey, letterSpacing: 0.5)),
+              Text(
+                value,
+                style: GoogleFonts.plusJakartaSans(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 18,
+                ),
+              ),
+              Text(
+                label.toUpperCase(),
+                style: const TextStyle(
+                  fontSize: 8,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.grey,
+                  letterSpacing: 0.5,
+                ),
+              ),
             ],
           ),
         ),
@@ -331,14 +434,27 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           children: [
             _buildSectionHeader('Pet Family'),
             TextButton(
-              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyPetsScreen())),
-              child: const Text('VIEW ALL', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w800, fontSize: 10)),
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const MyPetsScreen()),
+              ),
+              child: const Text(
+                'VIEW ALL',
+                style: TextStyle(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 10,
+                ),
+              ),
             ),
           ],
         ),
         const SizedBox(height: 12),
         if (pets.isEmpty)
-          Text('No pets linked to your account.', style: AppTypography.bodyMedium)
+          Text(
+            'No pets linked to your account.',
+            style: AppTypography.bodyMedium,
+          )
         else
           SizedBox(
             height: 70,
@@ -353,12 +469,19 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   child: Container(
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.borderLight, width: 2),
+                      border: Border.all(
+                        color: AppColors.borderLight,
+                        width: 2,
+                      ),
                     ),
                     child: CircleAvatar(
                       radius: 32,
-                      backgroundImage: pet.photoUrl != null ? NetworkImage(pet.photoUrl!) : null,
-                      child: pet.photoUrl == null ? const Icon(Icons.pets, size: 16) : null,
+                      backgroundImage: pet.photoUrl != null
+                          ? NetworkImage(pet.photoUrl!)
+                          : null,
+                      child: pet.photoUrl == null
+                          ? const Icon(Icons.pets, size: 16)
+                          : null,
                     ),
                   ),
                 );
@@ -381,9 +504,17 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               children: [
                 _buildInfoRow(Icons.email_rounded, 'Email', user.email),
                 const Divider(height: 32),
-                _buildInfoRow(Icons.phone_rounded, 'Phone', user.phone ?? 'Not set'),
+                _buildInfoRow(
+                  Icons.phone_rounded,
+                  'Phone',
+                  user.phone ?? 'Not set',
+                ),
                 const Divider(height: 32),
-                _buildInfoRow(Icons.location_on_rounded, 'Address', user.address ?? 'Not set'),
+                _buildInfoRow(
+                  Icons.location_on_rounded,
+                  'Address',
+                  user.address ?? 'Not set',
+                ),
               ],
             ),
           ),
@@ -393,7 +524,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             child: GestureDetector(
               onTap: () {
                 HapticFeedback.selectionClick();
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const EditProfileScreen()));
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const EditProfileScreen()),
+                );
               },
               child: Container(
                 padding: const EdgeInsets.all(10),
@@ -401,7 +535,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   color: AppColors.primary.withValues(alpha: 0.08),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.edit_rounded, color: AppColors.primary, size: 16),
+                child: const Icon(
+                  Icons.edit_rounded,
+                  color: AppColors.primary,
+                  size: 16,
+                ),
               ),
             ),
           ),
@@ -416,8 +554,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.08), 
-            shape: BoxShape.circle
+            color: AppColors.primary.withValues(alpha: 0.08),
+            shape: BoxShape.circle,
           ),
           child: Icon(icon, color: AppColors.primary, size: 18),
         ),
@@ -426,8 +564,16 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.grey)),
-              Text(value, 
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.grey,
+                ),
+              ),
+              Text(
+                value,
                 style: AppTypography.titleMedium.copyWith(fontSize: 14),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -442,7 +588,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   Widget _buildSettingsGrid(BuildContext context) {
     final state = context.watch<AppStateRepository>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     IconData themeIcon;
     String themeLabel;
     if (state.themeMode == ThemeMode.dark) {
@@ -465,17 +611,43 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       crossAxisSpacing: 12,
       childAspectRatio: 2.2,
       children: [
-        _buildSettingsCard(context, Icons.history_rounded, 'My Orders', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const OrdersScreen()))),
-        _buildSettingsCard(context, Icons.favorite_rounded, 'Favorite Vets', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FavoriteVetsScreen()))),
-        _buildSettingsCard(context, themeIcon, themeLabel, () => _showThemeModeDialog(context, state)),
-        _buildSettingsCard(context, Icons.security_rounded, 'Privacy & Terms', () async {
-          final url = Uri.parse('https://petmaya.app/privacy-policy');
-          try {
-            await launchUrl(url, mode: LaunchMode.externalApplication);
-          } catch (e) {
-            debugPrint('[PrivacyLink] Error launching url: $e');
-          }
-        }),
+        _buildSettingsCard(
+          context,
+          Icons.history_rounded,
+          'My Orders',
+          () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const OrdersScreen()),
+          ),
+        ),
+        _buildSettingsCard(
+          context,
+          Icons.favorite_rounded,
+          'Favorite Vets',
+          () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const FavoriteVetsScreen()),
+          ),
+        ),
+        _buildSettingsCard(
+          context,
+          themeIcon,
+          themeLabel,
+          () => _showThemeModeDialog(context, state),
+        ),
+        _buildSettingsCard(
+          context,
+          Icons.security_rounded,
+          'Privacy & Terms',
+          () async {
+            final url = Uri.parse('https://petmaya.app/privacy-policy');
+            try {
+              await launchUrl(url, mode: LaunchMode.externalApplication);
+            } catch (e) {
+              debugPrint('[PrivacyLink] Error launching url: $e');
+            }
+          },
+        ),
       ],
     );
   }
@@ -633,7 +805,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 ),
               ),
               if (isSelected)
-                const Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 22),
+                const Icon(
+                  Icons.check_circle_rounded,
+                  color: AppColors.primary,
+                  size: 22,
+                ),
             ],
           ),
         ),
@@ -641,7 +817,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 
-  Widget _buildSettingsCard(BuildContext context, IconData icon, String label, VoidCallback onTap) {
+  Widget _buildSettingsCard(
+    BuildContext context,
+    IconData icon,
+    String label,
+    VoidCallback onTap,
+  ) {
     return PremiumCard(
       onTap: onTap,
       opacity: 0.15,
@@ -652,7 +833,15 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           children: [
             Icon(icon, color: AppColors.primary, size: 20),
             const SizedBox(width: 12),
-            Expanded(child: Text(label, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12))),
+            Expanded(
+              child: Text(
+                label,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 12,
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -710,7 +899,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: AppColors.primary.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(20),
@@ -731,7 +923,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           style: GoogleFonts.plusJakartaSans(
                             fontWeight: FontWeight.w700,
                             fontSize: 16,
-                            color: isDark ? Colors.white : AppColors.textPrimary,
+                            color: isDark
+                                ? Colors.white
+                                : AppColors.textPrimary,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -739,7 +933,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           'New users get 15 initial points. Earn +5 points for every friend who joins with your code!',
                           style: TextStyle(
                             fontSize: 12,
-                            color: isDark ? Colors.grey[300] : AppColors.textSecondary,
+                            color: isDark
+                                ? Colors.grey[300]
+                                : AppColors.textSecondary,
                             height: 1.35,
                           ),
                         ),
@@ -780,12 +976,19 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   InkWell(
                     onTap: () async {
                       HapticFeedback.lightImpact();
-                      await Clipboard.setData(ClipboardData(text: referralCode));
-                      state.showToast('Referral code "$referralCode" copied! 📋');
+                      await Clipboard.setData(
+                        ClipboardData(text: referralCode),
+                      );
+                      state.showToast(
+                        'Referral code "$referralCode" copied! 📋',
+                      );
                     },
                     borderRadius: BorderRadius.circular(14),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
                       decoration: BoxDecoration(
                         color: isDark ? const Color(0xFF1B2631) : Colors.white,
                         borderRadius: BorderRadius.circular(14),
@@ -814,7 +1017,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                             ),
                           ),
                           const SizedBox(width: 8),
-                          const Icon(Icons.copy_rounded, size: 14, color: AppColors.primary),
+                          const Icon(
+                            Icons.copy_rounded,
+                            size: 14,
+                            color: AppColors.primary,
+                          ),
                         ],
                       ),
                     ),
@@ -834,7 +1041,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     },
                     borderRadius: BorderRadius.circular(14),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.primary,
                         borderRadius: BorderRadius.circular(14),
@@ -849,11 +1059,19 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: const [
-                          Icon(Icons.share_rounded, size: 14, color: Colors.white),
+                          Icon(
+                            Icons.share_rounded,
+                            size: 14,
+                            color: Colors.white,
+                          ),
                           SizedBox(width: 6),
                           Text(
                             'Share Invite',
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 12),
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 12,
+                            ),
                           ),
                         ],
                       ),
@@ -865,23 +1083,36 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       onTap: () => _showRedeemDialog(context, state),
                       borderRadius: BorderRadius.circular(14),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
                         decoration: BoxDecoration(
                           color: isDark ? Colors.grey[800] : Colors.grey[100],
                           borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
+                          border: Border.all(
+                            color: Colors.grey.withValues(alpha: 0.3),
+                          ),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.input_rounded, size: 14, color: isDark ? Colors.white70 : AppColors.textPrimary),
+                            Icon(
+                              Icons.input_rounded,
+                              size: 14,
+                              color: isDark
+                                  ? Colors.white70
+                                  : AppColors.textPrimary,
+                            ),
                             const SizedBox(width: 6),
                             Text(
                               'Have a code?',
                               style: TextStyle(
                                 fontWeight: FontWeight.w700,
                                 fontSize: 12,
-                                color: isDark ? Colors.white70 : AppColors.textPrimary,
+                                color: isDark
+                                    ? Colors.white70
+                                    : AppColors.textPrimary,
                               ),
                             ),
                           ],
@@ -890,14 +1121,21 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     )
                   else
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
                         'Referred by ${user.referredBy} ✓',
-                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.primary),
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.primary,
+                        ),
                       ),
                     ),
                 ],
@@ -919,7 +1157,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           children: [
             const Icon(Icons.card_giftcard_rounded, color: AppColors.primary),
             const SizedBox(width: 10),
-            Text('Redeem Referral Code', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 18)),
+            Text(
+              'Redeem Referral Code',
+              style: GoogleFonts.plusJakartaSans(
+                fontWeight: FontWeight.w700,
+                fontSize: 18,
+              ),
+            ),
           ],
         ),
         content: Column(
@@ -936,8 +1180,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               textCapitalization: TextCapitalization.characters,
               decoration: InputDecoration(
                 hintText: 'e.g. PM89AC12',
-                prefixIcon: const Icon(Icons.confirmation_number_outlined, color: AppColors.primary),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                prefixIcon: const Icon(
+                  Icons.confirmation_number_outlined,
+                  color: AppColors.primary,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 filled: true,
               ),
             ),
@@ -957,10 +1206,18 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             ),
-            child: const Text('Apply Code', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+            child: const Text(
+              'Apply Code',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
           ),
         ],
       ),
@@ -968,8 +1225,15 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 
   Widget _buildSectionHeader(String title) {
-    return Text(title.toUpperCase(), 
-      style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 11, color: AppColors.primary, letterSpacing: 1.5));
+    return Text(
+      title.toUpperCase(),
+      style: const TextStyle(
+        fontWeight: FontWeight.w900,
+        fontSize: 11,
+        color: AppColors.primary,
+        letterSpacing: 1.5,
+      ),
+    );
   }
 
   void _showLogoutDialog(BuildContext context, AppStateRepository state) {
@@ -977,16 +1241,33 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        title: Text('Sign Out', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700)),
-        content: const Text('Are you sure you want to exit your pet care portal?'),
+        title: Text(
+          'Sign Out',
+          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
+        ),
+        content: const Text(
+          'Are you sure you want to exit your pet care portal?',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('CANCEL')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('CANCEL'),
+          ),
           ElevatedButton(
             onPressed: () {
               state.logout();
-              Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const LoginScreen()), (r) => false);
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                (r) => false,
+              );
             },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.dangerRed, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.dangerRed,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
             child: const Text('LOGOUT', style: TextStyle(color: Colors.white)),
           ),
         ],
@@ -994,4 +1275,3 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 }
-
