@@ -1,12 +1,61 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
-import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
+import { motion, useScroll, useTransform, useSpring, AnimatePresence } from 'framer-motion';
 import { 
   Radar, Activity, Utensils, Stethoscope, ShoppingBag, Bell, 
   Download, Smartphone, ChevronRight, ShieldCheck, ExternalLink,
-  Sparkles, Heart, BookOpen, MapPin, MessageCircle, Calendar, Syringe
+  Sparkles, Heart, BookOpen, MapPin, MessageCircle, Calendar, Syringe, Star, ChevronDown
 } from 'lucide-react';
+
+// ── FAQ ACCORDION COMPONENT ──
+function FAQSection({ handleFeatureAccess, openModal }) {
+  const [openIdx, setOpenIdx] = useState(null);
+  const faqs = [
+    { q: 'How accurate is the GPS tracking?', a: 'The Pet Maya smart collar uses multi-constellation GNSS (GPS + GLONASS + Galileo) with proprietary Kalman filtering to achieve sub-2-meter accuracy in open areas. Indoor accuracy is approximately 5-8 meters via WiFi triangulation.' },
+    { q: 'Is the AI health scanner a replacement for a vet visit?', a: 'No — the AI Clinical Triage provides rapid symptom severity assessment and first-aid guidance to help you decide if and how urgently you need to see a vet. It is a decision-support tool, not a clinical diagnosis. Always consult a licensed veterinarian for treatment.' },
+    { q: 'What pets does Pet Maya support?', a: 'Pet Maya currently supports Dogs, Cats, Birds, and Rabbits across all features including GPS tracking, AI health scanning, vaccine reminders, and the medical passport. More species are planned for upcoming releases.' },
+    { q: 'How do geofence boundary alarms work?', a: 'You draw a custom safe zone on the map (home perimeter, garden, park area). If the collar detects the pet has moved outside this boundary, you receive an instant push notification within 3 seconds, along with the live map location.' },
+    { q: 'Can I book a teleconsultation with any vet on the platform?', a: 'Yes. All veterinarians on Pet Maya with the Telehealth badge offer HD video consultations. You can book directly from the Specialists page. Teleconsults are available 7 days a week, with 24/7 emergency on-call coverage.' },
+    { q: 'How is my pet\'s medical data stored?', a: 'All electronic health records (EHR) are encrypted with AES-256 and stored in Firebase Firestore with regional compliance. Only you and your authorized clinicians can access your pet\'s records. You can export or delete all data at any time from the Profile page.' },
+    { q: 'Is Pet Maya available in Bangladesh?', a: 'Yes — Pet Maya was built for the Bangladesh market first. Our verified specialist network includes clinics across Dhaka, Chittagong, Sylhet, Rajshahi, Khulna, and more. The app and website support BDT (৳) pricing and local pharmacy delivery.' },
+    { q: 'Is there a free plan?', a: 'Yes. Pet Maya Basic is completely free and includes GPS tracking (15-min update interval), AI health scanning (5 scans/month), vaccine reminders, community access, and the pet shop. Pet Maya Pro (৳499/month) adds real-time 5-second GPS updates, unlimited AI scans, teleconsultation credits, and priority vet booking.' },
+  ];
+  return (
+    <section style={{ background: 'var(--bg)', padding: '72px 20px', borderTop: '1px solid var(--border)' }}>
+      <div style={{ maxWidth: '760px', margin: '0 auto' }}>
+        <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.4 }} style={{ textAlign: 'center', marginBottom: '48px' }}>
+          <span style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', color: 'var(--primary)', textTransform: 'uppercase', display: 'block', marginBottom: '10px' }}>Got questions?</span>
+          <h2 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.8rem)', fontWeight: 700, letterSpacing: '-0.03em', color: 'var(--text-main)', margin: 0, lineHeight: 1.15 }}>Frequently asked questions.</h2>
+        </motion.div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {faqs.map((faq, idx) => (
+            <motion.div key={idx} initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-5px' }} transition={{ duration: 0.3, delay: idx * 0.04 }} style={{ background: 'var(--surface-solid)', border: '1px solid var(--border)', borderRadius: '16px', overflow: 'hidden' }}>
+              <button
+                onClick={() => setOpenIdx(openIdx === idx ? null : idx)}
+                style={{ width: '100%', background: 'none', border: 'none', padding: '20px 22px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', fontFamily: 'inherit', gap: '16px', textAlign: 'left' }}
+              >
+                <span style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-main)', lineHeight: 1.4 }}>{faq.q}</span>
+                <motion.span animate={{ rotate: openIdx === idx ? 180 : 0 }} transition={{ duration: 0.22 }} style={{ flexShrink: 0, color: 'var(--text-muted)' }}>
+                  <ChevronDown size={18} />
+                </motion.span>
+              </button>
+              <AnimatePresence initial={false}>
+                {openIdx === idx && (
+                  <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.25 }} style={{ overflow: 'hidden' }}>
+                    <p style={{ fontSize: '13.5px', color: 'var(--text-muted)', lineHeight: 1.65, margin: 0, padding: '0 22px 20px' }}>{faq.a}</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+
 
 export default function LandingPage() {
   const { setActiveTab, openModal, showToast } = useApp();
@@ -380,12 +429,116 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ═══ SOCIAL PROOF TESTIMONIALS ═══ */}
+      <section style={{ background: 'var(--bg)', padding: '64px 20px' }}>
+        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.4 }}
+            style={{ textAlign: 'center', marginBottom: '48px' }}
+          >
+            <span style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', color: 'var(--primary)', textTransform: 'uppercase', display: 'block', marginBottom: '10px' }}>
+              Trusted by thousands
+            </span>
+            <h2 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.8rem)', fontWeight: 700, letterSpacing: '-0.03em', color: 'var(--text-main)', margin: '0 0 12px', lineHeight: 1.15 }}>
+              Pet parents love it.
+            </h2>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '4px' }}>
+              {[1,2,3,4,5].map(i => <Star key={i} size={18} fill="#F59E0B" color="#F59E0B" />)}
+              <span style={{ fontSize: '14px', color: 'var(--text-muted)', marginLeft: '8px' }}>4.9 avg · 3,200+ reviews</span>
+            </div>
+          </motion.div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '18px' }}>
+            {[
+              { name: 'Nafisa Rahman', role: 'Dog Parent · Dhaka', quote: 'The GPS collar alert saved my Golden Retriever Biscuit from crossing the boundary. Got the geofence alert within seconds. Life-changing.', avatar: '🐕', stars: 5 },
+              { name: 'Dr. Touhid Hossain', role: 'Veterinarian · Chittagong', quote: 'The AI triage tool is surprisingly accurate. It correctly flagged a secondary pyoderma on a Labrador photo a client sent before clinic visit.', avatar: '👨‍⚕️', stars: 5 },
+              { name: 'Meher Afroz', role: 'Cat Parent · Sylhet', quote: 'Our Persian cat Mia had conjunctivitis. I uploaded a photo, got the diagnosis plus the right doctor. Saved us so much panic and time.', avatar: '🐱', stars: 5 },
+              { name: 'Tanvir Ahmed', role: 'Multi-Pet Owner · Rajshahi', quote: 'Managing 3 dogs vaccine schedules was chaotic. The Medical Passport feature keeps everything in one place with automatic calendar export.', avatar: '🐾', stars: 5 },
+              { name: 'Sabrina Islam', role: 'Rabbit Parent · Khulna', quote: 'I did not expect rabbit-specific content but the AI correctly identified ear mite signs and gave breed-appropriate advice. Excellent app.', avatar: '🐇', stars: 4 },
+              { name: 'Kamrul Hassan', role: 'Vet Clinic Owner · Dhaka', quote: 'We registered our clinic and started receiving teleconsultation bookings within the first week. The platform quality matches international standards.', avatar: '🏥', stars: 5 },
+            ].map((t, idx) => (
+              <motion.div
+                key={t.name}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-10px' }}
+                transition={{ duration: 0.35, delay: idx * 0.05 }}
+                style={{ background: 'var(--surface-solid)', border: '1px solid var(--border)', borderRadius: '20px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '14px' }}
+              >
+                <div style={{ display: 'flex', gap: '2px' }}>
+                  {Array(t.stars).fill(0).map((_, i) => <Star key={i} size={13} fill="#F59E0B" color="#F59E0B" />)}
+                  {Array(5 - t.stars).fill(0).map((_, i) => <Star key={`e${i}`} size={13} fill="none" color="#86868B" />)}
+                </div>
+                <p style={{ fontSize: '13.5px', color: 'var(--text-main)', lineHeight: 1.55, margin: 0, fontStyle: 'italic' }}>"{t.quote}"</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: 'auto', paddingTop: '6px', borderTop: '1px solid var(--border)' }}>
+                  <span style={{ fontSize: '26px' }}>{t.avatar}</span>
+                  <div>
+                    <strong style={{ fontSize: '13px', display: 'block', color: 'var(--text-main)' }}>{t.name}</strong>
+                    <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>{t.role}</span>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ TECHNOLOGY SPECS ═══ */}
+      <section style={{ background: '#000', padding: '72px 20px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.4 }}
+            style={{ textAlign: 'center', marginBottom: '48px' }}
+          >
+            <span style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', color: '#3B82F6', textTransform: 'uppercase', display: 'block', marginBottom: '10px' }}>Under the hood</span>
+            <h2 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.8rem)', fontWeight: 700, letterSpacing: '-0.03em', color: '#FFF', margin: 0, lineHeight: 1.15 }}>Titanium engineering.</h2>
+          </motion.div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
+            {[
+              { icon: Radar, color: '#10B981', title: 'GPS Accuracy', spec: '<2 meter', detail: 'Multi-constellation GNSS (GPS+GLONASS+Galileo) with Kalman filtering' },
+              { icon: Sparkles, color: '#3B82F6', title: 'AI Model', spec: 'Clinical V3.4', detail: '50,000+ veterinary case training set, multi-modal vision CNN architecture' },
+              { icon: ShieldCheck, color: '#F59E0B', title: 'Data Security', spec: 'AES-256', detail: 'End-to-end encrypted health records with Firebase Firestore backend' },
+              { icon: Bell, color: '#EC4899', title: 'Alert Latency', spec: '<3 seconds', detail: 'Real-time geofence breach push notification via FCM cloud messaging' },
+              { icon: Activity, color: '#8B5CF6', title: 'Biometrics', spec: '8 sensors', detail: 'Heart rate, activity, temperature, humidity, orientation, steps, GPS, battery' },
+              { icon: Calendar, color: '#06B6D4', title: 'Uptime SLA', spec: '99.95%', detail: 'Firebase cloud infrastructure with automatic regional failover' },
+            ].map((spec, idx) => (
+              <motion.div
+                key={spec.title}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-10px' }}
+                transition={{ duration: 0.35, delay: idx * 0.05 }}
+                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '20px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '10px' }}
+              >
+                <div style={{ width: 40, height: 40, borderRadius: '12px', background: `${spec.color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: spec.color }}>
+                  <spec.icon size={19} />
+                </div>
+                <div>
+                  <span style={{ fontSize: '11px', fontWeight: 700, color: spec.color, letterSpacing: '0.05em', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>{spec.title}</span>
+                  <strong style={{ fontSize: '22px', fontWeight: 700, color: '#FFF', letterSpacing: '-0.02em', display: 'block', lineHeight: 1.2 }}>{spec.spec}</strong>
+                  <p style={{ fontSize: '12px', color: '#86868B', margin: '6px 0 0', lineHeight: 1.55 }}>{spec.detail}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ FAQ ACCORDION ═══ */}
+      <FAQSection handleFeatureAccess={handleFeatureAccess} openModal={openModal} />
+
       {/* ═══ MOBILE DOWNLOADS ═══ */}
       <section id="mobile-downloads" style={{ background: '#000', padding: '64px 20px' }}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
+
           transition={{ duration: 0.5 }}
           style={{ maxWidth: '900px', margin: '0 auto', textAlign: 'center' }}
         >

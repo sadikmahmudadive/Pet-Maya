@@ -11,18 +11,97 @@ import {
   ChevronRight,
   ShieldCheck,
   Info,
-  X
+  X,
+  Heart        // NEW – wishlist
 } from 'lucide-react';
 import { AppleReveal } from '../Animations/AppleReveal';
 import { AppleStagger } from '../Animations/AppleStagger';
 
+// ── Category icon tiles shown above the product grid ───────────────────────
+const CATEGORY_TILES = [
+  { id: 'food',     emoji: '🥩', label: 'Food',       subtitle: 'Diets & Nutrition' },
+  { id: 'pharma',   emoji: '💊', label: 'Pharmacy',   subtitle: 'Rx & Medications'  },
+  { id: 'tech',     emoji: '📡', label: 'Smart Tech',  subtitle: 'GPS & Wearables'   },
+  { id: 'supplies', emoji: '🛋️', label: 'Supplies',   subtitle: 'Beds & Toys'       },
+];
+
+// ── Delivery ETA helper ─────────────────────────────────────────────────────
+function getDeliveryETA(p) {
+  const cat = (p.category || '').toLowerCase();
+  if (cat.includes('pharma') || cat.includes('med') || p.isRx)
+    return { label: 'Express (24h)',      color: '#10B981' };
+  if (cat.includes('food') || cat.includes('nutri'))
+    return { label: 'Standard (3–5 days)', color: '#6B7280' };
+  return   { label: 'Standard',           color: '#6B7280' };
+}
+
+// ── Stock badge helper ──────────────────────────────────────────────────────
+function getStockInfo(p, idx) {
+  if (p.stock !== undefined) {
+    if (p.stock === 0)   return { label: 'Out of Stock',            color: '#EF4444', bg: 'rgba(239,68,68,0.10)'   };
+    if (p.stock <= 10)   return { label: `Low Stock (${p.stock} left)`, color: '#F59E0B', bg: 'rgba(245,158,11,0.10)' };
+    return                      { label: 'In Stock',                color: '#10B981', bg: 'rgba(16,185,129,0.10)'  };
+  }
+  // Simulate: even index → Low Stock, odd → In Stock
+  if (idx % 2 === 0)     return { label: 'Low Stock (5 left)',      color: '#F59E0B', bg: 'rgba(245,158,11,0.10)'  };
+  return                        { label: 'In Stock',                color: '#10B981', bg: 'rgba(16,185,129,0.10)'  };
+}
+
+// ── Simple toast component ──────────────────────────────────────────────────
+function Toast({ message, onDone }) {
+  React.useEffect(() => {
+    const t = setTimeout(onDone, 2200);
+    return () => clearTimeout(t);
+  }, [onDone]);
+
+  return (
+    <div style={{
+      position: 'fixed',
+      bottom: '28px',
+      left: '50%',
+      transform: 'translateX(-50%)',
+      background: '#1F2937',
+      color: '#fff',
+      padding: '10px 22px',
+      borderRadius: '24px',
+      fontSize: '13.5px',
+      fontWeight: 600,
+      zIndex: 9999,
+      boxShadow: '0 6px 24px rgba(0,0,0,0.22)',
+      pointerEvents: 'none',
+      whiteSpace: 'nowrap',
+    }}>
+      {message}
+    </div>
+  );
+}
+
 export default function Shop() {
   const { products, isProductsLoading, addToCart, openModal, orders } = useApp();
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [searchQuery,        setSearchQuery]        = useState('');
+  const [selectedCategory,   setSelectedCategory]   = useState('all');
+  const [selectedProduct,    setSelectedProduct]    = useState(null);
   const [orderTrackingModal, setOrderTrackingModal] = useState(false);
+
+  // ── NEW STATE ────────────────────────────────────────────────────────────
+  const [wishlist, setWishlist] = useState(new Set()); // Set of product IDs
+  const [toastMsg, setToastMsg] = useState(null);      // toast text | null
+
+  // ── Wishlist toggle ──────────────────────────────────────────────────────
+  function toggleWishlist(p) {
+    setWishlist(prev => {
+      const next = new Set(prev);
+      if (next.has(p.id)) {
+        next.delete(p.id);
+        setToastMsg('Removed from Wishlist');
+      } else {
+        next.add(p.id);
+        setToastMsg('Added to Wishlist ❤️');
+      }
+      return next;
+    });
+  }
 
   const filteredProducts = products.filter(p => {
     const matchesQuery = (p.name || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -31,9 +110,9 @@ export default function Shop() {
     let matchesCat = true;
     if (selectedCategory !== 'all') {
       const cat = (p.category || '').toLowerCase();
-      if (selectedCategory === 'food') matchesCat = cat.includes('food') || cat.includes('nutri') || cat.includes('diet');
-      else if (selectedCategory === 'pharma') matchesCat = cat.includes('pharma') || cat.includes('med') || p.isRx;
-      else if (selectedCategory === 'tech') matchesCat = cat.includes('tech') || cat.includes('collar') || cat.includes('gps');
+      if (selectedCategory === 'food')          matchesCat = cat.includes('food') || cat.includes('nutri') || cat.includes('diet');
+      else if (selectedCategory === 'pharma')   matchesCat = cat.includes('pharma') || cat.includes('med') || p.isRx;
+      else if (selectedCategory === 'tech')     matchesCat = cat.includes('tech') || cat.includes('collar') || cat.includes('gps');
       else if (selectedCategory === 'supplies') matchesCat = cat.includes('suppl') || cat.includes('bed') || cat.includes('toy');
     }
 
@@ -82,13 +161,47 @@ export default function Shop() {
         </div>
 
         <div className="chip-row" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-          <button className={`chip-pill ${selectedCategory === 'all' ? 'active' : ''}`} onClick={() => setSelectedCategory('all')}>All</button>
-          <button className={`chip-pill ${selectedCategory === 'food' ? 'active' : ''}`} onClick={() => setSelectedCategory('food')}>Diets &amp; Nutrition</button>
-          <button className={`chip-pill ${selectedCategory === 'pharma' ? 'active' : ''}`} onClick={() => setSelectedCategory('pharma')}>Pharmacy &amp; Rx</button>
-          <button className={`chip-pill ${selectedCategory === 'tech' ? 'active' : ''}`} onClick={() => setSelectedCategory('tech')}>Smart Tech</button>
+          <button className={`chip-pill ${selectedCategory === 'all'      ? 'active' : ''}`} onClick={() => setSelectedCategory('all')}>All</button>
+          <button className={`chip-pill ${selectedCategory === 'food'     ? 'active' : ''}`} onClick={() => setSelectedCategory('food')}>Diets &amp; Nutrition</button>
+          <button className={`chip-pill ${selectedCategory === 'pharma'   ? 'active' : ''}`} onClick={() => setSelectedCategory('pharma')}>Pharmacy &amp; Rx</button>
+          <button className={`chip-pill ${selectedCategory === 'tech'     ? 'active' : ''}`} onClick={() => setSelectedCategory('tech')}>Smart Tech</button>
           <button className={`chip-pill ${selectedCategory === 'supplies' ? 'active' : ''}`} onClick={() => setSelectedCategory('supplies')}>Beds &amp; Supplies</button>
         </div>
       </div>
+      </AppleReveal>
+
+      {/* ── NEW: CATEGORY ICON TILES ── */}
+      <AppleReveal delay={0.15} yOffset={20}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '12px' }}>
+          {CATEGORY_TILES.map(tile => {
+            const isActive = selectedCategory === tile.id;
+            return (
+              <button
+                key={tile.id}
+                onClick={() => setSelectedCategory(isActive ? 'all' : tile.id)}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  padding: '18px 10px',
+                  borderRadius: '16px',
+                  border: '1.5px solid',
+                  borderColor: isActive ? '#10B981' : 'var(--border)',
+                  background: isActive ? 'rgba(16,185,129,0.09)' : 'var(--surface)',
+                  cursor: 'pointer',
+                  transition: 'all 0.18s ease',
+                  boxShadow: isActive ? '0 0 0 2px rgba(16,185,129,0.18)' : 'none',
+                }}
+              >
+                <span style={{ fontSize: '28px', lineHeight: 1 }}>{tile.emoji}</span>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: isActive ? '#10B981' : 'var(--text-main)' }}>{tile.label}</span>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{tile.subtitle}</span>
+              </button>
+            );
+          })}
+        </div>
       </AppleReveal>
 
       {/* ── PRODUCT GRID (APPLE STORE STYLE) ── */}
@@ -103,48 +216,104 @@ export default function Shop() {
             </div>
           ))
         ) : (
-          filteredProducts.map((p) => (
-          <div key={p.id} className="apple-promo-card">
-            
-            <div className="apple-card-image-box" onClick={() => setSelectedProduct(p)} style={{ cursor: 'pointer', background: (p.category || '').includes('Food') ? '#f3f4f6' : '#f8fafc' }}>
-              <img src={p.image} alt={p.name} />
-              {p.isRx && (
-                <span className="badge badge-red" style={{ position: 'absolute', top: 14, left: 14, zIndex: 10 }}>
-                  Rx
-                </span>
-              )}
-            </div>
+          filteredProducts.map((p, idx) => {
+            const stock    = getStockInfo(p, idx);
+            const delivery = getDeliveryETA(p);
+            const isWished = wishlist.has(p.id);
+            const isOOS    = p.stock === 0;
 
-            <div className="apple-card-dots">
-              <div className="apple-card-dot" style={{ background: '#3b82f6' }} />
-              <div className="apple-card-dot" style={{ background: '#10b981' }} />
-              <div className="apple-card-dot" style={{ background: '#f43f5e' }} />
-            </div>
+            return (
+              <div key={p.id} className="apple-promo-card">
+                
+                <div className="apple-card-image-box" onClick={() => setSelectedProduct(p)} style={{ cursor: 'pointer', background: (p.category || '').includes('Food') ? '#f3f4f6' : '#f8fafc' }}>
+                  <img src={p.image} alt={p.name} />
+                  {p.isRx && (
+                    <span className="badge badge-red" style={{ position: 'absolute', top: 14, left: 14, zIndex: 10 }}>
+                      Rx
+                    </span>
+                  )}
+                </div>
 
-            <h3 className="apple-card-title" onClick={() => setSelectedProduct(p)} style={{ cursor: 'pointer' }}>
-              {p.name}
-            </h3>
+                <div className="apple-card-dots">
+                  <div className="apple-card-dot" style={{ background: '#3b82f6' }} />
+                  <div className="apple-card-dot" style={{ background: '#10b981' }} />
+                  <div className="apple-card-dot" style={{ background: '#f43f5e' }} />
+                </div>
 
-            <p className="apple-card-desc">
-              {p.description}
-            </p>
+                <h3 className="apple-card-title" onClick={() => setSelectedProduct(p)} style={{ cursor: 'pointer' }}>
+                  {p.name}
+                </h3>
 
-            <div className="apple-card-price" style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-main)', margin: '8px 0 12px' }}>
-              ৳{Number(p.price || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </div>
+                <p className="apple-card-desc">
+                  {p.description}
+                </p>
 
-            <div className="apple-card-actions">
-              <button className="apple-btn-blue" style={{ fontSize: '13px', padding: '6px 16px' }} onClick={() => setSelectedProduct(p)}>
-                Learn more
-              </button>
-              <button className="apple-link-cta" style={{ fontSize: '14px' }} onClick={() => addToCart(p)}>
-                <span>Buy</span>
-                <ChevronRight size={14} />
-              </button>
-            </div>
-            
-          </div>
-        )))}
+                <div className="apple-card-price" style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-main)', margin: '8px 0 6px' }}>
+                  ৳{Number(p.price || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </div>
+
+                {/* ── NEW: Stock Badge ── */}
+                <div style={{ marginBottom: '4px' }}>
+                  <span style={{
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    padding: '2px 8px',
+                    borderRadius: '8px',
+                    background: stock.bg,
+                    color: stock.color,
+                  }}>
+                    {stock.label}
+                  </span>
+                </div>
+
+                {/* ── NEW: Delivery ETA Badge ── */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '10px' }}>
+                  <Truck size={11} color={delivery.color} />
+                  <span style={{ fontSize: '11px', color: delivery.color, fontWeight: 600 }}>{delivery.label}</span>
+                </div>
+
+                <div className="apple-card-actions" style={{ alignItems: 'center' }}>
+                  <button
+                    className="apple-btn-blue"
+                    style={{ fontSize: '13px', padding: '6px 16px', opacity: isOOS ? 0.5 : 1 }}
+                    onClick={() => setSelectedProduct(p)}
+                    disabled={isOOS}
+                  >
+                    Learn more
+                  </button>
+
+                  {/* ── NEW: Wishlist Heart Button ── */}
+                  <button
+                    onClick={() => toggleWishlist(p)}
+                    title={isWished ? 'Remove from Wishlist' : 'Add to Wishlist'}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: 34,
+                      height: 34,
+                      borderRadius: '50%',
+                      border: '1.5px solid',
+                      borderColor: isWished ? '#EF4444' : 'var(--border)',
+                      background: isWished ? 'rgba(239,68,68,0.08)' : 'transparent',
+                      cursor: 'pointer',
+                      transition: 'all 0.18s ease',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Heart size={15} color={isWished ? '#EF4444' : 'var(--text-muted)'} fill={isWished ? '#EF4444' : 'none'} />
+                  </button>
+
+                  <button className="apple-link-cta" style={{ fontSize: '14px' }} onClick={() => addToCart(p)}>
+                    <span>Buy</span>
+                    <ChevronRight size={14} />
+                  </button>
+                </div>
+                
+              </div>
+            );
+          })
+        )}
       </AppleStagger>
 
       {/* ── PRODUCT DETAILS MODAL ── */}

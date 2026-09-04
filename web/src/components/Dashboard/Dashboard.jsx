@@ -11,11 +11,237 @@ import {
   MapPin,
   Stethoscope,
   ShoppingBag,
-  Syringe
+  Syringe,
+  Activity,
+  Wifi,
+  Cpu,
+  Zap,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AppleReveal } from '../Animations/AppleReveal';
 import { AppleStagger } from '../Animations/AppleStagger';
+
+// ─── Health Score Ring SVG ────────────────────────────────────────────────────
+function HealthScoreRing({ score = 90, size = 80, strokeWidth = 4 }) {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (score / 100) * circumference;
+
+  const ringColor =
+    score >= 90 ? '#10B981' :
+    score >= 75 ? '#F59E0B' :
+    '#EF4444';
+
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox={`0 0 ${size} ${size}`}
+      style={{ position: 'absolute', top: -8, left: -8, pointerEvents: 'none' }}
+    >
+      {/* Track */}
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        fill="none"
+        stroke="var(--border)"
+        strokeWidth={strokeWidth}
+      />
+      {/* Progress */}
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        fill="none"
+        stroke={ringColor}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+        strokeDasharray={circumference}
+        strokeDashoffset={offset}
+        transform={`rotate(-90 ${size / 2} ${size / 2})`}
+        style={{ transition: 'stroke-dashoffset 0.8s ease' }}
+      />
+      {/* Score label */}
+      <text
+        x={size / 2}
+        y={size / 2 + 4}
+        textAnchor="middle"
+        fontSize="10"
+        fontWeight="700"
+        fill={ringColor}
+      >
+        {score}
+      </text>
+    </svg>
+  );
+}
+
+// ─── GPS Collar Badge ─────────────────────────────────────────────────────────
+function CollarBadge() {
+  return (
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      gap: '4px',
+      background: 'rgba(16,185,129,0.1)',
+      borderRadius: '999px',
+      padding: '2px 7px',
+      marginTop: -2,
+    }}>
+      <span style={{ position: 'relative', display: 'inline-flex', width: 7, height: 7 }}>
+        <motion.span
+          animate={{ scale: [1, 1.8, 1], opacity: [1, 0, 1] }}
+          transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            borderRadius: '50%',
+            background: '#10B981',
+            opacity: 0.5,
+          }}
+        />
+        <span style={{
+          width: 7, height: 7,
+          borderRadius: '50%',
+          background: '#10B981',
+          display: 'block',
+          position: 'relative',
+        }} />
+      </span>
+      <span style={{ fontSize: '9px', fontWeight: 700, color: '#10B981', letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>
+        Collar Active
+      </span>
+    </div>
+  );
+}
+
+// ─── Pet Health Summary Card ──────────────────────────────────────────────────
+function PetHealthCard({ pet, score, activityPct }) {
+  const scoreColor =
+    score >= 90 ? '#10B981' :
+    score >= 75 ? '#F59E0B' :
+    '#EF4444';
+
+  return (
+    <motion.div
+      whileHover={{ y: -3, boxShadow: 'var(--shadow-md)' }}
+      whileTap={{ scale: 0.97 }}
+      transition={{ type: 'spring', stiffness: 380, damping: 26 }}
+      style={{
+        background: 'var(--surface-alt)',
+        borderRadius: '16px',
+        padding: '14px 16px',
+        minWidth: '150px',
+        flexShrink: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '10px',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+        <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-main)', letterSpacing: '-0.01em' }}>
+          {pet.name}
+        </span>
+        <span style={{
+          fontSize: '12px',
+          fontWeight: 800,
+          color: scoreColor,
+          background: `${scoreColor}18`,
+          borderRadius: '8px',
+          padding: '2px 8px',
+        }}>
+          {score}
+        </span>
+      </div>
+
+      <div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+          <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 600 }}>Activity</span>
+          <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-main)' }}>{activityPct}%</span>
+        </div>
+        <div style={{
+          height: '5px',
+          borderRadius: '999px',
+          background: 'var(--border)',
+          overflow: 'hidden',
+        }}>
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: `${activityPct}%` }}
+            transition={{ duration: 0.9, ease: 'easeOut', delay: 0.2 }}
+            style={{
+              height: '100%',
+              borderRadius: '999px',
+              background: 'linear-gradient(90deg, #10B981, #34D399)',
+            }}
+          />
+        </div>
+      </div>
+
+      <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 500 }}>
+        {pet.breed || pet.species || 'Pet'}
+      </div>
+    </motion.div>
+  );
+}
+
+// ─── Recent Activity Feed ─────────────────────────────────────────────────────
+const STATIC_ACTIVITIES = [
+  { icon: Cpu,         color: '#8B5CF6', text: 'Piku had AI Health Scan',         time: '2 hours ago' },
+  { icon: Stethoscope, color: '#10B981', text: 'Max visited Dr. Sarah',            time: 'Yesterday' },
+  { icon: Syringe,     color: '#F59E0B', text: 'Vaccine Reminder set for Rabies',  time: '3 days ago' },
+];
+
+function RecentActivityFeed() {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+      {STATIC_ACTIVITIES.map((item, idx) => {
+        const Icon = item.icon;
+        return (
+          <motion.div
+            key={idx}
+            initial={{ opacity: 0, x: -12 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: idx * 0.08, type: 'spring', stiffness: 380, damping: 30 }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '14px',
+              background: 'var(--surface-alt)',
+              borderRadius: '14px',
+              padding: '13px 16px',
+            }}
+          >
+            <div style={{
+              width: 38, height: 38,
+              borderRadius: '12px',
+              background: `${item.color}18`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: item.color,
+              flexShrink: 0,
+            }}>
+              <Icon size={17} />
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <span style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text-main)', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {item.text}
+              </span>
+              <span style={{ fontSize: '11.5px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+                <Clock size={10} />
+                {item.time}
+              </span>
+            </div>
+          </motion.div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── Simulated health data per pet (deterministic from index) ─────────────────
+const MOCK_HEALTH_SCORES  = [92, 85, 98, 88, 91, 95];
+const MOCK_ACTIVITY_PCTS  = [78, 62, 95, 71, 83, 88];
 
 export default function Dashboard() {
   const { pets, vets, appointments, removeAppointment, setActiveTab, openModal, showToast } = useApp();
@@ -34,7 +260,7 @@ export default function Dashboard() {
 
   // Filter ONLY doctors and veterinary medical specialists (exclude grooming, boarding, pet shop)
   const filteredVets = vets.filter((v) => {
-    const tag = (v.tag || '').toLowerCase();
+    const tag  = (v.tag || '').toLowerCase();
     const qual = (v.qualification || '').toLowerCase();
     const role = (v.role || '').toLowerCase();
     const name = (v.name || '').toLowerCase();
@@ -159,12 +385,14 @@ export default function Dashboard() {
       return dateA - dateB;
     });
 
-  // Quick actions
+  // ── Quick actions (expanded to 6) ──────────────────────────────────────────
   const quickActions = [
-    { label: 'Book Vet', icon: Stethoscope, color: '#10B981', bg: 'rgba(16,185,129,0.1)', action: () => openModal('booking') },
-    { label: 'Tracker', icon: MapPin, color: '#3B82F6', bg: 'rgba(59,130,246,0.1)', action: () => setActiveTab('tracker') },
-    { label: 'Reminder', icon: Syringe, color: '#F59E0B', bg: 'rgba(245,158,11,0.1)', action: () => openModal('booking') },
-    { label: 'Shop', icon: ShoppingBag, color: '#8B5CF6', bg: 'rgba(139,92,246,0.1)', action: () => setActiveTab('shop') },
+    { label: 'Book Vet',   icon: Stethoscope, color: '#10B981', bg: 'rgba(16,185,129,0.1)',  action: () => openModal('booking') },
+    { label: 'Tracker',   icon: MapPin,       color: '#3B82F6', bg: 'rgba(59,130,246,0.1)',  action: () => setActiveTab('tracker') },
+    { label: 'Reminder',  icon: Syringe,      color: '#F59E0B', bg: 'rgba(245,158,11,0.1)', action: () => openModal('booking') },
+    { label: 'Shop',      icon: ShoppingBag,  color: '#8B5CF6', bg: 'rgba(139,92,246,0.1)', action: () => setActiveTab('shop') },
+    { label: 'AI Scan',   icon: Cpu,          color: '#EC4899', bg: 'rgba(236,72,153,0.1)',  action: () => setActiveTab('ai') },
+    { label: 'Community', icon: Zap,          color: '#0EA5E9', bg: 'rgba(14,165,233,0.1)', action: () => setActiveTab('community') },
   ];
 
   // Appointment type colors
@@ -237,10 +465,10 @@ export default function Dashboard() {
         </div>
       </AppleReveal>
 
-      {/* ── 2. QUICK ACTIONS ── */}
+      {/* ── 2. QUICK ACTIONS (6 items, auto-fill grid) ── */}
       <AppleReveal delay={0.07} yOffset={14}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
-          {quickActions.map((qa, i) => (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '12px' }}>
+          {quickActions.map((qa) => (
             <motion.button
               key={qa.label}
               onClick={qa.action}
@@ -277,7 +505,7 @@ export default function Dashboard() {
         </div>
       </AppleReveal>
 
-      {/* ── 3. MY PETS ── */}
+      {/* ── 3. MY PETS (with Health Score Ring + GPS Collar Badge) ── */}
       <AppleReveal delay={0.1} yOffset={16}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
           <h2 style={{ fontSize: '19px', fontWeight: 700, letterSpacing: '-0.025em', margin: 0 }}>My Pets</h2>
@@ -295,46 +523,58 @@ export default function Dashboard() {
           paddingBottom: '4px',
           scrollbarWidth: 'none',
         }}>
-          {/* Existing pets as circles */}
-          {pets.map((pet) => (
-            <motion.div
-              key={pet.id || pet.petID}
-              whileHover={{ scale: 1.06, y: -2 }}
-              whileTap={{ scale: 0.94 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 26 }}
-              onClick={() => setActiveTab('tracker')}
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '6px',
-                cursor: 'pointer',
-                flexShrink: 0,
-                minWidth: '72px',
-              }}
-            >
-              <div style={{
-                width: 64, height: 64,
-                borderRadius: '22px',
-                overflow: 'hidden',
-                border: '2px solid var(--primary)',
-                boxShadow: '0 0 0 3px var(--primary-tint)',
-                background: 'var(--surface-alt)',
-              }}>
-                <img
-                  src={pet.photo || pet.photoUrl || 'assets/images/Pet_1.jpg'}
-                  alt={pet.name}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                />
-              </div>
-              <span style={{ fontSize: '11.5px', fontWeight: 600, color: 'var(--text-main)', letterSpacing: '-0.01em', textAlign: 'center' }}>
-                {pet.name}
-              </span>
-              <span style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: -4 }}>
-                {pet.breed || pet.species || ''}
-              </span>
-            </motion.div>
-          ))}
+          {/* Existing pets as circles with health ring */}
+          {pets.map((pet, petIdx) => {
+            const healthScore = MOCK_HEALTH_SCORES[petIdx % MOCK_HEALTH_SCORES.length];
+            return (
+              <motion.div
+                key={pet.id || pet.petID}
+                whileHover={{ scale: 1.06, y: -2 }}
+                whileTap={{ scale: 0.94 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 26 }}
+                onClick={() => setActiveTab('tracker')}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '6px',
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                  minWidth: '72px',
+                }}
+              >
+                {/* Avatar + ring wrapper — ring SVG is 80px placed with top:-8,left:-8 over the 64px avatar */}
+                <div style={{ position: 'relative', width: 64, height: 64 }}>
+                  <div style={{
+                    width: 64, height: 64,
+                    borderRadius: '22px',
+                    overflow: 'hidden',
+                    border: '2px solid var(--primary)',
+                    boxShadow: '0 0 0 3px var(--primary-tint)',
+                    background: 'var(--surface-alt)',
+                  }}>
+                    <img
+                      src={pet.photo || pet.photoUrl || 'assets/images/Pet_1.jpg'}
+                      alt={pet.name}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                  </div>
+                  {/* Health Score Ring */}
+                  <HealthScoreRing score={healthScore} size={80} strokeWidth={4} />
+                </div>
+
+                <span style={{ fontSize: '11.5px', fontWeight: 600, color: 'var(--text-main)', letterSpacing: '-0.01em', textAlign: 'center' }}>
+                  {pet.name}
+                </span>
+                <span style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: -4 }}>
+                  {pet.breed || pet.species || ''}
+                </span>
+
+                {/* GPS Collar Badge */}
+                <CollarBadge />
+              </motion.div>
+            );
+          })}
 
           {/* Add pet button */}
           <motion.div
@@ -367,6 +607,34 @@ export default function Dashboard() {
           </motion.div>
         </div>
       </AppleReveal>
+
+      {/* ── 3b. PET HEALTH SUMMARY CARDS ── */}
+      {pets.length > 0 && (
+        <AppleReveal delay={0.12} yOffset={14}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <h2 style={{ fontSize: '17px', fontWeight: 700, letterSpacing: '-0.025em', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Activity size={15} color="#10B981" />
+              Pet Health Summary
+            </h2>
+          </div>
+          <div style={{
+            display: 'flex',
+            gap: '12px',
+            overflowX: 'auto',
+            paddingBottom: '4px',
+            scrollbarWidth: 'none',
+          }}>
+            {pets.map((pet, petIdx) => (
+              <PetHealthCard
+                key={pet.id || pet.petID}
+                pet={pet}
+                score={MOCK_HEALTH_SCORES[petIdx % MOCK_HEALTH_SCORES.length]}
+                activityPct={MOCK_ACTIVITY_PCTS[petIdx % MOCK_ACTIVITY_PCTS.length]}
+              />
+            ))}
+          </div>
+        </AppleReveal>
+      )}
 
       {/* ── 4. UPCOMING EVENTS (TIMELINE) ── */}
       <AppleReveal delay={0.14} yOffset={16}>
@@ -524,6 +792,17 @@ export default function Dashboard() {
             </motion.div>
           ))}
         </div>
+      </AppleReveal>
+
+      {/* ── 6. RECENT ACTIVITY FEED ── */}
+      <AppleReveal delay={0.22} yOffset={16}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+          <h2 style={{ fontSize: '19px', fontWeight: 700, letterSpacing: '-0.025em', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Activity size={16} color="#10B981" />
+            Recent Activity
+          </h2>
+        </div>
+        <RecentActivityFeed />
       </AppleReveal>
 
     </div>
