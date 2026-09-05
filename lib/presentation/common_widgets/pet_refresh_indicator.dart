@@ -47,7 +47,8 @@ class _PetRefreshIndicatorState extends State<PetRefreshIndicator> {
   @override
   void didUpdateWidget(covariant PetRefreshIndicator oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.refreshState == RefreshIndicatorMode.armed && !_armedHapticFired) {
+    if (widget.refreshState == RefreshIndicatorMode.armed &&
+        !_armedHapticFired) {
       HapticFeedback.lightImpact();
       _armedHapticFired = true;
     } else if (widget.refreshState == RefreshIndicatorMode.inactive) {
@@ -57,12 +58,17 @@ class _PetRefreshIndicatorState extends State<PetRefreshIndicator> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.refreshState == RefreshIndicatorMode.inactive || widget.pulledExtent <= 0.0) {
+    if (widget.refreshState == RefreshIndicatorMode.inactive ||
+        widget.pulledExtent <= 0.0) {
       return const SizedBox.shrink();
     }
 
     // Normalized progress [0.0, 1.0]
-    final double progress = (widget.pulledExtent / widget.refreshTriggerPullDistance).clamp(0.0, 1.0);
+    final double progress =
+        (widget.pulledExtent / widget.refreshTriggerPullDistance).clamp(
+          0.0,
+          1.0,
+        );
 
     // Compute smooth scale and opacity based on gesture state
     final double scale;
@@ -70,7 +76,10 @@ class _PetRefreshIndicatorState extends State<PetRefreshIndicator> {
 
     switch (widget.refreshState) {
       case RefreshIndicatorMode.drag:
-        scale = (0.55 + (0.45 * Curves.easeOutBack.transform(progress))).clamp(0.0, 1.0);
+        scale = (0.55 + (0.45 * Curves.easeOutBack.transform(progress))).clamp(
+          0.0,
+          1.0,
+        );
         opacity = Curves.easeIn.transform(progress).clamp(0.0, 1.0);
         break;
       case RefreshIndicatorMode.armed:
@@ -82,7 +91,10 @@ class _PetRefreshIndicatorState extends State<PetRefreshIndicator> {
         opacity = 1.0;
         break;
       case RefreshIndicatorMode.done:
-        scale = (widget.pulledExtent / widget.refreshIndicatorExtent).clamp(0.0, 1.0);
+        scale = (widget.pulledExtent / widget.refreshIndicatorExtent).clamp(
+          0.0,
+          1.0,
+        );
         opacity = scale;
         break;
       case RefreshIndicatorMode.inactive:
@@ -114,7 +126,9 @@ class _PetRefreshIndicatorState extends State<PetRefreshIndicator> {
                       boxShadow: [
                         BoxShadow(
                           color: AppColors.primary.withValues(
-                            alpha: widget.refreshState == RefreshIndicatorMode.refresh
+                            alpha:
+                                widget.refreshState ==
+                                    RefreshIndicatorMode.refresh
                                 ? 0.22
                                 : (0.12 * progress),
                           ),
@@ -138,11 +152,12 @@ class _PetRefreshIndicatorState extends State<PetRefreshIndicator> {
                         frameRate: const FrameRate(60),
                         addRepaintBoundary: true,
                         filterQuality: FilterQuality.medium,
-                        errorBuilder: (context, error, stackTrace) => const Icon(
-                          Icons.pets_rounded,
-                          size: 32,
-                          color: AppColors.primary,
-                        ),
+                        errorBuilder: (context, error, stackTrace) =>
+                            const Icon(
+                              Icons.pets_rounded,
+                              size: 32,
+                              color: AppColors.primary,
+                            ),
                       ),
                     ),
                   ),

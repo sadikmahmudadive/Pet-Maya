@@ -29,7 +29,11 @@ class TailWaggingLoader extends StatelessWidget {
           addRepaintBoundary: true,
           filterQuality: FilterQuality.medium,
           errorBuilder: (context, error, stackTrace) {
-            return Icon(Icons.pets_rounded, size: size * 0.4, color: AppColors.primary);
+            return Icon(
+              Icons.pets_rounded,
+              size: size * 0.4,
+              color: AppColors.primary,
+            );
           },
         ),
       ),
@@ -39,9 +43,7 @@ class TailWaggingLoader extends StatelessWidget {
       return Center(child: loader);
     }
 
-    Widget content = Center(
-      child: loader,
-    );
+    Widget content = Center(child: loader);
 
     if (isGlobal) {
       return Material(
