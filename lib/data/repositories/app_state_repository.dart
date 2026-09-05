@@ -51,7 +51,7 @@ class AppStateRepository extends ChangeNotifier {
       };
     }
     try {
-      final token = await user.getIdToken();
+      await user.getIdToken();
       debugPrint('[AI Proxy] Calling $method for User: ${user.uid}');
       final result = await _functions.httpsCallable('openai_proxy').call({
         'method': method,
@@ -107,6 +107,50 @@ class AppStateRepository extends ChangeNotifier {
   bool _isAiEnabled = true;
   bool _isRegistrationAllowed = true;
   double _baseShippingFee = 5.0;
+
+  // ─── Managed Stream Subscriptions (Prevents Memory & Listener Leaks) ───
+  StreamSubscription? _petsSub;
+  StreamSubscription? _vetsSub;
+  StreamSubscription? _eventsSub;
+  StreamSubscription? _serviceRecordsSub;
+  StreamSubscription? _ordersSub;
+  StreamSubscription? _allUsersSub;
+  StreamSubscription? _notificationsSub;
+  StreamSubscription? _currentUserSub;
+  StreamSubscription? _globalSettingsSub;
+  StreamSubscription? _postsSub;
+  StreamSubscription? _blogsSub;
+  StreamSubscription? _couponsSub;
+  StreamSubscription? _promosSub;
+
+  void cancelAllSubscriptions() {
+    _petsSub?.cancel();
+    _petsSub = null;
+    _vetsSub?.cancel();
+    _vetsSub = null;
+    _eventsSub?.cancel();
+    _eventsSub = null;
+    _serviceRecordsSub?.cancel();
+    _serviceRecordsSub = null;
+    _ordersSub?.cancel();
+    _ordersSub = null;
+    _allUsersSub?.cancel();
+    _allUsersSub = null;
+    _notificationsSub?.cancel();
+    _notificationsSub = null;
+    _currentUserSub?.cancel();
+    _currentUserSub = null;
+    _globalSettingsSub?.cancel();
+    _globalSettingsSub = null;
+    _postsSub?.cancel();
+    _postsSub = null;
+    _blogsSub?.cancel();
+    _blogsSub = null;
+    _couponsSub?.cancel();
+    _couponsSub = null;
+    _promosSub?.cancel();
+    _promosSub = null;
+  }
 
   List<PetModel> get pets => List.unmodifiable(_pets);
   List<BlogPostModel> get blogs => List.unmodifiable(_blogs);
@@ -507,7 +551,8 @@ class AppStateRepository extends ChangeNotifier {
   }
 
   void _listenToPets(String ownerUID) {
-    _firebase.streamPets(ownerUID).listen(
+    _petsSub?.cancel();
+    _petsSub = _firebase.streamPets(ownerUID).listen(
       (fetched) {
         _pets
           ..clear()
@@ -520,7 +565,8 @@ class AppStateRepository extends ChangeNotifier {
   }
 
   void _listenToVets() {
-    _firebase.streamVets().listen((fetched) {
+    _vetsSub?.cancel();
+    _vetsSub = _firebase.streamVets().listen((fetched) {
       _vets
         ..clear()
         ..addAll(fetched);
@@ -556,7 +602,8 @@ class AppStateRepository extends ChangeNotifier {
   }
 
   void _listenToEvents(String userId) {
-    _firebase.streamEvents(userId).listen((fetched) {
+    _eventsSub?.cancel();
+    _eventsSub = _firebase.streamEvents(userId).listen((fetched) {
       _events
         ..clear()
         ..addAll(fetched);
@@ -565,7 +612,8 @@ class AppStateRepository extends ChangeNotifier {
   }
 
   void _listenToEventsForProvider(String providerId) {
-    _firebase.streamEventsForProvider(providerId).listen((fetched) {
+    _eventsSub?.cancel();
+    _eventsSub = _firebase.streamEventsForProvider(providerId).listen((fetched) {
       _events
         ..clear()
         ..addAll(fetched);
@@ -574,7 +622,8 @@ class AppStateRepository extends ChangeNotifier {
   }
 
   void _listenToServiceRecords(String petId) {
-    _firebase.streamServiceRecords(petId).listen((fetched) {
+    _serviceRecordsSub?.cancel();
+    _serviceRecordsSub = _firebase.streamServiceRecords(petId).listen((fetched) {
       _serviceRecords
         ..clear()
         ..addAll(fetched);
@@ -584,7 +633,8 @@ class AppStateRepository extends ChangeNotifier {
   }
 
   void _listenToAllOrders() {
-    _firebase.streamAllOrders().listen((fetched) {
+    _ordersSub?.cancel();
+    _ordersSub = _firebase.streamAllOrders().listen((fetched) {
       _orders
         ..clear()
         ..addAll(fetched);
@@ -593,7 +643,8 @@ class AppStateRepository extends ChangeNotifier {
   }
 
   void _listenToAllUsers() {
-    _firebase.streamAllUsers().listen((fetched) {
+    _allUsersSub?.cancel();
+    _allUsersSub = _firebase.streamAllUsers().listen((fetched) {
       _allUsers
         ..clear()
         ..addAll(fetched);
@@ -602,7 +653,8 @@ class AppStateRepository extends ChangeNotifier {
   }
 
   void _listenToUserOrders(String userId) {
-    _firebase.streamUserOrders(userId).listen((fetched) {
+    _ordersSub?.cancel();
+    _ordersSub = _firebase.streamUserOrders(userId).listen((fetched) {
       _orders
         ..clear()
         ..addAll(fetched);
@@ -611,7 +663,8 @@ class AppStateRepository extends ChangeNotifier {
   }
 
   void _listenToNotifications(String userId) {
-    _firebase.streamNotifications(userId).listen((fetched) {
+    _notificationsSub?.cancel();
+    _notificationsSub = _firebase.streamNotifications(userId).listen((fetched) {
       _notifications
         ..clear()
         ..addAll(fetched);
@@ -620,7 +673,8 @@ class AppStateRepository extends ChangeNotifier {
   }
 
   void _listenToCurrentUser(String userId) {
-    _firebase.streamUserProfile(userId).listen((updated) {
+    _currentUserSub?.cancel();
+    _currentUserSub = _firebase.streamUserProfile(userId).listen((updated) {
       if (updated != null) {
         _currentUser = (_currentUser != null && updated.fcmToken == null)
             ? updated.copyWith(fcmToken: _currentUser!.fcmToken)
@@ -631,7 +685,8 @@ class AppStateRepository extends ChangeNotifier {
   }
 
   void _listenToGlobalSettings() {
-    _firebase.streamGlobalSettings().listen((doc) {
+    _globalSettingsSub?.cancel();
+    _globalSettingsSub = _firebase.streamGlobalSettings().listen((doc) {
       if (doc.exists && doc.data() != null) {
         final data = doc.data() as Map<String, dynamic>;
         _systemBanner = data['system_banner'] as String?;
@@ -698,7 +753,8 @@ class AppStateRepository extends ChangeNotifier {
   }
 
   Future<void> _loadCommunityPosts() async {
-    _firebase.streamPosts().listen((fetchedPosts) {
+    _postsSub?.cancel();
+    _postsSub = _firebase.streamPosts().listen((fetchedPosts) {
       _posts
         ..clear()
         ..addAll(fetchedPosts);
@@ -707,7 +763,8 @@ class AppStateRepository extends ChangeNotifier {
   }
 
   Future<void> _loadBlogs() async {
-    _firebase.streamBlogs().listen((fetchedBlogs) {
+    _blogsSub?.cancel();
+    _blogsSub = _firebase.streamBlogs().listen((fetchedBlogs) {
       _blogs
         ..clear()
         ..addAll(fetchedBlogs);
@@ -716,7 +773,8 @@ class AppStateRepository extends ChangeNotifier {
   }
 
   Future<void> _loadCoupons() async {
-    _firebase.streamCoupons().listen((fetchedCoupons) {
+    _couponsSub?.cancel();
+    _couponsSub = _firebase.streamCoupons().listen((fetchedCoupons) {
       _coupons
         ..clear()
         ..addAll(fetchedCoupons);
@@ -725,7 +783,8 @@ class AppStateRepository extends ChangeNotifier {
   }
 
   Future<void> _loadPromos() async {
-    _firebase.streamPromos().listen(
+    _promosSub?.cancel();
+    _promosSub = _firebase.streamPromos().listen(
       (fetchedPromos) {
         debugPrint(
           '[AppStateRepository] Received ${fetchedPromos.length} promos from Firestore.',
@@ -1823,5 +1882,12 @@ class AppStateRepository extends ChangeNotifier {
     } catch (_) {
       return baseDate;
     }
+  }
+
+  @override
+  void dispose() {
+    cancelAllSubscriptions();
+    _debounceTimer?.cancel();
+    super.dispose();
   }
 }

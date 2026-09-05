@@ -4,9 +4,10 @@ import 'package:flutter/services.dart';
 import 'package:lottie/lottie.dart';
 import '../../../core/theme/app_colors.dart';
 
-/// Ultra-smooth, 60/120fps pull-to-refresh indicator featuring the Pet Maya cat mascot.
-/// Fully isolated via [RepaintBoundary] and cached GPU drawing commands to eliminate
-/// scroll jank, layout thrashing, and viewport repaints.
+/// Ultra-high-performance, 120fps pull-to-refresh indicator.
+/// Uses an [AnimationController] so Lottie only ticks during active refresh,
+/// completely avoiding gesture thread contention, GPU offscreen saveLayer passes,
+/// and memory churn during pull drags.
 class PetRefreshIndicator extends StatefulWidget {
   final RefreshIndicatorMode refreshState;
   final double pulledExtent;
@@ -41,19 +42,55 @@ class PetRefreshIndicator extends StatefulWidget {
   State<PetRefreshIndicator> createState() => _PetRefreshIndicatorState();
 }
 
-class _PetRefreshIndicatorState extends State<PetRefreshIndicator> {
+class _PetRefreshIndicatorState extends State<PetRefreshIndicator>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
   bool _armedHapticFired = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
+  }
 
   @override
   void didUpdateWidget(covariant PetRefreshIndicator oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.refreshState == RefreshIndicatorMode.armed &&
-        !_armedHapticFired) {
+
+    if (widget.refreshState == RefreshIndicatorMode.armed && !_armedHapticFired) {
       HapticFeedback.lightImpact();
       _armedHapticFired = true;
     } else if (widget.refreshState == RefreshIndicatorMode.inactive) {
       _armedHapticFired = false;
     }
+
+    // Only run Lottie animation ticks when actually in refresh mode
+    if (widget.refreshState == RefreshIndicatorMode.refresh) {
+      if (!_controller.isAnimating) {
+        _controller.repeat();
+      }
+    } else if (widget.refreshState == RefreshIndicatorMode.drag) {
+      if (_controller.isAnimating) {
+        _controller.stop();
+      }
+      final double progress =
+          (widget.pulledExtent / widget.refreshTriggerPullDistance).clamp(0.0, 1.0);
+      _controller.value = progress * 0.25; // Gentle reactive posture tracking finger
+    } else {
+      if (_controller.isAnimating) {
+        _controller.stop();
+        _controller.reset();
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
@@ -63,105 +100,31 @@ class _PetRefreshIndicatorState extends State<PetRefreshIndicator> {
       return const SizedBox.shrink();
     }
 
-    // Normalized progress [0.0, 1.0]
     final double progress =
-        (widget.pulledExtent / widget.refreshTriggerPullDistance).clamp(
-          0.0,
-          1.0,
-        );
+        (widget.pulledExtent / widget.refreshTriggerPullDistance).clamp(0.0, 1.0);
 
-    // Compute smooth scale and opacity based on gesture state
-    final double scale;
-    final double opacity;
-
-    switch (widget.refreshState) {
-      case RefreshIndicatorMode.drag:
-        scale = (0.55 + (0.45 * Curves.easeOutBack.transform(progress))).clamp(
-          0.0,
-          1.0,
-        );
-        opacity = Curves.easeIn.transform(progress).clamp(0.0, 1.0);
-        break;
-      case RefreshIndicatorMode.armed:
-        scale = 1.06;
-        opacity = 1.0;
-        break;
-      case RefreshIndicatorMode.refresh:
-        scale = 1.0;
-        opacity = 1.0;
-        break;
-      case RefreshIndicatorMode.done:
-        scale = (widget.pulledExtent / widget.refreshIndicatorExtent).clamp(
-          0.0,
-          1.0,
-        );
-        opacity = scale;
-        break;
-      case RefreshIndicatorMode.inactive:
-        scale = 0.0;
-        opacity = 0.0;
-        break;
-    }
+    // Dynamic scale without offscreen saveLayer Opacity widgets
+    final double scale = widget.refreshState == RefreshIndicatorMode.refresh
+        ? 1.0
+        : (0.65 + 0.35 * progress).clamp(0.0, 1.05);
 
     return RepaintBoundary(
       child: Center(
-        child: Opacity(
-          opacity: opacity,
-          child: Transform.scale(
-            scale: scale,
-            child: Container(
-              height: 68,
-              width: 96,
-              alignment: Alignment.center,
-              child: Stack(
-                alignment: Alignment.center,
-                clipBehavior: Clip.none,
-                children: [
-                  // Subtle emerald ambient glow behind cat
-                  Container(
-                    width: 56,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primary.withValues(
-                            alpha:
-                                widget.refreshState ==
-                                    RefreshIndicatorMode.refresh
-                                ? 0.22
-                                : (0.12 * progress),
-                          ),
-                          blurRadius: 18,
-                          spreadRadius: 2,
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // High-performance hardware-cached mascot animation
-                  RepaintBoundary(
-                    child: SizedBox(
-                      width: 90,
-                      height: 64,
-                      child: Lottie.asset(
-                        'assets/lottie/cat_wagging.json',
-                        fit: BoxFit.contain,
-                        repeat: true,
-                        renderCache: RenderCache.drawingCommands,
-                        frameRate: const FrameRate(60),
-                        addRepaintBoundary: true,
-                        filterQuality: FilterQuality.medium,
-                        errorBuilder: (context, error, stackTrace) =>
-                            const Icon(
-                              Icons.pets_rounded,
-                              size: 32,
-                              color: AppColors.primary,
-                            ),
-                      ),
-                    ),
-                  ),
-                ],
+        child: Transform.scale(
+          scale: scale,
+          child: SizedBox(
+            height: 64,
+            width: 90,
+            child: Lottie.asset(
+              'assets/lottie/cat_wagging.json',
+              controller: _controller,
+              fit: BoxFit.contain,
+              addRepaintBoundary: true,
+              filterQuality: FilterQuality.medium,
+              errorBuilder: (context, error, stackTrace) => const Icon(
+                Icons.pets_rounded,
+                size: 32,
+                color: AppColors.primary,
               ),
             ),
           ),
