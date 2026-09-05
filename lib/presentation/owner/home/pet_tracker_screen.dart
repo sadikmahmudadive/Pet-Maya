@@ -497,128 +497,151 @@ class _PetTrackerScreenState extends State<PetTrackerScreen> with SingleTickerPr
   Widget _buildControlBtn(IconData icon, bool isDark, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        width: 46, height: 46,
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E242B) : Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: isDark ? const Color(0xFF2C3440) : Colors.black.withValues(alpha: 0.08),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.12),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: BackdropFilter(
+          filter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+          child: Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: isDark
+                  ? const Color(0xFF141D26).withValues(alpha: 0.75)
+                  : Colors.white.withValues(alpha: 0.85),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.15)
+                    : Colors.white.withValues(alpha: 0.80),
+                width: 1.2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.10),
+                  blurRadius: 14,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
-          ],
+            child: Icon(icon, color: AppColors.primary, size: 22),
+          ),
         ),
-        child: Icon(icon, color: AppColors.primary, size: 20),
       ),
     );
   }
 
   Widget _buildTelemetryPanel(BuildContext context, bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF161A20) : Colors.white,
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(
-          color: isDark ? const Color(0xFF2C3440) : Colors.black.withValues(alpha: 0.06),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(32),
+      child: BackdropFilter(
+        filter: ui.ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+        child: Container(
+          padding: const EdgeInsets.all(22),
+          decoration: BoxDecoration(
+            color: isDark
+                ? const Color(0xFF121922).withValues(alpha: 0.80)
+                : Colors.white.withValues(alpha: 0.88),
+            borderRadius: BorderRadius.circular(32),
+            border: Border.all(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.14)
+                  : Colors.white.withValues(alpha: 0.85),
+              width: 1.2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.12),
+                blurRadius: 32,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: isDark ? 0.25 : 0.12),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const Icon(Icons.directions_run_rounded, color: AppColors.primary, size: 24),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'CURRENT ACTIVITY', 
+                          style: TextStyle(
+                            fontWeight: FontWeight.w800, 
+                            color: isDark ? Colors.grey[400] : Colors.grey[500], 
+                            fontSize: 9, 
+                            letterSpacing: 1,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          _currentActivity, 
+                          style: GoogleFonts.plusJakartaSans(
+                            fontWeight: FontWeight.w800, 
+                            fontSize: 16,
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  _buildLiveBadge(isDark),
+                ],
+              ),
+              const SizedBox(height: 18),
+              Row(
+                children: [
+                  _buildTelemetryItem(Icons.speed_rounded, 'Speed', '2.4 km/h', isDark),
+                  const SizedBox(width: 10),
+                  _buildTelemetryItem(Icons.history_rounded, 'Last Sync', '2m ago', isDark),
+                  const SizedBox(width: 10),
+                  _buildTelemetryItem(Icons.gps_fixed_rounded, 'Accuracy', '98%', isDark),
+                ],
+              ),
+              const SizedBox(height: 18),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        HapticFeedback.heavyImpact();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Collar siren triggered! 🔊'), behavior: SnackBarBehavior.floating),
+                        );
+                      },
+                      icon: const Icon(Icons.volume_up_rounded, size: 18, color: Colors.white),
+                      label: Text(
+                        'PLAY SOUND',
+                        style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 13, letterSpacing: 0.5),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        elevation: 4,
+                        shadowColor: AppColors.primary.withValues(alpha: 0.4),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  _buildCircleAction(Icons.refresh_rounded, isDark, () {
+                     HapticFeedback.mediumImpact();
+                     _startSimulatedMovement();
+                  }),
+                ],
+              ),
+            ],
+          ),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.5 : 0.12),
-            blurRadius: 30,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: isDark ? 0.2 : 0.1),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: const Icon(Icons.directions_run_rounded, color: AppColors.primary, size: 24),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'CURRENT ACTIVITY', 
-                      style: TextStyle(
-                        fontWeight: FontWeight.w800, 
-                        color: isDark ? Colors.grey[400] : Colors.grey[500], 
-                        fontSize: 9, 
-                        letterSpacing: 1,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      _currentActivity, 
-                      style: GoogleFonts.plusJakartaSans(
-                        fontWeight: FontWeight.w800, 
-                        fontSize: 16,
-                        color: isDark ? Colors.white : Colors.black87,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              _buildLiveBadge(isDark),
-            ],
-          ),
-          const SizedBox(height: 18),
-          Row(
-            children: [
-              _buildTelemetryItem(Icons.speed_rounded, 'Speed', '2.4 km/h', isDark),
-              const SizedBox(width: 10),
-              _buildTelemetryItem(Icons.history_rounded, 'Last Sync', '2m ago', isDark),
-              const SizedBox(width: 10),
-              _buildTelemetryItem(Icons.gps_fixed_rounded, 'Accuracy', '98%', isDark),
-            ],
-          ),
-          const SizedBox(height: 18),
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    HapticFeedback.heavyImpact();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Collar siren triggered! 🔊'), behavior: SnackBarBehavior.floating),
-                    );
-                  },
-                  icon: const Icon(Icons.volume_up_rounded, size: 18, color: Colors.white),
-                  label: Text(
-                    'PLAY SOUND',
-                    style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 13, letterSpacing: 0.5),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    elevation: 4,
-                    shadowColor: AppColors.primary.withValues(alpha: 0.4),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              _buildCircleAction(Icons.refresh_rounded, isDark, () {
-                 HapticFeedback.mediumImpact();
-                 _startSimulatedMovement();
-              }),
-            ],
-          ),
-        ],
       ),
     );
   }

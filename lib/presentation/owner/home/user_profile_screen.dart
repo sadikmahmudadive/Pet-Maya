@@ -223,20 +223,89 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
                   // Contact Card
                   _buildSectionHeader('Personal Details'),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 10),
                   _buildContactCard(context, user),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 28),
 
-                  // Settings Grid
-                  // Settings Grid
-                  _buildSectionHeader('Account & Security'),
-                  const SizedBox(height: 8),
-                  _buildSettingsGrid(context),
+                  // Care & Services Group
+                  _buildSectionHeader('Care & Services'),
+                  const SizedBox(height: 10),
+                  _buildGroupedCard(children: [
+                    _buildSettingsRow(
+                      icon: Icons.local_mall_rounded,
+                      iconColor: AppColors.healthGreen,
+                      title: 'My Orders',
+                      subtitle: '${state.orders.length} items',
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const OrdersScreen()),
+                      ),
+                    ),
+                    _buildDivider(isDark),
+                    _buildSettingsRow(
+                      icon: Icons.favorite_rounded,
+                      iconColor: const Color(0xFFE91E63),
+                      title: 'Favorite Specialists',
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const FavoriteVetsScreen(),
+                        ),
+                      ),
+                    ),
+                  ]),
+                  const SizedBox(height: 28),
 
                   const SizedBox(height: 40),
+                  // Preferences Group
+                  _buildSectionHeader('Preferences'),
+                  const SizedBox(height: 10),
+                  _buildPreferencesGroup(context, state, isDark),
+                  const SizedBox(height: 28),
+
+                  // Rewards & Referral
+                  _buildSectionHeader('Rewards & Referral'),
+                  const SizedBox(height: 10),
                   _buildRewardsBanner(context, user),
+                  const SizedBox(height: 28),
 
                   const SizedBox(height: 40),
+                  // Support & Legal
+                  _buildSectionHeader('Support & Legal'),
+                  const SizedBox(height: 10),
+                  _buildGroupedCard(children: [
+                    _buildSettingsRow(
+                      icon: Icons.shield_outlined,
+                      iconColor: const Color(0xFF26A69A),
+                      title: 'Privacy Policy & Terms',
+                      onTap: () async {
+                        final url =
+                            Uri.parse('https://petmaya.app/privacy-policy');
+                        try {
+                          await launchUrl(
+                            url,
+                            mode: LaunchMode.externalApplication,
+                          );
+                        } catch (e) {
+                          debugPrint('[PrivacyLink] Error launching url: $e');
+                        }
+                      },
+                    ),
+                    _buildDivider(isDark),
+                    _buildSettingsRow(
+                      icon: Icons.info_outline_rounded,
+                      iconColor: Colors.grey,
+                      title: 'App Version',
+                      subtitle: 'v2.4.0 (Build 42)',
+                      showChevron: false,
+                    ),
+                  ]),
+                  const SizedBox(height: 28),
+
+                  // Sign Out
+                  _buildSignOutButton(context, state),
+
+                  const SizedBox(height: 32),
                   _buildPartnerBranding(context),
                 ],
               ),
@@ -585,10 +654,115 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 
-  Widget _buildSettingsGrid(BuildContext context) {
-    final state = context.watch<AppStateRepository>();
+  Widget _buildGroupedCard({required List<Widget> children}) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1C1C1E) : Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.08)
+              : Colors.black.withValues(alpha: 0.06),
+          width: 1,
+        ),
+        boxShadow: isDark
+            ? null
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+      ),
+      child: Column(children: children),
+    );
+  }
 
+  Widget _buildDivider(bool isDark) {
+    return Divider(
+      height: 1,
+      indent: 58,
+      endIndent: 16,
+      color: isDark
+          ? Colors.white.withValues(alpha: 0.06)
+          : Colors.black.withValues(alpha: 0.05),
+    );
+  }
+
+  Widget _buildSettingsRow({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    String? subtitle,
+    VoidCallback? onTap,
+    bool showChevron = true,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: onTap != null
+            ? () {
+                HapticFeedback.lightImpact();
+                onTap();
+              }
+            : null,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: iconColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, color: iconColor, size: 20),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  title,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                    color: isDark ? Colors.white : const Color(0xFF1A202C),
+                  ),
+                ),
+              ),
+              if (subtitle != null) ...[
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey[500],
+                  ),
+                ),
+                if (showChevron) const SizedBox(width: 6),
+              ],
+              if (showChevron)
+                Icon(
+                  Icons.chevron_right_rounded,
+                  size: 18,
+                  color: Colors.grey[400],
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPreferencesGroup(
+    BuildContext context,
+    AppStateRepository state,
+    bool isDark,
+  ) {
     IconData themeIcon;
     String themeLabel;
     if (state.themeMode == ThemeMode.dark) {
@@ -602,53 +776,74 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       themeLabel = isDark ? 'System (Dark)' : 'System (Light)';
     }
 
-    return GridView.count(
-      padding: EdgeInsets.zero,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: 2,
-      mainAxisSpacing: 12,
-      crossAxisSpacing: 12,
-      childAspectRatio: 2.2,
+    return _buildGroupedCard(
       children: [
-        _buildSettingsCard(
-          context,
-          Icons.history_rounded,
-          'My Orders',
-          () => Navigator.push(
+        _buildSettingsRow(
+          icon: themeIcon,
+          iconColor: const Color(0xFF5C6BC0),
+          title: 'Appearance',
+          subtitle: themeLabel,
+          onTap: () => _showThemeModeDialog(context, state),
+        ),
+        _buildDivider(isDark),
+        _buildSettingsRow(
+          icon: Icons.notifications_rounded,
+          iconColor: const Color(0xFFFF9800),
+          title: 'Notifications',
+          subtitle: 'Alerts & Reminders',
+          onTap: () => Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const OrdersScreen()),
+            MaterialPageRoute(builder: (_) => const NotificationScreen()),
           ),
-        ),
-        _buildSettingsCard(
-          context,
-          Icons.favorite_rounded,
-          'Favorite Vets',
-          () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const FavoriteVetsScreen()),
-          ),
-        ),
-        _buildSettingsCard(
-          context,
-          themeIcon,
-          themeLabel,
-          () => _showThemeModeDialog(context, state),
-        ),
-        _buildSettingsCard(
-          context,
-          Icons.security_rounded,
-          'Privacy & Terms',
-          () async {
-            final url = Uri.parse('https://petmaya.app/privacy-policy');
-            try {
-              await launchUrl(url, mode: LaunchMode.externalApplication);
-            } catch (e) {
-              debugPrint('[PrivacyLink] Error launching url: $e');
-            }
-          },
         ),
       ],
+    );
+  }
+
+  Widget _buildSignOutButton(
+    BuildContext context,
+    AppStateRepository state,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 2),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18),
+          onTap: () => _showLogoutDialog(context, state),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: AppColors.dangerRed.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: AppColors.dangerRed.withValues(alpha: 0.2),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.logout_rounded,
+                  color: AppColors.dangerRed,
+                  size: 18,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Sign Out of Pet Maya',
+                  style: GoogleFonts.plusJakartaSans(
+                    color: AppColors.dangerRed,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -812,37 +1007,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSettingsCard(
-    BuildContext context,
-    IconData icon,
-    String label,
-    VoidCallback onTap,
-  ) {
-    return PremiumCard(
-      onTap: onTap,
-      opacity: 0.15,
-      borderRadius: 20,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Row(
-          children: [
-            Icon(icon, color: AppColors.primary, size: 20),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                label,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 12,
-                ),
-              ),
-            ),
-          ],
         ),
       ),
     );

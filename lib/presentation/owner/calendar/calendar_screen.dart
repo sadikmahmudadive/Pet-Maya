@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../data/repositories/app_state_repository.dart';
@@ -43,23 +44,36 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
     return GlassScaffold(
       appBar: AppBar(
-        title: const Text('Care Calendar'),
+        title: Text(
+          'Care Calendar',
+          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.history_rounded, color: AppColors.primary),
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EventsHistoryScreen())),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const EventsHistoryScreen()),
+            ),
           ),
           const SizedBox(width: 8),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showEventModal(context, initialDate: _selectedDate),
-        label: const Text('SCHEDULE CARE', style: TextStyle(fontWeight: FontWeight.w700, letterSpacing: 0.8, fontSize: 12)),
+        label: Text(
+          'SCHEDULE CARE',
+          style: GoogleFonts.plusJakartaSans(
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.8,
+            fontSize: 12,
+          ),
+        ),
         icon: const Icon(Icons.add_rounded, size: 20),
         backgroundColor: AppColors.primary,
-        elevation: 10,
+        elevation: 6,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       ),
       body: CustomScrollView(
@@ -68,7 +82,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
           SliverToBoxAdapter(
             child: Column(
               children: [
-                const SizedBox(height: 100),
+                const SizedBox(height: 16),
                 FadeInDown(child: _buildDynamicCalendar(state.events)),
                 const SizedBox(height: 24),
                 SingleChildScrollView(
@@ -132,12 +146,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(monthStr, 
-                        style: AppTypography.titleLarge.copyWith(
-                          fontWeight: FontWeight.w900, 
-                          fontSize: 24,
-                          letterSpacing: -0.5
-                        )),
+                      Text(
+                        monthStr,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 22,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
                       const SizedBox(height: 4),
                       Text('Your pet\'s health schedule', 
                         style: TextStyle(
@@ -287,30 +303,56 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final isSelected = _activeCategory == label;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
-      padding: const EdgeInsets.only(right: 12),
-      child: PremiumCard(
+      padding: const EdgeInsets.only(right: 8),
+      child: GestureDetector(
         onTap: () {
           HapticFeedback.selectionClick();
           setState(() => _activeCategory = label);
         },
-        opacity: isSelected ? 0.4 : 0.05,
-        borderRadius: 24,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           decoration: BoxDecoration(
-            border: isSelected ? Border.all(color: AppColors.primary.withValues(alpha: 0.3), width: 1.5) : null,
-            borderRadius: BorderRadius.circular(24),
-          ),
-          child: Text(
-            label,
-            style: AppTypography.labelSmall.copyWith(
-              color: isSelected 
-                ? AppColors.primary 
-                : (isDark ? Colors.white54 : Colors.black45),
-              fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
-              fontSize: 12,
-              letterSpacing: 0.5,
+            color: isSelected
+                ? AppColors.primary
+                : (isDark
+                    ? Colors.white.withValues(alpha: 0.05)
+                    : Colors.grey.withValues(alpha: 0.08)),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isSelected
+                  ? AppColors.primary
+                  : (isDark
+                      ? Colors.white.withValues(alpha: 0.08)
+                      : Colors.black.withValues(alpha: 0.05)),
+              width: 1,
             ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (label != 'All') ...[
+                Container(
+                  width: 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color: isSelected ? Colors.white : _getCategoryColor(label),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 8),
+              ],
+              Text(
+                label,
+                style: GoogleFonts.plusJakartaSans(
+                  color: isSelected
+                      ? Colors.white
+                      : (isDark ? Colors.white70 : Colors.black87),
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                  fontSize: 12,
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -318,66 +360,166 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   Widget _buildEventCard(EventModel event, AppStateRepository state) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final catColor = _getCategoryColor(event.category);
+
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: PremiumCard(
-        onTap: () => _showEventModal(context, event: event),
-        opacity: event.isCompleted ? 0.1 : 0.25,
-        borderRadius: 28,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: _getCategoryColor(event.category).withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(_getCategoryIcon(event.category), color: _getCategoryColor(event.category), size: 24),
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: () => _showEventModal(context, event: event),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 250),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: event.isCompleted
+                  ? (isDark
+                      ? Colors.white.withValues(alpha: 0.02)
+                      : Colors.grey.withValues(alpha: 0.04))
+                  : (isDark ? const Color(0xFF1E1E22) : Colors.white),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.06)
+                    : Colors.black.withValues(alpha: 0.06),
+                width: 1,
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      event.title, 
-                      style: AppTypography.titleMedium.copyWith(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 16,
-                        decoration: event.isCompleted ? TextDecoration.lineThrough : null,
-                        color: event.isCompleted ? Theme.of(context).colorScheme.outline : Theme.of(context).colorScheme.onSurface,
-                      )
+              boxShadow: isDark || event.isCompleted
+                  ? null
+                  : [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.03),
+                        blurRadius: 10,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+            ),
+            child: Row(
+              children: [
+                // Left category color indicator
+                Container(
+                  width: 4,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: event.isCompleted ? Colors.grey[400] : catColor,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                const SizedBox(width: 14),
+                // Icon
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: catColor.withValues(
+                      alpha: event.isCompleted ? 0.05 : 0.12,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${event.petName} • ${event.fromTime}', 
-                      style: AppTypography.bodyMedium.copyWith(
-                        fontSize: 13, 
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        fontWeight: FontWeight.w600,
-                      )
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Icon(
+                    _getCategoryIcon(event.category),
+                    color: event.isCompleted ? Colors.grey : catColor,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                // Text details
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        event.title,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 15,
+                          decoration:
+                              event.isCompleted ? TextDecoration.lineThrough : null,
+                          color: event.isCompleted
+                              ? Colors.grey[500]
+                              : (isDark
+                                  ? Colors.white
+                                  : const Color(0xFF1A202C)),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? Colors.white10
+                                  : Colors.black.withValues(alpha: 0.05),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              event.petName,
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: isDark ? Colors.white70 : Colors.black87,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Icon(
+                            Icons.access_time_rounded,
+                            size: 13,
+                            color: Colors.grey[500],
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            event.fromTime,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[500],
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                // Circular completion toggle
+                if (event.category != 'Birthday')
+                  GestureDetector(
+                    onTap: () {
+                      HapticFeedback.mediumImpact();
+                      state.toggleEventCompletion(event.id);
+                    },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      width: 26,
+                      height: 26,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: event.isCompleted
+                            ? AppColors.healthGreen
+                            : Colors.transparent,
+                        border: Border.all(
+                          color: event.isCompleted
+                              ? AppColors.healthGreen
+                              : (isDark ? Colors.white30 : Colors.black26),
+                          width: 1.8,
+                        ),
+                      ),
+                      child: event.isCompleted
+                          ? const Icon(
+                              Icons.check_rounded,
+                              size: 16,
+                              color: Colors.white,
+                            )
+                          : null,
                     ),
-                  ],
-                ),
-              ),
-              if (event.category != 'Birthday')
-              Transform.scale(
-                scale: 1.2,
-                child: Checkbox(
-                  value: event.isCompleted,
-                  activeColor: AppColors.healthGreen,
-                  checkColor: Colors.white,
-                  shape: const CircleBorder(),
-                  side: BorderSide(color: Theme.of(context).dividerColor, width: 2),
-                  onChanged: (val) {
-                    HapticFeedback.mediumImpact();
-                    state.toggleEventCompletion(event.id);
-                  },
-                ),
-              ),
-            ],
+                  ),
+              ],
+            ),
           ),
         ),
       ),

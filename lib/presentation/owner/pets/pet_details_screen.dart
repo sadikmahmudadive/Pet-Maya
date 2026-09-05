@@ -24,6 +24,8 @@ import '../../common_widgets/premium_toast.dart';
 import 'add_edit_pet_screen.dart';
 import 'pet_food_screen.dart';
 import 'pet_health_tracker_screen.dart';
+import 'pet_passport_screen.dart';
+import 'vaccination_screen.dart';
 
 class PetDetailsScreen extends StatefulWidget {
   final String petId;
@@ -38,6 +40,7 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
   bool _isUploadingReport = false;
 
   Future<void> _pickAndUploadReport(BuildContext context, PetModel pet) async {
+    final repo = context.read<AppStateRepository>();
     try {
       // In file_picker 8.3.x, use FilePicker.platform.pickFiles
       final result = await FilePicker.platform.pickFiles(
@@ -48,6 +51,7 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
 
       if (result != null && result.files.single.path != null) {
         setState(() => _isUploadingReport = true);
+        if (mounted) setState(() => _isUploadingReport = true);
         final file = File(result.files.single.path!);
         final repo = context.read<AppStateRepository>();
 
@@ -65,6 +69,7 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
     } catch (e) {
       if (mounted) {
         context.read<AppStateRepository>().showToast('Upload failed: $e', type: ToastType.error, context: context);
+        repo.showToast('Upload failed: $e', type: ToastType.error, context: context);
       }
     } finally {
       if (mounted) setState(() => _isUploadingReport = false);
@@ -336,6 +341,142 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                     ),
                   ),
 
+                  if (_isUploadingReport)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8),
+                      child: LinearProgressIndicator(color: AppColors.primary),
+                    ),
+
+                  const SizedBox(height: 16),
+
+                  // ─── Spatial Holographic Pet Passport Banner ───
+                  FadeInUp(
+                    duration: const Duration(milliseconds: 350),
+                    child: GestureDetector(
+                      onTap: () {
+                        HapticFeedback.mediumImpact();
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => PetPassportScreen(pet: pet),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(18),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: isDark
+                                ? [
+                                    const Color(0xFF1A2A44),
+                                    const Color(0xFF0F1A2C),
+                                  ]
+                                : [
+                                    const Color(0xFF0D47A1),
+                                    const Color(0xFF1976D2),
+                                  ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(24),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF0D47A1).withValues(alpha: 0.35),
+                              blurRadius: 20,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.25),
+                            width: 1.2,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.18),
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.35),
+                                  width: 1,
+                                ),
+                              ),
+                              child: const Icon(
+                                Icons.verified_user_rounded,
+                                color: Colors.white,
+                                size: 28,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Text(
+                                        'DIGITAL PET PASSPORT',
+                                        style: GoogleFonts.plusJakartaSans(
+                                          color: Colors.white.withValues(alpha: 0.85),
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w800,
+                                          letterSpacing: 1.0,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 6,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.healthGreen,
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                        child: const Text(
+                                          'OFFICIAL',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 8,
+                                            fontWeight: FontWeight.w900,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Biometric & Microchip ID',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'International QR • Clearance Stamps',
+                                    style: TextStyle(
+                                      color: Colors.white.withValues(alpha: 0.75),
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const Icon(
+                              Icons.arrow_forward_ios_rounded,
+                              color: Colors.white70,
+                              size: 16,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+
                   const SizedBox(height: 28),
 
                   // ─── 3. About Section ───
@@ -489,6 +630,22 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                             MaterialPageRoute(
                               builder: (_) =>
                                   PetHealthTrackerScreen(petId: pet.petID),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        _buildStatusTile(
+                          context,
+                          'Vaccination Hub',
+                          'Immunization matrix & parasite status',
+                          '92% Complete',
+                          Icons.vaccines_rounded,
+                          const Color(0xFFE8F8F5),
+                          const Color(0xFF00BFA5),
+                          () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => VaccinationScreen(initialPet: pet),
                             ),
                           ),
                         ),
@@ -705,13 +862,20 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
         decoration: BoxDecoration(
           color: isDark ? textColor.withValues(alpha: 0.15) : bgColor,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(18),
           border: Border.all(
             color: isDark
-                ? textColor.withValues(alpha: 0.25)
-                : textColor.withValues(alpha: 0.15),
-            width: 0.8,
+                ? textColor.withValues(alpha: 0.28)
+                : textColor.withValues(alpha: 0.18),
+            width: 1.0,
           ),
+          boxShadow: [
+            BoxShadow(
+              color: textColor.withValues(alpha: isDark ? 0.20 : 0.08),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

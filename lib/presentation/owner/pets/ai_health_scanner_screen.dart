@@ -60,27 +60,30 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
   }
 
   void _runDiagnostic() async {
+    final repo = context.read<AppStateRepository>();
     final isOnline = await ConnectivityService().isConnected();
     if (!isOnline) {
       if (mounted) {
-        context.read<AppStateRepository>().showToast(
+        repo.showToast(
           'AI Scanner requires an active internet connection 🌐',
           type: ToastType.error,
+          context: context,
         );
       }
       return;
     }
     if (_selectedPet == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a pet first')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select a pet first')),
+        );
+      }
       return;
     }
     setState(() {
       _isLoading = true;
       _diagnosisResult = null;
     });
-    final repo = context.read<AppStateRepository>();
     final result = await repo.runAiHealthDiagnosis(
       petName: _selectedPet!.name,
       prompt: _issueController.text.trim(),
@@ -143,18 +146,59 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
     final pets = context.watch<AppStateRepository>().pets;
     final orientation = MediaQuery.of(context).orientation;
     final isLandscape = orientation == Orientation.landscape;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return GlassScaffold(
       appBar: AppBar(
         title: const Text('AI Health Scanner'),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(24, 100, 24, 40),
-        child: isLandscape
-            ? _buildLandscapeLayout(pets)
-            : _buildPortraitLayout(pets),
+      body: Stack(
+        children: [
+          // Chromatic liquid glass ambient glow orbs
+          Positioned(
+            top: 20,
+            left: -40,
+            child: Container(
+              width: 200,
+              height: 200,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    const Color(0xFF7C4DFF).withValues(alpha: isDark ? 0.22 : 0.10),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 220,
+            right: -40,
+            child: Container(
+              width: 220,
+              height: 220,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    const Color(0xFF00B4D8).withValues(alpha: isDark ? 0.20 : 0.08),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+          ),
+          SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
+            child: isLandscape
+                ? _buildLandscapeLayout(pets)
+                : _buildPortraitLayout(pets),
+          ),
+        ],
       ),
     );
   }
@@ -218,7 +262,20 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
           child: Container(
             height: 260,
             width: double.infinity,
-            decoration: BoxDecoration(borderRadius: BorderRadius.circular(32)),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(32),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.35),
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF7C4DFF).withValues(alpha: 0.20),
+                  blurRadius: 24,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(32),
               child: Stack(
@@ -246,6 +303,8 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
                           : null,
                       colorBlendMode: _isLoading ? BlendMode.darken : null,
                     ),
+                  // HUD corner reticles
+                  _buildHudCorners(),
                   if (_isLoading) ...[
                     const CircularProgressIndicator(
                       color: Colors.white,
@@ -287,6 +346,37 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHudCorners() {
+    return Positioned.fill(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Stack(
+          children: [
+            Align(alignment: Alignment.topLeft, child: _cornerReticle(0)),
+            Align(alignment: Alignment.topRight, child: _cornerReticle(1)),
+            Align(alignment: Alignment.bottomLeft, child: _cornerReticle(2)),
+            Align(alignment: Alignment.bottomRight, child: _cornerReticle(3)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _cornerReticle(int corner) {
+    return Container(
+      width: 20,
+      height: 20,
+      decoration: BoxDecoration(
+        border: Border(
+          top: corner < 2 ? const BorderSide(color: Color(0xFF00E5FF), width: 2.5) : BorderSide.none,
+          bottom: corner >= 2 ? const BorderSide(color: Color(0xFF00E5FF), width: 2.5) : BorderSide.none,
+          left: (corner == 0 || corner == 2) ? const BorderSide(color: Color(0xFF00E5FF), width: 2.5) : BorderSide.none,
+          right: (corner == 1 || corner == 3) ? const BorderSide(color: Color(0xFF00E5FF), width: 2.5) : BorderSide.none,
         ),
       ),
     );

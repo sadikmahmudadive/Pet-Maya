@@ -14,6 +14,7 @@ class ResilientNetworkImage extends StatelessWidget {
   final BorderRadius? borderRadius;
   final Widget? placeholder;
   final Widget? errorWidget;
+  final String? fallbackAssetPath;
   final IconData fallbackIcon;
   final Color? fallbackIconColor;
   final Color? backgroundColor;
@@ -27,6 +28,7 @@ class ResilientNetworkImage extends StatelessWidget {
     this.borderRadius,
     this.placeholder,
     this.errorWidget,
+    this.fallbackAssetPath,
     this.fallbackIcon = Icons.broken_image_rounded,
     this.fallbackIconColor,
     this.backgroundColor,
@@ -71,6 +73,19 @@ class ResilientNetworkImage extends StatelessWidget {
   }
 
   Widget _buildFallback(Color bgColor) {
+    if (fallbackAssetPath != null && fallbackAssetPath!.trim().isNotEmpty) {
+      return Image.asset(
+        fallbackAssetPath!.trim(),
+        width: width,
+        height: height,
+        fit: fit,
+        errorBuilder: (context, error, stackTrace) => _buildIconFallback(bgColor),
+      );
+    }
+    return _buildIconFallback(bgColor);
+  }
+
+  Widget _buildIconFallback(Color bgColor) {
     final iconSize = (width != null && height != null)
         ? (width! < height! ? width! * 0.4 : height! * 0.4).clamp(16.0, 48.0)
         : 28.0;

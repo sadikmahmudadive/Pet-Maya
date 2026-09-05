@@ -27,6 +27,10 @@ import '../community/create_post_screen.dart';
 import '../community/blog_screen.dart';
 import '../community/create_blog_screen.dart';
 import 'pet_tracker_screen.dart';
+import '../pets/pet_passport_screen.dart';
+import '../pets/vaccination_screen.dart';
+import '../../common_widgets/bento_card.dart';
+import '../../common_widgets/resilient_network_image.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
 import '../../common_widgets/promo_container.dart';
@@ -465,6 +469,11 @@ class HomeDashboardFragment extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (pets.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                  child: _buildHeroBentoPetCard(context, pets.first),
+                ),
               // ─── MY PETS ──────────────────────────────────────────────────
               FadeInDown(
                 child: Padding(
@@ -520,7 +529,7 @@ class HomeDashboardFragment extends StatelessWidget {
                       ),
               ),
 
-              // ─── DISCOVER MORE ─────────────────────────────────────────────
+              // ─── BENTO INTELLIGENCE & SERVICES HUB ────────────────────────
               const SizedBox(height: 24),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -528,118 +537,19 @@ class HomeDashboardFragment extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Discover More',
-                      style: Theme.of(
-                        context,
-                      ).textTheme.titleLarge?.copyWith(fontSize: 20),
+                      'Bento Intelligence Hub',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.5,
+                      ),
                     ),
-                    const SizedBox(height: 12),
-                    LayoutBuilder(
-                      builder: (context, constraints) {
-                        final crossAxisCount = constraints.maxWidth > 600
-                            ? 4
-                            : 2;
-                        final childAspectRatio = constraints.maxWidth > 600
-                            ? 1.0
-                            : (isSmallScreen ? 0.75 : 0.8);
-
-                        return GridView.count(
-                          padding: EdgeInsets.zero,
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          crossAxisCount: crossAxisCount,
-                          mainAxisSpacing: 16,
-                          crossAxisSpacing: 16,
-                          childAspectRatio: childAspectRatio,
-                          children: [
-                            _buildDiscoveryCard(
-                              context,
-                              icon: Icons.attach_money_rounded,
-                              color: const Color(0xFFE0F7FA),
-                              iconColor: const Color(0xFF006064),
-                              title: 'Pet Shop',
-                              subtitle: 'Premium treats',
-                              action: 'Shop',
-                              onTap: () => onNavRequested?.call(4),
-                            ),
-                            _buildDiscoveryCard(
-                              context,
-                              icon: Icons.location_on_rounded,
-                              color: const Color(0xFFE3F2FD),
-                              iconColor: const Color(0xFF0D47A1),
-                              title: 'Tracker',
-                              subtitle: 'Live location',
-                              action: 'Locate',
-                              onTap: () {
-                                if (pets.isNotEmpty) {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) =>
-                                          PetTrackerScreen(pet: pets.first),
-                                    ),
-                                  );
-                                }
-                              },
-                            ),
-                            _buildDiscoveryCard(
-                              context,
-                              icon: Icons.chat_bubble_outline_rounded,
-                              color: const Color(0xFFF3E5F5),
-                              iconColor: const Color(0xFF4A148C),
-                              title: 'Wellness',
-                              subtitle: 'Health scan',
-                              action: 'Check',
-                              onTap: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const AiHealthScannerScreen(),
-                                ),
-                              ),
-                            ),
-                            _buildDiscoveryCard(
-                              context,
-                              icon: Icons.pets_rounded,
-                              color: const Color(0xFFE8F5E9),
-                              iconColor: const Color(0xFF1B5E20),
-                              title: 'Community',
-                              subtitle: 'Global feed',
-                              action: 'Explore',
-                              onTap: () => onNavRequested?.call(2),
-                            ),
-                            _buildDiscoveryCard(
-                              context,
-                              icon: Icons.article_rounded,
-                              color: const Color(0xFFFFF3E0),
-                              iconColor: const Color(0xFFE65100),
-                              title: 'Blog',
-                              subtitle: 'Expert advice',
-                              action: 'Read',
-                              onTap: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const BlogScreen(),
-                                ),
-                              ),
-                            ),
-                            _buildDiscoveryCard(
-                              context,
-                              icon: Icons.event_available_rounded,
-                              color: const Color(0xFFFFEBEE),
-                              iconColor: const Color(0xFFD32F2F),
-                              title: 'Reminders',
-                              subtitle: 'Schedule care',
-                              action: 'View',
-                              onTap: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const CalendarScreen(),
-                                ),
-                              ),
-                            ),
-                          ],
-                        );
-                      },
+                    const SizedBox(height: 14),
+                    _buildBentoServicesGrid(
+                      context,
+                      pets,
+                      events,
+                      onNavRequested,
                     ),
                   ],
                 ),
@@ -756,87 +666,667 @@ class HomeDashboardFragment extends StatelessWidget {
     );
   }
 
+  Widget _buildHeroBentoPetCard(BuildContext context, PetModel pet) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return BentoCard(
+      padding: const EdgeInsets.all(20),
+      borderRadius: 28,
+      gradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: isDark
+            ? [
+                const Color(0xFF1E2836),
+                const Color(0xFF151C26),
+              ]
+            : [
+                Colors.white,
+                const Color(0xFFF3F7FA),
+              ],
+      ),
+      borderColor: isDark ? Colors.white10 : AppColors.primary.withValues(alpha: 0.15),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Avatar with circular vitality ring
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  SizedBox(
+                    width: 76,
+                    height: 76,
+                    child: CircularProgressIndicator(
+                      value: 0.94,
+                      strokeWidth: 4,
+                      backgroundColor: isDark ? Colors.white12 : Colors.black12,
+                      valueColor: const AlwaysStoppedAnimation<Color>(AppColors.healthGreen),
+                    ),
+                  ),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(34),
+                    child: pet.photoUrl != null && pet.photoUrl!.isNotEmpty
+                        ? ResilientNetworkImage(
+                            imageUrl: pet.photoUrl!,
+                            width: 66,
+                            height: 66,
+                            fit: BoxFit.cover,
+                            fallbackAssetPath: 'assets/images/pet_placeholder.png',
+                          )
+                        : Container(
+                            width: 66,
+                            height: 66,
+                            color: AppColors.primary.withValues(alpha: 0.1),
+                            child: const Icon(Icons.pets, size: 28, color: AppColors.primary),
+                          ),
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.healthGreen,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Text(
+                        '94%',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Live Collar Beacon Status
+                    Row(
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: AppColors.healthGreen,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.healthGreen,
+                                blurRadius: 6,
+                                spreadRadius: 1,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'COLLAR ONLINE • 88% BATTERY',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.healthGreen,
+                            letterSpacing: 0.4,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      pet.name,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        color: isDark ? Colors.white : AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 4,
+                      children: [
+                        _buildHeroMetaPill(context, pet.breed),
+                        _buildHeroMetaPill(context, '${pet.age} yrs'),
+                        _buildHeroMetaPill(context, '${pet.weight} kg'),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          // Action Buttons Bar
+          Row(
+            children: [
+              Expanded(
+                child: _buildHeroActionPill(
+                  context,
+                  icon: Icons.badge_outlined,
+                  label: 'Passport',
+                  color: AppColors.primary,
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => PetPassportScreen(pet: pet),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _buildHeroActionPill(
+                  context,
+                  icon: Icons.vaccines_outlined,
+                  label: 'Vaccines',
+                  color: const Color(0xFF10B981),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => VaccinationScreen(initialPet: pet),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _buildHeroActionPill(
+                  context,
+                  icon: Icons.radar_rounded,
+                  label: 'Radar',
+                  color: const Color(0xFF0288D1),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => PetTrackerScreen(pet: pet),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeroMetaPill(BuildContext context, String text) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+          color: isDark ? Colors.white70 : Colors.black87,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeroActionPill(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        onTap();
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: isDark ? 0.16 : 0.10),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: color.withValues(alpha: isDark ? 0.35 : 0.2),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 16, color: color),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: color,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBentoServicesGrid(
+    BuildContext context,
+    List<PetModel> pets,
+    List<EventModel> events,
+    Function(int)? onNavRequested,
+  ) {
+    final primaryPet = pets.isNotEmpty ? pets.first : null;
+
+    return Column(
+      children: [
+        // Row 1: Asymmetric duo (GPS Live Radar & AI Clinical Scan)
+        Row(
+          children: [
+            Expanded(
+              flex: 5,
+              child: BentoCard(
+                borderRadius: 24,
+                padding: const EdgeInsets.all(16),
+                onTap: () {
+                  if (primaryPet != null) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => PetTrackerScreen(pet: primaryPet),
+                      ),
+                    );
+                  }
+                },
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF0288D1).withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: const Icon(
+                            Icons.radar_rounded,
+                            color: Color(0xFF0288D1),
+                            size: 22,
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Text(
+                            'LIVE',
+                            style: TextStyle(
+                              color: Color(0xFF10B981),
+                              fontSize: 9,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    Text(
+                      'GPS Radar',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Live perimeter & telemetry',
+                      style: TextStyle(fontSize: 11, color: Colors.grey),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              flex: 5,
+              child: BentoCard(
+                borderRadius: 24,
+                padding: const EdgeInsets.all(16),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const AiHealthScannerScreen(),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF7C4DFF).withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: const Icon(
+                            Icons.auto_awesome_rounded,
+                            color: Color(0xFF7C4DFF),
+                            size: 22,
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF7C4DFF).withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Text(
+                            'AI 2.0',
+                            style: TextStyle(
+                              color: Color(0xFF7C4DFF),
+                              fontSize: 9,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    Text(
+                      'AI Health Scan',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Instant triage & visual vitals',
+                      style: TextStyle(fontSize: 11, color: Colors.grey),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+        // Row 2: Vaccination Matrix & Pet Care Shop
+        Row(
+          children: [
+            Expanded(
+              flex: 5,
+              child: BentoCard(
+                borderRadius: 24,
+                padding: const EdgeInsets.all(16),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => VaccinationScreen(initialPet: primaryPet),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF00BFA5).withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: const Icon(
+                            Icons.vaccines_rounded,
+                            color: Color(0xFF00BFA5),
+                            size: 22,
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF00BFA5).withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Text(
+                            '92%',
+                            style: TextStyle(
+                              color: Color(0xFF00BFA5),
+                              fontSize: 9,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    Text(
+                      'Vaccine Hub',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Immunization schedule & doses',
+                      style: TextStyle(fontSize: 11, color: Colors.grey),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              flex: 5,
+              child: BentoCard(
+                borderRadius: 24,
+                padding: const EdgeInsets.all(16),
+                onTap: () => onNavRequested?.call(4),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFF9100).withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: const Icon(
+                            Icons.shopping_bag_rounded,
+                            color: Color(0xFFFF9100),
+                            size: 22,
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFF9100).withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Text(
+                            'PHARMA',
+                            style: TextStyle(
+                              color: Color(0xFFFF9100),
+                              fontSize: 9,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    Text(
+                      'Care Shop',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Prescription diets & treats',
+                      style: TextStyle(fontSize: 11, color: Colors.grey),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+        // Row 3: Wide Bento Card (Community & Specialists)
+        BentoCard(
+          borderRadius: 24,
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+          onTap: () => onNavRequested?.call(2),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Icon(
+                  Icons.groups_rounded,
+                  color: AppColors.primary,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Community & Vet Feed',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    const Text(
+                      'Connect with 10k+ pet parents & clinicians',
+                      style: TextStyle(fontSize: 11, color: Colors.grey),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: 14,
+                color: Colors.grey,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildVerticalPetCard(BuildContext context, PetModel pet) {
-    final size = MediaQuery.of(context).size;
     final isLandscape =
         MediaQuery.of(context).orientation == Orientation.landscape;
-
-    // Cap the card width to prevent massive images on tablets
-    final cardWidth = isLandscape ? 140.0 : size.width * 0.4;
+    final cardWidth = isLandscape ? 140.0 : 150.0;
 
     return Container(
       width: cardWidth,
       margin: const EdgeInsets.only(left: 16, right: 4, bottom: 8),
-      child: PremiumCard(
-        opacity: 0.2,
-        borderRadius: 28,
+      child: BentoCard(
+        padding: const EdgeInsets.all(14),
+        borderRadius: 24,
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => PetDetailsScreen(petId: pet.petID)),
         ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: 12),
-              Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Theme.of(
-                        context,
-                      ).shadowColor.withValues(alpha: 0.08),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 6),
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                SizedBox(
+                  width: 64,
+                  height: 64,
+                  child: CircularProgressIndicator(
+                    value: 0.94,
+                    strokeWidth: 3,
+                    backgroundColor: Colors.grey.withValues(alpha: 0.15),
+                    valueColor: const AlwaysStoppedAnimation<Color>(AppColors.healthGreen),
+                  ),
                 ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(40),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(28),
                   child: pet.photoUrl != null && pet.photoUrl!.isNotEmpty
-                      ? pet.photoUrl!.startsWith('assets')
-                            ? Image.asset(
-                                pet.photoUrl!,
-                                width: isLandscape ? 55 : cardWidth * 0.55,
-                                height: isLandscape ? 55 : cardWidth * 0.55,
-                                fit: BoxFit.cover,
-                              )
-                            : CachedNetworkImage(
-                                imageUrl: pet.photoUrl!,
-                                width: isLandscape ? 55 : cardWidth * 0.55,
-                                height: isLandscape ? 55 : cardWidth * 0.55,
-                                fit: BoxFit.cover,
-                                errorWidget: (c, u, e) =>
-                                    _buildPetErrorIcon(context),
-                              )
+                      ? ResilientNetworkImage(
+                          imageUrl: pet.photoUrl!,
+                          width: 56,
+                          height: 56,
+                          fit: BoxFit.cover,
+                          fallbackAssetPath: 'assets/images/pet_placeholder.png',
+                        )
                       : _buildPetErrorIcon(context),
                 ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(
+              pet.name,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
               ),
-              const SizedBox(height: 10),
-              Flexible(
-                child: Text(
-                  pet.name,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 2),
+            Text(
+              pet.breed,
+              style: const TextStyle(
+                fontSize: 10,
+                color: Colors.grey,
+                fontWeight: FontWeight.w500,
               ),
-              Text(
-                pet.breed,
-                style: Theme.of(
-                  context,
-                ).textTheme.labelSmall?.copyWith(fontSize: 9),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 12),
-            ],
-          ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 6),
+          ],
         ),
       ),
     );
@@ -1384,86 +1874,6 @@ class HomeDashboardFragment extends StatelessWidget {
             ).textTheme.labelSmall?.copyWith(fontSize: 9),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildDiscoveryCard(
-    BuildContext context, {
-    required IconData icon,
-    required Color color,
-    Color? iconColor,
-    required String title,
-    required String subtitle,
-    required String action,
-    required VoidCallback onTap,
-  }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return PremiumCard(
-      onTap: onTap,
-      opacity: isDark ? 0.3 : 0.15,
-      borderRadius: 28,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: (iconColor ?? AppColors.primary).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Icon(
-                icon,
-                color: iconColor ?? AppColors.primary,
-                size: 24,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            Text(
-              subtitle,
-              style: TextStyle(
-                fontSize: 10,
-                color: Colors.grey,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.2,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const Spacer(),
-            Row(
-              children: [
-                Text(
-                  action.toUpperCase(),
-                  style: TextStyle(
-                    fontWeight: FontWeight.w900,
-                    color: iconColor ?? AppColors.primary,
-                    letterSpacing: 1.0,
-                    fontSize: 9,
-                  ),
-                ),
-                const SizedBox(width: 4),
-                Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  size: 8,
-                  color: iconColor ?? AppColors.primary,
-                ),
-              ],
-            ),
-          ],
-        ),
       ),
     );
   }

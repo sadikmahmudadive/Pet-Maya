@@ -1,3 +1,4 @@
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -27,6 +28,7 @@ class _BookingScreenState extends State<BookingScreen> {
   PetModel? _selectedPet;
   DateTime _selectedDate = DateTime.now().add(const Duration(days: 1));
   String _selectedTimeSlot = '10:30 AM';
+  bool _isTeleconsult = false;
   final _reasonController = TextEditingController(text: 'Routine comprehensive health checkup');
 
   final List<String> _slots = [
@@ -147,7 +149,7 @@ class _BookingScreenState extends State<BookingScreen> {
       ),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(24, 100, 24, 40),
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 120),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -193,6 +195,123 @@ class _BookingScreenState extends State<BookingScreen> {
               ),
             ),
             const SizedBox(height: 32),
+            const SizedBox(height: 20),
+
+            // Consultation Mode Glass Segment
+            FadeInDown(
+              delay: const Duration(milliseconds: 60),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: BackdropFilter(
+                  filter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: isDark ? Colors.white.withValues(alpha: 0.12) : Colors.black.withValues(alpha: 0.06),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              HapticFeedback.selectionClick();
+                              setState(() => _isTeleconsult = false);
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              decoration: BoxDecoration(
+                                color: !_isTeleconsult
+                                    ? AppColors.primary
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: !_isTeleconsult
+                                    ? [
+                                        BoxShadow(
+                                          color: AppColors.primary.withValues(alpha: 0.35),
+                                          blurRadius: 10,
+                                          offset: const Offset(0, 3),
+                                        ),
+                                      ]
+                                    : null,
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.local_hospital_rounded,
+                                    size: 16,
+                                    color: !_isTeleconsult ? Colors.white : (isDark ? Colors.white70 : Colors.black87),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    'Clinic Visit',
+                                    style: TextStyle(
+                                      color: !_isTeleconsult ? Colors.white : (isDark ? Colors.white70 : Colors.black87),
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              HapticFeedback.selectionClick();
+                              setState(() => _isTeleconsult = true);
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              decoration: BoxDecoration(
+                                color: _isTeleconsult
+                                    ? const Color(0xFF00BFA5)
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: _isTeleconsult
+                                    ? [
+                                        BoxShadow(
+                                          color: const Color(0xFF00BFA5).withValues(alpha: 0.35),
+                                          blurRadius: 10,
+                                          offset: const Offset(0, 3),
+                                        ),
+                                      ]
+                                    : null,
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.videocam_rounded,
+                                    size: 16,
+                                    color: _isTeleconsult ? Colors.white : (isDark ? Colors.white70 : Colors.black87),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    'HD Telehealth',
+                                    style: TextStyle(
+                                      color: _isTeleconsult ? Colors.white : (isDark ? Colors.white70 : Colors.black87),
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
 
             FadeInUp(
               delay: const Duration(milliseconds: 100),

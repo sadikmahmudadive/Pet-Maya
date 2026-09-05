@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/repositories/app_state_repository.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
+import '../../common_widgets/bento_card.dart';
 import '../../common_widgets/status_chip.dart';
 import '../../common_widgets/empty_state.dart';
+import 'vaccination_screen.dart';
 
 class PetHealthTrackerScreen extends StatelessWidget {
   final String petId;
@@ -29,96 +32,162 @@ class PetHealthTrackerScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(
           '${pet.name}\'s Health Vault',
-          style: const TextStyle(fontWeight: FontWeight.w800),
+          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(20, 100, 20, 120),
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 120),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. Vitality Index Card
+            // 1. Vitality Index Bento Card
             FadeInDown(
-              child: PremiumCard(
-                opacity: 0.2,
-                borderRadius: 36,
-                backgroundColor: isDark
-                    ? const Color(0xFF1A1A1A)
-                    : const Color(0xFFEDF4F8),
-                child: Padding(
-                  padding: const EdgeInsets.all(32),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'OVERALL WELLNESS',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w900,
-                                  color: const Color(0xFF1AB680),
-                                  letterSpacing: 1.5,
-                                  fontSize: 10,
-                                ),
+              child: BentoCard(
+                borderRadius: 28,
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'VITALITY & CLINICAL INDEX',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontWeight: FontWeight.w800,
+                                color: const Color(0xFF1AB680),
+                                letterSpacing: 1.2,
+                                fontSize: 10,
                               ),
-                              const SizedBox(height: 8),
-                              Text(
-                                '${pet.healthIndex}',
-                                style: const TextStyle(
-                                  fontSize: 54,
-                                  fontWeight: FontWeight.w900,
+                            ),
+                            const SizedBox(height: 6),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.baseline,
+                              textBaseline: TextBaseline.alphabetic,
+                              children: [
+                                Text(
+                                  '${pet.healthIndex}',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 48,
+                                    fontWeight: FontWeight.w900,
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                          StatusChip.health(pet.healthIndex),
-                        ],
-                      ),
-                      const SizedBox(height: 32),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: LinearProgressIndicator(
-                          value: pet.healthIndex / 100,
-                          minHeight: 12,
-                          backgroundColor: Colors.white.withValues(
-                            alpha: isDark ? 0.05 : 0.4,
-                          ),
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            _getHealthColor(pet.healthIndex),
-                          ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '/ 100',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.grey[500],
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        StatusChip.health(pet.healthIndex),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: LinearProgressIndicator(
+                        value: pet.healthIndex / 100,
+                        minHeight: 10,
+                        backgroundColor: isDark
+                            ? Colors.white10
+                            : Colors.black.withValues(alpha: 0.06),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          _getHealthColor(pet.healthIndex),
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          _buildLegend('POOR', Colors.grey[500]!),
-                          _buildLegend('EXCELLENT', AppColors.healthGreen),
-                        ],
-                      ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _buildLegend('ATTENTION', Colors.grey[500]!),
+                        _buildLegend('OPTIMAL HEALTH', AppColors.healthGreen),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ),
-            const SizedBox(height: 48),
+            const SizedBox(height: 16),
 
-            // 2. Wellness Metrics
+            // 1b. Bento Quick Action: Vaccination Hub
+            FadeInDown(
+              delay: const Duration(milliseconds: 100),
+              child: BentoCard(
+                borderRadius: 22,
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => VaccinationScreen(initialPet: pet),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF00BFA5).withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: const Icon(
+                        Icons.vaccines_rounded,
+                        color: Color(0xFF00BFA5),
+                        size: 22,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Vaccination & Booster Hub',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          const Text(
+                            '92% Compliance • Core Vaccines & Deworming',
+                            style: TextStyle(fontSize: 11, color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      size: 14,
+                      color: Colors.grey,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 32),
+
+            // 2. Wellness Metrics Bento Grid
             _buildSectionHeader('Biometric Tracking'),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
             GridView.count(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               crossAxisCount: 2,
-              mainAxisSpacing: 16,
-              crossAxisSpacing: 16,
-              childAspectRatio: 1.15,
+              mainAxisSpacing: 14,
+              crossAxisSpacing: 14,
+              childAspectRatio: 1.25,
               children: [
                 _buildGoalCard(
                   'Weight',
@@ -146,7 +215,7 @@ class PetHealthTrackerScreen extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 48),
+            const SizedBox(height: 32),
 
             // 3. Clinical Logs
             Row(
@@ -317,10 +386,10 @@ class PetHealthTrackerScreen extends StatelessWidget {
   Widget _buildSectionHeader(String title) {
     return Text(
       title,
-      style: const TextStyle(
-        fontWeight: FontWeight.w900,
-        fontSize: 22,
-        letterSpacing: -0.5,
+      style: GoogleFonts.plusJakartaSans(
+        fontWeight: FontWeight.w800,
+        fontSize: 20,
+        letterSpacing: -0.4,
       ),
     );
   }
@@ -329,10 +398,10 @@ class PetHealthTrackerScreen extends StatelessWidget {
     return Text(
       label,
       style: TextStyle(
-        fontWeight: FontWeight.w900,
+        fontWeight: FontWeight.w800,
         color: color,
         fontSize: 9,
-        letterSpacing: 1,
+        letterSpacing: 0.8,
       ),
     );
   }
@@ -343,43 +412,43 @@ class PetHealthTrackerScreen extends StatelessWidget {
     IconData icon,
     Color color,
   ) {
-    return PremiumCard(
-      opacity: 0.1,
-      borderRadius: 24,
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: color, size: 18),
+    return BentoCard(
+      borderRadius: 20,
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(12),
             ),
-            const Spacer(),
-            Text(
-              value.isEmpty ? 'N/A' : value,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+            child: Icon(icon, color: color, size: 18),
+          ),
+          const Spacer(),
+          Text(
+            value.isEmpty ? 'N/A' : value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
             ),
-            const SizedBox(height: 2),
-            Text(
-              title.toUpperCase(),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 9,
-                fontWeight: FontWeight.w800,
-                color: Colors.grey[500],
-                letterSpacing: 0.5,
-              ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            title.toUpperCase(),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w800,
+              color: Colors.grey[500],
+              letterSpacing: 0.5,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

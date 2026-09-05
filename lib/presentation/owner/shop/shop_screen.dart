@@ -12,6 +12,7 @@ import '../../../data/repositories/app_state_repository.dart';
 import '../../../data/models/product_model.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
+import '../../common_widgets/bento_card.dart';
 import '../../common_widgets/tail_wagging_loader.dart';
 import 'cart_screen.dart';
 import 'product_details_screen.dart';
@@ -177,35 +178,37 @@ class _ShopScreenState extends State<ShopScreen> {
             ),
           ),
 
-          // ─── CATEGORY NAVIGATION ───────────────────────────────────────
+          // ─── BENTO CATEGORY NAVIGATION & HERO DEAL ─────────────────────
           SliverToBoxAdapter(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 32),
+                const SizedBox(height: 24),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _buildSectionLabel('SHOP BY CATEGORY'),
+                      _buildSectionLabel('CURATED CATEGORIES'),
                       if (_selectedCategory != 'All')
                         GestureDetector(
                           onTap: () =>
                               setState(() => _selectedCategory = 'All'),
                           child: Text(
-                            'CLEAR',
-                            style: TextStyle(
+                            'RESET TO ALL',
+                            style: GoogleFonts.plusJakartaSans(
                               color: AppColors.primary,
-                              fontWeight: FontWeight.w900,
+                              fontWeight: FontWeight.w800,
                               fontSize: 10,
-                              letterSpacing: 1,
+                              letterSpacing: 0.8,
                             ),
                           ),
                         ),
                     ],
                   ),
                 ),
+                const SizedBox(height: 14),
+                _buildBentoCategoryGrid(),
                 const SizedBox(height: 16),
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
@@ -217,10 +220,25 @@ class _ShopScreenState extends State<ShopScreen> {
                         .toList(),
                   ),
                 ),
-                const SizedBox(height: 40),
+                const SizedBox(height: 24),
+                _buildBentoDealBanner(state),
+                const SizedBox(height: 32),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: _buildSectionHeader('Curated Selection'),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _buildSectionHeader('Curated Selection'),
+                      Text(
+                        '${products.length} Items',
+                        style: TextStyle(
+                          color: Colors.grey[500],
+                          fontWeight: FontWeight.w700,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 16),
               ],
@@ -429,6 +447,242 @@ class _ShopScreenState extends State<ShopScreen> {
     );
   }
 
+  Widget _buildBentoCategoryGrid() {
+    final items = [
+      {
+        'name': 'Food',
+        'label': 'Nutrition & Diet',
+        'emoji': '🥩',
+        'icon': Icons.restaurant_rounded,
+        'color': const Color(0xFFFF7043),
+        'count': 'Curated Kibble & Wet Food',
+      },
+      {
+        'name': 'Medicine',
+        'label': 'Pharmacy & Rx',
+        'emoji': '💊',
+        'icon': Icons.medication_rounded,
+        'color': const Color(0xFF26A69A),
+        'count': 'Prescription & Vitamins',
+      },
+      {
+        'name': 'Toys',
+        'label': 'Smart Tech & Play',
+        'emoji': '📡',
+        'icon': Icons.sports_tennis_rounded,
+        'color': const Color(0xFF42A5F5),
+        'count': 'Collars & Interactive',
+      },
+      {
+        'name': 'Accessories',
+        'label': 'Comfort & Gear',
+        'emoji': '🛋️',
+        'icon': Icons.weekend_rounded,
+        'color': const Color(0xFFAB47BC),
+        'count': 'Beds, Leashes & Crates',
+      },
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final cardWidth = (constraints.maxWidth - 12) / 2;
+          return Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: items.map((item) {
+              final isSelected = _selectedCategory.toLowerCase() ==
+                  (item['name'] as String).toLowerCase();
+              final color = item['color'] as Color;
+              return SizedBox(
+                width: cardWidth,
+                child: BentoCard(
+                  borderRadius: 20,
+                  padding: const EdgeInsets.all(14),
+                  borderColor: isSelected ? color : null,
+                  backgroundColor:
+                      isSelected ? color.withValues(alpha: 0.12) : null,
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    setState(() {
+                      _selectedCategory =
+                          isSelected ? 'All' : item['name'] as String;
+                    });
+                  },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: color.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(
+                              item['icon'] as IconData,
+                              color: color,
+                              size: 20,
+                            ),
+                          ),
+                          if (isSelected)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: color,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Text(
+                                'ACTIVE',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 8,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        item['label'] as String,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        item['count'] as String,
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey[500],
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildBentoDealBanner(AppStateRepository state) {
+    final promoDiscount = state.currentAppliedDiscount;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: BentoCard(
+        borderRadius: 24,
+        padding: const EdgeInsets.all(18),
+        gradient: LinearGradient(
+          colors: isDark
+              ? [
+                  const Color(0xFF1E2A38),
+                  const Color(0xFF121B24),
+                ]
+              : [
+                  const Color(0xFFE8F5E9),
+                  const Color(0xFFF1F8E9),
+                ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderColor: AppColors.healthGreen.withValues(alpha: 0.3),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.healthGreen.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: const Icon(
+                Icons.verified_rounded,
+                color: AppColors.healthGreen,
+                size: 26,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.healthGreen,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          promoDiscount > 0
+                              ? '${promoDiscount.toInt()}% OFF ACTIVE'
+                              : 'VET CURATED',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 9,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Express Delivery',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '100% Genuine Clinical Supplies',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  Text(
+                    'Temperature controlled storage & doorstep dispatch',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.grey[500],
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildProductCard(BuildContext context, ProductModel product) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final state = context.read<AppStateRepository>();
@@ -443,9 +697,9 @@ class _ShopScreenState extends State<ShopScreen> {
       oldPriceToDisplay = product.price; // The original price becomes the "old" price
     }
 
-    return PremiumCard(
-      opacity: 0.15,
-      borderRadius: 28,
+    return BentoCard(
+      borderRadius: 24,
+      padding: EdgeInsets.zero,
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(
@@ -462,16 +716,16 @@ class _ShopScreenState extends State<ShopScreen> {
               margin: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: isDark
-                    ? Colors.white.withValues(alpha: 0.05)
-                    : const Color(0xFFF8FCFF),
-                borderRadius: BorderRadius.circular(24),
+                    ? Colors.white.withValues(alpha: 0.04)
+                    : const Color(0xFFF7FAFC),
+                borderRadius: BorderRadius.circular(18),
               ),
               child: Stack(
                 alignment: Alignment.center,
                 children: [
                   Positioned.fill(
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(24),
+                      borderRadius: BorderRadius.circular(18),
                       child: Hero(
                         tag: 'prod_${product.id}',
                         child: CachedNetworkImage(
@@ -491,47 +745,47 @@ class _ShopScreenState extends State<ShopScreen> {
                   ),
                   if (product.stockQuantity < 10)
                     Positioned(
-                      top: 10,
-                      left: 10,
+                      top: 8,
+                      left: 8,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
+                          horizontal: 7,
+                          vertical: 3,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.dangerRed.withValues(alpha: 0.8),
-                          borderRadius: BorderRadius.circular(8),
+                          color: AppColors.dangerRed.withValues(alpha: 0.9),
+                          borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
-                          'LIMITED',
+                          product.stockQuantity == 0 ? 'OUT OF STOCK' : 'LOW STOCK',
                           style: GoogleFonts.plusJakartaSans(
                             color: Colors.white,
                             fontSize: 8,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.5,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.4,
                           ),
                         ),
                       ),
                     ),
                   if (product.isRxRequired)
                     Positioned(
-                      top: 10,
-                      right: 10,
+                      top: 8,
+                      right: 8,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
+                          horizontal: 7,
+                          vertical: 3,
                         ),
                         decoration: BoxDecoration(
                           color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(6),
                         ),
                         child: const Text(
                           'Rx',
                           style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.w900,
-                            fontSize: 10,
+                            fontSize: 9,
                           ),
                         ),
                       ),
@@ -542,29 +796,29 @@ class _ShopScreenState extends State<ShopScreen> {
           ),
           // Product Info
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+            padding: const EdgeInsets.fromLTRB(14, 4, 14, 14),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   product.name,
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
                   product.brand.toUpperCase(),
-                  style: const TextStyle(
-                    color: Colors.grey,
+                  style: TextStyle(
+                    color: Colors.grey[500],
                     fontWeight: FontWeight.w800,
                     fontSize: 8,
-                    letterSpacing: 1,
+                    letterSpacing: 0.8,
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -575,8 +829,8 @@ class _ShopScreenState extends State<ShopScreen> {
                           '৳${displayPrice.toStringAsFixed(0)}',
                           style: GoogleFonts.plusJakartaSans(
                             color: AppColors.primary,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
+                            fontSize: 17,
+                            fontWeight: FontWeight.w800,
                           ),
                         ),
                         if (oldPriceToDisplay != null && oldPriceToDisplay > displayPrice)
