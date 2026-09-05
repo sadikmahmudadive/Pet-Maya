@@ -12,6 +12,7 @@ import '../../common_widgets/status_chip.dart';
 import '../../common_widgets/empty_state.dart';
 import '../../common_widgets/tail_wagging_loader.dart';
 import '../../common_widgets/skeleton_loader.dart';
+import '../../common_widgets/resilient_network_image.dart';
 import 'package:animate_do/animate_do.dart';
 import 'booking_screen.dart';
 import 'favorite_vets_screen.dart';
@@ -68,6 +69,8 @@ class _PetServicesScreenState extends State<PetServicesScreen> {
             backgroundColor: Colors.transparent,
             elevation: 0,
             floating: true,
+            snap: true,
+            centerTitle: true,
             actions: [
               Stack(
                 alignment: Alignment.center,
@@ -112,19 +115,20 @@ class _PetServicesScreenState extends State<PetServicesScreen> {
           ),
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 100, 20, 8),
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
 
                   // Search Bar
                   FadeInDown(
+                    duration: const Duration(milliseconds: 280),
                     child: Container(
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0x33FFFFFF) : Colors.white.withValues(alpha: 0.85),
+                        color: isDark ? const Color(0x33FFFFFF) : Colors.white.withValues(alpha: 0.90),
                         borderRadius: BorderRadius.circular(22),
                         border: Border.all(
-                          color: isDark ? Colors.white.withValues(alpha: 0.12) : Colors.black.withValues(alpha: 0.08),
+                          color: isDark ? Colors.white.withValues(alpha: 0.14) : Colors.black.withValues(alpha: 0.08),
                         ),
                         boxShadow: [
                           BoxShadow(
@@ -140,7 +144,7 @@ class _PetServicesScreenState extends State<PetServicesScreen> {
                         style: TextStyle(fontWeight: FontWeight.w600, color: isDark ? Colors.white : Colors.black87),
                         decoration: InputDecoration(
                           hintText: 'Search doctor, specialty, clinic...',
-                          hintStyle: TextStyle(color: Colors.grey[500], fontSize: 14),
+                          hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.grey[500], fontSize: 14),
                           prefixIcon: const Icon(Icons.search_rounded, color: AppColors.primary),
                           suffixIcon: _searchQuery.isNotEmpty
                               ? IconButton(
@@ -157,84 +161,88 @@ class _PetServicesScreenState extends State<PetServicesScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
 
                   // Emergency 24/7 Triage Card
                   FadeInDown(
-                    delay: const Duration(milliseconds: 100),
-                    child: Container(
-                      padding: const EdgeInsets.all(18),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            const Color(0xFFEF4444).withValues(alpha: isDark ? 0.25 : 0.12),
-                            AppColors.primary.withValues(alpha: isDark ? 0.20 : 0.08),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
+                    delay: const Duration(milliseconds: 80),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
                         borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: const Color(0xFFEF4444).withValues(alpha: 0.3), width: 1.2),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFEF4444).withValues(alpha: 0.15),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(Icons.emergency_rounded, color: Color(0xFFEF4444), size: 24),
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  '24/7 Emergency Care',
-                                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15, letterSpacing: -0.2),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  'Instant tele-triage & walk-in clinician access.',
-                                  style: TextStyle(fontSize: 12, color: isDark ? Colors.white70 : Colors.black87),
-                                ),
+                        onTap: () {
+                          HapticFeedback.heavyImpact();
+                          if (allVets.isNotEmpty) {
+                            Navigator.push(context, MaterialPageRoute(builder: (_) => BookingScreen(vet: allVets.first)));
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                const Color(0xFFEF4444).withValues(alpha: isDark ? 0.25 : 0.12),
+                                AppColors.primary.withValues(alpha: isDark ? 0.20 : 0.08),
                               ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
                             ),
+                            borderRadius: BorderRadius.circular(24),
+                            border: Border.all(color: const Color(0xFFEF4444).withValues(alpha: 0.3), width: 1.2),
                           ),
-                          const SizedBox(width: 8),
-                          GestureDetector(
-                            onTap: () {
-                              HapticFeedback.heavyImpact();
-                              if (allVets.isNotEmpty) {
-                                Navigator.push(context, MaterialPageRoute(builder: (_) => BookingScreen(vet: allVets.first)));
-                              }
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFEF4444),
-                                borderRadius: BorderRadius.circular(16),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: const Color(0xFFEF4444).withValues(alpha: 0.35),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFEF4444).withValues(alpha: 0.15),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.emergency_rounded, color: Color(0xFFEF4444), size: 24),
                               ),
-                              child: const Text(
-                                'Triage Now',
-                                style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w900),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      '24/7 Emergency Care',
+                                      style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15, letterSpacing: -0.2),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      'Instant tele-triage & walk-in clinician access.',
+                                      style: TextStyle(fontSize: 12, color: isDark ? Colors.white70 : Colors.black87),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFEF4444),
+                                  borderRadius: BorderRadius.circular(16),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFFEF4444).withValues(alpha: 0.35),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: const Text(
+                                  'Triage Now',
+                                  style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w900),
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
 
                   // Category Selector & Nearby Toggle
                   Row(
@@ -277,9 +285,12 @@ class _PetServicesScreenState extends State<PetServicesScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 14),
-                  FadeInUp(child: _buildCategoryGrid(allVets)),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 12),
+                  FadeInUp(
+                    duration: const Duration(milliseconds: 250),
+                    child: _buildCategoryGrid(allVets),
+                  ),
+                  const SizedBox(height: 20),
 
                   // Results Header
                   Row(
@@ -287,7 +298,7 @@ class _PetServicesScreenState extends State<PetServicesScreen> {
                     children: [
                       Text(
                         'Available Specialists',
-                        style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w900, fontSize: 20),
+                        style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w900, fontSize: 19),
                       ),
                       Text(
                         '${vets.length} FOUND',
@@ -300,7 +311,7 @@ class _PetServicesScreenState extends State<PetServicesScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 12),
                 ],
               ),
             ),
@@ -320,6 +331,7 @@ class _PetServicesScreenState extends State<PetServicesScreen> {
                 )
               : vets.isEmpty
                   ? const SliverFillRemaining(
+                      hasScrollBody: false,
                       child: EmptyState(
                         icon: Icons.medical_services_outlined,
                         title: 'No specialists found',
@@ -335,7 +347,7 @@ class _PetServicesScreenState extends State<PetServicesScreen> {
                         ),
                       ),
                     ),
-          const SliverToBoxAdapter(child: SizedBox(height: 160)),
+          const SliverToBoxAdapter(child: SizedBox(height: 120)),
         ],
       ),
     );
@@ -377,14 +389,16 @@ class _PetServicesScreenState extends State<PetServicesScreen> {
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
         decoration: BoxDecoration(
           color: isSelected
               ? color
-              : (isDark ? Colors.white.withValues(alpha: 0.08) : Colors.white.withValues(alpha: 0.7)),
+              : (isDark ? Colors.white.withValues(alpha: 0.08) : Colors.white.withValues(alpha: 0.85)),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? color : Colors.transparent,
+            color: isSelected
+                ? color
+                : (isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.06)),
             width: 1.5,
           ),
           boxShadow: isSelected
@@ -395,7 +409,13 @@ class _PetServicesScreenState extends State<PetServicesScreen> {
                     offset: const Offset(0, 4),
                   ),
                 ]
-              : null,
+              : [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.03),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
         ),
         child: Row(
           children: [
@@ -464,22 +484,15 @@ class _PetServicesScreenState extends State<PetServicesScreen> {
                           shape: BoxShape.circle,
                           border: Border.all(color: AppColors.primary.withValues(alpha: 0.4), width: 2),
                         ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(32),
-                          child: Image.network(
-                            (vet.photoUrl != null && vet.photoUrl!.isNotEmpty)
-                                ? vet.photoUrl!
-                                : 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&auto=format&fit=crop',
-                            width: 68,
-                            height: 68,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) => Container(
-                              width: 68,
-                              height: 68,
-                              color: AppColors.primary.withValues(alpha: 0.1),
-                              child: const Icon(Icons.person_rounded, color: AppColors.primary),
-                            ),
-                          ),
+                        child: ResilientNetworkImage(
+                          imageUrl: (vet.photoUrl != null && vet.photoUrl!.isNotEmpty)
+                              ? vet.photoUrl!
+                              : 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&auto=format&fit=crop',
+                          width: 68,
+                          height: 68,
+                          borderRadius: BorderRadius.circular(34),
+                          fit: BoxFit.cover,
+                          fallbackIcon: Icons.person_rounded,
                         ),
                       ),
                       Positioned(
