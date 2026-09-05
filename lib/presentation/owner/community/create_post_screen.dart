@@ -137,8 +137,15 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   CircleAvatar(
                     radius: 22,
                     backgroundColor: AppColors.primaryLight,
-                    backgroundImage: currentUser?.photoUrl != null ? NetworkImage(currentUser!.photoUrl!) : null,
-                    child: currentUser?.photoUrl == null ? const Icon(Icons.person, size: 22) : null,
+                    backgroundImage: (currentUser?.photoUrl != null && currentUser!.photoUrl!.isNotEmpty)
+                        ? CachedNetworkImageProvider(currentUser!.photoUrl!)
+                        : null,
+                    onBackgroundImageError: (exception, stackTrace) {
+                      debugPrint('[CreatePostScreen] Handled user avatar load error: $exception');
+                    },
+                    child: (currentUser?.photoUrl == null || currentUser!.photoUrl!.isEmpty)
+                        ? const Icon(Icons.person, size: 22)
+                        : null,
                   ),
                   const SizedBox(width: 12),
                   Column(
@@ -313,8 +320,11 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   radius: 16,
                   backgroundColor: AppColors.primaryLight,
                   backgroundImage: shared.userPhoto != null && shared.userPhoto!.isNotEmpty
-                      ? NetworkImage(shared.userPhoto!)
+                      ? CachedNetworkImageProvider(shared.userPhoto!)
                       : null,
+                  onBackgroundImageError: (exception, stackTrace) {
+                    debugPrint('[CreatePostScreen] Handled shared post avatar load error: $exception');
+                  },
                   child: shared.userPhoto == null || shared.userPhoto!.isEmpty
                       ? const Icon(Icons.person, size: 16)
                       : null,

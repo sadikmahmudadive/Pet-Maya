@@ -12,6 +12,7 @@ import '../../../data/models/pet_model.dart';
 import '../../../data/models/event_model.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class BookingScreen extends StatefulWidget {
   final VetModel vet;
@@ -163,7 +164,15 @@ class _BookingScreenState extends State<BookingScreen> {
                         child: CircleAvatar(
                           radius: 32,
                           backgroundColor: AppColors.primaryLight,
-                          backgroundImage: widget.vet.photoUrl != null ? NetworkImage(widget.vet.photoUrl!) : null,
+                          backgroundImage: widget.vet.photoUrl != null
+                              ? CachedNetworkImageProvider(widget.vet.photoUrl!)
+                              : null,
+                          onBackgroundImageError: (exception, stackTrace) {
+                            debugPrint('[BookingScreen] Handled avatar load error: $exception');
+                          },
+                          child: widget.vet.photoUrl == null
+                              ? const Icon(Icons.person_rounded, color: AppColors.primary, size: 30)
+                              : null,
                         ),
                       ),
                       const SizedBox(width: 16),

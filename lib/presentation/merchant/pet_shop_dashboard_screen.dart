@@ -7,6 +7,7 @@ import '../../data/repositories/app_state_repository.dart';
 import '../../data/models/order_model.dart';
 import '../common_widgets/glass_scaffold.dart';
 import '../common_widgets/premium_card.dart';
+import '../common_widgets/resilient_network_image.dart';
 import '../auth/login_screen.dart';
 import 'package:animate_do/animate_do.dart';
 import 'inventory_management_screen.dart';
@@ -216,7 +217,11 @@ class PetShopDashboardScreen extends StatelessWidget {
                                       width: 50,
                                       height: 50,
                                       color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                                      child: p.imageUrl != null ? Image.network(p.imageUrl!, fit: BoxFit.contain) : const Icon(Icons.inventory_2),
+                                      child: ResilientNetworkImage(
+                                         imageUrl: p.imageUrl,
+                                         fit: BoxFit.contain,
+                                         fallbackIcon: Icons.inventory_2,
+                                       ),
                                     ),
                                   ),
                                   const SizedBox(width: 16),

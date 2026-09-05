@@ -8,6 +8,7 @@ import '../../data/repositories/app_state_repository.dart';
 import '../../data/models/product_model.dart';
 import '../common_widgets/glass_scaffold.dart';
 import '../common_widgets/premium_card.dart';
+import '../common_widgets/resilient_network_image.dart';
 import 'package:animate_do/animate_do.dart';
 
 class InventoryManagementScreen extends StatelessWidget {
@@ -54,9 +55,11 @@ class InventoryManagementScreen extends StatelessWidget {
                           width: 70,
                           height: 70,
                           color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                          child: prod.imageUrl != null 
-                            ? Image.network(prod.imageUrl!, fit: BoxFit.contain) 
-                            : const Icon(Icons.inventory_2_rounded, color: Colors.grey),
+                          child: ResilientNetworkImage(
+                            imageUrl: prod.imageUrl,
+                            fit: BoxFit.contain,
+                            fallbackIcon: Icons.inventory_2_rounded,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 16),

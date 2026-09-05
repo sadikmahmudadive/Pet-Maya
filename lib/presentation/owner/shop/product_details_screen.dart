@@ -1,8 +1,10 @@
 import 'dart:ui';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../common_widgets/micro_animations/shimmer_effect.dart';
 import '../../common_widgets/micro_animations/bouncing_widget.dart';
 import '../../../core/theme/app_colors.dart';
@@ -67,7 +69,27 @@ class ProductDetailsScreen extends StatelessWidget {
                     color: Theme.of(context).scaffoldBackgroundColor,
                     child: Hero(
                       tag: 'prod_${product.id}',
-                      child: Image.network(product.imageUrl!, fit: BoxFit.cover),
+                      child: (product.imageUrl != null && product.imageUrl!.isNotEmpty)
+                          ? CachedNetworkImage(
+                              imageUrl: product.imageUrl!,
+                              fit: BoxFit.cover,
+                              placeholder: (context, url) => Container(
+                                color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                                child: const Center(child: CupertinoActivityIndicator()),
+                              ),
+                              errorWidget: (context, url, error) => Container(
+                                color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                                child: const Center(
+                                  child: Icon(Icons.broken_image_rounded, color: Colors.grey, size: 54),
+                                ),
+                              ),
+                            )
+                          : Container(
+                              color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                              child: const Center(
+                                child: Icon(Icons.inventory_2_outlined, color: Colors.grey, size: 54),
+                              ),
+                            ),
                     ),
                   ),
                   // Substantial top gradient to ensure status bar icons are always visible

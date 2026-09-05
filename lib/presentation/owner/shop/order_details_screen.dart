@@ -8,6 +8,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../data/models/order_model.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
+import '../../common_widgets/resilient_network_image.dart';
 
 class OrderDetailsScreen extends StatelessWidget {
   final OrderModel order;
@@ -92,9 +93,11 @@ class OrderDetailsScreen extends StatelessWidget {
                                 width: 70,
                                 height: 70,
                                 color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                                child: entry.value.product.imageUrl != null
-                                    ? Image.network(entry.value.product.imageUrl!, fit: BoxFit.contain)
-                                    : const Icon(Icons.shopping_bag_rounded, color: Colors.grey),
+                                child: ResilientNetworkImage(
+                                  imageUrl: entry.value.product.imageUrl,
+                                  fit: BoxFit.contain,
+                                  fallbackIcon: Icons.shopping_bag_rounded,
+                                ),
                               ),
                             ),
                             const SizedBox(width: 16),

@@ -6,6 +6,7 @@ import '../../../data/repositories/app_state_repository.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
 import '../../common_widgets/empty_state.dart';
+import '../../common_widgets/resilient_network_image.dart';
 import 'package:animate_do/animate_do.dart';
 import 'vet_details_screen.dart';
 
@@ -59,9 +60,15 @@ class FavoriteVetsScreen extends StatelessWidget {
                               ),
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(24),
-                                child: vet.photoUrl != null 
-                                  ? Image.network(vet.photoUrl!, width: 60, height: 60, fit: BoxFit.cover)
-                                  : Container(width: 60, height: 60, color: AppColors.primaryLight, child: const Icon(Icons.medical_services, color: AppColors.primary)),
+                                child: ResilientNetworkImage(
+                                  imageUrl: vet.photoUrl,
+                                  width: 60,
+                                  height: 60,
+                                  fit: BoxFit.cover,
+                                  fallbackIcon: Icons.medical_services_rounded,
+                                  fallbackIconColor: AppColors.primary,
+                                  backgroundColor: AppColors.primaryLight,
+                                ),
                               ),
                             ),
                             const SizedBox(width: 16),

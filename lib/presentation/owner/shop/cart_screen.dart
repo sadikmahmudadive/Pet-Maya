@@ -8,6 +8,7 @@ import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
 import '../../common_widgets/empty_state.dart';
 import '../../common_widgets/premium_toast.dart';
+import '../../common_widgets/resilient_network_image.dart';
 import 'package:animate_do/animate_do.dart';
 import 'checkout_screen.dart';
 
@@ -92,9 +93,11 @@ class _CartScreenState extends State<CartScreen> {
                                 width: 80,
                                 height: 80,
                                 color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                                child: item.product.imageUrl != null
-                                    ? Image.network(item.product.imageUrl!, fit: BoxFit.contain)
-                                    : const Icon(Icons.inventory_2_outlined),
+                                child: ResilientNetworkImage(
+                                  imageUrl: item.product.imageUrl,
+                                  fit: BoxFit.contain,
+                                  fallbackIcon: Icons.inventory_2_outlined,
+                                ),
                               ),
                             ),
                             const SizedBox(width: 16),

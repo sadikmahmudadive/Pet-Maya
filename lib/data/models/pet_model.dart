@@ -57,6 +57,8 @@ class PetModel {
     this.longitude,
   }) : feedingTimes = feedingTimes ?? [];
 
+  String get species => type;
+
   Map<String, dynamic> toMap() {
     return {
       'petID': petID,

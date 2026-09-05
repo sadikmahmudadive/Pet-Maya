@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -22,8 +23,38 @@ import 'presentation/owner/pets/ai_health_scanner_screen.dart';
 import 'presentation/owner/pets/my_pets_screen.dart';
 import 'presentation/owner/calendar/calendar_screen.dart';
 
+/// Custom HttpOverrides to prevent Samsung One UI / Android 13
+/// aggressive OS power-saving from tearing down pooled sockets ungracefully.
+class ResilientHttpOverrides extends HttpOverrides {
+  @override
+  HttpClient createHttpClient(SecurityContext? context) {
+    final client = super.createHttpClient(context);
+    client.idleTimeout = const Duration(seconds: 15);
+    client.connectionTimeout = const Duration(seconds: 15);
+    return client;
+  }
+}
+
+/// Helper to detect transient network dropouts and OS-level socket aborts
+bool _isTransientNetworkError(dynamic error) {
+  if (error == null) return false;
+  final errStr = error.toString().toLowerCase();
+  return error is HttpException ||
+      error is SocketException ||
+      errStr.contains('software caused connection abort') ||
+      errStr.contains('connection abort') ||
+      errStr.contains('connection closed') ||
+      errStr.contains('connection reset') ||
+      errStr.contains('broken pipe') ||
+      errStr.contains('clientexception') ||
+      errStr.contains('failed host lookup');
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Protect against Samsung & Android 13 socket teardowns
+  HttpOverrides.global = ResilientHttpOverrides();
 
   // Load environment variables
   await dotenv.load(fileName: ".env");
@@ -55,11 +86,31 @@ void main() async {
 
   // Pass all uncaught "fatal" errors from the framework to Crashlytics
   FlutterError.onError = (errorDetails) {
+    if (_isTransientNetworkError(errorDetails.exception)) {
+      debugPrint('[Crashlytics] Non-fatal transient network drop: ${errorDetails.exception}');
+      FirebaseCrashlytics.instance.recordError(
+        errorDetails.exception,
+        errorDetails.stack,
+        fatal: false,
+        reason: 'Transient network I/O abort (e.g., OS power-save/network switch)',
+      );
+      return;
+    }
     FirebaseCrashlytics.instance.recordFlutterFatalError(errorDetails);
   };
 
   // Pass all uncaught asynchronous errors that aren't handled by the framework to Crashlytics
   PlatformDispatcher.instance.onError = (error, stack) {
+    if (_isTransientNetworkError(error)) {
+      debugPrint('[Crashlytics] Non-fatal transient network drop: $error');
+      FirebaseCrashlytics.instance.recordError(
+        error,
+        stack,
+        fatal: false,
+        reason: 'Transient network I/O abort (e.g., OS power-save/network switch)',
+      );
+      return true;
+    }
     FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
     return true;
   };
@@ -106,18 +157,16 @@ void handleWidgetDeepLink(Uri uri) {
         ? appState.pets.first
         : PetModel(
             petID: 'sample_max',
-            ownerUID: appState.currentUser?.uid ?? 'guest',
+            ownerID: appState.currentUser?.uid ?? 'guest',
             name: 'Max',
-            species: 'Dog',
+            type: 'Dog',
             breed: 'Golden Retriever',
-            age: 3,
-            weight: 28.5,
+            age: '3',
+            dob: '2023-01-01',
+            weight: '28.5',
             gender: 'Male',
-            microchipNumber: 'MC-88392104',
-            photoURL:
+            photoUrl:
                 'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&q=80&w=600',
-            isVaccinated: true,
-            isSpayedNeutered: true,
           );
 
     switch (host) {
