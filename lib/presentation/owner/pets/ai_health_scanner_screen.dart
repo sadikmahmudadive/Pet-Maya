@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
@@ -147,12 +148,20 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
     final orientation = MediaQuery.of(context).orientation;
     final isLandscape = orientation == Orientation.landscape;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final topPadding = MediaQuery.of(context).padding.top + kToolbarHeight + 8;
 
     return GlassScaffold(
       appBar: AppBar(
-        title: const Text('AI Health Scanner'),
+        title: Text(
+          'AI Health Scanner',
+          style: GoogleFonts.plusJakartaSans(
+            fontWeight: FontWeight.w800,
+            fontSize: 18,
+          ),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        centerTitle: true,
       ),
       body: Stack(
         children: [
@@ -193,7 +202,7 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
           ),
           SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
+            padding: EdgeInsets.fromLTRB(20, topPadding, 20, 40),
             child: isLandscape
                 ? _buildLandscapeLayout(pets)
                 : _buildPortraitLayout(pets),

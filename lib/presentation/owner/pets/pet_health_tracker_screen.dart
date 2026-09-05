@@ -27,6 +27,7 @@ class PetHealthTrackerScreen extends StatelessWidget {
           repo.serviceRecords.where((r) => r.petId == petId).toList(),
     );
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final topPadding = MediaQuery.of(context).padding.top + kToolbarHeight + 8;
 
     return GlassScaffold(
       appBar: AppBar(
@@ -36,10 +37,11 @@ class PetHealthTrackerScreen extends StatelessWidget {
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        centerTitle: true,
       ),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 120),
+        padding: EdgeInsets.fromLTRB(20, topPadding, 20, 120),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

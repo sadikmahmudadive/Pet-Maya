@@ -58,6 +58,7 @@ class _PetPassportScreenState extends State<PetPassportScreen> with SingleTicker
   Widget build(BuildContext context) {
     final pet = widget.pet;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final topPadding = MediaQuery.of(context).padding.top + kToolbarHeight + 8;
 
     return GlassScaffold(
       appBar: AppBar(
@@ -82,7 +83,7 @@ class _PetPassportScreenState extends State<PetPassportScreen> with SingleTicker
       ),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
+        padding: EdgeInsets.fromLTRB(20, topPadding, 20, 100),
         child: Column(
           children: [
             // Instruction Subheader
