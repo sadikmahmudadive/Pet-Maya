@@ -135,7 +135,6 @@ class _PetRefreshIndicatorState extends State<PetRefreshIndicator> {
                         fit: BoxFit.contain,
                         repeat: true,
                         renderCache: RenderCache.drawingCommands,
-                        frameRate: FrameRate.max,
                         frameRate: const FrameRate(60),
                         addRepaintBoundary: true,
                         filterQuality: FilterQuality.medium,
