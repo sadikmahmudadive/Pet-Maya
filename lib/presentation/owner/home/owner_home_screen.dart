@@ -221,7 +221,7 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: isDark ? const Color(0xFF1B232E) : Colors.white,
+      backgroundColor: isDark ? AppColors.surfaceDark : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
       ),
@@ -658,15 +658,15 @@ class HomeDashboardFragment extends StatelessWidget {
         end: Alignment.bottomRight,
         colors: isDark
             ? [
-                const Color(0xFF1E2836),
-                const Color(0xFF151C26),
+                const Color(0xFF0E302C),
+                const Color(0xFF082422),
               ]
             : [
                 Colors.white,
                 const Color(0xFFF3F7FA),
               ],
       ),
-      borderColor: isDark ? Colors.white10 : AppColors.primary.withValues(alpha: 0.15),
+      borderColor: isDark ? const Color(0x2B1AB680) : AppColors.primary.withValues(alpha: 0.15),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1649,6 +1649,8 @@ class HomeDashboardFragment extends StatelessWidget {
   }
 
   Widget _buildDetailedVetCard(BuildContext context, VetModel vet) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
       child: PremiumCard(
@@ -1756,8 +1758,16 @@ class HomeDashboardFragment extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor.withValues(alpha: 0.6),
+                  color: isDark
+                      ? const Color(0x99051E1C)
+                      : Theme.of(context).cardColor.withValues(alpha: 0.6),
                   borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isDark
+                        ? const Color(0x2B1AB680)
+                        : Colors.transparent,
+                    width: 0.8,
+                  ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

@@ -97,7 +97,7 @@ class _AdminBroadcastScreenState extends State<AdminBroadcastScreen> {
                         child: DropdownButton<String>(
                           value: _targetGroup,
                           isExpanded: true,
-                          dropdownColor: isDark ? const Color(0xFF1A1A1A) : Colors.white,
+                          dropdownColor: isDark ? const Color(0xFF0D302D) : Colors.white,
                           style: TextStyle(fontWeight: FontWeight.w700, color: isDark ? Colors.white : Colors.black87),
                           items: const [
                             DropdownMenuItem(value: 'All Pet Owners', child: Text('🐾 All Pet Owners')),

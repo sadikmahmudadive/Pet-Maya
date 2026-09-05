@@ -284,7 +284,7 @@ class InventoryManagementScreen extends StatelessWidget {
               child: DropdownButton<String>(
                 value: current,
                 isExpanded: true,
-                dropdownColor: isDark ? const Color(0xFF1A1A1A) : Colors.white,
+                dropdownColor: isDark ? const Color(0xFF0D302D) : Colors.white,
                 style: TextStyle(fontSize: 13, color: isDark ? Colors.white : Colors.black87, fontWeight: FontWeight.w700),
                 items: ['Food', 'Toys', 'Accessories', 'Medicine'].map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
                 onChanged: onChanged,

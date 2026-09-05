@@ -38,7 +38,7 @@ class OrderDetailsScreen extends StatelessWidget {
               child: PremiumCard(
                 opacity: 0.2,
                 borderRadius: 36,
-                backgroundColor: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFEDF4F8),
+                backgroundColor: isDark ? const Color(0xFF0D302D) : const Color(0xFFEDF4F8),
                 child: Padding(
                   padding: const EdgeInsets.all(32),
                   child: Row(

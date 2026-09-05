@@ -211,7 +211,7 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
                     opacity: 0.1,
                     borderRadius: 32,
                     backgroundColor: isDark
-                        ? const Color(0xFF1A1A1A)
+                        ? const Color(0xFF0D302D)
                         : const Color(0xFFF9F5FB),
                     child: Padding(
                       padding: const EdgeInsets.all(24),
@@ -286,7 +286,7 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
                     opacity: 0.1,
                     borderRadius: 32,
                     backgroundColor: isDark
-                        ? const Color(0xFF1A1A1A)
+                        ? const Color(0xFF0D302D)
                         : const Color(0xFFEDF4F8),
                     child: Padding(
                       padding: const EdgeInsets.all(24),
@@ -430,7 +430,7 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
             child: DropdownButton<String>(
               value: value,
               isExpanded: true,
-              dropdownColor: isDark ? const Color(0xFF1A1A1A) : Colors.white,
+              dropdownColor: isDark ? const Color(0xFF0D302D) : Colors.white,
               hint: Text(
                 'Select Type',
                 style: TextStyle(

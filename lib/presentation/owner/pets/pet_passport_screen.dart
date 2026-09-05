@@ -548,10 +548,10 @@ class _PetPassportScreenState extends State<PetPassportScreen> with SingleTicker
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1C1C1E).withValues(alpha: 0.85) : Colors.white.withValues(alpha: 0.90),
+        color: isDark ? const Color(0xFF0B2826).withValues(alpha: 0.88) : Colors.white.withValues(alpha: 0.90),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.06),
+          color: isDark ? const Color(0x2B1AB680) : Colors.black.withValues(alpha: 0.06),
         ),
       ),
       child: Column(

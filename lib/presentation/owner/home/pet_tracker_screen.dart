@@ -251,10 +251,10 @@ class _PetTrackerScreenState extends State<PetTrackerScreen> with SingleTickerPr
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E242B) : Colors.white,
+        color: isDark ? const Color(0xFF0D2D2A) : Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: isDark ? const Color(0xFF2C3440) : Colors.black.withValues(alpha: 0.08),
+          color: isDark ? const Color(0x3B1AB680) : Colors.black.withValues(alpha: 0.08),
           width: 1.2,
         ),
         boxShadow: [
@@ -506,7 +506,7 @@ class _PetTrackerScreenState extends State<PetTrackerScreen> with SingleTickerPr
             height: 48,
             decoration: BoxDecoration(
               color: isDark
-                  ? const Color(0xFF141D26).withValues(alpha: 0.75)
+                  ? const Color(0xCC092624)
                   : Colors.white.withValues(alpha: 0.85),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
@@ -539,7 +539,7 @@ class _PetTrackerScreenState extends State<PetTrackerScreen> with SingleTickerPr
           padding: const EdgeInsets.all(22),
           decoration: BoxDecoration(
             color: isDark
-                ? const Color(0xFF121922).withValues(alpha: 0.80)
+                ? const Color(0xEB082826)
                 : Colors.white.withValues(alpha: 0.88),
             borderRadius: BorderRadius.circular(32),
             border: Border.all(

@@ -212,7 +212,7 @@ class _AddEventModalState extends State<AddEventModal> {
                     items: pets.map((p) => DropdownMenuItem(value: p, child: Text(p.name, style: const TextStyle(fontWeight: FontWeight.w700)))).toList(),
                     onChanged: (p) => setState(() => _selectedPet = p),
                     hint: const Text('No Pet Selected', style: TextStyle(fontSize: 14)),
-                    dropdownColor: isDark ? const Color(0xFF1A1A1A) : Colors.white,
+                    dropdownColor: isDark ? const Color(0xFF0D302D) : Colors.white,
                   ),
                 ),
               ),

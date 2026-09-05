@@ -77,7 +77,7 @@ class _BreedFinderScreenState extends State<BreedFinderScreen> {
               child: PremiumCard(
                 opacity: 0.15,
                 borderRadius: 36,
-                backgroundColor: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFEDF4F8),
+                backgroundColor: isDark ? const Color(0xFF0D302D) : const Color(0xFFEDF4F8),
                 child: Container(
                   height: 380,
                   width: double.infinity,

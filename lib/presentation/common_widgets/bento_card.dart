@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../core/theme/app_colors.dart';
 
 /// A production-grade Bento container designed to build asymmetric,
 /// structured, and modular Bento grids with Apple HIG tactile feedback.
@@ -77,11 +76,11 @@ class _BentoCardState extends State<BentoCard> with SingleTickerProviderStateMix
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final defaultBg = isDark
-        ? const Color(0xFF1C1C1E).withValues(alpha: 0.85)
+        ? const Color(0xFF0B2826).withValues(alpha: 0.88)
         : Colors.white.withValues(alpha: 0.92);
 
     final defaultBorder = isDark
-        ? Colors.white.withValues(alpha: 0.08)
+        ? const Color(0x2B1AB680)
         : Colors.black.withValues(alpha: 0.06);
 
     Widget card = Container(

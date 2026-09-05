@@ -27,27 +27,27 @@ class AppColors {
   static const Color dangerRedDeep = Color(0xFFD70015);
   static const Color dangerRedLight = Color(0xFFFFEBEA);
 
-  // Background & Surfaces (Apple iOS System Grouped Theme)
+  // Background & Surfaces (Luxurious Deep Emerald Dark Theme)
   static const Color background = Color(0xFFEFFCF2);
-  static const Color backgroundDark = Color(0xFF021E20); // True Apple Dark Mode
+  static const Color backgroundDark = Color(0xFF021E20); // Deep Dark Emerald Base
   static const Color surface = Color(0xFFFFFFFF);
-  static const Color surfaceDark = Color(0xFF1C1C1E); // Apple Inset Card Dark
+  static const Color surfaceDark = Color(0xFF0B2826); // Rich Dark Emerald Card Surface
   static const Color surfaceContainer = Color(0xFFFFFFFF);
-  static const Color surfaceContainerDark = Color(0xFF2C2C2E);
+  static const Color surfaceContainerDark = Color(0xFF103330); // Elevated Dark Emerald Container
   static const Color surfaceContainerLow = Color(0xFFF8F9FA);
   static const Color surfaceGlass = Color(0xE6FFFFFF);
-  static const Color surfaceGlassDark = Color(0xCC1C1C1E);
+  static const Color surfaceGlassDark = Color(0xD90B2826);
 
-  // Apple HIG Specific Tokens
-  static const Color iosSystemGroupedBgDark = Color(0xFF000000);
+  // Apple HIG & Custom Card Specific Tokens
+  static const Color iosSystemGroupedBgDark = Color(0xFF021E20);
   static const Color iosCard = Color(0xFFFFFFFF);
-  static const Color iosCardDark = Color(0xFF1C1C1E);
+  static const Color iosCardDark = Color(0xFF0B2826); // Rich Dark Emerald Surface
   static const Color iosCardSecondary = Color(0xFFF8F9FA);
-  static const Color iosCardSecondaryDark = Color(0xFF2C2C2E);
+  static const Color iosCardSecondaryDark = Color(0xFF103330);
   static const Color iosBorder = Color(0x12000000);
-  static const Color iosBorderDark = Color(0x22FFFFFF);
+  static const Color iosBorderDark = Color(0x2B1AB680); // Subtle Mint Emerald Glow Border
   static const Color iosDivider = Color(0x1F3C3C43);
-  static const Color iosDividerDark = Color(0x33545458);
+  static const Color iosDividerDark = Color(0x2B1AB680);
 
   // Text colors (Apple HIG dynamic text levels)
   static const Color textPrimary = Color(0xFF000000);
@@ -101,7 +101,7 @@ class AppColors {
   );
 
   static const LinearGradient glassGradientDark = LinearGradient(
-    colors: [Color(0xE61C1C1E), Color(0xD91C1C1E)],
+    colors: [Color(0xFA0E302C), Color(0xF0082422)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );

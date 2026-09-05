@@ -446,9 +446,9 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF131921) : Colors.grey[100],
+            color: isDark ? const Color(0xFF0D302D) : Colors.grey[100],
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey.withValues(alpha: 0.1), width: 1.5),
+            border: Border.all(color: isDark ? const Color(0x2B1AB680) : Colors.grey.withValues(alpha: 0.1), width: 1.5),
           ),
           child: Row(
             children: [
@@ -483,7 +483,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
             child: DropdownButton<String>(
               value: _gender,
               isExpanded: true,
-              dropdownColor: isDark ? const Color(0xFF1A1A1A) : Colors.white,
+              dropdownColor: isDark ? const Color(0xFF0D302D) : Colors.white,
               icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF1AB680)),
               style: TextStyle(fontSize: 15, color: isDark ? Colors.white : Colors.black87, fontWeight: FontWeight.w700),
               items: ['Male', 'Female'].map((g) => DropdownMenuItem(value: g, child: Text(g))).toList(),

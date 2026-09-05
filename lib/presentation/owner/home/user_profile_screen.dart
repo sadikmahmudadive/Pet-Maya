@@ -658,11 +658,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1C1C1E) : Colors.white,
+        color: isDark ? const Color(0xFF0B2826) : Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: isDark
-              ? Colors.white.withValues(alpha: 0.08)
+              ? const Color(0x2B1AB680)
               : Colors.black.withValues(alpha: 0.06),
           width: 1,
         ),

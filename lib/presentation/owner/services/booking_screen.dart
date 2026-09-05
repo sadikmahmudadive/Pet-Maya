@@ -331,7 +331,7 @@ class _BookingScreenState extends State<BookingScreen> {
                       child: DropdownButton<PetModel>(
                         value: _selectedPet,
                         isExpanded: true,
-                        dropdownColor: isDark ? const Color(0xFF1A1A1A) : Colors.white,
+                        dropdownColor: isDark ? const Color(0xFF0D302D) : Colors.white,
                         icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.primary),
                         style: TextStyle(fontWeight: FontWeight.w700, color: isDark ? Colors.white : Colors.black87, fontSize: 14),
                         items: pets.map((p) => DropdownMenuItem(value: p, child: Text('${p.name} (${p.breed})'))).toList(),

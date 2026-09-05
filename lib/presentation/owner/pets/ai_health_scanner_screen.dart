@@ -426,7 +426,7 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
                         : AppColors.textPrimary,
                   ),
                   dropdownColor: Theme.of(context).brightness == Brightness.dark
-                      ? const Color(0xFF1A1A1A)
+                      ? const Color(0xFF0D302D)
                       : Colors.white,
                   hint: Text(
                     'Who are we scanning?',
