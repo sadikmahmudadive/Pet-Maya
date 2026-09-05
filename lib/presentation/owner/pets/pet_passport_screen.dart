@@ -210,7 +210,7 @@ class _PetPassportScreenState extends State<PetPassportScreen> with SingleTicker
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
           child: Padding(
-            padding: const EdgeInsets.all(22),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -218,58 +218,68 @@ class _PetPassportScreenState extends State<PetPassportScreen> with SingleTicker
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.15),
-                            shape: BoxShape.circle,
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(7),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.15),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.pets_rounded, color: AppColors.primary, size: 16),
                           ),
-                          child: const Icon(Icons.pets_rounded, color: AppColors.primary, size: 18),
-                        ),
-                        const SizedBox(width: 10),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'PET MAYA GLOBAL PASSPORT',
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 1.2,
-                                color: AppColors.primary,
-                              ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'PET MAYA PASSPORT',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 0.8,
+                                    color: AppColors.primary,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                Text(
+                                  'CANINE / FELINE ACCREDITATION',
+                                  style: TextStyle(
+                                    fontSize: 7.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: isDark ? Colors.white38 : Colors.black45,
+                                    letterSpacing: 0.5,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
                             ),
-                            Text(
-                              'CANINE / FELINE ACCREDITATION',
-                              style: TextStyle(
-                                fontSize: 8,
-                                fontWeight: FontWeight.w700,
-                                color: isDark ? Colors.white38 : Colors.black45,
-                                letterSpacing: 0.8,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                          ),
+                        ],
+                      ),
                     ),
+                    const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: const Color(0xFF22C55E).withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: const Color(0xFF22C55E).withValues(alpha: 0.4)),
                       ),
                       child: const Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.verified_rounded, size: 12, color: Color(0xFF22C55E)),
+                          Icon(Icons.verified_rounded, size: 11, color: Color(0xFF22C55E)),
                           SizedBox(width: 4),
                           Text(
                             'CLEARED',
                             style: TextStyle(
                               color: Color(0xFF22C55E),
-                              fontSize: 10,
+                              fontSize: 9.5,
                               fontWeight: FontWeight.w900,
                               letterSpacing: 0.5,
                             ),
@@ -279,7 +289,7 @@ class _PetPassportScreenState extends State<PetPassportScreen> with SingleTicker
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 18),
 
                 // Center Identity Row
                 Row(
@@ -300,14 +310,14 @@ class _PetPassportScreenState extends State<PetPassportScreen> with SingleTicker
                       ),
                       child: ResilientNetworkImage(
                         imageUrl: pet.photoUrl,
-                        width: 76,
-                        height: 76,
-                        borderRadius: BorderRadius.circular(38),
+                        width: 70,
+                        height: 70,
+                        borderRadius: BorderRadius.circular(35),
                         fit: BoxFit.cover,
                         fallbackIcon: Icons.pets_rounded,
                       ),
                     ),
-                    const SizedBox(width: 18),
+                    const SizedBox(width: 14),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -315,7 +325,7 @@ class _PetPassportScreenState extends State<PetPassportScreen> with SingleTicker
                           Text(
                             pet.name,
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 24,
+                              fontSize: 22,
                               fontWeight: FontWeight.w900,
                               letterSpacing: -0.5,
                               color: isDark ? Colors.white : Colors.black87,
@@ -327,14 +337,16 @@ class _PetPassportScreenState extends State<PetPassportScreen> with SingleTicker
                           Text(
                             '${pet.breed} • ${pet.gender.toUpperCase()}',
                             style: const TextStyle(
-                              fontSize: 12,
+                              fontSize: 11.5,
                               fontWeight: FontWeight.w800,
                               color: AppColors.primary,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 8),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
                               color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.04),
                               borderRadius: BorderRadius.circular(8),
@@ -342,15 +354,19 @@ class _PetPassportScreenState extends State<PetPassportScreen> with SingleTicker
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(Icons.qr_code_2_rounded, size: 14, color: AppColors.primary),
-                                const SizedBox(width: 6),
-                                Text(
-                                  'CHIP: ${pet.petID.substring(0, pet.petID.length > 8 ? 8 : pet.petID.length).toUpperCase()}••••',
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: 1.0,
-                                    fontFamily: 'monospace',
+                                const Icon(Icons.qr_code_2_rounded, size: 13, color: AppColors.primary),
+                                const SizedBox(width: 5),
+                                Flexible(
+                                  child: Text(
+                                    'CHIP: ${pet.petID.substring(0, pet.petID.length > 8 ? 8 : pet.petID.length).toUpperCase()}••••',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 0.5,
+                                      fontFamily: 'monospace',
+                                    ),
                                   ),
                                 ),
                               ],
@@ -361,16 +377,15 @@ class _PetPassportScreenState extends State<PetPassportScreen> with SingleTicker
                     ),
                   ],
                 ),
-                const SizedBox(height: 22),
+                const SizedBox(height: 20),
 
                 // Bottom Meta Chips
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _buildMetaColumn('AGE', pet.age.isEmpty ? '2 Yrs' : pet.age, isDark),
-                    _buildMetaColumn('WEIGHT', pet.weight.isEmpty ? '8.4 kg' : pet.weight, isDark),
-                    _buildMetaColumn('HEALTH INDEX', '${pet.healthIndex}/100', isDark),
-                    _buildMetaColumn('STATUS', 'ACTIVE', isDark),
+                    Expanded(child: _buildMetaColumn('AGE', pet.age.isEmpty ? '2 Yrs' : pet.age, isDark)),
+                    Expanded(child: _buildMetaColumn('WEIGHT', pet.weight.isEmpty ? '8.4 kg' : pet.weight, isDark)),
+                    Expanded(child: _buildMetaColumn('HEALTH', '${pet.healthIndex}/100', isDark)),
+                    Expanded(child: _buildMetaColumn('STATUS', 'ACTIVE', isDark)),
                   ],
                 ),
               ],
@@ -419,17 +434,17 @@ class _PetPassportScreenState extends State<PetPassportScreen> with SingleTicker
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
           child: Padding(
-            padding: const EdgeInsets.all(22),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
             child: Row(
               children: [
                 // Simulated QR Code Container
                 Container(
-                  width: 110,
-                  height: 110,
-                  padding: const EdgeInsets.all(8),
+                  width: 96,
+                  height: 96,
+                  padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(14),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 0.1),
@@ -439,10 +454,10 @@ class _PetPassportScreenState extends State<PetPassportScreen> with SingleTicker
                     ],
                   ),
                   child: const Center(
-                    child: Icon(Icons.qr_code_2_rounded, size: 90, color: Color(0xFF0F172A)),
+                    child: Icon(Icons.qr_code_2_rounded, size: 80, color: Color(0xFF0F172A)),
                   ),
                 ),
-                const SizedBox(width: 18),
+                const SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -451,24 +466,28 @@ class _PetPassportScreenState extends State<PetPassportScreen> with SingleTicker
                       const Text(
                         'CLINICAL VERIFICATION',
                         style: TextStyle(
-                          fontSize: 10,
+                          fontSize: 9.5,
                           fontWeight: FontWeight.w900,
                           color: AppColors.secondary,
-                          letterSpacing: 0.8,
+                          letterSpacing: 0.6,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 4),
                       Text(
                         'Scan to retrieve verified vaccination records, emergency contacts & allergy alerts.',
                         style: TextStyle(
-                          fontSize: 11,
-                          height: 1.3,
+                          fontSize: 10.5,
+                          height: 1.25,
                           color: isDark ? Colors.white70 : Colors.black87,
                         ),
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
                           color: AppColors.secondary.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(8),
@@ -476,7 +495,7 @@ class _PetPassportScreenState extends State<PetPassportScreen> with SingleTicker
                         child: Text(
                           'VALIDATED: ${DateTime.now().year}',
                           style: const TextStyle(
-                            fontSize: 10,
+                            fontSize: 9.5,
                             fontWeight: FontWeight.w900,
                             color: AppColors.secondaryDark,
                           ),
@@ -500,20 +519,24 @@ class _PetPassportScreenState extends State<PetPassportScreen> with SingleTicker
         Text(
           label,
           style: TextStyle(
-            fontSize: 9,
+            fontSize: 8.5,
             fontWeight: FontWeight.w800,
-            letterSpacing: 0.6,
+            letterSpacing: 0.4,
             color: isDark ? Colors.white38 : Colors.black45,
           ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
         const SizedBox(height: 2),
         Text(
           value,
           style: TextStyle(
-            fontSize: 13,
+            fontSize: 12.5,
             fontWeight: FontWeight.w900,
             color: isDark ? Colors.white : Colors.black87,
           ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
       ],
     );
@@ -602,4 +625,3 @@ class _PetPassportScreenState extends State<PetPassportScreen> with SingleTicker
     );
   }
 }
-
