@@ -13,7 +13,7 @@ import '../../../data/models/product_model.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
 import '../../common_widgets/bento_card.dart';
-import '../../common_widgets/tail_wagging_loader.dart';
+import '../../common_widgets/pet_refresh_indicator.dart';
 import 'cart_screen.dart';
 import 'product_details_screen.dart';
 import '../../common_widgets/micro_animations/bouncing_widget.dart';
@@ -68,21 +68,9 @@ class _ShopScreenState extends State<ShopScreen> {
         slivers: [
           // ─── PREMIUM REFRESH ───────────────────────────────────────────
           CupertinoSliverRefreshControl(
-            refreshIndicatorExtent: 100,
-            refreshTriggerPullDistance: 140,
-            builder:
-                (
-                  context,
-                  refreshState,
-                  pulledExtent,
-                  refreshTriggerPullDistance,
-                  refreshIndicatorExtent,
-                ) {
-                  return const TailWaggingLoader(
-                    size: 350,
-                    useBottomPosition: true,
-                  );
-                },
+            refreshIndicatorExtent: 80,
+            refreshTriggerPullDistance: 110,
+            builder: PetRefreshIndicator.builder,
             onRefresh: () async {
               HapticFeedback.mediumImpact();
               final user = state.currentUser;

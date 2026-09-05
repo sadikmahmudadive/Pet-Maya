@@ -24,7 +24,6 @@ import '../shop/shop_screen.dart';
 import '../services/pet_services_screen.dart';
 import '../community/community_feed_screen.dart';
 import '../community/create_post_screen.dart';
-import '../community/blog_screen.dart';
 import '../community/create_blog_screen.dart';
 import 'pet_tracker_screen.dart';
 import '../pets/pet_passport_screen.dart';
@@ -35,7 +34,7 @@ import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
 import '../../common_widgets/promo_container.dart';
 import 'user_profile_screen.dart';
-import '../../common_widgets/tail_wagging_loader.dart';
+import '../../common_widgets/pet_refresh_indicator.dart';
 import 'notification_screen.dart';
 
 class OwnerHomeScreen extends StatefulWidget {
@@ -424,7 +423,6 @@ class HomeDashboardFragment extends StatelessWidget {
     final state = context.read<AppStateRepository>();
 
     final size = MediaQuery.of(context).size;
-    final isSmallScreen = size.width < 360;
 
     return CustomScrollView(
       physics: const BouncingScrollPhysics(
@@ -433,25 +431,8 @@ class HomeDashboardFragment extends StatelessWidget {
       slivers: [
         CupertinoSliverRefreshControl(
           refreshIndicatorExtent: 80,
-          refreshTriggerPullDistance: 120,
-          builder:
-              (
-                context,
-                refreshState,
-                pulledExtent,
-                refreshTriggerPullDistance,
-                refreshIndicatorExtent,
-              ) {
-                return Center(
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 16),
-                    child: const TailWaggingLoader(
-                      size: 350,
-                      useBottomPosition: true,
-                    ),
-                  ),
-                );
-              },
+          refreshTriggerPullDistance: 110,
+          builder: PetRefreshIndicator.builder,
           onRefresh: () async {
             HapticFeedback.mediumImpact();
             if (user != null) await state.syncFromFirebase(user);

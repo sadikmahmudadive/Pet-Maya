@@ -10,7 +10,7 @@ import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
 import '../../common_widgets/status_chip.dart';
 import '../../common_widgets/empty_state.dart';
-import '../../common_widgets/tail_wagging_loader.dart';
+import '../../common_widgets/pet_refresh_indicator.dart';
 import '../../common_widgets/skeleton_loader.dart';
 import '../../common_widgets/resilient_network_image.dart';
 import 'package:animate_do/animate_do.dart';
@@ -99,15 +99,8 @@ class _PetServicesScreenState extends State<PetServicesScreen> {
           ),
           CupertinoSliverRefreshControl(
             refreshIndicatorExtent: 80,
-            refreshTriggerPullDistance: 120,
-            builder: (context, refreshState, pulledExtent, refreshTriggerPullDistance, refreshIndicatorExtent) {
-              return const Center(
-                child: Padding(
-                  padding: EdgeInsets.only(top: 16),
-                  child: TailWaggingLoader(size: 350, useBottomPosition: true),
-                ),
-              );
-            },
+            refreshTriggerPullDistance: 110,
+            builder: PetRefreshIndicator.builder,
             onRefresh: () async {
               HapticFeedback.mediumImpact();
               if (user != null) await state.syncFromFirebase(user);

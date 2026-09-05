@@ -13,7 +13,7 @@ import '../../../data/repositories/app_state_repository.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
 import '../../common_widgets/empty_state.dart';
-import '../../common_widgets/tail_wagging_loader.dart';
+import '../../common_widgets/pet_refresh_indicator.dart';
 import '../../common_widgets/skeleton_loader.dart';
 import 'create_post_screen.dart';
 import 'comments_bottom_sheet.dart';
@@ -134,21 +134,9 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
         slivers: [
           // ─── TAIL WAGGING REFRESH CONTROL (Matching other screens) ───
           CupertinoSliverRefreshControl(
-            refreshIndicatorExtent: 100,
-            refreshTriggerPullDistance: 140,
-            builder:
-                (
-                  context,
-                  refreshState,
-                  pulledExtent,
-                  refreshTriggerPullDistance,
-                  refreshIndicatorExtent,
-                ) {
-                  return const TailWaggingLoader(
-                    size: 350,
-                    useBottomPosition: true,
-                  );
-                },
+            refreshIndicatorExtent: 80,
+            refreshTriggerPullDistance: 110,
+            builder: PetRefreshIndicator.builder,
             onRefresh: () async {
               HapticFeedback.mediumImpact();
               final user = state.currentUser;
@@ -353,7 +341,6 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
               sliver: SliverList(
                 delegate: SliverChildBuilderDelegate((context, index) {
                   final post = posts[index];
-                  final isLiked = post.isLikedByUser(currentUserId);
                   final formattedTime = _formatTimestamp(post.timestamp);
 
                   return FadeInUp(
@@ -854,35 +841,7 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
     );
   }
 
-  Widget _buildFacebookActionBtn({
-    required IconData icon,
-    required String label,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: color, size: 18),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 13,
-                color: color,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+
 
   Widget _buildTabChip(String tab, String label, IconData icon) {
     final isSelected = _selectedTab == tab;

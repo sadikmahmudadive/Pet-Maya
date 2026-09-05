@@ -1,7 +1,6 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
-import 'package:animate_do/animate_do.dart';
+import '../../core/theme/app_colors.dart';
 
 class TailWaggingLoader extends StatelessWidget {
   final double size;
@@ -10,25 +9,30 @@ class TailWaggingLoader extends StatelessWidget {
 
   const TailWaggingLoader({
     super.key,
-    this.size = 280, // More balanced premium size
+    this.size = 140, // Balanced premium size
     this.useBottomPosition = false,
     this.isGlobal = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.of(context).size.height;
-
-    Widget loader = SizedBox(
-      width: size,
-      height: size,
-      child: Lottie.asset(
-        'assets/lottie/cat_wagging.json',
-        fit: BoxFit.contain,
-        repeat: true,
-        errorBuilder: (context, error, stackTrace) {
-          return const Icon(Icons.pets_rounded, size: 60, color: Colors.grey);
-        },
+    final Widget loader = RepaintBoundary(
+      child: SizedBox(
+        width: size,
+        height: size * (200 / 280),
+        child: Lottie.asset(
+          'assets/lottie/cat_wagging.json',
+          fit: BoxFit.contain,
+          repeat: true,
+          renderCache: RenderCache.drawingCommands,
+          frameRate: FrameRate.max,
+          frameRate: const FrameRate(60),
+          addRepaintBoundary: true,
+          filterQuality: FilterQuality.medium,
+          errorBuilder: (context, error, stackTrace) {
+            return Icon(Icons.pets_rounded, size: size * 0.4, color: AppColors.primary);
+          },
+        ),
       ),
     );
 
@@ -36,7 +40,6 @@ class TailWaggingLoader extends StatelessWidget {
       return Center(child: loader);
     }
 
-    // Optimization: Simplified stack for performance
     Widget content = Center(
       child: loader,
     );
