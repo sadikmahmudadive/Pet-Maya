@@ -142,32 +142,39 @@ class ProductDetailsScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('PRICE', style: TextStyle(fontWeight: FontWeight.w900, color: Colors.grey[500], fontSize: 9, letterSpacing: 1)),
-                          const SizedBox(height: 6),
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text('৳${displayPrice.toStringAsFixed(2)}',
-                                  style: const TextStyle(fontSize: 38, fontWeight: FontWeight.w900, color: AppColors.primary)),
-                              if (oldPriceToDisplay != null && oldPriceToDisplay > displayPrice) ...[
-                                const SizedBox(width: 12),
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 6),
-                                  child: Text('৳${oldPriceToDisplay.toStringAsFixed(2)}',
-                                      style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w700,
-                                          color: Colors.grey[400],
-                                          decoration: TextDecoration.lineThrough)),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ],
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('PRICE', style: TextStyle(fontWeight: FontWeight.w900, color: Colors.grey[500], fontSize: 9, letterSpacing: 1)),
+                            const SizedBox(height: 6),
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Text('৳${displayPrice.toStringAsFixed(2)}',
+                                      style: const TextStyle(fontSize: 38, fontWeight: FontWeight.w900, color: AppColors.primary)),
+                                  if (oldPriceToDisplay != null && oldPriceToDisplay > displayPrice) ...[
+                                    const SizedBox(width: 12),
+                                    Padding(
+                                      padding: const EdgeInsets.only(bottom: 6),
+                                      child: Text('৳${oldPriceToDisplay.toStringAsFixed(2)}',
+                                          style: TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.w700,
+                                              color: Colors.grey[400],
+                                              decoration: TextDecoration.lineThrough)),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
+                      const SizedBox(width: 12),
                       GestureDetector(
                         onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ReviewsScreen(targetId: product.id, targetName: product.name))),
                         child: Container(

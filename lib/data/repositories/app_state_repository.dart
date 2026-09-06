@@ -1164,6 +1164,17 @@ class AppStateRepository extends ChangeNotifier {
     );
     _serviceRecords.insert(0, record);
     _localCache.saveRecords(_serviceRecords);
+    
+    // Decrease health index based on diagnosis severity
+    final petIdx = _pets.indexWhere((p) => p.petID == petId);
+    if (petIdx != -1) {
+      final isEmergency = diagnosis.toLowerCase().contains('emergency');
+      final newHealthIndex = isEmergency ? 45 : 75; // Urgent or Checkup
+      final updatedPet = _pets[petIdx].copyWith(healthIndex: newHealthIndex);
+      _pets[petIdx] = updatedPet;
+      await _firebase.savePet(updatedPet);
+    }
+
     notifyListeners();
     await _firebase.saveServiceRecord(record);
   }

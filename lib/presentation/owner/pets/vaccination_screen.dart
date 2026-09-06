@@ -60,7 +60,24 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
             tooltip: 'Log Vaccination',
             onPressed: () {
               HapticFeedback.lightImpact();
-              state.showToast('Vaccine logger opened. Administered record added.', context: context);
+              if (_selectedPet != null) {
+                state.addServiceRecord(ServiceRecordModel(
+                  recordId: 'rec_vac_${DateTime.now().millisecondsSinceEpoch}',
+                  petId: _selectedPet!.petID,
+                  petName: _selectedPet!.name,
+                  serviceType: 'Vaccination',
+                  providerId: 'self',
+                  providerName: 'Pet Owner',
+                  providerRole: 'Owner',
+                  date: DateTime.now().toString().substring(0, 10),
+                  title: 'Routine Vaccination',
+                  description: 'Annual booster shot administered.',
+                  timestamp: DateTime.now().millisecondsSinceEpoch,
+                ));
+                // Restore health index to 100
+                state.updatePet(_selectedPet!.copyWith(healthIndex: 100, vaccinationDetails: 'Up to Date'));
+                state.showToast('Vaccine record added. Profile updated to 100% Fully Protected! ✅', context: context);
+              }
             },
           ),
           const SizedBox(width: 8),

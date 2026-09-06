@@ -155,175 +155,264 @@ class _AddEventModalState extends State<AddEventModal> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
+      height: MediaQuery.of(context).size.height * 0.85,
       padding: EdgeInsets.only(
-        top: 20,
-        left: 24,
-        right: 24,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 32,
+        top: 16,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
       ),
       decoration: BoxDecoration(
         color: Theme.of(context).scaffoldBackgroundColor,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(36)),
       ),
-      child: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(10),
-                ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(10),
               ),
             ),
-            const SizedBox(height: 24),
-            Text(
-              isEdit ? 'Edit Event' : 'Add Event',
-              style: AppTypography.headlineSmall.copyWith(fontWeight: FontWeight.w800),
-            ),
-            const SizedBox(height: 24),
-
-            // Title Input
-            _buildPremiumField(
-              label: 'Title',
-              controller: _titleController,
-              hintText: 'e.g., Vaccination, Vet visit',
-              icon: Icons.edit_calendar_rounded,
-            ),
-            const SizedBox(height: 20),
-
-            // Select Pet
-            _buildSectionLabel('Select Pet'),
-            PremiumCard(
-              opacity: 0.1,
-              borderRadius: 16,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<PetModel>(
-                    value: _selectedPet,
-                    isExpanded: true,
-                    icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.primary),
-                    items: pets.map((p) => DropdownMenuItem(value: p, child: Text(p.name, style: const TextStyle(fontWeight: FontWeight.w700)))).toList(),
-                    onChanged: (p) => setState(() => _selectedPet = p),
-                    hint: const Text('No Pet Selected', style: TextStyle(fontSize: 14)),
-                    dropdownColor: isDark ? const Color(0xFF0D302D) : Colors.white,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Select Time
-            _buildSectionLabel('Select Time'),
-            PremiumCard(
-              opacity: 0.1,
-              borderRadius: 16,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _buildTimePicker('From', _fromTime, (t) => setState(() => _fromTime = t)),
-                    const Icon(Icons.chevron_right_rounded, color: Colors.grey),
-                    _buildTimePicker('To', _toTime, (t) => setState(() => _toTime = t)),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Category
-            _buildSectionLabel('Category'),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              physics: const BouncingScrollPhysics(),
-              child: Row(
-                children: _categories.map((cat) {
-                  final isSelected = _category == cat;
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: ChoiceChip(
-                      label: Text(cat),
-                      selected: isSelected,
-                      onSelected: (val) => setState(() => _category = cat),
-                      backgroundColor: AppColors.primary.withValues(alpha: 0.05),
-                      selectedColor: const Color(0xFFFFC145), 
-                      labelStyle: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: isSelected ? Colors.white : (isDark ? Colors.white70 : Colors.black87),
-                      ),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Notes
-            _buildPremiumField(
-              label: 'Notes',
-              controller: _noteController,
-              hintText: 'Notes...',
-              maxLines: 3,
-            ),
-            const SizedBox(height: 24),
-
-            // Reminder Toggle
-            Row(
+          ),
+          const SizedBox(height: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Set Notification Reminder', style: AppTypography.bodyLarge.copyWith(fontWeight: FontWeight.w700)),
-                Switch(
-                  value: _isReminderEnabled,
-                  onChanged: (val) => setState(() => _isReminderEnabled = val),
-                  activeThumbColor: AppColors.primary,
+                Text(
+                  isEdit ? 'Edit Event' : 'Add Event',
+                  style: AppTypography.headlineSmall.copyWith(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 20,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close_rounded, size: 24),
+                  onPressed: () => Navigator.pop(context),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
                 ),
               ],
             ),
-            const SizedBox(height: 32),
+          ),
+          const SizedBox(height: 16),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              physics: const BouncingScrollPhysics(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Title Input
+                  _buildPremiumField(
+                    label: 'Title',
+                    controller: _titleController,
+                    hintText: 'e.g., Vaccination, Vet visit',
+                    icon: Icons.edit_calendar_rounded,
+                  ),
+                  const SizedBox(height: 20),
 
-            // Actions
-            Column(
-              children: [
-                SizedBox(
-                  width: double.infinity,
-                  height: 60,
-                  child: ElevatedButton(
-                    onPressed: _isSaving ? null : _saveEvent,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1AB680), 
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    ),
-                    child: _isSaving
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : Text(
-                            isEdit ? 'Update Event' : 'Save Event',
-                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16),
+                  // Select Pet
+                  _buildSectionLabel('Select Pet'),
+                  PremiumCard(
+                    opacity: 0.1,
+                    borderRadius: 16,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<PetModel>(
+                          value: _selectedPet,
+                          isExpanded: true,
+                          icon: const Icon(
+                            Icons.keyboard_arrow_down_rounded,
+                            color: AppColors.primary,
                           ),
+                          items: pets
+                              .map(
+                                (p) => DropdownMenuItem(
+                                  value: p,
+                                  child: Text(
+                                    p.name,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (p) => setState(() => _selectedPet = p),
+                          hint: const Text(
+                            'No Pet Selected',
+                            style: TextStyle(fontSize: 14),
+                          ),
+                          dropdownColor: isDark
+                              ? const Color(0xFF0D302D)
+                              : Colors.white,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-                if (isEdit) ...[
-                  const SizedBox(height: 16),
-                  TextButton(
-                    onPressed: _cancelAppointment,
-                    style: TextButton.styleFrom(foregroundColor: AppColors.dangerRed),
-                    child: const Text('CANCEL APPOINTMENT', 
-                      style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1.2, fontSize: 11)),
+                  const SizedBox(height: 20),
+
+                  // Select Time
+                  _buildSectionLabel('Select Time'),
+                  PremiumCard(
+                    opacity: 0.1,
+                    borderRadius: 16,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 16,
+                        horizontal: 20,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          _buildTimePicker(
+                            'From',
+                            _fromTime,
+                            (t) => setState(() => _fromTime = t),
+                          ),
+                          const Icon(
+                            Icons.chevron_right_rounded,
+                            color: Colors.grey,
+                          ),
+                          _buildTimePicker(
+                            'To',
+                            _toTime,
+                            (t) => setState(() => _toTime = t),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
+                  const SizedBox(height: 20),
+
+                  // Category
+                  _buildSectionLabel('Category'),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
+                    child: Row(
+                      children: _categories.map((cat) {
+                        final isSelected = _category == cat;
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: ChoiceChip(
+                            label: Text(cat),
+                            selected: isSelected,
+                            onSelected: (val) => setState(() => _category = cat),
+                            backgroundColor:
+                                AppColors.primary.withValues(alpha: 0.05),
+                            selectedColor: const Color(0xFFFFC145),
+                            labelStyle: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: isSelected
+                                  ? Colors.white
+                                  : (isDark ? Colors.white70 : Colors.black87),
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Notes
+                  _buildPremiumField(
+                    label: 'Notes',
+                    controller: _noteController,
+                    hintText: 'Notes...',
+                    maxLines: 3,
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Reminder Toggle
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Set Notification Reminder',
+                        style: AppTypography.bodyLarge.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      Switch(
+                        value: _isReminderEnabled,
+                        onChanged: (val) =>
+                            setState(() => _isReminderEnabled = val),
+                        activeThumbColor: AppColors.primary,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Actions
+                  Column(
+                    children: [
+                      SizedBox(
+                        width: double.infinity,
+                        height: 60,
+                        child: ElevatedButton(
+                          onPressed: _isSaving ? null : _saveEvent,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF1AB680),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          child: _isSaving
+                              ? const CircularProgressIndicator(
+                                  color: Colors.white,
+                                )
+                              : Text(
+                                  isEdit ? 'Update Event' : 'Save Event',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                        ),
+                      ),
+                      if (isEdit) ...[
+                        const SizedBox(height: 16),
+                        Center(
+                          child: TextButton(
+                            onPressed: _cancelAppointment,
+                            style: TextButton.styleFrom(
+                              foregroundColor: AppColors.dangerRed,
+                            ),
+                            child: const Text(
+                              'CANCEL APPOINTMENT',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 1.2,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 24),
                 ],
-              ],
+              ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
