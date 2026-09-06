@@ -84,16 +84,6 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
       ),
     );
   }
-                  fit: BoxFit.contain,
-                  repeat: false,
-                ),
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
 
   String _selectedTab = 'ALL';
 
@@ -735,31 +725,33 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
                                                   : Colors.grey[700],
                                             ),
                                           ),
-                                      if (post.sharesCount > 0) ...[
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          '·',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: isDark
-                                                ? Colors.white60
-                                                : Colors.grey[700],
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          '${post.sharesCount} shares',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w600,
-                                            color: isDark
-                                                ? Colors.white60
-                                                : Colors.grey[700],
-                                          ),
-                                        ),
-                                      ],
-                                    ],
-                                  ),
+                                          if (post.sharesCount > 0) ...[
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              '·',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: isDark
+                                                    ? Colors.white60
+                                                    : Colors.grey[700],
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              '${post.sharesCount} shares',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w600,
+                                                color: isDark
+                                                    ? Colors.white60
+                                                    : Colors.grey[700],
+                                              ),
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                    );
+                                  },
                                 ),
 
                                 const SizedBox(height: 8),
