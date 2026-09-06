@@ -518,12 +518,8 @@ class HomeDashboardFragment extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Bento Intelligence Hub',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.5,
-                      ),
+                      'Smart Care Hub',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 20),
                     ),
                     const SizedBox(height: 14),
                     _buildBentoServicesGrid(

@@ -1382,7 +1382,9 @@ class AppStateRepository extends ChangeNotifier {
 
   Future<void> togglePostReaction(String postId, String reactionType) async {
     final post = _posts.firstWhere((p) => p.postId == postId);
-    final userId = _currentUser?.uid ?? 'guest';
+    final userId = _currentUser?.uid ?? _firebase.currentFirebaseUser?.uid ?? 'guest';
+    if (userId == 'guest' || userId.isEmpty) return;
+
     final currentReaction = post.getUserReaction(userId);
     final isNewReaction = (currentReaction == null);
 
@@ -1401,7 +1403,9 @@ class AppStateRepository extends ChangeNotifier {
 
   Future<void> togglePostLike(String postId) async {
     final post = _posts.firstWhere((p) => p.postId == postId);
-    final userId = _currentUser?.uid ?? 'guest';
+    final userId = _currentUser?.uid ?? _firebase.currentFirebaseUser?.uid ?? 'guest';
+    if (userId == 'guest' || userId.isEmpty) return;
+
     final currentReaction = post.getUserReaction(userId);
     if (currentReaction != null) {
       await togglePostReaction(postId, currentReaction);

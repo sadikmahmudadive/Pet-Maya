@@ -161,7 +161,11 @@ class _LottieReactionButtonState extends State<LottieReactionButton>
     return InkWell(
       onTap: () {
         HapticFeedback.lightImpact();
-        state.togglePostLike(widget.post.postId);
+        if (isReacted) {
+          state.togglePostReaction(widget.post.postId, userReaction);
+        } else {
+          state.togglePostReaction(widget.post.postId, 'Like');
+        }
       },
       onLongPress: () => _showReactionPicker(context),
       borderRadius: BorderRadius.circular(8),

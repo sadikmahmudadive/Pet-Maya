@@ -664,12 +664,15 @@ class FirebaseService {
     bool isReacted,
     bool isNewReaction,
   ) async {
+    if (userId.isEmpty || userId == 'guest') return;
     final ref = _postsCol.doc(postId);
     if (isReacted) {
       final Map<String, dynamic> updateData = {
         'likedByUserIds': FieldValue.arrayUnion([userId]),
         'likedBy': {userId: true},
-        'userReactions.$userId': reactionType,
+        'userReactions': {userId: reactionType},
+        // Clean up legacy dotted field if present
+        'userReactions.$userId': FieldValue.delete(),
       };
       if (isNewReaction) {
         updateData['likesCount'] = FieldValue.increment(1);
@@ -682,6 +685,7 @@ class FirebaseService {
         'likes': FieldValue.increment(-1),
         'likedByUserIds': FieldValue.arrayRemove([userId]),
         'likedBy': {userId: false},
+        'userReactions': {userId: FieldValue.delete()},
         'userReactions.$userId': FieldValue.delete(),
       }, SetOptions(merge: true));
     }

@@ -30,13 +30,15 @@ class CommunityFeedScreen extends StatefulWidget {
 
 class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
   Widget _buildSocialProofReactions(FeedPostModel post) {
-    final reactions = post.userReactions.values.toSet().toList();
-    if (reactions.isEmpty && post.likesCount > 0) {
+    final reactions = post.userReactions.values.where((v) => v.isNotEmpty).toSet().toList();
+    if (reactions.isEmpty && (post.likesCount > 0 || post.likedBy.isNotEmpty)) {
       reactions.add('Like');
     }
     if (reactions.isEmpty) return const SizedBox.shrink();
 
     final activeList = reactions.take(3).toList();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return SizedBox(
       height: 20,
       width: (activeList.length - 1) * 14.0 + 20.0,
@@ -56,7 +58,11 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
               height: 20,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 1.5),
+                color: isDark ? const Color(0xFF1E2630) : Colors.white,
+                border: Border.all(
+                  color: isDark ? const Color(0xFF2C3846) : Colors.white,
+                  width: 1.5,
+                ),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.15),
@@ -68,6 +74,16 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
               child: ClipOval(
                 child: Lottie.asset(
                   config.assetPath,
+                  fit: BoxFit.contain,
+                  repeat: true,
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
                   fit: BoxFit.contain,
                   repeat: false,
                 ),
@@ -678,38 +694,47 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
                                 const SizedBox(height: 12),
 
                                 // Social Proof Bar
-                                if (post.likesCount > 0 || post.commentsCount > 0 || post.sharesCount > 0)
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      if (post.likesCount > 0) ...[
-                                        _buildSocialProofReactions(post),
-                                        const SizedBox(width: 6),
-                                        Text(
-                                          '${post.likesCount}',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w700,
-                                            color: isDark
-                                                ? Colors.white60
-                                                : Colors.grey[700],
-                                          ),
-                                        ),
-                                      ],
-                                      const Spacer(),
-                                      Text(
-                                        '${post.commentsCount} comments',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w600,
-                                          color: isDark
-                                              ? Colors.white60
-                                              : Colors.grey[700],
-                                        ),
+                                Builder(
+                                  builder: (context) {
+                                    final totalReactionsCount = post.userReactions.isNotEmpty
+                                        ? post.userReactions.length
+                                        : (post.likedBy.isNotEmpty ? post.likedBy.length : post.likesCount);
+
+                                    if (totalReactionsCount == 0 && post.commentsCount == 0 && post.sharesCount == 0) {
+                                      return const SizedBox.shrink();
+                                    }
+
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
                                       ),
+                                      child: Row(
+                                        children: [
+                                          if (totalReactionsCount > 0) ...[
+                                            _buildSocialProofReactions(post),
+                                            const SizedBox(width: 6),
+                                            Text(
+                                              '$totalReactionsCount',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w700,
+                                                color: isDark
+                                                    ? Colors.white60
+                                                    : Colors.grey[700],
+                                              ),
+                                            ),
+                                          ],
+                                          const Spacer(),
+                                          Text(
+                                            '${post.commentsCount} comments',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w600,
+                                              color: isDark
+                                                  ? Colors.white60
+                                                  : Colors.grey[700],
+                                            ),
+                                          ),
                                       if (post.sharesCount > 0) ...[
                                         const SizedBox(width: 8),
                                         Text(

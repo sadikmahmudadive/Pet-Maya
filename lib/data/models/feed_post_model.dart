@@ -125,6 +125,17 @@ class FeedPostModel {
       });
     }
 
+    // Parse legacy top-level dotted keys like "userReactions.KEGl5Oy6MeINkvF5Xc8WyAODIt2" ONLY if not already in reactionsMap
+    map.forEach((k, v) {
+      final keyStr = k.toString();
+      if (keyStr.startsWith('userReactions.') && v != null && v.toString().isNotEmpty) {
+        final uId = keyStr.substring('userReactions.'.length).trim();
+        if (uId.isNotEmpty) {
+          reactionsMap.putIfAbsent(uId, () => v.toString());
+        }
+      }
+    });
+
     final int lCount = (map['likesCount'] as num?)?.toInt() ??
         (map['likes'] as num?)?.toInt() ??
         (reactionsMap.isNotEmpty ? reactionsMap.length : likesMap.length);
