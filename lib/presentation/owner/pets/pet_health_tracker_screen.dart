@@ -28,6 +28,8 @@ class PetHealthTrackerScreen extends StatelessWidget {
     );
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final topPadding = MediaQuery.of(context).padding.top + kToolbarHeight + 8;
+    final hasMedicalLogs = records.isNotEmpty || (pet.vaccinationDetails?.trim().isNotEmpty == true);
+    final petHealthScore = hasMedicalLogs ? pet.healthIndex : 0;
 
     return GlassScaffold(
       appBar: AppBar(
@@ -73,7 +75,7 @@ class PetHealthTrackerScreen extends StatelessWidget {
                               textBaseline: TextBaseline.alphabetic,
                               children: [
                                 Text(
-                                  '${pet.healthIndex}',
+                                  '$petHealthScore',
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 48,
                                     fontWeight: FontWeight.w900,
@@ -92,20 +94,20 @@ class PetHealthTrackerScreen extends StatelessWidget {
                             ),
                           ],
                         ),
-                        StatusChip.health(pet.healthIndex),
+                        StatusChip.health(petHealthScore),
                       ],
                     ),
                     const SizedBox(height: 20),
                     ClipRRect(
                       borderRadius: BorderRadius.circular(10),
                       child: LinearProgressIndicator(
-                        value: pet.healthIndex / 100,
+                        value: hasMedicalLogs ? (petHealthScore / 100.0) : 0.0,
                         minHeight: 10,
                         backgroundColor: isDark
                             ? Colors.white10
                             : Colors.black.withValues(alpha: 0.06),
                         valueColor: AlwaysStoppedAnimation<Color>(
-                          _getHealthColor(pet.healthIndex),
+                          _getHealthColor(petHealthScore),
                         ),
                       ),
                     ),
@@ -162,9 +164,11 @@ class PetHealthTrackerScreen extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 2),
-                          const Text(
-                            '92% Compliance • Core Vaccines & Deworming',
-                            style: TextStyle(fontSize: 11, color: Colors.grey),
+                          Text(
+                            hasMedicalLogs
+                                ? '$petHealthScore% Health Score • Medical & Vaccine Vault'
+                                : 'No Medical Logs • Tap to Add Records',
+                            style: const TextStyle(fontSize: 11, color: Colors.grey),
                           ),
                         ],
                       ),

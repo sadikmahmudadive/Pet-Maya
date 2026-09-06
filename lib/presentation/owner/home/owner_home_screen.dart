@@ -10,6 +10,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../data/repositories/app_state_repository.dart';
 import '../../../data/models/user_model.dart';
 import '../../../data/models/pet_model.dart';
+import '../../../data/models/service_record_model.dart';
 import '../../../data/models/event_model.dart';
 import '../../../data/models/vet_model.dart';
 import '../services/vet_details_screen.dart';
@@ -406,6 +407,7 @@ class HomeDashboardFragment extends StatelessWidget {
       (AppStateRepository state) => state.currentUser,
     );
     final pets = context.select((AppStateRepository state) => state.pets);
+    final allRecords = context.select((AppStateRepository state) => state.serviceRecords);
     final allEvents = context.select(
       (AppStateRepository state) => state.events,
     );
@@ -453,7 +455,7 @@ class HomeDashboardFragment extends StatelessWidget {
               if (pets.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-                  child: _buildHeroBentoPetCard(context, pets.first),
+                  child: _buildHeroBentoPetCard(context, pets.first, allRecords),
                 ),
               // ─── MY PETS ──────────────────────────────────────────────────
               FadeInDown(
@@ -504,7 +506,7 @@ class HomeDashboardFragment extends StatelessWidget {
                           final pet = pets[index];
                           return FadeInRight(
                             delay: Duration(milliseconds: 100 * index),
-                            child: _buildVerticalPetCard(context, pet),
+                            child: _buildVerticalPetCard(context, pet, allRecords),
                           );
                         },
                       ),
@@ -643,8 +645,15 @@ class HomeDashboardFragment extends StatelessWidget {
     );
   }
 
-  Widget _buildHeroBentoPetCard(BuildContext context, PetModel pet) {
+  Widget _buildHeroBentoPetCard(
+    BuildContext context,
+    PetModel pet,
+    List<ServiceRecordModel> allRecords,
+  ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final petRecords = allRecords.where((r) => r.petId == pet.petID).toList();
+    final hasMedicalLogs = petRecords.isNotEmpty || (pet.vaccinationDetails?.trim().isNotEmpty == true);
+    final petHealthScore = hasMedicalLogs ? pet.healthIndex : 0;
 
     return BentoCard(
       padding: const EdgeInsets.all(20),
@@ -677,10 +686,12 @@ class HomeDashboardFragment extends StatelessWidget {
                     width: 76,
                     height: 76,
                     child: CircularProgressIndicator(
-                      value: 0.94,
+                      value: hasMedicalLogs ? (petHealthScore / 100.0) : 0.0,
                       strokeWidth: 4,
                       backgroundColor: isDark ? Colors.white12 : Colors.black12,
-                      valueColor: const AlwaysStoppedAnimation<Color>(AppColors.healthGreen),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        hasMedicalLogs ? AppColors.healthGreen : AppColors.accentAmber,
+                      ),
                     ),
                   ),
                   ClipRRect(
@@ -706,12 +717,12 @@ class HomeDashboardFragment extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                       decoration: BoxDecoration(
-                        color: AppColors.healthGreen,
+                        color: hasMedicalLogs ? AppColors.healthGreen : AppColors.accentAmber,
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Text(
-                        '94%',
-                        style: TextStyle(
+                      child: Text(
+                        hasMedicalLogs ? '$petHealthScore%' : '0%',
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 9,
                           fontWeight: FontWeight.w900,
@@ -1090,9 +1101,9 @@ class HomeDashboardFragment extends StatelessWidget {
                             color: const Color(0xFF00BFA5).withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: const Text(
-                            '92%',
-                            style: TextStyle(
+                          child: Text(
+                            pets.isNotEmpty ? '${pets.first.healthIndex}%' : 'Vault',
+                            style: const TextStyle(
                               color: Color(0xFF00BFA5),
                               fontSize: 9,
                               fontWeight: FontWeight.w900,
@@ -1235,10 +1246,17 @@ class HomeDashboardFragment extends StatelessWidget {
     );
   }
 
-  Widget _buildVerticalPetCard(BuildContext context, PetModel pet) {
+  Widget _buildVerticalPetCard(
+    BuildContext context,
+    PetModel pet,
+    List<ServiceRecordModel> allRecords,
+  ) {
     final isLandscape =
         MediaQuery.of(context).orientation == Orientation.landscape;
     final cardWidth = isLandscape ? 140.0 : 150.0;
+    final petRecords = allRecords.where((r) => r.petId == pet.petID).toList();
+    final hasMedicalLogs = petRecords.isNotEmpty || (pet.vaccinationDetails?.trim().isNotEmpty == true);
+    final petHealthScore = hasMedicalLogs ? pet.healthIndex : 0;
 
     return Container(
       width: cardWidth,
@@ -1261,10 +1279,12 @@ class HomeDashboardFragment extends StatelessWidget {
                   width: 64,
                   height: 64,
                   child: CircularProgressIndicator(
-                    value: 0.94,
+                    value: hasMedicalLogs ? (petHealthScore / 100.0) : 0.0,
                     strokeWidth: 3,
                     backgroundColor: Colors.grey.withValues(alpha: 0.15),
-                    valueColor: const AlwaysStoppedAnimation<Color>(AppColors.healthGreen),
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      hasMedicalLogs ? AppColors.healthGreen : AppColors.accentAmber,
+                    ),
                   ),
                 ),
                 ClipRRect(

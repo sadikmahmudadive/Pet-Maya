@@ -98,6 +98,8 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
     }).toList();
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final hasMedicalLogs = records.isNotEmpty || (pet.vaccinationDetails?.trim().isNotEmpty == true);
+    final petHealthScore = hasMedicalLogs ? pet.healthIndex : 0;
 
     return GlassScaffold(
       body: CustomScrollView(
@@ -616,14 +618,14 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                         _buildStatusTile(
                           context,
                           'Health Condition',
-                          pet.healthIndex > 80
-                              ? 'Optimal & Verified'
-                              : 'Checkup Recommended',
-                          pet.healthIndex > 80 ? 'Healthy' : 'Checkup',
+                          hasMedicalLogs
+                              ? (petHealthScore > 80 ? 'Optimal & Verified' : 'Checkup Recommended')
+                              : 'No Medical Logs Added',
+                          hasMedicalLogs ? (petHealthScore > 80 ? 'Healthy' : 'Checkup') : 'Unverified',
                           Icons.medical_services_rounded,
                           const Color(0xFFFFE8E8),
-                          pet.healthIndex > 80
-                              ? AppColors.healthGreen
+                          hasMedicalLogs
+                              ? (petHealthScore > 80 ? AppColors.healthGreen : AppColors.accentAmber)
                               : AppColors.accentAmber,
                           () => Navigator.push(
                             context,
@@ -637,8 +639,8 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                         _buildStatusTile(
                           context,
                           'Vaccination Hub',
-                          'Immunization matrix & parasite status',
-                          '92% Complete',
+                          hasMedicalLogs ? 'Immunization matrix & parasite status' : 'No vaccine logs recorded yet',
+                          hasMedicalLogs ? '$petHealthScore% Score' : 'Unverified',
                           Icons.vaccines_rounded,
                           const Color(0xFFE8F8F5),
                           const Color(0xFF00BFA5),

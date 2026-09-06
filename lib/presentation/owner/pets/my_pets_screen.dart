@@ -7,6 +7,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../data/repositories/app_state_repository.dart';
 import '../../../data/models/pet_model.dart';
+import '../../../data/models/service_record_model.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
 import '../../common_widgets/status_chip.dart';
@@ -20,6 +21,7 @@ class MyPetsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final pets = context.select((AppStateRepository state) => state.pets);
+    final allRecords = context.select((AppStateRepository state) => state.serviceRecords);
 
     return GlassScaffold(
       appBar: AppBar(
@@ -55,7 +57,7 @@ class MyPetsScreen extends StatelessWidget {
                         final pet = pets[index];
                         return FadeInUp(
                           delay: Duration(milliseconds: 100 * index),
-                          child: _buildPetListItem(context, pet),
+                          child: _buildPetListItem(context, pet, allRecords),
                         );
                       },
                       childCount: pets.length,
@@ -67,7 +69,10 @@ class MyPetsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPetListItem(BuildContext context, PetModel pet) {
+  Widget _buildPetListItem(BuildContext context, PetModel pet, List<ServiceRecordModel> allRecords) {
+    final petRecords = allRecords.where((r) => r.petId == pet.petID).toList();
+    final hasMedicalLogs = petRecords.isNotEmpty || (pet.vaccinationDetails?.trim().isNotEmpty == true);
+    final petHealthScore = hasMedicalLogs ? pet.healthIndex : 0;
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: PremiumCard(
@@ -128,7 +133,7 @@ class MyPetsScreen extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 8),
-                    StatusChip.health(pet.healthIndex),
+                    StatusChip.health(petHealthScore),
                   ],
                 ),
               ),

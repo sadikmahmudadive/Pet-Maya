@@ -44,6 +44,7 @@ class StatusChip extends StatelessWidget {
   }
 
   factory StatusChip.health(int index) {
+    if (index <= 0) return const StatusChip(label: 'Unverified', color: AppColors.accentAmber, icon: Icons.help_outline_rounded);
     if (index < 50) return const StatusChip(label: 'Urgent', color: AppColors.dangerRed, icon: Icons.error_outline_rounded);
     if (index < 85) return const StatusChip(label: 'Checkup', color: AppColors.accentAmber, icon: Icons.info_outline_rounded);
     return const StatusChip(label: 'Healthy', color: AppColors.healthGreen, icon: Icons.check_circle_outline_rounded);

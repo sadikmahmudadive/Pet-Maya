@@ -18,7 +18,6 @@ class NotificationScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final notifications = context.select((AppStateRepository repo) => repo.notifications);
     final repo = context.read<AppStateRepository>();
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GlassScaffold(
       appBar: AppBar(
@@ -26,13 +25,21 @@ class NotificationScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
-          if (notifications.any((n) => !n.isRead))
+          if (notifications.isNotEmpty)
             TextButton(
               onPressed: () {
                 HapticFeedback.mediumImpact();
                 repo.markAllNotificationsAsRead();
+                repo.showToast('All notifications marked as read! 🔔', context: context);
               },
-              child: const Text('Read All', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+              child: const Text(
+                'Read All',
+                style: TextStyle(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 13,
+                ),
+              ),
             ),
           const SizedBox(width: 8),
         ],

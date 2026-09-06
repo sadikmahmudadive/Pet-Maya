@@ -17,6 +17,7 @@ import '../../common_widgets/pet_refresh_indicator.dart';
 import '../../common_widgets/skeleton_loader.dart';
 import 'create_post_screen.dart';
 import 'comments_bottom_sheet.dart';
+import 'reactions_list_bottom_sheet.dart';
 import '../../common_widgets/micro_animations/animated_action_button.dart';
 import 'package:lottie/lottie.dart';
 import '../../common_widgets/micro_animations/lottie_reaction_button.dart';
@@ -701,16 +702,33 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
                                       child: Row(
                                         children: [
                                           if (totalReactionsCount > 0) ...[
-                                            _buildSocialProofReactions(post),
-                                            const SizedBox(width: 6),
-                                            Text(
-                                              '$totalReactionsCount',
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w700,
-                                                color: isDark
-                                                    ? Colors.white60
-                                                    : Colors.grey[700],
+                                            GestureDetector(
+                                              onTap: () {
+                                                HapticFeedback.lightImpact();
+                                                showModalBottomSheet(
+                                                  context: context,
+                                                  isScrollControlled: true,
+                                                  backgroundColor: Colors.transparent,
+                                                  builder: (_) => ReactionsListBottomSheet(post: post),
+                                                );
+                                              },
+                                              behavior: HitTestBehavior.opaque,
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  _buildSocialProofReactions(post),
+                                                  const SizedBox(width: 6),
+                                                  Text(
+                                                    '$totalReactionsCount',
+                                                    style: TextStyle(
+                                                      fontSize: 12,
+                                                      fontWeight: FontWeight.w700,
+                                                      color: isDark
+                                                          ? Colors.white60
+                                                          : Colors.grey[700],
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
                                             ),
                                           ],
