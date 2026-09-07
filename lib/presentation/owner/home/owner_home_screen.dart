@@ -79,8 +79,7 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
             bottom: 0,
             child: FloatingNavbar(
               selectedIndex: _currentNavIndex > 3 ? 1 : _currentNavIndex,
-              onItemTapped: (index) =>
-                  setState(() => _currentNavIndex = index),
+              onItemTapped: (index) => setState(() => _currentNavIndex = index),
               onFabTapped: () => _showQuickActionSheet(context),
             ),
           ),
@@ -147,8 +146,6 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
       ),
     );
   }
-
-
 
   void _showQuickActionSheet(BuildContext context) {
     HapticFeedback.mediumImpact();
@@ -341,7 +338,9 @@ class HomeDashboardFragment extends StatelessWidget {
       (AppStateRepository state) => state.currentUser,
     );
     final pets = context.select((AppStateRepository state) => state.pets);
-    final allRecords = context.select((AppStateRepository state) => state.serviceRecords);
+    final allRecords = context.select(
+      (AppStateRepository state) => state.serviceRecords,
+    );
     final allEvents = context.select(
       (AppStateRepository state) => state.events,
     );
@@ -389,7 +388,11 @@ class HomeDashboardFragment extends StatelessWidget {
               if (pets.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-                  child: _buildHeroBentoPetCard(context, pets.first, allRecords),
+                  child: _buildHeroBentoPetCard(
+                    context,
+                    pets.first,
+                    allRecords,
+                  ),
                 ),
               // ─── MY PETS ──────────────────────────────────────────────────
               FadeInDown(
@@ -440,7 +443,11 @@ class HomeDashboardFragment extends StatelessWidget {
                           final pet = pets[index];
                           return FadeInRight(
                             delay: Duration(milliseconds: 100 * index),
-                            child: _buildVerticalPetCard(context, pet, allRecords),
+                            child: _buildVerticalPetCard(
+                              context,
+                              pet,
+                              allRecords,
+                            ),
                           );
                         },
                       ),
@@ -455,7 +462,9 @@ class HomeDashboardFragment extends StatelessWidget {
                   children: [
                     Text(
                       'Smart Care Hub',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 20),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.titleLarge?.copyWith(fontSize: 20),
                     ),
                     const SizedBox(height: 14),
                     _buildBentoServicesGrid(
@@ -586,7 +595,9 @@ class HomeDashboardFragment extends StatelessWidget {
   ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final petRecords = allRecords.where((r) => r.petId == pet.petID).toList();
-    final hasMedicalLogs = petRecords.isNotEmpty || (pet.vaccinationDetails?.trim().isNotEmpty == true);
+    final hasMedicalLogs =
+        petRecords.isNotEmpty ||
+        (pet.vaccinationDetails?.trim().isNotEmpty == true);
     final petHealthScore = hasMedicalLogs ? pet.healthIndex : 0;
 
     return BentoCard(
@@ -596,16 +607,12 @@ class HomeDashboardFragment extends StatelessWidget {
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: isDark
-            ? [
-                const Color(0xFF0E302C),
-                const Color(0xFF082422),
-              ]
-            : [
-                Colors.white,
-                const Color(0xFFF3F7FA),
-              ],
+            ? [const Color(0xFF0E302C), const Color(0xFF082422)]
+            : [Colors.white, const Color(0xFFF3F7FA)],
       ),
-      borderColor: isDark ? const Color(0x2B1AB680) : AppColors.primary.withValues(alpha: 0.15),
+      borderColor: isDark
+          ? const Color(0x2B1AB680)
+          : AppColors.primary.withValues(alpha: 0.15),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -624,7 +631,9 @@ class HomeDashboardFragment extends StatelessWidget {
                       strokeWidth: 4,
                       backgroundColor: isDark ? Colors.white12 : Colors.black12,
                       valueColor: AlwaysStoppedAnimation<Color>(
-                        hasMedicalLogs ? AppColors.healthGreen : AppColors.accentAmber,
+                        hasMedicalLogs
+                            ? AppColors.healthGreen
+                            : AppColors.accentAmber,
                       ),
                     ),
                   ),
@@ -636,22 +645,32 @@ class HomeDashboardFragment extends StatelessWidget {
                             width: 66,
                             height: 66,
                             fit: BoxFit.cover,
-                            fallbackAssetPath: 'assets/images/pet_placeholder.png',
+                            fallbackAssetPath:
+                                'assets/images/pet_placeholder.png',
                           )
                         : Container(
                             width: 66,
                             height: 66,
                             color: AppColors.primary.withValues(alpha: 0.1),
-                            child: const Icon(Icons.pets, size: 28, color: AppColors.primary),
+                            child: const Icon(
+                              Icons.pets,
+                              size: 28,
+                              color: AppColors.primary,
+                            ),
                           ),
                   ),
                   Positioned(
                     bottom: 0,
                     right: 0,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 5,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
-                        color: hasMedicalLogs ? AppColors.healthGreen : AppColors.accentAmber,
+                        color: hasMedicalLogs
+                            ? AppColors.healthGreen
+                            : AppColors.accentAmber,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
@@ -785,7 +804,9 @@ class HomeDashboardFragment extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05),
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.08)
+            : Colors.black.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
@@ -882,7 +903,9 @@ class HomeDashboardFragment extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF0288D1).withValues(alpha: 0.12),
+                            color: const Color(
+                              0xFF0288D1,
+                            ).withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(14),
                           ),
                           child: const Icon(
@@ -892,9 +915,14 @@ class HomeDashboardFragment extends StatelessWidget {
                           ),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 3,
+                          ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                            color: const Color(
+                              0xFF10B981,
+                            ).withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: const Text(
@@ -949,7 +977,9 @@ class HomeDashboardFragment extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF7C4DFF).withValues(alpha: 0.12),
+                            color: const Color(
+                              0xFF7C4DFF,
+                            ).withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(14),
                           ),
                           child: const Icon(
@@ -959,9 +989,14 @@ class HomeDashboardFragment extends StatelessWidget {
                           ),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 3,
+                          ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF7C4DFF).withValues(alpha: 0.15),
+                            color: const Color(
+                              0xFF7C4DFF,
+                            ).withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: const Text(
@@ -1020,7 +1055,9 @@ class HomeDashboardFragment extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF00BFA5).withValues(alpha: 0.12),
+                            color: const Color(
+                              0xFF00BFA5,
+                            ).withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(14),
                           ),
                           child: const Icon(
@@ -1030,13 +1067,20 @@ class HomeDashboardFragment extends StatelessWidget {
                           ),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 3,
+                          ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF00BFA5).withValues(alpha: 0.15),
+                            color: const Color(
+                              0xFF00BFA5,
+                            ).withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            pets.isNotEmpty ? '${pets.first.healthIndex}%' : 'Vault',
+                            pets.isNotEmpty
+                                ? '${pets.first.healthIndex}%'
+                                : 'Vault',
                             style: const TextStyle(
                               color: Color(0xFF00BFA5),
                               fontSize: 9,
@@ -1081,7 +1125,9 @@ class HomeDashboardFragment extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFFF9100).withValues(alpha: 0.12),
+                            color: const Color(
+                              0xFFFF9100,
+                            ).withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(14),
                           ),
                           child: const Icon(
@@ -1091,9 +1137,14 @@ class HomeDashboardFragment extends StatelessWidget {
                           ),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 3,
+                          ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFFF9100).withValues(alpha: 0.15),
+                            color: const Color(
+                              0xFFFF9100,
+                            ).withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: const Text(
@@ -1189,7 +1240,9 @@ class HomeDashboardFragment extends StatelessWidget {
         MediaQuery.of(context).orientation == Orientation.landscape;
     final cardWidth = isLandscape ? 140.0 : 150.0;
     final petRecords = allRecords.where((r) => r.petId == pet.petID).toList();
-    final hasMedicalLogs = petRecords.isNotEmpty || (pet.vaccinationDetails?.trim().isNotEmpty == true);
+    final hasMedicalLogs =
+        petRecords.isNotEmpty ||
+        (pet.vaccinationDetails?.trim().isNotEmpty == true);
     final petHealthScore = hasMedicalLogs ? pet.healthIndex : 0;
 
     return Container(
@@ -1217,7 +1270,9 @@ class HomeDashboardFragment extends StatelessWidget {
                     strokeWidth: 3,
                     backgroundColor: Colors.grey.withValues(alpha: 0.15),
                     valueColor: AlwaysStoppedAnimation<Color>(
-                      hasMedicalLogs ? AppColors.healthGreen : AppColors.accentAmber,
+                      hasMedicalLogs
+                          ? AppColors.healthGreen
+                          : AppColors.accentAmber,
                     ),
                   ),
                 ),
@@ -1229,7 +1284,8 @@ class HomeDashboardFragment extends StatelessWidget {
                           width: 56,
                           height: 56,
                           fit: BoxFit.cover,
-                          fallbackAssetPath: 'assets/images/pet_placeholder.png',
+                          fallbackAssetPath:
+                              'assets/images/pet_placeholder.png',
                         )
                       : _buildPetErrorIcon(context),
                 ),
