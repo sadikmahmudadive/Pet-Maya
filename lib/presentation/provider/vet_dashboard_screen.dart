@@ -574,10 +574,11 @@ class VetConsoleHomeFragment extends StatelessWidget {
                       ),
                     ),
                   ),
-              ],
-            ),
+              const SizedBox(height: 140),
+            ],
           ),
         ),
+      ),
       ],
     );
   }

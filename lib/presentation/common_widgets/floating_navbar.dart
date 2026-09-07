@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
@@ -40,103 +41,146 @@ class FloatingNavbar extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final mediaQuery = MediaQuery.of(context);
 
-    final bottomInset = MediaQuery.of(context).padding.bottom;
+    final screenWidth = mediaQuery.size.width;
+    final screenHeight = mediaQuery.size.height;
+    final bottomInset = mediaQuery.padding.bottom;
 
-    const double barHeight = 70;
-    const double barRadius = 35; // Perfect stadium / capsule curve
+    // Compact mode for short viewports (e.g. landscape phone where height < 500)
+    final isShortScreen = screenHeight < 500;
+
+    final double barHeight = isShortScreen ? 56.0 : 70.0;
+    final double barRadius = barHeight / 2; // Perfect stadium / capsule curve
+    final double fabSize = isShortScreen ? 40.0 : 48.0;
+    final double fabIconSize = isShortScreen ? 18.0 : 22.0;
+    final double navIconSize = isShortScreen ? 20.0 : 24.0;
+    final double navFontSize = isShortScreen ? 9.0 : 10.0;
+
+    // Responsive horizontal margins respecting safe-area notches/cutouts
+    final double baseMargin = screenWidth < 360 ? 10.0 : 14.0;
+    final double leftMargin = math.max(baseMargin, mediaQuery.padding.left);
+    final double rightMargin = math.max(baseMargin, mediaQuery.padding.right);
+
+    // Responsive bottom margin:
+    // If device has home indicator / gesture bar (bottomInset > 0): float comfortably above it.
+    // If device has physical bezel or 3-button nav (bottomInset == 0): maintain 16pt margin.
+    final double bottomMargin = bottomInset > 0
+        ? (isShortScreen ? bottomInset + 4.0 : bottomInset + 8.0)
+        : (isShortScreen ? 8.0 : 16.0);
 
     return RepaintBoundary(
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(
-          14,
-          0,
-          14,
-          bottomInset > 0 ? bottomInset + 8 : 14,
-        ),
-        child: Container(
-          height: barHeight,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(barRadius),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.32 : 0.07),
-                blurRadius: 28,
-                offset: const Offset(0, 8),
-                spreadRadius: -2,
-              ),
-              BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.20 : 0.04),
-                blurRadius: 10,
-                offset: const Offset(0, 3),
-                spreadRadius: -1,
-              ),
-            ],
+      child: MediaQuery.withClampedTextScaling(
+        maxScaleFactor: 1.15,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            leftMargin,
+            0,
+            rightMargin,
+            bottomMargin,
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(barRadius),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
-              child: CustomPaint(
-                foregroundPainter: _LiquidGlassRimPainter(
-                  borderRadius: barRadius,
-                  borderWidth: 1.0,
-                  isDark: isDark,
-                ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(barRadius),
-                    // Clear iOS glass translucent surface
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: isDark
-                          ? [
-                              Colors.white.withValues(alpha: 0.12),
-                              Colors.white.withValues(alpha: 0.04),
-                            ]
-                          : [
-                              Colors.white.withValues(alpha: 0.45),
-                              Colors.white.withValues(alpha: 0.20),
-                            ],
+          child: Align(
+            alignment: Alignment.bottomCenter,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                maxWidth: 500, // Elegant iPad / tablet floating dock width
+              ),
+              child: Container(
+                height: barHeight,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(barRadius),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(
+                        alpha: isDark ? 0.32 : 0.07,
+                      ),
+                      blurRadius: 28,
+                      offset: const Offset(0, 8),
+                      spreadRadius: -2,
                     ),
-                  ),
-                  child: Stack(
-                    children: [
-                      // Top specular edge glint
-                      Positioned(
-                        top: 0,
-                        left: 35,
-                        right: 35,
-                        height: 1.0,
-                        child: IgnorePointer(
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  Colors.transparent,
-                                  Colors.white.withValues(
-                                    alpha: isDark ? 0.35 : 0.70,
-                                  ),
-                                  Colors.transparent,
-                                ],
-                                stops: const [0.0, 0.5, 1.0],
-                              ),
-                            ),
+                    BoxShadow(
+                      color: Colors.black.withValues(
+                        alpha: isDark ? 0.20 : 0.04,
+                      ),
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
+                      spreadRadius: -1,
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(barRadius),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
+                    child: CustomPaint(
+                      foregroundPainter: _LiquidGlassRimPainter(
+                        borderRadius: barRadius,
+                        borderWidth: 1.0,
+                        isDark: isDark,
+                      ),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(barRadius),
+                          // Clear iOS glass translucent surface
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: isDark
+                                ? [
+                                    Colors.white.withValues(alpha: 0.12),
+                                    Colors.white.withValues(alpha: 0.04),
+                                  ]
+                                : [
+                                    Colors.white.withValues(alpha: 0.45),
+                                    Colors.white.withValues(alpha: 0.20),
+                                  ],
                           ),
                         ),
-                      ),
+                        child: Stack(
+                          children: [
+                            // Top specular edge glint
+                            Positioned(
+                              top: 0,
+                              left: barRadius,
+                              right: barRadius,
+                              height: 1.0,
+                              child: IgnorePointer(
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Colors.transparent,
+                                        Colors.white.withValues(
+                                          alpha: isDark ? 0.35 : 0.70,
+                                        ),
+                                        Colors.transparent,
+                                      ],
+                                      stops: const [0.0, 0.5, 1.0],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
 
-                      // Main Navbar Content
-                      _NavbarContent(
-                        selectedIndex: selectedIndex,
-                        isProvider: isProvider,
-                        isDark: isDark,
-                        onItemTapped: onItemTapped,
-                        onFabTapped: onFabTapped,
-                        getSlotIndex: _getSlotIndex,
+                            // Main Navbar Content
+                            _NavbarContent(
+                              selectedIndex: selectedIndex,
+                              isProvider: isProvider,
+                              isDark: isDark,
+                              onItemTapped: onItemTapped,
+                              onFabTapped: onFabTapped,
+                              getSlotIndex: _getSlotIndex,
+                              barHeight: barHeight,
+                              iconSize: navIconSize,
+                              fontSize: navFontSize,
+                              fabSize: fabSize,
+                              fabIconSize: fabIconSize,
+                              isShortScreen: isShortScreen,
+                            ),
+                          ],
+                        ),
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ),
@@ -159,6 +203,12 @@ class _NavbarContent extends StatelessWidget {
   final Function(int) onItemTapped;
   final VoidCallback onFabTapped;
   final int Function(int) getSlotIndex;
+  final double barHeight;
+  final double iconSize;
+  final double fontSize;
+  final double fabSize;
+  final double fabIconSize;
+  final bool isShortScreen;
 
   const _NavbarContent({
     required this.selectedIndex,
@@ -167,6 +217,12 @@ class _NavbarContent extends StatelessWidget {
     required this.onItemTapped,
     required this.onFabTapped,
     required this.getSlotIndex,
+    this.barHeight = 70.0,
+    this.iconSize = 24.0,
+    this.fontSize = 10.0,
+    this.fabSize = 48.0,
+    this.fabIconSize = 22.0,
+    this.isShortScreen = false,
   });
 
   @override
@@ -202,7 +258,12 @@ class _NavbarContent extends StatelessWidget {
         // ------------------------------------------------
         Expanded(
           child: Center(
-            child: _LiquidActionButton(onTap: onFabTapped, isDark: isDark),
+            child: _LiquidActionButton(
+              onTap: onFabTapped,
+              isDark: isDark,
+              size: fabSize,
+              iconSize: fabIconSize,
+            ),
           ),
         ),
 
@@ -259,7 +320,7 @@ class _NavbarContent extends StatelessWidget {
         },
 
         child: SizedBox(
-          height: 70,
+          height: barHeight,
 
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -278,13 +339,13 @@ class _NavbarContent extends StatelessWidget {
                 child: Icon(
                   isSelected ? selectedIcon : unselectedIcon,
 
-                  size: 24,
+                  size: iconSize,
 
                   color: isSelected ? activeColor : inactiveColor,
                 ),
               ),
 
-              const SizedBox(height: 4),
+              SizedBox(height: isShortScreen ? 2 : 4),
 
               // ------------------------------------------------
               // LABEL
@@ -294,7 +355,7 @@ class _NavbarContent extends StatelessWidget {
                 curve: Curves.easeOut,
 
                 style: GoogleFonts.plusJakartaSans(
-                  fontSize: 10,
+                  fontSize: fontSize,
 
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
 
@@ -326,8 +387,15 @@ class _NavbarContent extends StatelessWidget {
 class _LiquidActionButton extends StatefulWidget {
   final VoidCallback onTap;
   final bool isDark;
+  final double size;
+  final double iconSize;
 
-  const _LiquidActionButton({required this.onTap, required this.isDark});
+  const _LiquidActionButton({
+    required this.onTap,
+    required this.isDark,
+    this.size = 48.0,
+    this.iconSize = 22.0,
+  });
 
   @override
   State<_LiquidActionButton> createState() => _LiquidActionButtonState();
@@ -387,8 +455,8 @@ class _LiquidActionButtonState extends State<_LiquidActionButton>
         },
 
         child: Container(
-          width: 48,
-          height: 48,
+          width: widget.size,
+          height: widget.size,
 
           decoration: BoxDecoration(
             shape: BoxShape.circle,
@@ -422,8 +490,12 @@ class _LiquidActionButtonState extends State<_LiquidActionButton>
             ],
           ),
 
-          child: const Center(
-            child: Icon(CupertinoIcons.add, color: Colors.white, size: 22),
+          child: Center(
+            child: Icon(
+              CupertinoIcons.add,
+              color: Colors.white,
+              size: widget.iconSize,
+            ),
           ),
         ),
       ),

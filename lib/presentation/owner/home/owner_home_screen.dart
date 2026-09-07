@@ -50,48 +50,39 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final orientation = MediaQuery.of(context).orientation;
-    final isLandscape = orientation == Orientation.landscape;
-
     return GlassScaffold(
       body: Stack(
         children: [
-          Padding(
-            padding: EdgeInsets.only(right: isLandscape ? 100 : 0),
-            child: Column(
-              children: [
-                _buildSystemBanner(context),
-                Expanded(
-                  child: IndexedStack(
-                    index: _currentNavIndex,
-                    children: [
-                      HomeDashboardFragment(
-                        onNavRequested: (index) =>
-                            setState(() => _currentNavIndex = index),
-                      ), // 0
-                      const PetServicesScreen(), // 1
-                      const CommunityFeedScreen(), // 2
-                      const UserProfileScreen(), // 3
-                      const ShopScreen(), // 4
-                    ],
-                  ),
+          Column(
+            children: [
+              _buildSystemBanner(context),
+              Expanded(
+                child: IndexedStack(
+                  index: _currentNavIndex,
+                  children: [
+                    HomeDashboardFragment(
+                      onNavRequested: (index) =>
+                          setState(() => _currentNavIndex = index),
+                    ), // 0
+                    const PetServicesScreen(), // 1
+                    const CommunityFeedScreen(), // 2
+                    const UserProfileScreen(), // 3
+                    const ShopScreen(), // 4
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
           Positioned(
-            left: isLandscape ? null : 0,
-            right: isLandscape ? 12 : 0,
-            bottom: isLandscape ? 24 : 0,
-            top: isLandscape ? 24 : null,
-            child: isLandscape
-                ? _buildSideNavbar()
-                : FloatingNavbar(
-                    selectedIndex: _currentNavIndex > 3 ? 1 : _currentNavIndex,
-                    onItemTapped: (index) =>
-                        setState(() => _currentNavIndex = index),
-                    onFabTapped: () => _showQuickActionSheet(context),
-                  ),
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: FloatingNavbar(
+              selectedIndex: _currentNavIndex > 3 ? 1 : _currentNavIndex,
+              onItemTapped: (index) =>
+                  setState(() => _currentNavIndex = index),
+              onFabTapped: () => _showQuickActionSheet(context),
+            ),
           ),
           // Floating Promo Overlay
           const PromoContainer(),
@@ -157,64 +148,7 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
     );
   }
 
-  Widget _buildSideNavbar() {
-    return Container(
-      width: 76,
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(
-          color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.15),
-            blurRadius: 30,
-            offset: const Offset(-5, 0),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _buildSideTab(0, Icons.grid_view_rounded),
-          _buildSideTab(1, Icons.explore_rounded),
-          GestureDetector(
-            onTap: () => _showQuickActionSheet(context),
-            child: Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.3),
-                    blurRadius: 15,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
-              ),
-              child: const Icon(Icons.add, color: Colors.white, size: 24),
-            ),
-          ),
-          _buildSideTab(2, Icons.forum_rounded),
-          _buildSideTab(3, Icons.person_rounded),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildSideTab(int index, IconData icon) {
-    final isSelected = _currentNavIndex == index;
-    return IconButton(
-      icon: Icon(
-        icon,
-        color: isSelected ? AppColors.primary : Colors.grey,
-        size: 28,
-      ),
-      onPressed: () => setState(() => _currentNavIndex = index),
-    );
-  }
 
   void _showQuickActionSheet(BuildContext context) {
     HapticFeedback.mediumImpact();
