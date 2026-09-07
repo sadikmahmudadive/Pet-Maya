@@ -33,6 +33,9 @@ class FirebaseService {
   final FirebaseStorage _storage = FirebaseStorage.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: ['email', 'profile'],
+    clientId: (!kIsWeb && Platform.isIOS)
+        ? '335402911476-q0ibcv1sfoli6tg8l9j63ghp9iq71bfj.apps.googleusercontent.com'
+        : null,
     serverClientId:
         '335402911476-29mje5mt1utr9ttpkecf1gc8dsev2rgu.apps.googleusercontent.com',
   );
@@ -92,7 +95,11 @@ class FirebaseService {
         );
         // Secondary Attempt: Auto-configured GoogleSignIn without hardcoded serverClientId
         try {
-          final fallbackSignIn = GoogleSignIn();
+          final fallbackSignIn = GoogleSignIn(
+            clientId: (!kIsWeb && Platform.isIOS)
+                ? '335402911476-q0ibcv1sfoli6tg8l9j63ghp9iq71bfj.apps.googleusercontent.com'
+                : null,
+          );
           await fallbackSignIn.signOut().catchError((_) => null);
           googleUser = await fallbackSignIn.signIn();
         } catch (fallbackError) {

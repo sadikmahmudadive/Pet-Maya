@@ -22,6 +22,7 @@ import 'presentation/owner/home/pet_tracker_screen.dart';
 import 'presentation/owner/pets/ai_health_scanner_screen.dart';
 import 'presentation/owner/pets/my_pets_screen.dart';
 import 'presentation/owner/calendar/calendar_screen.dart';
+import 'firebase_options.dart';
 
 /// Custom HttpOverrides to prevent Samsung One UI / Android 13
 /// aggressive OS power-saving from tearing down pooled sockets ungracefully.
@@ -60,7 +61,7 @@ void main() async {
   await dotenv.load(fileName: ".env");
 
   // Initialize Firebase before the app runs
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // Initialize App Check with Debug support for Emulators
   await FirebaseAppCheck.instance.activate(
@@ -87,12 +88,15 @@ void main() async {
   // Pass all uncaught "fatal" errors from the framework to Crashlytics
   FlutterError.onError = (errorDetails) {
     if (_isTransientNetworkError(errorDetails.exception)) {
-      debugPrint('[Crashlytics] Non-fatal transient network drop: ${errorDetails.exception}');
+      debugPrint(
+        '[Crashlytics] Non-fatal transient network drop: ${errorDetails.exception}',
+      );
       FirebaseCrashlytics.instance.recordError(
         errorDetails.exception,
         errorDetails.stack,
         fatal: false,
-        reason: 'Transient network I/O abort (e.g., OS power-save/network switch)',
+        reason:
+            'Transient network I/O abort (e.g., OS power-save/network switch)',
       );
       return;
     }
@@ -107,7 +111,8 @@ void main() async {
         error,
         stack,
         fatal: false,
-        reason: 'Transient network I/O abort (e.g., OS power-save/network switch)',
+        reason:
+            'Transient network I/O abort (e.g., OS power-save/network switch)',
       );
       return true;
     }
