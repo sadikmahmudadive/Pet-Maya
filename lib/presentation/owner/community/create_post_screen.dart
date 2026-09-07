@@ -39,7 +39,10 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 70,
+    );
     if (pickedFile != null) {
       setState(() {
         _localImage = File(pickedFile.path);
@@ -52,7 +55,10 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     final content = _contentController.text.trim();
     if (content.isEmpty && widget.sharedPost == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please share a story or thought'), behavior: SnackBarBehavior.floating),
+        const SnackBar(
+          content: Text('Please share a story or thought'),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
       return;
     }
@@ -64,14 +70,20 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
     // Upload to Firebase Storage if image selected
     if (_localImage != null) {
-      final uploadedUrl = await FirebaseStorageService().uploadImage(_localImage!, 'community_posts');
+      final uploadedUrl = await FirebaseStorageService().uploadImage(
+        _localImage!,
+        'community_posts',
+      );
       if (uploadedUrl != null) {
         finalImageUrl = uploadedUrl;
       } else {
         if (!mounted) return;
         setState(() => _isPosting = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to upload image'), backgroundColor: AppColors.dangerRed),
+          const SnackBar(
+            content: Text('Failed to upload image'),
+            backgroundColor: AppColors.dangerRed,
+          ),
         );
         return;
       }
@@ -83,7 +95,11 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       userName: repo.currentUser?.name ?? 'Pet Lover',
       userPhoto: repo.currentUser?.photoUrl,
       postType: _postType,
-      content: content.isNotEmpty ? content : (widget.sharedPost != null ? 'Shared a post from ${widget.sharedPost!.userName}' : ''),
+      content: content.isNotEmpty
+          ? content
+          : (widget.sharedPost != null
+                ? 'Shared a post from ${widget.sharedPost!.userName}'
+                : ''),
       imageUrl: finalImageUrl,
       timestamp: DateTime.now().millisecondsSinceEpoch,
       sharedPostId: widget.sharedPost?.postId,
@@ -98,7 +114,11 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       repo.addPost(post);
     }
     HapticFeedback.mediumImpact();
-    repo.showToast(widget.sharedPost != null ? 'Post shared to community! 🚀' : 'Community post published! 🐾');
+    repo.showToast(
+      widget.sharedPost != null
+          ? 'Post shared to community! 🚀'
+          : 'Community post published! 🐾',
+    );
     if (!mounted) return;
     Navigator.pop(context);
   }
@@ -111,7 +131,10 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
     return GlassScaffold(
       appBar: AppBar(
-        title: Text(widget.sharedPost != null ? 'Share to Feed' : 'Create Post', style: const TextStyle(fontWeight: FontWeight.w800)),
+        title: Text(
+          widget.sharedPost != null ? 'Share to Feed' : 'Create Post',
+          style: const TextStyle(fontWeight: FontWeight.w800),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
@@ -119,7 +142,15 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             padding: const EdgeInsets.only(right: 8),
             child: TextButton(
               onPressed: _isPosting ? null : _submitPost,
-              child: Text(widget.sharedPost != null ? 'SHARE' : 'POST', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 0.5)),
+              child: Text(
+                widget.sharedPost != null ? 'SHARE' : 'POST',
+                style: const TextStyle(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 13,
+                  letterSpacing: 0.5,
+                ),
+              ),
             ),
           ),
         ],
@@ -137,13 +168,19 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   CircleAvatar(
                     radius: 22,
                     backgroundColor: AppColors.primaryLight,
-                    backgroundImage: (currentUser?.photoUrl != null && currentUser!.photoUrl!.isNotEmpty)
-                        ? CachedNetworkImageProvider(currentUser!.photoUrl!)
+                    backgroundImage:
+                        (currentUser?.photoUrl != null &&
+                            currentUser!.photoUrl!.isNotEmpty)
+                        ? CachedNetworkImageProvider(currentUser.photoUrl!)
                         : null,
                     onBackgroundImageError: (exception, stackTrace) {
-                      debugPrint('[CreatePostScreen] Handled user avatar load error: $exception');
+                      debugPrint(
+                        '[CreatePostScreen] Handled user avatar load error: $exception',
+                      );
                     },
-                    child: (currentUser?.photoUrl == null || currentUser!.photoUrl!.isEmpty)
+                    child:
+                        (currentUser?.photoUrl == null ||
+                            currentUser!.photoUrl!.isEmpty)
                         ? const Icon(Icons.person, size: 22)
                         : null,
                   ),
@@ -151,23 +188,51 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(currentUser?.name ?? 'Pet Lover', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                      Text(
+                        currentUser?.name ?? 'Pet Lover',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 16,
+                        ),
+                      ),
                       const SizedBox(height: 4),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
-                          color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
+                          color: isDark
+                              ? Colors.white10
+                              : Colors.black.withValues(alpha: 0.05),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: isDark ? Colors.white12 : Colors.black12),
+                          border: Border.all(
+                            color: isDark ? Colors.white12 : Colors.black12,
+                          ),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: const [
-                            Icon(Icons.public_rounded, size: 12, color: AppColors.primary),
+                            Icon(
+                              Icons.public_rounded,
+                              size: 12,
+                              color: AppColors.primary,
+                            ),
                             SizedBox(width: 4),
-                            Text('Public', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.primary)),
+                            Text(
+                              'Public',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.primary,
+                              ),
+                            ),
                             SizedBox(width: 2),
-                            Icon(Icons.arrow_drop_down_rounded, size: 16, color: AppColors.primary),
+                            Icon(
+                              Icons.arrow_drop_down_rounded,
+                              size: 16,
+                              color: AppColors.primary,
+                            ),
                           ],
                         ),
                       ),
@@ -190,9 +255,21 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     physics: const BouncingScrollPhysics(),
                     child: Row(
                       children: [
-                        _buildTypeChip('MOMENT', 'Moment', Icons.photo_camera_rounded),
-                        _buildTypeChip('ADOPTION', 'Adoption', Icons.home_rounded),
-                        _buildTypeChip('RESCUE', 'Rescue', Icons.warning_amber_rounded),
+                        _buildTypeChip(
+                          'MOMENT',
+                          'Moment',
+                          Icons.photo_camera_rounded,
+                        ),
+                        _buildTypeChip(
+                          'ADOPTION',
+                          'Adoption',
+                          Icons.home_rounded,
+                        ),
+                        _buildTypeChip(
+                          'RESCUE',
+                          'Rescue',
+                          Icons.warning_amber_rounded,
+                        ),
                       ],
                     ),
                   ),
@@ -215,10 +292,19 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     child: TextField(
                       controller: _contentController,
                       maxLines: widget.sharedPost != null ? 4 : 8,
-                      style: TextStyle(fontWeight: FontWeight.w600, height: 1.6, color: isDark ? Colors.white : Colors.black87),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        height: 1.6,
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
                       decoration: InputDecoration(
-                        hintText: widget.sharedPost != null ? 'Say something about this story...' : 'What\'s happening with your furry friend?',
-                        hintStyle: TextStyle(color: isDark ? Colors.white24 : Colors.grey, fontSize: 15),
+                        hintText: widget.sharedPost != null
+                            ? 'Say something about this story...'
+                            : 'What\'s happening with your furry friend?',
+                        hintStyle: TextStyle(
+                          color: isDark ? Colors.white24 : Colors.grey,
+                          fontSize: 15,
+                        ),
                         border: InputBorder.none,
                         contentPadding: const EdgeInsets.all(20),
                       ),
@@ -239,73 +325,92 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildSectionLabel('Attachment'),
-                  const SizedBox(height: 12),
-                  if (_selectedImageUrl != null)
-                    Stack(
-                      children: [
-                        PremiumCard(
-                          opacity: 0.4,
-                          borderRadius: 28,
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(28),
-                            child: Image.file(File(_selectedImageUrl!), height: 260, width: double.infinity, fit: BoxFit.cover),
-                          ),
-                        ),
-                        Positioned(
-                          top: 12,
-                          right: 12,
-                          child: GestureDetector(
-                            onTap: () => setState(() {
-                              _selectedImageUrl = null;
-                              _localImage = null;
-                            }),
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
-                              child: const Icon(Icons.close_rounded, color: Colors.white, size: 18),
+                    const SizedBox(height: 12),
+                    if (_selectedImageUrl != null)
+                      Stack(
+                        children: [
+                          PremiumCard(
+                            opacity: 0.4,
+                            borderRadius: 28,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(28),
+                              child: Image.file(
+                                File(_selectedImageUrl!),
+                                height: 260,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
-                    )
-                  else
-                    PremiumCard(
-                      onTap: _pickImage,
-                      opacity: 0.1,
-                      borderRadius: 24,
-                      child: Container(
-                        height: 140,
-                        width: double.infinity,
-                        alignment: Alignment.center,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const LottieUploadIcon(size: 52),
-                            const SizedBox(height: 8),
-                            const Text(
-                              'Attach a photo from gallery',
-                              style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.primary, fontSize: 11, letterSpacing: 0.5),
+                          Positioned(
+                            top: 12,
+                            right: 12,
+                            child: GestureDetector(
+                              onTap: () => setState(() {
+                                _selectedImageUrl = null;
+                                _localImage = null;
+                              }),
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: const BoxDecoration(
+                                  color: Colors.black54,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.close_rounded,
+                                  color: Colors.white,
+                                  size: 18,
+                                ),
+                              ),
                             ),
-                          ],
+                          ),
+                        ],
+                      )
+                    else
+                      PremiumCard(
+                        onTap: _pickImage,
+                        opacity: 0.1,
+                        borderRadius: 24,
+                        child: Container(
+                          height: 140,
+                          width: double.infinity,
+                          alignment: Alignment.center,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const LottieUploadIcon(size: 52),
+                              const SizedBox(height: 8),
+                              const Text(
+                                'Attach a photo from gallery',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.primary,
+                                  fontSize: 11,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                ],
+                  ],
+                ),
               ),
-            ),
+            ],
+            const SizedBox(height: 100),
           ],
-          const SizedBox(height: 100),
-        ],
+        ),
       ),
-    ),
-  );
+    );
   }
 
   Widget _buildQuotedPostPreview(FeedPostModel shared, bool isDark) {
     return Container(
       margin: const EdgeInsets.only(top: 16),
       decoration: BoxDecoration(
-        color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.05)
+            : Colors.black.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: isDark ? Colors.white24 : Colors.black12),
       ),
@@ -319,11 +424,14 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                 CircleAvatar(
                   radius: 16,
                   backgroundColor: AppColors.primaryLight,
-                  backgroundImage: shared.userPhoto != null && shared.userPhoto!.isNotEmpty
+                  backgroundImage:
+                      shared.userPhoto != null && shared.userPhoto!.isNotEmpty
                       ? CachedNetworkImageProvider(shared.userPhoto!)
                       : null,
                   onBackgroundImageError: (exception, stackTrace) {
-                    debugPrint('[CreatePostScreen] Handled shared post avatar load error: $exception');
+                    debugPrint(
+                      '[CreatePostScreen] Handled shared post avatar load error: $exception',
+                    );
                   },
                   child: shared.userPhoto == null || shared.userPhoto!.isEmpty
                       ? const Icon(Icons.person, size: 16)
@@ -334,8 +442,20 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(shared.userName, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
-                      Text('Original Story', style: TextStyle(fontSize: 10, color: isDark ? Colors.white54 : Colors.black54)),
+                      Text(
+                        shared.userName,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13,
+                        ),
+                      ),
+                      Text(
+                        'Original Story',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: isDark ? Colors.white54 : Colors.black54,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -349,19 +469,28 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                 shared.content,
                 maxLines: 4,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 13, height: 1.4, color: isDark ? Colors.white70 : Colors.black87),
+                style: TextStyle(
+                  fontSize: 13,
+                  height: 1.4,
+                  color: isDark ? Colors.white70 : Colors.black87,
+                ),
               ),
             ),
           if (shared.imageUrl != null && shared.imageUrl!.isNotEmpty) ...[
             const SizedBox(height: 12),
             ClipRRect(
-              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
+              borderRadius: const BorderRadius.vertical(
+                bottom: Radius.circular(20),
+              ),
               child: CachedNetworkImage(
                 imageUrl: shared.imageUrl!,
                 height: 180,
                 width: double.infinity,
                 fit: BoxFit.cover,
-                placeholder: (context, url) => Container(height: 180, color: Colors.grey.withValues(alpha: 0.2)),
+                placeholder: (context, url) => Container(
+                  height: 180,
+                  color: Colors.grey.withValues(alpha: 0.2),
+                ),
                 errorWidget: (context, url, error) => const SizedBox.shrink(),
               ),
             ),
@@ -378,7 +507,12 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       padding: const EdgeInsets.only(left: 4),
       child: Text(
         label.toUpperCase(),
-        style: TextStyle(fontWeight: FontWeight.w900, color: isDark ? Colors.white70 : Colors.black54, fontSize: 10, letterSpacing: 1.2),
+        style: TextStyle(
+          fontWeight: FontWeight.w900,
+          color: isDark ? Colors.white70 : Colors.black54,
+          fontSize: 10,
+          letterSpacing: 1.2,
+        ),
       ),
     );
   }
@@ -400,7 +534,11 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 16, color: isSelected ? activeColor : inactiveColor),
+              Icon(
+                icon,
+                size: 16,
+                color: isSelected ? activeColor : inactiveColor,
+              ),
               const SizedBox(width: 8),
               Text(
                 label,

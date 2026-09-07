@@ -180,8 +180,9 @@ class AppStateRepository extends ChangeNotifier {
     int maxDiscount = 0;
     for (final promo in _promos) {
       if (promo.isActive && _currentUser!.claimedPromoIds.contains(promo.id)) {
-        if (promo.discountPercent > maxDiscount)
+        if (promo.discountPercent > maxDiscount) {
           maxDiscount = promo.discountPercent;
+        }
       }
     }
     return maxDiscount;
@@ -254,8 +255,9 @@ class AppStateRepository extends ChangeNotifier {
     if (_calculatedDistances.isEmpty) return List.unmodifiable(_vets);
     return List.unmodifiable(
       _vets.map((vet) {
-        if (_calculatedDistances.containsKey(vet.id))
+        if (_calculatedDistances.containsKey(vet.id)) {
           return vet.copyWith(distance: _calculatedDistances[vet.id]);
+        }
         return vet;
       }),
     );
@@ -393,9 +395,9 @@ class AppStateRepository extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       final saved = prefs.getString(_themeModeKey);
-      if (saved == 'light')
+      if (saved == 'light') {
         _themeMode = ThemeMode.light;
-      else if (saved == 'dark')
+      } else if (saved == 'dark')
         _themeMode = ThemeMode.dark;
       else
         _themeMode = ThemeMode.system;
@@ -537,8 +539,9 @@ class AppStateRepository extends ChangeNotifier {
           break;
       }
       _listenToNotifications(user.uid);
-      if (user.latitude != null && user.longitude != null)
+      if (user.latitude != null && user.longitude != null) {
         _calculateDynamicDistances(user.latitude!, user.longitude!);
+      }
       logAudit('Firebase Sync', 'Data loaded for ${user.name}');
     } catch (e) {
       debugPrint('[AppStateRepository] syncFromFirebase error: $e');
@@ -570,11 +573,12 @@ class AppStateRepository extends ChangeNotifier {
       _vets
         ..clear()
         ..addAll(fetched);
-      if (_currentUser?.latitude != null && _currentUser?.longitude != null)
+      if (_currentUser?.latitude != null && _currentUser?.longitude != null) {
         _calculateDynamicDistances(
           _currentUser!.latitude!,
           _currentUser!.longitude!,
         );
+      }
       notifyListeners();
     });
   }
@@ -613,7 +617,9 @@ class AppStateRepository extends ChangeNotifier {
 
   void _listenToEventsForProvider(String providerId) {
     _eventsSub?.cancel();
-    _eventsSub = _firebase.streamEventsForProvider(providerId).listen((fetched) {
+    _eventsSub = _firebase.streamEventsForProvider(providerId).listen((
+      fetched,
+    ) {
       _events
         ..clear()
         ..addAll(fetched);
@@ -623,7 +629,9 @@ class AppStateRepository extends ChangeNotifier {
 
   void _listenToServiceRecords(String petId) {
     _serviceRecordsSub?.cancel();
-    _serviceRecordsSub = _firebase.streamServiceRecords(petId).listen((fetched) {
+    _serviceRecordsSub = _firebase.streamServiceRecords(petId).listen((
+      fetched,
+    ) {
       _serviceRecords
         ..clear()
         ..addAll(fetched);
@@ -837,9 +845,9 @@ class AppStateRepository extends ChangeNotifier {
   void _subscribeToTopics(UserModel user) {
     final ns = NotificationService();
     ns.subscribeToTopic('everyone');
-    if (user.role == UserRole.petOwner)
+    if (user.role == UserRole.petOwner) {
       ns.subscribeToTopic('pet_owners');
-    else if (user.role == UserRole.veterinarian)
+    } else if (user.role == UserRole.veterinarian)
       ns.subscribeToTopic('vets');
     else if (user.role == UserRole.petShop)
       ns.subscribeToTopic('merchants');
@@ -887,8 +895,9 @@ class AppStateRepository extends ChangeNotifier {
           'usr_${_uuid.v4().substring(0, 8)}';
       UserRole effectiveRole = role;
       if (email.toLowerCase() == 'admin@mail.com' ||
-          email.toLowerCase() == 'admin@petmaya.app')
+          email.toLowerCase() == 'admin@petmaya.app') {
         effectiveRole = UserRole.superAdmin;
+      }
       final existingProfile = await _firebase.fetchUserProfile(firebaseUID);
       _currentUser = UserModel(
         uid: firebaseUID,
@@ -925,8 +934,9 @@ class AppStateRepository extends ChangeNotifier {
       if (profile == null) throw 'User profile not found.';
       UserRole effectiveRole = profile.role;
       if (email.toLowerCase() == 'admin@mail.com' ||
-          email.toLowerCase() == 'admin@petmaya.app')
+          email.toLowerCase() == 'admin@petmaya.app') {
         effectiveRole = UserRole.superAdmin;
+      }
       _currentUser = profile.copyWith(role: effectiveRole);
       await syncFromFirebase(_currentUser!);
     } catch (e) {
@@ -1001,11 +1011,12 @@ class AppStateRepository extends ChangeNotifier {
         joinedTimestamp: DateTime.now().millisecondsSinceEpoch,
       );
       await syncFromFirebase(_currentUser!);
-      if (referralCode != null && referralCode.trim().isNotEmpty)
+      if (referralCode != null && referralCode.trim().isNotEmpty) {
         await _firebase.applyReferralCode(
           userUid: firebaseUID,
           code: referralCode.trim().toUpperCase(),
         );
+      }
       if (role == UserRole.veterinarian ||
           role == UserRole.grooming ||
           role == UserRole.boarding) {
@@ -1080,8 +1091,9 @@ class AppStateRepository extends ChangeNotifier {
       final now = DateTime.now();
       for (int i = 0; i < pet.feedingTimes.length; i++) {
         DateTime scheduledDate = _parseScheduledTime(now, pet.feedingTimes[i]);
-        if (scheduledDate.isBefore(now))
+        if (scheduledDate.isBefore(now)) {
           scheduledDate = scheduledDate.add(const Duration(days: 1));
+        }
         await NativeBridgeService.scheduleAlarm(
           id: 'feed_${pet.petID}_$i',
           title: 'Meal Time for ${pet.name}!',
@@ -1126,8 +1138,9 @@ class AppStateRepository extends ChangeNotifier {
   }) async {
     try {
       String? base64Image;
-      if (imageFile != null)
+      if (imageFile != null) {
         base64Image = base64Encode(await imageFile.readAsBytes());
+      }
       final result = await _callAiProxy('health_diagnosis', {
         'petName': petName,
         'prompt': prompt,
@@ -1164,7 +1177,7 @@ class AppStateRepository extends ChangeNotifier {
     );
     _serviceRecords.insert(0, record);
     _localCache.saveRecords(_serviceRecords);
-    
+
     // Decrease health index based on diagnosis severity
     final petIdx = _pets.indexWhere((p) => p.petID == petId);
     if (petIdx != -1) {
@@ -1263,10 +1276,11 @@ class AppStateRepository extends ChangeNotifier {
 
   void addToCart(ProductModel product) {
     final idx = _cartItems.indexWhere((item) => item.product.id == product.id);
-    if (idx != -1)
+    if (idx != -1) {
       _cartItems[idx].quantity += 1;
-    else
+    } else {
       _cartItems.add(CartItemModel(product: product, quantity: 1));
+    }
     notifyListeners();
   }
 
@@ -1393,7 +1407,8 @@ class AppStateRepository extends ChangeNotifier {
 
   Future<void> togglePostReaction(String postId, String reactionType) async {
     final post = _posts.firstWhere((p) => p.postId == postId);
-    final userId = _currentUser?.uid ?? _firebase.currentFirebaseUser?.uid ?? 'guest';
+    final userId =
+        _currentUser?.uid ?? _firebase.currentFirebaseUser?.uid ?? 'guest';
     if (userId == 'guest' || userId.isEmpty) return;
 
     final currentReaction = post.getUserReaction(userId);
@@ -1414,7 +1429,8 @@ class AppStateRepository extends ChangeNotifier {
 
   Future<void> togglePostLike(String postId) async {
     final post = _posts.firstWhere((p) => p.postId == postId);
-    final userId = _currentUser?.uid ?? _firebase.currentFirebaseUser?.uid ?? 'guest';
+    final userId =
+        _currentUser?.uid ?? _firebase.currentFirebaseUser?.uid ?? 'guest';
     if (userId == 'guest' || userId.isEmpty) return;
 
     final currentReaction = post.getUserReaction(userId);
@@ -1607,8 +1623,9 @@ class AppStateRepository extends ChangeNotifier {
     );
     _notifications.insert(0, n);
     notifyListeners();
-    if (_currentUser != null)
+    if (_currentUser != null) {
       await _firebase.saveNotification(_currentUser!.uid, n);
+    }
   }
 
   Future<void> sendBroadcastNotification({
@@ -1617,9 +1634,9 @@ class AppStateRepository extends ChangeNotifier {
     required String targetGroup,
   }) async {
     List<UserModel> targets = [];
-    if (targetGroup == 'Everyone in App')
+    if (targetGroup == 'Everyone in App') {
       targets = await _firebase.fetchUsers();
-    else {
+    } else {
       String role = targetGroup == 'All Pet Owners'
           ? 'Pet Owner'
           : targetGroup == 'All Veterinarians'
@@ -1652,31 +1669,37 @@ class AppStateRepository extends ChangeNotifier {
       _notifications[idx].isRead = true;
       notifyListeners();
     }
-    if (_currentUser != null)
+    if (_currentUser != null) {
       await _firebase.markNotificationAsRead(_currentUser!.uid, id);
+    }
   }
 
   void markAllNotificationsAsRead() async {
-    for (var n in _notifications) n.isRead = true;
+    for (var n in _notifications) {
+      n.isRead = true;
+    }
     notifyListeners();
     if (_currentUser != null) {
-      for (var n in _notifications)
+      for (var n in _notifications) {
         await _firebase.markNotificationAsRead(_currentUser!.uid, n.id);
+      }
     }
   }
 
   void removeNotification(String id) async {
     _notifications.removeWhere((n) => n.id == id);
     notifyListeners();
-    if (_currentUser != null)
+    if (_currentUser != null) {
       await _firebase.removeNotification(_currentUser!.uid, id);
+    }
   }
 
   void clearNotifications() async {
     _notifications.clear();
     notifyListeners();
-    if (_currentUser != null)
+    if (_currentUser != null) {
       await _firebase.clearAllNotifications(_currentUser!.uid);
+    }
   }
 
   Future<void> updateVetAggregate(
@@ -1704,10 +1727,11 @@ class AppStateRepository extends ChangeNotifier {
   Future<void> toggleFavoriteVet(String vetId) async {
     if (_currentUser == null) return;
     final currentFavorites = List<String>.from(_currentUser!.favoriteVetIds);
-    if (currentFavorites.contains(vetId))
+    if (currentFavorites.contains(vetId)) {
       currentFavorites.remove(vetId);
-    else
+    } else {
       currentFavorites.add(vetId);
+    }
     _currentUser = _currentUser!.copyWith(favoriteVetIds: currentFavorites);
     notifyListeners();
     await _firebase.saveUserProfile(_currentUser!);
@@ -1813,9 +1837,9 @@ class AppStateRepository extends ChangeNotifier {
   }) async {
     try {
       String base64Image;
-      if (imageFile != null)
+      if (imageFile != null) {
         base64Image = base64.encode(await imageFile.readAsBytes());
-      else if (imagePath != null && !imagePath.startsWith('http'))
+      } else if (imagePath != null && !imagePath.startsWith('http'))
         base64Image = base64.encode(await File(imagePath).readAsBytes());
       else
         return null;
@@ -1829,11 +1853,14 @@ class AppStateRepository extends ChangeNotifier {
   Future<bool> redeemReferralCode(String code) async {
     if (_currentUser == null) return false;
     final trimmed = code.trim().toUpperCase();
-    if (trimmed.isEmpty || _currentUser!.referralCode?.toUpperCase() == trimmed)
+    if (trimmed.isEmpty ||
+        _currentUser!.referralCode?.toUpperCase() == trimmed) {
       return false;
+    }
     if (_currentUser!.referredBy != null &&
-        _currentUser!.referredBy!.isNotEmpty)
+        _currentUser!.referredBy!.isNotEmpty) {
       return false;
+    }
     _setLoading(true);
     try {
       final res = await _firebase.applyReferralCode(
@@ -1889,9 +1916,9 @@ class AppStateRepository extends ChangeNotifier {
       final parts = timeStr.replaceAll(RegExp(r'[^0-9:]'), '').split(':');
       int h = int.parse(parts[0]);
       int m = parts.length > 1 ? int.parse(parts[1]) : 0;
-      if (timeStr.toLowerCase().contains('pm') && h < 12)
+      if (timeStr.toLowerCase().contains('pm') && h < 12) {
         h += 12;
-      else if (timeStr.toLowerCase().contains('am') && h == 12)
+      } else if (timeStr.toLowerCase().contains('am') && h == 12)
         h = 0;
       return DateTime(baseDate.year, baseDate.month, baseDate.day, h, m);
     } catch (_) {

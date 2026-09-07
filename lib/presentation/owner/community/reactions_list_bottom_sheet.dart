@@ -17,7 +17,8 @@ class ReactionsListBottomSheet extends StatefulWidget {
   const ReactionsListBottomSheet({super.key, required this.post});
 
   @override
-  State<ReactionsListBottomSheet> createState() => _ReactionsListBottomSheetState();
+  State<ReactionsListBottomSheet> createState() =>
+      _ReactionsListBottomSheetState();
 }
 
 class _ReactionsListBottomSheetState extends State<ReactionsListBottomSheet> {
@@ -58,7 +59,10 @@ class _ReactionsListBottomSheetState extends State<ReactionsListBottomSheet> {
       }
     });
     widget.post.likedBy.forEach((uid, liked) {
-      if (liked == true && uid.isNotEmpty && uid != 'guest' && !map.containsKey(uid)) {
+      if (liked == true &&
+          uid.isNotEmpty &&
+          uid != 'guest' &&
+          !map.containsKey(uid)) {
         map[uid] = 'Like';
       }
     });
@@ -74,16 +78,22 @@ class _ReactionsListBottomSheetState extends State<ReactionsListBottomSheet> {
 
     // Group reaction counts by type
     final Map<String, int> counts = {};
-    reactionMap.values.forEach((r) {
+    for (var r in reactionMap.values) {
       counts[r] = (counts[r] ?? 0) + 1;
-    });
+    }
 
     final availableTypes = ['ALL', ...counts.keys];
 
     // Filter users based on selected reaction type tab
     final filteredUserIds = _selectedFilter == 'ALL'
         ? allUserIds
-        : allUserIds.where((uid) => reactionMap[uid]?.toLowerCase() == _selectedFilter.toLowerCase()).toList();
+        : allUserIds
+              .where(
+                (uid) =>
+                    reactionMap[uid]?.toLowerCase() ==
+                    _selectedFilter.toLowerCase(),
+              )
+              .toList();
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.65,
@@ -115,7 +125,10 @@ class _ReactionsListBottomSheetState extends State<ReactionsListBottomSheet> {
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.primary.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(12),
@@ -146,8 +159,10 @@ class _ReactionsListBottomSheetState extends State<ReactionsListBottomSheet> {
             child: Row(
               children: availableTypes.map((type) {
                 final isSelected = _selectedFilter == type;
-                final count = type == 'ALL' ? allUserIds.length : (counts[type] ?? 0);
-                
+                final count = type == 'ALL'
+                    ? allUserIds.length
+                    : (counts[type] ?? 0);
+
                 final config = type == 'ALL'
                     ? null
                     : kReactions.firstWhere(
@@ -176,18 +191,27 @@ class _ReactionsListBottomSheetState extends State<ReactionsListBottomSheet> {
                           )
                         : null,
                     label: Text(
-                      type == 'ALL' ? 'All ($count)' : '${config?.label} $count',
+                      type == 'ALL'
+                          ? 'All ($count)'
+                          : '${config?.label} $count',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12,
-                        fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                        fontWeight: isSelected
+                            ? FontWeight.w800
+                            : FontWeight.w600,
                         color: isSelected
                             ? Colors.white
                             : (isDark ? Colors.white70 : Colors.black87),
                       ),
                     ),
-                    backgroundColor: isDark ? const Color(0xFF1E2630) : const Color(0xFFF0F4F8),
+                    backgroundColor: isDark
+                        ? const Color(0xFF1E2630)
+                        : const Color(0xFFF0F4F8),
                     selectedColor: AppColors.primary,
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 8,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                       side: BorderSide(
@@ -219,18 +243,35 @@ class _ReactionsListBottomSheetState extends State<ReactionsListBottomSheet> {
                 : ListView.separated(
                     padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
                     itemCount: filteredUserIds.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    separatorBuilder: (_, _) => const SizedBox(height: 12),
                     itemBuilder: (context, index) {
                       final uid = filteredUserIds[index];
-                      final user = repo.userCache[uid] ?? repo.allUsers.firstWhere((u) => u.uid == uid, orElse: () => UserModel(uid: uid, name: 'Pet Lover', email: '', joinedTimestamp: 0));
+                      final user =
+                          repo.userCache[uid] ??
+                          repo.allUsers.firstWhere(
+                            (u) => u.uid == uid,
+                            orElse: () => UserModel(
+                              uid: uid,
+                              name: 'Pet Lover',
+                              email: '',
+                              joinedTimestamp: 0,
+                            ),
+                          );
                       final reactionLabel = reactionMap[uid] ?? 'Like';
-                      
+
                       final config = kReactions.firstWhere(
-                        (r) => r.label.toLowerCase() == reactionLabel.toLowerCase(),
+                        (r) =>
+                            r.label.toLowerCase() ==
+                            reactionLabel.toLowerCase(),
                         orElse: () => kReactions.first,
                       );
 
-                      return _buildUserReactionRow(context, user, config, isDark);
+                      return _buildUserReactionRow(
+                        context,
+                        user,
+                        config,
+                        isDark,
+                      );
                     },
                   ),
           ),
@@ -248,10 +289,14 @@ class _ReactionsListBottomSheetState extends State<ReactionsListBottomSheet> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1B2430) : Colors.grey.withValues(alpha: 0.05),
+        color: isDark
+            ? const Color(0xFF1B2430)
+            : Colors.grey.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: isDark ? Colors.white.withValues(alpha: 0.06) : Colors.black.withValues(alpha: 0.04),
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.06)
+              : Colors.black.withValues(alpha: 0.04),
         ),
       ),
       child: Row(
@@ -265,15 +310,20 @@ class _ReactionsListBottomSheetState extends State<ReactionsListBottomSheet> {
                 height: 44,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.3), width: 1.5),
+                  border: Border.all(
+                    color: AppColors.primary.withValues(alpha: 0.3),
+                    width: 1.5,
+                  ),
                 ),
                 child: ClipOval(
                   child: user.photoUrl != null && user.photoUrl!.isNotEmpty
                       ? CachedNetworkImage(
                           imageUrl: user.photoUrl!,
                           fit: BoxFit.cover,
-                          placeholder: (c, u) => Container(color: Colors.grey[300]),
-                          errorWidget: (c, u, e) => _buildInitialsAvatar(user.name),
+                          placeholder: (c, u) =>
+                              Container(color: Colors.grey[300]),
+                          errorWidget: (c, u, e) =>
+                              _buildInitialsAvatar(user.name),
                         )
                       : _buildInitialsAvatar(user.name),
                 ),
@@ -287,7 +337,10 @@ class _ReactionsListBottomSheetState extends State<ReactionsListBottomSheet> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: isDark ? const Color(0xFF1B2430) : Colors.white,
-                    border: Border.all(color: isDark ? const Color(0xFF2C3846) : Colors.white, width: 1.5),
+                    border: Border.all(
+                      color: isDark ? const Color(0xFF2C3846) : Colors.white,
+                      width: 1.5,
+                    ),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 0.2),
@@ -344,7 +397,9 @@ class _ReactionsListBottomSheetState extends State<ReactionsListBottomSheet> {
             decoration: BoxDecoration(
               color: config.activeColor.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: config.activeColor.withValues(alpha: 0.3)),
+              border: Border.all(
+                color: config.activeColor.withValues(alpha: 0.3),
+              ),
             ),
             child: Text(
               config.label,

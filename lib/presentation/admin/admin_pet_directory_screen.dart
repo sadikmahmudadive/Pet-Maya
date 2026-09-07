@@ -4,7 +4,6 @@ import 'package:animate_do/animate_do.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../data/repositories/app_state_repository.dart';
-import '../../data/models/pet_model.dart';
 import '../common_widgets/glass_scaffold.dart';
 import '../common_widgets/premium_card.dart';
 import '../common_widgets/empty_state.dart';
@@ -13,7 +12,8 @@ class AdminPetDirectoryScreen extends StatefulWidget {
   const AdminPetDirectoryScreen({super.key});
 
   @override
-  State<AdminPetDirectoryScreen> createState() => _AdminPetDirectoryScreenState();
+  State<AdminPetDirectoryScreen> createState() =>
+      _AdminPetDirectoryScreenState();
 }
 
 class _AdminPetDirectoryScreenState extends State<AdminPetDirectoryScreen> {
@@ -26,12 +26,16 @@ class _AdminPetDirectoryScreenState extends State<AdminPetDirectoryScreen> {
 
     final filtered = pets.where((p) {
       final query = _searchQuery.toLowerCase();
-      return p.name.toLowerCase().contains(query) || p.breed.toLowerCase().contains(query);
+      return p.name.toLowerCase().contains(query) ||
+          p.breed.toLowerCase().contains(query);
     }).toList();
 
     return GlassScaffold(
       appBar: AppBar(
-        title: const Text('Global Pet Directory', style: TextStyle(fontWeight: FontWeight.w800)),
+        title: const Text(
+          'Global Pet Directory',
+          style: TextStyle(fontWeight: FontWeight.w800),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -57,7 +61,11 @@ class _AdminPetDirectoryScreenState extends State<AdminPetDirectoryScreen> {
           const SizedBox(height: 16),
           Expanded(
             child: filtered.isEmpty
-                ? const EmptyState(icon: Icons.pets_outlined, title: 'No pets found', message: 'Check back as users register their pets.')
+                ? const EmptyState(
+                    icon: Icons.pets_outlined,
+                    title: 'No pets found',
+                    message: 'Check back as users register their pets.',
+                  )
                 : ListView.builder(
                     padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
                     physics: const BouncingScrollPhysics(),
@@ -77,28 +85,64 @@ class _AdminPetDirectoryScreenState extends State<AdminPetDirectoryScreen> {
                                 children: [
                                   CircleAvatar(
                                     radius: 30,
-                                    backgroundImage: pet.photoUrl != null ? NetworkImage(pet.photoUrl!) : null,
-                                    backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                                    child: pet.photoUrl == null ? const Icon(Icons.pets, color: AppColors.primary) : null,
+                                    backgroundImage: pet.photoUrl != null
+                                        ? NetworkImage(pet.photoUrl!)
+                                        : null,
+                                    backgroundColor: AppColors.primary
+                                        .withValues(alpha: 0.1),
+                                    child: pet.photoUrl == null
+                                        ? const Icon(
+                                            Icons.pets,
+                                            color: AppColors.primary,
+                                          )
+                                        : null,
                                   ),
                                   const SizedBox(width: 16),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
-                                        Text(pet.name, style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.w800)),
-                                        Text('${pet.breed} • ${pet.age} old', 
-                                          style: TextStyle(fontSize: 12, color: Colors.grey[500], fontWeight: FontWeight.w600)),
+                                        Text(
+                                          pet.name,
+                                          style: AppTypography.titleMedium
+                                              .copyWith(
+                                                fontWeight: FontWeight.w800,
+                                              ),
+                                        ),
+                                        Text(
+                                          '${pet.breed} • ${pet.age} old',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey[500],
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
                                       ],
                                     ),
                                   ),
                                   Column(
                                     crossAxisAlignment: CrossAxisAlignment.end,
                                     children: [
-                                      Text('HEALTH INDEX', style: TextStyle(fontSize: 8, fontWeight: FontWeight.w900, color: Colors.grey[400])),
+                                      Text(
+                                        'HEALTH INDEX',
+                                        style: TextStyle(
+                                          fontSize: 8,
+                                          fontWeight: FontWeight.w900,
+                                          color: Colors.grey[400],
+                                        ),
+                                      ),
                                       const SizedBox(height: 4),
-                                      Text('${pet.healthIndex}%', 
-                                        style: TextStyle(fontWeight: FontWeight.w900, color: _getHealthColor(pet.healthIndex), fontSize: 16)),
+                                      Text(
+                                        '${pet.healthIndex}%',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w900,
+                                          color: _getHealthColor(
+                                            pet.healthIndex,
+                                          ),
+                                          fontSize: 16,
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 ],

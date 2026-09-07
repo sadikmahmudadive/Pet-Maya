@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_typography.dart';
 import '../../../data/models/blog_post_model.dart';
 import '../../../data/repositories/app_state_repository.dart';
 import '../../common_widgets/glass_scaffold.dart';
@@ -39,7 +37,10 @@ class _BlogScreenState extends State<BlogScreen> {
 
     return GlassScaffold(
       appBar: AppBar(
-        title: const Text('Pet Care Blog', style: TextStyle(fontWeight: FontWeight.w800)),
+        title: const Text(
+          'Pet Care Blog',
+          style: TextStyle(fontWeight: FontWeight.w800),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
@@ -51,14 +52,16 @@ class _BlogScreenState extends State<BlogScreen> {
       body: Column(
         children: [
           const SizedBox(height: 100),
-          
+
           // ─── CATEGORY FILTER ───────────────────────────────────────────────
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             physics: const BouncingScrollPhysics(),
             child: Row(
-              children: categories.map((cat) => _buildCategoryChip(cat)).toList(),
+              children: categories
+                  .map((cat) => _buildCategoryChip(cat))
+                  .toList(),
             ),
           ),
 
@@ -84,10 +87,16 @@ class _BlogScreenState extends State<BlogScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CreateBlogScreen())),
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const CreateBlogScreen()),
+        ),
         backgroundColor: AppColors.primary,
         icon: const Icon(Icons.edit_document),
-        label: const Text('Write Article', style: TextStyle(fontWeight: FontWeight.bold)),
+        label: const Text(
+          'Write Article',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       ),
     );
@@ -100,11 +109,16 @@ class _BlogScreenState extends State<BlogScreen> {
     return Padding(
       padding: const EdgeInsets.only(right: 12),
       child: ChoiceChip(
-        label: Text(cat, style: TextStyle(
-          fontSize: 11, 
-          fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-          color: isSelected ? Colors.white : (isDark ? Colors.white70 : Colors.black54),
-        )),
+        label: Text(
+          cat,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+            color: isSelected
+                ? Colors.white
+                : (isDark ? Colors.white70 : Colors.black54),
+          ),
+        ),
         selected: isSelected,
         onSelected: (val) => setState(() => _selectedCategory = cat),
         selectedColor: AppColors.primary,
@@ -118,25 +132,33 @@ class _BlogScreenState extends State<BlogScreen> {
 
   Widget _buildBlogCard(BuildContext context, BlogPostModel blog) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final dateStr = DateFormat('MMM d, yyyy').format(DateTime.fromMillisecondsSinceEpoch(blog.timestamp));
+    final dateStr = DateFormat(
+      'MMM d, yyyy',
+    ).format(DateTime.fromMillisecondsSinceEpoch(blog.timestamp));
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
       child: PremiumCard(
-        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => BlogDetailScreen(blog: blog))),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => BlogDetailScreen(blog: blog)),
+        ),
         opacity: isDark ? 0.2 : 0.15,
         borderRadius: 28,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(28),
+              ),
               child: CachedNetworkImage(
                 imageUrl: blog.imageUrl,
                 height: 180,
                 width: double.infinity,
                 fit: BoxFit.cover,
-                placeholder: (context, url) => Container(color: Colors.grey[200]),
+                placeholder: (context, url) =>
+                    Container(color: Colors.grey[200]),
                 errorWidget: (context, url, error) => const Icon(Icons.error),
               ),
             ),
@@ -149,68 +171,112 @@ class _BlogScreenState extends State<BlogScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.primary.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: Text(blog.category.toUpperCase(), style: const TextStyle(
-                          color: AppColors.primary, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 0.5
-                        )),
+                        child: Text(
+                          blog.category.toUpperCase(),
+                          style: const TextStyle(
+                            color: AppColors.primary,
+                            fontSize: 9,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
                       ),
-                      Text('${blog.readTimeMinutes} min read', style: TextStyle(
-                        fontSize: 10, color: Colors.grey[500], fontWeight: FontWeight.w600
-                      )),
+                      Text(
+                        '${blog.readTimeMinutes} min read',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.grey[500],
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 12),
-                  Text(blog.title, style: GoogleFonts.plusJakartaSans(
-                    fontSize: 18, fontWeight: FontWeight.w800, height: 1.3
-                  )),
+                  Text(
+                    blog.title,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      height: 1.3,
+                    ),
+                  ),
                   const SizedBox(height: 8),
-                  Text(blog.content, 
-                    maxLines: 2, 
+                  Text(
+                    blog.content,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 13, color: isDark ? Colors.white60 : Colors.grey[600], height: 1.5)
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: isDark ? Colors.white60 : Colors.grey[600],
+                      height: 1.5,
+                    ),
                   ),
                   const SizedBox(height: 16),
-                  Builder(builder: (context) {
-                    final repo = context.read<AppStateRepository>();
-                    final currentUser = context.select((AppStateRepository r) => r.currentUser);
-                    String authorName = blog.authorName;
-                    String? authorPhoto = blog.authorPhoto;
+                  Builder(
+                    builder: (context) {
+                      final repo = context.read<AppStateRepository>();
+                      final currentUser = context.select(
+                        (AppStateRepository r) => r.currentUser,
+                      );
+                      String authorName = blog.authorName;
+                      String? authorPhoto = blog.authorPhoto;
 
-                    if (currentUser != null && blog.authorId == currentUser.uid) {
-                      authorName = currentUser.name;
-                      authorPhoto = currentUser.photoUrl;
-                    } else if (repo.userCache.containsKey(blog.authorId)) {
-                      final cached = repo.userCache[blog.authorId]!;
-                      authorName = cached.name;
-                      authorPhoto = cached.photoUrl;
-                    } else {
-                      repo.fetchAndCacheUser(blog.authorId);
-                    }
+                      if (currentUser != null &&
+                          blog.authorId == currentUser.uid) {
+                        authorName = currentUser.name;
+                        authorPhoto = currentUser.photoUrl;
+                      } else if (repo.userCache.containsKey(blog.authorId)) {
+                        final cached = repo.userCache[blog.authorId]!;
+                        authorName = cached.name;
+                        authorPhoto = cached.photoUrl;
+                      } else {
+                        repo.fetchAndCacheUser(blog.authorId);
+                      }
 
-                    return Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 12,
-                          backgroundImage: authorPhoto != null && authorPhoto.isNotEmpty
-                              ? (authorPhoto.startsWith('http') 
-                                  ? NetworkImage(authorPhoto) as ImageProvider
-                                  : AssetImage(authorPhoto) as ImageProvider)
-                              : null,
-                          child: authorPhoto == null || authorPhoto.isEmpty
-                              ? const Icon(Icons.person, size: 12)
-                              : null,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(authorName, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
-                        const Spacer(),
-                        Text(dateStr, style: TextStyle(fontSize: 11, color: Colors.grey[500])),
-                      ],
-                    );
-                  }),
+                      return Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 12,
+                            backgroundImage:
+                                authorPhoto != null && authorPhoto.isNotEmpty
+                                ? (authorPhoto.startsWith('http')
+                                      ? NetworkImage(authorPhoto)
+                                            as ImageProvider
+                                      : AssetImage(authorPhoto)
+                                            as ImageProvider)
+                                : null,
+                            child: authorPhoto == null || authorPhoto.isEmpty
+                                ? const Icon(Icons.person, size: 12)
+                                : null,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            authorName,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const Spacer(),
+                          Text(
+                            dateStr,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey[500],
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
                 ],
               ),
             ),

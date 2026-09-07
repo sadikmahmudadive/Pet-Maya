@@ -30,7 +30,14 @@ class AdminShopManagerScreen extends StatefulWidget {
 class _AdminShopManagerScreenState extends State<AdminShopManagerScreen> {
   String _searchQuery = '';
   String _filterCategory = 'ALL';
-  final List<String> _categories = ['ALL', 'Food', 'Toys', 'Health', 'Gear', 'Grooming'];
+  final List<String> _categories = [
+    'ALL',
+    'Food',
+    'Toys',
+    'Health',
+    'Gear',
+    'Grooming',
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -38,18 +45,27 @@ class _AdminShopManagerScreenState extends State<AdminShopManagerScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final filtered = products.where((p) {
-      final matchesSearch = p.name.toLowerCase().contains(_searchQuery.toLowerCase());
-      final matchesCat = _filterCategory == 'ALL' || p.category == _filterCategory;
+      final matchesSearch = p.name.toLowerCase().contains(
+        _searchQuery.toLowerCase(),
+      );
+      final matchesCat =
+          _filterCategory == 'ALL' || p.category == _filterCategory;
       return matchesSearch && matchesCat;
     }).toList();
 
     // Stats for e-commerce overview
-    final totalValue = products.fold(0.0, (sum, p) => sum + (p.price * p.stockQuantity));
+    final totalValue = products.fold(
+      0.0,
+      (sum, p) => sum + (p.price * p.stockQuantity),
+    );
     final lowStockCount = products.where((p) => p.stockQuantity < 5).length;
 
     return GlassScaffold(
       appBar: AppBar(
-        title: const Text('Inventory Command', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: -0.5)),
+        title: const Text(
+          'Inventory Command',
+          style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: -0.5),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
@@ -59,7 +75,10 @@ class _AdminShopManagerScreenState extends State<AdminShopManagerScreen> {
             tooltip: 'Global Promo',
           ),
           IconButton(
-            icon: const Icon(Icons.confirmation_number_rounded, color: AppColors.primary),
+            icon: const Icon(
+              Icons.confirmation_number_rounded,
+              color: AppColors.primary,
+            ),
             onPressed: () => _showCouponManager(context),
             tooltip: 'Manage Coupons',
           ),
@@ -70,10 +89,10 @@ class _AdminShopManagerScreenState extends State<AdminShopManagerScreen> {
       body: Column(
         children: [
           const SizedBox(height: 100),
-          
+
           // ─── E-COMMERCE INTELLIGENCE DOCK ─────────────────────────────────
           _buildStatsHeader(totalValue, products.length, lowStockCount),
-          
+
           const SizedBox(height: 24),
 
           // ─── SEARCH & FILTER DOCK ─────────────────────────────────────────
@@ -85,14 +104,16 @@ class _AdminShopManagerScreenState extends State<AdminShopManagerScreen> {
           Expanded(
             child: filtered.isEmpty
                 ? const EmptyState(
-                    icon: Icons.inventory_2_rounded, 
-                    title: 'No inventory matched', 
-                    message: 'Try adjusting your filters or add a new SKU.')
+                    icon: Icons.inventory_2_rounded,
+                    title: 'No inventory matched',
+                    message: 'Try adjusting your filters or add a new SKU.',
+                  )
                 : ListView.builder(
                     padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
                     physics: const BouncingScrollPhysics(),
                     itemCount: filtered.length,
-                    itemBuilder: (context, index) => _buildProductProfessionalTile(filtered[index]),
+                    itemBuilder: (context, index) =>
+                        _buildProductProfessionalTile(filtered[index]),
                   ),
           ),
         ],
@@ -105,7 +126,11 @@ class _AdminShopManagerScreenState extends State<AdminShopManagerScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
         children: [
-          _statItem('VALUATION', '৳${totalValue.toStringAsFixed(0)}', AppColors.healthGreen),
+          _statItem(
+            'VALUATION',
+            '৳${totalValue.toStringAsFixed(0)}',
+            AppColors.healthGreen,
+          ),
           const SizedBox(width: 8),
           _statItem('TOTAL SKU', '$skuCount', AppColors.primary),
           const SizedBox(width: 8),
@@ -127,12 +152,27 @@ class _AdminShopManagerScreenState extends State<AdminShopManagerScreen> {
             children: [
               FittedBox(
                 fit: BoxFit.scaleDown,
-                child: Text(label, style: TextStyle(fontSize: 8, fontWeight: FontWeight.w900, color: Colors.grey[500], letterSpacing: 1)),
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 8,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.grey[500],
+                    letterSpacing: 1,
+                  ),
+                ),
               ),
               const SizedBox(height: 4),
               FittedBox(
                 fit: BoxFit.scaleDown,
-                child: Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: color)),
+                child: Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
+                    color: color,
+                  ),
+                ),
               ),
             ],
           ),
@@ -166,9 +206,7 @@ class _AdminShopManagerScreenState extends State<AdminShopManagerScreen> {
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            children: _categories.map((c) => _filterChip(c)).toList(),
-          ),
+          child: Row(children: _categories.map((c) => _filterChip(c)).toList()),
         ),
       ],
     );
@@ -186,12 +224,20 @@ class _AdminShopManagerScreenState extends State<AdminShopManagerScreen> {
           decoration: BoxDecoration(
             color: isSelected ? AppColors.primary : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: isSelected ? AppColors.primary : Colors.grey.withValues(alpha: 0.3)),
+            border: Border.all(
+              color: isSelected
+                  ? AppColors.primary
+                  : Colors.grey.withValues(alpha: 0.3),
+            ),
           ),
-          child: Text(cat, style: TextStyle(
-            fontSize: 11, 
-            fontWeight: FontWeight.w800, 
-            color: isSelected ? Colors.white : Colors.grey[500])),
+          child: Text(
+            cat,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              color: isSelected ? Colors.white : Colors.grey[500],
+            ),
+          ),
         ),
       ),
     );
@@ -216,7 +262,8 @@ class _AdminShopManagerScreenState extends State<AdminShopManagerScreen> {
                 Stack(
                   children: [
                     Container(
-                      width: 80, height: 80,
+                      width: 80,
+                      height: 80,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16),
                         color: Colors.white,
@@ -226,17 +273,28 @@ class _AdminShopManagerScreenState extends State<AdminShopManagerScreen> {
                         child: CachedNetworkImage(
                           imageUrl: p.imageUrl ?? '',
                           fit: BoxFit.cover,
-                          errorWidget: (c, u, e) => const Icon(Icons.inventory_2_rounded, color: Colors.grey),
+                          errorWidget: (c, u, e) => const Icon(
+                            Icons.inventory_2_rounded,
+                            color: Colors.grey,
+                          ),
                         ),
                       ),
                     ),
                     if (isLowStock)
                       Positioned(
-                        top: 4, left: 4,
+                        top: 4,
+                        left: 4,
                         child: Container(
                           padding: const EdgeInsets.all(4),
-                          decoration: const BoxDecoration(color: AppColors.dangerRed, shape: BoxShape.circle),
-                          child: const Icon(Icons.warning_amber_rounded, color: Colors.white, size: 10),
+                          decoration: const BoxDecoration(
+                            color: AppColors.dangerRed,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.warning_amber_rounded,
+                            color: Colors.white,
+                            size: 10,
+                          ),
                         ),
                       ),
                   ],
@@ -247,20 +305,38 @@ class _AdminShopManagerScreenState extends State<AdminShopManagerScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(p.brand?.toUpperCase() ?? 'GENERIC', 
-                        style: TextStyle(fontSize: 8, fontWeight: FontWeight.w900, color: AppColors.primary, letterSpacing: 1)),
-                      Text(p.name, 
-                        maxLines: 1, overflow: TextOverflow.ellipsis,
-                        style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.w800, fontSize: 15)),
+                      Text(
+                        p.brand.toUpperCase() ?? 'GENERIC',
+                        style: TextStyle(
+                          fontSize: 8,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.primary,
+                          letterSpacing: 1,
+                        ),
+                      ),
+                      Text(
+                        p.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTypography.titleMedium.copyWith(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 15,
+                        ),
+                      ),
                       const SizedBox(height: 6),
                       Wrap(
                         spacing: 8,
                         runSpacing: 4,
                         children: [
-                          _badge('৳${p.price.toStringAsFixed(0)}', AppColors.healthGreen),
-                          _badge('STOCK: ${p.stockQuantity}', isLowStock ? AppColors.dangerRed : Colors.blueGrey),
-                          if (p.isRxRequired)
-                            _badge('Rx', AppColors.primary),
+                          _badge(
+                            '৳${p.price.toStringAsFixed(0)}',
+                            AppColors.healthGreen,
+                          ),
+                          _badge(
+                            'STOCK: ${p.stockQuantity}',
+                            isLowStock ? AppColors.dangerRed : Colors.blueGrey,
+                          ),
+                          if (p.isRxRequired) _badge('Rx', AppColors.primary),
                         ],
                       ),
                     ],
@@ -270,7 +346,10 @@ class _AdminShopManagerScreenState extends State<AdminShopManagerScreen> {
                 Column(
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.more_vert_rounded, color: Colors.grey),
+                      icon: const Icon(
+                        Icons.more_vert_rounded,
+                        color: Colors.grey,
+                      ),
                       onPressed: () => _showQuickActions(p),
                     ),
                   ],
@@ -286,8 +365,18 @@ class _AdminShopManagerScreenState extends State<AdminShopManagerScreen> {
   Widget _badge(String label, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
-      child: Text(label, style: TextStyle(color: color, fontWeight: FontWeight.w900, fontSize: 9)),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: color,
+          fontWeight: FontWeight.w900,
+          fontSize: 9,
+        ),
+      ),
     );
   }
 
@@ -341,11 +430,17 @@ class _AdminShopManagerScreenState extends State<AdminShopManagerScreen> {
           decoration: const InputDecoration(labelText: 'New Stock Quantity'),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('CANCEL')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('CANCEL'),
+          ),
           ElevatedButton(
             onPressed: () {
               final newStock = int.tryParse(controller.text) ?? p.stockQuantity;
-              context.read<AppStateRepository>().updateProductStock(p.id, newStock);
+              context.read<AppStateRepository>().updateProductStock(
+                p.id,
+                newStock,
+              );
               Navigator.pop(ctx);
             },
             child: const Text('UPDATE'),
@@ -356,16 +451,23 @@ class _AdminShopManagerScreenState extends State<AdminShopManagerScreen> {
   }
 
   void _confirmDelete(ProductModel p) {
-     showDialog(
+    showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
         title: const Text('Delete Product?'),
-        content: Text('Are you sure you want to remove ${p.name} from the store? This action is permanent.'),
+        content: Text(
+          'Are you sure you want to remove ${p.name} from the store? This action is permanent.',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('CANCEL')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('CANCEL'),
+          ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.dangerRed),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.dangerRed,
+            ),
             onPressed: () {
               context.read<AppStateRepository>().deleteProduct(p.id);
               Navigator.pop(ctx);
@@ -385,13 +487,26 @@ class _AdminShopManagerScreenState extends State<AdminShopManagerScreen> {
         decoration: BoxDecoration(
           color: AppColors.primary,
           borderRadius: BorderRadius.circular(14),
-          boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 4))],
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withValues(alpha: 0.3),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: const Row(
           children: [
             Icon(Icons.add_rounded, color: Colors.white, size: 18),
             SizedBox(width: 4),
-            Text('ADD SKU', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 11)),
+            Text(
+              'ADD SKU',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w900,
+                fontSize: 11,
+              ),
+            ),
           ],
         ),
       ),
@@ -416,7 +531,10 @@ class _AdminShopManagerScreenState extends State<AdminShopManagerScreen> {
     );
   }
 
-  void _showProfessionalEditModal(BuildContext context, {ProductModel? product}) {
+  void _showProfessionalEditModal(
+    BuildContext context, {
+    ProductModel? product,
+  }) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -459,7 +577,8 @@ class _PromoManagerSheetState extends State<_PromoManagerSheet> {
   }
 
   void _savePromo() async {
-    if (_nameController.text.isEmpty || _discountController.text.isEmpty) return;
+    if (_nameController.text.isEmpty || _discountController.text.isEmpty)
+      return;
 
     final state = context.read<AppStateRepository>();
     final promo = PromoModel(
@@ -469,12 +588,15 @@ class _PromoManagerSheetState extends State<_PromoManagerSheet> {
       footer: _footerController.text.trim(),
       discountPercent: int.tryParse(_discountController.text) ?? 0,
       isActive: _editingPromo?.isActive ?? true,
-      timestamp: _editingPromo?.timestamp ?? DateTime.now().millisecondsSinceEpoch,
+      timestamp:
+          _editingPromo?.timestamp ?? DateTime.now().millisecondsSinceEpoch,
     );
 
     await state.savePromo(promo);
     _clearFields();
-    state.showToast(_editingPromo == null ? 'Campaign created! 🎁' : 'Campaign updated! ✨');
+    state.showToast(
+      _editingPromo == null ? 'Campaign created! 🎁' : 'Campaign updated! ✨',
+    );
   }
 
   void _clearFields() {
@@ -516,12 +638,21 @@ class _PromoManagerSheetState extends State<_PromoManagerSheet> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('PROMO COMMAND', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w900, fontSize: 16)),
-              IconButton(icon: const Icon(Icons.close_rounded), onPressed: () => Navigator.pop(context)),
+              Text(
+                'PROMO COMMAND',
+                style: GoogleFonts.plusJakartaSans(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 16,
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.close_rounded),
+                onPressed: () => Navigator.pop(context),
+              ),
             ],
           ),
           const Divider(height: 32),
-          
+
           // Form Section
           PremiumCard(
             opacity: 0.1,
@@ -530,15 +661,35 @@ class _PromoManagerSheetState extends State<_PromoManagerSheet> {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  _input('CAMPAIGN NAME', _nameController, hint: 'e.g. Eid Special'),
+                  _input(
+                    'CAMPAIGN NAME',
+                    _nameController,
+                    hint: 'e.g. Eid Special',
+                  ),
                   const SizedBox(height: 12),
-                  _input('HEADER TEXT', _headerController, hint: 'e.g. Save up to'),
+                  _input(
+                    'HEADER TEXT',
+                    _headerController,
+                    hint: 'e.g. Save up to',
+                  ),
                   const SizedBox(height: 12),
                   Row(
                     children: [
-                      Expanded(child: _input('DISCOUNT (%)', _discountController, keyboardType: TextInputType.number)),
+                      Expanded(
+                        child: _input(
+                          'DISCOUNT (%)',
+                          _discountController,
+                          keyboardType: TextInputType.number,
+                        ),
+                      ),
                       const SizedBox(width: 12),
-                      Expanded(child: _input('FOOTER TEXT', _footerController, hint: 'e.g. off for you')),
+                      Expanded(
+                        child: _input(
+                          'FOOTER TEXT',
+                          _footerController,
+                          hint: 'e.g. off for you',
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -555,8 +706,18 @@ class _PromoManagerSheetState extends State<_PromoManagerSheet> {
                       Expanded(
                         child: ElevatedButton(
                           onPressed: _savePromo,
-                          style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-                          child: Text(_editingPromo == null ? 'CREATE CAMPAIGN' : 'UPDATE CAMPAIGN', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                          ),
+                          child: Text(
+                            _editingPromo == null
+                                ? 'CREATE CAMPAIGN'
+                                : 'UPDATE CAMPAIGN',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
                         ),
                       ),
                     ],
@@ -567,72 +728,114 @@ class _PromoManagerSheetState extends State<_PromoManagerSheet> {
           ),
 
           const SizedBox(height: 24),
-          Text('CAMPAIGN HISTORY', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: Colors.grey[500], letterSpacing: 1)),
+          Text(
+            'CAMPAIGN HISTORY',
+            style: TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w900,
+              color: Colors.grey[500],
+              letterSpacing: 1,
+            ),
+          ),
           const SizedBox(height: 12),
-          
+
           Expanded(
             child: promos.isEmpty
-              ? const Center(child: Text('No promo campaigns created yet.'))
-              : ListView.builder(
-                  itemCount: promos.length,
-                  itemBuilder: (context, index) {
-                    final p = promos[index];
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      child: PremiumCard(
-                        opacity: 0.15,
-                        borderRadius: 20,
-                        onTap: () => _editPromo(p),
-                        child: ListTile(
-                          title: Text(p.name, style: const TextStyle(fontWeight: FontWeight.w900, color: AppColors.primary)),
-                          subtitle: Text(
-                            '${p.header} ${p.discountPercent}% ${p.footer}',
-                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                          ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Switch(
-                                value: p.isActive,
-                                activeColor: AppColors.primary,
-                                onChanged: (val) async {
-                                  await state.savePromo(p.copyWith(isActive: val));
-                                },
+                ? const Center(child: Text('No promo campaigns created yet.'))
+                : ListView.builder(
+                    itemCount: promos.length,
+                    itemBuilder: (context, index) {
+                      final p = promos[index];
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        child: PremiumCard(
+                          opacity: 0.15,
+                          borderRadius: 20,
+                          onTap: () => _editPromo(p),
+                          child: ListTile(
+                            title: Text(
+                              p.name,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w900,
+                                color: AppColors.primary,
                               ),
-                              IconButton(
-                                icon: const Icon(Icons.delete_outline_rounded, color: AppColors.dangerRed),
-                                onPressed: () => state.deletePromo(p.id),
+                            ),
+                            subtitle: Text(
+                              '${p.header} ${p.discountPercent}% ${p.footer}',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
                               ),
-                            ],
+                            ),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Switch(
+                                  value: p.isActive,
+                                  activeThumbColor: AppColors.primary,
+                                  onChanged: (val) async {
+                                    await state.savePromo(
+                                      p.copyWith(isActive: val),
+                                    );
+                                  },
+                                ),
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.delete_outline_rounded,
+                                    color: AppColors.dangerRed,
+                                  ),
+                                  onPressed: () => state.deletePromo(p.id),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                    );
-                  },
-                ),
+                      );
+                    },
+                  ),
           ),
         ],
       ),
     );
   }
 
-  Widget _input(String label, TextEditingController controller, {String? hint, TextInputType? keyboardType}) {
+  Widget _input(
+    String label,
+    TextEditingController controller, {
+    String? hint,
+    TextInputType? keyboardType,
+  }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontSize: 8, fontWeight: FontWeight.w900, color: Colors.grey)),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 8,
+            fontWeight: FontWeight.w900,
+            color: Colors.grey,
+          ),
+        ),
         const SizedBox(height: 4),
         Container(
-          decoration: BoxDecoration(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(12)),
+          decoration: BoxDecoration(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.05)
+                : Colors.black.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(12),
+          ),
           child: TextField(
             controller: controller,
             keyboardType: keyboardType,
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
             decoration: InputDecoration(
               hintText: hint,
-              border: InputBorder.none, 
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8)
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 8,
+              ),
             ),
           ),
         ),
@@ -653,7 +856,7 @@ class _CouponManagerSheetState extends State<_CouponManagerSheet> {
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _minAmountController = TextEditingController();
   bool _isPercentage = true;
-  int _daysValid = 30;
+  final int _daysValid = 30;
 
   @override
   void dispose() {
@@ -665,14 +868,16 @@ class _CouponManagerSheetState extends State<_CouponManagerSheet> {
 
   void _addCoupon() async {
     if (_codeController.text.isEmpty || _amountController.text.isEmpty) return;
-    
+
     final state = context.read<AppStateRepository>();
     final coupon = CouponModel(
       code: _codeController.text.trim().toUpperCase(),
       discountAmount: double.tryParse(_amountController.text) ?? 0.0,
       isPercentage: _isPercentage,
       minOrderAmount: double.tryParse(_minAmountController.text) ?? 0.0,
-      expiryTimestamp: DateTime.now().add(Duration(days: _daysValid)).millisecondsSinceEpoch,
+      expiryTimestamp: DateTime.now()
+          .add(Duration(days: _daysValid))
+          .millisecondsSinceEpoch,
     );
 
     await state.addCoupon(coupon);
@@ -701,12 +906,21 @@ class _CouponManagerSheetState extends State<_CouponManagerSheet> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('COUPON COMMAND', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w900, fontSize: 16)),
-              IconButton(icon: const Icon(Icons.close_rounded), onPressed: () => Navigator.pop(context)),
+              Text(
+                'COUPON COMMAND',
+                style: GoogleFonts.plusJakartaSans(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 16,
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.close_rounded),
+                onPressed: () => Navigator.pop(context),
+              ),
             ],
           ),
           const Divider(height: 32),
-          
+
           // Add Coupon Section
           PremiumCard(
             opacity: 0.1,
@@ -719,23 +933,52 @@ class _CouponManagerSheetState extends State<_CouponManagerSheet> {
                     children: [
                       Expanded(child: _input('CODE', _codeController)),
                       const SizedBox(width: 12),
-                      Expanded(child: _input('AMOUNT', _amountController, keyboardType: TextInputType.number)),
+                      Expanded(
+                        child: _input(
+                          'AMOUNT',
+                          _amountController,
+                          keyboardType: TextInputType.number,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 12),
                   Row(
                     children: [
-                      Expanded(child: _input('MIN ORDER', _minAmountController, keyboardType: TextInputType.number)),
+                      Expanded(
+                        child: _input(
+                          'MIN ORDER',
+                          _minAmountController,
+                          keyboardType: TextInputType.number,
+                        ),
+                      ),
                       const SizedBox(width: 12),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('TYPE', style: TextStyle(fontSize: 8, fontWeight: FontWeight.w900, color: Colors.grey)),
+                          const Text(
+                            'TYPE',
+                            style: TextStyle(
+                              fontSize: 8,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.grey,
+                            ),
+                          ),
                           Row(
                             children: [
-                              const Text('%', style: TextStyle(fontWeight: FontWeight.bold)),
-                              Switch(value: !_isPercentage, onChanged: (v) => setState(() => _isPercentage = !v)),
-                              const Text('৳', style: TextStyle(fontWeight: FontWeight.bold)),
+                              const Text(
+                                '%',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              Switch(
+                                value: !_isPercentage,
+                                onChanged: (v) =>
+                                    setState(() => _isPercentage = !v),
+                              ),
+                              const Text(
+                                '৳',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
                             ],
                           ),
                         ],
@@ -747,7 +990,10 @@ class _CouponManagerSheetState extends State<_CouponManagerSheet> {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: _addCoupon,
-                      child: const Text('CREATE COUPON', style: TextStyle(fontWeight: FontWeight.bold)),
+                      child: const Text(
+                        'CREATE COUPON',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
                     ),
                   ),
                 ],
@@ -756,56 +1002,95 @@ class _CouponManagerSheetState extends State<_CouponManagerSheet> {
           ),
 
           const SizedBox(height: 24),
-          Text('ACTIVE COUPONS', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: Colors.grey[500], letterSpacing: 1)),
+          Text(
+            'ACTIVE COUPONS',
+            style: TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w900,
+              color: Colors.grey[500],
+              letterSpacing: 1,
+            ),
+          ),
           const SizedBox(height: 12),
-          
+
           Expanded(
             child: coupons.isEmpty
-              ? const Center(child: Text('No active coupons found.'))
-              : ListView.builder(
-                  itemCount: coupons.length,
-                  itemBuilder: (context, index) {
-                    final c = coupons[index];
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      child: PremiumCard(
-                        opacity: 0.15,
-                        borderRadius: 16,
-                        child: ListTile(
-                          title: Text(c.code, style: const TextStyle(fontWeight: FontWeight.w900, color: AppColors.primary)),
-                          subtitle: Text(
-                            '${c.isPercentage ? "${c.discountAmount}%" : "৳${c.discountAmount}"} off • Min ৳${c.minOrderAmount}',
-                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                          ),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.delete_outline_rounded, color: AppColors.dangerRed),
-                            onPressed: () => state.deleteCoupon(c.code),
+                ? const Center(child: Text('No active coupons found.'))
+                : ListView.builder(
+                    itemCount: coupons.length,
+                    itemBuilder: (context, index) {
+                      final c = coupons[index];
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        child: PremiumCard(
+                          opacity: 0.15,
+                          borderRadius: 16,
+                          child: ListTile(
+                            title: Text(
+                              c.code,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w900,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                            subtitle: Text(
+                              '${c.isPercentage ? "${c.discountAmount}%" : "৳${c.discountAmount}"} off • Min ৳${c.minOrderAmount}',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            trailing: IconButton(
+                              icon: const Icon(
+                                Icons.delete_outline_rounded,
+                                color: AppColors.dangerRed,
+                              ),
+                              onPressed: () => state.deleteCoupon(c.code),
+                            ),
                           ),
                         ),
-                      ),
-                    );
-                  },
-                ),
+                      );
+                    },
+                  ),
           ),
         ],
       ),
     );
   }
 
-  Widget _input(String label, TextEditingController controller, {TextInputType? keyboardType}) {
+  Widget _input(
+    String label,
+    TextEditingController controller, {
+    TextInputType? keyboardType,
+  }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontSize: 8, fontWeight: FontWeight.w900, color: Colors.grey)),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 8,
+            fontWeight: FontWeight.w900,
+            color: Colors.grey,
+          ),
+        ),
         const SizedBox(height: 4),
         Container(
-          decoration: BoxDecoration(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(12)),
+          decoration: BoxDecoration(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.05)
+                : Colors.black.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(12),
+          ),
           child: TextField(
             controller: controller,
             keyboardType: keyboardType,
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-            decoration: const InputDecoration(border: InputBorder.none, contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
+            decoration: const InputDecoration(
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            ),
           ),
         ),
       ],
@@ -838,11 +1123,19 @@ class _ProductEditorSheetState extends State<_ProductEditorSheet> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.product?.name ?? '');
-    _priceController = TextEditingController(text: widget.product?.price.toString() ?? '');
-    _oldPriceController = TextEditingController(text: widget.product?.oldPrice?.toString() ?? '');
-    _stockController = TextEditingController(text: widget.product?.stockQuantity.toString() ?? '');
+    _priceController = TextEditingController(
+      text: widget.product?.price.toString() ?? '',
+    );
+    _oldPriceController = TextEditingController(
+      text: widget.product?.oldPrice?.toString() ?? '',
+    );
+    _stockController = TextEditingController(
+      text: widget.product?.stockQuantity.toString() ?? '',
+    );
     _brandController = TextEditingController(text: widget.product?.brand ?? '');
-    _descController = TextEditingController(text: widget.product?.description ?? '');
+    _descController = TextEditingController(
+      text: widget.product?.description ?? '',
+    );
     _category = widget.product?.category ?? 'Food';
     _isRxRequired = widget.product?.isRxRequired ?? false;
     if (widget.product != null) {
@@ -852,10 +1145,16 @@ class _ProductEditorSheetState extends State<_ProductEditorSheet> {
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
-    final picked = await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
+    final picked = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 70,
+    );
     if (picked != null) {
       setState(() => _isUploading = true);
-      final url = await FirebaseStorageService().uploadImage(File(picked.path), 'shop_products');
+      final url = await FirebaseStorageService().uploadImage(
+        File(picked.path),
+        'shop_products',
+      );
       if (url != null) {
         setState(() {
           _imageGallery.add(url);
@@ -874,7 +1173,7 @@ class _ProductEditorSheetState extends State<_ProductEditorSheet> {
   void _save() async {
     if (_nameController.text.isEmpty || _priceController.text.isEmpty) return;
     setState(() => _isSaving = true);
-    
+
     final p = ProductModel(
       id: widget.product?.id ?? 'sku_${DateTime.now().millisecondsSinceEpoch}',
       shopId: widget.product?.shopId ?? 'main_store',
@@ -883,7 +1182,9 @@ class _ProductEditorSheetState extends State<_ProductEditorSheet> {
       price: double.tryParse(_priceController.text) ?? 0.0,
       oldPrice: double.tryParse(_oldPriceController.text),
       stockQuantity: int.tryParse(_stockController.text) ?? 0,
-      imageGallery: _imageGallery.isNotEmpty ? _imageGallery : ['https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=400'],
+      imageGallery: _imageGallery.isNotEmpty
+          ? _imageGallery
+          : ['https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=400'],
       description: _descController.text,
       brand: _brandController.text,
       isRxRequired: _isRxRequired,
@@ -894,7 +1195,7 @@ class _ProductEditorSheetState extends State<_ProductEditorSheet> {
     } else {
       await context.read<AppStateRepository>().updateProduct(p);
     }
-    
+
     if (mounted) Navigator.pop(context);
   }
 
@@ -913,16 +1214,23 @@ class _ProductEditorSheetState extends State<_ProductEditorSheet> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(widget.product == null ? 'NEW CATALOG ENTRY' : 'EDIT SKU DETAILS', 
+              Text(
+                widget.product == null
+                    ? 'NEW CATALOG ENTRY'
+                    : 'EDIT SKU DETAILS',
                 style: TextStyle(
-                  fontSize: 16, 
-                  fontWeight: FontWeight.w900, 
+                  fontSize: 16,
+                  fontWeight: FontWeight.w900,
                   letterSpacing: 1,
-                  color: isDark ? Colors.white : Colors.black87
-                )),
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
               IconButton(
-                icon: Icon(Icons.close_rounded, color: isDark ? Colors.white70 : Colors.black54), 
-                onPressed: () => Navigator.pop(context)
+                icon: Icon(
+                  Icons.close_rounded,
+                  color: isDark ? Colors.white70 : Colors.black54,
+                ),
+                onPressed: () => Navigator.pop(context),
               ),
             ],
           ),
@@ -934,13 +1242,15 @@ class _ProductEditorSheetState extends State<_ProductEditorSheet> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Image Gallery Manager
-                  Text('PRODUCT GALLERY', 
+                  Text(
+                    'PRODUCT GALLERY',
                     style: TextStyle(
-                      fontSize: 9, 
-                      fontWeight: FontWeight.w900, 
-                      color: isDark ? Colors.white38 : Colors.grey, 
-                      letterSpacing: 1
-                    )),
+                      fontSize: 9,
+                      fontWeight: FontWeight.w900,
+                      color: isDark ? Colors.white38 : Colors.grey,
+                      letterSpacing: 1,
+                    ),
+                  ),
                   const SizedBox(height: 12),
                   SizedBox(
                     height: 120,
@@ -952,7 +1262,11 @@ class _ProductEditorSheetState extends State<_ProductEditorSheet> {
                         if (index == _imageGallery.length) {
                           return _buildAddImageCard(isDark);
                         }
-                        return _buildGalleryItem(_imageGallery[index], index, isDark);
+                        return _buildGalleryItem(
+                          _imageGallery[index],
+                          index,
+                          isDark,
+                        );
                       },
                     ),
                   ),
@@ -961,40 +1275,71 @@ class _ProductEditorSheetState extends State<_ProductEditorSheet> {
                   const SizedBox(height: 20),
                   Row(
                     children: [
-                      Expanded(child: _input('LIST PRICE (৳)', _priceController, keyboardType: TextInputType.number)),
+                      Expanded(
+                        child: _input(
+                          'LIST PRICE (৳)',
+                          _priceController,
+                          keyboardType: TextInputType.number,
+                        ),
+                      ),
                       const SizedBox(width: 16),
-                      Expanded(child: _input('OLD PRICE (৳)', _oldPriceController, keyboardType: TextInputType.number)),
+                      Expanded(
+                        child: _input(
+                          'OLD PRICE (৳)',
+                          _oldPriceController,
+                          keyboardType: TextInputType.number,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 20),
-                  _input('CURRENT STOCK', _stockController, keyboardType: TextInputType.number),
+                  _input(
+                    'CURRENT STOCK',
+                    _stockController,
+                    keyboardType: TextInputType.number,
+                  ),
                   const SizedBox(height: 20),
                   _input('BRAND / MANUFACTURER', _brandController),
                   const SizedBox(height: 20),
-                  Text('CATEGORY', 
+                  Text(
+                    'CATEGORY',
                     style: TextStyle(
-                      fontSize: 9, 
-                      fontWeight: FontWeight.w900, 
-                      color: isDark ? Colors.white38 : Colors.grey, 
-                      letterSpacing: 1
-                    )),
+                      fontSize: 9,
+                      fontWeight: FontWeight.w900,
+                      color: isDark ? Colors.white38 : Colors.grey,
+                      letterSpacing: 1,
+                    ),
+                  ),
                   const SizedBox(height: 12),
                   Wrap(
                     spacing: 8,
-                    children: ['Food', 'Toys', 'Health', 'Gear', 'Grooming'].map((c) => ChoiceChip(
-                      label: Text(c, style: TextStyle(
-                        fontSize: 11, 
-                        fontWeight: FontWeight.w800, 
-                        color: _category == c ? Colors.white : (isDark ? Colors.white70 : Colors.black87)
-                      )),
-                      selected: _category == c,
-                      selectedColor: AppColors.primary,
-                      backgroundColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05),
-                      onSelected: (val) => setState(() => _category = c),
-                    )).toList(),
+                    children: ['Food', 'Toys', 'Health', 'Gear', 'Grooming']
+                        .map(
+                          (c) => ChoiceChip(
+                            label: Text(
+                              c,
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                                color: _category == c
+                                    ? Colors.white
+                                    : (isDark
+                                          ? Colors.white70
+                                          : Colors.black87),
+                              ),
+                            ),
+                            selected: _category == c,
+                            selectedColor: AppColors.primary,
+                            backgroundColor: isDark
+                                ? Colors.white.withValues(alpha: 0.05)
+                                : Colors.black.withValues(alpha: 0.05),
+                            onSelected: (val) => setState(() => _category = c),
+                          ),
+                        )
+                        .toList(),
                   ),
                   const SizedBox(height: 24),
-                  
+
                   // Rx Required Toggle
                   _buildToggleTile(
                     label: 'Rx REQUIRED (VETERINARY MEDICINE)',
@@ -1016,11 +1361,20 @@ class _ProductEditorSheetState extends State<_ProductEditorSheet> {
               onPressed: _isSaving ? null : _save,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
               ),
-              child: _isSaving 
-                ? const CupertinoActivityIndicator(color: Colors.white)
-                : const Text('FINALIZE SKU', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 1)),
+              child: _isSaving
+                  ? const CupertinoActivityIndicator(color: Colors.white)
+                  : const Text(
+                      'FINALIZE SKU',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1,
+                      ),
+                    ),
             ),
           ),
         ],
@@ -1035,21 +1389,34 @@ class _ProductEditorSheetState extends State<_ProductEditorSheet> {
         width: 100,
         margin: const EdgeInsets.only(right: 12),
         decoration: BoxDecoration(
-          color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.05)
+              : Colors.black.withValues(alpha: 0.03),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.primary.withValues(alpha: 0.2), width: 2, style: BorderStyle.solid),
+          border: Border.all(
+            color: AppColors.primary.withValues(alpha: 0.2),
+            width: 2,
+            style: BorderStyle.solid,
+          ),
         ),
         child: Center(
-          child: _isUploading 
-            ? const CupertinoActivityIndicator()
-            : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const LottieUploadIcon(size: 34),
-                  const SizedBox(height: 2),
-                  Text('ADD', style: TextStyle(fontSize: 8, fontWeight: FontWeight.w900, color: AppColors.primary)),
-                ],
-              ),
+          child: _isUploading
+              ? const CupertinoActivityIndicator()
+              : Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const LottieUploadIcon(size: 34),
+                    const SizedBox(height: 2),
+                    Text(
+                      'ADD',
+                      style: TextStyle(
+                        fontSize: 8,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ],
+                ),
         ),
       ),
     );
@@ -1063,17 +1430,28 @@ class _ProductEditorSheetState extends State<_ProductEditorSheet> {
           margin: const EdgeInsets.only(right: 12),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
-            image: DecorationImage(image: CachedNetworkImageProvider(url), fit: BoxFit.cover),
+            image: DecorationImage(
+              image: CachedNetworkImageProvider(url),
+              fit: BoxFit.cover,
+            ),
           ),
         ),
         Positioned(
-          top: 4, right: 16,
+          top: 4,
+          right: 16,
           child: GestureDetector(
             onTap: () => _removeImage(index),
             child: Container(
               padding: const EdgeInsets.all(4),
-              decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
-              child: const Icon(Icons.close_rounded, color: Colors.white, size: 14),
+              decoration: const BoxDecoration(
+                color: Colors.black54,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.close_rounded,
+                color: Colors.white,
+                size: 14,
+              ),
             ),
           ),
         ),
@@ -1081,21 +1459,35 @@ class _ProductEditorSheetState extends State<_ProductEditorSheet> {
     );
   }
 
-  Widget _buildToggleTile({required String label, required bool value, required ValueChanged<bool> onChanged}) {
+  Widget _buildToggleTile({
+    required String label,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+  }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.05)
+            : Colors.black.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.grey, letterSpacing: 1)),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w900,
+              color: Colors.grey,
+              letterSpacing: 1,
+            ),
+          ),
           CupertinoSwitch(
             value: value,
-            activeColor: AppColors.primary,
+            activeTrackColor: AppColors.primary,
             onChanged: onChanged,
           ),
         ],
@@ -1103,32 +1495,41 @@ class _ProductEditorSheetState extends State<_ProductEditorSheet> {
     );
   }
 
-  Widget _input(String label, TextEditingController controller, {TextInputType? keyboardType, int maxLines = 1}) {
+  Widget _input(
+    String label,
+    TextEditingController controller, {
+    TextInputType? keyboardType,
+    int maxLines = 1,
+  }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, 
+        Text(
+          label,
           style: TextStyle(
-            fontSize: 9, 
-            fontWeight: FontWeight.w900, 
-            color: isDark ? Colors.white38 : Colors.grey, 
-            letterSpacing: 1
-          )),
+            fontSize: 9,
+            fontWeight: FontWeight.w900,
+            color: isDark ? Colors.white38 : Colors.grey,
+            letterSpacing: 1,
+          ),
+        ),
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
-            color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05), 
-            borderRadius: BorderRadius.circular(18)
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.08)
+                : Colors.black.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(18),
           ),
           child: TextField(
             controller: controller,
             keyboardType: keyboardType,
             maxLines: maxLines,
             style: TextStyle(
-              fontWeight: FontWeight.w700, 
+              fontWeight: FontWeight.w700,
               fontSize: 14,
-              color: isDark ? Colors.white : Colors.black87
+              color: isDark ? Colors.white : Colors.black87,
             ),
             decoration: const InputDecoration(
               border: InputBorder.none,
@@ -1136,7 +1537,10 @@ class _ProductEditorSheetState extends State<_ProductEditorSheet> {
               focusedBorder: InputBorder.none,
               errorBorder: InputBorder.none,
               disabledBorder: InputBorder.none,
-              contentPadding: EdgeInsets.symmetric(vertical: 18, horizontal: 20),
+              contentPadding: EdgeInsets.symmetric(
+                vertical: 18,
+                horizontal: 20,
+              ),
               filled: false, // Prevents secondary background from global theme
             ),
           ),

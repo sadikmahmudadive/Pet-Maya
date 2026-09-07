@@ -42,41 +42,62 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
     final petRecords = state.serviceRecords
         .where((r) => r.petId == _selectedPet?.petID)
         .toList();
-    final hasMedicalLogs = petRecords.isNotEmpty || (_selectedPet?.vaccinationDetails?.trim().isNotEmpty == true);
-    final petHealthScore = hasMedicalLogs ? (_selectedPet?.healthIndex ?? 100) : 0;
+    final hasMedicalLogs =
+        petRecords.isNotEmpty ||
+        (_selectedPet?.vaccinationDetails?.trim().isNotEmpty == true);
+    final petHealthScore = hasMedicalLogs
+        ? (_selectedPet?.healthIndex ?? 100)
+        : 0;
 
     return GlassScaffold(
       appBar: AppBar(
         title: Text(
           'Immunization & Vaccines',
-          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 18),
+          style: GoogleFonts.plusJakartaSans(
+            fontWeight: FontWeight.w800,
+            fontSize: 18,
+          ),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.add_circle_outline_rounded, color: AppColors.primary),
+            icon: const Icon(
+              Icons.add_circle_outline_rounded,
+              color: AppColors.primary,
+            ),
             tooltip: 'Log Vaccination',
             onPressed: () {
               HapticFeedback.lightImpact();
               if (_selectedPet != null) {
-                state.addServiceRecord(ServiceRecordModel(
-                  recordId: 'rec_vac_${DateTime.now().millisecondsSinceEpoch}',
-                  petId: _selectedPet!.petID,
-                  petName: _selectedPet!.name,
-                  serviceType: 'Vaccination',
-                  providerId: 'self',
-                  providerName: 'Pet Owner',
-                  providerRole: 'Owner',
-                  date: DateTime.now().toString().substring(0, 10),
-                  title: 'Routine Vaccination',
-                  description: 'Annual booster shot administered.',
-                  timestamp: DateTime.now().millisecondsSinceEpoch,
-                ));
+                state.addServiceRecord(
+                  ServiceRecordModel(
+                    recordId:
+                        'rec_vac_${DateTime.now().millisecondsSinceEpoch}',
+                    petId: _selectedPet!.petID,
+                    petName: _selectedPet!.name,
+                    serviceType: 'Vaccination',
+                    providerId: 'self',
+                    providerName: 'Pet Owner',
+                    providerRole: 'Owner',
+                    date: DateTime.now().toString().substring(0, 10),
+                    title: 'Routine Vaccination',
+                    description: 'Annual booster shot administered.',
+                    timestamp: DateTime.now().millisecondsSinceEpoch,
+                  ),
+                );
                 // Restore health index to 100
-                state.updatePet(_selectedPet!.copyWith(healthIndex: 100, vaccinationDetails: 'Up to Date'));
-                state.showToast('Vaccine record added. Profile updated to 100% Fully Protected! ✅', context: context);
+                state.updatePet(
+                  _selectedPet!.copyWith(
+                    healthIndex: 100,
+                    vaccinationDetails: 'Up to Date',
+                  ),
+                );
+                state.showToast(
+                  'Vaccine record added. Profile updated to 100% Fully Protected! ✅',
+                  context: context,
+                );
               }
             },
           ),
@@ -85,7 +106,12 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
       ),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
-        padding: EdgeInsets.fromLTRB(20, MediaQuery.of(context).padding.top + kToolbarHeight + 8, 20, 120),
+        padding: EdgeInsets.fromLTRB(
+          20,
+          MediaQuery.of(context).padding.top + kToolbarHeight + 8,
+          20,
+          120,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -96,7 +122,7 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   itemCount: pets.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 8),
+                  separatorBuilder: (_, _) => const SizedBox(width: 8),
                   itemBuilder: (context, index) {
                     final p = pets[index];
                     final isSelected = p.petID == _selectedPet?.petID;
@@ -110,10 +136,16 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
                         }
                       },
                       selectedColor: AppColors.primary,
-                      backgroundColor: isDark ? const Color(0xFF1E2630) : Colors.white,
+                      backgroundColor: isDark
+                          ? const Color(0xFF1E2630)
+                          : Colors.white,
                       labelStyle: TextStyle(
-                        color: isSelected ? Colors.white : (isDark ? Colors.white70 : Colors.black87),
-                        fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                        color: isSelected
+                            ? Colors.white
+                            : (isDark ? Colors.white70 : Colors.black87),
+                        fontWeight: isSelected
+                            ? FontWeight.w800
+                            : FontWeight.w600,
                         fontSize: 12,
                       ),
                     );
@@ -139,10 +171,16 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
                           width: 84,
                           height: 84,
                           child: CircularProgressIndicator(
-                            value: hasMedicalLogs ? (petHealthScore / 100.0) : 0.0,
+                            value: hasMedicalLogs
+                                ? (petHealthScore / 100.0)
+                                : 0.0,
                             strokeWidth: 9,
-                            backgroundColor: isDark ? Colors.white12 : Colors.black.withValues(alpha: 0.06),
-                            color: (hasMedicalLogs && petHealthScore >= 80) ? const Color(0xFF22C55E) : AppColors.accentAmber,
+                            backgroundColor: isDark
+                                ? Colors.white12
+                                : Colors.black.withValues(alpha: 0.06),
+                            color: (hasMedicalLogs && petHealthScore >= 80)
+                                ? const Color(0xFF22C55E)
+                                : AppColors.accentAmber,
                             strokeCap: StrokeCap.round,
                           ),
                         ),
@@ -158,11 +196,17 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
                               ),
                             ),
                             Text(
-                              hasMedicalLogs ? (petHealthScore >= 80 ? 'PROTECTED' : 'ATTENTION') : 'NO LOGS',
+                              hasMedicalLogs
+                                  ? (petHealthScore >= 80
+                                        ? 'PROTECTED'
+                                        : 'ATTENTION')
+                                  : 'NO LOGS',
                               style: TextStyle(
                                 fontSize: 8,
                                 fontWeight: FontWeight.w900,
-                                color: (hasMedicalLogs && petHealthScore >= 80) ? const Color(0xFF22C55E) : AppColors.accentAmber,
+                                color: (hasMedicalLogs && petHealthScore >= 80)
+                                    ? const Color(0xFF22C55E)
+                                    : AppColors.accentAmber,
                                 letterSpacing: 0.5,
                               ),
                             ),
@@ -176,15 +220,28 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
-                              color: ((hasMedicalLogs && petHealthScore >= 80) ? const Color(0xFF22C55E) : AppColors.accentAmber).withValues(alpha: 0.15),
+                              color:
+                                  ((hasMedicalLogs && petHealthScore >= 80)
+                                          ? const Color(0xFF22C55E)
+                                          : AppColors.accentAmber)
+                                      .withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
-                              hasMedicalLogs ? (petHealthScore >= 80 ? 'FULLY PROTECTED' : 'BOOSTER ADVISORY') : 'UNVERIFIED PROFILE',
+                              hasMedicalLogs
+                                  ? (petHealthScore >= 80
+                                        ? 'FULLY PROTECTED'
+                                        : 'BOOSTER ADVISORY')
+                                  : 'UNVERIFIED PROFILE',
                               style: TextStyle(
-                                color: (hasMedicalLogs && petHealthScore >= 80) ? const Color(0xFF22C55E) : AppColors.accentAmber,
+                                color: (hasMedicalLogs && petHealthScore >= 80)
+                                    ? const Color(0xFF22C55E)
+                                    : AppColors.accentAmber,
                                 fontSize: 10,
                                 fontWeight: FontWeight.w900,
                                 letterSpacing: 0.5,
@@ -203,9 +260,12 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
                           const SizedBox(height: 2),
                           Text(
                             hasMedicalLogs
-                                ? (_selectedPet?.vaccinationDetails?.isNotEmpty == true
-                                    ? _selectedPet!.vaccinationDetails!
-                                    : 'Immunization details recorded in Pet Maya.')
+                                ? (_selectedPet
+                                              ?.vaccinationDetails
+                                              ?.isNotEmpty ==
+                                          true
+                                      ? _selectedPet!.vaccinationDetails!
+                                      : 'Immunization details recorded in Pet Maya.')
                                 : 'No medical or vaccine records logged for ${_selectedPet?.name ?? "this pet"} yet.',
                             style: TextStyle(
                               fontSize: 11,
@@ -242,11 +302,15 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
                   ? EmptyState(
                       icon: Icons.vaccines_rounded,
                       title: 'No vaccine records logged yet',
-                      message: 'When you or your vet log a vaccination for ${_selectedPet?.name ?? "your pet"}, it will appear here in your secure vault.',
+                      message:
+                          'When you or your vet log a vaccination for ${_selectedPet?.name ?? "your pet"}, it will appear here in your secure vault.',
                       actionLabel: 'Log Vaccination Record',
                       onAction: () {
                         HapticFeedback.lightImpact();
-                        state.showToast('Vaccine logger opened. Administered record added.', context: context);
+                        state.showToast(
+                          'Vaccine logger opened. Administered record added.',
+                          context: context,
+                        );
                       },
                     )
                   : BentoCard(
@@ -259,7 +323,8 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
                           return Column(
                             children: [
                               _buildRecordItem(rec, isDark),
-                              if (idx < petRecords.length - 1) const Divider(height: 20),
+                              if (idx < petRecords.length - 1)
+                                const Divider(height: 20),
                             ],
                           );
                         }).toList(),

@@ -85,8 +85,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     final user = state.currentUser;
     final pets = state.pets;
 
-    if (user == null)
+    if (user == null) {
       return const Scaffold(body: TailWaggingLoader(useBottomPosition: true));
+    }
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -230,30 +231,34 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   // Care & Services Group
                   _buildSectionHeader('Care & Services'),
                   const SizedBox(height: 10),
-                  _buildGroupedCard(children: [
-                    _buildSettingsRow(
-                      icon: Icons.local_mall_rounded,
-                      iconColor: AppColors.healthGreen,
-                      title: 'My Orders',
-                      subtitle: '${state.orders.length} items',
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const OrdersScreen()),
-                      ),
-                    ),
-                    _buildDivider(isDark),
-                    _buildSettingsRow(
-                      icon: Icons.favorite_rounded,
-                      iconColor: const Color(0xFFE91E63),
-                      title: 'Favorite Specialists',
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const FavoriteVetsScreen(),
+                  _buildGroupedCard(
+                    children: [
+                      _buildSettingsRow(
+                        icon: Icons.local_mall_rounded,
+                        iconColor: AppColors.healthGreen,
+                        title: 'My Orders',
+                        subtitle: '${state.orders.length} items',
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const OrdersScreen(),
+                          ),
                         ),
                       ),
-                    ),
-                  ]),
+                      _buildDivider(isDark),
+                      _buildSettingsRow(
+                        icon: Icons.favorite_rounded,
+                        iconColor: const Color(0xFFE91E63),
+                        title: 'Favorite Specialists',
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const FavoriteVetsScreen(),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 28),
 
                   const SizedBox(height: 40),
@@ -273,33 +278,36 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   // Support & Legal
                   _buildSectionHeader('Support & Legal'),
                   const SizedBox(height: 10),
-                  _buildGroupedCard(children: [
-                    _buildSettingsRow(
-                      icon: Icons.shield_outlined,
-                      iconColor: const Color(0xFF26A69A),
-                      title: 'Privacy Policy & Terms',
-                      onTap: () async {
-                        final url =
-                            Uri.parse('https://petmaya.app/privacy-policy');
-                        try {
-                          await launchUrl(
-                            url,
-                            mode: LaunchMode.externalApplication,
+                  _buildGroupedCard(
+                    children: [
+                      _buildSettingsRow(
+                        icon: Icons.shield_outlined,
+                        iconColor: const Color(0xFF26A69A),
+                        title: 'Privacy Policy & Terms',
+                        onTap: () async {
+                          final url = Uri.parse(
+                            'https://petmaya.app/privacy-policy',
                           );
-                        } catch (e) {
-                          debugPrint('[PrivacyLink] Error launching url: $e');
-                        }
-                      },
-                    ),
-                    _buildDivider(isDark),
-                    _buildSettingsRow(
-                      icon: Icons.info_outline_rounded,
-                      iconColor: Colors.grey,
-                      title: 'App Version',
-                      subtitle: 'v2.4.0 (Build 42)',
-                      showChevron: false,
-                    ),
-                  ]),
+                          try {
+                            await launchUrl(
+                              url,
+                              mode: LaunchMode.externalApplication,
+                            );
+                          } catch (e) {
+                            debugPrint('[PrivacyLink] Error launching url: $e');
+                          }
+                        },
+                      ),
+                      _buildDivider(isDark),
+                      _buildSettingsRow(
+                        icon: Icons.info_outline_rounded,
+                        iconColor: Colors.grey,
+                        title: 'App Version',
+                        subtitle: 'v2.4.0 (Build 42)',
+                        showChevron: false,
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 28),
 
                   // Sign Out
@@ -800,10 +808,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 
-  Widget _buildSignOutButton(
-    BuildContext context,
-    AppStateRepository state,
-  ) {
+  Widget _buildSignOutButton(BuildContext context, AppStateRepository state) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 2),
       child: Material(

@@ -25,17 +25,26 @@ class _CreateBlogScreenState extends State<CreateBlogScreen> {
   final _titleController = TextEditingController();
   final _contentController = TextEditingController();
   final _tagController = TextEditingController();
-  
+
   String _selectedCategory = 'Health';
   File? _imageFile;
   bool _isUploading = false;
   final List<String> _tags = [];
 
-  final List<String> _categories = ['Health', 'Nutrition', 'Training', 'Lifestyle', 'Events'];
+  final List<String> _categories = [
+    'Health',
+    'Nutrition',
+    'Training',
+    'Lifestyle',
+    'Events',
+  ];
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+    );
     if (pickedFile != null) {
       setState(() => _imageFile = File(pickedFile.path));
     }
@@ -57,7 +66,10 @@ class _CreateBlogScreenState extends State<CreateBlogScreen> {
 
     if (title.isEmpty || content.isEmpty || _imageFile == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please provide a title, content, and cover image'), behavior: SnackBarBehavior.floating),
+        const SnackBar(
+          content: Text('Please provide a title, content, and cover image'),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
       return;
     }
@@ -69,26 +81,33 @@ class _CreateBlogScreenState extends State<CreateBlogScreen> {
     if (user == null) {
       setState(() => _isUploading = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('You must be logged in to publish an article'), backgroundColor: AppColors.dangerRed),
+        const SnackBar(
+          content: Text('You must be logged in to publish an article'),
+          backgroundColor: AppColors.dangerRed,
+        ),
       );
       return;
     }
 
     try {
       // 1. Upload cover image
-      final imageUrl = await FirebaseStorageService().uploadImage(_imageFile!, 'blogs');
+      final imageUrl = await FirebaseStorageService().uploadImage(
+        _imageFile!,
+        'blogs',
+      );
       if (imageUrl == null) throw Exception('Image upload failed');
 
-      final isAdmin = user?.role == UserRole.admin || user?.role == UserRole.superAdmin;
+      final isAdmin =
+          user.role == UserRole.admin || user.role == UserRole.superAdmin;
       final status = isAdmin ? 'APPROVED' : 'PENDING';
       final isApproved = isAdmin;
 
       // 2. Create blog model
       final blog = BlogPostModel(
         id: 'blog_${const Uuid().v4().substring(0, 8)}',
-        authorId: user?.uid ?? 'guest',
-        authorName: user?.name ?? 'Pet Lover',
-        authorPhoto: user?.photoUrl,
+        authorId: user.uid ?? 'guest',
+        authorName: user.name ?? 'Pet Lover',
+        authorPhoto: user.photoUrl,
         title: title,
         content: content,
         imageUrl: imageUrl,
@@ -107,9 +126,11 @@ class _CreateBlogScreenState extends State<CreateBlogScreen> {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(isAdmin 
-                ? 'Blog published successfully! 📝' 
-                : 'Article submitted for review! It will go live after admin approval 📝'),
+            content: Text(
+              isAdmin
+                  ? 'Blog published successfully! 📝'
+                  : 'Article submitted for review! It will go live after admin approval 📝',
+            ),
             backgroundColor: AppColors.healthGreen,
             behavior: SnackBarBehavior.floating,
           ),
@@ -118,7 +139,11 @@ class _CreateBlogScreenState extends State<CreateBlogScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.dangerRed, behavior: SnackBarBehavior.floating),
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: AppColors.dangerRed,
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       }
     } finally {
@@ -143,7 +168,13 @@ class _CreateBlogScreenState extends State<CreateBlogScreen> {
           if (!_isUploading)
             TextButton(
               onPressed: _submitBlog,
-              child: const Text('PUBLISH', style: TextStyle(fontWeight: FontWeight.w900, color: AppColors.primary)),
+              child: const Text(
+                'PUBLISH',
+                style: TextStyle(
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.primary,
+                ),
+              ),
             ),
           const SizedBox(width: 12),
         ],
@@ -165,9 +196,15 @@ class _CreateBlogScreenState extends State<CreateBlogScreen> {
                       decoration: BoxDecoration(
                         color: isDark ? Colors.white10 : Colors.grey[100],
                         borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: isDark ? Colors.white12 : Colors.black12, width: 1.5),
+                        border: Border.all(
+                          color: isDark ? Colors.white12 : Colors.black12,
+                          width: 1.5,
+                        ),
                         image: _imageFile != null
-                            ? DecorationImage(image: FileImage(_imageFile!), fit: BoxFit.cover)
+                            ? DecorationImage(
+                                image: FileImage(_imageFile!),
+                                fit: BoxFit.cover,
+                              )
                             : null,
                       ),
                       child: _imageFile == null
@@ -176,7 +213,13 @@ class _CreateBlogScreenState extends State<CreateBlogScreen> {
                               children: [
                                 const LottieUploadIcon(size: 56),
                                 const SizedBox(height: 8),
-                                Text('Add Cover Image', style: TextStyle(color: Colors.grey[500], fontWeight: FontWeight.w600)),
+                                Text(
+                                  'Add Cover Image',
+                                  style: TextStyle(
+                                    color: Colors.grey[500],
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
                               ],
                             )
                           : null,
@@ -187,7 +230,10 @@ class _CreateBlogScreenState extends State<CreateBlogScreen> {
                   // ─── TITLE ─────────────────────────────────────────────────
                   TextField(
                     controller: _titleController,
-                    style: GoogleFonts.plusJakartaSans(fontSize: 24, fontWeight: FontWeight.w800),
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w800,
+                    ),
                     decoration: InputDecoration(
                       hintText: 'Article Title',
                       hintStyle: TextStyle(color: Colors.grey[400]),
@@ -198,20 +244,45 @@ class _CreateBlogScreenState extends State<CreateBlogScreen> {
                     maxLines: null,
                   ),
                   const SizedBox(height: 12),
-                  Divider(color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.06)),
+                  Divider(
+                    color: isDark
+                        ? Colors.white10
+                        : Colors.black.withValues(alpha: 0.06),
+                  ),
                   const SizedBox(height: 12),
 
                   // ─── CATEGORY & TAGS ────────────────────────────────────────
                   Row(
                     children: [
-                      const Icon(Icons.category_rounded, size: 16, color: AppColors.primary),
+                      const Icon(
+                        Icons.category_rounded,
+                        size: 16,
+                        color: AppColors.primary,
+                      ),
                       const SizedBox(width: 8),
                       DropdownButton<String>(
                         value: _selectedCategory,
                         underline: const SizedBox(),
-                        icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 18),
-                        items: _categories.map((c) => DropdownMenuItem(value: c, child: Text(c, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)))).toList(),
-                        onChanged: (val) => setState(() => _selectedCategory = val!),
+                        icon: const Icon(
+                          Icons.keyboard_arrow_down_rounded,
+                          size: 18,
+                        ),
+                        items: _categories
+                            .map(
+                              (c) => DropdownMenuItem(
+                                value: c,
+                                child: Text(
+                                  c,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (val) =>
+                            setState(() => _selectedCategory = val!),
                       ),
                     ],
                   ),
@@ -222,13 +293,25 @@ class _CreateBlogScreenState extends State<CreateBlogScreen> {
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      ..._tags.map((tag) => Chip(
-                            label: Text(tag, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
-                            onDeleted: () => setState(() => _tags.remove(tag)),
-                            backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                            side: BorderSide.none,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          )),
+                      ..._tags.map(
+                        (tag) => Chip(
+                          label: Text(
+                            tag,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          onDeleted: () => setState(() => _tags.remove(tag)),
+                          backgroundColor: AppColors.primary.withValues(
+                            alpha: 0.1,
+                          ),
+                          side: BorderSide.none,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
                       SizedBox(
                         width: 100,
                         child: TextField(
