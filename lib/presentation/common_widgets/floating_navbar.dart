@@ -44,6 +44,7 @@ class FloatingNavbar extends StatelessWidget {
     final bottomInset = MediaQuery.of(context).padding.bottom;
 
     const double barHeight = 70;
+    const double barRadius = 35; // Perfect stadium / capsule curve
 
     return RepaintBoundary(
       child: Padding(
@@ -53,58 +54,90 @@ class FloatingNavbar extends StatelessWidget {
           14,
           bottomInset > 0 ? bottomInset + 8 : 14,
         ),
-        child: SizedBox(
+        child: Container(
           height: barHeight,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(
-                sigmaX: 24,
-                sigmaY: 24,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(barRadius),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.32 : 0.07),
+                blurRadius: 28,
+                offset: const Offset(0, 8),
+                spreadRadius: -2,
               ),
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.20 : 0.04),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
+                spreadRadius: -1,
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(barRadius),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
+              child: CustomPaint(
+                foregroundPainter: _LiquidGlassRimPainter(
+                  borderRadius: barRadius,
+                  borderWidth: 1.0,
+                  isDark: isDark,
+                ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(barRadius),
+                    // Clear iOS glass translucent surface
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: isDark
+                          ? [
+                              Colors.white.withValues(alpha: 0.12),
+                              Colors.white.withValues(alpha: 0.04),
+                            ]
+                          : [
+                              Colors.white.withValues(alpha: 0.45),
+                              Colors.white.withValues(alpha: 0.20),
+                            ],
+                    ),
+                  ),
+                  child: Stack(
+                    children: [
+                      // Top specular edge glint
+                      Positioned(
+                        top: 0,
+                        left: 35,
+                        right: 35,
+                        height: 1.0,
+                        child: IgnorePointer(
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  Colors.transparent,
+                                  Colors.white.withValues(
+                                    alpha: isDark ? 0.35 : 0.70,
+                                  ),
+                                  Colors.transparent,
+                                ],
+                                stops: const [0.0, 0.5, 1.0],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
 
-                  // Very subtle liquid glass surface
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: isDark
-                        ? [
-                      Colors.white.withValues(alpha: 0.10),
-                      Colors.white.withValues(alpha: 0.045),
-                    ]
-                        : [
-                      Colors.white.withValues(alpha: 0.72),
-                      Colors.white.withValues(alpha: 0.48),
+                      // Main Navbar Content
+                      _NavbarContent(
+                        selectedIndex: selectedIndex,
+                        isProvider: isProvider,
+                        isDark: isDark,
+                        onItemTapped: onItemTapped,
+                        onFabTapped: onFabTapped,
+                        getSlotIndex: _getSlotIndex,
+                      ),
                     ],
                   ),
-
-                  border: Border.all(
-                    color: isDark
-                        ? Colors.white.withValues(alpha: 0.14)
-                        : Colors.white.withValues(alpha: 0.70),
-                    width: 0.8,
-                  ),
-
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(
-                        alpha: isDark ? 0.25 : 0.08,
-                      ),
-                      blurRadius: 30,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
-                ),
-                child: _NavbarContent(
-                  selectedIndex: selectedIndex,
-                  isProvider: isProvider,
-                  isDark: isDark,
-                  onItemTapped: onItemTapped,
-                  onFabTapped: onFabTapped,
-                  getSlotIndex: _getSlotIndex,
                 ),
               ),
             ),
@@ -114,7 +147,6 @@ class FloatingNavbar extends StatelessWidget {
     );
   }
 }
-
 
 /// ------------------------------------------------------------
 /// NAVBAR CONTENT
@@ -139,174 +171,81 @@ class _NavbarContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final activeSlot =
-        getSlotIndex(selectedIndex > 3 ? 1 : selectedIndex);
+    return Row(
+      children: [
+        _buildNavItem(
+          context,
+          index: 0,
+          selectedIcon: isProvider
+              ? Icons.medical_services_rounded
+              : CupertinoIcons.house_fill,
+          unselectedIcon: isProvider
+              ? Icons.medical_services_outlined
+              : CupertinoIcons.house,
+          label: isProvider ? 'Console' : 'Home',
+        ),
 
-        final slotWidth = constraints.maxWidth / 5;
+        _buildNavItem(
+          context,
+          index: 1,
+          selectedIcon: isProvider
+              ? Icons.pets_rounded
+              : CupertinoIcons.compass_fill,
+          unselectedIcon: isProvider
+              ? Icons.pets_outlined
+              : CupertinoIcons.compass,
+          label: isProvider ? 'Patients' : 'Explore',
+        ),
 
-        const indicatorWidth = 64.0;
-        const indicatorHeight = 54.0;
+        // ------------------------------------------------
+        // CENTER ACTION
+        // ------------------------------------------------
+        Expanded(
+          child: Center(
+            child: _LiquidActionButton(onTap: onFabTapped, isDark: isDark),
+          ),
+        ),
 
-        final indicatorLeft =
-            activeSlot * slotWidth +
-                (slotWidth - indicatorWidth) / 2;
+        _buildNavItem(
+          context,
+          index: 2,
+          selectedIcon: isProvider ? Icons.forum_rounded : Icons.pets_rounded,
+          unselectedIcon: isProvider
+              ? Icons.forum_outlined
+              : Icons.pets_outlined,
+          label: 'Community',
+        ),
 
-        return Stack(
-          children: [
-
-            // --------------------------------------------------
-            // LIQUID ACTIVE INDICATOR
-            // --------------------------------------------------
-
-            AnimatedPositioned(
-              duration: const Duration(milliseconds: 500),
-              curve: Curves.easeOutCubic,
-
-              left: indicatorLeft,
-              top: 8,
-
-              width: indicatorWidth,
-              height: indicatorHeight,
-
-              child: IgnorePointer(
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 350),
-                  curve: Curves.easeOutCubic,
-
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(14),
-
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: isDark
-                          ? [
-                        Colors.white.withValues(alpha: 0.15),
-                        AppColors.primary.withValues(alpha: 0.10),
-                      ]
-                          : [
-                        Colors.white.withValues(alpha: 0.82),
-                        AppColors.primary.withValues(alpha: 0.08),
-                      ],
-                    ),
-
-                    border: Border.all(
-                      color: isDark
-                          ? Colors.white.withValues(alpha: 0.14)
-                          : Colors.white.withValues(alpha: 0.55),
-                      width: 0.8,
-                    ),
-
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primary.withValues(
-                          alpha: isDark ? 0.10 : 0.08,
-                        ),
-                        blurRadius: 18,
-                        spreadRadius: -2,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-            // --------------------------------------------------
-            // NAVIGATION ITEMS
-            // --------------------------------------------------
-
-            Row(
-              children: [
-
-                _buildNavItem(
-                  context,
-                  index: 0,
-                  selectedIcon: isProvider
-                      ? Icons.medical_services_rounded
-                      : CupertinoIcons.house_fill,
-                  unselectedIcon: isProvider
-                      ? Icons.medical_services_outlined
-                      : CupertinoIcons.house,
-                  label: isProvider ? 'Console' : 'Home',
-                ),
-
-                _buildNavItem(
-                  context,
-                  index: 1,
-                  selectedIcon: isProvider
-                      ? Icons.pets_rounded
-                      : CupertinoIcons.compass_fill,
-                  unselectedIcon: isProvider
-                      ? Icons.pets_outlined
-                      : CupertinoIcons.compass,
-                  label: isProvider ? 'Patients' : 'Explore',
-                ),
-
-                // ------------------------------------------------
-                // CENTER ACTION
-                // ------------------------------------------------
-
-                Expanded(
-                  child: Center(
-                    child: _LiquidActionButton(
-                      onTap: onFabTapped,
-                      isDark: isDark,
-                    ),
-                  ),
-                ),
-
-                _buildNavItem(
-                  context,
-                  index: 2,
-                  selectedIcon: isProvider
-                      ? Icons.forum_rounded
-                      : Icons.pets_rounded,
-                  unselectedIcon: isProvider
-                      ? Icons.forum_outlined
-                      : Icons.pets_outlined,
-                  label: 'Community',
-                ),
-
-                _buildNavItem(
-                  context,
-                  index: 3,
-                  selectedIcon:
-                  CupertinoIcons.person_crop_circle_fill,
-                  unselectedIcon:
-                  CupertinoIcons.person_crop_circle,
-                  label: 'Profile',
-                ),
-              ],
-            ),
-          ],
-        );
-      },
+        _buildNavItem(
+          context,
+          index: 3,
+          selectedIcon: CupertinoIcons.person_crop_circle_fill,
+          unselectedIcon: CupertinoIcons.person_crop_circle,
+          label: 'Profile',
+        ),
+      ],
     );
   }
-
 
   // ------------------------------------------------------------
   // NAV ITEM
   // ------------------------------------------------------------
 
   Widget _buildNavItem(
-      BuildContext context, {
-        required int index,
-        required IconData selectedIcon,
-        required IconData unselectedIcon,
-        required String label,
-      }) {
+    BuildContext context, {
+    required int index,
+    required IconData selectedIcon,
+    required IconData unselectedIcon,
+    required String label,
+  }) {
     final isSelected = selectedIndex == index;
 
-    final activeColor = isDark
-        ? Colors.white
-        : AppColors.primary;
+    // Native iOS HIG tab bar colors
+    final activeColor = isDark ? const Color(0xFF34D399) : AppColors.primary;
 
     final inactiveColor = isDark
-        ? Colors.white.withValues(alpha: 0.50)
-        : Colors.black.withValues(alpha: 0.45);
+        ? const Color(0xFF98989D) // iOS dark SystemGray
+        : const Color(0xFF8E8E93); // iOS light SystemGray
 
     return Expanded(
       child: GestureDetector(
@@ -326,61 +265,42 @@ class _NavbarContent extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
 
             children: [
-
               // ------------------------------------------------
               // ICON
               // ------------------------------------------------
 
-              AnimatedSlide(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeOutCubic,
+              AnimatedScale(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOutBack,
 
-                offset: isSelected
-                    ? const Offset(0, -0.04)
-                    : Offset.zero,
+                scale: isSelected ? 1.08 : 1.0,
 
-                child: AnimatedScale(
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeOutBack,
+                child: Icon(
+                  isSelected ? selectedIcon : unselectedIcon,
 
-                  scale: isSelected ? 1.08 : 1.0,
+                  size: 24,
 
-                  child: Icon(
-                    isSelected
-                        ? selectedIcon
-                        : unselectedIcon,
-
-                    size: 23,
-
-                    color: isSelected
-                        ? activeColor
-                        : inactiveColor,
-                  ),
+                  color: isSelected ? activeColor : inactiveColor,
                 ),
               ),
 
-              const SizedBox(height: 3),
+              const SizedBox(height: 4),
 
               // ------------------------------------------------
               // LABEL
               // ------------------------------------------------
-
               AnimatedDefaultTextStyle(
-                duration: const Duration(milliseconds: 250),
+                duration: const Duration(milliseconds: 200),
                 curve: Curves.easeOut,
 
                 style: GoogleFonts.plusJakartaSans(
-                  fontSize: 9.5,
+                  fontSize: 10,
 
-                  fontWeight: isSelected
-                      ? FontWeight.w700
-                      : FontWeight.w500,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
 
-                  color: isSelected
-                      ? activeColor
-                      : inactiveColor,
+                  color: isSelected ? activeColor : inactiveColor,
 
-                  letterSpacing: -0.1,
+                  letterSpacing: -0.2,
 
                   height: 1.0,
                 ),
@@ -399,7 +319,6 @@ class _NavbarContent extends StatelessWidget {
   }
 }
 
-
 /// ------------------------------------------------------------
 /// LIQUID CENTER ACTION
 /// ------------------------------------------------------------
@@ -408,21 +327,14 @@ class _LiquidActionButton extends StatefulWidget {
   final VoidCallback onTap;
   final bool isDark;
 
-  const _LiquidActionButton({
-    required this.onTap,
-    required this.isDark,
-  });
+  const _LiquidActionButton({required this.onTap, required this.isDark});
 
   @override
-  State<_LiquidActionButton> createState() =>
-      _LiquidActionButtonState();
+  State<_LiquidActionButton> createState() => _LiquidActionButtonState();
 }
 
-
-class _LiquidActionButtonState
-    extends State<_LiquidActionButton>
+class _LiquidActionButtonState extends State<_LiquidActionButton>
     with SingleTickerProviderStateMixin {
-
   late AnimationController _controller;
 
   @override
@@ -469,13 +381,9 @@ class _LiquidActionButtonState
         animation: _controller,
 
         builder: (context, child) {
-          final scale =
-              1.0 - (_controller.value * 0.10);
+          final scale = 1.0 - (_controller.value * 0.10);
 
-          return Transform.scale(
-            scale: scale,
-            child: child,
-          );
+          return Transform.scale(scale: scale, child: child);
         },
 
         child: Container(
@@ -491,13 +399,10 @@ class _LiquidActionButtonState
 
               colors: widget.isDark
                   ? [
-                AppColors.primary.withValues(alpha: 0.90),
-                AppColors.secondary.withValues(alpha: 0.75),
-              ]
-                  : [
-                AppColors.primary,
-                AppColors.secondary,
-              ],
+                      AppColors.primary.withValues(alpha: 0.90),
+                      AppColors.secondary.withValues(alpha: 0.75),
+                    ]
+                  : [AppColors.primary, AppColors.secondary],
             ),
 
             border: Border.all(
@@ -518,14 +423,74 @@ class _LiquidActionButtonState
           ),
 
           child: const Center(
-            child: Icon(
-              CupertinoIcons.add,
-              color: Colors.white,
-              size: 22,
-            ),
+            child: Icon(CupertinoIcons.add, color: Colors.white, size: 22),
           ),
         ),
       ),
     );
+  }
+}
+
+/// ------------------------------------------------------------
+/// LIQUID GLASS RIM PAINTER
+/// Draws a subpixel gradient stroke along the capsule border with
+/// specular top-left brilliance, simulating refractive glass edges.
+/// ------------------------------------------------------------
+
+class _LiquidGlassRimPainter extends CustomPainter {
+  final double borderRadius;
+  final double borderWidth;
+  final bool isDark;
+
+  const _LiquidGlassRimPainter({
+    required this.borderRadius,
+    this.borderWidth = 1.2,
+    required this.isDark,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Rect.fromLTWH(
+      borderWidth / 2,
+      borderWidth / 2,
+      size.width - borderWidth,
+      size.height - borderWidth,
+    );
+
+    final rrect = RRect.fromRectAndRadius(
+      rect,
+      Radius.circular(borderRadius - borderWidth / 2),
+    );
+
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = borderWidth
+      ..shader = LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: isDark
+            ? [
+                Colors.white.withValues(alpha: 0.35),
+                Colors.white.withValues(alpha: 0.15),
+                Colors.white.withValues(alpha: 0.05),
+                Colors.white.withValues(alpha: 0.12),
+              ]
+            : [
+                Colors.white.withValues(alpha: 0.85),
+                Colors.white.withValues(alpha: 0.50),
+                Colors.white.withValues(alpha: 0.15),
+                Colors.white.withValues(alpha: 0.30),
+              ],
+        stops: const [0.0, 0.35, 0.70, 1.0],
+      ).createShader(rect);
+
+    canvas.drawRRect(rrect, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _LiquidGlassRimPainter oldDelegate) {
+    return oldDelegate.borderRadius != borderRadius ||
+        oldDelegate.borderWidth != borderWidth ||
+        oldDelegate.isDark != isDark;
   }
 }
