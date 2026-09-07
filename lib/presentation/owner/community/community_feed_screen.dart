@@ -141,8 +141,8 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
         slivers: [
           // ─── TAIL WAGGING REFRESH CONTROL (Matching other screens) ───
           CupertinoSliverRefreshControl(
-            refreshIndicatorExtent: 80,
-            refreshTriggerPullDistance: 110,
+            refreshIndicatorExtent: 100,
+            refreshTriggerPullDistance: 130,
             builder: PetRefreshIndicator.builder,
             onRefresh: () async {
               HapticFeedback.mediumImpact();

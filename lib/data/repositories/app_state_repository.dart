@@ -500,48 +500,53 @@ class AppStateRepository extends ChangeNotifier {
       });
       _subscribeToTopics(user);
       _currentUser = user;
-      Future.wait([
-        _loadProducts(),
-        _loadCommunityPosts(),
-        _loadBlogs(),
-        _loadCoupons(),
-        _loadPromos(),
-      ]);
-      _listenToVets();
-      _listenToCurrentUser(user.uid);
-      _listenToGlobalSettings();
+
+      // Always reload products in parallel
+      await _loadProducts();
+
+      // Only establish listeners if not already active to prevent socket churn
+      if (_vetsSub == null) _listenToVets();
+      if (_currentUserSub == null) _listenToCurrentUser(user.uid);
+      if (_globalSettingsSub == null) _listenToGlobalSettings();
+      if (_postsSub == null) _loadCommunityPosts();
+      if (_blogsSub == null) _loadBlogs();
+      if (_couponsSub == null) _loadCoupons();
+      if (_promosSub == null) _loadPromos();
+
       switch (user.role) {
         case UserRole.petOwner:
-          _listenToPets(user.uid);
-          _listenToEvents(user.uid);
-          _listenToServiceRecords('');
-          _listenToUserOrders(user.uid);
+          if (_petsSub == null) _listenToPets(user.uid);
+          if (_eventsSub == null) _listenToEvents(user.uid);
+          if (_serviceRecordsSub == null) _listenToServiceRecords('');
+          if (_ordersSub == null) _listenToUserOrders(user.uid);
           break;
         case UserRole.veterinarian:
         case UserRole.grooming:
         case UserRole.boarding:
         case UserRole.shelter:
-          _listenToPets('');
-          _listenToEventsForProvider(user.uid);
-          _listenToServiceRecords('');
-          _listenToAllOrders();
+          if (_petsSub == null) _listenToPets('');
+          if (_eventsSub == null) _listenToEventsForProvider(user.uid);
+          if (_serviceRecordsSub == null) _listenToServiceRecords('');
+          if (_ordersSub == null) _listenToAllOrders();
           break;
         case UserRole.petShop:
-          _listenToAllOrders();
+          if (_ordersSub == null) _listenToAllOrders();
           break;
         case UserRole.admin:
         case UserRole.superAdmin:
-          _listenToPets('');
-          _listenToEvents('');
-          _listenToServiceRecords('');
-          _listenToAllOrders();
-          _listenToAllUsers();
+          if (_petsSub == null) _listenToPets('');
+          if (_eventsSub == null) _listenToEvents('');
+          if (_serviceRecordsSub == null) _listenToServiceRecords('');
+          if (_ordersSub == null) _listenToAllOrders();
+          if (_allUsersSub == null) _listenToAllUsers();
           break;
       }
-      _listenToNotifications(user.uid);
+      if (_notificationsSub == null) _listenToNotifications(user.uid);
+
       if (user.latitude != null && user.longitude != null) {
         _calculateDynamicDistances(user.latitude!, user.longitude!);
       }
+      _debouncedNotify();
       logAudit('Firebase Sync', 'Data loaded for ${user.name}');
     } catch (e) {
       debugPrint('[AppStateRepository] syncFromFirebase error: $e');
@@ -560,7 +565,7 @@ class AppStateRepository extends ChangeNotifier {
         _pets
           ..clear()
           ..addAll(fetched);
-        notifyListeners();
+        _debouncedNotify();
       },
       onError: (e) =>
           debugPrint('[AppStateRepository] _listenToPets error: $e'),
@@ -579,7 +584,7 @@ class AppStateRepository extends ChangeNotifier {
           _currentUser!.longitude!,
         );
       }
-      notifyListeners();
+      _debouncedNotify();
     });
   }
 
@@ -602,7 +607,7 @@ class AppStateRepository extends ChangeNotifier {
         }
       }
     }
-    if (changed) notifyListeners();
+    if (changed) _debouncedNotify();
   }
 
   void _listenToEvents(String userId) {
@@ -611,7 +616,7 @@ class AppStateRepository extends ChangeNotifier {
       _events
         ..clear()
         ..addAll(fetched);
-      notifyListeners();
+      _debouncedNotify();
     });
   }
 
@@ -623,7 +628,7 @@ class AppStateRepository extends ChangeNotifier {
       _events
         ..clear()
         ..addAll(fetched);
-      notifyListeners();
+      _debouncedNotify();
     });
   }
 
@@ -636,7 +641,7 @@ class AppStateRepository extends ChangeNotifier {
         ..clear()
         ..addAll(fetched);
       _localCache.saveRecords(_serviceRecords);
-      notifyListeners();
+      _debouncedNotify();
     });
   }
 
@@ -646,7 +651,7 @@ class AppStateRepository extends ChangeNotifier {
       _orders
         ..clear()
         ..addAll(fetched);
-      notifyListeners();
+      _debouncedNotify();
     });
   }
 
@@ -656,7 +661,7 @@ class AppStateRepository extends ChangeNotifier {
       _allUsers
         ..clear()
         ..addAll(fetched);
-      notifyListeners();
+      _debouncedNotify();
     });
   }
 
@@ -666,7 +671,7 @@ class AppStateRepository extends ChangeNotifier {
       _orders
         ..clear()
         ..addAll(fetched);
-      notifyListeners();
+      _debouncedNotify();
     });
   }
 
@@ -676,7 +681,7 @@ class AppStateRepository extends ChangeNotifier {
       _notifications
         ..clear()
         ..addAll(fetched);
-      notifyListeners();
+      _debouncedNotify();
     });
   }
 
@@ -687,7 +692,7 @@ class AppStateRepository extends ChangeNotifier {
         _currentUser = (_currentUser != null && updated.fcmToken == null)
             ? updated.copyWith(fcmToken: _currentUser!.fcmToken)
             : updated;
-        notifyListeners();
+        _debouncedNotify();
       }
     });
   }
@@ -766,7 +771,7 @@ class AppStateRepository extends ChangeNotifier {
       _posts
         ..clear()
         ..addAll(fetchedPosts);
-      notifyListeners();
+      _debouncedNotify();
     });
   }
 
@@ -776,7 +781,7 @@ class AppStateRepository extends ChangeNotifier {
       _blogs
         ..clear()
         ..addAll(fetchedBlogs);
-      notifyListeners();
+      _debouncedNotify();
     });
   }
 
@@ -786,7 +791,7 @@ class AppStateRepository extends ChangeNotifier {
       _coupons
         ..clear()
         ..addAll(fetchedCoupons);
-      notifyListeners();
+      _debouncedNotify();
     });
   }
 
@@ -800,7 +805,7 @@ class AppStateRepository extends ChangeNotifier {
         _promos
           ..clear()
           ..addAll(fetchedPromos);
-        notifyListeners();
+        _debouncedNotify();
       },
       onError: (e) {
         debugPrint('[AppStateRepository] Error streaming promos: $e');

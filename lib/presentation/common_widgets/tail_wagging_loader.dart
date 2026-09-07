@@ -1,7 +1,8 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
 import '../../core/theme/app_colors.dart';
 
+/// Ultra-lightweight, zero-lag loading indicator for page loads & async operations.
 class TailWaggingLoader extends StatelessWidget {
   final double size;
   final bool useBottomPosition;
@@ -9,49 +10,34 @@ class TailWaggingLoader extends StatelessWidget {
 
   const TailWaggingLoader({
     super.key,
-    this.size = 140, // Balanced premium size
+    this.size = 40,
     this.useBottomPosition = false,
     this.isGlobal = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final Widget loader = RepaintBoundary(
-      child: SizedBox(
-        width: size,
-        height: size * (200 / 280),
-        child: Lottie.asset(
-          'assets/lottie/cat_wagging.json',
-          fit: BoxFit.contain,
-          repeat: true,
-          renderCache: RenderCache.drawingCommands,
-          frameRate: const FrameRate(60),
-          addRepaintBoundary: true,
-          filterQuality: FilterQuality.medium,
-          errorBuilder: (context, error, stackTrace) {
-            return Icon(
-              Icons.pets_rounded,
-              size: size * 0.4,
-              color: AppColors.primary,
-            );
-          },
+    final Widget loader = Column(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const CupertinoActivityIndicator(radius: 16),
+        const SizedBox(height: 12),
+        const Icon(
+          Icons.pets_rounded,
+          size: 20,
+          color: AppColors.primary,
         ),
-      ),
+      ],
     );
-
-    if (!useBottomPosition && !isGlobal) {
-      return Center(child: loader);
-    }
-
-    Widget content = Center(child: loader);
 
     if (isGlobal) {
       return Material(
         color: Colors.black.withValues(alpha: 0.2),
-        child: content,
+        child: Center(child: loader),
       );
     }
 
-    return content;
+    return Center(child: loader);
   }
 }

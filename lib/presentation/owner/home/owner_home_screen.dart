@@ -365,8 +365,8 @@ class HomeDashboardFragment extends StatelessWidget {
       ),
       slivers: [
         CupertinoSliverRefreshControl(
-          refreshIndicatorExtent: 80,
-          refreshTriggerPullDistance: 110,
+          refreshIndicatorExtent: 100,
+          refreshTriggerPullDistance: 130,
           builder: PetRefreshIndicator.builder,
           onRefresh: () async {
             HapticFeedback.mediumImpact();
