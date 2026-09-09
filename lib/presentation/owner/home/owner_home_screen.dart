@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -47,6 +46,16 @@ class OwnerHomeScreen extends StatefulWidget {
 
 class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
   int _currentNavIndex = 0;
+  final Set<int> _activatedTabs = {0};
+
+  void _onTabSelected(int index) {
+    if (_currentNavIndex != index) {
+      setState(() {
+        _currentNavIndex = index;
+        _activatedTabs.add(index);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,13 +70,20 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
                   index: _currentNavIndex,
                   children: [
                     HomeDashboardFragment(
-                      onNavRequested: (index) =>
-                          setState(() => _currentNavIndex = index),
+                      onNavRequested: _onTabSelected,
                     ), // 0
-                    const PetServicesScreen(), // 1
-                    const CommunityFeedScreen(), // 2
-                    const UserProfileScreen(), // 3
-                    const ShopScreen(), // 4
+                    _activatedTabs.contains(1)
+                        ? const PetServicesScreen()
+                        : const SizedBox.shrink(), // 1
+                    _activatedTabs.contains(2)
+                        ? const CommunityFeedScreen()
+                        : const SizedBox.shrink(), // 2
+                    _activatedTabs.contains(3)
+                        ? const UserProfileScreen()
+                        : const SizedBox.shrink(), // 3
+                    _activatedTabs.contains(4)
+                        ? const ShopScreen()
+                        : const SizedBox.shrink(), // 4
                   ],
                 ),
               ),
@@ -79,7 +95,7 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
             bottom: 0,
             child: FloatingNavbar(
               selectedIndex: _currentNavIndex > 3 ? 1 : _currentNavIndex,
-              onItemTapped: (index) => setState(() => _currentNavIndex = index),
+              onItemTapped: _onTabSelected,
               onFabTapped: () => _showQuickActionSheet(context),
             ),
           ),
@@ -359,21 +375,16 @@ class HomeDashboardFragment extends StatelessWidget {
 
     final size = MediaQuery.of(context).size;
 
-    return CustomScrollView(
-      physics: const BouncingScrollPhysics(
-        parent: AlwaysScrollableScrollPhysics(),
-      ),
-      slivers: [
-        CupertinoSliverRefreshControl(
-          refreshIndicatorExtent: 100,
-          refreshTriggerPullDistance: 130,
-          builder: PetRefreshIndicator.builder,
-          onRefresh: () async {
-            HapticFeedback.mediumImpact();
-            if (user != null) await state.syncFromFirebase(user);
-          },
+    return PetRefreshIndicator(
+      onRefresh: () async {
+        if (user != null) await state.syncFromFirebase(user);
+      },
+      child: CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(
+          parent: BouncingScrollPhysics(),
         ),
-        SliverToBoxAdapter(
+        slivers: [
+          SliverToBoxAdapter(
           child: RepaintBoundary(
             child: Padding(
               padding: EdgeInsets.fromLTRB(20, size.height * 0.08, 20, 20),
@@ -585,6 +596,7 @@ class HomeDashboardFragment extends StatelessWidget {
           ),
         ),
       ],
+      ),
     );
   }
 

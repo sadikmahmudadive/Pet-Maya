@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -111,12 +110,13 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final state = context.watch<AppStateRepository>();
-    final currentUserId = state.currentUser?.uid ?? 'guest';
-    final currentUser = state.currentUser;
+    final allPosts = context.select((AppStateRepository s) => s.posts);
+    final currentUser = context.select((AppStateRepository s) => s.currentUser);
+    final currentUserId = currentUser?.uid ?? 'guest';
+    final state = context.read<AppStateRepository>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final posts = state.posts.where((p) {
+    final posts = allPosts.where((p) {
       if (_selectedTab == 'ALL') return true;
       return p.postType == _selectedTab;
     }).toList();
@@ -134,25 +134,17 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
             : SystemUiOverlayStyle.dark,
         actions: [const SizedBox(width: 8)],
       ),
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(
-          parent: AlwaysScrollableScrollPhysics(),
-        ),
-        slivers: [
-          // ─── TAIL WAGGING REFRESH CONTROL (Matching other screens) ───
-          CupertinoSliverRefreshControl(
-            refreshIndicatorExtent: 100,
-            refreshTriggerPullDistance: 130,
-            builder: PetRefreshIndicator.builder,
-            onRefresh: () async {
-              HapticFeedback.mediumImpact();
-              final user = state.currentUser;
-              if (user != null) await state.syncFromFirebase(user);
-            },
+      body: PetRefreshIndicator(
+        onRefresh: () async {
+          if (currentUser != null) await state.syncFromFirebase(currentUser);
+        },
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics(),
           ),
-
-          // ─── TOP COMPOSER & FILTER TABS ─────────────────────────────
-          SliverToBoxAdapter(
+          slivers: [
+            // ─── TOP COMPOSER & FILTER TABS ─────────────────────────────
+            SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.only(top: 100),
               child: Column(
@@ -844,6 +836,7 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
               ),
             ),
         ],
+      ),
       ),
     );
   }

@@ -1,6 +1,4 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
@@ -9,6 +7,7 @@ import '../../../data/models/order_model.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
 import '../../common_widgets/empty_state.dart';
+import '../../common_widgets/pet_refresh_indicator.dart';
 import 'package:animate_do/animate_do.dart';
 import 'order_details_screen.dart';
 
@@ -25,18 +24,16 @@ class OrdersScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-        slivers: [
-          CupertinoSliverRefreshControl(
-            onRefresh: () async {
-              HapticFeedback.mediumImpact();
-              final repo = context.read<AppStateRepository>();
-              final user = repo.currentUser;
-              if (user != null) await repo.syncFromFirebase(user);
-            },
-          ),
-          SliverPadding(
+      body: PetRefreshIndicator(
+        onRefresh: () async {
+          final repo = context.read<AppStateRepository>();
+          final user = repo.currentUser;
+          if (user != null) await repo.syncFromFirebase(user);
+        },
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+          slivers: [
+            SliverPadding(
             padding: const EdgeInsets.fromLTRB(20, 100, 20, 120),
             sliver: orders.isEmpty
                 ? const SliverFillRemaining(
@@ -111,6 +108,7 @@ class OrdersScreen extends StatelessWidget {
                   ),
           ),
         ],
+      ),
       ),
     );
   }

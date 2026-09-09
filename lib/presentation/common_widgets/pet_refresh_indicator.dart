@@ -1,24 +1,49 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../../core/theme/app_colors.dart';
 
-/// Ultra-lightweight, zero-lag native pull-to-refresh indicator.
-/// Dynamically positions the loader below camera cutouts, notches, and status bars.
+/// Ultra-smooth, zero-lag pull-to-refresh component.
+/// 
+/// Can be used either as:
+/// 1. A wrapper widget around any scrollable: `PetRefreshIndicator(onRefresh: ..., child: ...)`
+/// 2. A sliver builder via [PetRefreshIndicator.builder] for legacy [CupertinoSliverRefreshControl].
 class PetRefreshIndicator extends StatelessWidget {
-  final RefreshIndicatorMode refreshState;
-  final double pulledExtent;
-  final double refreshTriggerPullDistance;
-  final double refreshIndicatorExtent;
+  final Future<void> Function() onRefresh;
+  final Widget child;
+  final double? edgeOffset;
+  final double displacement;
+  final Color? color;
 
   const PetRefreshIndicator({
     super.key,
-    required this.refreshState,
-    required this.pulledExtent,
-    required this.refreshTriggerPullDistance,
-    required this.refreshIndicatorExtent,
+    required this.onRefresh,
+    required this.child,
+    this.edgeOffset,
+    this.displacement = 36.0,
+    this.color,
   });
 
-  /// Factory builder matching [RefreshControlIndicatorBuilder] for [CupertinoSliverRefreshControl].
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final double topSafeArea = edgeOffset ?? (MediaQuery.paddingOf(context).top + 8.0);
+
+    return RefreshIndicator(
+      color: color ?? AppColors.primary,
+      backgroundColor: isDark ? const Color(0xFF1E2825) : Colors.white,
+      strokeWidth: 2.8,
+      displacement: displacement,
+      edgeOffset: topSafeArea,
+      onRefresh: () async {
+        HapticFeedback.lightImpact();
+        await onRefresh();
+      },
+      child: child,
+    );
+  }
+
+  /// Zero-jank, fully constrained sliver indicator builder for [CupertinoSliverRefreshControl].
   static Widget builder(
     BuildContext context,
     RefreshIndicatorMode refreshState,
@@ -30,45 +55,24 @@ class PetRefreshIndicator extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    final double topSafeArea = MediaQuery.of(context).padding.top;
-    // Push the loader down past the camera cutout / status bar notch (topSafeArea + 16px clear margin)
-    final double topPadding = topSafeArea > 0 ? topSafeArea + 16.0 : 20.0;
+    final double progress = (pulledExtent / refreshTriggerPullDistance).clamp(0.0, 1.0);
 
-    if (refreshState == RefreshIndicatorMode.refresh) {
-      return Padding(
-        padding: EdgeInsets.only(top: topPadding),
-        child: const Center(child: CupertinoActivityIndicator(radius: 14)),
-      );
-    }
-
-    final double progress = (pulledExtent / refreshTriggerPullDistance).clamp(
-      0.0,
-      1.0,
-    );
-
-    return Padding(
-      padding: EdgeInsets.only(top: topPadding),
-      child: Center(
-        child: Transform.scale(
-          scale: 0.5 + (0.5 * progress),
-          child: Icon(
-            Icons.pets_rounded,
-            size: 22,
-            color: AppColors.primary.withValues(alpha: 0.3 + (0.7 * progress)),
-          ),
+    return RepaintBoundary(
+      child: SizedBox(
+        height: pulledExtent,
+        child: Center(
+          child: refreshState == RefreshIndicatorMode.refresh
+              ? const CupertinoActivityIndicator(radius: 12)
+              : Transform.scale(
+                  scale: 0.6 + (0.4 * progress),
+                  child: Icon(
+                    Icons.pets_rounded,
+                    size: 22,
+                    color: AppColors.primary.withValues(alpha: 0.25 + (0.75 * progress)),
+                  ),
+                ),
         ),
       ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return builder(
-      context,
-      refreshState,
-      pulledExtent,
-      refreshTriggerPullDistance,
-      refreshIndicatorExtent,
     );
   }
 }

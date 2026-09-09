@@ -15,6 +15,7 @@ import '../services/favorite_vets_screen.dart';
 import '../shop/orders_screen.dart';
 import '../pets/my_pets_screen.dart';
 import '../../common_widgets/tail_wagging_loader.dart';
+import '../../common_widgets/pet_refresh_indicator.dart';
 import 'edit_profile_screen.dart';
 import 'notification_screen.dart';
 import 'package:animate_do/animate_do.dart';
@@ -81,9 +82,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final state = context.watch<AppStateRepository>();
-    final user = state.currentUser;
-    final pets = state.pets;
+    final user = context.select((AppStateRepository s) => s.currentUser);
+    final pets = context.select((AppStateRepository s) => s.pets);
+    final state = context.read<AppStateRepository>();
 
     if (user == null) {
       return const Scaffold(body: TailWaggingLoader(useBottomPosition: true));
@@ -93,9 +94,15 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
+      body: PetRefreshIndicator(
+        onRefresh: () async {
+          await state.syncFromFirebase(user);
+        },
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics(),
+          ),
+          slivers: [
           // 1. Premium Parallax Header
           SliverAppBar(
             expandedHeight: 280,
@@ -320,6 +327,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             ),
           ),
         ],
+      ),
       ),
     );
   }

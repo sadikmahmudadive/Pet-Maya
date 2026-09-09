@@ -150,6 +150,8 @@ class AppStateRepository extends ChangeNotifier {
     _couponsSub = null;
     _promosSub?.cancel();
     _promosSub = null;
+    _topicsSubscribed = false;
+    _fcmTokenSynced = false;
   }
 
   List<PetModel> get pets => List.unmodifiable(_pets);
@@ -491,13 +493,7 @@ class AppStateRepository extends ChangeNotifier {
   Future<void> syncFromFirebase(UserModel user) async {
     _setLoading(false);
     try {
-      NotificationService().getToken().then((fcmToken) {
-        if (fcmToken != null) {
-          final updatedUser = user.copyWith(fcmToken: fcmToken);
-          _firebase.saveUserProfile(updatedUser);
-          _currentUser = updatedUser;
-        }
-      });
+      _syncFcmToken(user);
       _subscribeToTopics(user);
       _currentUser = user;
 
@@ -748,6 +744,7 @@ class AppStateRepository extends ChangeNotifier {
       _products
         ..clear()
         ..addAll(fetched);
+      _debouncedNotify();
     } catch (e) {
       debugPrint('[AppStateRepository] _loadProducts error: $e');
     }
@@ -847,15 +844,32 @@ class AppStateRepository extends ChangeNotifier {
     notifyListeners();
   }
 
+  bool _topicsSubscribed = false;
   void _subscribeToTopics(UserModel user) {
+    if (_topicsSubscribed) return;
+    _topicsSubscribed = true;
     final ns = NotificationService();
     ns.subscribeToTopic('everyone');
     if (user.role == UserRole.petOwner) {
       ns.subscribeToTopic('pet_owners');
-    } else if (user.role == UserRole.veterinarian)
+    } else if (user.role == UserRole.veterinarian) {
       ns.subscribeToTopic('vets');
-    else if (user.role == UserRole.petShop)
+    } else if (user.role == UserRole.petShop) {
       ns.subscribeToTopic('merchants');
+    }
+  }
+
+  bool _fcmTokenSynced = false;
+  void _syncFcmToken(UserModel user) {
+    if (_fcmTokenSynced) return;
+    _fcmTokenSynced = true;
+    NotificationService().getToken().then((fcmToken) {
+      if (fcmToken != null && fcmToken != user.fcmToken) {
+        final updatedUser = user.copyWith(fcmToken: fcmToken);
+        _firebase.saveUserProfile(updatedUser);
+        _currentUser = updatedUser;
+      }
+    });
   }
 
   Future<void> addBlog(BlogPostModel blog) async {

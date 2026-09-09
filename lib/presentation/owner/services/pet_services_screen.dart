@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -39,9 +38,9 @@ class _PetServicesScreenState extends State<PetServicesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final state = context.watch<AppStateRepository>();
-    final allVets = state.vets;
-    final user = state.currentUser;
+    final allVets = context.select((AppStateRepository s) => s.vets);
+    final user = context.select((AppStateRepository s) => s.currentUser);
+    final state = context.read<AppStateRepository>();
     final favoriteIds = user?.favoriteVetIds ?? [];
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -61,52 +60,47 @@ class _PetServicesScreenState extends State<PetServicesScreen> {
     }).toList();
 
     return GlassScaffold(
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-        slivers: [
-          SliverAppBar(
-            title: const Text('Veterinary & Care', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: -0.5)),
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            floating: true,
-            snap: true,
-            centerTitle: true,
-            actions: [
-              Stack(
-                alignment: Alignment.center,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.favorite_rounded, color: AppColors.dangerRed),
-                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FavoriteVetsScreen())),
-                  ),
-                  if (favoriteIds.isNotEmpty)
-                    Positioned(
-                      top: 10,
-                      right: 8,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
-                        child: Text(
-                          '${favoriteIds.length}',
-                          style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900),
+      body: PetRefreshIndicator(
+        onRefresh: () async {
+          if (user != null) await state.syncFromFirebase(user);
+        },
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+          slivers: [
+            SliverAppBar(
+              title: const Text('Veterinary & Care', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: -0.5)),
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              floating: true,
+              snap: true,
+              centerTitle: true,
+              actions: [
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.favorite_rounded, color: AppColors.dangerRed),
+                      onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FavoriteVetsScreen())),
+                    ),
+                    if (favoriteIds.isNotEmpty)
+                      Positioned(
+                        top: 10,
+                        right: 8,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
+                          child: Text(
+                            '${favoriteIds.length}',
+                            style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900),
+                          ),
                         ),
                       ),
-                    ),
-                ],
-              ),
-              const SizedBox(width: 8),
-            ],
-          ),
-          CupertinoSliverRefreshControl(
-            refreshIndicatorExtent: 100,
-            refreshTriggerPullDistance: 130,
-            builder: PetRefreshIndicator.builder,
-            onRefresh: () async {
-              HapticFeedback.mediumImpact();
-              if (user != null) await state.syncFromFirebase(user);
-            },
-          ),
-          SliverToBoxAdapter(
+                  ],
+                ),
+                const SizedBox(width: 8),
+              ],
+            ),
+            SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
               child: Column(
@@ -342,6 +336,7 @@ class _PetServicesScreenState extends State<PetServicesScreen> {
                     ),
           const SliverToBoxAdapter(child: SizedBox(height: 120)),
         ],
+      ),
       ),
     );
   }

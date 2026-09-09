@@ -47,9 +47,11 @@ class _ShopScreenState extends State<ShopScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final state = context.watch<AppStateRepository>();
+    final allProducts = context.select((AppStateRepository s) => s.products);
+    final user = context.select((AppStateRepository s) => s.currentUser);
+    final state = context.read<AppStateRepository>();
 
-    final products = state.products.where((p) {
+    final products = allProducts.where((p) {
       final matchesCategory =
           _selectedCategory == 'All' ||
           p.category.toLowerCase() == _selectedCategory.toLowerCase();
@@ -61,25 +63,17 @@ class _ShopScreenState extends State<ShopScreen> {
 
     return GlassScaffold(
       floatingActionButton: _buildCartFab(context, state),
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(
-          parent: AlwaysScrollableScrollPhysics(),
-        ),
-        slivers: [
-          // ─── PREMIUM REFRESH ───────────────────────────────────────────
-          CupertinoSliverRefreshControl(
-            refreshIndicatorExtent: 100,
-            refreshTriggerPullDistance: 130,
-            builder: PetRefreshIndicator.builder,
-            onRefresh: () async {
-              HapticFeedback.mediumImpact();
-              final user = state.currentUser;
-              if (user != null) await state.syncFromFirebase(user);
-            },
+      body: PetRefreshIndicator(
+        onRefresh: () async {
+          if (user != null) await state.syncFromFirebase(user);
+        },
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics(),
           ),
-
-          // ─── HERO APP BAR ──────────────────────────────────────────────
-          SliverAppBar(
+          slivers: [
+            // ─── HERO APP BAR ──────────────────────────────────────────────
+            SliverAppBar(
             expandedHeight: 260,
             pinned: true,
             stretch: true,
@@ -261,6 +255,7 @@ class _ShopScreenState extends State<ShopScreen> {
                 ),
           const SliverToBoxAdapter(child: SizedBox(height: 160)),
         ],
+      ),
       ),
     );
   }
