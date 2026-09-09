@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/pet_device_model.dart';
 import '../../../data/repositories/app_state_repository.dart';
+import '../../common_widgets/empty_state.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
 import '../home/pet_tracker_screen.dart';
@@ -1060,110 +1061,79 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
 
     return GlassScaffold(
       appBar: AppBar(
-        title: const Text(
-          'My Devices & Trackers',
-          style: TextStyle(fontWeight: FontWeight.w800),
-        ),
-        centerTitle: true,
+        title: const Text('My Devices'),
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
           IconButton(
-            tooltip: 'Pair Device',
-            icon: Container(
-              padding: const EdgeInsets.all(6),
-              decoration: const BoxDecoration(
-                color: AppColors.primary,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.add, color: Colors.white, size: 18),
+            icon: const Icon(
+              Icons.add_circle_rounded,
+              color: AppColors.primary,
             ),
             onPressed: () => _showPairDeviceSheet(context, repo),
           ),
           const SizedBox(width: 8),
         ],
       ),
-      body: CustomScrollView(
-        physics: const AlwaysScrollableScrollPhysics(
-          parent: BouncingScrollPhysics(),
-        ),
-        slivers: [
-          // ─── HERO OVERVIEW BENTO ──────────────────────────────────────────
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-              child: Column(
-                children: [
-                  _buildOverviewBento(context, devices, onlineCount, isDark),
-                  const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          'Connected Hardware (${devices.length})',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -0.3,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      TextButton.icon(
-                        onPressed: () => _showPairDeviceSheet(context, repo),
-                        icon: const Icon(
-                          Icons.add_circle_outline_rounded,
-                          size: 15,
-                        ),
-                        label: const Text(
-                          'Add Tracker',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 12.5,
-                          ),
-                        ),
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 4,
-                          ),
-                          visualDensity: VisualDensity.compact,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // ─── DEVICE CARDS LIST OR EMPTY STATE ─────────────────────────────
-          if (devices.isEmpty)
-            SliverFillRemaining(
-              hasScrollBody: false,
-              child: _buildEmptyState(context, repo),
+      body: devices.isEmpty
+          ? EmptyState(
+              icon: Icons.sensors_rounded,
+              title: 'No trackers paired yet',
+              message:
+                  'Pair a GPS collar, Bluetooth beacon, or smart tag to keep your pet safe and track their location.',
+              actionLabel: 'Pair New Tracker',
+              onAction: () => _showPairDeviceSheet(context, repo),
             )
-          else
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
-              sliver: SliverList(
-                delegate: SliverChildBuilderDelegate((context, index) {
-                  final device = devices[index];
-                  return FadeInUp(
-                    delay: Duration(milliseconds: 60 * index),
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: _buildDeviceCard(context, device, repo, isDark),
-                    ),
-                  );
-                }, childCount: devices.length),
+          : CustomScrollView(
+              physics: const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics(),
               ),
+              slivers: [
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(20, 100, 20, 120),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate((context, index) {
+                      if (index == 0) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildOverviewBento(
+                              context,
+                              devices,
+                              onlineCount,
+                              isDark,
+                            ),
+                            const SizedBox(height: 20),
+                            Text(
+                              'Connected Trackers (${devices.length})',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.3,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                          ],
+                        );
+                      }
+                      final device = devices[index - 1];
+                      return FadeInUp(
+                        delay: Duration(milliseconds: 60 * (index - 1)),
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: _buildDeviceCard(
+                            context,
+                            device,
+                            repo,
+                            isDark,
+                          ),
+                        ),
+                      );
+                    }, childCount: devices.length + 1),
+                  ),
+                ),
+              ],
             ),
-        ],
-      ),
     );
   }
 
@@ -1458,41 +1428,57 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  if (pet != null) ...[
-                    if (pet.photoUrl != null)
-                      CircleAvatar(
-                        backgroundImage: NetworkImage(pet.photoUrl!),
-                        radius: 10,
-                      )
-                    else
-                      const SizedBox.shrink(),
-                    const SizedBox(width: 6),
-                    Text(
-                      pet.name,
-                      style: const TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.primary,
-                      ),
+                  Expanded(
+                    child: Row(
+                      children: [
+                        if (pet != null) ...[
+                          if (pet.photoUrl != null)
+                            CircleAvatar(
+                              backgroundImage: NetworkImage(pet.photoUrl!),
+                              radius: 10,
+                            ),
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Text(
+                              pet.name,
+                              style: const TextStyle(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.primary,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              '(${pet.breed})',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Colors.grey.shade500,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
+                          ),
+                        ] else
+                          Flexible(
+                            child: Text(
+                              device.petName ?? 'Unassigned',
+                              style: TextStyle(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.amber.shade700,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
+                          ),
+                      ],
                     ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '(${pet.breed})',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey.shade500,
-                      ),
-                    ),
-                  ] else
-                    Text(
-                      device.petName ?? 'Unassigned',
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.amber.shade700,
-                      ),
-                    ),
-                  const Spacer(),
+                  ),
+                  const SizedBox(width: 8),
                   InkWell(
                     onTap: () => _openDeviceSettings(context, device, repo),
                     child: const Text(
@@ -1509,8 +1495,11 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
             ),
             const SizedBox(height: 14),
 
-            // Telemetry Grid (Battery, Signal, Mode, Safe Zone)
-            Row(
+            // Telemetry Grid
+            Wrap(
+              spacing: 8,
+              runSpacing: 6,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 _buildTelemetryChip(
                   icon: device.batteryLevel > 20
@@ -1523,21 +1512,18 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                             : AppColors.dangerRed),
                   label: '${device.batteryLevel}% Bat',
                 ),
-                const SizedBox(width: 8),
                 _buildTelemetryChip(
                   icon: Icons.signal_cellular_alt_rounded,
                   color: const Color(0xFF3B82F6),
                   label: '${device.signalStrength}/4 Signal',
                 ),
-                const SizedBox(width: 8),
                 _buildTelemetryChip(
                   icon: Icons.sync_rounded,
                   color: Colors.grey,
                   label: device.trackingMode.split(' ').first,
                 ),
-                const Spacer(),
                 Text(
-                  '2m ago',
+                  '• 2m ago',
                   style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
                 ),
               ],
@@ -1554,7 +1540,10 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
                       elevation: 0,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 12,
+                        horizontal: 8,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
                       ),
@@ -1582,11 +1571,14 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                       }
                     },
                     icon: const Icon(Icons.near_me_rounded, size: 16),
-                    label: const Text(
-                      'Live Radar',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 13,
+                    label: const FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        'Live Radar',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13,
+                        ),
                       ),
                     ),
                   ),
@@ -1603,7 +1595,10 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                             ? AppColors.dangerRed
                             : Colors.grey.withValues(alpha: 0.3),
                       ),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 12,
+                        horizontal: 4,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
                       ),
@@ -1616,11 +1611,14 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                       size: 16,
                       color: isRinging ? AppColors.dangerRed : null,
                     ),
-                    label: Text(
-                      isRinging ? 'Ringing...' : 'Chime / Siren',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 13,
+                    label: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        isRinging ? 'Ringing...' : 'Chime / Siren',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13,
+                        ),
                       ),
                     ),
                   ),
@@ -1658,69 +1656,6 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildEmptyState(BuildContext context, AppStateRepository repo) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(28),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.12),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.sensors_rounded,
-                size: 54,
-                color: AppColors.primary,
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'No Trackers Paired Yet',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 22,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Pair a PetMaya GPS collar, Bluetooth beacon, or smart activity tag to keep your pet safe and track their location in real time.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 13.5,
-                color: Colors.grey.shade600,
-                height: 1.4,
-              ),
-            ),
-            const SizedBox(height: 28),
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 28,
-                  vertical: 15,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(18),
-                ),
-              ),
-              onPressed: () => _showPairDeviceSheet(context, repo),
-              icon: const Icon(Icons.add_rounded),
-              label: const Text(
-                'Pair Your First Tracker',
-                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

@@ -270,10 +270,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         _buildSettingsRow(
                           icon: Icons.sensors_rounded,
                           iconColor: const Color(0xFF3B82F6),
-                          title: 'My Devices & Trackers',
-                          subtitle: state.devices.isEmpty
-                              ? 'Pair GPS collars & smart tags'
-                              : '${state.devices.length} hardware paired',
+                          title: 'My Devices',
+                          subtitle: '${state.devices.length} paired',
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -762,6 +760,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               Expanded(
                 child: Text(
                   title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.plusJakartaSans(
                     fontWeight: FontWeight.w600,
                     fontSize: 14,
@@ -770,8 +770,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 ),
               ),
               if (subtitle != null) ...[
+                const SizedBox(width: 8),
                 Text(
                   subtitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
