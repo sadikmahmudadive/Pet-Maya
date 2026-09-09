@@ -10,6 +10,7 @@ import '../models/vet_model.dart';
 import '../models/service_record_model.dart';
 import '../models/feed_post_model.dart';
 import '../models/blog_post_model.dart';
+import '../models/pet_device_model.dart';
 
 /// LocalCacheService provides instant offline data persistence via SharedPreferences.
 /// It enables 0ms cold-start hydration and guarantees the UI never renders blank
@@ -37,6 +38,7 @@ class LocalCacheService {
   // ─── KEYS ────────────────────────────────────────────────────────────────
   static const String _keyCurrentUser = 'pm_cache_user';
   static const String _keyPets = 'pm_cache_pets';
+  static const String _keyDevices = 'pm_cache_devices';
   static const String _keyEvents = 'pm_cache_events';
   static const String _keyProducts = 'pm_cache_products';
   static const String _keyOrders = 'pm_cache_orders';
@@ -92,6 +94,32 @@ class LocalCacheService {
       }
     } catch (e) {
       debugPrint('[LocalCacheService] Error loading pets: $e');
+    }
+    return [];
+  }
+
+  // ─── DEVICES CACHE ───────────────────────────────────────────────────────
+  Future<void> saveDevices(String userId, List<PetDeviceModel> devices) async {
+    try {
+      final prefs = await _getPrefs();
+      final list = devices.map((d) => d.toMap()).toList();
+      await prefs.setString('${_keyDevices}_$userId', jsonEncode(list));
+    } catch (e) {
+      debugPrint('[LocalCacheService] Error saving devices: $e');
+    }
+  }
+
+  List<PetDeviceModel> loadDevices(String userId) {
+    try {
+      final raw = _prefs?.getString('${_keyDevices}_$userId');
+      if (raw != null && raw.isNotEmpty) {
+        final decoded = jsonDecode(raw) as List<dynamic>;
+        return decoded
+            .map((item) => PetDeviceModel.fromMap(item as Map<String, dynamic>))
+            .toList();
+      }
+    } catch (e) {
+      debugPrint('[LocalCacheService] Error loading devices: $e');
     }
     return [];
   }

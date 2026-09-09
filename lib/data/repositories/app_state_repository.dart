@@ -23,6 +23,7 @@ import '../models/review_model.dart';
 import '../models/blog_post_model.dart';
 import '../models/coupon_model.dart';
 import '../models/promo_model.dart';
+import '../models/pet_device_model.dart';
 import '../services/firebase_service.dart';
 import '../services/local_cache_service.dart';
 import '../../core/services/notification_service.dart';
@@ -81,6 +82,7 @@ class AppStateRepository extends ChangeNotifier {
   String? get syncError => _syncError;
 
   final List<PetModel> _pets = [];
+  final List<PetDeviceModel> _devices = [];
   final List<EventModel> _events = [];
   final List<ProductModel> _products = [];
   final List<CartItemModel> _cartItems = [];
@@ -155,6 +157,7 @@ class AppStateRepository extends ChangeNotifier {
   }
 
   List<PetModel> get pets => List.unmodifiable(_pets);
+  List<PetDeviceModel> get devices => List.unmodifiable(_devices);
   List<BlogPostModel> get blogs => List.unmodifiable(_blogs);
   List<CouponModel> get coupons => List.unmodifiable(_coupons);
   List<PromoModel> get promos => List.unmodifiable(_promos);
@@ -543,6 +546,7 @@ class AppStateRepository extends ChangeNotifier {
       if (user.latitude != null && user.longitude != null) {
         _calculateDynamicDistances(user.latitude!, user.longitude!);
       }
+      await loadDevices(user.uid);
       _debouncedNotify();
       logAudit('Firebase Sync', 'Data loaded for ${user.name}');
     } catch (e) {
@@ -1104,6 +1108,75 @@ class AppStateRepository extends ChangeNotifier {
     _pets.removeWhere((p) => p.petID == petId);
     notifyListeners();
     await _firebase.deletePet(petId);
+  }
+
+  // ─── SMART TRACKER & DEVICE MANAGEMENT ───────────────────────────────────
+  Future<void> loadDevices(String userId) async {
+    try {
+      final cached = LocalCacheService().loadDevices(userId);
+      _devices.clear();
+      if (cached.isNotEmpty) {
+        _devices.addAll(cached);
+      } else if (_pets.isNotEmpty) {
+        // Seed an initial smart collar for the first pet
+        final firstPet = _pets.first;
+        final initialDevice = PetDeviceModel(
+          id: 'dev_${firstPet.petID}_collar',
+          name: '${firstPet.name}\'s GPS Collar',
+          deviceType: 'gps_collar',
+          modelNumber: 'PetMaya ProTrack Gen 2',
+          serialNumber: 'PM-TRK-8821',
+          petId: firstPet.petID,
+          petName: firstPet.name,
+          batteryLevel: 88,
+          isOnline: true,
+          signalStrength: 4,
+          trackingMode: 'Real-Time (10s)',
+          isSafeZone: true,
+          lastSync: DateTime.now().subtract(const Duration(minutes: 2)),
+          firmwareVersion: 'v2.4.1',
+          latitude: firstPet.latitude ?? 23.8103,
+          longitude: firstPet.longitude ?? 90.4125,
+        );
+        _devices.add(initialDevice);
+        await LocalCacheService().saveDevices(userId, _devices);
+      }
+      notifyListeners();
+    } catch (e) {
+      debugPrint('[AppStateRepository] loadDevices error: $e');
+    }
+  }
+
+  Future<void> addDevice(PetDeviceModel device) async {
+    _devices.add(device);
+    notifyListeners();
+    if (_currentUser != null) {
+      await LocalCacheService().saveDevices(_currentUser!.uid, _devices);
+    }
+    showToast('Device "${device.name}" successfully paired! 🛰️', type: ToastType.success);
+  }
+
+  Future<void> updateDevice(PetDeviceModel updatedDevice) async {
+    final idx = _devices.indexWhere((d) => d.id == updatedDevice.id);
+    if (idx != -1) {
+      _devices[idx] = updatedDevice;
+      notifyListeners();
+      if (_currentUser != null) {
+        await LocalCacheService().saveDevices(_currentUser!.uid, _devices);
+      }
+      showToast('Device settings updated', type: ToastType.info);
+    }
+  }
+
+  Future<void> removeDevice(String deviceId) async {
+    final devList = _devices.where((d) => d.id == deviceId).toList();
+    final name = devList.isNotEmpty ? devList.first.name : 'Device';
+    _devices.removeWhere((d) => d.id == deviceId);
+    notifyListeners();
+    if (_currentUser != null) {
+      await LocalCacheService().saveDevices(_currentUser!.uid, _devices);
+    }
+    showToast('Device "$name" unpaired', type: ToastType.info);
   }
 
   Future<void> _schedulePetReminders(PetModel pet) async {

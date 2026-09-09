@@ -14,6 +14,7 @@ import '../../auth/login_screen.dart';
 import '../services/favorite_vets_screen.dart';
 import '../shop/orders_screen.dart';
 import '../pets/my_pets_screen.dart';
+import '../devices/my_devices_screen.dart';
 import '../../common_widgets/tail_wagging_loader.dart';
 import '../../common_widgets/pet_refresh_indicator.dart';
 import 'edit_profile_screen.dart';
@@ -104,231 +105,248 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             parent: BouncingScrollPhysics(),
           ),
           slivers: [
-          // 1. Premium Parallax Header
-          SliverAppBar(
-            expandedHeight: 280,
-            pinned: true,
-            stretch: true,
-            automaticallyImplyLeading: false,
-            backgroundColor: AppColors.primary,
-            systemOverlayStyle: SystemUiOverlayStyle.light,
-            flexibleSpace: FlexibleSpaceBar(
-              stretchModes: const [StretchMode.zoomBackground],
-              background: Stack(
-                fit: StackFit.expand,
-                children: [
-                  // Gradient Background
-                  Container(
+            // 1. Premium Parallax Header
+            SliverAppBar(
+              expandedHeight: 280,
+              pinned: true,
+              stretch: true,
+              automaticallyImplyLeading: false,
+              backgroundColor: AppColors.primary,
+              systemOverlayStyle: SystemUiOverlayStyle.light,
+              flexibleSpace: FlexibleSpaceBar(
+                stretchModes: const [StretchMode.zoomBackground],
+                background: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    // Gradient Background
+                    Container(
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [AppColors.primary, AppColors.primaryDark],
+                        ),
+                      ),
+                    ),
+                    // Background Pattern
+                    Positioned(
+                      right: -40,
+                      top: -20,
+                      child: Opacity(
+                        opacity: 0.08,
+                        child: const Icon(
+                          Icons.pets_rounded,
+                          size: 300,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    // Centered Avatar
+                    Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const SizedBox(height: 40),
+                          _buildAvatarSection(user),
+                          const SizedBox(height: 16),
+                          FadeInDown(
+                            child: Text(
+                              user.name,
+                              style: GoogleFonts.plusJakartaSans(
+                                color: Colors.white,
+                                fontSize: 26,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                          FadeInUp(
+                            child: Container(
+                              margin: const EdgeInsets.only(top: 6),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.24),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                user.role.displayName.toUpperCase(),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 1,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                IconButton(
+                  icon: Container(
+                    padding: const EdgeInsets.all(8),
                     decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [AppColors.primary, AppColors.primaryDark],
-                      ),
+                      color: Colors.black26,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.logout_rounded,
+                      color: Colors.white,
+                      size: 18,
                     ),
                   ),
-                  // Background Pattern
-                  Positioned(
-                    right: -40,
-                    top: -20,
-                    child: Opacity(
-                      opacity: 0.08,
-                      child: const Icon(
-                        Icons.pets_rounded,
-                        size: 300,
-                        color: Colors.white,
-                      ),
-                    ),
+                  onPressed: () => _showLogoutDialog(context, state),
+                ),
+                const SizedBox(width: 8),
+              ],
+            ),
+
+            // 2. Profile Content
+            SliverToBoxAdapter(
+              child: Container(
+                transform: Matrix4.translationValues(0, -30, 0),
+                padding: const EdgeInsets.fromLTRB(20, 40, 20, 100),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).scaffoldBackgroundColor,
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(32),
                   ),
-                  // Centered Avatar
-                  Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 32),
+
+                    // Quick Stats Row
+                    _buildPlatformStats(state),
+                    const SizedBox(height: 32),
+
+                    // Pet Family Section
+                    _buildPetFamilySection(context, pets),
+                    const SizedBox(height: 32),
+
+                    // Contact Card
+                    _buildSectionHeader('Personal Details'),
+                    const SizedBox(height: 10),
+                    _buildContactCard(context, user),
+                    const SizedBox(height: 28),
+
+                    // Care & Services Group
+                    _buildSectionHeader('Care & Services'),
+                    const SizedBox(height: 10),
+                    _buildGroupedCard(
                       children: [
-                        const SizedBox(height: 40),
-                        _buildAvatarSection(user),
-                        const SizedBox(height: 16),
-                        FadeInDown(
-                          child: Text(
-                            user.name,
-                            style: GoogleFonts.plusJakartaSans(
-                              color: Colors.white,
-                              fontSize: 26,
-                              fontWeight: FontWeight.w700,
+                        _buildSettingsRow(
+                          icon: Icons.local_mall_rounded,
+                          iconColor: AppColors.healthGreen,
+                          title: 'My Orders',
+                          subtitle: '${state.orders.length} items',
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const OrdersScreen(),
                             ),
                           ),
                         ),
-                        FadeInUp(
-                          child: Container(
-                            margin: const EdgeInsets.only(top: 6),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 4,
+                        _buildDivider(isDark),
+                        _buildSettingsRow(
+                          icon: Icons.favorite_rounded,
+                          iconColor: const Color(0xFFE91E63),
+                          title: 'Favorite Specialists',
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const FavoriteVetsScreen(),
                             ),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.24),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              user.role.displayName.toUpperCase(),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 1,
-                              ),
+                          ),
+                        ),
+                        _buildDivider(isDark),
+                        _buildSettingsRow(
+                          icon: Icons.sensors_rounded,
+                          iconColor: const Color(0xFF3B82F6),
+                          title: 'My Devices & Trackers',
+                          subtitle: state.devices.isEmpty
+                              ? 'Pair GPS collars & smart tags'
+                              : '${state.devices.length} hardware paired',
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const MyDevicesScreen(),
                             ),
                           ),
                         ),
                       ],
                     ),
-                  ),
-                ],
-              ),
-            ),
-            actions: [
-              IconButton(
-                icon: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: const BoxDecoration(
-                    color: Colors.black26,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.logout_rounded,
-                    color: Colors.white,
-                    size: 18,
-                  ),
-                ),
-                onPressed: () => _showLogoutDialog(context, state),
-              ),
-              const SizedBox(width: 8),
-            ],
-          ),
+                    const SizedBox(height: 28),
 
-          // 2. Profile Content
-          SliverToBoxAdapter(
-            child: Container(
-              transform: Matrix4.translationValues(0, -30, 0),
-              padding: const EdgeInsets.fromLTRB(20, 40, 20, 100),
-              decoration: BoxDecoration(
-                color: Theme.of(context).scaffoldBackgroundColor,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(32),
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 32),
+                    const SizedBox(height: 40),
+                    // Preferences Group
+                    _buildSectionHeader('Preferences'),
+                    const SizedBox(height: 10),
+                    _buildPreferencesGroup(context, state, isDark),
+                    const SizedBox(height: 28),
 
-                  // Quick Stats Row
-                  _buildPlatformStats(state),
-                  const SizedBox(height: 32),
+                    // Rewards & Referral
+                    _buildSectionHeader('Rewards & Referral'),
+                    const SizedBox(height: 10),
+                    _buildRewardsBanner(context, user),
+                    const SizedBox(height: 28),
 
-                  // Pet Family Section
-                  _buildPetFamilySection(context, pets),
-                  const SizedBox(height: 32),
-
-                  // Contact Card
-                  _buildSectionHeader('Personal Details'),
-                  const SizedBox(height: 10),
-                  _buildContactCard(context, user),
-                  const SizedBox(height: 28),
-
-                  // Care & Services Group
-                  _buildSectionHeader('Care & Services'),
-                  const SizedBox(height: 10),
-                  _buildGroupedCard(
-                    children: [
-                      _buildSettingsRow(
-                        icon: Icons.local_mall_rounded,
-                        iconColor: AppColors.healthGreen,
-                        title: 'My Orders',
-                        subtitle: '${state.orders.length} items',
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const OrdersScreen(),
-                          ),
-                        ),
-                      ),
-                      _buildDivider(isDark),
-                      _buildSettingsRow(
-                        icon: Icons.favorite_rounded,
-                        iconColor: const Color(0xFFE91E63),
-                        title: 'Favorite Specialists',
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const FavoriteVetsScreen(),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 28),
-
-                  const SizedBox(height: 40),
-                  // Preferences Group
-                  _buildSectionHeader('Preferences'),
-                  const SizedBox(height: 10),
-                  _buildPreferencesGroup(context, state, isDark),
-                  const SizedBox(height: 28),
-
-                  // Rewards & Referral
-                  _buildSectionHeader('Rewards & Referral'),
-                  const SizedBox(height: 10),
-                  _buildRewardsBanner(context, user),
-                  const SizedBox(height: 28),
-
-                  const SizedBox(height: 40),
-                  // Support & Legal
-                  _buildSectionHeader('Support & Legal'),
-                  const SizedBox(height: 10),
-                  _buildGroupedCard(
-                    children: [
-                      _buildSettingsRow(
-                        icon: Icons.shield_outlined,
-                        iconColor: const Color(0xFF26A69A),
-                        title: 'Privacy Policy & Terms',
-                        onTap: () async {
-                          final url = Uri.parse(
-                            'https://petmaya.app/privacy-policy',
-                          );
-                          try {
-                            await launchUrl(
-                              url,
-                              mode: LaunchMode.externalApplication,
+                    const SizedBox(height: 40),
+                    // Support & Legal
+                    _buildSectionHeader('Support & Legal'),
+                    const SizedBox(height: 10),
+                    _buildGroupedCard(
+                      children: [
+                        _buildSettingsRow(
+                          icon: Icons.shield_outlined,
+                          iconColor: const Color(0xFF26A69A),
+                          title: 'Privacy Policy & Terms',
+                          onTap: () async {
+                            final url = Uri.parse(
+                              'https://petmaya.app/privacy-policy',
                             );
-                          } catch (e) {
-                            debugPrint('[PrivacyLink] Error launching url: $e');
-                          }
-                        },
-                      ),
-                      _buildDivider(isDark),
-                      _buildSettingsRow(
-                        icon: Icons.info_outline_rounded,
-                        iconColor: Colors.grey,
-                        title: 'App Version',
-                        subtitle: 'v2.4.0 (Build 42)',
-                        showChevron: false,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 28),
+                            try {
+                              await launchUrl(
+                                url,
+                                mode: LaunchMode.externalApplication,
+                              );
+                            } catch (e) {
+                              debugPrint(
+                                '[PrivacyLink] Error launching url: $e',
+                              );
+                            }
+                          },
+                        ),
+                        _buildDivider(isDark),
+                        _buildSettingsRow(
+                          icon: Icons.info_outline_rounded,
+                          iconColor: Colors.grey,
+                          title: 'App Version',
+                          subtitle: 'v2.4.0 (Build 42)',
+                          showChevron: false,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 28),
 
-                  // Sign Out
-                  _buildSignOutButton(context, state),
+                    // Sign Out
+                    _buildSignOutButton(context, state),
 
-                  const SizedBox(height: 32),
-                  _buildPartnerBranding(context),
-                ],
+                    const SizedBox(height: 32),
+                    _buildPartnerBranding(context),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
       ),
     );
   }
