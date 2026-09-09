@@ -881,18 +881,27 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'Connected Hardware (${devices.length})',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -0.3,
+                      Expanded(
+                        child: Text(
+                          'Connected Hardware (${devices.length})',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.3,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
+                      const SizedBox(width: 8),
                       TextButton.icon(
                         onPressed: () => _showPairDeviceSheet(context, repo),
-                        icon: const Icon(Icons.add_circle_outline_rounded, size: 16),
-                        label: const Text('Add Tracker', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                        icon: const Icon(Icons.add_circle_outline_rounded, size: 15),
+                        label: const Text('Add Tracker', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12.5)),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                          visualDensity: VisualDensity.compact,
+                        ),
                       ),
                     ],
                   ),
