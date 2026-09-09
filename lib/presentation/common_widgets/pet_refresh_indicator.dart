@@ -37,14 +37,14 @@ class PetRefreshIndicator extends StatelessWidget {
     if (refreshState == RefreshIndicatorMode.refresh) {
       return Padding(
         padding: EdgeInsets.only(top: topPadding),
-        child: const Center(
-          child: CupertinoActivityIndicator(radius: 14),
-        ),
+        child: const Center(child: CupertinoActivityIndicator(radius: 14)),
       );
     }
 
-    final double progress =
-        (pulledExtent / refreshTriggerPullDistance).clamp(0.0, 1.0);
+    final double progress = (pulledExtent / refreshTriggerPullDistance).clamp(
+      0.0,
+      1.0,
+    );
 
     return Padding(
       padding: EdgeInsets.only(top: topPadding),

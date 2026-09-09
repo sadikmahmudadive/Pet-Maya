@@ -23,11 +23,7 @@ class TailWaggingLoader extends StatelessWidget {
       children: [
         const CupertinoActivityIndicator(radius: 16),
         const SizedBox(height: 12),
-        const Icon(
-          Icons.pets_rounded,
-          size: 20,
-          color: AppColors.primary,
-        ),
+        const Icon(Icons.pets_rounded, size: 20, color: AppColors.primary),
       ],
     );
 
