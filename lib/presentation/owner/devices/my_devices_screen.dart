@@ -130,6 +130,60 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
     );
   }
 
+  Future<void> _confirmDeleteDevice(
+    BuildContext context,
+    PetDeviceModel device,
+    AppStateRepository repo,
+  ) async {
+    HapticFeedback.mediumImpact();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (dCtx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        backgroundColor: isDark ? const Color(0xFF1E2630) : Colors.white,
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.dangerRed.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.delete_forever_rounded, color: AppColors.dangerRed, size: 22),
+            ),
+            const SizedBox(width: 12),
+            const Text('Delete Device?'),
+          ],
+        ),
+        content: Text(
+          'Are you sure you want to delete "${device.name}" from your account? This action cannot be undone.',
+          style: TextStyle(color: isDark ? Colors.white70 : Colors.black87, fontSize: 13.5),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dCtx, false),
+            child: Text('Cancel', style: TextStyle(color: isDark ? Colors.white60 : Colors.grey[700])),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.dangerRed,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            ),
+            onPressed: () => Navigator.pop(dCtx, true),
+            child: const Text('Delete Device', style: TextStyle(fontWeight: FontWeight.w800)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      await repo.removeDevice(device.id);
+    }
+  }
+
   void _openDeviceSettings(
     BuildContext context,
     PetDeviceModel device,
@@ -388,6 +442,7 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                     const SizedBox(height: 12),
 
                     // Unpair Button
+                    // Delete Device Button
                     SizedBox(
                       width: double.infinity,
                       child: TextButton.icon(
@@ -423,11 +478,17 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                             await repo.removeDevice(device.id);
                             if (ctx.mounted) Navigator.pop(ctx);
                           }
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          _confirmDeleteDevice(context, device, repo);
                         },
                         icon: const Icon(Icons.link_off_rounded, size: 18),
+                        icon: const Icon(Icons.delete_forever_rounded, size: 20),
                         label: const Text(
                           'Unpair Tracker from Account',
                           style: TextStyle(fontWeight: FontWeight.w700),
+                          'Delete Device from Account',
+                          style: TextStyle(fontWeight: FontWeight.w800),
                         ),
                       ),
                     ),
@@ -690,6 +751,8 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                                 ),
                               ],
                             ),
+                            // Animated Radar Discovery Pulse
+                            _RadarDiscoveryPulse(isScanDone: isScanDone),
                             const SizedBox(height: 32),
 
                             if (!isScanDone)
@@ -1061,11 +1124,24 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
 
     return GlassScaffold(
       appBar: AppBar(
+        title: const Text(
+          'My Devices & Trackers',
+          style: TextStyle(fontWeight: FontWeight.w800),
+        ),
+        centerTitle: true,
         title: const Text('My Devices'),
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
           IconButton(
+            tooltip: 'Pair Device',
+            icon: Container(
+              padding: const EdgeInsets.all(6),
+              decoration: const BoxDecoration(
+                color: AppColors.primary,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.add, color: Colors.white, size: 18),
             icon: const Icon(
               Icons.add_circle_rounded,
               color: AppColors.primary,
@@ -1075,6 +1151,29 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
           const SizedBox(width: 8),
         ],
       ),
+      body: CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(
+          parent: BouncingScrollPhysics(),
+        ),
+        slivers: [
+          // ─── HERO OVERVIEW BENTO ──────────────────────────────────────────
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+              child: Column(
+                children: [
+                  _buildOverviewBento(context, devices, onlineCount, isDark),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Connected Hardware (${devices.length})',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.3,
       body: devices.isEmpty
           ? EmptyState(
               icon: Icons.sensors_rounded,
@@ -1127,13 +1226,67 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                             repo,
                             isDark,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
+                      ),
+                      const SizedBox(width: 8),
+                      TextButton.icon(
+                        onPressed: () => _showPairDeviceSheet(context, repo),
+                        icon: const Icon(
+                          Icons.add_circle_outline_rounded,
+                          size: 15,
+                        ),
+                        label: const Text(
+                          'Add Tracker',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 12.5,
+                          ),
+                        ),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 4,
+                          ),
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      ),
+                    ],
                       );
                     }, childCount: devices.length + 1),
                   ),
+                ],
+              ),
                 ),
               ],
             ),
+          ),
+
+          // ─── DEVICE CARDS LIST OR EMPTY STATE ─────────────────────────────
+          if (devices.isEmpty)
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: _buildEmptyState(context, repo),
+            )
+          else
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  final device = devices[index];
+                  return FadeInUp(
+                    delay: Duration(milliseconds: 60 * index),
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: _buildDeviceCard(context, device, repo, isDark),
+                    ),
+                  );
+                }, childCount: devices.length),
+              ),
+            ),
+        ],
+      ),
     );
   }
 
@@ -1396,8 +1549,63 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                   ),
                 ),
                 IconButton(
+                PopupMenuButton<String>(
                   icon: const Icon(Icons.more_vert_rounded, size: 20),
                   onPressed: () => _openDeviceSettings(context, device, repo),
+                  borderRadius: BorderRadius.circular(16),
+                  color: isDark ? const Color(0xFF1E2630) : Colors.white,
+                  onSelected: (value) async {
+                    if (value == 'settings') {
+                      _openDeviceSettings(context, device, repo);
+                    } else if (value == 'delete') {
+                      _confirmDeleteDevice(context, device, repo);
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      value: 'settings',
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.tune_rounded,
+                            size: 18,
+                            color: isDark ? Colors.white70 : Colors.black87,
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            'Device Settings',
+                            style: TextStyle(
+                              color: isDark ? Colors.white : Colors.black87,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuDivider(),
+                    PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        children: const [
+                          Icon(
+                            Icons.delete_forever_rounded,
+                            size: 18,
+                            color: AppColors.dangerRed,
+                          ),
+                          SizedBox(width: 10),
+                          Text(
+                            'Delete Device',
+                            style: TextStyle(
+                              color: AppColors.dangerRed,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -1428,6 +1636,22 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                       fontWeight: FontWeight.w500,
                     ),
                   ),
+                  if (pet != null) ...[
+                    if (pet.photoUrl != null)
+                      CircleAvatar(
+                        backgroundImage: NetworkImage(pet.photoUrl!),
+                        radius: 10,
+                      )
+                    else
+                      const SizedBox.shrink(),
+                    const SizedBox(width: 6),
+                    Text(
+                      pet.name,
+                      style: const TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.primary,
+                      ),
                   Expanded(
                     child: Row(
                       children: [
@@ -1477,6 +1701,24 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                           ),
                       ],
                     ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '(${pet.breed})',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey.shade500,
+                      ),
+                    ),
+                  ] else
+                    Text(
+                      device.petName ?? 'Unassigned',
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.amber.shade700,
+                      ),
+                    ),
+                  const Spacer(),
                   ),
                   const SizedBox(width: 8),
                   InkWell(
@@ -1495,6 +1737,8 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
             ),
             const SizedBox(height: 14),
 
+            // Telemetry Grid (Battery, Signal, Mode, Safe Zone)
+            Row(
             // Telemetry Grid
             Wrap(
               spacing: 8,
@@ -1512,17 +1756,21 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                             : AppColors.dangerRed),
                   label: '${device.batteryLevel}% Bat',
                 ),
+                const SizedBox(width: 8),
                 _buildTelemetryChip(
                   icon: Icons.signal_cellular_alt_rounded,
                   color: const Color(0xFF3B82F6),
                   label: '${device.signalStrength}/4 Signal',
                 ),
+                const SizedBox(width: 8),
                 _buildTelemetryChip(
                   icon: Icons.sync_rounded,
                   color: Colors.grey,
                   label: device.trackingMode.split(' ').first,
                 ),
+                const Spacer(),
                 Text(
+                  '2m ago',
                   '• 2m ago',
                   style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
                 ),
@@ -1540,6 +1788,7 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
                       elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
                       padding: const EdgeInsets.symmetric(
                         vertical: 12,
                         horizontal: 8,
@@ -1571,6 +1820,11 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                       }
                     },
                     icon: const Icon(Icons.near_me_rounded, size: 16),
+                    label: const Text(
+                      'Live Radar',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
                     label: const FittedBox(
                       fit: BoxFit.scaleDown,
                       child: Text(
@@ -1595,6 +1849,7 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                             ? AppColors.dangerRed
                             : Colors.grey.withValues(alpha: 0.3),
                       ),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
                       padding: const EdgeInsets.symmetric(
                         vertical: 12,
                         horizontal: 4,
@@ -1611,6 +1866,11 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                       size: 16,
                       color: isRinging ? AppColors.dangerRed : null,
                     ),
+                    label: Text(
+                      isRinging ? 'Ringing...' : 'Chime / Siren',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
                     label: FittedBox(
                       fit: BoxFit.scaleDown,
                       child: Text(
@@ -1660,6 +1920,69 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
     );
   }
 
+  Widget _buildEmptyState(BuildContext context, AppStateRepository repo) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(28),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.sensors_rounded,
+                size: 54,
+                color: AppColors.primary,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'No Trackers Paired Yet',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Pair a PetMaya GPS collar, Bluetooth beacon, or smart activity tag to keep your pet safe and track their location in real time.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13.5,
+                color: Colors.grey.shade600,
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 28),
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 28,
+                  vertical: 15,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18),
+                ),
+              ),
+              onPressed: () => _showPairDeviceSheet(context, repo),
+              icon: const Icon(Icons.add_rounded),
+              label: const Text(
+                'Pair Your First Tracker',
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   IconData _getDeviceIcon(String type) {
     switch (type) {
       case 'ble_beacon':
@@ -1686,5 +2009,149 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
       default:
         return AppColors.primary;
     }
+  }
+}
+
+class _RadarDiscoveryPulse extends StatefulWidget {
+  final bool isScanDone;
+
+  const _RadarDiscoveryPulse({required this.isScanDone});
+
+  @override
+  State<_RadarDiscoveryPulse> createState() => _RadarDiscoveryPulseState();
+}
+
+class _RadarDiscoveryPulseState extends State<_RadarDiscoveryPulse>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2000),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return RepaintBoundary(
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) {
+          final progress = _controller.value;
+
+          return SizedBox(
+            width: 180,
+            height: 180,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                // Outer Pulse Ring 3
+                if (!widget.isScanDone)
+                  Transform.scale(
+                    scale: 1.0 + (progress * 0.8),
+                    child: Container(
+                      width: 140,
+                      height: 140,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.primary.withValues(
+                          alpha: (0.25 * (1.0 - progress)).clamp(0.0, 0.25),
+                        ),
+                        border: Border.all(
+                          color: AppColors.primary.withValues(
+                            alpha: (0.40 * (1.0 - progress)).clamp(0.0, 0.40),
+                          ),
+                          width: 1.5,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                // Mid Pulse Ring 2
+                if (!widget.isScanDone)
+                  Transform.scale(
+                    scale: 1.0 + (((progress + 0.33) % 1.0) * 0.7),
+                    child: Container(
+                      width: 110,
+                      height: 110,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.primary.withValues(
+                          alpha: (0.30 * (1.0 - ((progress + 0.33) % 1.0))).clamp(0.0, 0.30),
+                        ),
+                        border: Border.all(
+                          color: AppColors.primary.withValues(
+                            alpha: (0.45 * (1.0 - ((progress + 0.33) % 1.0))).clamp(0.0, 0.45),
+                          ),
+                          width: 1.5,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                // Inner Constant Glow Ring 1
+                Container(
+                  width: widget.isScanDone ? 130 : 100,
+                  height: widget.isScanDone ? 130 : 100,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.primary.withValues(
+                      alpha: widget.isScanDone ? 0.22 : 0.15,
+                    ),
+                    border: Border.all(
+                      color: AppColors.primary.withValues(alpha: 0.35),
+                      width: 1.5,
+                    ),
+                  ),
+                ),
+
+                // Center Core Button
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 400),
+                  curve: Curves.elasticOut,
+                  width: widget.isScanDone ? 72 : 64,
+                  height: widget.isScanDone ? 72 : 64,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.primary,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withValues(alpha: 0.45),
+                        blurRadius: 18,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: widget.isScanDone
+                        ? ElasticIn(
+                            child: const Icon(
+                              Icons.check_rounded,
+                              color: Colors.white,
+                              size: 38,
+                            ),
+                          )
+                        : const Icon(
+                            Icons.sensors_rounded,
+                            color: Colors.white,
+                            size: 32,
+                          ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
   }
 }

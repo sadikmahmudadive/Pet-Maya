@@ -63,14 +63,27 @@ class EmptyState extends StatelessWidget {
                 if (actionLabel != null && onAction != null) ...[
                   const SizedBox(height: 32),
                   SizedBox(
-                    width: 200,
+                    width: 220,
                     height: 54,
                     child: ElevatedButton(
                       onPressed: onAction,
                       style: ElevatedButton.styleFrom(
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        padding: EdgeInsets.zero,
+                        alignment: Alignment.center,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
                       ),
-                      child: Text(actionLabel!.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w800, letterSpacing: 0.5)),
+                      child: Center(
+                        child: Text(
+                          actionLabel!.toUpperCase(),
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ],

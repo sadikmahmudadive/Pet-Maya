@@ -227,7 +227,7 @@ class _PetTrackerScreenState extends State<PetTrackerScreen> with SingleTickerPr
           // ─── SIDE CONTROLS ──────────────────────────────────────────────────
           Positioned(
             right: 16,
-            top: MediaQuery.of(context).padding.top + 80,
+            top: MediaQuery.of(context).padding.top + 108,
             child: FadeInRight(
               child: _buildMapControls(isDark),
             ),
@@ -382,31 +382,46 @@ class _PetTrackerScreenState extends State<PetTrackerScreen> with SingleTickerPr
           );
         }
       },
-      child: Container(
-        width: 46,
-        height: 46,
-        decoration: BoxDecoration(
-          color: _is3D ? AppColors.primary : (isDark ? const Color(0xFF1E242B) : Colors.white),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: _is3D ? AppColors.primary : (isDark ? const Color(0xFF2C3440) : Colors.black.withValues(alpha: 0.08)),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.12),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: BackdropFilter(
+          filter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+          child: Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: _is3D
+                  ? AppColors.primary
+                  : (isDark
+                      ? const Color(0xCC092624)
+                      : Colors.white.withValues(alpha: 0.85)),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: _is3D
+                    ? AppColors.primary
+                    : (isDark
+                        ? Colors.white.withValues(alpha: 0.15)
+                        : Colors.white.withValues(alpha: 0.80)),
+                width: 1.2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.10),
+                  blurRadius: 14,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
-          ],
-        ),
-        child: Center(
-          child: Text(
-            _is3D ? '3D' : '2D',
-            style: GoogleFonts.plusJakartaSans(
-              color: _is3D ? Colors.white : AppColors.primary,
-              fontWeight: FontWeight.w900,
-              fontSize: 13,
-              letterSpacing: 0.5,
+            child: Center(
+              child: Text(
+                _is3D ? '3D' : '2D',
+                style: GoogleFonts.plusJakartaSans(
+                  color: _is3D ? Colors.white : AppColors.primary,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 13,
+                  letterSpacing: 0.5,
+                ),
+              ),
             ),
           ),
         ),

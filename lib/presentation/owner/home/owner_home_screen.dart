@@ -33,6 +33,8 @@ import '../../common_widgets/resilient_network_image.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
 import '../../common_widgets/promo_container.dart';
+import '../../common_widgets/premium_toast.dart';
+import '../devices/my_devices_screen.dart';
 import 'user_profile_screen.dart';
 import '../../common_widgets/pet_refresh_indicator.dart';
 import 'notification_screen.dart';
@@ -796,12 +798,30 @@ class HomeDashboardFragment extends StatelessWidget {
                   icon: Icons.radar_rounded,
                   label: 'Radar',
                   color: const Color(0xFF0288D1),
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => PetTrackerScreen(pet: pet),
-                    ),
-                  ),
+                  onTap: () {
+                    final repo = context.read<AppStateRepository>();
+                    final hasGpsDevice = repo.devices.any((d) => d.deviceType == 'gps_collar' || d.isOnline);
+                    if (!hasGpsDevice) {
+                      repo.showToast(
+                        'No GPS device paired! Please pair a tracker first 🛰️',
+                        type: ToastType.warning,
+                        context: context,
+                      );
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const MyDevicesScreen(),
+                        ),
+                      );
+                      return;
+                    }
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => PetTrackerScreen(pet: pet),
+                      ),
+                    );
+                  },
                 ),
               ),
             ],
@@ -885,6 +905,8 @@ class HomeDashboardFragment extends StatelessWidget {
     Function(int)? onNavRequested,
   ) {
     final primaryPet = pets.isNotEmpty ? pets.first : null;
+    final repo = context.watch<AppStateRepository>();
+    final hasGpsDevice = repo.devices.any((d) => d.deviceType == 'gps_collar' || d.isOnline);
 
     return Column(
       children: [
@@ -897,6 +919,20 @@ class HomeDashboardFragment extends StatelessWidget {
                 borderRadius: 24,
                 padding: const EdgeInsets.all(16),
                 onTap: () {
+                  if (!hasGpsDevice) {
+                    repo.showToast(
+                      'No GPS device paired! Please pair a tracker to access live radar 🛰️',
+                      type: ToastType.warning,
+                      context: context,
+                    );
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const MyDevicesScreen(),
+                      ),
+                    );
+                    return;
+                  }
                   if (primaryPet != null) {
                     Navigator.push(
                       context,
@@ -932,15 +968,18 @@ class HomeDashboardFragment extends StatelessWidget {
                             vertical: 3,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(
-                              0xFF10B981,
-                            ).withValues(alpha: 0.15),
+                            color: (hasGpsDevice
+                                    ? const Color(0xFF10B981)
+                                    : AppColors.accentAmber)
+                                .withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: const Text(
-                            'LIVE',
+                          child: Text(
+                            hasGpsDevice ? 'LIVE' : 'PAIR',
                             style: TextStyle(
-                              color: Color(0xFF10B981),
+                              color: hasGpsDevice
+                                  ? const Color(0xFF10B981)
+                                  : AppColors.accentAmber,
                               fontSize: 9,
                               fontWeight: FontWeight.w900,
                               letterSpacing: 0.5,
@@ -958,9 +997,11 @@ class HomeDashboardFragment extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    const Text(
-                      'Live perimeter & telemetry',
-                      style: TextStyle(fontSize: 11, color: Colors.grey),
+                    Text(
+                      hasGpsDevice
+                          ? 'Live perimeter & telemetry'
+                          : 'No GPS device paired • Tap to pair',
+                      style: const TextStyle(fontSize: 11, color: Colors.grey),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),

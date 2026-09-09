@@ -30,6 +30,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   @override
   Widget build(BuildContext context) {
     final state = context.watch<AppStateRepository>();
+    final topPadding = MediaQuery.of(context).padding.top + kToolbarHeight + 8;
     
     final events = state.events.where((e) {
       final isSameDay = e.date.year == _selectedDate.year && 
@@ -46,10 +47,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
       appBar: AppBar(
         title: Text(
           'Care Calendar',
-          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800),
+          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 18),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        centerTitle: true,
         actions: [
           IconButton(
             icon: const Icon(Icons.history_rounded, color: AppColors.primary),
@@ -82,7 +84,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
           SliverToBoxAdapter(
             child: Column(
               children: [
-                const SizedBox(height: 16),
+                SizedBox(height: topPadding),
                 FadeInDown(child: _buildDynamicCalendar(state.events)),
                 const SizedBox(height: 24),
                 SingleChildScrollView(
@@ -523,14 +525,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildEmptyEvents() {
-    return const EmptyState(
-      icon: Icons.event_available_rounded,
-      title: 'No activities',
-      message: 'No activities scheduled for this day',
     );
   }
 

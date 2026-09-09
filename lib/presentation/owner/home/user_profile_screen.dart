@@ -270,6 +270,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         _buildSettingsRow(
                           icon: Icons.sensors_rounded,
                           iconColor: const Color(0xFF3B82F6),
+                          title: 'My Devices & Trackers',
+                          subtitle: state.devices.isEmpty
+                              ? 'Pair GPS collars & smart tags'
+                              : '${state.devices.length} hardware paired',
                           title: 'My Devices',
                           subtitle: '${state.devices.length} paired',
                           onTap: () => Navigator.push(
