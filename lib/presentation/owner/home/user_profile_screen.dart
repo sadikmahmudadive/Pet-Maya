@@ -52,6 +52,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       );
 
       if (uploadedUrl != null) {
+        if (!mounted) return;
         final repo = context.read<AppStateRepository>();
         await repo.updateProfile(
           name: repo.currentUser!.name,

@@ -399,10 +399,11 @@ class AppStateRepository extends ChangeNotifier {
       final saved = prefs.getString(_themeModeKey);
       if (saved == 'light') {
         _themeMode = ThemeMode.light;
-      } else if (saved == 'dark')
+      } else if (saved == 'dark') {
         _themeMode = ThemeMode.dark;
-      else
+      } else {
         _themeMode = ThemeMode.system;
+      }
       notifyListeners();
     } catch (e) {
       debugPrint('[AppStateRepository] Error loading theme mode: $e');
@@ -1858,10 +1859,11 @@ class AppStateRepository extends ChangeNotifier {
       String base64Image;
       if (imageFile != null) {
         base64Image = base64.encode(await imageFile.readAsBytes());
-      } else if (imagePath != null && !imagePath.startsWith('http'))
+      } else if (imagePath != null && !imagePath.startsWith('http')) {
         base64Image = base64.encode(await File(imagePath).readAsBytes());
-      else
+      } else {
         return null;
+      }
       final result = await _callAiProxy('breed_finder', {'image': base64Image});
       return result['breed'].toString();
     } catch (_) {
@@ -1937,8 +1939,9 @@ class AppStateRepository extends ChangeNotifier {
       int m = parts.length > 1 ? int.parse(parts[1]) : 0;
       if (timeStr.toLowerCase().contains('pm') && h < 12) {
         h += 12;
-      } else if (timeStr.toLowerCase().contains('am') && h == 12)
+      } else if (timeStr.toLowerCase().contains('am') && h == 12) {
         h = 0;
+      }
       return DateTime(baseDate.year, baseDate.month, baseDate.day, h, m);
     } catch (_) {
       return baseDate;
