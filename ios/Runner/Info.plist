@@ -60,6 +60,18 @@
 			</array>
 		</dict>
 	</dict>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Pet Maya requires location access to find nearby veterinarians, grooming services, and track your pet in real time on the map.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Pet Maya requires background location access to monitor safe geofence zones and send escape alerts for your pet.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Pet Maya requires location access to track smart collars and send safety alerts.</string>
+	<key>NSLocationUsageDescription</key>
+	<string>Pet Maya requires location access to find nearby pet services and track pets on the map.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Pet Maya needs access to your camera to take photos of your pets for AI health scans and community posts.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Pet Maya needs access to your photo library to select photos of your pets and medical records.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

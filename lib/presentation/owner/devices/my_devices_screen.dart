@@ -9,7 +9,6 @@ import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/pet_device_model.dart';
 import '../../../data/repositories/app_state_repository.dart';
-import '../../common_widgets/empty_state.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
 import '../home/pet_tracker_screen.dart';
@@ -53,9 +52,7 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                 color: Theme.of(context).brightness == Brightness.dark
                     ? const Color(0xFF1E2623)
                     : Colors.white,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(28),
-                ),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -93,7 +90,10 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                   Text(
                     'Emitting 85dB acoustic chime to help you locate your pet nearby.',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey.shade600,
+                    ),
                   ),
                   const SizedBox(height: 24),
                   SizedBox(
@@ -114,10 +114,7 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                         Navigator.pop(ctx);
                       },
                       icon: const Icon(Icons.stop_circle_rounded),
-                      label: const Text(
-                        'Stop Siren',
-                        style: TextStyle(fontWeight: FontWeight.w700),
-                      ),
+                      label: const Text('Stop Siren', style: TextStyle(fontWeight: FontWeight.w700)),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -130,65 +127,7 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
     );
   }
 
-  Future<void> _confirmDeleteDevice(
-    BuildContext context,
-    PetDeviceModel device,
-    AppStateRepository repo,
-  ) async {
-    HapticFeedback.mediumImpact();
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (dCtx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        backgroundColor: isDark ? const Color(0xFF1E2630) : Colors.white,
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: AppColors.dangerRed.withValues(alpha: 0.12),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.delete_forever_rounded, color: AppColors.dangerRed, size: 22),
-            ),
-            const SizedBox(width: 12),
-            const Text('Delete Device?'),
-          ],
-        ),
-        content: Text(
-          'Are you sure you want to delete "${device.name}" from your account? This action cannot be undone.',
-          style: TextStyle(color: isDark ? Colors.white70 : Colors.black87, fontSize: 13.5),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dCtx, false),
-            child: Text('Cancel', style: TextStyle(color: isDark ? Colors.white60 : Colors.grey[700])),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.dangerRed,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-            ),
-            onPressed: () => Navigator.pop(dCtx, true),
-            child: const Text('Delete Device', style: TextStyle(fontWeight: FontWeight.w800)),
-          ),
-        ],
-      ),
-    );
-
-    if (confirm == true) {
-      await repo.removeDevice(device.id);
-    }
-  }
-
-  void _openDeviceSettings(
-    BuildContext context,
-    PetDeviceModel device,
-    AppStateRepository repo,
-  ) {
+  void _openDeviceSettings(BuildContext context, PetDeviceModel device, AppStateRepository repo) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -202,17 +141,10 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
           builder: (context, setSheetState) {
             final isDark = Theme.of(context).brightness == Brightness.dark;
             return Container(
-              padding: EdgeInsets.fromLTRB(
-                24,
-                20,
-                24,
-                MediaQuery.of(context).viewInsets.bottom + 24,
-              ),
+              padding: EdgeInsets.fromLTRB(24, 20, 24, MediaQuery.of(context).viewInsets.bottom + 24),
               decoration: BoxDecoration(
                 color: isDark ? const Color(0xFF1E2623) : Colors.white,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(28),
-                ),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
               ),
               child: SingleChildScrollView(
                 child: Column(
@@ -249,41 +181,21 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                     const SizedBox(height: 16),
 
                     // Device Name field
-                    const Text(
-                      'Device Label',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                    const Text('Device Label', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
                     const SizedBox(height: 6),
                     TextField(
                       controller: nameController,
                       decoration: InputDecoration(
                         filled: true,
-                        fillColor: isDark
-                            ? Colors.white10
-                            : Colors.grey.shade100,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          borderSide: BorderSide.none,
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
+                        fillColor: isDark ? Colors.white10 : Colors.grey.shade100,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       ),
                     ),
                     const SizedBox(height: 20),
 
                     // Assigned Pet
-                    const Text(
-                      'Assigned Pet',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                    const Text('Assigned Pet', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
                     const SizedBox(height: 8),
                     Wrap(
                       spacing: 8,
@@ -294,10 +206,7 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                           return ChoiceChip(
                             label: Text(p.name),
                             avatar: p.photoUrl != null
-                                ? CircleAvatar(
-                                    backgroundImage: NetworkImage(p.photoUrl!),
-                                    radius: 10,
-                                  )
+                                ? CircleAvatar(backgroundImage: NetworkImage(p.photoUrl!), radius: 10)
                                 : const Icon(Icons.pets_rounded, size: 14),
                             selected: isSelected,
                             selectedColor: AppColors.primary,
@@ -306,9 +215,7 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                               fontWeight: FontWeight.w700,
                             ),
                             onSelected: (selected) {
-                              setSheetState(
-                                () => selectedPetId = selected ? p.petID : null,
-                              );
+                              setSheetState(() => selectedPetId = selected ? p.petID : null);
                             },
                           );
                         }),
@@ -324,52 +231,31 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                     const SizedBox(height: 20),
 
                     // Tracking Mode
-                    const Text(
-                      'Telemetry Interval',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                    const Text('Telemetry Interval', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
                     const SizedBox(height: 8),
-                    ...[
-                      'Real-Time (10s)',
-                      'Balanced (5m)',
-                      'Battery Saver (30m)',
-                    ].map((mode) {
+                    ...['Real-Time (10s)', 'Balanced (5m)', 'Battery Saver (30m)'].map((mode) {
                       final isSelected = trackingMode == mode;
                       return InkWell(
                         onTap: () => setSheetState(() => trackingMode = mode),
                         borderRadius: BorderRadius.circular(14),
                         child: Container(
                           margin: const EdgeInsets.only(bottom: 8),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 10,
-                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                           decoration: BoxDecoration(
                             color: isSelected
                                 ? AppColors.primary.withValues(alpha: 0.12)
-                                : (isDark
-                                      ? Colors.white.withValues(alpha: 0.05)
-                                      : Colors.grey.shade100),
+                                : (isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey.shade100),
                             borderRadius: BorderRadius.circular(14),
                             border: Border.all(
-                              color: isSelected
-                                  ? AppColors.primary
-                                  : Colors.transparent,
+                              color: isSelected ? AppColors.primary : Colors.transparent,
                               width: 1.5,
                             ),
                           ),
                           child: Row(
                             children: [
                               Icon(
-                                isSelected
-                                    ? Icons.radio_button_checked_rounded
-                                    : Icons.radio_button_unchecked_rounded,
-                                color: isSelected
-                                    ? AppColors.primary
-                                    : Colors.grey,
+                                isSelected ? Icons.radio_button_checked_rounded : Icons.radio_button_unchecked_rounded,
+                                color: isSelected ? AppColors.primary : Colors.grey,
                                 size: 20,
                               ),
                               const SizedBox(width: 12),
@@ -377,24 +263,15 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      mode,
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
+                                    Text(mode, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
                                     const SizedBox(height: 2),
                                     Text(
                                       mode.contains('Real-Time')
                                           ? 'Best for outdoor walks and active tracking.'
                                           : mode.contains('Balanced')
-                                          ? 'Standard profile with 3-day battery life.'
-                                          : 'Extends collar battery life up to 14 days.',
-                                      style: TextStyle(
-                                        fontSize: 11.5,
-                                        color: Colors.grey.shade600,
-                                      ),
+                                              ? 'Standard profile with 3-day battery life.'
+                                              : 'Extends collar battery life up to 14 days.',
+                                      style: TextStyle(fontSize: 11.5, color: Colors.grey.shade600),
                                     ),
                                   ],
                                 ),
@@ -414,18 +291,12 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                           backgroundColor: AppColors.primary,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                         ),
                         onPressed: () async {
-                          final pet = repo.pets
-                              .where((p) => p.petID == selectedPetId)
-                              .firstOrNull;
+                          final pet = repo.pets.where((p) => p.petID == selectedPetId).firstOrNull;
                           final updated = device.copyWith(
-                            name: nameController.text.trim().isEmpty
-                                ? device.name
-                                : nameController.text.trim(),
+                            name: nameController.text.trim().isEmpty ? device.name : nameController.text.trim(),
                             petId: selectedPetId,
                             petName: pet?.name,
                             trackingMode: trackingMode,
@@ -433,16 +304,12 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                           await repo.updateDevice(updated);
                           if (ctx.mounted) Navigator.pop(ctx);
                         },
-                        child: const Text(
-                          'Save Changes',
-                          style: TextStyle(fontWeight: FontWeight.w700),
-                        ),
+                        child: const Text('Save Changes', style: TextStyle(fontWeight: FontWeight.w700)),
                       ),
                     ),
                     const SizedBox(height: 12),
 
                     // Unpair Button
-                    // Delete Device Button
                     SizedBox(
                       width: double.infinity,
                       child: TextButton.icon(
@@ -455,19 +322,11 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                             context: ctx,
                             builder: (dCtx) => AlertDialog(
                               title: const Text('Unpair Tracker?'),
-                              content: Text(
-                                'Are you sure you want to unpair "${device.name}"? Live tracking history will be kept.',
-                              ),
+                              content: Text('Are you sure you want to unpair "${device.name}"? Live tracking history will be kept.'),
                               actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(dCtx, false),
-                                  child: const Text('Cancel'),
-                                ),
+                                TextButton(onPressed: () => Navigator.pop(dCtx, false), child: const Text('Cancel')),
                                 ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColors.dangerRed,
-                                    foregroundColor: Colors.white,
-                                  ),
+                                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.dangerRed, foregroundColor: Colors.white),
                                   onPressed: () => Navigator.pop(dCtx, true),
                                   child: const Text('Unpair'),
                                 ),
@@ -478,18 +337,9 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                             await repo.removeDevice(device.id);
                             if (ctx.mounted) Navigator.pop(ctx);
                           }
-                        onPressed: () {
-                          Navigator.pop(ctx);
-                          _confirmDeleteDevice(context, device, repo);
                         },
                         icon: const Icon(Icons.link_off_rounded, size: 18),
-                        icon: const Icon(Icons.delete_forever_rounded, size: 20),
-                        label: const Text(
-                          'Unpair Tracker from Account',
-                          style: TextStyle(fontWeight: FontWeight.w700),
-                          'Delete Device from Account',
-                          style: TextStyle(fontWeight: FontWeight.w800),
-                        ),
+                        label: const Text('Unpair Tracker from Account', style: TextStyle(fontWeight: FontWeight.w700)),
                       ),
                     ),
                   ],
@@ -508,13 +358,10 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) {
-        int currentStep =
-            0; // 0: Select Type, 1: Scanning/Pairing, 2: Assign & Save
+        int currentStep = 0; // 0: Select Type, 1: Scanning/Pairing, 2: Assign & Save
         String selectedType = 'gps_collar';
         String deviceName = 'Maya GPS Collar';
-        String? targetPetId = repo.pets.isNotEmpty
-            ? repo.pets.first.petID
-            : null;
+        String? targetPetId = repo.pets.isNotEmpty ? repo.pets.first.petID : null;
         String serialCode = 'PM-TRK-${Random().nextInt(8999) + 1000}';
         Timer? scanTimer;
         bool isScanDone = false;
@@ -524,17 +371,10 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
             final isDark = Theme.of(context).brightness == Brightness.dark;
 
             return Container(
-              padding: EdgeInsets.fromLTRB(
-                24,
-                20,
-                24,
-                MediaQuery.of(context).viewInsets.bottom + 28,
-              ),
+              padding: EdgeInsets.fromLTRB(24, 20, 24, MediaQuery.of(context).viewInsets.bottom + 28),
               decoration: BoxDecoration(
                 color: isDark ? const Color(0xFF1E2623) : Colors.white,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(28),
-                ),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
               ),
               child: SingleChildScrollView(
                 child: Column(
@@ -573,10 +413,7 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                       const SizedBox(height: 6),
                       Text(
                         'Select the PetMaya hardware category you wish to link.',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey.shade600,
-                        ),
+                        style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
                       ),
                       const SizedBox(height: 20),
 
@@ -584,8 +421,7 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                         context: context,
                         typeKey: 'gps_collar',
                         title: 'PetMaya GPS Smart Collar',
-                        subtitle:
-                            'Real-time satellite GPS & 4G cellular positioning.',
+                        subtitle: 'Real-time satellite GPS & 4G cellular positioning.',
                         icon: Icons.satellite_alt_rounded,
                         accentColor: AppColors.primary,
                         isSelected: selectedType == 'gps_collar',
@@ -601,8 +437,7 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                         context: context,
                         typeKey: 'ble_beacon',
                         title: 'Bluetooth Beacon Tag',
-                        subtitle:
-                            'Ultra-light proximity tag for indoor & yard monitoring.',
+                        subtitle: 'Ultra-light proximity tag for indoor & yard monitoring.',
                         icon: Icons.bluetooth_audio_rounded,
                         accentColor: const Color(0xFF3B82F6),
                         isSelected: selectedType == 'ble_beacon',
@@ -618,8 +453,7 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                         context: context,
                         typeKey: 'activity_tracker',
                         title: 'Vitality Health Band',
-                        subtitle:
-                            'Tracks daily activity, sleep cycles, and caloric burn.',
+                        subtitle: 'Tracks daily activity, sleep cycles, and caloric burn.',
                         icon: Icons.monitor_heart_rounded,
                         accentColor: const Color(0xFFE91E63),
                         isSelected: selectedType == 'activity_tracker',
@@ -635,8 +469,7 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                         context: context,
                         typeKey: 'qr_tag',
                         title: 'Smart NFC / QR Tag',
-                        subtitle:
-                            'Digital identity tag scannable by any smartphone.',
+                        subtitle: 'Digital identity tag scannable by any smartphone.',
                         icon: Icons.qr_code_2_rounded,
                         accentColor: const Color(0xFFF59E0B),
                         isSelected: selectedType == 'qr_tag',
@@ -656,30 +489,19 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                             backgroundColor: AppColors.primary,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                           ),
                           onPressed: () {
                             HapticFeedback.lightImpact();
                             setSheetState(() => currentStep = 1);
                             scanTimer?.cancel();
-                            scanTimer = Timer(
-                              const Duration(milliseconds: 2200),
-                              () {
-                                if (context.mounted) {
-                                  setSheetState(() => isScanDone = true);
-                                }
-                              },
-                            );
+                            scanTimer = Timer(const Duration(milliseconds: 2200), () {
+                              if (context.mounted) {
+                                setSheetState(() => isScanDone = true);
+                              }
+                            });
                           },
-                          child: const Text(
-                            'Continue to Scan',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
+                          child: const Text('Continue to Scan', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
                         ),
                       ),
                     ] else if (currentStep == 1) ...[
@@ -689,9 +511,7 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                           children: [
                             const SizedBox(height: 10),
                             Text(
-                              isScanDone
-                                  ? 'Device Discovered!'
-                                  : 'Searching for Hardware...',
+                              isScanDone ? 'Device Discovered!' : 'Searching for Hardware...',
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w800,
@@ -703,56 +523,12 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                                   ? 'Found compatible PetMaya device ready to link.'
                                   : 'Ensure your tracker is turned on and close to your phone.',
                               textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.grey.shade600,
-                              ),
+                              style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
                             ),
                             const SizedBox(height: 32),
 
-                            // Radar Animation container
-                            Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                Container(
-                                  width: 140,
-                                  height: 140,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: AppColors.primary.withValues(
-                                      alpha: 0.08,
-                                    ),
-                                  ),
-                                ),
-                                Container(
-                                  width: 100,
-                                  height: 100,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: AppColors.primary.withValues(
-                                      alpha: 0.15,
-                                    ),
-                                  ),
-                                ),
-                                Container(
-                                  width: 64,
-                                  height: 64,
-                                  decoration: const BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: AppColors.primary,
-                                  ),
-                                  child: Icon(
-                                    isScanDone
-                                        ? Icons.check_circle_rounded
-                                        : Icons.sensors_rounded,
-                                    color: Colors.white,
-                                    size: 32,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            // Animated Radar Discovery Pulse
-                            _RadarDiscoveryPulse(isScanDone: isScanDone),
+                            // Animated Radar Pulse Container
+                            RadarPulseWidget(isScanDone: isScanDone),
                             const SizedBox(height: 32),
 
                             if (!isScanDone)
@@ -762,19 +538,12 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                                   const SizedBox(
                                     width: 16,
                                     height: 16,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: AppColors.primary,
-                                    ),
+                                    child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
                                   ),
                                   const SizedBox(width: 12),
                                   Text(
                                     'Listening on BLE & LTE...',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.grey.shade600,
-                                    ),
+                                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.grey.shade600),
                                   ),
                                 ],
                               )
@@ -783,15 +552,9 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                                 child: Container(
                                   padding: const EdgeInsets.all(16),
                                   decoration: BoxDecoration(
-                                    color: AppColors.primary.withValues(
-                                      alpha: 0.1,
-                                    ),
+                                    color: AppColors.primary.withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(20),
-                                    border: Border.all(
-                                      color: AppColors.primary.withValues(
-                                        alpha: 0.3,
-                                      ),
-                                    ),
+                                    border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
                                   ),
                                   child: Row(
                                     children: [
@@ -801,41 +564,26 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                                           color: AppColors.primary,
                                           shape: BoxShape.circle,
                                         ),
-                                        child: const Icon(
-                                          Icons.satellite_alt_rounded,
-                                          color: Colors.white,
-                                          size: 20,
-                                        ),
+                                        child: const Icon(Icons.satellite_alt_rounded, color: Colors.white, size: 20),
                                       ),
                                       const SizedBox(width: 14),
                                       Expanded(
                                         child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
+                                          crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
                                             Text(
                                               'PetMaya ProTrack #$serialCode',
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.w800,
-                                                fontSize: 14,
-                                              ),
+                                              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
                                             ),
                                             const SizedBox(height: 2),
                                             Text(
                                               'Signal: -42 dBm (Excellent) • Battery: 94%',
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                color: Colors.grey.shade600,
-                                              ),
+                                              style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                                             ),
                                           ],
                                         ),
                                       ),
-                                      const Icon(
-                                        Icons.check_circle,
-                                        color: AppColors.primary,
-                                        size: 22,
-                                      ),
+                                      const Icon(Icons.check_circle, color: AppColors.primary, size: 22),
                                     ],
                                   ),
                                 ),
@@ -849,23 +597,14 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: AppColors.primary,
                                     foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 14,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
+                                    padding: const EdgeInsets.symmetric(vertical: 14),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                                   ),
                                   onPressed: () {
                                     HapticFeedback.lightImpact();
                                     setSheetState(() => currentStep = 2);
                                   },
-                                  child: const Text(
-                                    'Pair This Tracker',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
+                                  child: const Text('Pair This Tracker', style: TextStyle(fontWeight: FontWeight.w700)),
                                 ),
                               ),
                           ],
@@ -875,60 +614,34 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                       // STEP 2: CONFIGURE & ASSIGN
                       Text(
                         'Device Setup',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                        ),
+                        style: GoogleFonts.plusJakartaSans(fontSize: 22, fontWeight: FontWeight.w800),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         'Assign this hardware to a pet in your family.',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey.shade600,
-                        ),
+                        style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
                       ),
                       const SizedBox(height: 20),
 
-                      const Text(
-                        'Device Label',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
+                      const Text('Device Label', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
                       const SizedBox(height: 6),
                       TextFormField(
                         initialValue: deviceName,
                         decoration: InputDecoration(
                           filled: true,
-                          fillColor: isDark
-                              ? Colors.white10
-                              : Colors.grey.shade100,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
-                            borderSide: BorderSide.none,
-                          ),
+                          fillColor: isDark ? Colors.white10 : Colors.grey.shade100,
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
                         ),
                         onChanged: (val) => deviceName = val,
                       ),
                       const SizedBox(height: 20),
 
-                      const Text(
-                        'Attach to Pet',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
+                      const Text('Attach to Pet', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
                       const SizedBox(height: 8),
                       if (repo.pets.isEmpty)
                         Text(
                           'No pets registered yet. You can still pair and link later.',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade500,
-                          ),
+                          style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
                         )
                       else
                         Wrap(
@@ -939,12 +652,7 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                             return ChoiceChip(
                               label: Text(p.name),
                               avatar: p.photoUrl != null
-                                  ? CircleAvatar(
-                                      backgroundImage: NetworkImage(
-                                        p.photoUrl!,
-                                      ),
-                                      radius: 10,
-                                    )
+                                  ? CircleAvatar(backgroundImage: NetworkImage(p.photoUrl!), radius: 10)
                                   : const Icon(Icons.pets_rounded, size: 14),
                               selected: isSelected,
                               selectedColor: AppColors.primary,
@@ -972,20 +680,14 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                             backgroundColor: AppColors.primary,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 15),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                           ),
                           onPressed: () async {
                             HapticFeedback.heavyImpact();
-                            final pet = repo.pets
-                                .where((p) => p.petID == targetPetId)
-                                .firstOrNull;
+                            final pet = repo.pets.where((p) => p.petID == targetPetId).firstOrNull;
                             final newDevice = PetDeviceModel(
                               id: 'dev_${DateTime.now().millisecondsSinceEpoch}',
-                              name: deviceName.trim().isEmpty
-                                  ? 'Pet Tracker'
-                                  : deviceName.trim(),
+                              name: deviceName.trim().isEmpty ? 'Pet Tracker' : deviceName.trim(),
                               deviceType: selectedType,
                               modelNumber: 'PetMaya ProTrack Gen 2',
                               serialNumber: serialCode,
@@ -1005,13 +707,7 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                             await repo.addDevice(newDevice);
                             if (ctx.mounted) Navigator.pop(ctx);
                           },
-                          child: const Text(
-                            'Complete Pairing & Save',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
+                          child: const Text('Complete Pairing & Save', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
                         ),
                       ),
                     ],
@@ -1070,18 +766,12 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 14,
-                    ),
+                    style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: TextStyle(
-                      fontSize: 11.5,
-                      color: Colors.grey.shade600,
-                    ),
+                    style: TextStyle(fontSize: 11.5, color: Colors.grey.shade600),
                   ),
                 ],
               ),
@@ -1124,12 +814,8 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
 
     return GlassScaffold(
       appBar: AppBar(
-        title: const Text(
-          'My Devices & Trackers',
-          style: TextStyle(fontWeight: FontWeight.w800),
-        ),
+        title: const Text('My Devices & Trackers', style: TextStyle(fontWeight: FontWeight.w800)),
         centerTitle: true,
-        title: const Text('My Devices'),
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
@@ -1142,9 +828,6 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                 shape: BoxShape.circle,
               ),
               child: const Icon(Icons.add, color: Colors.white, size: 18),
-            icon: const Icon(
-              Icons.add_circle_rounded,
-              color: AppColors.primary,
             ),
             onPressed: () => _showPairDeviceSheet(context, repo),
           ),
@@ -1152,14 +835,17 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
         ],
       ),
       body: CustomScrollView(
-        physics: const AlwaysScrollableScrollPhysics(
-          parent: BouncingScrollPhysics(),
-        ),
+        physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
         slivers: [
           // ─── HERO OVERVIEW BENTO ──────────────────────────────────────────
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+              padding: EdgeInsets.fromLTRB(
+                20,
+                MediaQuery.of(context).padding.top + kToolbarHeight + 12,
+                20,
+                16,
+              ),
               child: Column(
                 children: [
                   _buildOverviewBento(context, devices, onlineCount, isDark),
@@ -1167,99 +853,23 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Expanded(
-                        child: Text(
-                          'Connected Hardware (${devices.length})',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -0.3,
-      body: devices.isEmpty
-          ? EmptyState(
-              icon: Icons.sensors_rounded,
-              title: 'No trackers paired yet',
-              message:
-                  'Pair a GPS collar, Bluetooth beacon, or smart tag to keep your pet safe and track their location.',
-              actionLabel: 'Pair New Tracker',
-              onAction: () => _showPairDeviceSheet(context, repo),
-            )
-          : CustomScrollView(
-              physics: const BouncingScrollPhysics(
-                parent: AlwaysScrollableScrollPhysics(),
-              ),
-              slivers: [
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(20, 100, 20, 120),
-                  sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate((context, index) {
-                      if (index == 0) {
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildOverviewBento(
-                              context,
-                              devices,
-                              onlineCount,
-                              isDark,
-                            ),
-                            const SizedBox(height: 20),
-                            Text(
-                              'Connected Trackers (${devices.length})',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: -0.3,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                          ],
-                        );
-                      }
-                      final device = devices[index - 1];
-                      return FadeInUp(
-                        delay: Duration(milliseconds: 60 * (index - 1)),
-                        child: Padding(
-                          padding: const EdgeInsets.only(bottom: 16),
-                          child: _buildDeviceCard(
-                            context,
-                            device,
-                            repo,
-                            isDark,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                      Text(
+                        'Connected Hardware (${devices.length})',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.3,
                         ),
                       ),
-                      const SizedBox(width: 8),
                       TextButton.icon(
                         onPressed: () => _showPairDeviceSheet(context, repo),
-                        icon: const Icon(
-                          Icons.add_circle_outline_rounded,
-                          size: 15,
-                        ),
-                        label: const Text(
-                          'Add Tracker',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 12.5,
-                          ),
-                        ),
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 4,
-                          ),
-                          visualDensity: VisualDensity.compact,
-                        ),
+                        icon: const Icon(Icons.add_circle_outline_rounded, size: 16),
+                        label: const Text('Add Tracker', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
                       ),
                     ],
-                      );
-                    }, childCount: devices.length + 1),
                   ),
                 ],
               ),
-                ),
-              ],
             ),
           ),
 
@@ -1273,16 +883,19 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
             SliverPadding(
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
               sliver: SliverList(
-                delegate: SliverChildBuilderDelegate((context, index) {
-                  final device = devices[index];
-                  return FadeInUp(
-                    delay: Duration(milliseconds: 60 * index),
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: _buildDeviceCard(context, device, repo, isDark),
-                    ),
-                  );
-                }, childCount: devices.length),
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final device = devices[index];
+                    return FadeInUp(
+                      delay: Duration(milliseconds: 60 * index),
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: _buildDeviceCard(context, device, repo, isDark),
+                      ),
+                    );
+                  },
+                  childCount: devices.length,
+                ),
               ),
             ),
         ],
@@ -1290,12 +903,7 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
     );
   }
 
-  Widget _buildOverviewBento(
-    BuildContext context,
-    List<PetDeviceModel> devices,
-    int onlineCount,
-    bool isDark,
-  ) {
+  Widget _buildOverviewBento(BuildContext context, List<PetDeviceModel> devices, int onlineCount, bool isDark) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -1322,11 +930,7 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                   color: AppColors.primary,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
-                  Icons.sensors_rounded,
-                  color: Colors.white,
-                  size: 22,
-                ),
+                child: const Icon(Icons.sensors_rounded, color: Colors.white, size: 22),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -1335,26 +939,17 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                   children: [
                     const Text(
                       'Hardware Telemetry',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w800,
-                        fontSize: 16,
-                      ),
+                      style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
                     ),
                     Text(
                       '$onlineCount active tracker${onlineCount == 1 ? '' : 's'} linked & synced',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade600,
-                      ),
+                      style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                     ),
                   ],
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: AppColors.healthGreen.withValues(alpha: 0.18),
                   borderRadius: BorderRadius.circular(12),
@@ -1365,10 +960,7 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                     Container(
                       width: 6,
                       height: 6,
-                      decoration: const BoxDecoration(
-                        color: AppColors.healthGreen,
-                        shape: BoxShape.circle,
-                      ),
+                      decoration: const BoxDecoration(color: AppColors.healthGreen, shape: BoxShape.circle),
                     ),
                     const SizedBox(width: 6),
                     Text(
@@ -1455,23 +1047,14 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
             label,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 10.5,
-              color: Colors.grey.shade500,
-              fontWeight: FontWeight.w600,
-            ),
+            style: TextStyle(fontSize: 10.5, color: Colors.grey.shade500, fontWeight: FontWeight.w600),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildDeviceCard(
-    BuildContext context,
-    PetDeviceModel device,
-    AppStateRepository repo,
-    bool isDark,
-  ) {
+  Widget _buildDeviceCard(BuildContext context, PetDeviceModel device, AppStateRepository repo, bool isDark) {
     final isRinging = _ringingDeviceId == device.id;
     final pet = repo.pets.where((p) => p.petID == device.petId).firstOrNull;
 
@@ -1489,9 +1072,7 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: _getDeviceColor(
-                      device.deviceType,
-                    ).withValues(alpha: 0.18),
+                    color: _getDeviceColor(device.deviceType).withValues(alpha: 0.18),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Icon(
@@ -1516,32 +1097,20 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                       Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
-                              color: isDark
-                                  ? Colors.white12
-                                  : Colors.grey.shade200,
+                              color: isDark ? Colors.white12 : Colors.grey.shade200,
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
                               device.serialNumber,
-                              style: const TextStyle(
-                                fontSize: 10,
-                                fontFamily: 'monospace',
-                                fontWeight: FontWeight.w700,
-                              ),
+                              style: const TextStyle(fontSize: 10, fontFamily: 'monospace', fontWeight: FontWeight.w700),
                             ),
                           ),
                           const SizedBox(width: 8),
                           Text(
                             device.typeDisplayName,
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: Colors.grey.shade500,
-                            ),
+                            style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
                           ),
                         ],
                       ),
@@ -1549,63 +1118,8 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                   ),
                 ),
                 IconButton(
-                PopupMenuButton<String>(
                   icon: const Icon(Icons.more_vert_rounded, size: 20),
                   onPressed: () => _openDeviceSettings(context, device, repo),
-                  borderRadius: BorderRadius.circular(16),
-                  color: isDark ? const Color(0xFF1E2630) : Colors.white,
-                  onSelected: (value) async {
-                    if (value == 'settings') {
-                      _openDeviceSettings(context, device, repo);
-                    } else if (value == 'delete') {
-                      _confirmDeleteDevice(context, device, repo);
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    PopupMenuItem(
-                      value: 'settings',
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.tune_rounded,
-                            size: 18,
-                            color: isDark ? Colors.white70 : Colors.black87,
-                          ),
-                          const SizedBox(width: 10),
-                          Text(
-                            'Device Settings',
-                            style: TextStyle(
-                              color: isDark ? Colors.white : Colors.black87,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const PopupMenuDivider(),
-                    PopupMenuItem(
-                      value: 'delete',
-                      child: Row(
-                        children: const [
-                          Icon(
-                            Icons.delete_forever_rounded,
-                            size: 18,
-                            color: AppColors.dangerRed,
-                          ),
-                          SizedBox(width: 10),
-                          Text(
-                            'Delete Device',
-                            style: TextStyle(
-                              color: AppColors.dangerRed,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
                 ),
               ],
             ),
@@ -1615,121 +1129,44 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: isDark
-                    ? Colors.white.withValues(alpha: 0.05)
-                    : Colors.grey.shade100,
+                color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey.shade100,
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Row(
                 children: [
-                  Icon(
-                    Icons.pets_rounded,
-                    size: 16,
-                    color: AppColors.primary.withValues(alpha: 0.8),
-                  ),
+                  Icon(Icons.pets_rounded, size: 16, color: AppColors.primary.withValues(alpha: 0.8)),
                   const SizedBox(width: 8),
                   Text(
                     'Worn by: ',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey.shade600,
-                      fontWeight: FontWeight.w500,
-                    ),
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600, fontWeight: FontWeight.w500),
                   ),
                   if (pet != null) ...[
                     if (pet.photoUrl != null)
-                      CircleAvatar(
-                        backgroundImage: NetworkImage(pet.photoUrl!),
-                        radius: 10,
-                      )
+                      CircleAvatar(backgroundImage: NetworkImage(pet.photoUrl!), radius: 10)
                     else
                       const SizedBox.shrink(),
                     const SizedBox(width: 6),
                     Text(
                       pet.name,
-                      style: const TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.primary,
-                      ),
-                  Expanded(
-                    child: Row(
-                      children: [
-                        if (pet != null) ...[
-                          if (pet.photoUrl != null)
-                            CircleAvatar(
-                              backgroundImage: NetworkImage(pet.photoUrl!),
-                              radius: 10,
-                            ),
-                          const SizedBox(width: 6),
-                          Flexible(
-                            child: Text(
-                              pet.name,
-                              style: const TextStyle(
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.primary,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 1,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          Flexible(
-                            child: Text(
-                              '(${pet.breed})',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Colors.grey.shade500,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 1,
-                            ),
-                          ),
-                        ] else
-                          Flexible(
-                            child: Text(
-                              device.petName ?? 'Unassigned',
-                              style: TextStyle(
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.amber.shade700,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 1,
-                            ),
-                          ),
-                      ],
+                      style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800, color: AppColors.primary),
                     ),
                     const SizedBox(width: 4),
                     Text(
                       '(${pet.breed})',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey.shade500,
-                      ),
+                      style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
                     ),
-                  ] else
+                  ] else ...[
                     Text(
                       device.petName ?? 'Unassigned',
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.amber.shade700,
-                      ),
+                      style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: Colors.amber.shade700),
                     ),
+                  ],
                   const Spacer(),
-                  ),
-                  const SizedBox(width: 8),
                   InkWell(
                     onTap: () => _openDeviceSettings(context, device, repo),
                     child: const Text(
                       'Change',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primary,
-                      ),
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.primary),
                     ),
                   ),
                 ],
@@ -1739,21 +1176,12 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
 
             // Telemetry Grid (Battery, Signal, Mode, Safe Zone)
             Row(
-            // Telemetry Grid
-            Wrap(
-              spacing: 8,
-              runSpacing: 6,
-              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 _buildTelemetryChip(
-                  icon: device.batteryLevel > 20
-                      ? Icons.battery_full_rounded
-                      : Icons.battery_alert_rounded,
+                  icon: device.batteryLevel > 20 ? Icons.battery_full_rounded : Icons.battery_alert_rounded,
                   color: device.batteryLevel > 50
                       ? AppColors.healthGreen
-                      : (device.batteryLevel > 20
-                            ? const Color(0xFFF59E0B)
-                            : AppColors.dangerRed),
+                      : (device.batteryLevel > 20 ? const Color(0xFFF59E0B) : AppColors.dangerRed),
                   label: '${device.batteryLevel}% Bat',
                 ),
                 const SizedBox(width: 8),
@@ -1771,7 +1199,6 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                 const Spacer(),
                 Text(
                   '2m ago',
-                  '• 2m ago',
                   style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
                 ),
               ],
@@ -1789,52 +1216,24 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                       foregroundColor: Colors.white,
                       elevation: 0,
                       padding: const EdgeInsets.symmetric(vertical: 12),
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 12,
-                        horizontal: 8,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     ),
                     onPressed: () {
                       HapticFeedback.lightImpact();
-                      final targetPet =
-                          pet ??
-                          (repo.pets.isNotEmpty ? repo.pets.first : null);
+                      final targetPet = pet ?? (repo.pets.isNotEmpty ? repo.pets.first : null);
                       if (targetPet != null) {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(
-                            builder: (_) => PetTrackerScreen(pet: targetPet),
-                          ),
+                          MaterialPageRoute(builder: (_) => PetTrackerScreen(pet: targetPet)),
                         );
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'Please add a pet first to enable radar map tracking.',
-                            ),
-                          ),
+                          const SnackBar(content: Text('Please add a pet first to enable radar map tracking.')),
                         );
                       }
                     },
                     icon: const Icon(Icons.near_me_rounded, size: 16),
-                    label: const Text(
-                      'Live Radar',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 13,
-                    label: const FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        'Live Radar',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ),
+                    label: const Text('Live Radar', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -1845,41 +1244,20 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                     style: OutlinedButton.styleFrom(
                       foregroundColor: isRinging ? AppColors.dangerRed : null,
                       side: BorderSide(
-                        color: isRinging
-                            ? AppColors.dangerRed
-                            : Colors.grey.withValues(alpha: 0.3),
+                        color: isRinging ? AppColors.dangerRed : Colors.grey.withValues(alpha: 0.3),
                       ),
                       padding: const EdgeInsets.symmetric(vertical: 12),
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 12,
-                        horizontal: 4,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     ),
                     onPressed: () => _triggerRingDevice(device),
                     icon: Icon(
-                      isRinging
-                          ? Icons.volume_up_rounded
-                          : Icons.notifications_active_outlined,
+                      isRinging ? Icons.volume_up_rounded : Icons.notifications_active_outlined,
                       size: 16,
                       color: isRinging ? AppColors.dangerRed : null,
                     ),
                     label: Text(
                       isRinging ? 'Ringing...' : 'Chime / Siren',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 13,
-                    label: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        isRinging ? 'Ringing...' : 'Chime / Siren',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 13,
-                        ),
-                      ),
+                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
                     ),
                   ),
                 ),
@@ -1891,11 +1269,7 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
     );
   }
 
-  Widget _buildTelemetryChip({
-    required IconData icon,
-    required Color color,
-    required String label,
-  }) {
+  Widget _buildTelemetryChip({required IconData icon, required Color color, required String label}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
@@ -1909,11 +1283,7 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
           const SizedBox(width: 4),
           Text(
             label,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: color,
-            ),
+            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: color),
           ),
         ],
       ),
@@ -1927,18 +1297,7 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              padding: const EdgeInsets.all(28),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.12),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.sensors_rounded,
-                size: 54,
-                color: AppColors.primary,
-              ),
-            ),
+            const RadarPulseWidget(isScanDone: false),
             const SizedBox(height: 24),
             Text(
               'No Trackers Paired Yet',
@@ -1962,20 +1321,12 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 28,
-                  vertical: 15,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(18),
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 15),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
               ),
               onPressed: () => _showPairDeviceSheet(context, repo),
               icon: const Icon(Icons.add_rounded),
-              label: const Text(
-                'Pair Your First Tracker',
-                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
-              ),
+              label: const Text('Pair Your First Tracker', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
             ),
           ],
         ),
@@ -2012,16 +1363,16 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
   }
 }
 
-class _RadarDiscoveryPulse extends StatefulWidget {
+/// Continuous animated radar pulse widget with expanding concentric ripple rings.
+class RadarPulseWidget extends StatefulWidget {
   final bool isScanDone;
-
-  const _RadarDiscoveryPulse({required this.isScanDone});
+  const RadarPulseWidget({super.key, required this.isScanDone});
 
   @override
-  State<_RadarDiscoveryPulse> createState() => _RadarDiscoveryPulseState();
+  State<RadarPulseWidget> createState() => _RadarPulseWidgetState();
 }
 
-class _RadarDiscoveryPulseState extends State<_RadarDiscoveryPulse>
+class _RadarPulseWidgetState extends State<RadarPulseWidget>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
@@ -2030,7 +1381,7 @@ class _RadarDiscoveryPulseState extends State<_RadarDiscoveryPulse>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 2000),
+      duration: const Duration(milliseconds: 2200),
     )..repeat();
   }
 
@@ -2042,115 +1393,93 @@ class _RadarDiscoveryPulseState extends State<_RadarDiscoveryPulse>
 
   @override
   Widget build(BuildContext context) {
-    return RepaintBoundary(
-      child: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, child) {
-          final progress = _controller.value;
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        final progress = _controller.value;
 
-          return SizedBox(
-            width: 180,
-            height: 180,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                // Outer Pulse Ring 3
-                if (!widget.isScanDone)
-                  Transform.scale(
-                    scale: 1.0 + (progress * 0.8),
-                    child: Container(
-                      width: 140,
-                      height: 140,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: AppColors.primary.withValues(
-                          alpha: (0.25 * (1.0 - progress)).clamp(0.0, 0.25),
-                        ),
-                        border: Border.all(
-                          color: AppColors.primary.withValues(
-                            alpha: (0.40 * (1.0 - progress)).clamp(0.0, 0.40),
-                          ),
-                          width: 1.5,
-                        ),
-                      ),
-                    ),
-                  ),
-
-                // Mid Pulse Ring 2
-                if (!widget.isScanDone)
-                  Transform.scale(
-                    scale: 1.0 + (((progress + 0.33) % 1.0) * 0.7),
-                    child: Container(
-                      width: 110,
-                      height: 110,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: AppColors.primary.withValues(
-                          alpha: (0.30 * (1.0 - ((progress + 0.33) % 1.0))).clamp(0.0, 0.30),
-                        ),
-                        border: Border.all(
-                          color: AppColors.primary.withValues(
-                            alpha: (0.45 * (1.0 - ((progress + 0.33) % 1.0))).clamp(0.0, 0.45),
-                          ),
-                          width: 1.5,
-                        ),
-                      ),
-                    ),
-                  ),
-
-                // Inner Constant Glow Ring 1
-                Container(
-                  width: widget.isScanDone ? 130 : 100,
-                  height: widget.isScanDone ? 130 : 100,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.primary.withValues(
-                      alpha: widget.isScanDone ? 0.22 : 0.15,
-                    ),
-                    border: Border.all(
-                      color: AppColors.primary.withValues(alpha: 0.35),
-                      width: 1.5,
-                    ),
+        return SizedBox(
+          width: 170,
+          height: 170,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Outer Expanding Wave Ring 2
+              _buildPulseRing(
+                progress: (progress + 0.5) % 1.0,
+                baseColor: AppColors.primary,
+              ),
+              // Outer Expanding Wave Ring 1
+              _buildPulseRing(
+                progress: progress,
+                baseColor: AppColors.primary,
+              ),
+              // Inner Ambient Glow Circle
+              Container(
+                width: 96,
+                height: 96,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.primary.withValues(
+                    alpha: widget.isScanDone ? 0.22 : 0.12,
                   ),
                 ),
-
-                // Center Core Button
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 400),
-                  curve: Curves.elasticOut,
-                  width: widget.isScanDone ? 72 : 64,
-                  height: widget.isScanDone ? 72 : 64,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.primary,
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primary.withValues(alpha: 0.45),
-                        blurRadius: 18,
-                        offset: const Offset(0, 4),
+              ),
+              // Core Center Action Circle
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 350),
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.primary,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withValues(
+                        alpha: widget.isScanDone ? 0.5 : 0.3,
                       ),
-                    ],
-                  ),
-                  child: Center(
-                    child: widget.isScanDone
-                        ? ElasticIn(
-                            child: const Icon(
-                              Icons.check_rounded,
-                              color: Colors.white,
-                              size: 38,
-                            ),
-                          )
-                        : const Icon(
-                            Icons.sensors_rounded,
-                            color: Colors.white,
-                            size: 32,
-                          ),
+                      blurRadius: widget.isScanDone ? 20 : 12,
+                      spreadRadius: widget.isScanDone ? 4 : 1,
+                    ),
+                  ],
+                ),
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  transitionBuilder: (child, anim) => ScaleTransition(scale: anim, child: child),
+                  child: Icon(
+                    widget.isScanDone
+                        ? Icons.check_circle_rounded
+                        : Icons.sensors_rounded,
+                    key: ValueKey<bool>(widget.isScanDone),
+                    color: Colors.white,
+                    size: 32,
                   ),
                 ),
-              ],
-            ),
-          );
-        },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildPulseRing({
+    required double progress,
+    required Color baseColor,
+  }) {
+    final size = 64.0 + (progress * 90.0);
+    final opacity = (1.0 - progress).clamp(0.0, 1.0) * (widget.isScanDone ? 0.2 : 0.45);
+
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: baseColor.withValues(alpha: opacity * 0.35),
+        border: Border.all(
+          color: baseColor.withValues(alpha: opacity),
+          width: 2.2 * (1.0 - progress),
+        ),
       ),
     );
   }

@@ -975,7 +975,7 @@ class HomeDashboardFragment extends StatelessWidget {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            hasGpsDevice ? 'LIVE' : 'PAIR',
+                            hasGpsDevice ? 'LIVE' : 'INACTIVE',
                             style: TextStyle(
                               color: hasGpsDevice
                                   ? const Color(0xFF10B981)

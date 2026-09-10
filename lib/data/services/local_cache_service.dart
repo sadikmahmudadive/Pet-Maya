@@ -109,6 +109,10 @@ class LocalCacheService {
     }
   }
 
+  bool isDevicesInitialized(String userId) {
+    return _prefs?.containsKey('${_keyDevices}_$userId') ?? false;
+  }
+
   List<PetDeviceModel> loadDevices(String userId) {
     try {
       final raw = _prefs?.getString('${_keyDevices}_$userId');
