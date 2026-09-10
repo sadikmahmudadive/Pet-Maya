@@ -23,6 +23,7 @@ import '../models/review_model.dart';
 import '../models/blog_post_model.dart';
 import '../models/coupon_model.dart';
 import '../models/promo_model.dart';
+import '../services/realtime_database_service.dart';
 import '../models/pet_device_model.dart';
 import '../services/firebase_service.dart';
 import '../services/local_cache_service.dart';
@@ -508,7 +509,7 @@ class AppStateRepository extends ChangeNotifier {
       if (_vetsSub == null) _listenToVets();
       if (_currentUserSub == null) _listenToCurrentUser(user.uid);
       if (_globalSettingsSub == null) _listenToGlobalSettings();
-      if (_postsSub == null) _loadCommunityPosts();
+      _loadCommunityPosts();
       if (_blogsSub == null) _loadBlogs();
       if (_couponsSub == null) _loadCoupons();
       if (_promosSub == null) _loadPromos();
@@ -769,12 +770,35 @@ class AppStateRepository extends ChangeNotifier {
 
   Future<void> _loadCommunityPosts() async {
     _postsSub?.cancel();
-    _postsSub = _firebase.streamPosts().listen((fetchedPosts) {
-      _posts
-        ..clear()
-        ..addAll(fetchedPosts);
-      _debouncedNotify();
-    });
+    _postsSub = _firebase.streamPosts().listen(
+      (fetchedPosts) {
+        _posts
+          ..clear()
+          ..addAll(fetchedPosts);
+        _localCache.savePosts(_posts);
+        _debouncedNotify();
+      },
+      onError: (e) {
+        debugPrint('[AppStateRepository] streamPosts error: $e. Falling back to RTDB stream.');
+        _loadCommunityPostsFromRtdb();
+      },
+    );
+  }
+
+  void _loadCommunityPostsFromRtdb() {
+    _postsSub?.cancel();
+    _postsSub = RealtimeDatabaseService().streamPosts().listen(
+      (fetchedPosts) {
+        _posts
+          ..clear()
+          ..addAll(fetchedPosts);
+        _localCache.savePosts(_posts);
+        _debouncedNotify();
+      },
+      onError: (e) {
+        debugPrint('[AppStateRepository] RTDB streamPosts error: $e');
+      },
+    );
   }
 
   Future<void> _loadBlogs() async {
@@ -1464,7 +1488,9 @@ class AppStateRepository extends ChangeNotifier {
   }
 
   Future<void> addPost(FeedPostModel post) async {
+    _posts.removeWhere((p) => p.postId == post.postId);
     _posts.insert(0, post);
+    _localCache.savePosts(_posts);
     notifyListeners();
     await _firebase.savePost(post);
   }

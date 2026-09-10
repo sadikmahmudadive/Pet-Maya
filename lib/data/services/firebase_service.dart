@@ -19,6 +19,7 @@ import '../models/blog_post_model.dart';
 import '../models/coupon_model.dart';
 import '../models/promo_model.dart';
 import '../models/user_model.dart' as app_models;
+import 'realtime_database_service.dart';
 
 /// FirebaseService handles all Firestore and Auth operations with offline-first persistence.
 class FirebaseService {
@@ -658,6 +659,11 @@ class FirebaseService {
 
   Future<void> savePost(FeedPostModel post) async {
     await _postsCol.doc(post.postId).set(post.toMap(), SetOptions(merge: true));
+    try {
+      await RealtimeDatabaseService().savePost(post);
+    } catch (e) {
+      debugPrint('[FirebaseService] RTDB savePost error: $e');
+    }
   }
 
   Future<void> togglePostLike(String postId, String userId, bool liked) async {
