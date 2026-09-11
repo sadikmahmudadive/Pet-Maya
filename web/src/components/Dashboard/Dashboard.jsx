@@ -80,7 +80,6 @@ function HealthScoreRing({ score = 90, size = 80, strokeWidth = 4 }) {
 }
 
 // ─── GPS Collar Badge ─────────────────────────────────────────────────────────
-function CollarBadge() {
 function CollarBadge({ device, onClick }) {
   const isOnline = device ? device.isOnline : true;
   const label = device 
@@ -88,15 +87,6 @@ function CollarBadge({ device, onClick }) {
     : 'Collar Active';
 
   return (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      gap: '4px',
-      background: 'rgba(16,185,129,0.1)',
-      borderRadius: '999px',
-      padding: '2px 7px',
-      marginTop: -2,
-    }}>
     <div 
       onClick={(e) => {
         if (onClick) {
@@ -125,7 +115,6 @@ function CollarBadge({ device, onClick }) {
             position: 'absolute',
             inset: 0,
             borderRadius: '50%',
-            background: '#10B981',
             background: isOnline ? '#10B981' : '#9CA3AF',
             opacity: 0.5,
           }}
@@ -133,14 +122,11 @@ function CollarBadge({ device, onClick }) {
         <span style={{
           width: 7, height: 7,
           borderRadius: '50%',
-          background: '#10B981',
           background: isOnline ? '#10B981' : '#9CA3AF',
           display: 'block',
           position: 'relative',
         }} />
       </span>
-      <span style={{ fontSize: '9px', fontWeight: 700, color: '#10B981', letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>
-        Collar Active
       <span style={{ fontSize: '9px', fontWeight: 700, color: isOnline ? '#10B981' : '#9CA3AF', letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>
         {label}
       </span>
@@ -149,7 +135,6 @@ function CollarBadge({ device, onClick }) {
 }
 
 // ─── Pet Health Summary Card ──────────────────────────────────────────────────
-function PetHealthCard({ pet, score, activityPct }) {
 function PetHealthCard({ pet, score, activityPct, device, onClick }) {
   const scoreColor =
     score >= 90 ? '#10B981' :
@@ -215,8 +200,6 @@ function PetHealthCard({ pet, score, activityPct, device, onClick }) {
         </div>
       </div>
 
-      <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 500 }}>
-        {pet.breed || pet.species || 'Pet'}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '10px', color: 'var(--text-muted)', fontWeight: 500 }}>
         <span>{pet.breed || pet.species || 'Pet'}</span>
         {device && (
@@ -287,7 +270,6 @@ const MOCK_HEALTH_SCORES  = [92, 85, 98, 88, 91, 95];
 const MOCK_ACTIVITY_PCTS  = [78, 62, 95, 71, 83, 88];
 
 export default function Dashboard() {
-  const { pets, vets, appointments, removeAppointment, setActiveTab, openModal, showToast } = useApp();
   const { pets, vets, appointments, devices, removeAppointment, setActiveTab, openModal, showToast } = useApp();
   const { currentUser } = useAuth();
 
@@ -589,7 +571,6 @@ export default function Dashboard() {
                 whileHover={{ scale: 1.06, y: -2 }}
                 whileTap={{ scale: 0.94 }}
                 transition={{ type: 'spring', stiffness: 400, damping: 26 }}
-                onClick={() => setActiveTab('tracker')}
                 onClick={() => openModal('petPassport')}
                 title={`${pet.name} — Click to view Digital Pet Passport`}
                 style={{

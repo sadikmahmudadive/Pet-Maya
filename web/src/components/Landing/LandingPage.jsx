@@ -5,7 +5,6 @@ import { motion, useScroll, useTransform, useSpring, AnimatePresence } from 'fra
 import { 
   Radar, Activity, Utensils, Stethoscope, ShoppingBag, Bell, 
   Download, Smartphone, ChevronRight, ShieldCheck, ExternalLink,
-  Sparkles, Heart, BookOpen, MapPin, MessageCircle, Calendar, Syringe, Star, ChevronDown
   Sparkles, Heart, BookOpen, MapPin, MessageCircle, Calendar, Syringe, Star, ChevronDown, AlertTriangle
 } from 'lucide-react';
 

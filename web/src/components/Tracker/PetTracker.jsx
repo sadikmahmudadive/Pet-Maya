@@ -1198,7 +1198,6 @@ export default function PetTracker() {
           {activeDeckTab === 'hardware' && (
             <AppleReveal duration={0.3} yOffset={10}>
               <div className="apple-solid-card" style={{ padding: '24px', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <span className="label-mini">Pet Maya Collar Telemetry</span>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span className="label-mini">Pet Maya Collar Telemetry</span>
                   <button 
@@ -1209,13 +1208,6 @@ export default function PetTracker() {
                   </button>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <Battery size={17} color="#10B981" />
-                      <div>
-                        <strong style={{ fontSize: '13.5px', color: 'var(--text-main)', display: 'block' }}>Battery Power</strong>
-                        <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>Est. 4 Days Remaining</span>
                 {(() => {
                   const assignedDevice = devices?.find(d => d.petId === activePet.id) || devices?.[0];
                   const isRinging = ringingDeviceId === assignedDevice?.id;
@@ -1230,18 +1222,9 @@ export default function PetTracker() {
                           Pair Tracker Hardware
                         </button>
                       </div>
-                    </div>
-                    <span style={{ fontSize: '14px', fontWeight: 800, color: '#10B981' }}>{batteryLevel}%</span>
-                  </div>
                     );
                   }
 
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border)', paddingTop: '10px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <Satellite size={17} color="#38BDF8" />
-                      <div>
-                        <strong style={{ fontSize: '13.5px', color: 'var(--text-main)', display: 'block' }}>GNSS Satellite Lock</strong>
-                        <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>16 Satellites (L1/L5 Dual-Band)</span>
                   return (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -1256,16 +1239,7 @@ export default function PetTracker() {
                           {assignedDevice.batteryLevel || 88}%
                         </span>
                       </div>
-                    </div>
-                    <span className="badge badge-blue">High Lock</span>
-                  </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border)', paddingTop: '10px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <Thermometer size={17} color="#F59E0B" />
-                      <div>
-                        <strong style={{ fontSize: '13.5px', color: 'var(--text-main)', display: 'block' }}>Collar Temperature</strong>
-                        <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>Body Contact Sensor</span>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border)', paddingTop: '10px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                           <Satellite size={17} color="#38BDF8" />
@@ -1276,16 +1250,7 @@ export default function PetTracker() {
                         </div>
                         <span className="badge badge-blue">High Lock</span>
                       </div>
-                    </div>
-                    <span style={{ fontSize: '13.5px', fontWeight: 700, color: 'var(--text-main)' }}>23.8°C</span>
-                  </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border)', paddingTop: '10px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <Cpu size={17} color="#A855F7" />
-                      <div>
-                        <strong style={{ fontSize: '13.5px', color: 'var(--text-main)', display: 'block' }}>Firmware &amp; Specs</strong>
-                        <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>v2.4.1 • IP68 Waterproof</span>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border)', paddingTop: '10px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                           <Thermometer size={17} color="#F59E0B" />
@@ -1332,9 +1297,6 @@ export default function PetTracker() {
                         </button>
                       </div>
                     </div>
-                    <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Up to date</span>
-                  </div>
-                </div>
                   );
                 })()}
               </div>
