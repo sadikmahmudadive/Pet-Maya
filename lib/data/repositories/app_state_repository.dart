@@ -23,6 +23,7 @@ import '../models/review_model.dart';
 import '../models/blog_post_model.dart';
 import '../models/coupon_model.dart';
 import '../models/promo_model.dart';
+import '../services/realtime_database_service.dart';
 import '../models/pet_device_model.dart';
 import '../services/firebase_service.dart';
 import '../services/local_cache_service.dart';
@@ -508,7 +509,7 @@ class AppStateRepository extends ChangeNotifier {
       if (_vetsSub == null) _listenToVets();
       if (_currentUserSub == null) _listenToCurrentUser(user.uid);
       if (_globalSettingsSub == null) _listenToGlobalSettings();
-      if (_postsSub == null) _loadCommunityPosts();
+      _loadCommunityPosts();
       if (_blogsSub == null) _loadBlogs();
       if (_couponsSub == null) _loadCoupons();
       if (_promosSub == null) _loadPromos();
@@ -769,12 +770,35 @@ class AppStateRepository extends ChangeNotifier {
 
   Future<void> _loadCommunityPosts() async {
     _postsSub?.cancel();
-    _postsSub = _firebase.streamPosts().listen((fetchedPosts) {
-      _posts
-        ..clear()
-        ..addAll(fetchedPosts);
-      _debouncedNotify();
-    });
+    _postsSub = _firebase.streamPosts().listen(
+      (fetchedPosts) {
+        _posts
+          ..clear()
+          ..addAll(fetchedPosts);
+        _localCache.savePosts(_posts);
+        _debouncedNotify();
+      },
+      onError: (e) {
+        debugPrint('[AppStateRepository] streamPosts error: $e. Falling back to RTDB stream.');
+        _loadCommunityPostsFromRtdb();
+      },
+    );
+  }
+
+  void _loadCommunityPostsFromRtdb() {
+    _postsSub?.cancel();
+    _postsSub = RealtimeDatabaseService().streamPosts().listen(
+      (fetchedPosts) {
+        _posts
+          ..clear()
+          ..addAll(fetchedPosts);
+        _localCache.savePosts(_posts);
+        _debouncedNotify();
+      },
+      onError: (e) {
+        debugPrint('[AppStateRepository] RTDB streamPosts error: $e');
+      },
+    );
   }
 
   Future<void> _loadBlogs() async {
@@ -1113,9 +1137,37 @@ class AppStateRepository extends ChangeNotifier {
   // ─── SMART TRACKER & DEVICE MANAGEMENT ───────────────────────────────────
   Future<void> loadDevices(String userId) async {
     try {
-      final cached = LocalCacheService().loadDevices(userId);
+      final isInitialized = LocalCacheService().isDevicesInitialized(userId);
       _devices.clear();
-      _devices.addAll(cached);
+      if (isInitialized) {
+        final cached = LocalCacheService().loadDevices(userId);
+        _devices.addAll(cached);
+      } else {
+        // First time initialization for new account
+        if (_pets.isNotEmpty) {
+          final firstPet = _pets.first;
+          final initialDevice = PetDeviceModel(
+            id: 'dev_${firstPet.petID}_collar',
+            name: '${firstPet.name}\'s GPS Collar',
+            deviceType: 'gps_collar',
+            modelNumber: 'PetMaya ProTrack Gen 2',
+            serialNumber: 'PM-TRK-8821',
+            petId: firstPet.petID,
+            petName: firstPet.name,
+            batteryLevel: 88,
+            isOnline: true,
+            signalStrength: 4,
+            trackingMode: 'Real-Time (10s)',
+            isSafeZone: true,
+            lastSync: DateTime.now().subtract(const Duration(minutes: 2)),
+            firmwareVersion: 'v2.4.1',
+            latitude: firstPet.latitude ?? 23.8103,
+            longitude: firstPet.longitude ?? 90.4125,
+          );
+          _devices.add(initialDevice);
+        }
+        await LocalCacheService().saveDevices(userId, _devices);
+      }
       notifyListeners();
     } catch (e) {
       debugPrint('[AppStateRepository] loadDevices error: $e');
@@ -1178,6 +1230,15 @@ class AppStateRepository extends ChangeNotifier {
     _events.add(event);
     notifyListeners();
     await _firebase.saveEvent(event);
+  }
+
+  Future<void> updateEvent(EventModel event) async {
+    final idx = _events.indexWhere((e) => e.id == event.id);
+    if (idx != -1) {
+      _events[idx] = event;
+      notifyListeners();
+      await _firebase.saveEvent(event);
+    }
   }
 
   Future<void> deleteEvent(String eventId) async {
@@ -1436,7 +1497,9 @@ class AppStateRepository extends ChangeNotifier {
   }
 
   Future<void> addPost(FeedPostModel post) async {
+    _posts.removeWhere((p) => p.postId == post.postId);
     _posts.insert(0, post);
+    _localCache.savePosts(_posts);
     notifyListeners();
     await _firebase.savePost(post);
   }

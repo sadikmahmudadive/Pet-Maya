@@ -1,3 +1,17 @@
+try {
+    val field1 = Class.forName("java.lang.ProcessEnvironment").getDeclaredField("theUnmodifiableEnvironment")
+    field1.isAccessible = true
+    @Suppress("UNCHECKED_CAST")
+    (field1.get(null) as? MutableMap<String, String>)?.remove("ANDROID_PREFS_ROOT")
+} catch (_: Exception) {}
+
+try {
+    val field2 = Class.forName("java.lang.ProcessEnvironment").getDeclaredField("theEnvironment")
+    field2.isAccessible = true
+    @Suppress("UNCHECKED_CAST")
+    (field2.get(null) as? MutableMap<String, String>)?.remove("ANDROID_PREFS_ROOT")
+} catch (_: Exception) {}
+
 pluginManagement {
     val flutterSdkPath =
         run {

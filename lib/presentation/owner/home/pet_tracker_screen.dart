@@ -9,7 +9,10 @@ import 'package:http/http.dart' as http;
 import 'dart:ui' as ui;
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/pet_model.dart';
+import '../../../data/repositories/app_state_repository.dart';
 import '../../common_widgets/glass_scaffold.dart';
+import '../devices/my_devices_screen.dart';
+import 'package:provider/provider.dart';
 
 class PetTrackerScreen extends StatefulWidget {
   final PetModel pet;
@@ -154,6 +157,10 @@ class _PetTrackerScreenState extends State<PetTrackerScreen> with SingleTickerPr
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final repo = context.watch<AppStateRepository>();
+    final hasGpsDevice = repo.devices.any(
+      (d) => d.petId == widget.pet.petID || d.deviceType == 'gps_collar',
+    );
 
     return GlassScaffold(
       body: Stack(
@@ -179,7 +186,11 @@ class _PetTrackerScreenState extends State<PetTrackerScreen> with SingleTickerPr
                 buildingsEnabled: true,
                 tiltGesturesEnabled: true,
                 rotateGesturesEnabled: true,
-                compassEnabled: true,
+                compassEnabled: false,
+                padding: EdgeInsets.only(
+                  top: MediaQuery.of(context).padding.top + 80,
+                  bottom: 280,
+                ),
                 indoorViewEnabled: true,
                 myLocationEnabled: true,
                 myLocationButtonEnabled: false,
@@ -220,7 +231,7 @@ class _PetTrackerScreenState extends State<PetTrackerScreen> with SingleTickerPr
             left: 16,
             right: 16,
             child: FadeInDown(
-              child: _buildFloatingAppBar(context, isDark),
+              child: _buildFloatingAppBar(context, isDark, hasGpsDevice),
             ),
           ),
 
@@ -239,7 +250,7 @@ class _PetTrackerScreenState extends State<PetTrackerScreen> with SingleTickerPr
             left: 16,
             right: 16,
             child: FadeInUp(
-              child: _buildTelemetryPanel(context, isDark),
+              child: _buildTelemetryPanel(context, isDark, hasGpsDevice),
             ),
           ),
         ],
@@ -247,7 +258,7 @@ class _PetTrackerScreenState extends State<PetTrackerScreen> with SingleTickerPr
     );
   }
 
-  Widget _buildFloatingAppBar(BuildContext context, bool isDark) {
+  Widget _buildFloatingAppBar(BuildContext context, bool isDark, bool hasGpsDevice) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
@@ -290,19 +301,25 @@ class _PetTrackerScreenState extends State<PetTrackerScreen> with SingleTickerPr
                     Container(
                       width: 7, height: 7,
                       decoration: BoxDecoration(
-                        color: _isSafeZone ? AppColors.healthGreen : AppColors.dangerRed,
+                        color: !hasGpsDevice
+                            ? AppColors.accentAmber
+                            : (_isSafeZone ? AppColors.healthGreen : AppColors.dangerRed),
                         shape: BoxShape.circle,
                       ),
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      _isSafeZone ? 'Connected • Safe Zone' : 'Alert • Outside Safe Area', 
+                      !hasGpsDevice
+                          ? 'Inactive • No GPS Device Linked'
+                          : (_isSafeZone ? 'Connected • Safe Zone' : 'Alert • Outside Safe Area'), 
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
-                        color: _isSafeZone 
-                            ? (isDark ? const Color(0xFF4ADE80) : AppColors.healthGreen)
-                            : AppColors.dangerRed,
+                        color: !hasGpsDevice
+                            ? AppColors.accentAmber
+                            : (_isSafeZone 
+                                ? (isDark ? const Color(0xFF4ADE80) : AppColors.healthGreen)
+                                : AppColors.dangerRed),
                       ),
                     ),
                   ],
@@ -313,16 +330,20 @@ class _PetTrackerScreenState extends State<PetTrackerScreen> with SingleTickerPr
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: isDark ? 0.2 : 0.1),
+              color: (hasGpsDevice ? AppColors.primary : AppColors.accentAmber).withValues(alpha: isDark ? 0.2 : 0.1),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Row(
               children: [
-                const Icon(Icons.bolt_rounded, color: AppColors.primary, size: 15),
+                Icon(Icons.bolt_rounded, color: hasGpsDevice ? AppColors.primary : AppColors.accentAmber, size: 15),
                 const SizedBox(width: 3),
                 Text(
-                  '$_batteryLevel%',
-                  style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: AppColors.primary),
+                  hasGpsDevice ? '$_batteryLevel%' : 'OFF',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 12,
+                    color: hasGpsDevice ? AppColors.primary : AppColors.accentAmber,
+                  ),
                 ),
               ],
             ),
@@ -337,17 +358,6 @@ class _PetTrackerScreenState extends State<PetTrackerScreen> with SingleTickerPr
       children: [
         _build3DControlBtn(isDark),
         const SizedBox(height: 12),
-        _buildControlBtn(Icons.my_location_rounded, isDark, () {
-          _mapController?.animateCamera(CameraUpdate.newCameraPosition(
-            CameraPosition(
-              target: _userLocation,
-              zoom: _is3D ? 17.5 : 16.0,
-              tilt: _is3D ? 48.0 : 0.0,
-              bearing: _is3D ? 25.0 : 0.0,
-            ),
-          ));
-        }),
-        const SizedBox(height: 12),
         _buildControlBtn(Icons.pets_rounded, isDark, () {
           _mapController?.animateCamera(CameraUpdate.newCameraPosition(
             CameraPosition(
@@ -360,6 +370,17 @@ class _PetTrackerScreenState extends State<PetTrackerScreen> with SingleTickerPr
         }),
         const SizedBox(height: 12),
         _buildControlBtn(Icons.layers_rounded, isDark, () => _showMapStylePicker(isDark)),
+        const SizedBox(height: 12),
+        _buildControlBtn(Icons.my_location_rounded, isDark, () {
+          _mapController?.animateCamera(CameraUpdate.newCameraPosition(
+            CameraPosition(
+              target: _userLocation,
+              zoom: _is3D ? 17.5 : 16.0,
+              tilt: _is3D ? 48.0 : 0.0,
+              bearing: _is3D ? 25.0 : 0.0,
+            ),
+          ));
+        }),
       ],
     );
   }
@@ -545,7 +566,7 @@ class _PetTrackerScreenState extends State<PetTrackerScreen> with SingleTickerPr
     );
   }
 
-  Widget _buildTelemetryPanel(BuildContext context, bool isDark) {
+  Widget _buildTelemetryPanel(BuildContext context, bool isDark, bool hasGpsDevice) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(32),
       child: BackdropFilter(
@@ -578,10 +599,14 @@ class _PetTrackerScreenState extends State<PetTrackerScreen> with SingleTickerPr
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: isDark ? 0.25 : 0.12),
+                      color: (hasGpsDevice ? AppColors.primary : AppColors.accentAmber).withValues(alpha: isDark ? 0.25 : 0.12),
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    child: const Icon(Icons.directions_run_rounded, color: AppColors.primary, size: 24),
+                    child: Icon(
+                      hasGpsDevice ? Icons.directions_run_rounded : Icons.sensors_off_rounded,
+                      color: hasGpsDevice ? AppColors.primary : AppColors.accentAmber,
+                      size: 24,
+                    ),
                   ),
                   const SizedBox(width: 14),
                   Expanded(
@@ -589,7 +614,7 @@ class _PetTrackerScreenState extends State<PetTrackerScreen> with SingleTickerPr
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'CURRENT ACTIVITY', 
+                          'HARDWARE STATUS', 
                           style: TextStyle(
                             fontWeight: FontWeight.w800, 
                             color: isDark ? Colors.grey[400] : Colors.grey[500], 
@@ -599,7 +624,7 @@ class _PetTrackerScreenState extends State<PetTrackerScreen> with SingleTickerPr
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          _currentActivity, 
+                          hasGpsDevice ? _currentActivity : 'GPS Tracker Not Active', 
                           style: GoogleFonts.plusJakartaSans(
                             fontWeight: FontWeight.w800, 
                             fontSize: 16,
@@ -609,17 +634,17 @@ class _PetTrackerScreenState extends State<PetTrackerScreen> with SingleTickerPr
                       ],
                     ),
                   ),
-                  _buildLiveBadge(isDark),
+                  _buildLiveBadge(isDark, hasGpsDevice),
                 ],
               ),
               const SizedBox(height: 18),
               Row(
                 children: [
-                  _buildTelemetryItem(Icons.speed_rounded, 'Speed', '2.4 km/h', isDark),
+                  _buildTelemetryItem(Icons.speed_rounded, 'Speed', hasGpsDevice ? '2.4 km/h' : '--', isDark),
                   const SizedBox(width: 10),
-                  _buildTelemetryItem(Icons.history_rounded, 'Last Sync', '2m ago', isDark),
+                  _buildTelemetryItem(Icons.history_rounded, 'Last Sync', hasGpsDevice ? '2m ago' : 'Never', isDark),
                   const SizedBox(width: 10),
-                  _buildTelemetryItem(Icons.gps_fixed_rounded, 'Accuracy', '98%', isDark),
+                  _buildTelemetryItem(Icons.gps_fixed_rounded, 'Accuracy', hasGpsDevice ? '98%' : '0%', isDark),
                 ],
               ),
               const SizedBox(height: 18),
@@ -628,30 +653,43 @@ class _PetTrackerScreenState extends State<PetTrackerScreen> with SingleTickerPr
                   Expanded(
                     child: ElevatedButton.icon(
                       onPressed: () {
+                        if (!hasGpsDevice) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const MyDevicesScreen()),
+                          );
+                          return;
+                        }
                         HapticFeedback.heavyImpact();
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Collar siren triggered! 🔊'), behavior: SnackBarBehavior.floating),
                         );
                       },
-                      icon: const Icon(Icons.volume_up_rounded, size: 18, color: Colors.white),
+                      icon: Icon(
+                        hasGpsDevice ? Icons.volume_up_rounded : Icons.add_circle_rounded,
+                        size: 18,
+                        color: Colors.white,
+                      ),
                       label: Text(
-                        'PLAY SOUND',
+                        hasGpsDevice ? 'PLAY SOUND' : 'PAIR GPS TRACKER',
                         style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 13, letterSpacing: 0.5),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
+                        backgroundColor: hasGpsDevice ? AppColors.primary : AppColors.accentAmber,
                         elevation: 4,
-                        shadowColor: AppColors.primary.withValues(alpha: 0.4),
+                        shadowColor: (hasGpsDevice ? AppColors.primary : AppColors.accentAmber).withValues(alpha: 0.4),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                         padding: const EdgeInsets.symmetric(vertical: 14),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 10),
-                  _buildCircleAction(Icons.refresh_rounded, isDark, () {
-                     HapticFeedback.mediumImpact();
-                     _startSimulatedMovement();
-                  }),
+                  if (hasGpsDevice) ...[
+                    const SizedBox(width: 10),
+                    _buildCircleAction(Icons.refresh_rounded, isDark, () {
+                       HapticFeedback.mediumImpact();
+                       _startSimulatedMovement();
+                    }),
+                  ],
                 ],
               ),
             ],
@@ -715,19 +753,34 @@ class _PetTrackerScreenState extends State<PetTrackerScreen> with SingleTickerPr
     );
   }
 
-  Widget _buildLiveBadge(bool isDark) {
+  Widget _buildLiveBadge(bool isDark, bool hasGpsDevice) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: AppColors.healthGreen.withValues(alpha: isDark ? 0.2 : 0.1),
+        color: (hasGpsDevice ? AppColors.healthGreen : AppColors.accentAmber).withValues(alpha: isDark ? 0.2 : 0.1),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(width: 6, height: 6, decoration: const BoxDecoration(color: AppColors.healthGreen, shape: BoxShape.circle)),
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(
+              color: hasGpsDevice ? AppColors.healthGreen : AppColors.accentAmber,
+              shape: BoxShape.circle,
+            ),
+          ),
           const SizedBox(width: 6),
-          const Text('LIVE', style: TextStyle(color: AppColors.healthGreen, fontWeight: FontWeight.w900, fontSize: 9, letterSpacing: 1)),
+          Text(
+            hasGpsDevice ? 'LIVE' : 'INACTIVE',
+            style: TextStyle(
+              color: hasGpsDevice ? AppColors.healthGreen : AppColors.accentAmber,
+              fontWeight: FontWeight.w900,
+              fontSize: 9,
+              letterSpacing: 1,
+            ),
+          ),
         ],
       ),
     );

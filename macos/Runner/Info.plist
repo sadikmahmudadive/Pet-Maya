@@ -28,5 +28,7 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>NSLocationUsageDescription</key>
+	<string>Pet Maya requires location access to find nearby pet services and track pets on the map.</string>
 </dict>
 </plist>
