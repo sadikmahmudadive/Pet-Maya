@@ -17,6 +17,7 @@ import '../pets/my_pets_screen.dart';
 import '../devices/my_devices_screen.dart';
 import '../../common_widgets/tail_wagging_loader.dart';
 import '../../common_widgets/pet_refresh_indicator.dart';
+import '../../common_widgets/resilient_network_image.dart';
 import 'edit_profile_screen.dart';
 import 'notification_screen.dart';
 import 'package:animate_do/animate_do.dart';
@@ -581,7 +582,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     child: CircleAvatar(
                       radius: 32,
                       backgroundImage: pet.photoUrl != null
-                          ? NetworkImage(pet.photoUrl!)
+                          ? appImageProvider(pet.photoUrl!)
                           : null,
                       child: pet.photoUrl == null
                           ? const Icon(Icons.pets, size: 16)

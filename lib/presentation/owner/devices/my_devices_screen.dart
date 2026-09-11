@@ -11,6 +11,7 @@ import '../../../data/models/pet_device_model.dart';
 import '../../../data/repositories/app_state_repository.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
+import '../../common_widgets/resilient_network_image.dart';
 import '../home/pet_tracker_screen.dart';
 
 /// Screen for managing smart tracking collars, Bluetooth beacons,
@@ -206,7 +207,7 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                           return ChoiceChip(
                             label: Text(p.name),
                             avatar: p.photoUrl != null
-                                ? CircleAvatar(backgroundImage: NetworkImage(p.photoUrl!), radius: 10)
+                                ? CircleAvatar(backgroundImage: appImageProvider(p.photoUrl!), radius: 10)
                                 : const Icon(Icons.pets_rounded, size: 14),
                             selected: isSelected,
                             selectedColor: AppColors.primary,
@@ -652,7 +653,7 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                             return ChoiceChip(
                               label: Text(p.name),
                               avatar: p.photoUrl != null
-                                  ? CircleAvatar(backgroundImage: NetworkImage(p.photoUrl!), radius: 10)
+                                  ? CircleAvatar(backgroundImage: appImageProvider(p.photoUrl!), radius: 10)
                                   : const Icon(Icons.pets_rounded, size: 14),
                               selected: isSelected,
                               selectedColor: AppColors.primary,
@@ -1142,7 +1143,7 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                   ),
                   if (pet != null) ...[
                     if (pet.photoUrl != null)
-                      CircleAvatar(backgroundImage: NetworkImage(pet.photoUrl!), radius: 10)
+                      CircleAvatar(backgroundImage: appImageProvider(pet.photoUrl!), radius: 10)
                     else
                       const SizedBox.shrink(),
                     const SizedBox(width: 6),

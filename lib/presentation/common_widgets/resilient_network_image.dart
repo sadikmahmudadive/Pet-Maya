@@ -2,6 +2,17 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
+/// Global helper to get an [ImageProvider] for CircleAvatar or ImageDecoration
+/// that safely handles asset paths ('assets/...') vs remote HTTP network URLs.
+ImageProvider? appImageProvider(String? url) {
+  if (url == null || url.trim().isEmpty) return null;
+  final cleanUrl = url.trim();
+  if (cleanUrl.startsWith('assets/')) {
+    return AssetImage(cleanUrl);
+  }
+  return NetworkImage(cleanUrl);
+}
+
 /// A robust network image widget that gracefully handles network dropouts,
 /// Samsung One UI socket terminations, and Android 13 connection aborts.
 /// It uses [CachedNetworkImage] under the hood for local disk persistence
@@ -43,8 +54,26 @@ class ResilientNetworkImage extends StatelessWidget {
       return _buildFallback(effectiveBg);
     }
 
+    final cleanUrl = imageUrl!.trim();
+    if (cleanUrl.startsWith('assets/')) {
+      Widget assetWidget = Image.asset(
+        cleanUrl,
+        width: width,
+        height: height,
+        fit: fit,
+        errorBuilder: (context, error, stackTrace) => _buildFallback(effectiveBg),
+      );
+      if (borderRadius != null) {
+        assetWidget = ClipRRect(
+          borderRadius: borderRadius!,
+          child: assetWidget,
+        );
+      }
+      return assetWidget;
+    }
+
     Widget imageWidget = CachedNetworkImage(
-      imageUrl: imageUrl!.trim(),
+      imageUrl: cleanUrl,
       width: width,
       height: height,
       fit: fit,
