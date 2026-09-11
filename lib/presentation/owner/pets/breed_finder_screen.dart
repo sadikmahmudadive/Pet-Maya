@@ -26,7 +26,9 @@ class _BreedFinderScreenState extends State<BreedFinderScreen> {
       _identifiedBreed = null;
     });
 
-    final breed = await context.read<AppStateRepository>().identifyBreed(imagePath: 'simulated_path');
+    final breed = await context.read<AppStateRepository>().identifyBreed(
+      imagePath: 'simulated_path',
+    );
 
     if (!mounted) return;
     HapticFeedback.mediumImpact();
@@ -42,10 +44,15 @@ class _BreedFinderScreenState extends State<BreedFinderScreen> {
 
     return GlassScaffold(
       appBar: AppBar(
-        title: const Text('AI Breed Finder', style: TextStyle(fontWeight: FontWeight.w800)),
+        title: const Text(
+          'AI Breed Finder',
+          style: TextStyle(fontWeight: FontWeight.w800),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        systemOverlayStyle: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
+        systemOverlayStyle: isDark
+            ? SystemUiOverlayStyle.light
+            : SystemUiOverlayStyle.dark,
       ),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
@@ -57,13 +64,20 @@ class _BreedFinderScreenState extends State<BreedFinderScreen> {
                 children: [
                   Text(
                     'Identify Your Pet',
-                    style: AppTypography.headlineMedium.copyWith(fontWeight: FontWeight.w900, fontSize: 32),
+                    style: AppTypography.headlineMedium.copyWith(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 32,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 12),
                   Text(
                     'Our Vision AI will analyze physical features to determine your pet\'s breed with medical-grade precision.',
-                    style: AppTypography.bodyMedium.copyWith(color: Colors.grey[500], height: 1.5, fontWeight: FontWeight.w600),
+                    style: AppTypography.bodyMedium.copyWith(
+                      color: Colors.grey[500],
+                      height: 1.5,
+                      fontWeight: FontWeight.w600,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                 ],
@@ -76,7 +90,9 @@ class _BreedFinderScreenState extends State<BreedFinderScreen> {
               child: PremiumCard(
                 opacity: 0.15,
                 borderRadius: 36,
-                backgroundColor: isDark ? const Color(0xFF0D302D) : const Color(0xFFEDF4F8),
+                backgroundColor: isDark
+                    ? const Color(0xFF0D302D)
+                    : const Color(0xFFEDF4F8),
                 child: Container(
                   height: 380,
                   width: double.infinity,
@@ -91,29 +107,48 @@ class _BreedFinderScreenState extends State<BreedFinderScreen> {
                             height: 240,
                             width: double.infinity,
                             decoration: BoxDecoration(
-                              color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.05)
+                                  : Colors.white,
                               borderRadius: BorderRadius.circular(28),
-                              border: Border.all(color: AppColors.primary.withValues(alpha: 0.1), width: 2),
+                              border: Border.all(
+                                color: AppColors.primary.withValues(alpha: 0.1),
+                                width: 2,
+                              ),
                             ),
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 const LottieUploadIcon(size: 64),
                                 const SizedBox(height: 16),
-                                Text('Tap to capture or upload', 
-                                  style: AppTypography.labelSmall.copyWith(fontWeight: FontWeight.w800, color: AppColors.primary)),
+                                Text(
+                                  'Tap to capture or upload',
+                                  style: AppTypography.labelSmall.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.primary,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
                         ),
-                      
+
                       if (_isIdentifying)
                         Column(
                           children: [
-                            const CircularProgressIndicator(strokeWidth: 3, color: AppColors.primary),
+                            const CircularProgressIndicator(
+                              strokeWidth: 3,
+                              color: AppColors.primary,
+                            ),
                             const SizedBox(height: 24),
-                            Text('Analyzing genetic markers...', 
-                              style: AppTypography.labelSmall.copyWith(fontWeight: FontWeight.w700, letterSpacing: 1, color: AppColors.primary)),
+                            Text(
+                              'Analyzing genetic markers...',
+                              style: AppTypography.labelSmall.copyWith(
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 1,
+                                color: AppColors.primary,
+                              ),
+                            ),
                           ],
                         ),
 
@@ -123,15 +158,36 @@ class _BreedFinderScreenState extends State<BreedFinderScreen> {
                             children: [
                               Container(
                                 padding: const EdgeInsets.all(20),
-                                decoration: BoxDecoration(color: AppColors.healthGreen.withValues(alpha: 0.1), shape: BoxShape.circle),
-                                child: const Icon(Icons.verified_rounded, size: 60, color: AppColors.healthGreen),
+                                decoration: BoxDecoration(
+                                  color: AppColors.healthGreen.withValues(
+                                    alpha: 0.1,
+                                  ),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.verified_rounded,
+                                  size: 60,
+                                  color: AppColors.healthGreen,
+                                ),
                               ),
                               const SizedBox(height: 24),
-                              Text('AI PREDICTION', 
-                                style: AppTypography.labelSmall.copyWith(fontWeight: FontWeight.w900, letterSpacing: 2, color: Colors.grey[500])),
+                              Text(
+                                'AI PREDICTION',
+                                style: AppTypography.labelSmall.copyWith(
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 2,
+                                  color: Colors.grey[500],
+                                ),
+                              ),
                               const SizedBox(height: 8),
-                              Text(_identifiedBreed!, 
-                                style: AppTypography.headlineMedium.copyWith(fontSize: 34, fontWeight: FontWeight.w900, color: AppColors.primary)),
+                              Text(
+                                _identifiedBreed!,
+                                style: AppTypography.headlineMedium.copyWith(
+                                  fontSize: 34,
+                                  fontWeight: FontWeight.w900,
+                                  color: AppColors.primary,
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -140,7 +196,7 @@ class _BreedFinderScreenState extends State<BreedFinderScreen> {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 60),
 
             // Control Actions
@@ -154,17 +210,28 @@ class _BreedFinderScreenState extends State<BreedFinderScreen> {
                     onPressed: _isIdentifying ? null : _runIdentification,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF1AB680),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18),
+                      ),
                     ),
-                    icon: const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 22),
+                    icon: const Icon(
+                      Icons.auto_awesome_rounded,
+                      color: Colors.white,
+                      size: 22,
+                    ),
                     label: Text(
                       _isIdentifying ? 'SCANNING...' : 'START VISION ANALYSIS',
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 1, fontSize: 13),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1,
+                        fontSize: 13,
+                      ),
                     ),
                   ),
                 ),
               ),
-            
+
             if (_identifiedBreed != null)
               FadeInUp(
                 child: Column(
@@ -173,19 +240,35 @@ class _BreedFinderScreenState extends State<BreedFinderScreen> {
                       width: double.infinity,
                       height: 64,
                       child: ElevatedButton(
-                        onPressed: () => Navigator.pop(context, _identifiedBreed),
+                        onPressed: () =>
+                            Navigator.pop(context, _identifiedBreed),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF1AB680),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(18),
+                          ),
                         ),
-                        child: const Text('CONFIRM BREED TYPE', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 1)),
+                        child: const Text(
+                          'CONFIRM BREED TYPE',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1,
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 16),
                     TextButton(
                       onPressed: () => setState(() => _identifiedBreed = null),
-                      child: Text('NOT QUITE? TRY AGAIN', 
-                        style: AppTypography.labelSmall.copyWith(fontWeight: FontWeight.w900, color: AppColors.primary, letterSpacing: 1.5)),
+                      child: Text(
+                        'NOT QUITE? TRY AGAIN',
+                        style: AppTypography.labelSmall.copyWith(
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.primary,
+                          letterSpacing: 1.5,
+                        ),
+                      ),
                     ),
                   ],
                 ),

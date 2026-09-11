@@ -90,20 +90,24 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
     );
 
     final currentUser = state.currentUser;
-    final isVet = currentUser?.role != UserRole.petOwner &&
+    final isVet =
+        currentUser?.role != UserRole.petOwner &&
         currentUser?.role != UserRole.admin &&
         currentUser?.role != UserRole.superAdmin;
 
     final records = state.serviceRecords
         .where((r) => r.petId == widget.petId)
         .where((r) {
-      if (!isVet) return true;
-      // Vets see: Shared records OR records they created themselves
-      return r.isSharedWithVets || r.providerId == currentUser?.uid;
-    }).toList();
+          if (!isVet) return true;
+          // Vets see: Shared records OR records they created themselves
+          return r.isSharedWithVets || r.providerId == currentUser?.uid;
+        })
+        .toList();
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final hasMedicalLogs = records.isNotEmpty || (pet.vaccinationDetails?.trim().isNotEmpty == true);
+    final hasMedicalLogs =
+        records.isNotEmpty ||
+        (pet.vaccinationDetails?.trim().isNotEmpty == true);
     final petHealthScore = hasMedicalLogs ? pet.healthIndex : 0;
 
     return GlassScaffold(
@@ -388,7 +392,9 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                           borderRadius: BorderRadius.circular(24),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF0D47A1).withValues(alpha: 0.35),
+                              color: const Color(
+                                0xFF0D47A1,
+                              ).withValues(alpha: 0.35),
                               blurRadius: 20,
                               offset: const Offset(0, 8),
                             ),
@@ -426,7 +432,9 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                                       Text(
                                         'DIGITAL PET PASSPORT',
                                         style: GoogleFonts.plusJakartaSans(
-                                          color: Colors.white.withValues(alpha: 0.85),
+                                          color: Colors.white.withValues(
+                                            alpha: 0.85,
+                                          ),
                                           fontSize: 10,
                                           fontWeight: FontWeight.w800,
                                           letterSpacing: 1.0,
@@ -440,7 +448,9 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                                         ),
                                         decoration: BoxDecoration(
                                           color: AppColors.healthGreen,
-                                          borderRadius: BorderRadius.circular(6),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
                                         ),
                                         child: const Text(
                                           'OFFICIAL',
@@ -466,7 +476,9 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                                   Text(
                                     'International QR • Clearance Stamps',
                                     style: TextStyle(
-                                      color: Colors.white.withValues(alpha: 0.75),
+                                      color: Colors.white.withValues(
+                                        alpha: 0.75,
+                                      ),
                                       fontSize: 11,
                                     ),
                                   ),
@@ -624,13 +636,19 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                           context,
                           'Health Condition',
                           hasMedicalLogs
-                              ? (petHealthScore > 80 ? 'Optimal & Verified' : 'Checkup Recommended')
+                              ? (petHealthScore > 80
+                                    ? 'Optimal & Verified'
+                                    : 'Checkup Recommended')
                               : 'No Medical Logs Added',
-                          hasMedicalLogs ? (petHealthScore > 80 ? 'Healthy' : 'Checkup') : 'Unverified',
+                          hasMedicalLogs
+                              ? (petHealthScore > 80 ? 'Healthy' : 'Checkup')
+                              : 'Unverified',
                           Icons.medical_services_rounded,
                           const Color(0xFFFFE8E8),
                           hasMedicalLogs
-                              ? (petHealthScore > 80 ? AppColors.healthGreen : AppColors.accentAmber)
+                              ? (petHealthScore > 80
+                                    ? AppColors.healthGreen
+                                    : AppColors.accentAmber)
                               : AppColors.accentAmber,
                           () => Navigator.push(
                             context,
@@ -644,15 +662,20 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                         _buildStatusTile(
                           context,
                           'Vaccination Hub',
-                          hasMedicalLogs ? 'Immunization matrix & parasite status' : 'No vaccine logs recorded yet',
-                          hasMedicalLogs ? '$petHealthScore% Score' : 'Unverified',
+                          hasMedicalLogs
+                              ? 'Immunization matrix & parasite status'
+                              : 'No vaccine logs recorded yet',
+                          hasMedicalLogs
+                              ? '$petHealthScore% Score'
+                              : 'Unverified',
                           Icons.vaccines_rounded,
                           const Color(0xFFE8F8F5),
                           const Color(0xFF00BFA5),
                           () => Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => VaccinationScreen(initialPet: pet),
+                              builder: (_) =>
+                                  VaccinationScreen(initialPet: pet),
                             ),
                           ),
                         ),
@@ -751,7 +774,14 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                             ),
                           )
                         else
-                          ...records.map((r) => _buildHistoryCard(context, r, isVet, currentUser)),
+                          ...records.map(
+                            (r) => _buildHistoryCard(
+                              context,
+                              r,
+                              isVet,
+                              currentUser,
+                            ),
+                          ),
                       ],
                     ),
                   ),
@@ -764,7 +794,8 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                       delay: const Duration(milliseconds: 260),
                       child: Center(
                         child: TextButton.icon(
-                          onPressed: () => _confirmDeletePet(context, state, pet),
+                          onPressed: () =>
+                              _confirmDeletePet(context, state, pet),
                           icon: Icon(
                             CupertinoIcons.trash,
                             color: AppColors.dangerRed,
@@ -799,7 +830,9 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
       context: context,
       builder: (ctx) => CupertinoAlertDialog(
         title: const Text('Delete Medical Record?'),
-        content: Text('Are you sure you want to delete "${record.title}"? This cannot be undone.'),
+        content: Text(
+          'Are you sure you want to delete "${record.title}"? This cannot be undone.',
+        ),
         actions: [
           CupertinoDialogAction(
             child: const Text('Cancel'),
@@ -812,7 +845,10 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
               HapticFeedback.heavyImpact();
               state.deleteServiceRecord(record.recordId);
               Navigator.pop(ctx);
-              state.showToast('Record deleted successfully! 🗑️', context: context);
+              state.showToast(
+                'Record deleted successfully! 🗑️',
+                context: context,
+              );
             },
           ),
         ],
@@ -997,7 +1033,12 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
     );
   }
 
-  Widget _buildHistoryCard(BuildContext context, ServiceRecordModel record, bool isVet, UserModel? currentUser) {
+  Widget _buildHistoryCard(
+    BuildContext context,
+    ServiceRecordModel record,
+    bool isVet,
+    UserModel? currentUser,
+  ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final repo = context.read<AppStateRepository>();
 
@@ -1048,7 +1089,10 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                   if (record.reportUrl != null)
                     IconButton(
                       onPressed: () => launchUrl(Uri.parse(record.reportUrl!)),
-                      icon: const Icon(Icons.picture_as_pdf_rounded, color: AppColors.primary),
+                      icon: const Icon(
+                        Icons.picture_as_pdf_rounded,
+                        color: AppColors.primary,
+                      ),
                       tooltip: 'Open PDF Report',
                     ),
                 ],
@@ -1057,9 +1101,13 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
               Row(
                 children: [
                   Icon(
-                    record.providerRole == 'Pet Owner' ? Icons.person_rounded : Icons.verified_user_rounded,
+                    record.providerRole == 'Pet Owner'
+                        ? Icons.person_rounded
+                        : Icons.verified_user_rounded,
                     size: 14,
-                    color: record.providerRole == 'Pet Owner' ? AppColors.primary : AppColors.healthGreen,
+                    color: record.providerRole == 'Pet Owner'
+                        ? AppColors.primary
+                        : AppColors.healthGreen,
                   ),
                   const SizedBox(width: 6),
                   Text(
@@ -1078,10 +1126,16 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                     GestureDetector(
                       onTap: () {
                         HapticFeedback.selectionClick();
-                        repo.toggleReportSharing(record.recordId, !record.isSharedWithVets);
+                        repo.toggleReportSharing(
+                          record.recordId,
+                          !record.isSharedWithVets,
+                        );
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: record.isSharedWithVets
                               ? AppColors.healthGreen.withValues(alpha: 0.1)
@@ -1092,9 +1146,13 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
-                              record.isSharedWithVets ? Icons.share_rounded : Icons.lock_rounded,
+                              record.isSharedWithVets
+                                  ? Icons.share_rounded
+                                  : Icons.lock_rounded,
                               size: 12,
-                              color: record.isSharedWithVets ? AppColors.healthGreen : Colors.grey,
+                              color: record.isSharedWithVets
+                                  ? AppColors.healthGreen
+                                  : Colors.grey,
                             ),
                             const SizedBox(width: 4),
                             Text(
@@ -1102,7 +1160,9 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                               style: TextStyle(
                                 fontSize: 9,
                                 fontWeight: FontWeight.w800,
-                                color: record.isSharedWithVets ? AppColors.healthGreen : Colors.grey,
+                                color: record.isSharedWithVets
+                                    ? AppColors.healthGreen
+                                    : Colors.grey,
                               ),
                             ),
                           ],
@@ -1119,12 +1179,19 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                           color: AppColors.dangerRed.withValues(alpha: 0.1),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(CupertinoIcons.trash, color: AppColors.dangerRed, size: 14),
+                        child: const Icon(
+                          CupertinoIcons.trash,
+                          color: AppColors.dangerRed,
+                          size: 14,
+                        ),
                       ),
                     ),
                   ] else if (record.isSharedWithVets)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.healthGreen.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
@@ -1132,11 +1199,19 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.share_rounded, size: 10, color: AppColors.healthGreen),
+                          Icon(
+                            Icons.share_rounded,
+                            size: 10,
+                            color: AppColors.healthGreen,
+                          ),
                           SizedBox(width: 4),
                           Text(
                             'Shared with you',
-                            style: TextStyle(fontSize: 8, fontWeight: FontWeight.w800, color: AppColors.healthGreen),
+                            style: TextStyle(
+                              fontSize: 8,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.healthGreen,
+                            ),
                           ),
                         ],
                       ),
