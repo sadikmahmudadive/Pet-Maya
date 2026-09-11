@@ -14,6 +14,7 @@ import 'core/theme/app_theme.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/notification_handlers.dart';
 import 'data/repositories/app_state_repository.dart';
+import 'data/services/local_cache_service.dart';
 import 'data/models/pet_model.dart';
 import 'data/services/home_widget_service.dart';
 import 'presentation/auth/splash_screen.dart';
@@ -120,18 +121,19 @@ void main() async {
     return true;
   };
 
-  // Initialize Notification Service
+  // Initialize Local Cache, Notification Service, and Home Widget in parallel for fast cold-start
   final notificationService = NotificationService();
-  await notificationService.initialize();
+  await Future.wait([
+    LocalCacheService().init(),
+    notificationService.initialize(),
+    HomeWidgetService.init(onDeepLink: (uri) => handleWidgetDeepLink(uri)),
+  ]);
 
   // Set background messaging handler
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
   // Initialize Workmanager for battery-optimization-aware tasks
   Workmanager().initialize(callbackDispatcher);
-
-  // Initialize Home Widget Service and register deep-link dispatcher
-  await HomeWidgetService.init(onDeepLink: (uri) => handleWidgetDeepLink(uri));
 
   runApp(
     MultiProvider(

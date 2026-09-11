@@ -567,6 +567,7 @@ class AppStateRepository extends ChangeNotifier {
         _pets
           ..clear()
           ..addAll(fetched);
+        _localCache.savePets(_pets);
         _debouncedNotify();
       },
       onError: (e) =>
@@ -586,6 +587,7 @@ class AppStateRepository extends ChangeNotifier {
           _currentUser!.longitude!,
         );
       }
+      _localCache.saveVets(_vets);
       _debouncedNotify();
     });
   }
@@ -618,6 +620,7 @@ class AppStateRepository extends ChangeNotifier {
       _events
         ..clear()
         ..addAll(fetched);
+      _localCache.saveEvents(_events);
       _debouncedNotify();
     });
   }
@@ -673,6 +676,7 @@ class AppStateRepository extends ChangeNotifier {
       _orders
         ..clear()
         ..addAll(fetched);
+      _localCache.saveOrders(_orders);
       _debouncedNotify();
     });
   }
@@ -694,6 +698,7 @@ class AppStateRepository extends ChangeNotifier {
         _currentUser = (_currentUser != null && updated.fcmToken == null)
             ? updated.copyWith(fcmToken: _currentUser!.fcmToken)
             : updated;
+        _localCache.saveCurrentUser(_currentUser!);
         _debouncedNotify();
       }
     });
@@ -719,7 +724,8 @@ class AppStateRepository extends ChangeNotifier {
           _baseShippingFee =
               (data['base_shipping_fee'] as num?)?.toDouble() ?? 5.0;
         }
-        notifyListeners();
+        _localCache.saveGlobalSettings(data);
+        _debouncedNotify();
       }
     });
   }
