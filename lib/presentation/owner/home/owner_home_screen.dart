@@ -720,39 +720,38 @@ class HomeDashboardFragment extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Live Collar Beacon Status
-                    Row(
-                      children: [
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            color: statusColor,
-                            shape: BoxShape.circle,
-                            boxShadow: hasDevice
-                                ? [
-                                    BoxShadow(
-                                      color: statusColor,
-                                      blurRadius: 6,
-                                      spreadRadius: 1,
-                                    ),
-                                  ]
-                                : null,
+                    if (hasDevice) ...[
+                      Row(
+                        children: [
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: statusColor,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: statusColor,
+                                  blurRadius: 6,
+                                  spreadRadius: 1,
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          statusText,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w800,
-                            color: statusColor,
-                            letterSpacing: 0.4,
+                          const SizedBox(width: 6),
+                          Text(
+                            statusText,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              color: statusColor,
+                              letterSpacing: 0.4,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                    ],
                     Text(
                       pet.name,
                       style: GoogleFonts.plusJakartaSans(

@@ -236,6 +236,14 @@ export function AppProvider({ children }) {
   });
 
   const [appointments, setAppointments] = useState([]);
+  const [favoriteVetIds, setFavoriteVetIds] = useState(() => {
+    try {
+      const saved = localStorage.getItem('pm_favorite_vets');
+      return saved ? JSON.parse(saved) : ['vet-1', 'vet-2'];
+    } catch (_) {
+      return ['vet-1', 'vet-2'];
+    }
+  });
   const [medicalRecords, setMedicalRecords] = useState([]);
 
   // E-Commerce Cart
@@ -704,7 +712,10 @@ export function AppProvider({ children }) {
     if (!currentUser || currentUser.uid.startsWith('demo_guest')) {
       const saved = localStorage.getItem('pm_appointments');
       setAppointments(saved ? JSON.parse(saved) : [
-        { id: 'apt-1', title: 'Annual Nobivac Booster with Dr. Sarah Jenkins', doctor: 'Dr. Sarah Jenkins', clinic: 'Greenwood Animal Hospital', petName: 'Max', date: '2026-08-28', time: '10:30 AM', mode: 'In-Clinic Consultation', status: 'Confirmed' }
+        { id: 'apt-1', title: 'Annual Nobivac Booster with Dr. Sarah Jenkins', doctor: 'Dr. Sarah Jenkins', clinic: 'Greenwood Animal Hospital', petName: 'Max', date: '2026-09-15', time: '10:30 AM', fromTime: '10:30 AM', toTime: '11:00 AM', mode: 'In-Clinic Consultation', status: 'Confirmed', isCompleted: false },
+        { id: 'apt-2', title: 'Dermatology Follow-up & Allergy Review', doctor: 'Dr. Michael Chang', clinic: 'Pet Med Care Center', petName: 'Bella', date: '2026-09-18', time: '02:15 PM', fromTime: '02:15 PM', toTime: '02:45 PM', mode: 'Teleconsultation', status: 'Confirmed', isCompleted: false },
+        { id: 'apt-3', title: 'Dental Scaling & Prophylaxis Clean', doctor: 'Dr. Emily Watson', clinic: 'Central Veterinary Clinic', petName: 'Luna', date: '2026-08-14', time: '11:00 AM', fromTime: '11:00 AM', toTime: '12:00 PM', mode: 'In-Clinic Consultation', status: 'Completed', isCompleted: true },
+        { id: 'apt-4', title: 'Cardiology ECG & Ultrasound Screening', doctor: 'Dr. Sarah Jenkins', clinic: 'Greenwood Animal Hospital', petName: 'Max', date: '2026-07-20', time: '04:00 PM', fromTime: '04:00 PM', toTime: '04:30 PM', mode: 'In-Clinic Consultation', status: 'Completed', isCompleted: true }
       ]);
       return;
     }
@@ -1162,6 +1173,37 @@ export function AppProvider({ children }) {
     showToast('Appointment removed.', 'info');
   };
 
+  // Complete Appointment
+  const completeAppointment = async (aptId) => {
+    if (currentUser && !currentUser.uid.startsWith('demo_guest')) {
+      try {
+        await updateDoc(doc(db, 'events', aptId), { isCompleted: true, status: 'Completed' });
+      } catch (e) {
+        console.warn('[Firebase] completeAppointment error:', e);
+      }
+    }
+    setAppointments(prev => {
+      const updated = prev.map(a => a.id === aptId ? { ...a, isCompleted: true, status: 'Completed' } : a);
+      localStorage.setItem('pm_appointments', JSON.stringify(updated));
+      return updated;
+    });
+    awardPoints(15);
+    showToast('Appointment marked as completed! (+15 pts)', 'success');
+  };
+
+  // Toggle Favorite Vet
+  const toggleFavoriteVet = (vetId) => {
+    setFavoriteVetIds(prev => {
+      const exists = prev.includes(vetId);
+      const updated = exists ? prev.filter(id => id !== vetId) : [...prev, vetId];
+      try {
+        localStorage.setItem('pm_favorite_vets', JSON.stringify(updated));
+      } catch (_) {}
+      showToast(exists ? 'Removed from favorite veterinarians.' : 'Added to favorite veterinarians! ❤️', exists ? 'info' : 'success');
+      return updated;
+    });
+  };
+
   // Add Medical Record
   const addMedicalRecord = async (recordData) => {
     const newRecord = {
@@ -1233,20 +1275,46 @@ export function AppProvider({ children }) {
   };
 
   // Checkout & Place Order
-  const checkoutOrder = async (deliveryAddress) => {
-    const subtotal = cart.reduce((acc, item) => acc + item.price * item.qty, 0);
-    const shipping = appliedCoupon?.discount === 'free_shipping' || subtotal > 50 ? 0 : 5.99;
+  const checkoutOrder = async (orderDataOrAddress) => {
+    let deliveryAddress = 'Home Address';
+    let phone = '';
+    let paymentMethod = 'bKash / Mobile Banking';
+    let shipping = appliedCoupon?.discount === 'free_shipping' ? 0 : 60;
+    let customTotal = null;
+    let orderItems = cart.map(i => ({ id: i.id, name: i.name, price: i.price, qty: i.qty }));
+
+    if (typeof orderDataOrAddress === 'string') {
+      deliveryAddress = orderDataOrAddress;
+    } else if (orderDataOrAddress && typeof orderDataOrAddress === 'object') {
+      deliveryAddress = orderDataOrAddress.address || deliveryAddress;
+      phone = orderDataOrAddress.phone || '';
+      paymentMethod = orderDataOrAddress.paymentMethod || paymentMethod;
+      if (orderDataOrAddress.shippingCharges !== undefined) {
+        shipping = orderDataOrAddress.shippingCharges;
+      }
+      if (orderDataOrAddress.total !== undefined) {
+        customTotal = orderDataOrAddress.total;
+      }
+      if (orderDataOrAddress.items) {
+        orderItems = orderDataOrAddress.items;
+      }
+    }
+
+    const subtotal = orderItems.reduce((acc, item) => acc + item.price * item.qty, 0);
     const discount = typeof appliedCoupon?.discount === 'number' ? subtotal * appliedCoupon.discount : 0;
-    const total = Math.max(0, subtotal - discount + shipping);
+    const calculatedTotal = Math.max(0, subtotal - discount + shipping);
+    const total = customTotal !== null ? customTotal : parseFloat(calculatedTotal.toFixed(2));
 
     const newOrder = {
       orderId: 'PM-ORD-' + Math.floor(1000 + Math.random() * 9000),
-      items: cart.map(i => ({ id: i.id, name: i.name, price: i.price, qty: i.qty })),
+      items: orderItems,
       subtotal,
       shipping,
       discount,
-      total: parseFloat(total.toFixed(2)),
-      deliveryAddress: deliveryAddress || 'Home Address',
+      total,
+      phone,
+      paymentMethod,
+      deliveryAddress,
       status: 'In Preparation',
       date: new Date().toISOString().split('T')[0],
       timestamp: Date.now(),
@@ -1520,6 +1588,9 @@ export function AppProvider({ children }) {
       appointments,
       addAppointment,
       removeAppointment,
+      completeAppointment,
+      favoriteVetIds,
+      toggleFavoriteVet,
       medicalRecords,
       addMedicalRecord,
       cart,
@@ -1533,6 +1604,7 @@ export function AppProvider({ children }) {
       applyCoupon,
       orders,
       checkoutOrder,
+      placeOrder: checkoutOrder,
       updateOrderStatus,
       deleteOrder,
       updateUserRole,

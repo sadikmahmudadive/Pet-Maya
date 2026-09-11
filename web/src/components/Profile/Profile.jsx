@@ -30,7 +30,8 @@ import {
   Pencil,
   Camera,
   Radio,
-  FileCheck
+  FileCheck,
+  Sparkles
 } from 'lucide-react';
 import { AppleReveal } from '../Animations/AppleReveal';
 import { AppleStagger } from '../Animations/AppleStagger';
@@ -194,7 +195,12 @@ export default function Profile() {
         <div style={{ padding: '0 20px 20px', textAlign: 'left' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--primary)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Pet Family</span>
-            <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--primary)', cursor: 'pointer' }} onClick={() => openModal('addPet')}>+ ADD PET</span>
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+              <span style={{ fontSize: '11px', fontWeight: 700, color: '#3B82F6', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '3px' }} onClick={() => openModal('breedFinder')}>
+                <Sparkles size={12} /> AI BREED FINDER
+              </span>
+              <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--primary)', cursor: 'pointer' }} onClick={() => openModal('addPet')}>+ ADD PET</span>
+            </div>
           </div>
           <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
             {pets && pets.length > 0 ? pets.map(p => (
@@ -336,12 +342,34 @@ export default function Profile() {
           <div 
             className="apple-solid-card" 
             style={{ padding: '18px 20px', flexDirection: 'row', alignItems: 'center', gap: '12px', justifyContent: 'flex-start', cursor: 'pointer' }}
-            onClick={() => setActiveTab('vets')}
+            onClick={() => openModal('myAppointments')}
+          >
+            <Calendar size={18} color="var(--primary)" />
+            <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
+              <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-main)' }}>My Appointments</span>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Clinic &amp; Video</span>
+            </div>
+          </div>
+          <div 
+            className="apple-solid-card" 
+            style={{ padding: '18px 20px', flexDirection: 'row', alignItems: 'center', gap: '12px', justifyContent: 'flex-start', cursor: 'pointer' }}
+            onClick={() => openModal('favoriteVets')}
           >
             <Heart size={18} color="#E91E63" />
             <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
               <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-main)' }}>Favorite Specialists</span>
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Book care</span>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Saved doctors</span>
+            </div>
+          </div>
+          <div 
+            className="apple-solid-card" 
+            style={{ padding: '18px 20px', flexDirection: 'row', alignItems: 'center', gap: '12px', justifyContent: 'flex-start', cursor: 'pointer' }}
+            onClick={() => openModal('breedFinder')}
+          >
+            <Sparkles size={18} color="#3B82F6" />
+            <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
+              <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-main)' }}>AI Breed Finder</span>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Vision ID</span>
             </div>
           </div>
           <div className="apple-solid-card" style={{ padding: '18px 20px', flexDirection: 'row', alignItems: 'center', gap: '12px', justifyContent: 'flex-start', cursor: 'pointer' }} onClick={toggleTheme}>

@@ -18,6 +18,8 @@ import {
   Zap,
   Radio,
   FileCheck,
+  Sparkles,
+  Heart,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AppleReveal } from '../Animations/AppleReveal';
@@ -411,23 +413,16 @@ export default function Dashboard() {
       return dateA - dateB;
     });
 
-  // ── Quick actions (expanded to 6) ──────────────────────────────────────────
-  // ── Quick actions (8 actions) ──────────────────────────────────────────
+  // ── Quick actions (8 distinct actions) ──────────────────────────────────
   const quickActions = [
-    { label: 'Book Vet',   icon: Stethoscope, color: '#10B981', bg: 'rgba(16,185,129,0.1)',  action: () => openModal('booking') },
-    { label: 'Tracker',   icon: MapPin,       color: '#3B82F6', bg: 'rgba(59,130,246,0.1)',  action: () => setActiveTab('tracker') },
-    { label: 'Reminder',  icon: Syringe,      color: '#F59E0B', bg: 'rgba(245,158,11,0.1)', action: () => openModal('booking') },
-    { label: 'Shop',      icon: ShoppingBag,  color: '#8B5CF6', bg: 'rgba(139,92,246,0.1)', action: () => setActiveTab('shop') },
-    { label: 'AI Scan',   icon: Cpu,          color: '#EC4899', bg: 'rgba(236,72,153,0.1)',  action: () => setActiveTab('ai') },
-    { label: 'Community', icon: Zap,          color: '#0EA5E9', bg: 'rgba(14,165,233,0.1)', action: () => setActiveTab('community') },
-    { label: 'Book Vet',    icon: Stethoscope, color: '#10B981', bg: 'rgba(16,185,129,0.1)',  action: () => openModal('booking') },
-    { label: 'Live Radar',  icon: MapPin,       color: '#3B82F6', bg: 'rgba(59,130,246,0.1)',  action: () => setActiveTab('tracker') },
-    { label: 'My Devices',  icon: Radio,        color: '#06B6D4', bg: 'rgba(6,182,212,0.1)',   action: () => openModal('myDevices') },
-    { label: 'Passport',    icon: FileCheck,    color: '#6366F1', bg: 'rgba(99,102,241,0.1)',  action: () => openModal('petPassport') },
-    { label: 'AI Scan',     icon: Cpu,          color: '#EC4899', bg: 'rgba(236,72,153,0.1)',  action: () => setActiveTab('ai') },
-    { label: 'Reminder',   icon: Syringe,      color: '#F59E0B', bg: 'rgba(245,158,11,0.1)', action: () => openModal('booking') },
-    { label: 'Shop',       icon: ShoppingBag,  color: '#8B5CF6', bg: 'rgba(139,92,246,0.1)', action: () => setActiveTab('shop') },
-    { label: 'Community',  icon: Zap,          color: '#F43F5E', bg: 'rgba(244,63,94,0.1)',   action: () => setActiveTab('community') },
+    { label: 'Book Vet',      icon: Stethoscope, color: '#10B981', bg: 'rgba(16,185,129,0.1)', action: () => openModal('booking') },
+    { label: 'Appointments',  icon: Calendar,    color: '#3B82F6', bg: 'rgba(59,130,246,0.1)', action: () => openModal('myAppointments') },
+    { label: 'Breed Finder',  icon: Sparkles,    color: '#8B5CF6', bg: 'rgba(139,92,246,0.1)', action: () => openModal('breedFinder') },
+    { label: 'Favorites',     icon: Heart,       color: '#EC4899', bg: 'rgba(236,72,153,0.1)', action: () => openModal('favoriteVets') },
+    { label: 'Live Radar',    icon: MapPin,      color: '#0EA5E9', bg: 'rgba(14,165,233,0.1)', action: () => setActiveTab('tracker') },
+    { label: 'My Devices',    icon: Radio,       color: '#06B6D4', bg: 'rgba(6,182,212,0.1)',  action: () => openModal('myDevices') },
+    { label: 'Pet Passport',  icon: FileCheck,   color: '#6366F1', bg: 'rgba(99,102,241,0.1)', action: () => openModal('petPassport') },
+    { label: 'Pet Shop',      icon: ShoppingBag, color: '#F59E0B', bg: 'rgba(245,158,11,0.1)', action: () => setActiveTab('shop') },
   ];
 
   // Appointment type colors
@@ -611,7 +606,6 @@ export default function Dashboard() {
                 </span>
 
                 {/* GPS Collar Badge */}
-                <CollarBadge />
                 <CollarBadge device={petDevice} onClick={() => openModal('myDevices')} />
               </motion.div>
             );
@@ -665,14 +659,6 @@ export default function Dashboard() {
             paddingBottom: '4px',
             scrollbarWidth: 'none',
           }}>
-            {pets.map((pet, petIdx) => (
-              <PetHealthCard
-                key={pet.id || pet.petID}
-                pet={pet}
-                score={MOCK_HEALTH_SCORES[petIdx % MOCK_HEALTH_SCORES.length]}
-                activityPct={MOCK_ACTIVITY_PCTS[petIdx % MOCK_ACTIVITY_PCTS.length]}
-              />
-            ))}
             {pets.map((pet, petIdx) => {
               const petDevice = devices?.find(d => 
                 (d.petName && pet.name && d.petName.toLowerCase() === pet.name.toLowerCase()) || 
@@ -697,13 +683,24 @@ export default function Dashboard() {
       <AppleReveal delay={0.14} yOffset={16}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
           <h2 style={{ fontSize: '19px', fontWeight: 700, letterSpacing: '-0.025em', margin: 0 }}>Upcoming Events</h2>
-          <button
-            className="btn-minimal"
-            onClick={() => openModal('booking')}
-          >
-            <Plus size={13} />
-            Book
-          </button>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <button
+              className="btn-minimal"
+              onClick={() => openModal('myAppointments')}
+              style={{ fontSize: '12px' }}
+            >
+              <Calendar size={13} />
+              View All ({appointments?.length || 0})
+            </button>
+            <button
+              className="btn-minimal"
+              onClick={() => openModal('booking')}
+              style={{ fontSize: '12px' }}
+            >
+              <Plus size={13} />
+              Book
+            </button>
+          </div>
         </div>
 
         {upcomingAppointments.length === 0 ? (

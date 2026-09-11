@@ -13,6 +13,9 @@ import EditPriceModal from './EditPriceModal';
 import EditProfileModal from './EditProfileModal';
 import MyDevicesModal from './MyDevicesModal';
 import PetPassportModal from './PetPassportModal';
+import MyAppointmentsModal from './MyAppointmentsModal';
+import BreedFinderModal from './BreedFinderModal';
+import FavoriteVetsModal from './FavoriteVetsModal';
 
 export default function ModalRoot() {
   const { activeModal } = useApp();
@@ -47,6 +50,12 @@ export default function ModalRoot() {
       return <MyDevicesModal />;
     case 'petPassport':
       return <PetPassportModal />;
+    case 'myAppointments':
+      return <MyAppointmentsModal />;
+    case 'breedFinder':
+      return <BreedFinderModal />;
+    case 'favoriteVets':
+      return <FavoriteVetsModal />;
     default:
       return null;
   }

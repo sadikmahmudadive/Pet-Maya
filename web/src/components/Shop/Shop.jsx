@@ -304,10 +304,25 @@ export default function Shop() {
                     <Heart size={15} color={isWished ? '#EF4444' : 'var(--text-muted)'} fill={isWished ? '#EF4444' : 'none'} />
                   </button>
 
-                  <button className="apple-link-cta" style={{ fontSize: '14px' }} onClick={() => addToCart(p)}>
-                    <span>Buy</span>
-                    <ChevronRight size={14} />
-                  </button>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginLeft: 'auto' }}>
+                    <button 
+                      className="btn-ghost" 
+                      style={{ padding: '5px 9px', fontSize: '12px', borderRadius: '14px', border: '1px solid var(--border)' }} 
+                      onClick={() => addToCart(p)}
+                      title="Add to Cart"
+                    >
+                      <Plus size={12} />
+                      <span>Add</span>
+                    </button>
+                    <button 
+                      className="apple-link-cta" 
+                      style={{ fontSize: '13px', fontWeight: 800 }} 
+                      onClick={() => openModal('checkout', { product: p })}
+                    >
+                      <span>Buy Now</span>
+                      <ChevronRight size={13} />
+                    </button>
+                  </div>
                 </div>
                 
               </div>

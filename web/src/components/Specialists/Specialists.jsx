@@ -89,8 +89,8 @@ function RatingBreakdown({ reviews }) {
 }
 
 export default function Specialists() {
-  const { vets, isVetsLoading, openModal } = useApp();
-  const { currentUser, toggleFavoriteVet } = useAuth();
+  const { vets, isVetsLoading, openModal, favoriteVetIds, toggleFavoriteVet } = useApp();
+  const { currentUser } = useAuth();
 
   const [searchQuery,        setSearchQuery]        = useState('');
   const [selectedCategory,   setSelectedCategory]   = useState('all');
@@ -131,10 +131,21 @@ export default function Specialists() {
           <h1 style={{ fontSize: '28px', fontWeight: 700, letterSpacing: '-0.03em' }}>Specialists &amp; Clinicians</h1>
           <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Discover verified veterinarians, specialist surgeons, grooming spas &amp; boarding resorts.</p>
         </div>
-        <button className="apple-btn-blue" onClick={() => openModal('booking')}>
-          <Calendar size={15} />
-          <span>Book In-Clinic Visit</span>
-        </button>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <button 
+            type="button"
+            className="btn-secondary" 
+            style={{ padding: '8px 14px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+            onClick={() => openModal('favoriteVets')}
+          >
+            <Heart size={14} color="#EF4444" fill="#EF4444" />
+            <span>Saved Specialists</span>
+          </button>
+          <button className="apple-btn-blue" onClick={() => openModal('booking')}>
+            <Calendar size={15} />
+            <span>Book In-Clinic Visit</span>
+          </button>
+        </div>
       </div>
 
       {/* ── 24/7 EMERGENCY ON-CALL BANNER ── */}
@@ -263,7 +274,7 @@ export default function Specialists() {
           ))
         ) : (
           filteredVets.map((v) => {
-          const isFav = currentUser?.favoriteVetIds?.includes(v.id);
+          const isFav = (currentUser?.favoriteVetIds || favoriteVetIds || []).includes(v.id);
           const isVet = (v.tag || '').toLowerCase().includes('vet');
 
           return (
