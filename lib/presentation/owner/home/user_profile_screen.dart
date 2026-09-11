@@ -12,6 +12,7 @@ import '../../../core/services/firebase_storage_service.dart';
 import '../../common_widgets/premium_card.dart';
 import '../../auth/login_screen.dart';
 import '../services/favorite_vets_screen.dart';
+import '../services/my_appointments_screen.dart';
 import '../shop/orders_screen.dart';
 import '../pets/my_pets_screen.dart';
 import '../devices/my_devices_screen.dart';
@@ -243,6 +244,19 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     const SizedBox(height: 10),
                     _buildGroupedCard(
                       children: [
+                        _buildSettingsRow(
+                          icon: Icons.calendar_month_rounded,
+                          iconColor: const Color(0xFF00B16A),
+                          title: 'My Appointments',
+                          subtitle: 'View upcoming & past care sessions',
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const MyAppointmentsScreen(),
+                            ),
+                          ),
+                        ),
+                        _buildDivider(isDark),
                         _buildSettingsRow(
                           icon: Icons.local_mall_rounded,
                           iconColor: AppColors.healthGreen,
