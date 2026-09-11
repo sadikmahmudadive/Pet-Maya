@@ -41,35 +41,41 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
 
   Future<void> _pickAndUploadReport(BuildContext context, PetModel pet) async {
     final repo = context.read<AppStateRepository>();
+    HapticFeedback.lightImpact();
+
     try {
-      // In file_picker 8.3.x, use FilePicker.platform.pickFiles
-      final result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['pdf'],
-        allowMultiple: false,
-      );
+      FilePickerResult? result;
+      try {
+        result = await FilePicker.platform.pickFiles(
+          type: FileType.custom,
+          allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+          allowMultiple: false,
+        );
+      } catch (_) {
+        result = await FilePicker.platform.pickFiles(
+          type: FileType.any,
+          allowMultiple: false,
+        );
+      }
 
       if (result != null && result.files.single.path != null) {
-        setState(() => _isUploadingReport = true);
         if (mounted) setState(() => _isUploadingReport = true);
         final file = File(result.files.single.path!);
-        final repo = context.read<AppStateRepository>();
 
         await repo.uploadDiagnosticReport(
           petId: pet.petID,
           petName: pet.name,
-          title: 'Lab Report: ${result.files.single.name}',
+          title: 'Clinical Report: ${result.files.single.name}',
           file: file,
         );
 
         if (mounted) {
-          repo.showToast('Diagnostic report uploaded successfully! 📄', context: context);
+          repo.showToast('Clinical report uploaded successfully! 📄');
         }
       }
     } catch (e) {
       if (mounted) {
-        context.read<AppStateRepository>().showToast('Upload failed: $e', type: ToastType.error, context: context);
-        repo.showToast('Upload failed: $e', type: ToastType.error, context: context);
+        repo.showToast('Upload failed: $e', type: ToastType.error);
       }
     } finally {
       if (mounted) setState(() => _isUploadingReport = false);
@@ -670,18 +676,15 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                           ),
                         ),
                         const SizedBox(height: 10),
-                        BouncingWidget(
-                          onTap: () => _pickAndUploadReport(context, pet),
-                          child: _buildStatusTile(
-                            context,
-                            'Clinical Reports',
-                            'Upload and store medical PDFs',
-                            'EHR',
-                            Icons.picture_as_pdf_rounded,
-                            const Color(0xFFE8F1F6),
-                            AppColors.primary,
-                            null, // null because we're wrapping it in BouncingWidget
-                          ),
+                        _buildStatusTile(
+                          context,
+                          'Clinical Reports',
+                          'Upload and store medical PDFs',
+                          'EHR',
+                          Icons.picture_as_pdf_rounded,
+                          const Color(0xFFE8F1F6),
+                          AppColors.primary,
+                          () => _pickAndUploadReport(context, pet),
                         ),
                         const SizedBox(height: 10),
                         _buildStatusTile(
