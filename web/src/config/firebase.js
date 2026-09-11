@@ -133,5 +133,20 @@ export const INITIAL_POSTS = [
     likes: 19,
     likedByMe: false,
     comments: []
+  },
+  {
+    id: 'post-3',
+    author: 'Rahim Chowdhury',
+    authorAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80',
+    petTag: 'Bruno (Golden Retriever)',
+    category: 'Lost & Found',
+    timestamp: '45 mins ago',
+    content: '🚨 LOST PET ALERT: Bruno slipped his leash near Gulshan Lake Park! He is wearing an orange collar with PetMaya BLE Tag (PM-BLE-4109). Microchip #BD-982-004-912. Very friendly. Please call +880 1712-345678 if sighted! 🙏🐾',
+    image: 'https://images.unsplash.com/photo-1537151625747-768eb6cf92b2?w=600&auto=format&fit=crop&q=80',
+    likes: 42,
+    likedByMe: false,
+    comments: [
+      { author: 'Dr. Sarah Jenkins', text: 'Alert sent to nearby clinic networks in Gulshan & Banani! Hope Bruno is safely home soon.' }
+    ]
   }
 ];

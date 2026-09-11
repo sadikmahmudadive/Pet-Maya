@@ -111,6 +111,10 @@ const googleMapsDarkTheme = [
 export default function PetTracker() {
   const { 
     pets, 
+    devices,
+    openModal,
+    triggerRingDevice,
+    ringingDeviceId,
     showToast,
     userLiveLocation,
     requestLocationPermission,
@@ -1194,53 +1198,107 @@ export default function PetTracker() {
           {activeDeckTab === 'hardware' && (
             <AppleReveal duration={0.3} yOffset={10}>
               <div className="apple-solid-card" style={{ padding: '24px', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <span className="label-mini">Pet Maya Collar Telemetry</span>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <Battery size={17} color="#10B981" />
-                      <div>
-                        <strong style={{ fontSize: '13.5px', color: 'var(--text-main)', display: 'block' }}>Battery Power</strong>
-                        <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>Est. 4 Days Remaining</span>
-                      </div>
-                    </div>
-                    <span style={{ fontSize: '14px', fontWeight: 800, color: '#10B981' }}>{batteryLevel}%</span>
-                  </div>
-
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border)', paddingTop: '10px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <Satellite size={17} color="#38BDF8" />
-                      <div>
-                        <strong style={{ fontSize: '13.5px', color: 'var(--text-main)', display: 'block' }}>GNSS Satellite Lock</strong>
-                        <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>16 Satellites (L1/L5 Dual-Band)</span>
-                      </div>
-                    </div>
-                    <span className="badge badge-blue">High Lock</span>
-                  </div>
-
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border)', paddingTop: '10px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <Thermometer size={17} color="#F59E0B" />
-                      <div>
-                        <strong style={{ fontSize: '13.5px', color: 'var(--text-main)', display: 'block' }}>Collar Temperature</strong>
-                        <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>Body Contact Sensor</span>
-                      </div>
-                    </div>
-                    <span style={{ fontSize: '13.5px', fontWeight: 700, color: 'var(--text-main)' }}>23.8°C</span>
-                  </div>
-
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border)', paddingTop: '10px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <Cpu size={17} color="#A855F7" />
-                      <div>
-                        <strong style={{ fontSize: '13.5px', color: 'var(--text-main)', display: 'block' }}>Firmware &amp; Specs</strong>
-                        <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>v2.4.1 • IP68 Waterproof</span>
-                      </div>
-                    </div>
-                    <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Up to date</span>
-                  </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span className="label-mini">Pet Maya Collar Telemetry</span>
+                  <button 
+                    onClick={() => openModal('myDevices')}
+                    style={{ background: 'none', border: 'none', color: 'var(--primary)', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer' }}
+                  >
+                    Manage Trackers ({devices?.length || 0})
+                  </button>
                 </div>
+
+                {(() => {
+                  const assignedDevice = devices?.find(d => d.petId === activePet.id) || devices?.[0];
+                  const isRinging = ringingDeviceId === assignedDevice?.id;
+
+                  if (!assignedDevice) {
+                    return (
+                      <div style={{ textAlign: 'center', padding: '20px 10px', background: 'var(--surface-solid)', borderRadius: '14px' }}>
+                        <Radio size={28} color="var(--primary)" style={{ margin: '0 auto 8px' }} />
+                        <strong style={{ fontSize: '14px', display: 'block', color: 'var(--text-main)' }}>No Tracker Paired</strong>
+                        <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '4px 0 14px' }}>Pair a GPS collar or BLE tag to enable real-time telemetry.</p>
+                        <button className="apple-btn-blue" style={{ fontSize: '12.5px', padding: '8px 16px' }} onClick={() => openModal('myDevices')}>
+                          Pair Tracker Hardware
+                        </button>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <Battery size={17} color="#10B981" />
+                          <div>
+                            <strong style={{ fontSize: '13.5px', color: 'var(--text-main)', display: 'block' }}>{assignedDevice.name}</strong>
+                            <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>{assignedDevice.serialNumber} • {assignedDevice.trackingMode}</span>
+                          </div>
+                        </div>
+                        <span style={{ fontSize: '14px', fontWeight: 800, color: (assignedDevice.batteryLevel || 88) > 50 ? '#10B981' : '#F59E0B' }}>
+                          {assignedDevice.batteryLevel || 88}%
+                        </span>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border)', paddingTop: '10px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <Satellite size={17} color="#38BDF8" />
+                          <div>
+                            <strong style={{ fontSize: '13.5px', color: 'var(--text-main)', display: 'block' }}>GNSS Satellite Lock</strong>
+                            <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>{assignedDevice.signalStrength || 4}/4 Bars • Dual-Band L1/L5</span>
+                          </div>
+                        </div>
+                        <span className="badge badge-blue">High Lock</span>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border)', paddingTop: '10px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <Thermometer size={17} color="#F59E0B" />
+                          <div>
+                            <strong style={{ fontSize: '13.5px', color: 'var(--text-main)', display: 'block' }}>Collar Temperature</strong>
+                            <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>Body Contact Sensor</span>
+                          </div>
+                        </div>
+                        <span style={{ fontSize: '13.5px', fontWeight: 700, color: 'var(--text-main)' }}>23.8°C</span>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border)', paddingTop: '10px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <Cpu size={17} color="#A855F7" />
+                          <div>
+                            <strong style={{ fontSize: '13.5px', color: 'var(--text-main)', display: 'block' }}>Firmware &amp; Specs</strong>
+                            <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>{assignedDevice.firmwareVersion || 'v2.4.1'} • IP68 Waterproof</span>
+                          </div>
+                        </div>
+                        <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Up to date</span>
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '6px' }}>
+                        <button 
+                          className="btn-ghost" 
+                          style={{ 
+                            padding: '9px', 
+                            fontSize: '12.5px', 
+                            color: isRinging ? '#EF4444' : 'var(--text-main)',
+                            borderColor: isRinging ? '#EF4444' : 'var(--border)'
+                          }}
+                          onClick={() => triggerRingDevice(assignedDevice)}
+                        >
+                          <Volume2 size={14} />
+                          <span>{isRinging ? 'Ringing...' : 'Chime / Siren'}</span>
+                        </button>
+                        <button 
+                          className="apple-btn-blue" 
+                          style={{ padding: '9px', fontSize: '12.5px' }}
+                          onClick={() => openModal('myDevices')}
+                        >
+                          <Settings size={14} />
+                          <span>Configure</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             </AppleReveal>
           )}

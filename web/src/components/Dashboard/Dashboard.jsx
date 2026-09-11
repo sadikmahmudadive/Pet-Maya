@@ -16,6 +16,8 @@ import {
   Wifi,
   Cpu,
   Zap,
+  Radio,
+  FileCheck,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AppleReveal } from '../Animations/AppleReveal';
@@ -78,17 +80,33 @@ function HealthScoreRing({ score = 90, size = 80, strokeWidth = 4 }) {
 }
 
 // ─── GPS Collar Badge ─────────────────────────────────────────────────────────
-function CollarBadge() {
+function CollarBadge({ device, onClick }) {
+  const isOnline = device ? device.isOnline : true;
+  const label = device 
+    ? (device.deviceType === 'gps_collar' ? `Collar (${device.batteryLevel}%)` : `Tag (${device.batteryLevel}%)`)
+    : 'Collar Active';
+
   return (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      gap: '4px',
-      background: 'rgba(16,185,129,0.1)',
-      borderRadius: '999px',
-      padding: '2px 7px',
-      marginTop: -2,
-    }}>
+    <div 
+      onClick={(e) => {
+        if (onClick) {
+          e.stopPropagation();
+          onClick();
+        }
+      }}
+      title="Click to manage PetMaya Trackers"
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '4px',
+        background: isOnline ? 'rgba(16,185,129,0.12)' : 'rgba(156,163,175,0.12)',
+        borderRadius: '999px',
+        padding: '2px 8px',
+        marginTop: -2,
+        cursor: onClick ? 'pointer' : 'default',
+        transition: 'transform 0.15s ease',
+      }}
+    >
       <span style={{ position: 'relative', display: 'inline-flex', width: 7, height: 7 }}>
         <motion.span
           animate={{ scale: [1, 1.8, 1], opacity: [1, 0, 1] }}
@@ -97,27 +115,27 @@ function CollarBadge() {
             position: 'absolute',
             inset: 0,
             borderRadius: '50%',
-            background: '#10B981',
+            background: isOnline ? '#10B981' : '#9CA3AF',
             opacity: 0.5,
           }}
         />
         <span style={{
           width: 7, height: 7,
           borderRadius: '50%',
-          background: '#10B981',
+          background: isOnline ? '#10B981' : '#9CA3AF',
           display: 'block',
           position: 'relative',
         }} />
       </span>
-      <span style={{ fontSize: '9px', fontWeight: 700, color: '#10B981', letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>
-        Collar Active
+      <span style={{ fontSize: '9px', fontWeight: 700, color: isOnline ? '#10B981' : '#9CA3AF', letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>
+        {label}
       </span>
     </div>
   );
 }
 
 // ─── Pet Health Summary Card ──────────────────────────────────────────────────
-function PetHealthCard({ pet, score, activityPct }) {
+function PetHealthCard({ pet, score, activityPct, device, onClick }) {
   const scoreColor =
     score >= 90 ? '#10B981' :
     score >= 75 ? '#F59E0B' :
@@ -127,7 +145,9 @@ function PetHealthCard({ pet, score, activityPct }) {
     <motion.div
       whileHover={{ y: -3, boxShadow: 'var(--shadow-md)' }}
       whileTap={{ scale: 0.97 }}
+      onClick={onClick}
       transition={{ type: 'spring', stiffness: 380, damping: 26 }}
+      title={`${pet.name} — Click to view Passport`}
       style={{
         background: 'var(--surface-alt)',
         borderRadius: '16px',
@@ -137,6 +157,7 @@ function PetHealthCard({ pet, score, activityPct }) {
         display: 'flex',
         flexDirection: 'column',
         gap: '10px',
+        cursor: onClick ? 'pointer' : 'default',
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
@@ -179,8 +200,13 @@ function PetHealthCard({ pet, score, activityPct }) {
         </div>
       </div>
 
-      <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 500 }}>
-        {pet.breed || pet.species || 'Pet'}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '10px', color: 'var(--text-muted)', fontWeight: 500 }}>
+        <span>{pet.breed || pet.species || 'Pet'}</span>
+        {device && (
+          <span style={{ color: '#10B981', fontWeight: 600 }}>
+            ⚡ {device.batteryLevel}%
+          </span>
+        )}
       </div>
     </motion.div>
   );
@@ -244,7 +270,7 @@ const MOCK_HEALTH_SCORES  = [92, 85, 98, 88, 91, 95];
 const MOCK_ACTIVITY_PCTS  = [78, 62, 95, 71, 83, 88];
 
 export default function Dashboard() {
-  const { pets, vets, appointments, removeAppointment, setActiveTab, openModal, showToast } = useApp();
+  const { pets, vets, appointments, devices, removeAppointment, setActiveTab, openModal, showToast } = useApp();
   const { currentUser } = useAuth();
 
   // Dynamic greeting based on user's current local hour
@@ -385,14 +411,16 @@ export default function Dashboard() {
       return dateA - dateB;
     });
 
-  // ── Quick actions (expanded to 6) ──────────────────────────────────────────
+  // ── Quick actions (8 actions) ──────────────────────────────────────────
   const quickActions = [
-    { label: 'Book Vet',   icon: Stethoscope, color: '#10B981', bg: 'rgba(16,185,129,0.1)',  action: () => openModal('booking') },
-    { label: 'Tracker',   icon: MapPin,       color: '#3B82F6', bg: 'rgba(59,130,246,0.1)',  action: () => setActiveTab('tracker') },
-    { label: 'Reminder',  icon: Syringe,      color: '#F59E0B', bg: 'rgba(245,158,11,0.1)', action: () => openModal('booking') },
-    { label: 'Shop',      icon: ShoppingBag,  color: '#8B5CF6', bg: 'rgba(139,92,246,0.1)', action: () => setActiveTab('shop') },
-    { label: 'AI Scan',   icon: Cpu,          color: '#EC4899', bg: 'rgba(236,72,153,0.1)',  action: () => setActiveTab('ai') },
-    { label: 'Community', icon: Zap,          color: '#0EA5E9', bg: 'rgba(14,165,233,0.1)', action: () => setActiveTab('community') },
+    { label: 'Book Vet',    icon: Stethoscope, color: '#10B981', bg: 'rgba(16,185,129,0.1)',  action: () => openModal('booking') },
+    { label: 'Live Radar',  icon: MapPin,       color: '#3B82F6', bg: 'rgba(59,130,246,0.1)',  action: () => setActiveTab('tracker') },
+    { label: 'My Devices',  icon: Radio,        color: '#06B6D4', bg: 'rgba(6,182,212,0.1)',   action: () => openModal('myDevices') },
+    { label: 'Passport',    icon: FileCheck,    color: '#6366F1', bg: 'rgba(99,102,241,0.1)',  action: () => openModal('petPassport') },
+    { label: 'AI Scan',     icon: Cpu,          color: '#EC4899', bg: 'rgba(236,72,153,0.1)',  action: () => setActiveTab('ai') },
+    { label: 'Reminder',   icon: Syringe,      color: '#F59E0B', bg: 'rgba(245,158,11,0.1)', action: () => openModal('booking') },
+    { label: 'Shop',       icon: ShoppingBag,  color: '#8B5CF6', bg: 'rgba(139,92,246,0.1)', action: () => setActiveTab('shop') },
+    { label: 'Community',  icon: Zap,          color: '#F43F5E', bg: 'rgba(244,63,94,0.1)',   action: () => setActiveTab('community') },
   ];
 
   // Appointment type colors
@@ -526,13 +554,18 @@ export default function Dashboard() {
           {/* Existing pets as circles with health ring */}
           {pets.map((pet, petIdx) => {
             const healthScore = MOCK_HEALTH_SCORES[petIdx % MOCK_HEALTH_SCORES.length];
+            const petDevice = devices?.find(d => 
+              (d.petName && pet.name && d.petName.toLowerCase() === pet.name.toLowerCase()) || 
+              (d.petId && (d.petId === pet.id || d.petId === pet.petID))
+            );
             return (
               <motion.div
                 key={pet.id || pet.petID}
                 whileHover={{ scale: 1.06, y: -2 }}
                 whileTap={{ scale: 0.94 }}
                 transition={{ type: 'spring', stiffness: 400, damping: 26 }}
-                onClick={() => setActiveTab('tracker')}
+                onClick={() => openModal('petPassport')}
+                title={`${pet.name} — Click to view Digital Pet Passport`}
                 style={{
                   display: 'flex',
                   flexDirection: 'column',
@@ -571,7 +604,7 @@ export default function Dashboard() {
                 </span>
 
                 {/* GPS Collar Badge */}
-                <CollarBadge />
+                <CollarBadge device={petDevice} onClick={() => openModal('myDevices')} />
               </motion.div>
             );
           })}
@@ -624,14 +657,22 @@ export default function Dashboard() {
             paddingBottom: '4px',
             scrollbarWidth: 'none',
           }}>
-            {pets.map((pet, petIdx) => (
-              <PetHealthCard
-                key={pet.id || pet.petID}
-                pet={pet}
-                score={MOCK_HEALTH_SCORES[petIdx % MOCK_HEALTH_SCORES.length]}
-                activityPct={MOCK_ACTIVITY_PCTS[petIdx % MOCK_ACTIVITY_PCTS.length]}
-              />
-            ))}
+            {pets.map((pet, petIdx) => {
+              const petDevice = devices?.find(d => 
+                (d.petName && pet.name && d.petName.toLowerCase() === pet.name.toLowerCase()) || 
+                (d.petId && (d.petId === pet.id || d.petId === pet.petID))
+              );
+              return (
+                <PetHealthCard
+                  key={pet.id || pet.petID}
+                  pet={pet}
+                  device={petDevice}
+                  score={MOCK_HEALTH_SCORES[petIdx % MOCK_HEALTH_SCORES.length]}
+                  activityPct={MOCK_ACTIVITY_PCTS[petIdx % MOCK_ACTIVITY_PCTS.length]}
+                  onClick={() => openModal('petPassport')}
+                />
+              );
+            })}
           </div>
         </AppleReveal>
       )}

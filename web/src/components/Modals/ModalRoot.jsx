@@ -11,6 +11,8 @@ import ReviewModal from './ReviewModal';
 import AddRecordModal from './AddRecordModal';
 import EditPriceModal from './EditPriceModal';
 import EditProfileModal from './EditProfileModal';
+import MyDevicesModal from './MyDevicesModal';
+import PetPassportModal from './PetPassportModal';
 
 export default function ModalRoot() {
   const { activeModal } = useApp();
@@ -40,6 +42,11 @@ export default function ModalRoot() {
       return <AddRecordModal />;
     case 'editPrice':
       return <EditPriceModal />;
+    case 'myDevices':
+    case 'pairDevice':
+      return <MyDevicesModal />;
+    case 'petPassport':
+      return <PetPassportModal />;
     default:
       return null;
   }

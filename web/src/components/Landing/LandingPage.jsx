@@ -5,7 +5,7 @@ import { motion, useScroll, useTransform, useSpring, AnimatePresence } from 'fra
 import { 
   Radar, Activity, Utensils, Stethoscope, ShoppingBag, Bell, 
   Download, Smartphone, ChevronRight, ShieldCheck, ExternalLink,
-  Sparkles, Heart, BookOpen, MapPin, MessageCircle, Calendar, Syringe, Star, ChevronDown
+  Sparkles, Heart, BookOpen, MapPin, MessageCircle, Calendar, Syringe, Star, ChevronDown, AlertTriangle
 } from 'lucide-react';
 
 // ── FAQ ACCORDION COMPONENT ──
@@ -108,22 +108,22 @@ export default function LandingPage() {
 
   // Feature items for ecosystem card
   const ecosystemFeatures = [
-    { id: 'tracker',   icon: Radar,         title: 'Tracker',     subtitle: 'Live GPS location',     color: '#10B981', bg: 'rgba(16,185,129,0.18)' },
-    { id: 'ai',        icon: Activity,      title: 'Wellness',    subtitle: 'AI health scan',        color: '#3B82F6', bg: 'rgba(59,130,246,0.18)' },
-    { id: 'vets',      icon: Stethoscope,   title: 'Specialists', subtitle: '500+ Verified doctors', color: '#F59E0B', bg: 'rgba(245,158,11,0.18)' },
-    { id: 'shop',      icon: ShoppingBag,   title: 'Pet Shop',    subtitle: 'Nutrition & essentials', color: '#8B5CF6', bg: 'rgba(139,92,246,0.18)' },
-    { id: 'community', icon: MessageCircle, title: 'Community',   subtitle: 'Pet parent network',    color: '#06B6D4', bg: 'rgba(6,182,212,0.18)' },
-    { id: 'food',      icon: BookOpen,      title: 'Blog',        subtitle: 'Expert advice & diet',  color: '#EC4899', bg: 'rgba(236,72,153,0.18)' },
+    { id: 'tracker',   icon: Radar,         title: 'Hardware & GPS', subtitle: 'Live GPS & BLE Collars', color: '#10B981', bg: 'rgba(16,185,129,0.18)' },
+    { id: 'ai',        icon: Activity,      title: 'Wellness AI',    subtitle: 'Vision scan & body map',  color: '#3B82F6', bg: 'rgba(59,130,246,0.18)' },
+    { id: 'vets',      icon: Stethoscope,   title: 'Specialists',    subtitle: '500+ Verified doctors',    color: '#F59E0B', bg: 'rgba(245,158,11,0.18)' },
+    { id: 'shop',      icon: ShoppingBag,   title: 'Pet Pharmacy',   subtitle: 'Nutrition & RX items',     color: '#8B5CF6', bg: 'rgba(139,92,246,0.18)' },
+    { id: 'community', icon: AlertTriangle, title: 'Amber Alerts',   subtitle: 'Lost pet recovery grid',   color: '#EF4444', bg: 'rgba(239,68,68,0.18)' },
+    { id: 'vaccines',  icon: ShieldCheck,   title: 'Pet Passport',   subtitle: 'Microchip & rabies tag',   color: '#06B6D4', bg: 'rgba(6,182,212,0.18)' },
   ];
 
   // Bento grid features
   const bentoFeatures = [
-    { id: 'tracker',  title: 'Live GPS Radar',       eyebrow: 'Radar Telemetry',      color: '#10B981', icon: Radar,         desc: 'Sub-meter satellite tracking, safe perimeter geofencing, and smart biometric collar sensors.' },
-    { id: 'ai',       title: 'Wellness AI',          eyebrow: 'AI Diagnostics',       color: '#3B82F6', icon: Activity,      desc: 'Instant multi-modal neural triage for skin, eye, dental, and mobility conditions.' },
-    { id: 'vets',     title: 'Specialists',          eyebrow: 'Specialist Network',   color: '#F59E0B', icon: Stethoscope,   desc: 'In-clinic visits, surgery consultations, and HD teleconsultations with verified doctors.' },
-    { id: 'food',     title: 'Blog & Nutrition',     eyebrow: 'Precision Diet',       color: '#EC4899', icon: BookOpen,      desc: 'Scientific calorie calculators, portion guides, and breed-specific feeding plans.' },
-    { id: 'shop',     title: 'Pet Pharmacy',         eyebrow: 'Shop & Pharmacy',      color: '#8B5CF6', icon: ShoppingBag,   desc: 'Genuine prescription preventatives and specialty food with live order dispatch.' },
-    { id: 'vaccines', title: 'Medical Passport',     eyebrow: 'Immunization',         color: '#06B6D4', icon: Syringe,       desc: 'Automated immunization schedules, rabies tracking, and calendar export.' },
+    { id: 'tracker',  title: 'Hardware & GPS Radar', eyebrow: 'Smart Tracker Ecosystem', color: '#10B981', icon: Radar,         desc: 'Sub-meter multi-GNSS tracking, 85dB acoustic chime siren, geofence security perimeter, and BLE beacon pairing.' },
+    { id: 'ai',       title: 'Clinical AI Diagnostics', eyebrow: 'Vision & Body Triage',  color: '#3B82F6', icon: Activity,      desc: 'Instant multi-modal neural triage for dermatological, ocular, dental, and mobility conditions with interactive body maps.' },
+    { id: 'vets',     title: 'Veterinary Specialists', eyebrow: 'Specialist Network',     color: '#F59E0B', icon: Stethoscope,   desc: 'In-clinic appointments, surgical consultations, and 24/7 on-call HD teleconsultations with certified clinicians.' },
+    { id: 'community', title: 'Amber Alert Recovery',  eyebrow: 'Community Safe Shield',  color: '#EF4444', icon: AlertTriangle, desc: 'Instant neighborhood missing pet broadcasts, live sighting map alerts, and direct guardian emergency contact.' },
+    { id: 'vaccines', title: 'Digital Pet Passport',  eyebrow: 'Microchip & Biometrics', color: '#06B6D4', icon: ShieldCheck,   desc: 'Official ISO 11784 microchip registry, verified rabies immunity tracking, travel certifications, and QR lookup.' },
+    { id: 'shop',     title: 'Pet Pharmacy & Care',   eyebrow: 'Shop & Express Dispatch', color: '#8B5CF6', icon: ShoppingBag,   desc: 'Genuine veterinary-grade preventatives, clinical diets, and smart tech accessories with 24h express dispatch.' },
   ];
 
   return (
@@ -500,12 +500,12 @@ export default function LandingPage() {
           </motion.div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
             {[
-              { icon: Radar, color: '#10B981', title: 'GPS Accuracy', spec: '<2 meter', detail: 'Multi-constellation GNSS (GPS+GLONASS+Galileo) with Kalman filtering' },
+              { icon: Radar, color: '#10B981', title: 'Hardware Ecosystem', spec: 'Sub-meter GNSS', detail: 'Smart GPS collars, BLE beacons, 85dB acoustic siren & live telemetry' },
               { icon: Sparkles, color: '#3B82F6', title: 'AI Model', spec: 'Clinical V3.4', detail: '50,000+ veterinary case training set, multi-modal vision CNN architecture' },
-              { icon: ShieldCheck, color: '#F59E0B', title: 'Data Security', spec: 'AES-256', detail: 'End-to-end encrypted health records with Firebase Firestore backend' },
-              { icon: Bell, color: '#EC4899', title: 'Alert Latency', spec: '<3 seconds', detail: 'Real-time geofence breach push notification via FCM cloud messaging' },
+              { icon: ShieldCheck, color: '#06B6D4', title: 'Digital Passport', spec: 'ISO 11784', detail: 'Encrypted microchip registry, rabies verification & biometric recovery QR' },
+              { icon: AlertTriangle, color: '#EF4444', title: 'Amber Alert Net', spec: '<3 seconds', detail: 'Real-time neighborhood missing pet broadcasts & geofence perimeter alarms' },
               { icon: Activity, color: '#8B5CF6', title: 'Biometrics', spec: '8 sensors', detail: 'Heart rate, activity, temperature, humidity, orientation, steps, GPS, battery' },
-              { icon: Calendar, color: '#06B6D4', title: 'Uptime SLA', spec: '99.95%', detail: 'Firebase cloud infrastructure with automatic regional failover' },
+              { icon: Calendar, color: '#F59E0B', title: 'Uptime SLA', spec: '99.95%', detail: 'Firebase cloud infrastructure with automatic regional failover' },
             ].map((spec, idx) => (
               <motion.div
                 key={spec.title}
