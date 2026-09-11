@@ -27,6 +27,7 @@ import {
   Activity,
   Globe,
   ThumbsUp,
+  MessageSquare
   MessageSquare,
   AlertTriangle,
   PhoneCall
