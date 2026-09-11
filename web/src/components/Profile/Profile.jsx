@@ -29,12 +29,18 @@ import {
   Share2,
   Pencil,
   Camera
+  Share2, 
+  Pencil, 
+  Camera,
+  Radio,
+  FileCheck
 } from 'lucide-react';
 import { AppleReveal } from '../Animations/AppleReveal';
 import { AppleStagger } from '../Animations/AppleStagger';
 
 export default function Profile() {
   const { pets, orders, theme, toggleTheme, medicalRecords, openModal, showToast } = useApp();
+  const { pets, orders, devices, theme, toggleTheme, medicalRecords, openModal, showToast, setActiveTab } = useApp();
   const { currentUser, logout, loginAsGuest, awardPoints } = useAuth();
 
   const [pointsRedeemed, setPointsRedeemed] = useState(false);
@@ -167,16 +173,37 @@ export default function Profile() {
             <div style={{ color: 'var(--primary)', display: 'flex', justifyContent: 'center', marginBottom: '8px' }}><User size={20} /></div>
             <strong style={{ fontSize: '20px', display: 'block', lineHeight: 1 }}>{pets?.length || 2}</strong>
             <span style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>Pets</span>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', padding: '20px' }}>
+          <div style={{ background: 'var(--surface-alt)', padding: '14px 8px', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
+            <div style={{ color: 'var(--primary)', display: 'flex', justifyContent: 'center', marginBottom: '6px' }}><User size={18} /></div>
+            <strong style={{ fontSize: '18px', display: 'block', lineHeight: 1 }}>{pets?.length || 2}</strong>
+            <span style={{ fontSize: '9.5px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 700 }}>Pets</span>
           </div>
           <div style={{ background: 'var(--surface-alt)', padding: '16px 10px', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
             <div style={{ color: 'var(--primary)', display: 'flex', justifyContent: 'center', marginBottom: '8px' }}><ShoppingBag size={20} /></div>
             <strong style={{ fontSize: '20px', display: 'block', lineHeight: 1 }}>{orders?.length || 0}</strong>
             <span style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>Orders</span>
+          <div 
+            style={{ background: 'var(--surface-alt)', padding: '14px 8px', borderRadius: 'var(--radius-md)', textAlign: 'center', cursor: 'pointer' }}
+            onClick={() => openModal('myDevices')}
+          >
+            <div style={{ color: 'var(--primary)', display: 'flex', justifyContent: 'center', marginBottom: '6px' }}><Radio size={18} /></div>
+            <strong style={{ fontSize: '18px', display: 'block', lineHeight: 1 }}>{devices?.length || 0}</strong>
+            <span style={{ fontSize: '9.5px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 700 }}>Trackers</span>
           </div>
           <div style={{ background: 'var(--surface-alt)', padding: '16px 10px', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
             <div style={{ color: '#F59E0B', display: 'flex', justifyContent: 'center', marginBottom: '8px' }}><Award size={20} /></div>
             <strong style={{ fontSize: '20px', display: 'block', lineHeight: 1 }}>{currentUser?.points || 20}</strong>
             <span style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>Points</span>
+          <div style={{ background: 'var(--surface-alt)', padding: '14px 8px', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
+            <div style={{ color: '#3B82F6', display: 'flex', justifyContent: 'center', marginBottom: '6px' }}><ShoppingBag size={18} /></div>
+            <strong style={{ fontSize: '18px', display: 'block', lineHeight: 1 }}>{orders?.length || 0}</strong>
+            <span style={{ fontSize: '9.5px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 700 }}>Orders</span>
+          </div>
+          <div style={{ background: 'var(--surface-alt)', padding: '14px 8px', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
+            <div style={{ color: '#F59E0B', display: 'flex', justifyContent: 'center', marginBottom: '6px' }}><Award size={18} /></div>
+            <strong style={{ fontSize: '18px', display: 'block', lineHeight: 1 }}>{currentUser?.points || 20}</strong>
+            <span style={{ fontSize: '9.5px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 700 }}>Points</span>
           </div>
         </div>
 
@@ -187,10 +214,38 @@ export default function Profile() {
             <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--primary)', cursor: 'pointer' }} onClick={() => openModal('addPet')}>+ ADD PET</span>
           </div>
           <div style={{ display: 'flex', gap: '12px' }}>
+          <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
             {pets && pets.length > 0 ? pets.map(p => (
               <img key={p.id} src={p.photo} alt={p.name} style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover' }} />
+              <div key={p.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+                <div style={{ position: 'relative' }}>
+                  <img src={p.photo} alt={p.name} style={{ width: 60, height: 60, borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--border)' }} />
+                </div>
+                <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-main)' }}>{p.name}</span>
+                <button
+                  type="button"
+                  onClick={() => openModal('petPassport', { pet: p })}
+                  style={{
+                    background: 'rgba(16,185,129,0.12)',
+                    color: 'var(--primary)',
+                    border: 'none',
+                    borderRadius: '10px',
+                    padding: '2px 8px',
+                    fontSize: '10.5px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}
+                >
+                  <FileCheck size={11} />
+                  <span>Passport</span>
+                </button>
+              </div>
             )) : (
               <div style={{ width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', cursor: 'pointer' }} onClick={() => openModal('addPet')}>
+              <div style={{ width: 60, height: 60, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', cursor: 'pointer', border: '1px dashed var(--border)' }} onClick={() => openModal('addPet')}>
                 <Plus size={20} />
               </div>
             )}
@@ -266,20 +321,71 @@ export default function Profile() {
         <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--primary)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '16px', display: 'block', paddingLeft: '8px' }}>Account & Security</span>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
           <div className="apple-solid-card" style={{ padding: '20px', flexDirection: 'row', alignItems: 'center', gap: '12px', justifyContent: 'flex-start' }}>
+          <div 
+            className="apple-solid-card" 
+            style={{ padding: '18px 20px', flexDirection: 'row', alignItems: 'center', gap: '12px', justifyContent: 'flex-start', cursor: 'pointer' }}
+            onClick={() => openModal('myDevices')}
+          >
+            <Radio size={18} color="var(--primary)" />
+            <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
+              <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-main)' }}>My Devices</span>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{devices?.length || 0} paired</span>
+            </div>
+          </div>
+          <div 
+            className="apple-solid-card" 
+            style={{ padding: '18px 20px', flexDirection: 'row', alignItems: 'center', gap: '12px', justifyContent: 'flex-start', cursor: 'pointer' }}
+            onClick={() => openModal('petPassport')}
+          >
+            <FileCheck size={18} color="var(--primary)" />
+            <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
+              <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-main)' }}>Pet Passport</span>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Official ID &amp; QR</span>
+            </div>
+          </div>
+          <div 
+            className="apple-solid-card" 
+            style={{ padding: '18px 20px', flexDirection: 'row', alignItems: 'center', gap: '12px', justifyContent: 'flex-start', cursor: 'pointer' }}
+            onClick={() => openModal('orderTracker')}
+          >
             <Clock size={18} color="var(--primary)" />
             <span style={{ fontSize: '13px', fontWeight: 600 }}>My Orders</span>
+            <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
+              <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-main)' }}>My Orders</span>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{orders?.length || 0} items</span>
+            </div>
           </div>
           <div className="apple-solid-card" style={{ padding: '20px', flexDirection: 'row', alignItems: 'center', gap: '12px', justifyContent: 'flex-start' }}>
             <Heart size={18} color="var(--primary)" />
             <span style={{ fontSize: '13px', fontWeight: 600 }}>Favorite Vets</span>
+          <div 
+            className="apple-solid-card" 
+            style={{ padding: '18px 20px', flexDirection: 'row', alignItems: 'center', gap: '12px', justifyContent: 'flex-start', cursor: 'pointer' }}
+            onClick={() => setActiveTab('vets')}
+          >
+            <Heart size={18} color="#E91E63" />
+            <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
+              <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-main)' }}>Favorite Specialists</span>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Book care</span>
+            </div>
           </div>
           <div className="apple-solid-card" style={{ padding: '20px', flexDirection: 'row', alignItems: 'center', gap: '12px', justifyContent: 'flex-start', cursor: 'pointer' }} onClick={toggleTheme}>
+          <div className="apple-solid-card" style={{ padding: '18px 20px', flexDirection: 'row', alignItems: 'center', gap: '12px', justifyContent: 'flex-start', cursor: 'pointer' }} onClick={toggleTheme}>
             <Sun size={18} color="var(--primary)" />
             <span style={{ fontSize: '13px', fontWeight: 600 }}>System ({theme})</span>
+            <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
+              <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-main)' }}>System Theme</span>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{theme} mode</span>
+            </div>
           </div>
           <div className="apple-solid-card" style={{ padding: '20px', flexDirection: 'row', alignItems: 'center', gap: '12px', justifyContent: 'flex-start' }}>
+          <div className="apple-solid-card" style={{ padding: '18px 20px', flexDirection: 'row', alignItems: 'center', gap: '12px', justifyContent: 'flex-start' }}>
             <ShieldCheck size={18} color="var(--primary)" />
             <span style={{ fontSize: '13px', fontWeight: 600 }}>Privacy & Terms</span>
+            <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
+              <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-main)' }}>Privacy &amp; Terms</span>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>AES-256 Protected</span>
+            </div>
           </div>
         </div>
       </div>

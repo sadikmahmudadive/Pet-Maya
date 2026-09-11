@@ -28,6 +28,9 @@ import {
   Globe,
   ThumbsUp,
   MessageSquare
+  MessageSquare,
+  AlertTriangle,
+  PhoneCall
 } from 'lucide-react';
 import { AppleReveal } from '../Animations/AppleReveal';
 import { AppleStagger } from '../Animations/AppleStagger';
@@ -226,6 +229,7 @@ export default function Community() {
     if (feedFilter === 'moments') return matchesSearch && (cat.includes('moment') || !cat);
     if (feedFilter === 'health') return matchesSearch && (cat.includes('health') || content.includes('vet') || content.includes('vaccine'));
     if (feedFilter === 'adoption') return matchesSearch && (cat.includes('adopt') || content.includes('rescue') || content.includes('foster'));
+    if (feedFilter === 'lost') return matchesSearch && (cat.includes('lost') || content.includes('missing') || content.includes('found') || cat.includes('amber') || content.includes('amber'));
     if (feedFilter === 'qa') return matchesSearch && (cat.includes('question') || content.includes('?'));
     if (feedFilter === 'saved') return matchesSearch && bookmarkedPosts.includes(post.id);
 
@@ -321,6 +325,15 @@ export default function Community() {
             </button>
 
             <button 
+              className={`apple-nav-item ${feedFilter === 'lost' ? 'active' : ''}`}
+              style={{ padding: '10px 12px', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', gap: '10px', width: '100%', background: feedFilter === 'lost' ? 'var(--surface-alt)' : 'transparent', fontWeight: 600 }}
+              onClick={() => { setFeedFilter('lost'); setSearchTopic(''); }}
+            >
+              <AlertTriangle size={16} color="#F59E0B" />
+              <span>Lost &amp; Found Alerts</span>
+            </button>
+
+            <button 
               className={`apple-nav-item ${feedFilter === 'saved' ? 'active' : ''}`}
               style={{ padding: '10px 12px', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', gap: '10px', width: '100%', background: feedFilter === 'saved' ? 'var(--surface-alt)' : 'transparent', fontWeight: 600 }}
               onClick={() => { setFeedFilter('saved'); setSearchTopic(''); }}
@@ -359,6 +372,112 @@ export default function Community() {
 
         {/* ── CENTER COLUMN (Create Post & Posts Feed) ── */}
         <main style={{ display: 'flex', flexDirection: 'column', gap: '20px', minWidth: 0 }}>
+
+          {/* ── EMERGENCY LOST PET AMBER ALERT BANNER ── */}
+          <AppleReveal duration={0.6} yOffset={16}>
+            <div 
+              style={{
+                background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.16) 0%, rgba(245, 158, 11, 0.1) 100%)',
+                border: '1px solid rgba(239, 68, 68, 0.35)',
+                borderRadius: '20px',
+                padding: '16px 20px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+                position: 'relative',
+                overflow: 'hidden',
+                boxShadow: '0 8px 30px rgba(239, 68, 68, 0.12)'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: '14px',
+                    background: 'rgba(239, 68, 68, 0.2)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#EF4444',
+                    flexShrink: 0
+                  }}>
+                    <AlertTriangle size={22} className="pulse-red" />
+                  </div>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{
+                        background: '#EF4444',
+                        color: '#FFF',
+                        fontSize: '10.5px',
+                        fontWeight: 800,
+                        padding: '2px 8px',
+                        borderRadius: '999px',
+                        letterSpacing: '0.04em',
+                        textTransform: 'uppercase'
+                      }}>
+                        Active Amber Alert
+                      </span>
+                      <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>Missing 45m ago • Gulshan-2, Dhaka</span>
+                    </div>
+                    <h4 style={{ fontSize: '15.5px', fontWeight: 700, margin: '4px 0 0', color: 'var(--text-main)' }}>
+                      Lost Pet: &ldquo;Bruno&rdquo; (Golden Retriever, 3 Yrs)
+                    </h4>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <button
+                    onClick={() => {
+                      showToast('Calling Guardian emergency line: +880 1712-345678', 'info');
+                      window.location.href = 'tel:+8801712345678';
+                    }}
+                    style={{
+                      background: 'rgba(239, 68, 68, 0.15)',
+                      color: '#EF4444',
+                      border: '1px solid rgba(239, 68, 68, 0.3)',
+                      borderRadius: '12px',
+                      padding: '7px 14px',
+                      fontSize: '12.5px',
+                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <PhoneCall size={14} />
+                    <span>Call Finder</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setFeedFilter('lost');
+                      showToast('Showing Lost & Found alerts in community feed', 'info');
+                    }}
+                    style={{
+                      background: '#EF4444',
+                      color: '#FFF',
+                      border: 'none',
+                      borderRadius: '12px',
+                      padding: '7px 14px',
+                      fontSize: '12.5px',
+                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <span>View Sighting</span>
+                    <ChevronRight size={14} />
+                  </button>
+                </div>
+              </div>
+              <div style={{ fontSize: '12.5px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                Bruno slipped his leash near Gulshan Lake Park. Wearing an orange collar with PetMaya BLE Tag (PM-BLE-4109). Microchip: <strong style={{ color: 'var(--text-main)' }}>BD-982-004-912</strong>. If seen, please report or contact immediately!
+              </div>
+            </div>
+          </AppleReveal>
           
           {/* ── AUTHENTIC FACEBOOK-STYLE CREATE POST BOX ── */}
           <AppleReveal duration={0.6} yOffset={20}>
@@ -438,6 +557,9 @@ export default function Community() {
             <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px', scrollbarWidth: 'none' }}>
               <button className={`chip-pill ${feedFilter === 'all' ? 'active' : ''}`} onClick={() => setFeedFilter('all')}>
                 Trending
+              </button>
+              <button className={`chip-pill ${feedFilter === 'lost' ? 'active' : ''}`} onClick={() => setFeedFilter('lost')}>
+                🚨 Lost &amp; Found
               </button>
               <button className={`chip-pill ${feedFilter === 'moments' ? 'active' : ''}`} onClick={() => setFeedFilter('moments')}>
                 Moments

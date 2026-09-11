@@ -22,6 +22,45 @@ import {
 } from '../config/firebase';
 import { useAuth } from './AuthContext';
 
+export const INITIAL_DEVICES = [
+  {
+    id: 'pm_trk_01',
+    name: "Max's GPS Collar",
+    deviceType: 'gps_collar',
+    modelNumber: 'PetMaya ProTrack Gen 2',
+    serialNumber: 'PM-TRK-7821',
+    petId: 'piku_01',
+    petName: 'Piku',
+    batteryLevel: 88,
+    isOnline: true,
+    signalStrength: 4,
+    trackingMode: 'Real-Time (10s)',
+    isSafeZone: true,
+    firmwareVersion: 'v2.4.1',
+    lastSync: '2m ago',
+    latitude: 23.8103,
+    longitude: 90.4125
+  },
+  {
+    id: 'pm_trk_02',
+    name: "Maya Smart Tag",
+    deviceType: 'ble_beacon',
+    modelNumber: 'PetMaya BLE Beacon Gen 1',
+    serialNumber: 'PM-BLE-4109',
+    petId: null,
+    petName: 'Unassigned',
+    batteryLevel: 95,
+    isOnline: true,
+    signalStrength: 3,
+    trackingMode: 'Balanced (5m)',
+    isSafeZone: true,
+    firmwareVersion: 'v1.2.0',
+    lastSync: '10m ago',
+    latitude: 23.8115,
+    longitude: 90.4140
+  }
+];
+
 // Route to Tab Mapping & Document Titles
 export const TAB_ROUTES = {
   landing: '/',
@@ -208,6 +247,16 @@ export function AppProvider({ children }) {
 
   // Orders
   const [orders, setOrders] = useState([]);
+
+  // Smart Hardware Devices (Trackers, GPS Collars, BLE Tags)
+  const [devices, setDevices] = useState(() => {
+    try {
+      const saved = localStorage.getItem('pm_cached_devices');
+      if (saved) return JSON.parse(saved);
+    } catch (_) {}
+    return INITIAL_DEVICES;
+  });
+  const [ringingDeviceId, setRingingDeviceId] = useState(null);
 
   // Toasts
   const [toasts, setToasts] = useState([]);
@@ -852,6 +901,62 @@ export function AppProvider({ children }) {
     setPets(prev => prev.filter(p => (p.id !== petId && p.petID !== petId)));
   };
 
+  // ── Smart Tracker Hardware Management ──
+  const addDevice = (deviceData) => {
+    const newId = deviceData.id || `pm_trk_${Date.now()}`;
+    const newDevice = {
+      id: newId,
+      name: deviceData.name || 'Pet Tracker',
+      deviceType: deviceData.deviceType || 'gps_collar',
+      modelNumber: deviceData.modelNumber || 'PetMaya ProTrack Gen 2',
+      serialNumber: deviceData.serialNumber || `PM-TRK-${Math.floor(1000 + Math.random() * 9000)}`,
+      petId: deviceData.petId || null,
+      petName: deviceData.petName || 'Unassigned',
+      batteryLevel: deviceData.batteryLevel ?? 100,
+      isOnline: true,
+      signalStrength: 4,
+      trackingMode: deviceData.trackingMode || 'Real-Time (10s)',
+      isSafeZone: true,
+      firmwareVersion: deviceData.firmwareVersion || 'v2.4.1',
+      lastSync: 'Just now',
+      latitude: deviceData.latitude || 23.8103,
+      longitude: deviceData.longitude || 90.4125
+    };
+    const nextList = [newDevice, ...devices];
+    setDevices(nextList);
+    try {
+      localStorage.setItem('pm_cached_devices', JSON.stringify(nextList));
+    } catch (_) {}
+    showToast(`📡 Paired "${newDevice.name}" successfully!`, 'success');
+  };
+
+  const updateDevice = (updatedDevice) => {
+    const nextList = devices.map(d => d.id === updatedDevice.id ? updatedDevice : d);
+    setDevices(nextList);
+    try {
+      localStorage.setItem('pm_cached_devices', JSON.stringify(nextList));
+    } catch (_) {}
+    showToast(`⚙️ Updated "${updatedDevice.name}" settings.`, 'success');
+  };
+
+  const removeDevice = (deviceId) => {
+    const target = devices.find(d => d.id === deviceId);
+    const nextList = devices.filter(d => d.id !== deviceId);
+    setDevices(nextList);
+    try {
+      localStorage.setItem('pm_cached_devices', JSON.stringify(nextList));
+    } catch (_) {}
+    showToast(`🗑️ Unpaired "${target?.name || 'Device'}".`, 'info');
+  };
+
+  const triggerRingDevice = (device) => {
+    setRingingDeviceId(device.id);
+    showToast(`🔊 Emitting 85dB acoustic chime on ${device.name}...`, 'info');
+    setTimeout(() => {
+      setRingingDeviceId(null);
+    }, 8000);
+  };
+
   // Add Community Post
   const createPost = async (postData) => {
     const userDisplayName = postData.author || (currentUser ? currentUser.name : 'Pet Parent');
@@ -1390,6 +1495,12 @@ export function AppProvider({ children }) {
       pets,
       addPet,
       deletePet,
+      devices,
+      addDevice,
+      updateDevice,
+      removeDevice,
+      triggerRingDevice,
+      ringingDeviceId,
       vets,
       isVetsLoading,
       addService,
