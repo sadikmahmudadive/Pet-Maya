@@ -6,6 +6,9 @@ import 'package:animate_do/animate_do.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/pet_model.dart';
+import '../../../data/models/service_record_model.dart';
+import '../../../data/models/user_model.dart';
+import '../../../data/models/pet_device_model.dart';
 import '../../../data/repositories/app_state_repository.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/resilient_network_image.dart';
@@ -54,11 +57,95 @@ class _PetPassportScreenState extends State<PetPassportScreen> with SingleTicker
     setState(() => _showBack = !_showBack);
   }
 
+  String _getSpeciesAccreditation(PetModel pet) {
+    final species = pet.resolvedSpecies.toLowerCase();
+    if (species.contains('bird') ||
+        species.contains('dove') ||
+        species.contains('pigeon') ||
+        species.contains('parrot') ||
+        species.contains('avian')) {
+      return 'AVIAN ACCREDITATION';
+    }
+    if (species.contains('cat') || species.contains('feline')) {
+      return 'FELINE ACCREDITATION';
+    }
+    if (species.contains('dog') || species.contains('canine')) {
+      return 'CANINE ACCREDITATION';
+    }
+    if (species.contains('rabbit') ||
+        species.contains('bunny') ||
+        species.contains('lagomorph')) {
+      return 'LAGOMORPH ACCREDITATION';
+    }
+    if (species.contains('fish') || species.contains('aquatic')) {
+      return 'AQUATIC ACCREDITATION';
+    }
+    if (pet.type.isNotEmpty && pet.type != 'Dog') {
+      return '${pet.type.toUpperCase()} ACCREDITATION';
+    }
+    if (pet.breed.isNotEmpty) {
+      return '${pet.breed.toUpperCase()} ACCREDITATION';
+    }
+    return 'OFFICIAL PET ACCREDITATION';
+  }
+
+  String _formatCompactAge(String rawAge) {
+    final trimmed = rawAge.trim();
+    if (trimmed.isEmpty || trimmed == 'N/A') return 'N/A';
+    final reg = RegExp(
+      r'(\d+)\s*Year[s]?(?:,\s*(\d+)\s*Month[s]?)?',
+      caseSensitive: false,
+    );
+    final match = reg.firstMatch(trimmed);
+    if (match != null) {
+      final y = match.group(1);
+      final m = match.group(2);
+      if (m != null && m != '0') {
+        return '${y}y ${m}m';
+      }
+      return '$y yr${y != '1' ? 's' : ''}';
+    }
+    return trimmed;
+  }
+
+  String _formatWeight(String rawWeight) {
+    final trimmed = rawWeight.trim();
+    if (trimmed.isEmpty || trimmed == '0') return 'N/A';
+    if (trimmed.toLowerCase().contains('kg') ||
+        trimmed.toLowerCase().contains('g') ||
+        trimmed.toLowerCase().contains('lb')) {
+      return trimmed;
+    }
+    return '$trimmed kg';
+  }
+
+  String _getPassportStatus(PetDeviceModel? device, bool hasMedicalLogs) {
+    if (device != null) {
+      return device.isOnline ? 'ONLINE' : 'OFFLINE';
+    }
+    if (hasMedicalLogs) return 'ACTIVE';
+    return 'ENROLLED';
+  }
+
   @override
   Widget build(BuildContext context) {
     final pet = widget.pet;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final topPadding = MediaQuery.of(context).padding.top + kToolbarHeight + 8;
+
+    final repo = context.watch<AppStateRepository>();
+    final user = repo.currentUser;
+    final petRecords =
+        repo.serviceRecords.where((r) => r.petId == pet.petID).toList();
+    final petDevice =
+        repo.devices.where((d) => d.petId == pet.petID).firstOrNull;
+    final hasMedicalLogs = petRecords.isNotEmpty ||
+        (pet.vaccinationDetails?.trim().isNotEmpty == true);
+    final hasVaccineRecords = petRecords.any(
+      (r) =>
+          r.serviceType.toLowerCase().contains('vaccin') ||
+          r.title.toLowerCase().contains('vaccin'),
+    );
 
     return GlassScaffold(
       appBar: AppBar(
@@ -117,9 +204,21 @@ class _PetPassportScreenState extends State<PetPassportScreen> with SingleTicker
                         ? Transform(
                             transform: Matrix4.identity()..rotateY(3.14159),
                             alignment: Alignment.center,
-                            child: _buildPassportBack(context, pet, isDark),
+                            child: _buildPassportBack(
+                              context,
+                              pet,
+                              user,
+                              hasMedicalLogs,
+                              isDark,
+                            ),
                           )
-                        : _buildPassportFront(context, pet, isDark),
+                        : _buildPassportFront(
+                            context,
+                            pet,
+                            petDevice,
+                            hasMedicalLogs,
+                            isDark,
+                          ),
                   ),
                 );
               },
@@ -141,7 +240,7 @@ class _PetPassportScreenState extends State<PetPassportScreen> with SingleTicker
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.sync_rounded,
                       size: 14,
                       color: AppColors.primary,
@@ -165,7 +264,16 @@ class _PetPassportScreenState extends State<PetPassportScreen> with SingleTicker
             // Official Biometric Ledger Section
             FadeInUp(
               duration: const Duration(milliseconds: 300),
-              child: _buildLedgerSection(context, pet, isDark),
+              child: _buildLedgerSection(
+                context,
+                pet,
+                user,
+                petRecords,
+                petDevice,
+                hasMedicalLogs,
+                hasVaccineRecords,
+                isDark,
+              ),
             ),
           ],
         ),
@@ -174,7 +282,25 @@ class _PetPassportScreenState extends State<PetPassportScreen> with SingleTicker
   }
 
   // ─── PASSPORT FRONT (SPATIAL + GLASS) ───
-  Widget _buildPassportFront(BuildContext context, PetModel pet, bool isDark) {
+  Widget _buildPassportFront(
+    BuildContext context,
+    PetModel pet,
+    PetDeviceModel? petDevice,
+    bool hasMedicalLogs,
+    bool isDark,
+  ) {
+    final isCleared = hasMedicalLogs;
+    final statusBadgeText = isCleared ? 'CLEARED' : 'PENDING LOGS';
+    final statusBadgeColor =
+        isCleared ? const Color(0xFF22C55E) : AppColors.accentAmber;
+    final statusBadgeIcon =
+        isCleared ? Icons.verified_rounded : Icons.pending_actions_rounded;
+
+    final rawId = pet.petID.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '');
+    final chipDisplay = petDevice != null
+        ? 'TRACKER: ${petDevice.serialNumber.toUpperCase()}'
+        : 'CHIP: PET_${rawId.length > 8 ? rawId.substring(0, 8).toUpperCase() : rawId.toUpperCase()}••••';
+
     return Container(
       width: double.infinity,
       constraints: const BoxConstraints(minHeight: 240),
@@ -235,7 +361,7 @@ class _PetPassportScreenState extends State<PetPassportScreen> with SingleTicker
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
+                                const Text(
                                   'PET MAYA PASSPORT',
                                   style: TextStyle(
                                     fontSize: 10,
@@ -247,7 +373,7 @@ class _PetPassportScreenState extends State<PetPassportScreen> with SingleTicker
                                   overflow: TextOverflow.ellipsis,
                                 ),
                                 Text(
-                                  'CANINE / FELINE ACCREDITATION',
+                                  _getSpeciesAccreditation(pet),
                                   style: TextStyle(
                                     fontSize: 7.5,
                                     fontWeight: FontWeight.w700,
@@ -267,19 +393,19 @@ class _PetPassportScreenState extends State<PetPassportScreen> with SingleTicker
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF22C55E).withValues(alpha: 0.15),
+                        color: statusBadgeColor.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: const Color(0xFF22C55E).withValues(alpha: 0.4)),
+                        border: Border.all(color: statusBadgeColor.withValues(alpha: 0.4)),
                       ),
-                      child: const Row(
+                      child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.verified_rounded, size: 11, color: Color(0xFF22C55E)),
-                          SizedBox(width: 4),
+                          Icon(statusBadgeIcon, size: 11, color: statusBadgeColor),
+                          const SizedBox(width: 4),
                           Text(
-                            'CLEARED',
+                            statusBadgeText,
                             style: TextStyle(
-                              color: Color(0xFF22C55E),
+                              color: statusBadgeColor,
                               fontSize: 9.5,
                               fontWeight: FontWeight.w900,
                               letterSpacing: 0.5,
@@ -359,7 +485,7 @@ class _PetPassportScreenState extends State<PetPassportScreen> with SingleTicker
                                 const SizedBox(width: 5),
                                 Flexible(
                                   child: Text(
-                                    'CHIP: ${pet.petID.substring(0, pet.petID.length > 8 ? 8 : pet.petID.length).toUpperCase()}••••',
+                                    chipDisplay,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: const TextStyle(
@@ -383,10 +509,10 @@ class _PetPassportScreenState extends State<PetPassportScreen> with SingleTicker
                 // Bottom Meta Chips
                 Row(
                   children: [
-                    Expanded(child: _buildMetaColumn('AGE', pet.age.isEmpty ? '2 Yrs' : pet.age, isDark)),
-                    Expanded(child: _buildMetaColumn('WEIGHT', pet.weight.isEmpty ? '8.4 kg' : pet.weight, isDark)),
-                    Expanded(child: _buildMetaColumn('HEALTH', '${pet.healthIndex}/100', isDark)),
-                    Expanded(child: _buildMetaColumn('STATUS', 'ACTIVE', isDark)),
+                    Expanded(child: _buildMetaColumn('AGE', _formatCompactAge(pet.age), isDark)),
+                    Expanded(child: _buildMetaColumn('WEIGHT', _formatWeight(pet.weight), isDark)),
+                    Expanded(child: _buildMetaColumn('HEALTH', hasMedicalLogs ? '${pet.healthIndex}/100' : '0/100', isDark)),
+                    Expanded(child: _buildMetaColumn('STATUS', _getPassportStatus(petDevice, hasMedicalLogs), isDark)),
                   ],
                 ),
               ],
@@ -398,7 +524,20 @@ class _PetPassportScreenState extends State<PetPassportScreen> with SingleTicker
   }
 
   // ─── PASSPORT BACK (SPATIAL + GLASS WITH QR CODE) ───
-  Widget _buildPassportBack(BuildContext context, PetModel pet, bool isDark) {
+  Widget _buildPassportBack(
+    BuildContext context,
+    PetModel pet,
+    UserModel? user,
+    bool hasMedicalLogs,
+    bool isDark,
+  ) {
+    final ownerName = (user != null && user.name.trim().isNotEmpty)
+        ? user.name.trim()
+        : 'Registered Owner';
+    final registrationDate = pet.dob.trim().isNotEmpty
+        ? pet.dob.split('T').first
+        : '${DateTime.now().year}';
+
     return Container(
       width: double.infinity,
       constraints: const BoxConstraints(minHeight: 240),
@@ -477,16 +616,27 @@ class _PetPassportScreenState extends State<PetPassportScreen> with SingleTicker
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Scan to retrieve verified vaccination records, emergency contacts & allergy alerts.',
+                        'Scan to retrieve verified vaccination records, emergency contacts & allergy alerts for ${pet.name}.',
                         style: TextStyle(
                           fontSize: 10.5,
                           height: 1.25,
                           color: isDark ? Colors.white70 : Colors.black87,
                         ),
-                        maxLines: 3,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Parent: $ownerName',
+                        style: TextStyle(
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? Colors.white54 : Colors.black54,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 6),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
@@ -494,9 +644,9 @@ class _PetPassportScreenState extends State<PetPassportScreen> with SingleTicker
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          'VALIDATED: ${DateTime.now().year}',
+                          'ISSUED: $registrationDate • ${hasMedicalLogs ? "VERIFIED" : "PENDING"}',
                           style: const TextStyle(
-                            fontSize: 9.5,
+                            fontSize: 9.0,
                             fontWeight: FontWeight.w900,
                             color: AppColors.secondaryDark,
                           ),
@@ -544,7 +694,47 @@ class _PetPassportScreenState extends State<PetPassportScreen> with SingleTicker
   }
 
   // ─── OFFICIAL BIOMETRIC LEDGER ───
-  Widget _buildLedgerSection(BuildContext context, PetModel pet, bool isDark) {
+  Widget _buildLedgerSection(
+    BuildContext context,
+    PetModel pet,
+    UserModel? user,
+    List<ServiceRecordModel> petRecords,
+    PetDeviceModel? petDevice,
+    bool hasMedicalLogs,
+    bool hasVaccineRecords,
+    bool isDark,
+  ) {
+    // 1. Transponder / Tracker
+    final transponderValue = petDevice != null
+        ? '${petDevice.name} (${petDevice.serialNumber.toUpperCase()})'
+        : 'PET-${pet.petID.toUpperCase()} (Digital Tag)';
+
+    // 2. Vaccination status
+    final vaccineValue = (pet.vaccinationDetails?.trim().isNotEmpty == true)
+        ? pet.vaccinationDetails!.trim()
+        : (hasVaccineRecords
+            ? '${petRecords.where((r) => r.serviceType.toLowerCase().contains('vaccin') || r.title.toLowerCase().contains('vaccin')).length} Vaccine(s) Recorded'
+            : 'No Vaccination Records Logged');
+
+    // 3. Markings & Color (strictly color/markings, NEVER appending wrong species)
+    final markingsValue = pet.color.trim().isNotEmpty
+        ? pet.color.trim()
+        : (pet.description?.trim().isNotEmpty == true
+            ? pet.description!.trim()
+            : 'Standard ${pet.breed} Coat');
+
+    // 4. Health Score
+    final healthScoreValue = hasMedicalLogs
+        ? '${pet.healthIndex}% Health Score (Verified)'
+        : '0% (No Clinical Records Logged)';
+
+    // 5. Emergency Care Hotlink
+    final emergencyValue = (user?.phone?.trim().isNotEmpty == true)
+        ? 'Owner: ${user!.phone!.trim()}'
+        : ((user?.email.trim().isNotEmpty == true)
+            ? 'Owner: ${user!.email.trim()}'
+            : 'Pet Maya 24/7 Helpline: 16263');
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -572,15 +762,65 @@ class _PetPassportScreenState extends State<PetPassportScreen> with SingleTicker
             ],
           ),
           const SizedBox(height: 16),
-          _buildLedgerRow('Microchip Transponder', '${pet.petID.toUpperCase()} (ISO 11784)', Icons.memory_rounded, isDark),
+          _buildLedgerRow(
+            'Microchip / Tracker',
+            transponderValue,
+            Icons.memory_rounded,
+            isDark,
+          ),
           const Divider(height: 20),
-          _buildLedgerRow('Vaccination Status', pet.vaccinationDetails?.isNotEmpty == true ? pet.vaccinationDetails! : 'Verified in Pet Maya', Icons.verified_user_rounded, isDark),
+          _buildLedgerRow(
+            'Species & Classification',
+            '${pet.resolvedSpecies} • ${pet.breed}',
+            Icons.category_rounded,
+            isDark,
+          ),
           const Divider(height: 20),
-          _buildLedgerRow('Markings & Color', pet.color.isNotEmpty ? '${pet.color} (${pet.type})' : '${pet.breed} (${pet.type})', Icons.pets_rounded, isDark),
+          _buildLedgerRow(
+            'Vaccination Status',
+            vaccineValue,
+            Icons.verified_user_rounded,
+            isDark,
+          ),
           const Divider(height: 20),
-          _buildLedgerRow('Health Score Index', '${pet.healthIndex}% Health Score', Icons.favorite_rounded, isDark),
+          _buildLedgerRow(
+            'Markings & Color',
+            markingsValue,
+            Icons.palette_rounded,
+            isDark,
+          ),
           const Divider(height: 20),
-          _buildLedgerRow('Emergency Care Hotlink', 'Instant SOS Broadcast Active', Icons.phone_in_talk_rounded, isDark),
+          _buildLedgerRow(
+            'Health Score Index',
+            healthScoreValue,
+            Icons.favorite_rounded,
+            isDark,
+          ),
+          const Divider(height: 20),
+          _buildLedgerRow(
+            'Emergency Care Hotlink',
+            emergencyValue,
+            Icons.phone_in_talk_rounded,
+            isDark,
+          ),
+          if (pet.allergies?.trim().isNotEmpty == true) ...[
+            const Divider(height: 20),
+            _buildLedgerRow(
+              'Allergies & Sensitivities',
+              pet.allergies!.trim(),
+              Icons.warning_amber_rounded,
+              isDark,
+            ),
+          ],
+          if (user != null) ...[
+            const Divider(height: 20),
+            _buildLedgerRow(
+              'Registered Pet Parent',
+              '${user.name.trim().isNotEmpty ? user.name.trim() : "Verified Pet Parent"}${user.address?.trim().isNotEmpty == true ? " • ${user.address!.trim()}" : ""}',
+              Icons.person_pin_rounded,
+              isDark,
+            ),
+          ],
         ],
       ),
     );

@@ -57,7 +57,37 @@ class PetModel {
     this.longitude,
   }) : feedingTimes = feedingTimes ?? [];
 
-  String get species => type;
+  String get species => resolvedSpecies;
+
+  String get resolvedSpecies {
+    final b = breed.toLowerCase();
+    final t = type.toLowerCase();
+    if (t.contains('bird') || b.contains('dove') || b.contains('pigeon') || b.contains('bird') || b.contains('parrot') || b.contains('canary') || b.contains('finch') || b.contains('cockatiel') || b.contains('duck') || b.contains('owl')) {
+      return 'Bird';
+    }
+    if (t.contains('cat') || b.contains('cat') || b.contains('persian') || b.contains('siamese') || b.contains('bengal') || b.contains('ragdoll') || b.contains('shorthair') || b.contains('maine coon')) {
+      return 'Cat';
+    }
+    if (t.contains('rabbit') || b.contains('rabbit') || b.contains('bunny') || b.contains('hare')) {
+      return 'Rabbit';
+    }
+    if (t.contains('fish') || b.contains('goldfish') || b.contains('betta') || b.contains('tetra')) {
+      return 'Fish';
+    }
+    if (t.contains('hamster') || b.contains('guinea pig') || b.contains('mouse') || b.contains('rat')) {
+      return 'Rodent';
+    }
+    if (type.isNotEmpty && type != 'Dog') {
+      return type;
+    }
+    if (b.contains('dog') || b.contains('retriever') || b.contains('shepherd') || b.contains('husky') || b.contains('poodle') || b.contains('bulldog') || b.contains('hound') || b.contains('terrier') || b.contains('corgi') || b.contains('pug')) {
+      return 'Dog';
+    }
+    if (type == 'Dog' && breed.isNotEmpty) {
+      return breed;
+    }
+    return type.isNotEmpty ? type : 'Pet';
+  }
 
   Map<String, dynamic> toMap() {
     return {

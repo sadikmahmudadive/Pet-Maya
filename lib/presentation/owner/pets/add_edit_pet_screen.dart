@@ -117,10 +117,25 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
       }
     }
 
+    final inferredSpecies = PetModel(
+      petID: '',
+      ownerID: '',
+      name: '',
+      breed: breed,
+      gender: '',
+      age: '',
+      dob: '',
+    ).resolvedSpecies;
+
     final pet = PetModel(
       petID: isEditing ? widget.petToEdit!.petID : 'pet_${const Uuid().v4().substring(0, 6)}',
       ownerID: repo.currentUser?.uid ?? 'owner_1',
       name: name,
+      type: isEditing
+          ? (widget.petToEdit!.type.isNotEmpty && widget.petToEdit!.type != 'Dog'
+              ? widget.petToEdit!.type
+              : inferredSpecies)
+          : inferredSpecies,
       breed: breed,
       gender: _gender,
       age: _calculateAge(),
@@ -132,6 +147,18 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
       photoUrl: finalPhotoUrl,
       description: _bioController.text.trim(),
       feedingTimes: _feedingTimes,
+      vaccinationDetails: isEditing ? widget.petToEdit!.vaccinationDetails : null,
+      medicationTime: isEditing ? widget.petToEdit!.medicationTime : null,
+      currentFoodName: isEditing ? widget.petToEdit!.currentFoodName : null,
+      foodType: isEditing ? widget.petToEdit!.foodType : null,
+      allergies: isEditing ? widget.petToEdit!.allergies : null,
+      mood: isEditing ? widget.petToEdit!.mood : 'Happy',
+      hungerStatus: isEditing ? widget.petToEdit!.hungerStatus : 'Full',
+      healthIndex: isEditing ? widget.petToEdit!.healthIndex : 100,
+      dailyCalorieGoal: isEditing ? widget.petToEdit!.dailyCalorieGoal : 1200,
+      lastFedTime: isEditing ? widget.petToEdit!.lastFedTime : null,
+      latitude: isEditing ? widget.petToEdit!.latitude : null,
+      longitude: isEditing ? widget.petToEdit!.longitude : null,
     );
 
     if (isEditing) {
@@ -141,6 +168,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
     }
 
     HapticFeedback.mediumImpact();
+    if (!mounted) return;
     Navigator.pop(context);
     repo.showToast(isEditing ? 'Pet profile updated! ✨' : 'Pet added successfully! 🐾', context: context);
   }
