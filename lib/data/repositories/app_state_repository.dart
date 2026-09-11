@@ -1232,6 +1232,15 @@ class AppStateRepository extends ChangeNotifier {
     await _firebase.saveEvent(event);
   }
 
+  Future<void> updateEvent(EventModel event) async {
+    final idx = _events.indexWhere((e) => e.id == event.id);
+    if (idx != -1) {
+      _events[idx] = event;
+      notifyListeners();
+      await _firebase.saveEvent(event);
+    }
+  }
+
   Future<void> deleteEvent(String eventId) async {
     final old = _events.firstWhere((e) => e.id == eventId);
     _events.removeWhere((e) => e.id == eventId);

@@ -1,19 +1,95 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:animate_do/animate_do.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
+import '../../data/models/event_model.dart';
+import '../../data/models/user_model.dart';
 import '../../data/repositories/app_state_repository.dart';
 import '../common_widgets/glass_scaffold.dart';
 import '../common_widgets/premium_card.dart';
+import '../common_widgets/premium_toast.dart';
 import '../common_widgets/floating_navbar.dart';
 import '../auth/login_screen.dart';
 import '../owner/community/community_feed_screen.dart';
 import '../owner/home/user_profile_screen.dart';
 import 'add_service_record_modal.dart';
 import 'client_list_screen.dart';
+
+class ProviderRoleConfig {
+  final String consoleTitle;
+  final String badgeText;
+  final IconData badgeIcon;
+  final String greetingPrefix;
+  final String kpi1Label;
+  final String kpi2Label;
+  final String appointmentsTitle;
+  final String caseLogsTitle;
+
+  const ProviderRoleConfig({
+    required this.consoleTitle,
+    required this.badgeText,
+    required this.badgeIcon,
+    required this.greetingPrefix,
+    required this.kpi1Label,
+    required this.kpi2Label,
+    required this.appointmentsTitle,
+    required this.caseLogsTitle,
+  });
+}
+
+ProviderRoleConfig _getRoleConfig(UserRole? role) {
+  switch (role) {
+    case UserRole.grooming:
+      return const ProviderRoleConfig(
+        consoleTitle: 'Grooming Studio Console',
+        badgeText: '✂️ GROOMING & SPA',
+        badgeIcon: Icons.content_cut_rounded,
+        greetingPrefix: 'Groomer',
+        kpi1Label: 'APPOINTMENTS',
+        kpi2Label: 'CLIENT PETS',
+        appointmentsTitle: 'Grooming Schedule',
+        caseLogsTitle: 'Grooming & Style Logs',
+      );
+    case UserRole.boarding:
+      return const ProviderRoleConfig(
+        consoleTitle: 'Boarding Resort Console',
+        badgeText: '🏡 BOARDING & HOTEL',
+        badgeIcon: Icons.night_shelter_rounded,
+        greetingPrefix: 'Manager',
+        kpi1Label: 'RESERVATIONS',
+        kpi2Label: 'STAYING GUESTS',
+        appointmentsTitle: 'Guest Stays & Reservations',
+        caseLogsTitle: 'Stay Care Logs',
+      );
+    case UserRole.shelter:
+      return const ProviderRoleConfig(
+        consoleTitle: 'Rescue & Shelter Console',
+        badgeText: '🐾 SHELTER & RESCUE',
+        badgeIcon: Icons.volunteer_activism_rounded,
+        greetingPrefix: 'Coordinator',
+        kpi1Label: 'ADOPTIONS',
+        kpi2Label: 'RESCUE CASES',
+        appointmentsTitle: 'Adoption Appointments',
+        caseLogsTitle: 'Intake & Care Logs',
+      );
+    case UserRole.veterinarian:
+    default:
+      return const ProviderRoleConfig(
+        consoleTitle: 'Clinic Practice Console',
+        badgeText: '🩺 VETERINARY PRACTICE',
+        badgeIcon: Icons.local_hospital_rounded,
+        greetingPrefix: 'Dr.',
+        kpi1Label: 'CONSULTATIONS',
+        kpi2Label: 'PATIENTS',
+        appointmentsTitle: 'Scheduled Consultations',
+        caseLogsTitle: 'Recent Case Logs & EHR',
+      );
+  }
+}
 
 class VetDashboardScreen extends StatefulWidget {
   const VetDashboardScreen({super.key});
@@ -33,7 +109,7 @@ class _VetDashboardScreenState extends State<VetDashboardScreen> {
           IndexedStack(
             index: _currentNavIndex,
             children: [
-              const VetConsoleHomeFragment(), // 0: Clinic Console
+              const VetConsoleHomeFragment(), // 0: Clinic / Studio Console
               const ClientListScreen(), // 1: Patients Directory
               const CommunityFeedScreen(), // 2: Clinical Community
               const UserProfileScreen(), // 3: Doctor Profile & Rewards
@@ -70,11 +146,282 @@ class _VetDashboardScreenState extends State<VetDashboardScreen> {
 class VetConsoleHomeFragment extends StatelessWidget {
   const VetConsoleHomeFragment({super.key});
 
+  void _showAppointmentDetailsModal(
+    BuildContext context,
+    EventModel evt,
+    AppStateRepository state,
+    bool isDark,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Container(
+          padding: EdgeInsets.fromLTRB(
+            24,
+            20,
+            24,
+            MediaQuery.of(context).viewInsets.bottom + 24,
+          ),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1E2623) : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Booking Details',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded),
+                    onPressed: () => Navigator.pop(ctx),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              // Patient info
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.pets_rounded,
+                      color: AppColors.primary,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          evt.petName.isNotEmpty ? evt.petName : 'Patient',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 16,
+                          ),
+                        ),
+                        Text(
+                          '${evt.category} • ${evt.fromTime} - ${evt.toTime}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              if (evt.note.isNotEmpty) ...[
+                const Text(
+                  'Client Notes:',
+                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  evt.note,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: isDark ? Colors.white70 : Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+
+              // Status update buttons
+              const Text(
+                'Update Booking Status',
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF10B981),
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      onPressed: () async {
+                        await state.updateEvent(evt.copyWith(status: 'CONFIRMED'));
+                        state.showToast('Appointment CONFIRMED', type: ToastType.success);
+                        if (ctx.mounted) Navigator.pop(ctx);
+                      },
+                      child: const Text(
+                        'Confirm',
+                        style: TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      onPressed: () async {
+                        await state.updateEvent(
+                          evt.copyWith(status: 'COMPLETED', isCompleted: true),
+                        );
+                        state.showToast('Appointment COMPLETED', type: ToastType.success);
+                        if (ctx.mounted) Navigator.pop(ctx);
+                      },
+                      child: const Text(
+                        'Complete',
+                        style: TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.dangerRed,
+                        side: const BorderSide(color: AppColors.dangerRed),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      onPressed: () async {
+                        await state.updateEvent(evt.copyWith(status: 'CANCELLED'));
+                        state.showToast('Appointment CANCELLED', type: ToastType.info);
+                        if (ctx.mounted) Navigator.pop(ctx);
+                      },
+                      child: const Text(
+                        'Cancel',
+                        style: TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              // Action button to Add Service EHR log
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1AB680),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  onPressed: () {
+                    final pet = state.pets.where((p) => p.petID == evt.petId).firstOrNull;
+                    Navigator.pop(ctx);
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (_) => AddServiceRecordModal(initialPet: pet),
+                    );
+                  },
+                  icon: const Icon(Icons.note_add_rounded),
+                  label: const Text(
+                    'Add EHR Case Note',
+                    style: TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildStatusBadge(String status) {
+    Color bg;
+    Color fg;
+    String label = status.toUpperCase();
+
+    switch (status.toUpperCase()) {
+      case 'CONFIRMED':
+        bg = const Color(0xFF10B981).withValues(alpha: 0.18);
+        fg = const Color(0xFF10B981);
+        break;
+      case 'COMPLETED':
+        bg = AppColors.primary.withValues(alpha: 0.18);
+        fg = AppColors.primary;
+        break;
+      case 'CANCELLED':
+        bg = AppColors.dangerRed.withValues(alpha: 0.18);
+        fg = AppColors.dangerRed;
+        break;
+      case 'PENDING':
+      default:
+        bg = Colors.amber.withValues(alpha: 0.18);
+        fg = Colors.amber.shade800;
+        break;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 9,
+          fontWeight: FontWeight.w900,
+          color: fg,
+          letterSpacing: 0.5,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = context.select(
       (AppStateRepository state) => state.currentUser,
     );
+    final roleConfig = _getRoleConfig(user?.role);
+
     final rawEvents = context.select(
       (AppStateRepository state) => state.events,
     );
@@ -84,7 +431,7 @@ class VetConsoleHomeFragment extends StatelessWidget {
     );
     final state = context.read<AppStateRepository>();
 
-    // Count unique consulted patients for this doctor
+    // Count unique consulted patients for this doctor/provider
     final consultedPetIds = <String>{};
     if (user != null) {
       final uid = user.uid;
@@ -108,9 +455,9 @@ class VetConsoleHomeFragment extends StatelessWidget {
       ),
       slivers: [
         SliverAppBar(
-          title: const Text(
-            'Clinic Practice Console',
-            style: TextStyle(fontWeight: FontWeight.w800),
+          title: Text(
+            roleConfig.consoleTitle,
+            style: const TextStyle(fontWeight: FontWeight.w800),
           ),
           backgroundColor: Colors.transparent,
           elevation: 0,
@@ -186,9 +533,9 @@ class VetConsoleHomeFragment extends StatelessWidget {
                                   ),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
-                                child: const Text(
-                                  '🩺 VETERINARY PRACTICE',
-                                  style: TextStyle(
+                                child: Text(
+                                  roleConfig.badgeText,
+                                  style: const TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.w900,
                                     color: AppColors.primary,
@@ -198,11 +545,13 @@ class VetConsoleHomeFragment extends StatelessWidget {
                               ),
                               const SizedBox(height: 10),
                               Text(
-                                'Hi, ${user?.name ?? 'Doctor'}',
+                                'Hi, ${user?.name.startsWith('Dr.') == true ? user!.name : '${roleConfig.greetingPrefix} ${user?.name ?? ''}'.trim()}',
                                 style: AppTypography.headlineMedium.copyWith(
                                   fontWeight: FontWeight.w900,
-                                  fontSize: 24,
+                                  fontSize: 22,
                                 ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                               const SizedBox(height: 4),
                               Text(
@@ -224,10 +573,10 @@ class VetConsoleHomeFragment extends StatelessWidget {
                             shape: BoxShape.circle,
                             color: AppColors.primary.withValues(alpha: 0.2),
                           ),
-                          child: const Icon(
-                            Icons.local_hospital_rounded,
+                          child: Icon(
+                            roleConfig.badgeIcon,
                             color: AppColors.primary,
-                            size: 28,
+                            size: 26,
                           ),
                         ),
                       ],
@@ -243,7 +592,7 @@ class VetConsoleHomeFragment extends StatelessWidget {
                       child: FadeInLeft(
                         child: _buildKpiCard(
                           context,
-                          'APPOINTMENTS',
+                          roleConfig.kpi1Label,
                           '${events.length}',
                           Icons.event_note_rounded,
                           AppColors.primary,
@@ -255,7 +604,7 @@ class VetConsoleHomeFragment extends StatelessWidget {
                       child: FadeInUp(
                         child: _buildKpiCard(
                           context,
-                          'PATIENTS',
+                          roleConfig.kpi2Label,
                           '${consultedPetIds.length}',
                           Icons.medical_services_rounded,
                           AppColors.healthGreen,
@@ -382,7 +731,7 @@ class VetConsoleHomeFragment extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Scheduled Consultations',
+                      roleConfig.appointmentsTitle,
                       style: AppTypography.titleLarge.copyWith(
                         fontWeight: FontWeight.w900,
                       ),
@@ -416,6 +765,12 @@ class VetConsoleHomeFragment extends StatelessWidget {
                       child: Padding(
                         padding: const EdgeInsets.only(bottom: 12),
                         child: PremiumCard(
+                          onTap: () => _showAppointmentDetailsModal(
+                            context,
+                            evt,
+                            state,
+                            isDark,
+                          ),
                           opacity: 0.2,
                           borderRadius: 24,
                           child: Padding(
@@ -442,15 +797,25 @@ class VetConsoleHomeFragment extends StatelessWidget {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      Text(
-                                        '${evt.petName} • ${evt.title}',
-                                        style: AppTypography.titleMedium
-                                            .copyWith(
-                                              fontWeight: FontWeight.w800,
-                                              fontSize: 15,
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              '${evt.petName} • ${evt.title}',
+                                              style: AppTypography.titleMedium
+                                                  .copyWith(
+                                                    fontWeight: FontWeight.w800,
+                                                    fontSize: 15,
+                                                  ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
                                             ),
+                                          ),
+                                          const SizedBox(width: 6),
+                                          _buildStatusBadge(evt.status),
+                                        ],
                                       ),
-                                      const SizedBox(height: 2),
+                                      const SizedBox(height: 4),
                                       Text(
                                         '${evt.fromTime} - ${evt.toTime}',
                                         style: AppTypography.bodyMedium
@@ -462,6 +827,7 @@ class VetConsoleHomeFragment extends StatelessWidget {
                                     ],
                                   ),
                                 ),
+                                const SizedBox(width: 8),
                                 const Icon(
                                   Icons.arrow_forward_ios_rounded,
                                   color: AppColors.textTertiary,
@@ -477,12 +843,12 @@ class VetConsoleHomeFragment extends StatelessWidget {
 
                 const SizedBox(height: 36),
 
-                // Recent Medical EHR Records
+                // Recent Case Logs & EHR
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Recent Case Logs & EHR',
+                      roleConfig.caseLogsTitle,
                       style: AppTypography.titleLarge.copyWith(
                         fontWeight: FontWeight.w900,
                       ),
