@@ -614,6 +614,22 @@ class HomeDashboardFragment extends StatelessWidget {
         (pet.vaccinationDetails?.trim().isNotEmpty == true);
     final petHealthScore = hasMedicalLogs ? pet.healthIndex : 0;
 
+    final repo = context.watch<AppStateRepository>();
+    final petDevice = repo.devices.where((d) => d.petId == pet.petID).firstOrNull;
+    final hasDevice = petDevice != null;
+    final isOnline = petDevice?.isOnline ?? false;
+    final batteryLevel = petDevice?.batteryLevel ?? 0;
+
+    final Color statusColor = hasDevice
+        ? (isOnline ? AppColors.healthGreen : AppColors.dangerRed)
+        : (isDark ? Colors.white38 : Colors.grey.shade500);
+
+    final String statusText = hasDevice
+        ? (isOnline
+            ? '${petDevice.typeDisplayName.toUpperCase()} ONLINE • $batteryLevel% BATTERY'
+            : '${petDevice.typeDisplayName.toUpperCase()} OFFLINE')
+        : 'NO TRACKER LINKED';
+
     return BentoCard(
       padding: const EdgeInsets.all(20),
       borderRadius: 28,
@@ -710,25 +726,27 @@ class HomeDashboardFragment extends StatelessWidget {
                         Container(
                           width: 8,
                           height: 8,
-                          decoration: const BoxDecoration(
-                            color: AppColors.healthGreen,
+                          decoration: BoxDecoration(
+                            color: statusColor,
                             shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.healthGreen,
-                                blurRadius: 6,
-                                spreadRadius: 1,
-                              ),
-                            ],
+                            boxShadow: hasDevice
+                                ? [
+                                    BoxShadow(
+                                      color: statusColor,
+                                      blurRadius: 6,
+                                      spreadRadius: 1,
+                                    ),
+                                  ]
+                                : null,
                           ),
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          'COLLAR ONLINE • 88% BATTERY',
+                          statusText,
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 10,
                             fontWeight: FontWeight.w800,
-                            color: AppColors.healthGreen,
+                            color: statusColor,
                             letterSpacing: 0.4,
                           ),
                         ),
