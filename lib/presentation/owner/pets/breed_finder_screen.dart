@@ -19,7 +19,6 @@ class BreedFinderScreen extends StatefulWidget {
 class _BreedFinderScreenState extends State<BreedFinderScreen> {
   bool _isIdentifying = false;
   String? _identifiedBreed;
-  final String _sampleImage = 'https://images.unsplash.com/photo-1548767797-d8c844163c4c?w=800&auto=format&fit=crop';
 
   void _runIdentification() async {
     setState(() {

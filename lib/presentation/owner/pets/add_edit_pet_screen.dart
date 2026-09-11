@@ -597,6 +597,8 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
             imageFile: _localImage,
           );
 
+          if (!mounted) return;
+
           if (breed != null) {
             setState(() {
               _breedController.text = breed;
@@ -608,6 +610,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
             repo.showToast('AI could not identify the breed. Please try a clearer photo.', context: context);
           }
         } catch (e) {
+          if (!mounted) return;
           setState(() => _isScanningBreed = false);
           repo.showToast('AI Scan failed. Check your connection.', context: context);
         }
