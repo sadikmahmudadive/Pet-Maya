@@ -274,8 +274,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           subtitle: state.devices.isEmpty
                               ? 'Pair GPS collars & smart tags'
                               : '${state.devices.length} hardware paired',
-                          title: 'My Devices',
-                          subtitle: '${state.devices.length} paired',
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(

@@ -1115,32 +1115,7 @@ class AppStateRepository extends ChangeNotifier {
     try {
       final cached = LocalCacheService().loadDevices(userId);
       _devices.clear();
-      if (cached.isNotEmpty) {
-        _devices.addAll(cached);
-      } else if (_pets.isNotEmpty) {
-        // Seed an initial smart collar for the first pet
-        final firstPet = _pets.first;
-        final initialDevice = PetDeviceModel(
-          id: 'dev_${firstPet.petID}_collar',
-          name: '${firstPet.name}\'s GPS Collar',
-          deviceType: 'gps_collar',
-          modelNumber: 'PetMaya ProTrack Gen 2',
-          serialNumber: 'PM-TRK-8821',
-          petId: firstPet.petID,
-          petName: firstPet.name,
-          batteryLevel: 88,
-          isOnline: true,
-          signalStrength: 4,
-          trackingMode: 'Real-Time (10s)',
-          isSafeZone: true,
-          lastSync: DateTime.now().subtract(const Duration(minutes: 2)),
-          firmwareVersion: 'v2.4.1',
-          latitude: firstPet.latitude ?? 23.8103,
-          longitude: firstPet.longitude ?? 90.4125,
-        );
-        _devices.add(initialDevice);
-        await LocalCacheService().saveDevices(userId, _devices);
-      }
+      _devices.addAll(cached);
       notifyListeners();
     } catch (e) {
       debugPrint('[AppStateRepository] loadDevices error: $e');
