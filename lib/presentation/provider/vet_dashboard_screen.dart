@@ -146,6 +146,21 @@ class _VetDashboardScreenState extends State<VetDashboardScreen> {
 class VetConsoleHomeFragment extends StatelessWidget {
   const VetConsoleHomeFragment({super.key});
 
+  String _formatGreeting(String? rawName, String prefix) {
+    if (rawName == null || rawName.trim().isEmpty) return 'Hi, Welcome!';
+    final name = rawName.trim();
+    final lower = name.toLowerCase();
+    final prefLower = prefix.toLowerCase();
+    if (lower.startsWith('dr.') ||
+        lower.startsWith('groomer') ||
+        lower.startsWith('manager') ||
+        lower.startsWith('coordinator') ||
+        lower.contains(prefLower)) {
+      return 'Hi, $name';
+    }
+    return 'Hi, $prefix $name';
+  }
+
   void _showAppointmentDetailsModal(
     BuildContext context,
     EventModel evt,
@@ -272,6 +287,10 @@ class VetConsoleHomeFragment extends StatelessWidget {
                         backgroundColor: const Color(0xFF10B981),
                         foregroundColor: Colors.white,
                         elevation: 0,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 4,
+                          vertical: 12,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
                         ),
@@ -281,9 +300,12 @@ class VetConsoleHomeFragment extends StatelessWidget {
                         state.showToast('Appointment CONFIRMED', type: ToastType.success);
                         if (ctx.mounted) Navigator.pop(ctx);
                       },
-                      child: const Text(
-                        'Confirm',
-                        style: TextStyle(fontWeight: FontWeight.w700),
+                      child: const FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          'Confirm',
+                          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+                        ),
                       ),
                     ),
                   ),
@@ -294,6 +316,10 @@ class VetConsoleHomeFragment extends StatelessWidget {
                         backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
                         elevation: 0,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 4,
+                          vertical: 12,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
                         ),
@@ -305,9 +331,12 @@ class VetConsoleHomeFragment extends StatelessWidget {
                         state.showToast('Appointment COMPLETED', type: ToastType.success);
                         if (ctx.mounted) Navigator.pop(ctx);
                       },
-                      child: const Text(
-                        'Complete',
-                        style: TextStyle(fontWeight: FontWeight.w700),
+                      child: const FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          'Complete',
+                          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+                        ),
                       ),
                     ),
                   ),
@@ -317,6 +346,10 @@ class VetConsoleHomeFragment extends StatelessWidget {
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppColors.dangerRed,
                         side: const BorderSide(color: AppColors.dangerRed),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 4,
+                          vertical: 12,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
                         ),
@@ -326,9 +359,12 @@ class VetConsoleHomeFragment extends StatelessWidget {
                         state.showToast('Appointment CANCELLED', type: ToastType.info);
                         if (ctx.mounted) Navigator.pop(ctx);
                       },
-                      child: const Text(
-                        'Cancel',
-                        style: TextStyle(fontWeight: FontWeight.w700),
+                      child: const FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          'Cancel',
+                          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+                        ),
                       ),
                     ),
                   ),
@@ -545,7 +581,7 @@ class VetConsoleHomeFragment extends StatelessWidget {
                               ),
                               const SizedBox(height: 10),
                               Text(
-                                'Hi, ${user?.name.startsWith('Dr.') == true ? user!.name : '${roleConfig.greetingPrefix} ${user?.name ?? ''}'.trim()}',
+                                _formatGreeting(user?.name, roleConfig.greetingPrefix),
                                 style: AppTypography.headlineMedium.copyWith(
                                   fontWeight: FontWeight.w900,
                                   fontSize: 22,
