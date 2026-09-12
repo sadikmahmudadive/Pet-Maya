@@ -99,12 +99,150 @@ export const INITIAL_VETS = [
 ];
 
 export const INITIAL_PRODUCTS = [
-  { id: 'p1', name: 'Royal Canin Golden Retriever Adult', category: 'food', price: 64.99, rating: 4.9, ratingCount: 128, image: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=500&auto=format&fit=crop&q=80', description: 'Tailored kibble designed specifically for the cardiac health and coat barrier of adult Golden Retrievers.' },
-  { id: 'p2', name: 'Simparica Trio Chewables (3-Pack)', category: 'pharma', price: 42.50, rating: 5.0, ratingCount: 215, image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=500&auto=format&fit=crop&q=80', description: 'All-in-one monthly protection against fleas, ticks, heartworm disease, roundworms, and hookworms.' },
-  { id: 'p3', name: 'Smart GPS & Health Collar V3', category: 'tech', price: 89.00, rating: 4.8, ratingCount: 76, image: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=500&auto=format&fit=crop&q=80', description: 'Real-time cellular GPS tracking, geofence escape alarms, activity telemetry, and sound buzzer collar.' },
-  { id: 'p4', name: 'Purina Pro Plan LiveClear Cat Food', category: 'food', price: 48.99, rating: 4.9, ratingCount: 88, image: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=500&auto=format&fit=crop&q=80', description: 'Revolutionary feline nutrition that safely neutralizes Fel d 1 allergen in cat saliva and dander.' },
-  { id: 'p5', name: 'Orthopedic Memory Foam Pet Bed', category: 'supplies', price: 54.00, rating: 4.7, ratingCount: 92, image: 'https://images.unsplash.com/photo-1541599540903-216a46ca1dc0?w=500&auto=format&fit=crop&q=80', description: 'High-density memory foam base with waterproof lining designed for joint relief and deep recovery sleep.' },
-  { id: 'p6', name: 'Otomax Clinical Ear Drops (15g)', category: 'pharma', price: 28.00, rating: 4.9, ratingCount: 64, image: 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=500&auto=format&fit=crop&q=80', description: 'Veterinary prescription anti-inflammatory, antifungal, and antibacterial suspension for canine otitis.' }
+  {
+    id: 'p1',
+    name: 'Royal Canin Golden Retriever Adult',
+    category: 'food',
+    price: 64.99,
+    originalPrice: 79.99,
+    discountPct: 19,
+    rating: 4.9,
+    ratingCount: 128,
+    stock: 24,
+    brand: 'Royal Canin',
+    badge: 'BEST SELLER',
+    sku: 'RC-GR-3KG',
+    isRx: false,
+    image: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=500&auto=format&fit=crop&q=80',
+    description: 'Tailored kibble designed specifically for the cardiac health and coat barrier of adult Golden Retrievers.',
+    specifications: {
+      weight: '3.0 kg',
+      lifestage: 'Adult (Over 15 months)',
+      breedSuitability: 'Golden Retriever & large retriever breeds',
+      origin: 'France (Imported)'
+    },
+    usageGuide: 'Feed 330g - 380g daily divided into 2 meals based on activity level. Fresh water must always be available.'
+  },
+  {
+    id: 'p2',
+    name: 'Simparica Trio Chewables (3-Pack)',
+    category: 'pharma',
+    price: 42.50,
+    originalPrice: 49.99,
+    discountPct: 15,
+    rating: 5.0,
+    ratingCount: 215,
+    stock: 14,
+    brand: 'Zoetis Rx',
+    badge: 'VET APPROVED',
+    sku: 'SIM-TRIO-MED',
+    isRx: true,
+    image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=500&auto=format&fit=crop&q=80',
+    description: 'All-in-one monthly chewable protection against fleas, ticks, heartworm disease, roundworms, and hookworms.',
+    specifications: {
+      dosage: '1 chewable tablet monthly',
+      weightRange: '10kg – 20kg (22 – 44 lbs)',
+      storage: 'Room temperature (20°C - 25°C)',
+      activeIngredients: 'Sarolaner, Moxidectin, Pyrantel'
+    },
+    usageGuide: 'Administer orally once monthly with or without food. Ensure pet consumes full dose for complete protection.'
+  },
+  {
+    id: 'p3',
+    name: 'Smart GPS & Health Collar V3',
+    category: 'tech',
+    price: 89.00,
+    originalPrice: 119.00,
+    discountPct: 25,
+    rating: 4.8,
+    ratingCount: 76,
+    stock: 9,
+    brand: 'Pet Maya Tech',
+    badge: 'NEW HARDWARE',
+    sku: 'PM-COLLAR-V3',
+    isRx: false,
+    image: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=500&auto=format&fit=crop&q=80',
+    description: 'Real-time cellular GPS tracking, geofence escape alarms, activity telemetry, and sound buzzer collar.',
+    specifications: {
+      connectivity: '4G LTE-M / NB-IoT / BLE 5.2 / GNSS',
+      batteryLife: 'Up to 14 days on smart standby',
+      waterproof: 'IP68 certified submersible',
+      weight: '32 grams lightweight ergonomic'
+    },
+    usageGuide: 'Pair via Bluetooth with Pet Maya app in under 60 seconds. Set safe zones around home perimeter.'
+  },
+  {
+    id: 'p4',
+    name: 'Purina Pro Plan LiveClear Cat Food',
+    category: 'food',
+    price: 48.99,
+    originalPrice: 58.00,
+    discountPct: 16,
+    rating: 4.9,
+    ratingCount: 88,
+    stock: 18,
+    brand: 'Purina Pro Plan',
+    badge: 'ALLERGEN REDUCING',
+    sku: 'PUR-LC-CAT-15',
+    isRx: false,
+    image: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=500&auto=format&fit=crop&q=80',
+    description: 'Revolutionary feline nutrition that safely neutralizes Fel d 1 allergen in cat saliva and dander.',
+    specifications: {
+      weight: '1.5 kg',
+      primaryProtein: 'Real Turkey & Rice',
+      target: 'Adult cats in multi-human allergen-sensitive households',
+      allergenReduction: 'Average 47% reduction starting week 3'
+    },
+    usageGuide: 'Feed daily as sole diet for maximum allergen reduction effect. Transition gradually over 7–10 days.'
+  },
+  {
+    id: 'p5',
+    name: 'Orthopedic Memory Foam Pet Bed',
+    category: 'supplies',
+    price: 54.00,
+    originalPrice: 68.00,
+    discountPct: 20,
+    rating: 4.7,
+    ratingCount: 92,
+    stock: 6,
+    brand: 'FurHaven Ergonomics',
+    badge: 'COMFORT CHOICE',
+    sku: 'BED-ORTHO-XL',
+    isRx: false,
+    image: 'https://images.unsplash.com/photo-1541599540903-216a46ca1dc0?w=500&auto=format&fit=crop&q=80',
+    description: 'High-density memory foam base with waterproof lining designed for joint relief and deep recovery sleep.',
+    specifications: {
+      dimensions: '90cm x 70cm x 15cm (Large/XL)',
+      foamDensity: 'Medical grade 4-inch memory slab',
+      cover: 'Removable machine-washable plush microsuede',
+      base: 'Non-skid silicone dotted underside'
+    },
+    usageGuide: 'Allow 24 hours for memory foam core to fully expand upon unboxing before first pet use.'
+  },
+  {
+    id: 'p6',
+    name: 'Otomax Clinical Ear Drops (15g)',
+    category: 'pharma',
+    price: 28.00,
+    originalPrice: 34.50,
+    discountPct: 18,
+    rating: 4.9,
+    ratingCount: 64,
+    stock: 12,
+    brand: 'Merck Animal Health',
+    badge: 'PRESCRIPTION RX',
+    sku: 'OTO-CLIN-15G',
+    isRx: true,
+    image: 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=500&auto=format&fit=crop&q=80',
+    description: 'Veterinary prescription anti-inflammatory, antifungal, and antibacterial suspension for canine otitis.',
+    specifications: {
+      volume: '15g dropper tube',
+      formula: 'Gentamicin, Betamethasone, Clotrimazole',
+      storage: 'Keep refrigerated (2°C – 8°C)',
+      coldChainDelivery: 'Shipped in insulated cold pack'
+    },
+    usageGuide: 'Instill 4 drops into affected ear canal twice daily for 7 days or as directed by attending veterinarian.'
+  }
 ];
 
 export const INITIAL_POSTS = [

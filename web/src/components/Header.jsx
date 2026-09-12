@@ -158,16 +158,10 @@ export default function Header() {
           {/* Shopping Bag */}
           <button
             className="icon-btn"
-            onClick={() => {
-              if (currentUser) {
-                openModal('cart');
-              } else {
-                openModal('auth');
-                showToast('🔒 Please sign in to view your bag', 'info');
-              }
-            }}
+            onClick={() => openModal('cart')}
             style={{ width: 32, height: 32, position: 'relative' }}
             title="Shopping Bag"
+            aria-label={`Shopping Bag (${cartCount} items)`}
           >
             <ShoppingBag size={16} />
             <AnimatePresence>

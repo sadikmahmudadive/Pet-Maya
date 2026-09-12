@@ -1242,7 +1242,7 @@ export function AppProvider({ children }) {
       }
       return [...prev, { ...product, qty: quantity }];
     });
-    showToast(`🛒 Added "${product.name}" to bag!`, 'success');
+    showToast(`Added "${product.name}" to bag!`, 'success');
   };
 
   const updateCartQty = (productId, delta) => {
