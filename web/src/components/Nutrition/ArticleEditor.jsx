@@ -5,7 +5,7 @@ import {
   Bold, Italic, Underline, Strikethrough,
   Heading1, Heading2, Heading3, Quote, List, ListOrdered,
   Code, Minus, Link2, Image, X, Send, ChevronLeft,
-  Save, Clock, Type, AlignLeft, Eye, EyeOff
+  Save, Clock, Type, AlignLeft, Eye, EyeOff, Upload
 } from 'lucide-react';
 import { db, collection, addDoc, storage, ref, uploadBytesResumable, getDownloadURL } from '../../config/firebase';
 
@@ -226,7 +226,7 @@ export default function ArticleEditor({ onClose, onPublished, showToast }) {
     };
     reader.readAsDataURL(file);
 
-    showToast('📸 Cover image selected! It will save when you publish.', 'info');
+    showToast('Cover image selected! It will save when you publish.', 'info');
   };
 
   // ── Helper: Upload Cover to Firebase Storage on Publish ──
@@ -272,7 +272,7 @@ export default function ArticleEditor({ onClose, onPublished, showToast }) {
     if (!title.trim()) { showToast('Please add a title', 'error'); return; }
     if (plainText.trim().length < 50) { showToast('Content is too short (min 50 characters)', 'error'); return; }
     if (!currentUser || currentUser.uid?.startsWith('demo_guest')) {
-      showToast('🔒 Sign in to publish articles', 'info'); return;
+      showToast('Sign in to publish articles', 'info'); return;
     }
 
     const isAdmin = currentUser?.role === 'Super Admin' || currentUser?.role === 'admin' || currentUser?.email === 'admin@petmaya.app';
@@ -321,8 +321,8 @@ export default function ArticleEditor({ onClose, onPublished, showToast }) {
       localStorage.removeItem(DRAFT_KEY);
       showToast(
         isAdmin 
-          ? '🎉 Article published directly to community feed!' 
-          : '📝 Article submitted for review! It will be live on web & app once approved by an admin.', 
+          ? 'Article published directly to community feed!' 
+          : 'Article submitted for review! It will be live on web & app once approved by an admin.', 
         'success'
       );
       onPublished?.();
@@ -516,8 +516,9 @@ export default function ArticleEditor({ onClose, onPublished, showToast }) {
 
               {/* URL preview subtitle bar */}
               <div style={{ padding: '8px 16px', background: 'var(--surface-alt)', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11.5px', color: 'var(--text-muted)' }}>
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '80%' }}>
-                  🔗 {coverFile ? `Device photo selected: ${coverFile.name} (uploads upon publish)` : (imageUrl.startsWith('data:') ? 'Local file selected' : imageUrl)}
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '80%', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Link2 size={13} style={{ flexShrink: 0 }} />
+                  {coverFile ? `Device photo selected: ${coverFile.name} (uploads upon publish)` : (imageUrl.startsWith('data:') ? 'Local file selected' : imageUrl)}
                 </span>
                 <span style={{ color: '#10B981', fontWeight: 700 }}>✓ Cover Ready</span>
               </div>
@@ -588,7 +589,8 @@ export default function ArticleEditor({ onClose, onPublished, showToast }) {
                     <span>Uploading {uploadProgress}%...</span>
                   ) : (
                     <>
-                      <span>📁 Upload File</span>
+                      <Upload size={14} />
+                      <span>Upload File</span>
                     </>
                   )}
                 </button>

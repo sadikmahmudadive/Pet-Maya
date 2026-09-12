@@ -45,20 +45,20 @@ export default function Profile() {
   const copyReferral = () => {
     if (!currentUser?.referralCode) return;
     navigator.clipboard.writeText(currentUser.referralCode);
-    showToast(`📋 Referral code ${currentUser.referralCode} copied!`, 'success');
+    showToast(`Referral code ${currentUser.referralCode} copied!`, 'success');
   };
 
   const handleRedeemPoints = (pts, rewardName) => {
     if ((currentUser?.points || 0) < pts) {
-      showToast(`⚠️ You need at least ${pts} points to redeem ${rewardName}.`, 'error');
+      showToast(`You need at least ${pts} points to redeem ${rewardName}.`, 'error');
       return;
     }
-    showToast(`🎉 Redeemed ${pts} pts for ${rewardName}! Applied to your account.`, 'success');
+    showToast(`Redeemed ${pts} pts for ${rewardName}! Applied to your account.`, 'success');
   };
 
   const handleSignOut = async () => {
     await logout();
-    showToast('👋 You have been signed out successfully.', 'info');
+    showToast('You have been signed out successfully.', 'info');
   };
 
   const exportEHRSummary = () => {
@@ -72,7 +72,7 @@ export default function Profile() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    showToast('📄 Clinical EHR medical summary exported!', 'success');
+    showToast('Clinical EHR medical summary exported!', 'success');
   };
 
   if (!currentUser) {
@@ -395,7 +395,7 @@ export default function Profile() {
       <div className="apple-solid-card" style={{ padding: '30px', textAlign: 'left', alignItems: 'stretch', background: 'linear-gradient(135deg, rgba(16,185,129,0.1), rgba(0,0,0,0))' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
           <div>
-            <span style={{ background: 'rgba(16,185,129,0.15)', color: 'var(--primary)', padding: '4px 10px', borderRadius: '12px', fontSize: '10px', fontWeight: 700, letterSpacing: '0.05em' }}>REFERRAL PROGRAM 🎁</span>
+            <span style={{ background: 'rgba(16,185,129,0.15)', color: 'var(--primary)', padding: '4px 10px', borderRadius: '12px', fontSize: '10px', fontWeight: 700, letterSpacing: '0.05em' }}>REFERRAL PROGRAM</span>
             <h3 style={{ fontSize: '18px', fontWeight: 700, marginTop: '12px' }}>Invite Friends & Earn Points!</h3>
             <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '6px', maxWidth: '300px' }}>New users get 15 initial points. Earn +5 points for every friend who joins with your code!</p>
           </div>
@@ -464,7 +464,7 @@ export default function Profile() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <span className="badge badge-green">{r.serviceType || 'Consultation'}</span>
-                    <strong style={{ fontSize: '15px' }}>🐾 {r.petName} ({r.weight || '12 kg'})</strong>
+                    <strong style={{ fontSize: '15px' }}>{r.petName} ({r.weight || '12 kg'})</strong>
                   </div>
                   <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{r.date}</span>
                 </div>

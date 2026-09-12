@@ -558,7 +558,8 @@ export default function Community() {
                 Trending
               </button>
               <button className={`chip-pill ${feedFilter === 'lost' ? 'active' : ''}`} onClick={() => setFeedFilter('lost')}>
-                🚨 Lost &amp; Found
+                <AlertTriangle size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '5px' }} />
+                Lost &amp; Found
               </button>
               <button className={`chip-pill ${feedFilter === 'moments' ? 'active' : ''}`} onClick={() => setFeedFilter('moments')}>
                 Moments

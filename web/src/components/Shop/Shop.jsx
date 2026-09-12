@@ -12,17 +12,21 @@ import {
   ShieldCheck,
   Info,
   X,
-  Heart        // NEW – wishlist
+  Heart,
+  UtensilsCrossed,
+  Pill,
+  Radio,
+  Package
 } from 'lucide-react';
 import { AppleReveal } from '../Animations/AppleReveal';
 import { AppleStagger } from '../Animations/AppleStagger';
 
 // ── Category icon tiles shown above the product grid ───────────────────────
 const CATEGORY_TILES = [
-  { id: 'food',     emoji: '🥩', label: 'Food',       subtitle: 'Diets & Nutrition' },
-  { id: 'pharma',   emoji: '💊', label: 'Pharmacy',   subtitle: 'Rx & Medications'  },
-  { id: 'tech',     emoji: '📡', label: 'Smart Tech',  subtitle: 'GPS & Wearables'   },
-  { id: 'supplies', emoji: '🛋️', label: 'Supplies',   subtitle: 'Beds & Toys'       },
+  { id: 'food',     icon: UtensilsCrossed, label: 'Food',       subtitle: 'Diets & Nutrition', color: '#10B981' },
+  { id: 'pharma',   icon: Pill,            label: 'Pharmacy',   subtitle: 'Rx & Medications',  color: '#3B82F6' },
+  { id: 'tech',     icon: Radio,           label: 'Smart Tech',  subtitle: 'GPS & Wearables',   color: '#8B5CF6' },
+  { id: 'supplies', icon: Package,         label: 'Supplies',   subtitle: 'Beds & Toys',       color: '#F59E0B' },
 ];
 
 // ── Delivery ETA helper ─────────────────────────────────────────────────────
@@ -97,7 +101,7 @@ export default function Shop() {
         setToastMsg('Removed from Wishlist');
       } else {
         next.add(p.id);
-        setToastMsg('Added to Wishlist ❤️');
+        setToastMsg('Added to Wishlist');
       }
       return next;
     });
@@ -170,11 +174,12 @@ export default function Shop() {
       </div>
       </AppleReveal>
 
-      {/* ── NEW: CATEGORY ICON TILES ── */}
+      {/* ── CATEGORY ICON TILES (CLEAN SVG ICONS) ── */}
       <AppleReveal delay={0.15} yOffset={20}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '12px' }}>
           {CATEGORY_TILES.map(tile => {
             const isActive = selectedCategory === tile.id;
+            const IconComp = tile.icon;
             return (
               <button
                 key={tile.id}
@@ -184,7 +189,7 @@ export default function Shop() {
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: '6px',
+                  gap: '8px',
                   padding: '18px 10px',
                   borderRadius: '16px',
                   border: '1.5px solid',
@@ -195,7 +200,19 @@ export default function Shop() {
                   boxShadow: isActive ? '0 0 0 2px rgba(16,185,129,0.18)' : 'none',
                 }}
               >
-                <span style={{ fontSize: '28px', lineHeight: 1 }}>{tile.emoji}</span>
+                <div style={{
+                  width: '42px',
+                  height: '42px',
+                  borderRadius: '12px',
+                  background: isActive ? 'rgba(16,185,129,0.18)' : 'var(--surface-alt)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: isActive ? '#10B981' : tile.color,
+                  transition: 'all 0.18s ease',
+                }}>
+                  <IconComp size={22} strokeWidth={2} />
+                </div>
                 <span style={{ fontSize: '13px', fontWeight: 700, color: isActive ? '#10B981' : 'var(--text-main)' }}>{tile.label}</span>
                 <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{tile.subtitle}</span>
               </button>
