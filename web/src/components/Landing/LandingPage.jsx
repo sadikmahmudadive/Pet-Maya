@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Radar, Activity, Utensils, Stethoscope, ShoppingBag, Bell, 
   Download, Smartphone, ChevronRight, ShieldCheck, ExternalLink,
+  Sparkles, Heart, BookOpen, MapPin, MessageCircle, Calendar, Syringe, Star, ChevronDown, AlertTriangle
   Sparkles, Heart, BookOpen, MapPin, MessageCircle, Calendar, Syringe, Star, ChevronDown, AlertTriangle, Building2
 } from 'lucide-react';
 
@@ -64,6 +65,7 @@ export default function LandingPage() {
   const handleTryDemo = () => {
     loginAsGuest('Pet Owner');
     setActiveTab('dashboard');
+    showToast('🚀 Welcome to Pet Maya Demo Dashboard!', 'success');
     showToast('Welcome to Pet Maya Demo Dashboard!', 'success');
   };
 
@@ -72,6 +74,7 @@ export default function LandingPage() {
       setActiveTab(tabId);
     } else {
       openModal('auth');
+      showToast(`🔒 Please sign in to access ${featureName}`, 'info');
       showToast(`Please sign in to access ${featureName}`, 'info');
     }
   };
@@ -530,6 +533,31 @@ export default function LandingPage() {
           </motion.div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
             {[
+              { name: 'Nafisa Rahman', role: 'Dog Parent · Dhaka', quote: 'The GPS collar alert saved my Golden Retriever Biscuit from crossing the boundary. Got the geofence alert within seconds. Life-changing.', avatar: '🐕', stars: 5 },
+              { name: 'Dr. Touhid Hossain', role: 'Veterinarian · Chittagong', quote: 'The AI triage tool is surprisingly accurate. It correctly flagged a secondary pyoderma on a Labrador photo a client sent before clinic visit.', avatar: '👨‍⚕️', stars: 5 },
+              { name: 'Meher Afroz', role: 'Cat Parent · Sylhet', quote: 'Our Persian cat Mia had conjunctivitis. I uploaded a photo, got the diagnosis plus the right doctor. Saved us so much panic and time.', avatar: '🐱', stars: 5 },
+              { name: 'Tanvir Ahmed', role: 'Multi-Pet Owner · Rajshahi', quote: 'Managing 3 dogs vaccine schedules was chaotic. The Medical Passport feature keeps everything in one place with automatic calendar export.', avatar: '🐾', stars: 5 },
+              { name: 'Sabrina Islam', role: 'Rabbit Parent · Khulna', quote: 'I did not expect rabbit-specific content but the AI correctly identified ear mite signs and gave breed-appropriate advice. Excellent app.', avatar: '🐇', stars: 4 },
+              { name: 'Kamrul Hassan', role: 'Vet Clinic Owner · Dhaka', quote: 'We registered our clinic and started receiving teleconsultation bookings within the first week. The platform quality matches international standards.', avatar: '🏥', stars: 5 },
+            ].map((t, idx) => (
+              <motion.div
+                key={t.name}
+                initial={{ opacity: 0, y: 14 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-10px' }}
+                transition={{ duration: 0.3, delay: (idx % 3) * 0.04 }}
+                style={{ background: 'var(--surface-solid)', border: '1px solid var(--border)', borderRadius: '16px', padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: '10px' }}
+              >
+                <div style={{ display: 'flex', gap: '2px' }}>
+                  {Array(t.stars).fill(0).map((_, i) => <Star key={i} size={12} fill="#F59E0B" color="#F59E0B" />)}
+                  {Array(5 - t.stars).fill(0).map((_, i) => <Star key={`e${i}`} size={12} fill="none" color="#86868B" />)}
+                </div>
+                <p style={{ fontSize: '13px', color: 'var(--text-main)', lineHeight: 1.5, margin: 0, fontStyle: 'italic' }}>"{t.quote}"</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: 'auto', paddingTop: '6px', borderTop: '1px solid var(--border)' }}>
+                  <span style={{ fontSize: '22px' }}>{t.avatar}</span>
+                  <div>
+                    <strong style={{ fontSize: '12.5px', display: 'block', color: 'var(--text-main)' }}>{t.name}</strong>
+                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{t.role}</span>
               { name: 'Nafisa Rahman', role: 'Dog Parent · Dhaka', quote: 'The GPS collar alert saved my Golden Retriever Biscuit from crossing the boundary. Got the geofence alert within seconds. Life-changing.', icon: Radar, iconColor: '#10B981', stars: 5 },
               { name: 'Dr. Touhid Hossain', role: 'Veterinarian · Chittagong', quote: 'The AI triage tool is surprisingly accurate. It correctly flagged a secondary pyoderma on a Labrador photo a client sent before clinic visit.', icon: Stethoscope, iconColor: '#3B82F6', stars: 5 },
               { name: 'Meher Afroz', role: 'Cat Parent · Sylhet', quote: 'Our Persian cat Mia had conjunctivitis. I uploaded a photo, got the diagnosis plus the right doctor. Saved us so much panic and time.', icon: Heart, iconColor: '#EC4899', stars: 5 },
@@ -551,6 +579,9 @@ export default function LandingPage() {
                     {Array(t.stars).fill(0).map((_, i) => <Star key={i} size={12} fill="#F59E0B" color="#F59E0B" />)}
                     {Array(5 - t.stars).fill(0).map((_, i) => <Star key={`e${i}`} size={12} fill="none" color="#86868B" />)}
                   </div>
+                </div>
+              </motion.div>
+            ))}
                   <p style={{ fontSize: '13px', color: 'var(--text-main)', lineHeight: 1.5, margin: 0, fontStyle: 'italic' }}>"{t.quote}"</p>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: 'auto', paddingTop: '6px', borderTop: '1px solid var(--border)' }}>
                     <div style={{

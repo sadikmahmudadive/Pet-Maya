@@ -8,6 +8,7 @@ import {
   Calendar,
   Layers,
   HeartPulse,
+  ChevronRight
   ChevronRight,
   Stethoscope,
   Activity,
@@ -97,6 +98,7 @@ export default function HealthTriage() {
 
   const runScanProcess = (samplePayload, imageSrc) => {
     if (!imageSrc && !uploadedImage) {
+      showToast('⚠️ Please upload or select a symptom photo first.', 'error');
       showToast('Please upload or select a symptom photo first.', 'error');
       return;
     }
@@ -119,6 +121,7 @@ export default function HealthTriage() {
         setTimeout(() => {
           setIsScanning(false);
           setScanResult(samplePayload || SAMPLE_CASES.dermatitis);
+          showToast('🔬 AI Health Diagnostic analysis complete!', 'success');
           showToast('AI Health Diagnostic analysis complete!', 'success');
         }, 300);
       }
@@ -156,6 +159,10 @@ export default function HealthTriage() {
         {/* ── SAMPLE PRESETS ── */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '16px', flexWrap: 'wrap' }}>
           <span style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--text-muted)' }}>Try Clinical Presets:</span>
+          <button className="chip-pill" onClick={() => loadSample('dermatitis')}>🐕 Canine Dermatitis</button>
+          <button className="chip-pill" onClick={() => loadSample('conjunctivitis')}>🐱 Feline Eye Infection</button>
+          <button className="chip-pill" onClick={() => loadSample('otitis')}>👂 Ear Canal Mites</button>
+          <button className="chip-pill" onClick={() => loadSample('healthy')}>✨ Healthy Check</button>
           <button className="chip-pill" onClick={() => loadSample('dermatitis')}>
             <Activity size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '5px' }} />
             Canine Dermatitis
@@ -203,6 +210,7 @@ export default function HealthTriage() {
                 className={`chip-pill ${selectedSpecies === s ? 'active' : ''}`}
                 onClick={() => setSelectedSpecies(s)}
               >
+                {s === 'dog' ? '🐕 Dog' : s === 'cat' ? '🐈 Cat' : s === 'bird' ? '🦜 Bird' : '🐇 Rabbit'}
                 {s === 'dog' ? 'Dog' : s === 'cat' ? 'Cat' : s === 'bird' ? 'Bird' : 'Rabbit'}
               </button>
             ))}
@@ -211,6 +219,13 @@ export default function HealthTriage() {
           <span className="label-mini" style={{ marginTop: '14px' }}>Step 2 — Observed Clinical Symptoms</span>
           <div className="chip-row">
             {[
+              { id: 'skin', label: '🔴 Skin Redness / Hotspot' },
+              { id: 'eye', label: '👁️ Cloudy Eye / Discharge' },
+              { id: 'ear', label: '👂 Ear Scratching' },
+              { id: 'lethargy', label: '💤 Lethargy / Fatigue' },
+              { id: 'limping', label: '🐾 Limping / Stiffness' },
+              { id: 'cough', label: '🫁 Coughing / Wheezing' },
+              { id: 'vomiting', label: '🤢 Vomiting / Loss of Appetite' }
               { id: 'skin', label: 'Skin Redness / Hotspot' },
               { id: 'eye', label: 'Cloudy Eye / Discharge' },
               { id: 'ear', label: 'Ear Scratching' },
@@ -278,6 +293,8 @@ export default function HealthTriage() {
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', marginBottom: '20px' }}>
               <div style={{ padding: '18px', borderRadius: 'var(--radius-sm)' }}>
+                <strong style={{ fontSize: '12px', color: 'var(--primary)', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  🛡️ Immediate First Aid Protocol
                 <strong style={{ fontSize: '12px', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                   <ShieldAlert size={15} /> Immediate First Aid Protocol
                 </strong>
@@ -287,6 +304,8 @@ export default function HealthTriage() {
               </div>
 
               <div style={{ padding: '18px', borderRadius: 'var(--radius-sm)' }}>
+                <strong style={{ fontSize: '12px', color: 'var(--primary)', display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  🩺 Recommended Clinical Step
                 <strong style={{ fontSize: '12px', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                   <Stethoscope size={15} /> Recommended Clinical Step
                 </strong>

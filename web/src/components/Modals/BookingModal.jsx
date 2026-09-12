@@ -18,6 +18,7 @@ export default function BookingModal() {
   const handleSubmit = (e) => {
     e.preventDefault();
     addAppointment({
+      title: `${mode.includes('Tele') ? '📹 Video Tele-Consult' : '🏥 Clinical Visit'} with ${doctor}`,
       title: `${mode.includes('Tele') ? 'Video Tele-Consult' : 'Clinical Visit'} with ${doctor}`,
       doctor,
       petName,

@@ -325,6 +325,7 @@ export default function MyAppointmentsModal() {
                     {apt.petName && (
                       <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginLeft: 'auto' }}>
                         <span style={{ color: 'var(--text-muted)' }}>Pet:</span>
+                        <strong style={{ color: 'var(--primary)' }}>🐾 {apt.petName}</strong>
                         <strong style={{ color: 'var(--primary)' }}>{apt.petName}</strong>
                       </div>
                     )}
