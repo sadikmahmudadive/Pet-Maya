@@ -248,7 +248,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           icon: Icons.calendar_month_rounded,
                           iconColor: const Color(0xFF00B16A),
                           title: 'My Appointments',
-                          subtitle: 'View upcoming & past care sessions',
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -261,7 +260,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           icon: Icons.local_mall_rounded,
                           iconColor: AppColors.healthGreen,
                           title: 'My Orders',
-                          subtitle: '${state.orders.length} items',
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -286,9 +284,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           icon: Icons.sensors_rounded,
                           iconColor: const Color(0xFF3B82F6),
                           title: 'My Devices & Trackers',
-                          subtitle: state.devices.isEmpty
-                              ? 'Pair GPS collars & smart tags'
-                              : '${state.devices.length} hardware paired',
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(

@@ -109,8 +109,9 @@ class _PassportQrScannerModalState extends State<PassportQrScannerModal>
       return;
     }
 
-    // 2. Fetch Owner Info
-    final owner = repo.allUsers.where((u) => u.uid == matchedPet.ownerID).firstOrNull;
+    // 2. Fetch Owner Info (Check logged-in user or allUsers registry)
+    final owner = (repo.currentUser?.uid == matchedPet.ownerID ? repo.currentUser : null) ??
+        repo.allUsers.where((u) => u.uid == matchedPet.ownerID).firstOrNull;
 
     // 3. Fetch Service Records & Tracker state
     final petRecords =
@@ -142,7 +143,21 @@ class _PassportQrScannerModalState extends State<PassportQrScannerModal>
     required bool isProvider,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final ownerPhone = owner?.phone?.trim() ?? '';
+    final repo = context.read<AppStateRepository>();
+
+    final resolvedOwner = owner ??
+        (repo.currentUser?.uid == pet.ownerID ? repo.currentUser : null) ??
+        repo.allUsers.where((u) => u.uid == pet.ownerID).firstOrNull;
+
+    final ownerName = (resolvedOwner?.name != null && resolvedOwner!.name.trim().isNotEmpty)
+        ? resolvedOwner.name.trim()
+        : 'Verified Pet Owner';
+
+    final ownerPhone = resolvedOwner?.phone?.trim() ?? '';
+
+    final emergencyContactStr = ownerPhone.isNotEmpty
+        ? '$ownerName: $ownerPhone'
+        : (ownerName != 'Verified Pet Owner' ? '$ownerName (Support: 16263)' : 'Pet Maya Support: 16263');
 
     showModalBottomSheet(
       context: context,
@@ -154,7 +169,7 @@ class _PassportQrScannerModalState extends State<PassportQrScannerModal>
             24,
             20,
             24,
-            MediaQuery.of(context).viewInsets.bottom + 28,
+            MediaQuery.of(ctx).viewInsets.bottom + 28,
           ),
           decoration: BoxDecoration(
             color: isDark ? const Color(0xFF0F172A) : Colors.white,
@@ -280,14 +295,14 @@ class _PassportQrScannerModalState extends State<PassportQrScannerModal>
                     _buildDetailRow(
                       Icons.person_pin_rounded,
                       'Registered Parent',
-                      owner?.name ?? 'Verified Pet Owner',
+                      ownerName,
                       isDark,
                     ),
                     const Divider(height: 18),
                     _buildDetailRow(
                       Icons.phone_rounded,
                       'Emergency Contact',
-                      ownerPhone.isNotEmpty ? ownerPhone : 'Pet Maya Support: 16263',
+                      emergencyContactStr,
                       isDark,
                     ),
                     const Divider(height: 18),

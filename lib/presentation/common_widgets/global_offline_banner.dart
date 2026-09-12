@@ -48,7 +48,9 @@ class _GlobalOfflineBannerState extends State<GlobalOfflineBanner> {
 
   @override
   Widget build(BuildContext context) {
-    final topPadding = MediaQuery.of(context).padding.top;
+    // Safely check MediaQuery to prevent exceptions inside overlays/bottom sheets
+    final mediaQuery = MediaQuery.maybeOf(context);
+    final topPadding = mediaQuery?.padding.top ?? 0.0;
 
     return Directionality(
       textDirection: TextDirection.ltr,

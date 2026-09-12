@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/repositories/app_state_repository.dart';
 import '../../../data/models/user_model.dart';
@@ -1228,6 +1229,230 @@ class HomeDashboardFragment extends StatelessWidget {
     );
   }
 
+  void _showRewardsModal(BuildContext context, UserModel user) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final repo = context.read<AppStateRepository>();
+    final referralCode = user.referralCode?.isNotEmpty == true
+        ? user.referralCode!
+        : UserModel.generateReferralCode(user.uid);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Container(
+          padding: EdgeInsets.fromLTRB(
+            24,
+            20,
+            24,
+            MediaQuery.of(ctx).viewInsets.bottom + 28,
+          ),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF0F172A) : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 18),
+
+              // Title & Balance Header
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Referral & Reward Points',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: isDark ? Colors.white : AppColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Earn +5 points for every friend who joins',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark ? Colors.white60 : Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF7B1FA2).withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: const Color(0xFF7B1FA2).withValues(alpha: 0.3)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.stars_rounded, color: Color(0xFF7B1FA2), size: 18),
+                        const SizedBox(width: 6),
+                        Text(
+                          '${user.points} PM',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w900,
+                            color: const Color(0xFF7B1FA2),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 20),
+
+              // Referral Code Container
+              Container(
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1FAF5),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: AppColors.primary.withValues(alpha: 0.25),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'YOUR REFERRAL CODE',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.primary,
+                        letterSpacing: 1.0,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                            decoration: BoxDecoration(
+                              color: isDark ? const Color(0xFF0F172A) : Colors.white,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+                            ),
+                            child: Text(
+                              referralCode,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 2.0,
+                                color: isDark ? Colors.white : Colors.black87,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        IconButton.filled(
+                          onPressed: () {
+                            Clipboard.setData(ClipboardData(text: referralCode));
+                            HapticFeedback.mediumImpact();
+                            repo.showToast('Referral code "$referralCode" copied! 📋', context: ctx);
+                          },
+                          icon: const Icon(Icons.copy_rounded, size: 20),
+                          style: IconButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.all(14),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        IconButton.filled(
+                          onPressed: () {
+                            HapticFeedback.lightImpact();
+                            Share.share(
+                              'Join me on Pet Maya, the smart pet care app! 🐾 Use my referral code: $referralCode to unlock welcome rewards!',
+                            );
+                          },
+                          icon: const Icon(Icons.share_rounded, size: 20),
+                          style: IconButton.styleFrom(
+                            backgroundColor: const Color(0xFF0288D1),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.all(14),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 18),
+
+              // Redeem Info Banner
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF1E293B) : Colors.grey.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.card_giftcard_rounded, color: AppColors.primary, size: 22),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Points can be redeemed for shop discounts or free veterinary consultation credits!',
+                        style: TextStyle(
+                          fontSize: 12,
+                          height: 1.35,
+                          color: isDark ? Colors.white70 : Colors.black87,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              // Close Button
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
+                  child: const Text(
+                    'CLOSE',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, letterSpacing: 0.8),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildPremiumHeader(BuildContext context, UserModel? user) {
     final hour = DateTime.now().hour;
     String greeting = 'Good Morning,';
@@ -1313,31 +1538,44 @@ class HomeDashboardFragment extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             if (!isLandscape) ...[
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.stars_rounded,
-                      color: Color(0xFF7B1FA2),
-                      size: 14,
+              GestureDetector(
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  if (user != null) {
+                    _showRewardsModal(context, user);
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF7B1FA2).withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: const Color(0xFF7B1FA2).withValues(alpha: 0.3),
+                      width: 1.0,
                     ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '15',
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: const Color(0xFF7B1FA2),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 10,
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.stars_rounded,
+                        color: Color(0xFF7B1FA2),
+                        size: 15,
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 4),
+                      Text(
+                        '${user?.points ?? 15}',
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: const Color(0xFF7B1FA2),
+                          fontWeight: FontWeight.w900,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
