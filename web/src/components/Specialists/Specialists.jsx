@@ -18,11 +18,6 @@ import {
 // ── Specialty filter chip definitions ──────────────────────────────────────
 const SPECIALTY_CHIPS = [
   { id: 'all',               label: 'All Specialties' },
-  { id: 'Surgery',           label: '🔪 Surgery' },
-  { id: 'Dermatology',       label: '🌿 Dermatology' },
-  { id: 'Internal Medicine', label: '🩺 Internal Medicine' },
-  { id: 'Dentistry',         label: '🦷 Dentistry' },
-  { id: 'Ophthalmology',     label: '👁️ Ophthalmology' },
   { id: 'Surgery',           label: 'Surgery' },
   { id: 'Dermatology',       label: 'Dermatology' },
   { id: 'Internal Medicine', label: 'Internal Medicine' },
@@ -208,8 +203,6 @@ export default function Specialists() {
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
         >
-          <option value="rating">Highest Rating ⭐</option>
-          <option value="distance">Nearest to Me 📍</option>
           <option value="rating">Highest Rating</option>
           <option value="distance">Nearest to Me</option>
           <option value="name">Name (A-Z)</option>

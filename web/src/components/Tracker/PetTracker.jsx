@@ -319,7 +319,6 @@ export default function PetTracker() {
                 white-space: nowrap;
                 box-shadow: 0 4px 12px rgba(0,0,0,0.5);
               ">
-                🐾 ${this.petData.name}
                 ${this.petData.name}
               </div>
             </div>
