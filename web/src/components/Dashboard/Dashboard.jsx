@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { 
@@ -8,855 +8,1003 @@ import {
   Bell, 
   Star, 
   Clock, 
-  MapPin,
-  Stethoscope,
-  ShoppingBag,
-  Syringe,
-  Activity,
-  Wifi,
-  Cpu,
-  Zap,
-  Radio,
-  FileCheck,
-  Sparkles,
-  Heart,
+  Radio, 
+  Sparkles, 
+  Syringe, 
+  ShoppingBag, 
+  Users, 
+  FileText, 
+  Briefcase, 
+  History 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AppleReveal } from '../Animations/AppleReveal';
-import { AppleStagger } from '../Animations/AppleStagger';
 
-// ─── Health Score Ring SVG ────────────────────────────────────────────────────
-function HealthScoreRing({ score = 90, size = 80, strokeWidth = 4 }) {
+// ─── Circular Vitality Progress Ring ──────────────────────────────────────────
+function VitalityRing({ score = 100, size = 76, strokeWidth = 4, children }) {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (score / 100) * circumference;
+  const offset = circumference - (Math.min(100, Math.max(0, score)) / 100) * circumference;
 
-  const ringColor =
-    score >= 90 ? '#10B981' :
-    score >= 75 ? '#F59E0B' :
-    '#EF4444';
+  const ringColor = score >= 85 ? '#10B981' : score >= 70 ? '#F59E0B' : '#EF4444';
 
   return (
-    <svg
-      width={size}
-      height={size}
-      viewBox={`0 0 ${size} ${size}`}
-      style={{ position: 'absolute', top: -8, left: -8, pointerEvents: 'none' }}
-    >
-      {/* Track */}
-      <circle
-        cx={size / 2}
-        cy={size / 2}
-        r={radius}
-        fill="none"
-        stroke="var(--border)"
-        strokeWidth={strokeWidth}
-      />
-      {/* Progress */}
-      <circle
-        cx={size / 2}
-        cy={size / 2}
-        r={radius}
-        fill="none"
-        stroke={ringColor}
-        strokeWidth={strokeWidth}
-        strokeLinecap="round"
-        strokeDasharray={circumference}
-        strokeDashoffset={offset}
-        transform={`rotate(-90 ${size / 2} ${size / 2})`}
-        style={{ transition: 'stroke-dashoffset 0.8s ease' }}
-      />
-      {/* Score label */}
-      <text
-        x={size / 2}
-        y={size / 2 + 4}
-        textAnchor="middle"
-        fontSize="10"
-        fontWeight="700"
-        fill={ringColor}
+    <div style={{ position: 'relative', width: size, height: size, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+      <svg
+        width={size}
+        height={size}
+        viewBox={`0 0 ${size} ${size}`}
+        style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}
       >
-        {score}
-      </text>
-    </svg>
-  );
-}
-
-// ─── GPS Collar Badge ─────────────────────────────────────────────────────────
-function CollarBadge({ device, onClick }) {
-  const isOnline = device ? device.isOnline : true;
-  const label = device 
-    ? (device.deviceType === 'gps_collar' ? `Collar (${device.batteryLevel}%)` : `Tag (${device.batteryLevel}%)`)
-    : 'Collar Active';
-
-  return (
-    <div 
-      onClick={(e) => {
-        if (onClick) {
-          e.stopPropagation();
-          onClick();
-        }
-      }}
-      title="Click to manage PetMaya Trackers"
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '4px',
-        background: isOnline ? 'rgba(16,185,129,0.12)' : 'rgba(156,163,175,0.12)',
-        borderRadius: '999px',
-        padding: '2px 8px',
-        marginTop: -2,
-        cursor: onClick ? 'pointer' : 'default',
-        transition: 'transform 0.15s ease',
-      }}
-    >
-      <span style={{ position: 'relative', display: 'inline-flex', width: 7, height: 7 }}>
-        <motion.span
-          animate={{ scale: [1, 1.8, 1], opacity: [1, 0, 1] }}
-          transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
-          style={{
-            position: 'absolute',
-            inset: 0,
-            borderRadius: '50%',
-            background: isOnline ? '#10B981' : '#9CA3AF',
-            opacity: 0.5,
-          }}
+        {/* Track */}
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="rgba(16, 185, 129, 0.15)"
+          strokeWidth={strokeWidth}
         />
-        <span style={{
-          width: 7, height: 7,
-          borderRadius: '50%',
-          background: isOnline ? '#10B981' : '#9CA3AF',
-          display: 'block',
-          position: 'relative',
-        }} />
-      </span>
-      <span style={{ fontSize: '9px', fontWeight: 700, color: isOnline ? '#10B981' : '#9CA3AF', letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>
-        {label}
-      </span>
+        {/* Animated Progress */}
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke={ringColor}
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          transform={`rotate(-90 ${size / 2} ${size / 2})`}
+          style={{ transition: 'stroke-dashoffset 0.8s ease' }}
+        />
+      </svg>
+      {children}
     </div>
   );
 }
-
-// ─── Pet Health Summary Card ──────────────────────────────────────────────────
-function PetHealthCard({ pet, score, activityPct, device, onClick }) {
-  const scoreColor =
-    score >= 90 ? '#10B981' :
-    score >= 75 ? '#F59E0B' :
-    '#EF4444';
-
-  return (
-    <motion.div
-      whileHover={{ y: -3, boxShadow: 'var(--shadow-md)' }}
-      whileTap={{ scale: 0.97 }}
-      onClick={onClick}
-      transition={{ type: 'spring', stiffness: 380, damping: 26 }}
-      title={`${pet.name} — Click to view Passport`}
-      style={{
-        background: 'var(--surface-alt)',
-        borderRadius: '16px',
-        padding: '14px 16px',
-        minWidth: '150px',
-        flexShrink: 0,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '10px',
-        cursor: onClick ? 'pointer' : 'default',
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
-        <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-main)', letterSpacing: '-0.01em' }}>
-          {pet.name}
-        </span>
-        <span style={{
-          fontSize: '12px',
-          fontWeight: 800,
-          color: scoreColor,
-          background: `${scoreColor}18`,
-          borderRadius: '8px',
-          padding: '2px 8px',
-        }}>
-          {score}
-        </span>
-      </div>
-
-      <div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-          <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 600 }}>Activity</span>
-          <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-main)' }}>{activityPct}%</span>
-        </div>
-        <div style={{
-          height: '5px',
-          borderRadius: '999px',
-          background: 'var(--border)',
-          overflow: 'hidden',
-        }}>
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: `${activityPct}%` }}
-            transition={{ duration: 0.9, ease: 'easeOut', delay: 0.2 }}
-            style={{
-              height: '100%',
-              borderRadius: '999px',
-              background: 'linear-gradient(90deg, #10B981, #34D399)',
-            }}
-          />
-        </div>
-      </div>
-
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '10px', color: 'var(--text-muted)', fontWeight: 500 }}>
-        <span>{pet.breed || pet.species || 'Pet'}</span>
-        {device && (
-          <span style={{ color: '#10B981', fontWeight: 600 }}>
-            ⚡ {device.batteryLevel}%
-          </span>
-        )}
-      </div>
-    </motion.div>
-  );
-}
-
-// ─── Recent Activity Feed ─────────────────────────────────────────────────────
-const STATIC_ACTIVITIES = [
-  { icon: Cpu,         color: '#8B5CF6', text: 'Piku had AI Health Scan',         time: '2 hours ago' },
-  { icon: Stethoscope, color: '#10B981', text: 'Max visited Dr. Sarah',            time: 'Yesterday' },
-  { icon: Syringe,     color: '#F59E0B', text: 'Vaccine Reminder set for Rabies',  time: '3 days ago' },
-];
-
-function RecentActivityFeed() {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-      {STATIC_ACTIVITIES.map((item, idx) => {
-        const Icon = item.icon;
-        return (
-          <motion.div
-            key={idx}
-            initial={{ opacity: 0, x: -12 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: idx * 0.08, type: 'spring', stiffness: 380, damping: 30 }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '14px',
-              background: 'var(--surface-alt)',
-              borderRadius: '14px',
-              padding: '13px 16px',
-            }}
-          >
-            <div style={{
-              width: 38, height: 38,
-              borderRadius: '12px',
-              background: `${item.color}18`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: item.color,
-              flexShrink: 0,
-            }}>
-              <Icon size={17} />
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <span style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text-main)', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {item.text}
-              </span>
-              <span style={{ fontSize: '11.5px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
-                <Clock size={10} />
-                {item.time}
-              </span>
-            </div>
-          </motion.div>
-        );
-      })}
-    </div>
-  );
-}
-
-// ─── Simulated health data per pet (deterministic from index) ─────────────────
-const MOCK_HEALTH_SCORES  = [92, 85, 98, 88, 91, 95];
-const MOCK_ACTIVITY_PCTS  = [78, 62, 95, 71, 83, 88];
 
 export default function Dashboard() {
-  const { pets, vets, appointments, devices, removeAppointment, setActiveTab, openModal, showToast } = useApp();
+  const { 
+    pets = [], 
+    vets = [], 
+    appointments = [], 
+    devices = [], 
+    setActiveTab, 
+    openModal, 
+    showToast 
+  } = useApp();
   const { currentUser } = useAuth();
 
-  // Dynamic greeting based on user's current local hour
+  // ── Hero Pet Carousel State (Auto-sweep every 10s) ──────────────────────────
+  const [currentPetIndex, setCurrentPetIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const timerRef = useRef(null);
+
+  const activePets = pets.length > 0 ? pets : [
+    {
+      id: 'default-miko',
+      name: 'Miko',
+      breed: 'Domestic Shorthair',
+      age: '1 Year, 4 Months',
+      weight: '3',
+      photoUrl: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=400&auto=format&fit=crop&q=80',
+      healthIndex: 100,
+    }
+  ];
+
+  // Auto-sweep every 10 seconds to show all user pets
+  useEffect(() => {
+    if (activePets.length <= 1 || isPaused) return;
+
+    timerRef.current = setInterval(() => {
+      setCurrentPetIndex((prev) => (prev + 1) % activePets.length);
+    }, 10000);
+
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [activePets.length, isPaused]);
+
+  const activePet = activePets[currentPetIndex] || activePets[0];
+
+  // Dynamic greeting based on user's local hour
   const getGreeting = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 17) return 'Good afternoon';
-    return 'Good evening';
+    if (hour < 12) return 'Good Morning,';
+    if (hour < 17) return 'Good Afternoon,';
+    return 'Good Evening,';
   };
 
-  const today = new Date();
-  const dateLabel = today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  // Has paired GPS device
+  const hasGpsDevice = devices?.some((d) => d.deviceType === 'gps_collar' || d.isOnline);
 
-  // Filter ONLY doctors and veterinary medical specialists (exclude grooming, boarding, pet shop)
+  // Doctors / Specialists only
   const filteredVets = vets.filter((v) => {
-    const tag  = (v.tag || '').toLowerCase();
+    const tag = (v.tag || '').toLowerCase();
     const qual = (v.qualification || '').toLowerCase();
     const role = (v.role || '').toLowerCase();
     const name = (v.name || '').toLowerCase();
 
-    if (
-      tag.includes('groom') || 
-      tag.includes('board') || 
-      tag.includes('spa') || 
-      tag.includes('shop') || 
-      tag.includes('hotel') ||
-      tag.includes('store') ||
-      qual.includes('groom') ||
-      qual.includes('boarding') ||
-      qual.includes('hotel') ||
-      name.includes('groom') ||
-      name.includes('boarding') ||
-      name.includes('spa')
-    ) {
+    if (tag.includes('groom') || tag.includes('shop') || tag.includes('store') || tag.includes('hotel') || tag.includes('board')) {
       return false;
     }
-
-    return (
-      tag.includes('vet') || 
-      role.includes('vet') || 
-      name.startsWith('dr.') || 
-      name.startsWith('dr ') ||
-      qual.includes('dvm') || 
-      qual.includes('bvsc') || 
-      qual.includes('mrcvs') || 
-      qual.includes('officer') ||
-      qual.includes('surgeon') ||
-      qual.includes('veterin')
-    );
+    return tag.includes('vet') || role.includes('vet') || name.startsWith('dr') || qual.includes('dvm') || qual.includes('surgeon') || qual.includes('officer');
   });
 
   const topVets = (filteredVets.length > 0 ? filteredVets : vets).slice(0, 3);
 
-  // Format ISO / string dates
-  const formatEventDate = (rawDate) => {
-    if (!rawDate) return 'Aug 27, 2026';
-    try {
-      const cleanStr = rawDate.split('T')[0];
-      const [year, month, day] = cleanStr.split('-');
-      if (year && month && day) {
-        const d = new Date(parseInt(year, 10), parseInt(month, 10) - 1, parseInt(day, 10));
-        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-      }
-      const d = new Date(rawDate);
-      if (!isNaN(d.getTime())) {
-        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-      }
-    } catch (_) {}
-    return rawDate;
-  };
-
-  // Format time window
-  const formatEventTime = (rawTime, fromTime, toTime) => {
-    if (fromTime && toTime) return `${fromTime} – ${toTime}`;
-    if (rawTime) {
-      if (rawTime.includes('-')) return rawTime;
-      return `${rawTime}`;
-    }
-    if (fromTime) return fromTime;
-    return '10:30 AM';
-  };
-
-  // Parse date safely
-  const parseEventDate = (rawDate) => {
-    if (!rawDate) return null;
-    try {
-      if (typeof rawDate === 'object' && rawDate !== null) {
-        if (typeof rawDate.toDate === 'function') {
-          const d = rawDate.toDate();
-          return new Date(d.getFullYear(), d.getMonth(), d.getDate());
-        }
-        if (typeof rawDate.seconds === 'number') {
-          const d = new Date(rawDate.seconds * 1000);
-          return new Date(d.getFullYear(), d.getMonth(), d.getDate());
-        }
-        if (rawDate instanceof Date && !isNaN(rawDate.getTime())) {
-          return new Date(rawDate.getFullYear(), rawDate.getMonth(), rawDate.getDate());
-        }
-      }
-      if (typeof rawDate === 'string') {
-        const str = rawDate.trim();
-        if (str.includes('-')) {
-          const datePart = str.split('T')[0];
-          const parts = datePart.split('-');
-          if (parts.length === 3) {
-            const y = parseInt(parts[0], 10);
-            const m = parseInt(parts[1], 10) - 1;
-            const d = parseInt(parts[2], 10);
-            if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
-              return new Date(y, m, d);
-            }
-          }
-        }
-        const parsedMs = Date.parse(str);
-        if (!isNaN(parsedMs)) {
-          const d = new Date(parsedMs);
-          return new Date(d.getFullYear(), d.getMonth(), d.getDate());
-        }
-      }
-    } catch (_) {}
-    return null;
-  };
-
-  const todayNorm = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  const upcomingAppointments = appointments
-    .filter((apt) => {
-      const statusLower = (apt.status || '').toLowerCase();
-      if (apt.isCompleted === true || statusLower === 'completed' || statusLower === 'cancelled') {
-        return false;
-      }
-      const evDate = parseEventDate(apt.date);
-      if (!evDate) return false;
-      return evDate.getTime() >= todayNorm.getTime();
-    })
-    .sort((a, b) => {
-      const dateA = parseEventDate(a.date)?.getTime() || Infinity;
-      const dateB = parseEventDate(b.date)?.getTime() || Infinity;
-      return dateA - dateB;
-    });
-
-  // ── Quick actions (8 distinct actions) ──────────────────────────────────
-  const quickActions = [
-    { label: 'Book Vet',      icon: Stethoscope, color: '#10B981', bg: 'rgba(16,185,129,0.1)', action: () => openModal('booking') },
-    { label: 'Appointments',  icon: Calendar,    color: '#3B82F6', bg: 'rgba(59,130,246,0.1)', action: () => openModal('myAppointments') },
-    { label: 'Breed Finder',  icon: Sparkles,    color: '#8B5CF6', bg: 'rgba(139,92,246,0.1)', action: () => openModal('breedFinder') },
-    { label: 'Favorites',     icon: Heart,       color: '#EC4899', bg: 'rgba(236,72,153,0.1)', action: () => openModal('favoriteVets') },
-    { label: 'Live Radar',    icon: MapPin,      color: '#0EA5E9', bg: 'rgba(14,165,233,0.1)', action: () => setActiveTab('tracker') },
-    { label: 'My Devices',    icon: Radio,       color: '#06B6D4', bg: 'rgba(6,182,212,0.1)',  action: () => openModal('myDevices') },
-    { label: 'Pet Passport',  icon: FileCheck,   color: '#6366F1', bg: 'rgba(99,102,241,0.1)', action: () => openModal('petPassport') },
-    { label: 'Pet Shop',      icon: ShoppingBag, color: '#F59E0B', bg: 'rgba(245,158,11,0.1)', action: () => setActiveTab('shop') },
-  ];
-
-  // Appointment type colors
-  const aptTypeColor = (mode) => {
-    const m = (mode || '').toLowerCase();
-    if (m.includes('video') || m.includes('online') || m.includes('tele')) return '#3B82F6';
-    if (m.includes('home')) return '#F59E0B';
-    return '#10B981';
-  };
-
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '28px', width: '100%' }}>
+    <div 
+      style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        gap: '24px', 
+        width: '100%',
+        maxWidth: '720px',
+        margin: '0 auto',
+        padding: '8px 0 32px'
+      }}
+    >
 
-      {/* ── 1. GREETING HEADER ── */}
-      <AppleReveal duration={0.55} yOffset={16}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '12px' }}>
-          {/* Text block */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+      {/* ── 1. HEADER ROW (Avatar, Greeting, Star Points, Notification Bell) ── */}
+      <AppleReveal duration={0.45} yOffset={12}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          {/* User Profile Info */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{ position: 'relative' }}>
               <img
                 src={currentUser?.photoUrl || 'assets/images/tail_wagging_logo.png'}
-                alt={currentUser?.name || 'User'}
-                style={{ width: 48, height: 48, borderRadius: '50%', objectFit: 'cover', display: 'block' }}
+                alt={currentUser?.name || 'Sm Adive'}
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: '50%',
+                  objectFit: 'cover',
+                  border: '2px solid rgba(16, 185, 129, 0.25)',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+                }}
               />
-              <span className="presence-dot" style={{ position: 'absolute', bottom: 0, right: 0 }} />
             </div>
             <div>
-              <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0, fontWeight: 500 }}>
-                {getGreeting()},
-              </p>
-              <h1 style={{ fontSize: 'clamp(20px, 3.5vw, 26px)', fontWeight: 700, letterSpacing: '-0.03em', margin: 0, lineHeight: 1.2 }}>
-                {currentUser?.name || 'Pet Parent'} 👋
+              <span style={{ fontSize: '12.5px', color: 'var(--text-muted)', display: 'block', fontWeight: 500, lineHeight: 1.2 }}>
+                {getGreeting()}
+              </span>
+              <h1 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-main)', margin: '2px 0 0', letterSpacing: '-0.02em' }}>
+                {currentUser?.name || 'Sm Adive'}
               </h1>
-              <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '2px 0 0', fontWeight: 400 }}>
-                {dateLabel}
-              </p>
             </div>
           </div>
 
-          {/* Right badges */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+          {/* Right Badges: Points Pill & Bell */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            {/* Star Points Badge */}
+            <div 
               style={{
-                background: 'rgba(147,51,234,0.1)',
-                color: '#A855F7',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                background: 'rgba(168, 85, 247, 0.12)',
+                color: '#8B5CF6',
                 padding: '6px 14px',
                 borderRadius: '999px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '5px',
-                fontWeight: 700,
-                fontSize: '13px',
-                cursor: 'default',
-              }}
-            >
-              <Star size={13} fill="#A855F7" />
-              <span>{currentUser?.points ?? 15} pts</span>
-            </motion.div>
-            <button
-              className="icon-btn"
-              style={{ width: 38, height: 38, color: '#0EA5E9' }}
-              onClick={() => showToast('🔔 No unread notifications.', 'info')}
-              title="Notifications"
-            >
-              <Bell size={17} />
-            </button>
-          </div>
-        </div>
-      </AppleReveal>
-
-      {/* ── 2. QUICK ACTIONS (6 items, auto-fill grid) ── */}
-      <AppleReveal delay={0.07} yOffset={14}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '12px' }}>
-          {quickActions.map((qa) => (
-            <motion.button
-              key={qa.label}
-              onClick={qa.action}
-              whileHover={{ scale: 1.04, y: -2 }}
-              whileTap={{ scale: 0.96 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 28 }}
-              style={{
-                background: qa.bg,
-                border: 'none',
-                borderRadius: '16px',
-                padding: '14px 8px',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '8px',
-                cursor: 'pointer',
-                fontFamily: 'inherit',
+                fontWeight: 800,
+                fontSize: '13.5px',
+                letterSpacing: '-0.01em',
               }}
             >
               <div style={{
-                width: 38, height: 38, borderRadius: '12px',
-                background: qa.bg,
-                border: `1px solid ${qa.color}22`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: qa.color,
+                width: 18,
+                height: 18,
+                borderRadius: '50%',
+                background: '#8B5CF6',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#FFF'
               }}>
-                <qa.icon size={18} />
+                <Star size={10} fill="#FFF" />
               </div>
-              <span style={{ fontSize: '11.5px', fontWeight: 600, color: 'var(--text-main)', letterSpacing: '-0.01em' }}>
-                {qa.label}
-              </span>
-            </motion.button>
-          ))}
+              <span>{currentUser?.points ?? 20}</span>
+            </div>
+
+            {/* Notification Bell Button */}
+            <button
+              className="icon-btn"
+              onClick={() => showToast('🔔 All caught up! No unread notifications.', 'info')}
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: '50%',
+                background: 'rgba(14, 165, 233, 0.12)',
+                color: '#0284C7',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+              title="Notifications"
+            >
+              <Bell size={18} />
+            </button>
+          </div>
         </div>
       </AppleReveal>
 
-      {/* ── 3. MY PETS (with Health Score Ring + GPS Collar Badge) ── */}
-      <AppleReveal delay={0.1} yOffset={16}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-          <h2 style={{ fontSize: '19px', fontWeight: 700, letterSpacing: '-0.025em', margin: 0 }}>My Pets</h2>
-          <button className="btn-minimal" onClick={() => openModal('addPet')}>
-            <Plus size={13} />
-            Add Pet
-          </button>
-        </div>
-
-        {/* Horizontal scrollable pet strip */}
-        <div style={{
-          display: 'flex',
-          gap: '12px',
-          overflowX: 'auto',
-          paddingBottom: '4px',
-          scrollbarWidth: 'none',
-        }}>
-          {/* Existing pets as circles with health ring */}
-          {pets.map((pet, petIdx) => {
-            const healthScore = MOCK_HEALTH_SCORES[petIdx % MOCK_HEALTH_SCORES.length];
-            const petDevice = devices?.find(d => 
-              (d.petName && pet.name && d.petName.toLowerCase() === pet.name.toLowerCase()) || 
-              (d.petId && (d.petId === pet.id || d.petId === pet.petID))
-            );
-            return (
+      {/* ── 2. HERO ACTIVE PET BENTO CARD (10s Auto-Sweeping Carousel) ── */}
+      <AppleReveal delay={0.06} yOffset={14}>
+        <div 
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+          onTouchStart={() => setIsPaused(true)}
+          onTouchEnd={() => setIsPaused(false)}
+          style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
+        >
+          <div 
+            style={{
+              background: 'var(--surface-alt)',
+              borderRadius: '24px',
+              padding: '20px 22px',
+              border: '1px solid var(--border)',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
+              position: 'relative',
+              overflow: 'hidden',
+            }}
+          >
+            <AnimatePresence mode="wait">
               <motion.div
-                key={pet.id || pet.petID}
-                whileHover={{ scale: 1.06, y: -2 }}
-                whileTap={{ scale: 0.94 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 26 }}
-                onClick={() => openModal('petPassport')}
-                title={`${pet.name} — Click to view Digital Pet Passport`}
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: '6px',
-                  cursor: 'pointer',
-                  flexShrink: 0,
-                  minWidth: '72px',
-                }}
+                key={activePet.id || activePet.petID || currentPetIndex}
+                initial={{ opacity: 0, x: 12 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -12 }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
               >
-                {/* Avatar + ring wrapper — ring SVG is 80px placed with top:-8,left:-8 over the 64px avatar */}
-                <div style={{ position: 'relative', width: 64, height: 64 }}>
-                  <div style={{
-                    width: 64, height: 64,
-                    borderRadius: '22px',
-                    overflow: 'hidden',
-                    border: '2px solid var(--primary)',
-                    boxShadow: '0 0 0 3px var(--primary-tint)',
+                {/* Top Section: Avatar with Ring + Pet Info */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
+                  {/* Avatar + 100% Vitality Ring */}
+                  <div style={{ position: 'relative', flexShrink: 0 }}>
+                    <VitalityRing score={activePet.healthIndex ?? 100} size={76} strokeWidth={4}>
+                      <img
+                        src={activePet.photo || activePet.photoUrl || 'assets/images/Pet_1.jpg'}
+                        alt={activePet.name}
+                        style={{
+                          width: 64,
+                          height: 64,
+                          borderRadius: '50%',
+                          objectFit: 'cover',
+                          display: 'block',
+                        }}
+                      />
+                    </VitalityRing>
+                    {/* 100% Health Badge */}
+                    <div 
+                      style={{
+                        position: 'absolute',
+                        bottom: -1,
+                        right: -3,
+                        background: '#10B981',
+                        color: '#FFFFFF',
+                        fontSize: '9px',
+                        fontWeight: 900,
+                        padding: '2px 6px',
+                        borderRadius: '999px',
+                        boxShadow: '0 1px 4px rgba(16,185,129,0.3)',
+                      }}
+                    >
+                      {activePet.healthIndex ?? 100}%
+                    </div>
+                  </div>
+
+                  {/* Pet Info & Chips */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <h2 style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text-main)', margin: '0 0 8px', letterSpacing: '-0.02em' }}>
+                      {activePet.name}
+                    </h2>
+                    
+                    {/* Attribute Chips */}
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                      <span style={{
+                        background: 'var(--surface)',
+                        color: 'var(--text-muted)',
+                        fontSize: '11.5px',
+                        fontWeight: 600,
+                        padding: '4px 10px',
+                        borderRadius: '999px',
+                        border: '1px solid var(--border)'
+                      }}>
+                        {activePet.breed || 'Domestic Shorthair'}
+                      </span>
+                      <span style={{
+                        background: 'var(--surface)',
+                        color: 'var(--text-muted)',
+                        fontSize: '11.5px',
+                        fontWeight: 600,
+                        padding: '4px 10px',
+                        borderRadius: '999px',
+                        border: '1px solid var(--border)'
+                      }}>
+                        {activePet.age ? (activePet.age.toString().includes('yr') ? activePet.age : `${activePet.age} yrs`) : '1 Year, 4 Months yrs'}
+                      </span>
+                      <span style={{
+                        background: 'var(--surface)',
+                        color: 'var(--text-muted)',
+                        fontSize: '11.5px',
+                        fontWeight: 600,
+                        padding: '4px 10px',
+                        borderRadius: '999px',
+                        border: '1px solid var(--border)'
+                      }}>
+                        {activePet.weight ? `${activePet.weight} kg` : '3 kg'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bottom Row: 3 Action Pills (Passport, Vaccines, Radar) */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginTop: '20px' }}>
+                  {/* Passport Action */}
+                  <button
+                    onClick={() => openModal('petPassport')}
+                    style={{
+                      background: 'rgba(16, 185, 129, 0.08)',
+                      border: '1px solid rgba(16, 185, 129, 0.25)',
+                      borderRadius: '16px',
+                      padding: '10px 8px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px',
+                      color: '#10B981',
+                      fontSize: '13px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    <FileText size={16} />
+                    <span>Passport</span>
+                  </button>
+
+                  {/* Vaccines Action */}
+                  <button
+                    onClick={() => setActiveTab('vaccines')}
+                    style={{
+                      background: 'rgba(16, 185, 129, 0.08)',
+                      border: '1px solid rgba(16, 185, 129, 0.25)',
+                      borderRadius: '16px',
+                      padding: '10px 8px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px',
+                      color: '#10B981',
+                      fontSize: '13px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    <Syringe size={16} />
+                    <span>Vaccines</span>
+                  </button>
+
+                  {/* Radar Action */}
+                  <button
+                    onClick={() => setActiveTab('tracker')}
+                    style={{
+                      background: 'rgba(2, 136, 209, 0.08)',
+                      border: '1px solid rgba(2, 136, 209, 0.25)',
+                      borderRadius: '16px',
+                      padding: '10px 8px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px',
+                      color: '#0284C7',
+                      fontSize: '13px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    <Radio size={16} />
+                    <span>Radar</span>
+                  </button>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          {/* Carousel Pagination Indicator (Active Green Pill + Inactive Dots) */}
+          {activePets.length > 1 && (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+              {activePets.map((p, idx) => {
+                const isActive = idx === currentPetIndex;
+                return (
+                  <button
+                    key={p.id || idx}
+                    onClick={() => setCurrentPetIndex(idx)}
+                    aria-label={`Go to pet ${p.name}`}
+                    style={{
+                      border: 'none',
+                      padding: 0,
+                      cursor: 'pointer',
+                      width: isActive ? 22 : 6,
+                      height: 5,
+                      borderRadius: '3px',
+                      background: isActive ? '#10B981' : 'var(--border)',
+                      transition: 'all 0.3s ease',
+                    }}
+                  />
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </AppleReveal>
+
+      {/* ── 3. MY PETS SECTION (Header + Horizontal Cards) ── */}
+      <AppleReveal delay={0.1} yOffset={14}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
+              My Pets
+            </h2>
+            <button 
+              onClick={() => openModal('addPet')}
+              style={{ background: 'none', border: 'none', color: '#10B981', fontWeight: 700, fontSize: '13.5px', cursor: 'pointer', padding: 0 }}
+            >
+              See All
+            </button>
+          </div>
+
+          {/* Horizontal Pet Cards Strip */}
+          <div 
+            style={{ 
+              display: 'flex', 
+              gap: '14px', 
+              overflowX: 'auto', 
+              paddingBottom: '6px',
+              scrollbarWidth: 'none'
+            }}
+          >
+            {activePets.map((pet, idx) => {
+              const isCurrent = idx === currentPetIndex;
+              return (
+                <motion.div
+                  key={pet.id || idx}
+                  whileHover={{ y: -3 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setCurrentPetIndex(idx)}
+                  style={{
                     background: 'var(--surface-alt)',
-                  }}>
+                    borderRadius: '22px',
+                    padding: '16px 14px',
+                    minWidth: '140px',
+                    flex: '0 0 140px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '8px',
+                    border: isCurrent ? '2px solid #10B981' : '1px solid var(--border)',
+                    cursor: 'pointer',
+                    boxShadow: isCurrent ? '0 4px 14px rgba(16, 185, 129, 0.12)' : 'none',
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  <VitalityRing score={pet.healthIndex ?? 100} size={64} strokeWidth={3}>
                     <img
                       src={pet.photo || pet.photoUrl || 'assets/images/Pet_1.jpg'}
                       alt={pet.name}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      style={{
+                        width: 52,
+                        height: 52,
+                        borderRadius: '50%',
+                        objectFit: 'cover',
+                        display: 'block'
+                      }}
                     />
-                  </div>
-                  {/* Health Score Ring */}
-                  <HealthScoreRing score={healthScore} size={80} strokeWidth={4} />
-                </div>
+                  </VitalityRing>
 
-                <span style={{ fontSize: '11.5px', fontWeight: 600, color: 'var(--text-main)', letterSpacing: '-0.01em', textAlign: 'center' }}>
-                  {pet.name}
-                </span>
-                <span style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: -4 }}>
-                  {pet.breed || pet.species || ''}
-                </span>
-
-                {/* GPS Collar Badge */}
-                <CollarBadge device={petDevice} onClick={() => openModal('myDevices')} />
-              </motion.div>
-            );
-          })}
-
-          {/* Add pet button */}
-          <motion.div
-            whileHover={{ scale: 1.06 }}
-            whileTap={{ scale: 0.94 }}
-            onClick={() => openModal('addPet')}
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: '6px',
-              cursor: 'pointer',
-              flexShrink: 0,
-              minWidth: '72px',
-            }}
-          >
-            <div style={{
-              width: 64, height: 64,
-              borderRadius: '22px',
-              border: '2px dashed var(--border)',
-              background: 'transparent',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: 'var(--text-muted)',
-            }}>
-              <Plus size={20} />
-            </div>
-            <span style={{ fontSize: '11.5px', fontWeight: 500, color: 'var(--text-muted)', textAlign: 'center' }}>
-              Add Pet
-            </span>
-          </motion.div>
-        </div>
-      </AppleReveal>
-
-      {/* ── 3b. PET HEALTH SUMMARY CARDS ── */}
-      {pets.length > 0 && (
-        <AppleReveal delay={0.12} yOffset={14}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <h2 style={{ fontSize: '17px', fontWeight: 700, letterSpacing: '-0.025em', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Activity size={15} color="#10B981" />
-              Pet Health Summary
-            </h2>
-          </div>
-          <div style={{
-            display: 'flex',
-            gap: '12px',
-            overflowX: 'auto',
-            paddingBottom: '4px',
-            scrollbarWidth: 'none',
-          }}>
-            {pets.map((pet, petIdx) => {
-              const petDevice = devices?.find(d => 
-                (d.petName && pet.name && d.petName.toLowerCase() === pet.name.toLowerCase()) || 
-                (d.petId && (d.petId === pet.id || d.petId === pet.petID))
-              );
-              return (
-                <PetHealthCard
-                  key={pet.id || pet.petID}
-                  pet={pet}
-                  device={petDevice}
-                  score={MOCK_HEALTH_SCORES[petIdx % MOCK_HEALTH_SCORES.length]}
-                  activityPct={MOCK_ACTIVITY_PCTS[petIdx % MOCK_ACTIVITY_PCTS.length]}
-                  onClick={() => openModal('petPassport')}
-                />
-              );
-            })}
-          </div>
-        </AppleReveal>
-      )}
-
-      {/* ── 4. UPCOMING EVENTS (TIMELINE) ── */}
-      <AppleReveal delay={0.14} yOffset={16}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-          <h2 style={{ fontSize: '19px', fontWeight: 700, letterSpacing: '-0.025em', margin: 0 }}>Upcoming Events</h2>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            <button
-              className="btn-minimal"
-              onClick={() => openModal('myAppointments')}
-              style={{ fontSize: '12px' }}
-            >
-              <Calendar size={13} />
-              View All ({appointments?.length || 0})
-            </button>
-            <button
-              className="btn-minimal"
-              onClick={() => openModal('booking')}
-              style={{ fontSize: '12px' }}
-            >
-              <Plus size={13} />
-              Book
-            </button>
-          </div>
-        </div>
-
-        {upcomingAppointments.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="apple-solid-card"
-            style={{ padding: '28px 24px', textAlign: 'center', alignItems: 'center', gap: '12px', background: 'var(--surface-alt)', borderRadius: '18px' }}
-          >
-            <div style={{
-              width: 40, height: 40, borderRadius: '50%',
-              background: 'rgba(16,185,129,0.1)', color: '#10B981',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              margin: '0 auto 8px',
-            }}>
-              <Calendar size={18} />
-            </div>
-            <strong style={{ fontSize: '14.5px', display: 'block', color: 'var(--text-main)' }}>No upcoming events</strong>
-            <span style={{ fontSize: '12.5px', color: 'var(--text-muted)' }}>You're all clear — no scheduled appointments.</span>
-            <button
-              className="apple-btn-blue"
-              style={{ marginTop: '8px', padding: '7px 18px', fontSize: '13px' }}
-              onClick={() => openModal('booking')}
-            >
-              <Plus size={14} />
-              <span>Book Appointment</span>
-            </button>
-          </motion.div>
-        ) : (
-          <AppleStagger style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {upcomingAppointments.slice(0, 3).map((apt) => {
-              const accentColor = aptTypeColor(apt.mode);
-              const displayTitle = (apt.title?.includes(':'))
-                ? apt.title
-                : `Dr. ${apt.doctor || 'Nazmul Hoda'}`;
-
-              return (
-                <motion.div
-                  key={apt.id}
-                  whileHover={{ x: 3 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'stretch',
-                    gap: '0',
-                    background: 'var(--surface-alt)',
-                    borderRadius: '16px',
-                    overflow: 'hidden',
-                  }}
-                >
-                  {/* Color left border strip */}
-                  <div style={{ width: '4px', background: accentColor, flexShrink: 0, borderRadius: '16px 0 0 16px' }} />
-                  
-                  <div style={{ flex: 1, padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <span style={{ fontSize: '10.5px', fontWeight: 700, color: accentColor, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '3px' }}>
-                        {apt.mode?.toUpperCase() || 'VET APPOINTMENT'}
-                      </span>
-                      <strong style={{ fontSize: '15px', fontWeight: 700, display: 'block', letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {displayTitle}
-                      </strong>
-                      <span style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
-                        🐾 {apt.petName || 'Piku'}
-                      </span>
-                    </div>
-
-                    {/* Date chip */}
-                    <div style={{
-                      background: `${accentColor}14`,
-                      color: accentColor,
-                      borderRadius: '10px',
-                      padding: '6px 12px',
-                      textAlign: 'center',
-                      flexShrink: 0,
-                    }}>
-                      <div style={{ fontSize: '11.5px', fontWeight: 700 }}>{formatEventDate(apt.date)}</div>
-                      <div style={{ fontSize: '10.5px', opacity: 0.8, marginTop: '1px' }}>{formatEventTime(apt.time, apt.fromTime, apt.toTime)}</div>
-                    </div>
-                  </div>
+                  <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-main)', marginTop: '2px', textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>
+                    {pet.name}
+                  </span>
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted)', textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>
+                    {pet.breed || pet.species || 'Domestic Shorthair'}
+                  </span>
                 </motion.div>
               );
             })}
-          </AppleStagger>
-        )}
+
+            {/* Add Pet Card */}
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => openModal('addPet')}
+              style={{
+                background: 'transparent',
+                borderRadius: '22px',
+                padding: '16px 14px',
+                minWidth: '120px',
+                flex: '0 0 120px',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                border: '2px dashed var(--border)',
+                cursor: 'pointer',
+              }}
+            >
+              <div style={{
+                width: 44,
+                height: 44,
+                borderRadius: '50%',
+                background: 'var(--surface-alt)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'var(--text-muted)'
+              }}>
+                <Plus size={20} />
+              </div>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)' }}>
+                Add Pet
+              </span>
+            </motion.div>
+          </div>
+        </div>
       </AppleReveal>
 
-      {/* ── 5. TOP VETERINARIANS (COMPACT 2-COL GRID) ── */}
-      <AppleReveal delay={0.18} yOffset={16}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-          <h2 style={{ fontSize: '19px', fontWeight: 700, letterSpacing: '-0.025em', margin: 0 }}>Top Veterinarians</h2>
-          <button className="btn-minimal" onClick={() => setActiveTab('vets')}>
-            See all <ChevronRight size={13} />
-          </button>
-        </div>
+      {/* ── 4. SMART CARE HUB (2x2 Grid + Full-Width Community Feed) ── */}
+      <AppleReveal delay={0.14} yOffset={14}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
+            Smart Care Hub
+          </h2>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '12px' }}>
-          {topVets.map((v) => (
+          {/* 2x2 Bento Hub Grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+            {/* 1. GPS Radar */}
             <motion.div
-              key={v.id}
-              whileHover={{ y: -3, boxShadow: 'var(--shadow-md)' }}
-              whileTap={{ scale: 0.985 }}
-              transition={{ type: 'spring', stiffness: 380, damping: 28 }}
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setActiveTab('tracker')}
               style={{
                 background: 'var(--surface-alt)',
-                borderRadius: '18px',
-                padding: '18px 20px',
+                borderRadius: '22px',
+                padding: '16px',
+                border: '1px solid var(--border)',
+                cursor: 'pointer',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '12px',
-                cursor: 'pointer',
               }}
-              onClick={() => openModal('booking', { doctor: v.name, clinic: v.clinic })}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <img
-                  src={v.photo || 'assets/images/Pet_1.jpg'}
-                  alt={v.name}
-                  style={{ width: 46, height: 46, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
-                />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <strong style={{ fontSize: '14.5px', fontWeight: 700, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {v.name}
-                  </strong>
-                  <span style={{ fontSize: '12px', color: 'var(--primary)', fontWeight: 600, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {v.qualification || 'Veterinarian'}
-                  </span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11.5px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                    <Star size={11} fill="#F59E0B" color="#F59E0B" />
-                    <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>{v.rating || '5.0'}</span>
-                    <span>· {v.reviews || v.reviewsCount || 1} reviews</span>
-                  </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: '14px',
+                  background: 'rgba(2, 136, 209, 0.12)',
+                  color: '#0288D1',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                  <Radio size={20} />
                 </div>
+                <span style={{
+                  fontSize: '9.5px',
+                  fontWeight: 900,
+                  padding: '3px 8px',
+                  borderRadius: '6px',
+                  letterSpacing: '0.4px',
+                  background: hasGpsDevice ? 'rgba(16, 185, 129, 0.15)' : '#FEF3C7',
+                  color: hasGpsDevice ? '#10B981' : '#D97706',
+                }}>
+                  {hasGpsDevice ? 'LIVE' : 'INACTIVE'}
+                </span>
               </div>
-
-              {/* Book button */}
-              <button
-                className="btn-primary"
-                style={{ width: '100%', justifyContent: 'center', padding: '8px 14px', fontSize: '13px', borderRadius: '12px' }}
-                onClick={(e) => { e.stopPropagation(); openModal('booking', { doctor: v.name, clinic: v.clinic }); }}
-              >
-                Book Appointment
-              </button>
+              <div>
+                <h3 style={{ fontSize: '15px', fontWeight: 800, margin: '0 0 3px', color: 'var(--text-main)' }}>
+                  GPS Radar
+                </h3>
+                <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {hasGpsDevice ? 'Live perimeter & telemetry' : 'No GPS device paired • Tap to pair'}
+                </p>
+              </div>
             </motion.div>
-          ))}
+
+            {/* 2. AI Health Scan */}
+            <motion.div
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setActiveTab('ai')}
+              style={{
+                background: 'var(--surface-alt)',
+                borderRadius: '22px',
+                padding: '16px',
+                border: '1px solid var(--border)',
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: '14px',
+                  background: 'rgba(124, 77, 255, 0.12)',
+                  color: '#7C4DFF',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                  <Sparkles size={20} />
+                </div>
+                <span style={{
+                  fontSize: '9.5px',
+                  fontWeight: 900,
+                  padding: '3px 8px',
+                  borderRadius: '6px',
+                  background: 'rgba(124, 77, 255, 0.15)',
+                  color: '#7C4DFF',
+                  letterSpacing: '0.4px',
+                }}>
+                  AI 2.0
+                </span>
+              </div>
+              <div>
+                <h3 style={{ fontSize: '15px', fontWeight: 800, margin: '0 0 3px', color: 'var(--text-main)' }}>
+                  AI Health Scan
+                </h3>
+                <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  Instant triage & visual vitals
+                </p>
+              </div>
+            </motion.div>
+
+            {/* 3. Vaccine Hub */}
+            <motion.div
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setActiveTab('vaccines')}
+              style={{
+                background: 'var(--surface-alt)',
+                borderRadius: '22px',
+                padding: '16px',
+                border: '1px solid var(--border)',
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: '14px',
+                  background: 'rgba(0, 191, 165, 0.12)',
+                  color: '#00BFA5',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                  <Syringe size={20} />
+                </div>
+                <span style={{
+                  fontSize: '9.5px',
+                  fontWeight: 900,
+                  padding: '3px 8px',
+                  borderRadius: '6px',
+                  background: 'rgba(0, 191, 165, 0.15)',
+                  color: '#00BFA5',
+                  letterSpacing: '0.4px',
+                }}>
+                  100%
+                </span>
+              </div>
+              <div>
+                <h3 style={{ fontSize: '15px', fontWeight: 800, margin: '0 0 3px', color: 'var(--text-main)' }}>
+                  Vaccine Hub
+                </h3>
+                <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  Immunization schedule & doses
+                </p>
+              </div>
+            </motion.div>
+
+            {/* 4. Care Shop */}
+            <motion.div
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setActiveTab('shop')}
+              style={{
+                background: 'var(--surface-alt)',
+                borderRadius: '22px',
+                padding: '16px',
+                border: '1px solid var(--border)',
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: '14px',
+                  background: 'rgba(255, 145, 0, 0.12)',
+                  color: '#FF9100',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                  <ShoppingBag size={20} />
+                </div>
+                <span style={{
+                  fontSize: '9.5px',
+                  fontWeight: 900,
+                  padding: '3px 8px',
+                  borderRadius: '6px',
+                  background: 'rgba(255, 145, 0, 0.15)',
+                  color: '#FF9100',
+                  letterSpacing: '0.4px',
+                }}>
+                  PHARMA
+                </span>
+              </div>
+              <div>
+                <h3 style={{ fontSize: '15px', fontWeight: 800, margin: '0 0 3px', color: 'var(--text-main)' }}>
+                  Care Shop
+                </h3>
+                <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  Prescription diets & treats
+                </p>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Full-Width Card: Community & Vet Feed */}
+          <motion.div
+            whileHover={{ y: -2 }}
+            whileTap={{ scale: 0.985 }}
+            onClick={() => setActiveTab('community')}
+            style={{
+              background: 'var(--surface-alt)',
+              borderRadius: '22px',
+              padding: '16px 20px',
+              border: '1px solid var(--border)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              cursor: 'pointer',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+              <div style={{
+                width: 44,
+                height: 44,
+                borderRadius: '14px',
+                background: 'rgba(26, 182, 128, 0.12)',
+                color: '#1AB680',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}>
+                <Users size={22} />
+              </div>
+              <div>
+                <h3 style={{ fontSize: '15px', fontWeight: 800, margin: '0 0 2px', color: 'var(--text-main)' }}>
+                  Community & Vet Feed
+                </h3>
+                <p style={{ fontSize: '11.5px', color: 'var(--text-muted)', margin: 0 }}>
+                  Connect with 10k+ pet parents & clinicians
+                </p>
+              </div>
+            </div>
+            <ChevronRight size={18} color="var(--text-muted)" />
+          </motion.div>
         </div>
       </AppleReveal>
 
-      {/* ── 6. RECENT ACTIVITY FEED ── */}
-      <AppleReveal delay={0.22} yOffset={16}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-          <h2 style={{ fontSize: '19px', fontWeight: 700, letterSpacing: '-0.025em', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Activity size={16} color="#10B981" />
-            Recent Activity
-          </h2>
+      {/* ── 5. UPCOMING EVENTS SECTION ── */}
+      <AppleReveal delay={0.18} yOffset={14}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
+              Upcoming Events
+            </h2>
+            <button 
+              onClick={() => openModal('myAppointments')}
+              style={{ background: 'none', border: 'none', color: '#10B981', fontWeight: 700, fontSize: '13.5px', cursor: 'pointer', padding: 0 }}
+            >
+              See All
+            </button>
+          </div>
+
+          {appointments.length === 0 ? (
+            <p style={{ fontSize: '13.5px', color: 'var(--text-muted)', margin: '4px 0 0' }}>
+              No upcoming events.
+            </p>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {appointments.slice(0, 2).map((apt) => (
+                <div 
+                  key={apt.id}
+                  style={{
+                    background: 'var(--surface-alt)',
+                    borderRadius: '16px',
+                    padding: '14px 18px',
+                    border: '1px solid var(--border)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between'
+                  }}
+                >
+                  <div>
+                    <strong style={{ fontSize: '14px', color: 'var(--text-main)' }}>{apt.title || 'Veterinary Consultation'}</strong>
+                    <span style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'block', marginTop: '2px' }}>
+                      {apt.petName ? `For ${apt.petName}` : 'Scheduled visit'}
+                    </span>
+                  </div>
+                  <span style={{ fontSize: '12px', color: '#10B981', fontWeight: 700 }}>
+                    {apt.date ? apt.date.toString().split('T')[0] : 'Upcoming'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-        <RecentActivityFeed />
+      </AppleReveal>
+
+      {/* ── 6. TOP VETERINARIANS SECTION (Detailed Cards) ── */}
+      <AppleReveal delay={0.22} yOffset={14}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
+              Top Veterinarians
+            </h2>
+            <button 
+              onClick={() => setActiveTab('vets')}
+              style={{ background: 'none', border: 'none', color: '#10B981', fontWeight: 700, fontSize: '13.5px', cursor: 'pointer', padding: 0 }}
+            >
+              See All
+            </button>
+          </div>
+
+          {/* Detailed Vet Cards List */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            {topVets.map((vet) => (
+              <motion.div
+                key={vet.id}
+                whileHover={{ y: -2 }}
+                style={{
+                  background: 'var(--surface-alt)',
+                  borderRadius: '24px',
+                  padding: '20px',
+                  border: '1px solid var(--border)',
+                  boxShadow: '0 2px 12px rgba(0,0,0,0.02)',
+                }}
+              >
+                {/* Header: Photo + Name + Designation + Rating */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <img
+                    src={vet.photo || vet.photoUrl || 'assets/images/Pet_1.jpg'}
+                    alt={vet.name}
+                    style={{
+                      width: 66,
+                      height: 66,
+                      borderRadius: '50%',
+                      objectFit: 'cover',
+                      border: '2px solid rgba(16, 185, 129, 0.25)',
+                      flexShrink: 0,
+                    }}
+                  />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-main)', margin: '0 0 3px', letterSpacing: '-0.01em' }}>
+                      {vet.name}
+                    </h3>
+                    <span style={{ fontSize: '13px', color: '#10B981', fontWeight: 700, display: 'block' }}>
+                      {vet.qualification || 'District Livestock Officer'}
+                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px', fontSize: '12px' }}>
+                      <Star size={13} fill="#F59E0B" color="#F59E0B" />
+                      <strong style={{ color: 'var(--text-main)', fontWeight: 800 }}>{vet.rating || '5.0'}</strong>
+                      <span style={{ color: 'var(--text-muted)' }}>({vet.reviews || vet.reviewsCount || 1} reviews)</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Professional Profile Box */}
+                <div 
+                  style={{
+                    background: 'var(--surface)',
+                    borderRadius: '16px',
+                    padding: '14px 16px',
+                    margin: '16px 0',
+                    border: '1px solid var(--border)',
+                  }}
+                >
+                  <span style={{ fontSize: '9.5px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.8px', display: 'block', textTransform: 'uppercase', marginBottom: '6px' }}>
+                    PROFESSIONAL PROFILE
+                  </span>
+                  <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', margin: 0, lineHeight: 1.45 }}>
+                    {vet.bio || 'Experienced in complex surgeries and preventive care for small animals.'}
+                  </p>
+                </div>
+
+                {/* Footer: Exp Pills + Start CTA Button */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      background: 'var(--surface)',
+                      padding: '6px 12px',
+                      borderRadius: '12px',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      color: 'var(--text-muted)',
+                      border: '1px solid var(--border)'
+                    }}>
+                      <Briefcase size={12} />
+                      <span>{vet.experience || '10 Years'} Exp</span>
+                    </div>
+
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      background: 'var(--surface)',
+                      padding: '6px 12px',
+                      borderRadius: '12px',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      color: 'var(--text-muted)',
+                      border: '1px solid var(--border)'
+                    }}>
+                      <History size={12} />
+                      <span>N/A Last</span>
+                    </div>
+                  </div>
+
+                  {/* Start Button */}
+                  <button
+                    onClick={() => openModal('booking', { doctor: vet.name, clinic: vet.clinic })}
+                    style={{
+                      background: '#10B981',
+                      color: '#FFFFFF',
+                      border: 'none',
+                      padding: '8px 20px',
+                      borderRadius: '999px',
+                      fontWeight: 800,
+                      fontSize: '13px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      boxShadow: '0 2px 8px rgba(16, 185, 129, 0.25)',
+                      transition: 'transform 0.15s ease',
+                    }}
+                  >
+                    <span>Start</span>
+                    <ChevronRight size={14} />
+                  </button>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
       </AppleReveal>
 
     </div>
