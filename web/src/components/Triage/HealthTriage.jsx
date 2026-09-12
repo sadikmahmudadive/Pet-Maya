@@ -74,7 +74,6 @@ export default function HealthTriage() {
   const [scanProgress, setScanProgress] = useState(0);
   const [statusMsg, setStatusMsg] = useState('');
   const [scanResult, setScanResult] = useState(null);
-  const [activeBBox, setActiveBBox] = useState(SAMPLE_CASES.dermatitis.bbox);
   const [isSavedToEHR, setIsSavedToEHR] = useState(false);
 
   const activePetName = selectedPet?.name || 'Miko';
@@ -96,7 +95,6 @@ export default function HealthTriage() {
   const loadSample = (key) => {
     const sample = SAMPLE_CASES[key];
     setUploadedImage(sample.image);
-    setActiveBBox(sample.bbox);
     setScanResult(null);
     setIsSavedToEHR(false);
     runScanProcess(sample, sample.image);
@@ -289,24 +287,6 @@ export default function HealthTriage() {
                     boxShadow: '0 0 16px 4px rgba(16, 185, 129, 0.7)',
                     zIndex: 10
                   }}
-                />
-              )}
-
-              {/* Bounding Box on Sample Case */}
-              {activeBBox && !isScanning && (
-                <div 
-                  style={{
-                    position: 'absolute',
-                    top: activeBBox.top,
-                    left: activeBBox.left,
-                    width: activeBBox.width,
-                    height: activeBBox.height,
-                    border: '2px solid #10B981',
-                    borderRadius: '8px',
-                    boxShadow: '0 0 12px rgba(16, 185, 129, 0.5)',
-                    background: 'rgba(16, 185, 129, 0.1)',
-                    pointerEvents: 'none'
-                  }} 
                 />
               )}
             </div>
