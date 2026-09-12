@@ -1417,17 +1417,6 @@ body {
 }
 * { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
 
-/* Nav animated active indicator */
-.nav-active-indicator {
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: var(--primary);
-  border-radius: 2px;
-}
-
 /* ── COMPREHENSIVE MOBILE RESPONSIVE GUARDS ── */
 @media (max-width: 768px) {
   .hide-mobile {

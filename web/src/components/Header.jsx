@@ -116,14 +116,6 @@ export default function Header() {
                 style={{ position: 'relative' }}
               >
                 {item.label}
-                {/* Framer Motion layoutId sliding underline indicator */}
-                {activeTab === item.id && (
-                  <motion.span
-                    layoutId="nav-active-pill"
-                    className="nav-active-indicator"
-                    transition={{ type: 'spring', stiffness: 400, damping: 38 }}
-                  />
-                )}
               </button>
             </li>
           ))}
@@ -346,13 +338,6 @@ function MoreDropdown({ items, activeTab, navTo }) {
         style={{ gap: '3px', position: 'relative' }}
       >
         More
-        {hasActive && (
-          <motion.span
-            layoutId="nav-active-pill"
-            className="nav-active-indicator"
-            transition={{ type: 'spring', stiffness: 400, damping: 38 }}
-          />
-        )}
       </button>
 
       <AnimatePresence>
