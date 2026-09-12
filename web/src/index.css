@@ -17,18 +17,18 @@
   --accent: #F59E0B;
   --danger: #EF4444;
 
-  /* Apple.com Light Theme */
-  --bg: #F5F5F7;
+  /* Pet Maya Emerald Design System (Aligned with Mobile App) */
+  --bg: #EFFCF2;
   --bg-pure: #FFFFFF;
-  --surface: rgba(255, 255, 255, 0.9);
+  --surface: #FFFFFF;
   --surface-solid: #FFFFFF;
-  --surface-alt: #F2F2F5;
-  --nav-bg: rgba(255, 255, 255, 0.88);
+  --surface-alt: #FFFFFF;
+  --nav-bg: rgba(239, 252, 242, 0.90);
   --nav-text: #1D1D1F;
   --nav-text-subtle: #86868B;
-  --border: rgba(0, 0, 0, 0.07);
+  --border: rgba(0, 0, 0, 0.06);
   --border-specular: inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
-  --separator: #D2D2D7;
+  --separator: #E2ECE5;
 
   --text-main: #1D1D1F;
   --text-muted: #86868B;
@@ -77,18 +77,18 @@
 }
 
 [data-theme="dark"] {
-  /* Apple.com Pro Dark / Deep OLED Theme */
-  --bg: #000000;
-  --bg-pure: #000000;
-  --surface: rgba(22, 22, 23, 0.85);
-  --surface-solid: #161617;
-  --surface-alt: #1C1C1E;
-  --nav-bg: rgba(0, 0, 0, 0.85);
+  /* Flutter App Deep Emerald Dark Palette */
+  --bg: #021E20;
+  --bg-pure: #021E20;
+  --surface: #0B2826;
+  --surface-solid: #0B2826;
+  --surface-alt: #103330;
+  --nav-bg: rgba(2, 30, 32, 0.90);
   --nav-text: #F5F5F7;
   --nav-text-subtle: #86868B;
-  --border: rgba(255, 255, 255, 0.10);
-  --border-specular: inset 0 1px 0 0 rgba(255, 255, 255, 0.15);
-  --separator: #3A3A3C;
+  --border: rgba(26, 182, 128, 0.18);
+  --border-specular: inset 0 1px 0 0 rgba(255, 255, 255, 0.10);
+  --separator: rgba(26, 182, 128, 0.20);
 
   --text-main: #F5F5F7;
   --text-muted: #8E8E93;

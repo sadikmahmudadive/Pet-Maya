@@ -12,7 +12,10 @@ import {
   ShieldCheck,
   Heart,
   Flame,
-  ChevronRight
+  ChevronRight,
+  Briefcase,
+  History,
+  Navigation
 } from 'lucide-react';
 
 // ── Specialty filter chip definitions ──────────────────────────────────────
@@ -95,9 +98,10 @@ export default function Specialists() {
   const [searchQuery,        setSearchQuery]        = useState('');
   const [selectedCategory,   setSelectedCategory]   = useState('all');
   const [sortBy,             setSortBy]             = useState('rating');
-  const [selectedSpecialty,  setSelectedSpecialty]  = useState('all'); // NEW
+  const [selectedSpecialty,  setSelectedSpecialty]  = useState('all');
+  const [onlyNearby,         setOnlyNearby]         = useState(false);
 
-  const openNow = isOpenNow(); // computed once per render
+  const openNow = isOpenNow();
 
   const filteredVets = vets.filter(v => {
     const matchesSearch = (v.name || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -109,12 +113,14 @@ export default function Specialists() {
                        (selectedCategory === 'grooming' && (v.tag || '').toLowerCase().includes('groom')) ||
                        (selectedCategory === 'boarding' && (v.tag || '').toLowerCase().includes('board'));
 
-    // NEW – specialty filter: match against qualification or bio
     const matchesSpecialty = selectedSpecialty === 'all' ||
       (v.qualification || '').toLowerCase().includes(selectedSpecialty.toLowerCase()) ||
       (v.bio || '').toLowerCase().includes(selectedSpecialty.toLowerCase());
 
-    return matchesSearch && matchesCat && matchesSpecialty;
+    const distVal = parseFloat(v.distance || '10');
+    const matchesNearby = !onlyNearby || distVal < 3.0;
+
+    return matchesSearch && matchesCat && matchesSpecialty && matchesNearby;
   }).sort((a, b) => {
     if (sortBy === 'rating')   return (b.rating || 0) - (a.rating || 0);
     if (sortBy === 'distance') return parseFloat(a.distance) - parseFloat(b.distance);
@@ -197,16 +203,40 @@ export default function Specialists() {
           />
         </div>
 
-        <select 
-          className="input-clean" 
-          style={{ width: 'auto', fontWeight: 600 }}
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value)}
-        >
-          <option value="rating">Highest Rating</option>
-          <option value="distance">Nearest to Me</option>
-          <option value="name">Name (A-Z)</option>
-        </select>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <button
+            type="button"
+            onClick={() => setOnlyNearby(!onlyNearby)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 14px',
+              borderRadius: '12px',
+              fontSize: '13px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              border: onlyNearby ? '1px solid #10B981' : '1px solid var(--border)',
+              background: onlyNearby ? 'rgba(16, 185, 129, 0.12)' : 'var(--surface)',
+              color: onlyNearby ? '#10B981' : 'var(--text-muted)',
+              transition: 'all 0.18s ease',
+            }}
+          >
+            <Navigation size={13} color={onlyNearby ? '#10B981' : 'currentColor'} />
+            <span>Nearby (&lt; 3 km)</span>
+          </button>
+
+          <select 
+            className="input-clean" 
+            style={{ width: 'auto', fontWeight: 600 }}
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+          >
+            <option value="rating">Highest Rating</option>
+            <option value="distance">Nearest to Me</option>
+            <option value="name">Name (A-Z)</option>
+          </select>
+        </div>
       </div>
 
       {/* ── CATEGORY PILLS ── */}
@@ -334,16 +364,33 @@ export default function Specialists() {
                 </button>
               </div>
 
-              {/* Bio */}
-              <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-                {v.bio}
-              </p>
+              {/* Professional Profile Box (Matching App) */}
+              <div style={{
+                background: 'var(--surface-alt)',
+                padding: '12px 14px',
+                borderRadius: '14px',
+                border: '1px solid var(--border)',
+              }}>
+                <span style={{
+                  fontSize: '9px',
+                  fontWeight: 800,
+                  color: 'var(--text-muted)',
+                  letterSpacing: '0.8px',
+                  textTransform: 'uppercase',
+                  display: 'block',
+                  marginBottom: '4px'
+                }}>
+                  PROFESSIONAL PROFILE
+                </span>
+                <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', lineHeight: 1.45, margin: 0 }}>
+                  {v.bio || 'Experienced in complex surgeries and preventive care for small animals.'}
+                </p>
+              </div>
 
-              {/* Meta Stats */}
+              {/* Meta Stats & Rating Breakdown */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', background: 'var(--surface-alt)', padding: '10px 12px', borderRadius: 'var(--radius-sm)' }}>
-                {/* Top row: rating + distance + experience */}
+                {/* Top row: rating + distance */}
                 <div style={{ display: 'flex', gap: '12px', fontSize: '12px', flexWrap: 'wrap' }}>
-                  {/* ── NEW: Visual star row + numeric rating + reviews count ── */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 700 }}>
                     <StarRow rating={v.rating} />
                     <span style={{ marginLeft: '3px' }}>{v.rating}</span>
@@ -353,57 +400,63 @@ export default function Specialists() {
                     <MapPin size={13} />
                     <span>{v.distance}</span>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-muted)' }}>
-                    <Clock size={13} />
-                    <span>{v.experience} exp</span>
-                  </div>
                 </div>
-                {/* ── NEW: Rating Breakdown mini bar-chart ── */}
                 <RatingBreakdown reviews={v.reviews} />
               </div>
 
-              {/* Action Buttons */}
-              <div style={{ display: 'flex', gap: '8px', marginTop: 'auto', paddingTop: '4px', flexWrap: 'wrap' }}>
+              {/* Badges Row (Exp + Teleconsult) & Action CTA */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '6px', flexWrap: 'wrap', gap: '8px' }}>
+                <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    background: 'var(--surface-alt)',
+                    padding: '5px 10px',
+                    borderRadius: '10px',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    color: 'var(--text-muted)',
+                    border: '1px solid var(--border)'
+                  }}>
+                    <Briefcase size={11} />
+                    <span>{v.experience || '10 Years'} Exp</span>
+                  </div>
+
+                  {isVet && (
+                    <button 
+                      className="btn-ghost" 
+                      style={{ padding: '5px 8px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px', borderRadius: '10px' }}
+                      onClick={() => openModal('teleconsult', { doctor: v.name })}
+                      title="Instant Video Consult"
+                    >
+                      <Video size={12} color="#3B82F6" />
+                      <span>৳500 Video</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Start / Book In-Clinic Button */}
                 <button 
-                  className="apple-btn-blue" 
-                  style={{ flex: 1.2, padding: '8px 12px', fontSize: '12.5px' }}
                   onClick={() => openModal('booking', { doctor: v.name, clinic: v.clinic })}
+                  style={{
+                    background: '#10B981',
+                    color: '#FFF',
+                    border: 'none',
+                    padding: '8px 18px',
+                    borderRadius: '999px',
+                    fontWeight: 800,
+                    fontSize: '12.5px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    boxShadow: '0 2px 8px rgba(16, 185, 129, 0.25)',
+                    transition: 'all 0.15s ease',
+                  }}
                 >
-                  <Calendar size={13} />
-                  <span>Book In-Clinic</span>
-                </button>
-
-                {isVet && (
-                  /* ── NEW: Telehealth button with price badge ── */
-                  <button 
-                    className="btn-ghost" 
-                    style={{ flex: 1, padding: '8px 10px', fontSize: '12.5px', display: 'flex', alignItems: 'center', gap: '5px' }}
-                    onClick={() => openModal('teleconsult', { doctor: v.name })}
-                  >
-                    <Video size={13} color="#3B82F6" />
-                    <span>Telehealth</span>
-                    <span style={{
-                      fontSize: '9.5px',
-                      fontWeight: 700,
-                      background: 'rgba(59, 130, 246, 0.12)',
-                      color: '#3B82F6',
-                      padding: '1px 5px',
-                      borderRadius: '6px',
-                      border: '1px solid rgba(59,130,246,0.25)',
-                      whiteSpace: 'nowrap',
-                    }}>
-                      ৳500/session
-                    </span>
-                  </button>
-                )}
-
-                <button 
-                  className="icon-btn" 
-                  style={{ width: 34, height: 34 }}
-                  onClick={() => openModal('review', { doctor: v.name })}
-                  title="Write Review"
-                >
-                  <Star size={14} />
+                  <span>Start</span>
+                  <ChevronRight size={13} />
                 </button>
               </div>
             </div>
