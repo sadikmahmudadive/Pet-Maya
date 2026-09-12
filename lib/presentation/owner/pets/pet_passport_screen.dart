@@ -1,9 +1,11 @@
+import 'dart:convert';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:provider/provider.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/pet_model.dart';
 import '../../../data/models/service_record_model.dart';
@@ -12,6 +14,7 @@ import '../../../data/models/pet_device_model.dart';
 import '../../../data/repositories/app_state_repository.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/resilient_network_image.dart';
+import '../../common_widgets/passport_qr_scanner.dart';
 
 /// Digital Pet Passport featuring a Spatial + Glass holographic credential card,
 /// biometric clearance tags, verified microchip, and international clinic QR code.
@@ -93,7 +96,7 @@ class _PetPassportScreenState extends State<PetPassportScreen> with SingleTicker
     final trimmed = rawAge.trim();
     if (trimmed.isEmpty || trimmed == 'N/A') return 'N/A';
     final reg = RegExp(
-      r'(\d+)\s*Year[s]?(?:,\s*(\d+)\s*Month[s]?)?',
+      r'(\d+)\s*Years?(?:,\s*(\d+)\s*Months?)?',
       caseSensitive: false,
     );
     final match = reg.firstMatch(trimmed);
@@ -157,6 +160,14 @@ class _PetPassportScreenState extends State<PetPassportScreen> with SingleTicker
         elevation: 0,
         centerTitle: true,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.qr_code_scanner_rounded, color: AppColors.primary),
+            tooltip: 'Scan Passport QR',
+            onPressed: () {
+              HapticFeedback.mediumImpact();
+              PassportQrScannerModal.show(context);
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.share_rounded, color: AppColors.primary),
             tooltip: 'Share Credential',
@@ -296,10 +307,9 @@ class _PetPassportScreenState extends State<PetPassportScreen> with SingleTicker
     final statusBadgeIcon =
         isCleared ? Icons.verified_rounded : Icons.pending_actions_rounded;
 
-    final rawId = pet.petID.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '');
     final chipDisplay = petDevice != null
         ? 'TRACKER: ${petDevice.serialNumber.toUpperCase()}'
-        : 'CHIP: PET_${rawId.length > 8 ? rawId.substring(0, 8).toUpperCase() : rawId.toUpperCase()}••••';
+        : 'NO DEVICE CONNECTED';
 
     return Container(
       width: double.infinity,
@@ -538,6 +548,23 @@ class _PetPassportScreenState extends State<PetPassportScreen> with SingleTicker
         ? pet.dob.split('T').first
         : '${DateTime.now().year}';
 
+    final qrData = jsonEncode({
+      'type': 'PET_MAYA_PASSPORT',
+      'version': '1.0',
+      'petId': pet.petID,
+      'petName': pet.name,
+      'species': pet.resolvedSpecies,
+      'breed': pet.breed,
+      'gender': pet.gender,
+      'age': pet.age,
+      'weight': pet.weight,
+      'ownerName': ownerName,
+      'ownerPhone': user?.phone ?? '',
+      'healthIndex': pet.healthIndex,
+      'isVerified': hasMedicalLogs,
+      'issuedDate': registrationDate,
+    });
+
     return Container(
       width: double.infinity,
       constraints: const BoxConstraints(minHeight: 240),
@@ -577,7 +604,7 @@ class _PetPassportScreenState extends State<PetPassportScreen> with SingleTicker
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
             child: Row(
               children: [
-                // Simulated QR Code Container
+                // Real Functional QR Code
                 Container(
                   width: 96,
                   height: 96,
@@ -593,8 +620,12 @@ class _PetPassportScreenState extends State<PetPassportScreen> with SingleTicker
                       ),
                     ],
                   ),
-                  child: const Center(
-                    child: Icon(Icons.qr_code_2_rounded, size: 80, color: Color(0xFF0F172A)),
+                  child: QrImageView(
+                    data: qrData,
+                    version: QrVersions.auto,
+                    size: 84.0,
+                    backgroundColor: Colors.white,
+                    padding: const EdgeInsets.all(2),
                   ),
                 ),
                 const SizedBox(width: 14),
@@ -707,7 +738,7 @@ class _PetPassportScreenState extends State<PetPassportScreen> with SingleTicker
     // 1. Transponder / Tracker
     final transponderValue = petDevice != null
         ? '${petDevice.name} (${petDevice.serialNumber.toUpperCase()})'
-        : 'PET-${pet.petID.toUpperCase()} (Digital Tag)';
+        : 'No Device Connected';
 
     // 2. Vaccination status
     final vaccineValue = (pet.vaccinationDetails?.trim().isNotEmpty == true)

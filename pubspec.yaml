@@ -77,6 +77,7 @@ dependencies:
   file_picker: ^8.3.3
   pdf: ^3.10.8
   printing: ^5.11.1
+  qr_flutter: ^4.1.0
 
 dependency_overrides:
   # latlong2: 0.10.1

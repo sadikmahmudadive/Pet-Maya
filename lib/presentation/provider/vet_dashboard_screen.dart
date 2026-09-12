@@ -13,6 +13,7 @@ import '../common_widgets/glass_scaffold.dart';
 import '../common_widgets/premium_card.dart';
 import '../common_widgets/premium_toast.dart';
 import '../common_widgets/floating_navbar.dart';
+import '../common_widgets/passport_qr_scanner.dart';
 import '../auth/login_screen.dart';
 import '../owner/community/community_feed_screen.dart';
 import '../owner/home/user_profile_screen.dart';
@@ -499,6 +500,17 @@ class VetConsoleHomeFragment extends StatelessWidget {
           elevation: 0,
           floating: true,
           actions: [
+            IconButton(
+              icon: const Icon(
+                Icons.qr_code_scanner_rounded,
+                color: AppColors.primary,
+              ),
+              tooltip: 'Scan Passport QR',
+              onPressed: () {
+                HapticFeedback.mediumImpact();
+                PassportQrScannerModal.show(context);
+              },
+            ),
             IconButton(
               icon: const Icon(
                 Icons.logout_rounded,
