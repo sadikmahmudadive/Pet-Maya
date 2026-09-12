@@ -601,89 +601,80 @@ class _PetPassportScreenState extends State<PetPassportScreen> with SingleTicker
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
-            child: Row(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // Real Functional QR Code
                 Container(
-                  width: 96,
-                  height: 96,
-                  padding: const EdgeInsets.all(6),
+                  width: 160,
+                  height: 160,
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
+                        color: Colors.black.withValues(alpha: 0.15),
+                        blurRadius: 16,
+                        offset: const Offset(0, 8),
                       ),
                     ],
                   ),
                   child: QrImageView(
                     data: qrData,
                     version: QrVersions.auto,
-                    size: 84.0,
+                    size: 144.0,
                     backgroundColor: Colors.white,
-                    padding: const EdgeInsets.all(2),
+                    padding: EdgeInsets.zero,
                   ),
                 ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        'CLINICAL VERIFICATION',
-                        style: TextStyle(
-                          fontSize: 9.5,
-                          fontWeight: FontWeight.w900,
-                          color: AppColors.secondary,
-                          letterSpacing: 0.6,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Scan to retrieve verified vaccination records, emergency contacts & allergy alerts for ${pet.name}.',
-                        style: TextStyle(
-                          fontSize: 10.5,
-                          height: 1.25,
-                          color: isDark ? Colors.white70 : Colors.black87,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Parent: $ownerName',
-                        style: TextStyle(
-                          fontSize: 9.5,
-                          fontWeight: FontWeight.w700,
-                          color: isDark ? Colors.white54 : Colors.black54,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: AppColors.secondary.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          'ISSUED: $registrationDate • ${hasMedicalLogs ? "VERIFIED" : "PENDING"}',
-                          style: const TextStyle(
-                            fontSize: 9.0,
-                            fontWeight: FontWeight.w900,
-                            color: AppColors.secondaryDark,
-                          ),
-                        ),
-                      ),
-                    ],
+                const SizedBox(height: 24),
+                const Text(
+                  'CLINICAL VERIFICATION',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.secondary,
+                    letterSpacing: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Scan to retrieve verified vaccination records, emergency contacts & allergy alerts for ${pet.name}.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 11,
+                    height: 1.4,
+                    color: isDark ? Colors.white60 : Colors.black54,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Parent: $ownerName',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.white38 : Colors.black38,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0288D1).withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    'ISSUED: $registrationDate • ${hasMedicalLogs ? "VERIFIED" : "PENDING"}',
+                    style: const TextStyle(
+                      fontSize: 8.5,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFF0288D1),
+                      letterSpacing: 0.5,
+                    ),
                   ),
                 ),
               ],
