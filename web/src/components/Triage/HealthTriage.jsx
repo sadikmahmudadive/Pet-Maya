@@ -18,17 +18,18 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { AppleReveal } from '../Animations/AppleReveal';
 import LottieUploadIcon from '../Common/LottieUploadIcon';
+import catDiseasePlaceholder from '../../../assets/images/cat_disease.jpg';
 
 const SAMPLE_CASES = {
   dermatitis: {
-    title: 'Canine Atopic Dermatitis with Secondary Pyoderma',
-    image: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=600&auto=format&fit=crop&q=80',
+    title: 'Feline Dermatitis & Otitis Externa Symptoms',
+    image: catDiseasePlaceholder,
     severity: 'Moderate Priority',
     confidence: '96.2%',
-    care: 'Clean hotspot with warm saline or chlorhexidine wipe. Fit protective cone collar to stop self-mutilation chewing.',
-    clinic: 'Book cytology swab with Dr. Aris Thorne (Dermatologist) to determine antibiotic vs antifungal course.',
-    differential: ['Flea Allergy Dermatitis (FAD)', 'Malassezia Yeast Dermatitis', 'Superficial Bacterial Folliculitis'],
-    bbox: { top: '35%', left: '42%', width: '120px', height: '90px' }
+    care: 'Clean hotspot with warm saline or chlorhexidine wipe. Fit protective cone collar to stop self-mutilation scratching.',
+    clinic: 'Book cytology swab with Dr. Aris Thorne (Feline Medicine) to determine antibiotic vs antifungal course.',
+    differential: ['Otodectes cynotis (Ear Mites)', 'Flea Allergy Dermatitis (FAD)', 'Malassezia Yeast Dermatitis'],
+    bbox: { top: '22%', left: '46%', width: '90px', height: '80px' }
   },
   conjunctivitis: {
     title: 'Feline Infectious Conjunctivitis / Ocular Discharge',
@@ -67,7 +68,7 @@ export default function HealthTriage() {
 
   const [selectedPet, setSelectedPet] = useState(pets.length > 0 ? pets[0] : null);
   const [issueDescription, setIssueDescription] = useState('Mild redness and scratching behind left ear for 2 days.');
-  const [uploadedImage, setUploadedImage] = useState('https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=600&auto=format&fit=crop&q=80');
+  const [uploadedImage, setUploadedImage] = useState(catDiseasePlaceholder);
   const [selectedScanMode, setSelectedScanMode] = useState('skin');
   const [isScanning, setIsScanning] = useState(false);
   const [scanProgress, setScanProgress] = useState(0);
@@ -248,7 +249,7 @@ export default function HealthTriage() {
             <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)' }}>Clinical Presets:</span>
             <button className="chip-pill" onClick={() => loadSample('dermatitis')}>
               <Activity size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
-              Canine Dermatitis
+              Feline Dermatitis
             </button>
             <button className="chip-pill" onClick={() => loadSample('conjunctivitis')}>
               <Eye size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
