@@ -165,29 +165,12 @@ export default function HealthTriage() {
           {/* Header */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
             <div>
-              <span style={{ fontSize: '11px', fontWeight: 800, color: '#7C4DFF', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
-                CLINICAL VISION AI 2.0
-              </span>
-              <h1 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--text-main)', margin: '4px 0 2px', letterSpacing: '-0.02em' }}>
+              <h1 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--text-main)', margin: '0 0 4px', letterSpacing: '-0.02em' }}>
                 AI Health Scanner
               </h1>
               <p style={{ fontSize: '13.5px', color: 'var(--text-muted)', margin: 0 }}>
                 Instant triage, lesion analysis &amp; multi-modal diagnostic protocol for pets.
               </p>
-            </div>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              background: 'rgba(124, 77, 255, 0.12)',
-              color: '#7C4DFF',
-              padding: '6px 14px',
-              borderRadius: '999px',
-              fontSize: '12px',
-              fontWeight: 800
-            }}>
-              <Sparkles size={14} />
-              <span>BioNet-Vet V2.6</span>
             </div>
           </div>
 
