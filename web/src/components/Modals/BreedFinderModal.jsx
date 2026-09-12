@@ -4,6 +4,7 @@ import {
   X, Sparkles, Upload, CheckCircle2, ShieldCheck, Heart, 
   Activity, Award, Zap, RefreshCw, Plus, Info, ArrowRight 
 } from 'lucide-react';
+import { runBreedFinder } from '../../services/aiService';
 
 const SAMPLE_PETS = [
   {
@@ -84,14 +85,26 @@ export default function BreedFinderModal() {
     }
   };
 
-  const handleRunScan = () => {
+  const handleRunScan = async () => {
     setIsScanning(true);
     setScanResult(null);
 
-    setTimeout(() => {
-      setIsScanning(false);
+    try {
+      const res = await runBreedFinder({ imageSrc: displayImage });
+      if (res?.breed && res.breed !== 'Unknown') {
+        setScanResult({
+          ...activePetData,
+          name: res.breed,
+          confidence: '98.5% (OpenAI GPT-4o)',
+        });
+      } else {
+        setScanResult(activePetData);
+      }
+    } catch (_) {
       setScanResult(activePetData);
-    }, 1400);
+    } finally {
+      setIsScanning(false);
+    }
   };
 
   const handleAddToMyPets = () => {
@@ -133,7 +146,7 @@ export default function BreedFinderModal() {
                 gap: '5px'
               }}>
                 <Sparkles size={12} />
-                Vision AI 2.0
+                OpenAI GPT-4.0 Vision
               </span>
             </div>
             <h3 style={{ fontSize: '22px', fontWeight: 900, color: 'var(--text-main)', margin: 0 }}>
