@@ -548,22 +548,8 @@ class _PetPassportScreenState extends State<PetPassportScreen> with SingleTicker
         ? pet.dob.split('T').first
         : '${DateTime.now().year}';
 
-    final qrData = jsonEncode({
-      'type': 'PET_MAYA_PASSPORT',
-      'version': '1.0',
-      'petId': pet.petID,
-      'petName': pet.name,
-      'species': pet.resolvedSpecies,
-      'breed': pet.breed,
-      'gender': pet.gender,
-      'age': pet.age,
-      'weight': pet.weight,
-      'ownerName': ownerName,
-      'ownerPhone': user?.phone ?? '',
-      'healthIndex': pet.healthIndex,
-      'isVerified': hasMedicalLogs,
-      'issuedDate': registrationDate,
-    });
+    // Using a concise identifier keeps the QR code less dense and much faster to scan.
+    final qrData = 'PETMAYA:${pet.petID}';
 
     return Container(
       width: double.infinity,

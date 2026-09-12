@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'premium_toast.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../data/models/pet_model.dart';
@@ -31,12 +33,20 @@ class PassportQrScannerModal extends StatefulWidget {
 
 class _PassportQrScannerModalState extends State<PassportQrScannerModal>
     with SingleTickerProviderStateMixin {
+  late MobileScannerController _scannerController;
   late AnimationController _laserController;
   late Animation<double> _laserAnimation;
+
+  bool _isProcessing = false;
 
   @override
   void initState() {
     super.initState();
+    _scannerController = MobileScannerController(
+      detectionSpeed: DetectionSpeed.normal,
+      facing: CameraFacing.back,
+      torchEnabled: false,
+    );
     _laserController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1800),
@@ -48,26 +58,79 @@ class _PassportQrScannerModalState extends State<PassportQrScannerModal>
 
   @override
   void dispose() {
+    _scannerController.dispose();
     _laserController.dispose();
     super.dispose();
   }
 
-  void _onPetScanned(PetModel pet, AppStateRepository repo) {
+  void _onDetect(BarcodeCapture capture) async {
+    if (_isProcessing) return;
+
+    final List<Barcode> barcodes = capture.barcodes;
+    if (barcodes.isEmpty || barcodes.first.rawValue == null) return;
+
+    final String code = barcodes.first.rawValue!;
+
+    if (!code.startsWith('PETMAYA:')) return;
+
+    setState(() {
+      _isProcessing = true;
+    });
+
     HapticFeedback.heavyImpact();
-    Navigator.pop(context); // Close scanner sheet
+    // Pause scanner to prevent multiple rapid triggers
+    _scannerController.stop();
 
-    final owner = repo.currentUser;
-    final petRecords = repo.serviceRecords.where((r) => r.petId == pet.petID).toList();
-    final device = repo.devices.where((d) => d.petId == pet.petID).firstOrNull;
+    final petId = code.replaceFirst('PETMAYA:', '').trim();
+    await _handleDiscoveredPet(petId);
+  }
 
-    _showVerifiedCredentialDialog(
-      context: context,
-      pet: pet,
-      owner: owner,
-      petRecordsCount: petRecords.length,
-      deviceSerial: device?.serialNumber,
-      isProvider: repo.currentUser?.role != UserRole.petOwner,
-    );
+  Future<void> _handleDiscoveredPet(String petId) async {
+    final repo = context.read<AppStateRepository>();
+    final currentUser = repo.currentUser;
+
+    // Determine role logic
+    final isProvider = currentUser != null &&
+        (currentUser.role == UserRole.veterinarian ||
+            currentUser.role == UserRole.grooming ||
+            currentUser.role == UserRole.boarding ||
+            currentUser.role == UserRole.shelter);
+
+    // 1. Fetch pet profile (simulation / real fetch via repo if available)
+    final matchedPet = repo.pets.where((p) => p.petID == petId).firstOrNull ??
+        repo.allUsers.expand((u) => repo.pets).where((p) => p.petID == petId).firstOrNull;
+
+    if (matchedPet == null) {
+      if (mounted) {
+        Navigator.pop(context);
+        repo.showToast('Invalid or unregistered Pet Passport QR Code',
+            type: ToastType.error, context: context);
+      }
+      return;
+    }
+
+    // 2. Fetch Owner Info
+    final owner = repo.allUsers.where((u) => u.uid == matchedPet.ownerID).firstOrNull;
+
+    // 3. Fetch Service Records & Tracker state
+    final petRecords =
+        repo.serviceRecords.where((r) => r.petId == matchedPet.petID).toList();
+    final device = repo.devices.where((d) => d.petId == matchedPet.petID).firstOrNull;
+
+    if (mounted) {
+      // Close Scanner
+      Navigator.pop(context);
+
+      // Open Data Profile Sheet
+      _showVerifiedCredentialDialog(
+        context: context,
+        pet: matchedPet,
+        owner: owner,
+        petRecordsCount: petRecords.length,
+        deviceSerial: device?.serialNumber,
+        isProvider: isProvider,
+      );
+    }
   }
 
   void _showVerifiedCredentialDialog({
@@ -422,6 +485,12 @@ class _PassportQrScannerModalState extends State<PassportQrScannerModal>
                     borderRadius: BorderRadius.circular(28),
                     child: Stack(
                       children: [
+                        // Live Camera Feed
+                        MobileScanner(
+                          controller: _scannerController,
+                          onDetect: _onDetect,
+                        ),
+                        
                         // Viewfinder grid lines
                         Center(
                           child: Container(
@@ -541,7 +610,10 @@ class _PassportQrScannerModalState extends State<PassportQrScannerModal>
                       ),
                     ),
                     selected: false,
-                    onSelected: (_) => _onPetScanned(pet, repo),
+                    onSelected: (_) {
+                      setState(() => _isProcessing = false);
+                      _handleDiscoveredPet(pet.petID);
+                    },
                   );
                 },
               ),
