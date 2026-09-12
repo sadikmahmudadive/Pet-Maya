@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+// Pet Maya Web Portal - v2.5.0 Production Build
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AppProvider, useApp } from './context/AppContext';
 import GlobalBanner from './components/GlobalBanner';
