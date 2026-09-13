@@ -5,15 +5,16 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:animate_do/animate_do.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_typography.dart';
 import '../../../data/models/event_model.dart';
 import '../../../data/models/pet_model.dart';
+import '../../../data/models/vet_model.dart';
 import '../../../data/repositories/app_state_repository.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/bento_card.dart';
 import '../../common_widgets/empty_state.dart';
 import '../../common_widgets/status_chip.dart';
 import 'pet_services_screen.dart';
+import 'tele_vet_video_call_screen.dart';
 
 class MyAppointmentsScreen extends StatefulWidget {
   const MyAppointmentsScreen({super.key});
@@ -438,6 +439,47 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
                       style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Colors.white),
                     ),
                   ),
+                ),
+                if (event.category.contains('Vet') || event.category.contains('Appointment')) ...[
+                  const SizedBox(width: 8),
+                  IconButton(
+                    style: IconButton.styleFrom(
+                      backgroundColor: const Color(0xFF0288D1).withValues(alpha: 0.15),
+                      padding: const EdgeInsets.all(12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    icon: const Icon(Icons.videocam_rounded, color: Color(0xFF0288D1), size: 18),
+                    tooltip: 'Start Live Video Call',
+                    onPressed: () {
+                      final targetVet = state.vets.where((v) => v.id == event.providerId).firstOrNull ??
+                          VetModel(
+                            id: event.providerId ?? 'vet_default',
+                            name: 'Dr. Sarah Jenkins',
+                            tag: 'Veterinarian',
+                            price: '৳800',
+                            imageUrl: 'assets/images/vet_placeholder.png',
+                            rating: 4.9,
+                            reviewsCount: 124,
+                            about: 'Veterinary specialist',
+                            businessHours: '09:00 AM - 08:00 PM',
+                          );
+                      final targetPet = pet ?? PetModel(petID: event.petId, name: event.petName, type: 'Dog', breed: 'Golden Retriever', dob: '2022-01-01', gender: 'Male');
+                      HapticFeedback.heavyImpact();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => TeleVetVideoCallScreen(
+                            vet: targetVet,
+                            pet: targetPet,
+                            channelId: 'channel_${event.id}',
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
                 ),
               ] else ...[
                 Expanded(

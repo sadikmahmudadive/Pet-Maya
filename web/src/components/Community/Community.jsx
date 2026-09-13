@@ -948,6 +948,28 @@ export default function Community() {
             </div>
           </AppleReveal>
 
+          {/* ── FEED FILTER TABS ── */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+            <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px', scrollbarWidth: 'none' }}>
+              <button className={`chip-pill ${feedFilter === 'all' ? 'active' : ''}`} onClick={() => setFeedFilter('all')}>
+                Trending
+              </button>
+              <button className={`chip-pill ${feedFilter === 'lost' ? 'active' : ''}`} onClick={() => setFeedFilter('lost')}>
+                <AlertTriangle size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '5px' }} />
+                Lost &amp; Found
+              </button>
+              <button className={`chip-pill ${feedFilter === 'moments' ? 'active' : ''}`} onClick={() => setFeedFilter('moments')}>
+                Moments
+              </button>
+              <button className={`chip-pill ${feedFilter === 'health' ? 'active' : ''}`} onClick={() => setFeedFilter('health')}>
+                Health
+              </button>
+              <button className={`chip-pill ${feedFilter === 'adoption' ? 'active' : ''}`} onClick={() => setFeedFilter('adoption')}>
+                Rescue
+              </button>
+              <button className={`chip-pill ${feedFilter === 'qa' ? 'active' : ''}`} onClick={() => setFeedFilter('qa')}>
+                Q&amp;A
+              </button>
           {/* ── FEED FILTER TABS (HORIZONTAL RECYCLERVIEW / SCROLLER) ── */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
             
@@ -966,6 +988,9 @@ export default function Community() {
               </span>
             </div>
 
+            <span style={{ fontSize: '12.5px', color: 'var(--text-muted)', fontWeight: 600 }}>
+              {filteredPosts.length} {filteredPosts.length === 1 ? 'story' : 'stories'}
+            </span>
             {/* RecyclerView Wrapper with Left/Right Navigation Chevrons & Edge Fades */}
             <div style={{ position: 'relative', width: '100%', display: 'flex', alignItems: 'center' }}>
               

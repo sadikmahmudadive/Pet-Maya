@@ -12,6 +12,8 @@ import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
 import 'booking_screen.dart';
 import 'reviews_screen.dart';
+import 'tele_vet_video_call_screen.dart';
+import '../../common_widgets/premium_toast.dart';
 
 class VetDetailsScreen extends StatefulWidget {
   final VetModel vet;
@@ -329,27 +331,87 @@ class _VetDetailsScreenState extends State<VetDetailsScreen> {
   }
 
   Widget _buildBottomBar(BuildContext context, VetModel currentVet) {
+    final pets = context.watch<AppStateRepository>().pets;
+    final primaryPet = pets.isNotEmpty ? pets.first : null;
+
     return Container(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.95),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 40, offset: const Offset(0, -10))],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 40,
+            offset: const Offset(0, -10),
+          ),
+        ],
       ),
       child: SafeArea(
         child: SizedBox(
-          height: 64,
-          child: ElevatedButton(
-            onPressed: () {
-              HapticFeedback.heavyImpact();
-              Navigator.push(context, MaterialPageRoute(builder: (_) => BookingScreen(vet: currentVet)));
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF1AB680),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            ),
-            child: Text('SCHEDULE APPOINTMENT • ${currentVet.price.toUpperCase()}', 
-              style: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: 0.8, fontSize: 12)),
+          height: 56,
+          child: Row(
+            children: [
+              IconButton(
+                style: IconButton.styleFrom(
+                  backgroundColor: const Color(0xFF0288D1).withValues(alpha: 0.15),
+                  padding: const EdgeInsets.all(14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                ),
+                icon: const Icon(Icons.videocam_rounded, color: Color(0xFF0288D1), size: 24),
+                tooltip: 'Start Live Video Consultation',
+                onPressed: () {
+                  if (primaryPet == null) {
+                    context.read<AppStateRepository>().showToast(
+                      'Please add a pet to start a video consultation 🐾',
+                      type: ToastType.warning,
+                      context: context,
+                    );
+                    return;
+                  }
+                  HapticFeedback.heavyImpact();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => TeleVetVideoCallScreen(
+                        vet: currentVet,
+                        pet: primaryPet,
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () {
+                    HapticFeedback.heavyImpact();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => BookingScreen(vet: currentVet),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1AB680),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                  ),
+                  child: Text(
+                    'BOOK APPOINTMENT • ${currentVet.price.toUpperCase()}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.8,
+                      fontSize: 11.5,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
