@@ -1553,6 +1553,18 @@ class AppStateRepository extends ChangeNotifier {
 
     post.setReaction(userId, reactionType);
     final isStillReacted = post.isLikedByUser(userId);
+
+    // Trigger community notification for post author if reacted by someone else
+    if (isNewReaction && isStillReacted && post.userId != userId && post.userId.isNotEmpty) {
+      final actorName = _currentUser?.name ?? 'A pet parent';
+      addNotification(
+        title: 'New Reaction on your post! ❤️',
+        message: '$actorName reacted $reactionType to "${post.content.length > 35 ? "${post.content.substring(0, 35)}..." : post.content}"',
+        type: NotificationType.social,
+        targetUserId: post.userId,
+      );
+    }
+
     notifyListeners();
 
     await _firebase.togglePostReaction(
@@ -1593,14 +1605,27 @@ class AppStateRepository extends ChangeNotifier {
       commentId: 'cmt_${_uuid.v4().substring(0, 6)}',
       postId: postId,
       userId: _currentUser?.uid ?? 'guest',
-      userName: _currentUser?.name ?? 'Lover',
+      userName: _currentUser?.name ?? 'Pet Parent',
       text: text,
       timestamp: DateTime.now().millisecondsSinceEpoch,
     );
     if (!_postComments.containsKey(postId)) _postComments[postId] = [];
     _postComments[postId]!.add(comment);
     final postIdx = _posts.indexWhere((p) => p.postId == postId);
-    if (postIdx != -1) _posts[postIdx].commentsCount += 1;
+    if (postIdx != -1) {
+      _posts[postIdx].commentsCount += 1;
+      final post = _posts[postIdx];
+
+      // Trigger community notification for post author if commented by someone else
+      if (post.userId != comment.userId && post.userId.isNotEmpty) {
+        addNotification(
+          title: 'New Comment on your post! 💬',
+          message: '${comment.userName} commented: "${text.length > 50 ? "${text.substring(0, 50)}..." : text}"',
+          type: NotificationType.social,
+          targetUserId: post.userId,
+        );
+      }
+    }
     notifyListeners();
     await _firebase.addComment(postId, comment);
   }
@@ -1750,6 +1775,7 @@ class AppStateRepository extends ChangeNotifier {
     required String title,
     required String message,
     required NotificationType type,
+    String? targetUserId,
   }) async {
     final n = NotificationModel(
       id: _uuid.v4().substring(0, 8),
@@ -1760,8 +1786,18 @@ class AppStateRepository extends ChangeNotifier {
     );
     _notifications.insert(0, n);
     notifyListeners();
-    if (_currentUser != null) {
-      await _firebase.saveNotification(_currentUser!.uid, n);
+
+    final destinationUserId = targetUserId ?? _currentUser?.uid;
+    if (destinationUserId != null) {
+      await _firebase.saveNotification(destinationUserId, n);
+    }
+
+    if (type == NotificationType.social) {
+      NotificationService().showSocialAlert(title: title, body: message);
+    } else if (type == NotificationType.health) {
+      NotificationService().showHealthAlert(title: title, body: message);
+    } else {
+      NotificationService().showEventAlert(title: title, body: message);
     }
   }
 

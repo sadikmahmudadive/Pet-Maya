@@ -193,6 +193,15 @@ class NotificationService {
         body: body,
         payload: message.data.toString(),
       );
+    } else if (category.toLowerCase().contains('social') ||
+        category.toLowerCase().contains('comment') ||
+        category.toLowerCase().contains('react') ||
+        category.toLowerCase().contains('like')) {
+      showSocialAlert(
+        title: title.isNotEmpty ? title : 'Community Notification 💬',
+        body: body,
+        payload: message.data.toString(),
+      );
     } else {
       showEventAlert(
         title: title.isNotEmpty ? title : 'Pet Care Reminder 📅',
@@ -205,6 +214,46 @@ class NotificationService {
   /// Handle notification tap when the app is in background/terminated
   void _handleMessageTap(RemoteMessage message) {
     debugPrint('[NotificationService] FCM Notification Tapped: ${message.data}');
+  }
+
+  /// Trigger a Community Social / Reaction / Comment Notification
+  Future<void> showSocialAlert({
+    required String title,
+    required String body,
+    String? payload,
+    int? id,
+  }) async {
+    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+      channelGeneral,
+      'Community & Social Alerts',
+      channelDescription:
+          'Notifications for likes, reactions, comments, and community interactions.',
+      importance: Importance.max,
+      priority: Priority.max,
+      showWhen: true,
+      enableVibration: true,
+      playSound: true,
+      category: AndroidNotificationCategory.social,
+      visibility: NotificationVisibility.public,
+    );
+
+    const NotificationDetails platformDetails = NotificationDetails(
+      android: androidDetails,
+      iOS: DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+        interruptionLevel: InterruptionLevel.active,
+      ),
+    );
+
+    await _localNotifications.show(
+      id ?? DateTime.now().millisecondsSinceEpoch.remainder(100000),
+      title,
+      body,
+      platformDetails,
+      payload: payload,
+    );
   }
 
   /// Trigger a Health Alert Notification (Max priority, full-screen intent ready)
