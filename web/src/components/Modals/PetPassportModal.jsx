@@ -129,9 +129,9 @@ Verification Registry: PetMaya Central Health Ledger (AES-256 Verified)
           overflow: 'hidden',
           boxShadow: '0 12px 32px rgba(0,0,0,0.12)'
         }}>
-          {/* Top Gold / Green Ribbon */}
+          {/* Top Gold / Mint-Cyan Ribbon */}
           <div style={{ 
-            background: 'linear-gradient(90deg, #10B981, #059669)', 
+            background: 'var(--primary-gradient)', 
             padding: '12px 20px', 
             display: 'flex', 
             justifyContent: 'space-between', 

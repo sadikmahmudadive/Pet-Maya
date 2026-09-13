@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 // Pet Maya Web Portal - v2.5.0 Production Build
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AppProvider, useApp } from './context/AppContext';
@@ -7,6 +7,7 @@ import Header from './components/Header';
 import Toast from './components/Toast';
 import PermissionPrompt from './components/PermissionPrompt';
 import ModalRoot from './components/Modals/ModalRoot';
+import QuickActionSheet from './components/Common/QuickActionSheet';
 
 import LandingPage from './components/Landing/LandingPage';
 import Dashboard from './components/Dashboard/Dashboard';
@@ -21,6 +22,7 @@ import Profile from './components/Profile/Profile';
 import AdminPortal from './components/Admin/AdminPortal';
 
 import { motion, AnimatePresence } from 'framer-motion';
+import { Zap } from 'lucide-react';
 
 const TAB_SEO_MAP = {
   landing: {
@@ -68,6 +70,7 @@ const TAB_SEO_MAP = {
 function MainContent() {
   const { activeTab, setActiveTab } = useApp();
   const { currentUser } = useAuth();
+  const [isQuickActionOpen, setIsQuickActionOpen] = useState(false);
 
   // Initial URL hash navigation on mount
   useEffect(() => {
@@ -178,6 +181,19 @@ function MainContent() {
           </motion.div>
         </AnimatePresence>
       </main>
+      {/* Floating Quick Action FAB (Flutter mobile app parity) */}
+      <button 
+        className="floating-quick-fab" 
+        onClick={() => setIsQuickActionOpen(true)}
+        aria-label="Quick Actions"
+        title="Quick Actions ⚡"
+      >
+        <Zap size={24} />
+      </button>
+      <QuickActionSheet 
+        isOpen={isQuickActionOpen} 
+        onClose={() => setIsQuickActionOpen(false)} 
+      />
       <ModalRoot />
       <Toast />
       <PermissionPrompt />

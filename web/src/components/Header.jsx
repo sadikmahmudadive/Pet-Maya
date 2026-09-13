@@ -48,28 +48,28 @@ export default function Header() {
   // Primary nav items (logged-in)
   const primaryNavItems = [
     { id: 'dashboard', label: 'Dashboard' },
-    { id: 'shop',      label: 'Pet Shop'   },
-    { id: 'ai',        label: 'Wellness'   },
+    { id: 'shop',      label: 'Care Shop'  },
+    { id: 'ai',        label: 'AI Scanner' },
     { id: 'vets',      label: 'Specialists'},
     { id: 'community', label: 'Community'  },
-    { id: 'food',      label: 'Blog'       },
+    { id: 'food',      label: 'Nutrition & Diet' },
   ];
 
   // Extra items in "More" (logged-in)
   const moreNavItems = [
-    { id: 'tracker',  label: 'Tracker'   },
-    { id: 'vaccines', label: 'Reminders' },
-    { id: 'landing',  label: 'Overview'  },
+    { id: 'tracker',  label: 'Live Radar'   },
+    { id: 'vaccines', label: 'Vaccine Hub'  },
+    { id: 'landing',  label: 'Overview'     },
   ];
 
   // Guest nav
   const guestNavItems = [
     { id: 'landing',   label: 'Overview'   },
-    { id: 'shop',      label: 'Pet Shop'   },
-    { id: 'ai',        label: 'Wellness'   },
+    { id: 'shop',      label: 'Care Shop'  },
+    { id: 'ai',        label: 'AI Scanner' },
     { id: 'vets',      label: 'Specialists'},
     { id: 'community', label: 'Community'  },
-    { id: 'food',      label: 'Blog'       },
+    { id: 'food',      label: 'Nutrition & Diet' },
   ];
 
   const allItems = currentUser

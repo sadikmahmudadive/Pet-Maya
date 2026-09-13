@@ -4,18 +4,24 @@
 @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700;800;900&family=SF+Pro+Text:wght@400;500;600;700&display=swap');
 
 :root {
-  /* Apple Palette & Brand Preserved Accents */
-  --primary: #10B981;
-  --primary-hover: #059669;
-  --primary-tint: rgba(16, 185, 129, 0.12);
+  /* Flutter AppColors Spec & Brand Gradients */
+  --primary: #1AB680;
+  --primary-hover: #138A61;
+  --primary-light: #E2F9F0;
+  --primary-tint: rgba(26, 182, 128, 0.12);
   
-  --apple-blue: #0071E3;
-  --apple-blue-hover: #0077ED;
-  --apple-blue-tint: rgba(0, 113, 227, 0.12);
-  
-  --secondary: #3B82F6;
+  --secondary: #00B6D2;
+  --secondary-dark: #008AA0;
+  --secondary-light: #E0F9FD;
+  --tertiary: #3B82F6;
   --accent: #F59E0B;
   --danger: #EF4444;
+
+  /* Signature App Gradients */
+  --primary-gradient: linear-gradient(135deg, #1AB680 0%, #00B6D2 100%);
+  --cyan-gradient: linear-gradient(135deg, #00B6D2 0%, #38BDF8 100%);
+  --mint-gradient: linear-gradient(135deg, #1AB680 0%, #34D399 100%);
+  --accent-gradient: linear-gradient(135deg, #FF9500 0%, #FF5E3A 100%);
 
   /* Pet Maya Light Theme (Clean White Background) */
   --bg: #FFFFFF;
@@ -1709,6 +1715,126 @@ body {
 .vaccine-ring-item { display:flex;flex-direction:column;align-items:center;gap:8px; }
 .vaccine-ring-item .ring-pct { font-size:14px;font-weight:800;color:var(--text-main);letter-spacing:-0.02em; }
 .vaccine-ring-item .ring-label { font-size:11px;font-weight:600;color:var(--text-muted);text-align:center;max-width:80px;line-height:1.3; }
+/* ── FLOATING QUICK ACTION FAB (FLUTTER PARITY) ── */
+.floating-quick-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--primary-gradient);
+  color: #FFFFFF;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 28px rgba(26, 182, 128, 0.40);
+  z-index: 9990;
+  transition: transform 0.25s var(--apple-bounce), box-shadow 0.25s ease;
+}
+.floating-quick-fab:hover {
+  transform: scale(1.08) translateY(-2px);
+  box-shadow: 0 12px 36px rgba(26, 182, 128, 0.55);
+}
+.floating-quick-fab:active {
+  transform: scale(0.94);
+}
 
+/* ── QUICK ACTION SHEET MODAL ── */
+.quick-action-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
+  gap: 16px;
+  padding: 12px 0;
+}
+.quick-action-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.18s var(--apple-bounce);
+  text-decoration: none;
+}
+.quick-action-card:hover {
+  transform: translateY(-3px);
+}
+.quick-action-icon-box {
+  width: 60px;
+  height: 60px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.quick-action-card:hover .quick-action-icon-box {
+  transform: scale(1.05);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+.quick-action-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text-main);
+  text-align: center;
+}
 
+/* ── PET DETAILS MODAL HUB ── */
+.pet-hub-action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--surface-alt);
+  cursor: pointer;
+  transition: all 0.2s var(--apple-spring);
+  color: var(--text-main);
+  text-align: center;
+}
+.pet-hub-action-btn:hover {
+  transform: translateY(-2px);
+  border-color: var(--primary);
+  background: var(--primary-tint);
+  color: var(--primary);
+}
+.pet-hub-action-btn.active {
+  background: var(--primary-tint);
+  border-color: var(--primary);
+  color: var(--primary);
+}
 
+/* ── MEAL SCHEDULE CHIPS ── */
+.meal-time-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-main);
+  transition: all 0.18s ease;
+}
+.meal-time-chip .remove-time-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.meal-time-chip .remove-time-btn:hover {
+  color: var(--danger);
+}

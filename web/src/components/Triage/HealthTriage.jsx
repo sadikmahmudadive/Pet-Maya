@@ -66,7 +66,7 @@ const SAMPLE_CASES = {
 };
 
 export default function HealthTriage() {
-  const { pets = [], openModal, showToast, addMedicalRecord } = useApp();
+  const { pets = [], openModal, showToast, addMedicalRecord, setActiveTab } = useApp();
 
   const [selectedPet, setSelectedPet] = useState(pets.length > 0 ? pets[0] : null);
   const [issueDescription, setIssueDescription] = useState('Mild redness and scratching behind left ear for 2 days.');
@@ -522,47 +522,49 @@ export default function HealthTriage() {
                   disabled={isSavedToEHR}
                   style={{
                     flex: 1,
-                    minWidth: '200px',
-                    background: isSavedToEHR ? 'rgba(16, 185, 129, 0.2)' : 'var(--surface)',
-                    color: isSavedToEHR ? '#10B981' : 'var(--text-main)',
+                    minWidth: '180px',
+                    background: isSavedToEHR ? 'var(--primary-tint)' : 'var(--surface)',
+                    color: isSavedToEHR ? 'var(--primary)' : 'var(--text-main)',
                     border: '1px solid var(--border)',
-                    padding: '10px 18px',
-                    borderRadius: '14px',
+                    padding: '12px 18px',
+                    borderRadius: '16px',
                     fontSize: '13px',
                     fontWeight: 700,
                     cursor: isSavedToEHR ? 'default' : 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: '6px',
+                    gap: '8px',
+                    transition: 'all 0.18s ease'
                   }}
                 >
-                  <BookmarkCheck size={16} color={isSavedToEHR ? '#10B981' : 'currentColor'} />
-                  <span>{isSavedToEHR ? 'Saved to Medical History' : `Save to ${activePetName}'s EHR`}</span>
+                  <BookmarkCheck size={17} color={isSavedToEHR ? 'var(--primary)' : 'currentColor'} />
+                  <span>{isSavedToEHR ? 'Saved to Medical History ✅' : 'Save to Medical History'}</span>
                 </button>
 
                 <button
-                  onClick={() => openModal('booking', { doctor: 'Dr. Nazmul Hoda', mode: 'In-Clinic Consultation' })}
+                  onClick={() => setActiveTab('vets')}
                   style={{
                     flex: 1,
-                    minWidth: '200px',
-                    background: '#10B981',
-                    color: '#FFF',
+                    minWidth: '180px',
+                    background: 'var(--primary-gradient)',
+                    color: '#FFFFFF',
                     border: 'none',
-                    padding: '10px 18px',
-                    borderRadius: '14px',
+                    padding: '12px 18px',
+                    borderRadius: '16px',
                     fontSize: '13px',
                     fontWeight: 800,
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: '6px',
-                    boxShadow: '0 2px 8px rgba(16, 185, 129, 0.25)',
+                    gap: '8px',
+                    boxShadow: '0 4px 14px rgba(26, 182, 128, 0.30)',
+                    transition: 'transform 0.18s ease'
                   }}
                 >
-                  <Calendar size={15} />
-                  <span>Book Recommended Specialist</span>
+                  <Stethoscope size={17} />
+                  <span>Find a Veterinarian</span>
                 </button>
               </div>
             </motion.div>

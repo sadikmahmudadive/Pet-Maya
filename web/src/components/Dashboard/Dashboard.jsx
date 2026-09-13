@@ -262,7 +262,11 @@ export default function Dashboard() {
                 transition={{ duration: 0.3, ease: 'easeOut' }}
               >
                 {/* Top Section: Avatar with Ring + Pet Info */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
+                <div 
+                  onClick={() => openModal('petDetails', { pet: activePet })}
+                  style={{ display: 'flex', alignItems: 'center', gap: '18px', cursor: 'pointer' }}
+                  title="View Pet Details"
+                >
                   {/* Avatar + 100% Vitality Ring */}
                   <div style={{ position: 'relative', flexShrink: 0 }}>
                     <VitalityRing score={activePet.healthIndex ?? 100} size={76} strokeWidth={4}>
@@ -477,7 +481,10 @@ export default function Dashboard() {
                   key={pet.id || idx}
                   whileHover={{ y: -3 }}
                   whileTap={{ scale: 0.98 }}
-                  onClick={() => setCurrentPetIndex(idx)}
+                  onClick={() => {
+                    setCurrentPetIndex(idx);
+                    openModal('petDetails', { pet });
+                  }}
                   style={{
                     background: 'var(--surface-alt)',
                     borderRadius: '22px',
