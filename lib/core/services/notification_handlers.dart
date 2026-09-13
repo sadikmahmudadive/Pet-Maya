@@ -7,26 +7,31 @@ import 'notification_service.dart';
 @pragma('vm:entry-point')
 void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
+    bool success = false;
     try {
-      // Ensure Firebase is ready for background tasks if needed
       await Firebase.initializeApp();
       debugPrint("Pet Maya Background Task Executing: $task");
-      return Future.value(true);
+      success = true;
     } catch (e) {
       debugPrint("Background Task Error: $e");
-      return Future.value(false);
+      success = false;
     }
+    return success;
   });
 }
 
-/// Top-level background message handler for FCM
+/// Top-level background message handler for FCM.
+/// Guarantees background & terminated messages generate heads-up system notifications.
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
-  
-  debugPrint("Handling a background message: ${message.messageId}");
-  
-  // Show local notification for data-only messages in background
-  final ns = NotificationService();
-  ns.handleRemoteMessage(message); // Re-use logic to trigger local notification
+  try {
+    await Firebase.initializeApp();
+    debugPrint("Handling background FCM message: ${message.messageId}");
+
+    final ns = NotificationService();
+    await ns.initialize();
+    ns.handleRemoteMessage(message);
+  } catch (e) {
+    debugPrint("Error handling background FCM message: $e");
+  }
 }

@@ -15,6 +15,7 @@ import {
   increment,
   arrayUnion,
   arrayRemove,
+  deleteField,
   INITIAL_PETS, 
   INITIAL_VETS, 
   INITIAL_PRODUCTS, 
@@ -633,10 +634,18 @@ export function AppProvider({ children }) {
             const data = docSnap.data();
             
             // Flexible likedBy parser (handles Array, Map, and numeric counts)
+            // Flexible likedBy and reactions parser (aligns 100% with Flutter FeedPostModel)
             let isLiked = false;
             let likesCount = typeof data.likesCount === 'number' ? data.likesCount : (typeof data.likes === 'number' ? data.likes : 0);
             const likedBy = data.likedBy;
             const likedByUserIds = data.likedByUserIds;
+            const rawUserReactions = (data.userReactions && typeof data.userReactions === 'object') ? data.userReactions : {};
+
+            let userReaction = null;
+            if (myUid && rawUserReactions[myUid]) {
+              userReaction = rawUserReactions[myUid];
+              isLiked = true;
+            }
 
             if (Array.isArray(likedByUserIds)) {
               if (myUid && likedByUserIds.includes(myUid)) isLiked = true;
@@ -648,6 +657,15 @@ export function AppProvider({ children }) {
             } else if (likedBy && typeof likedBy === 'object') {
               if (myUid && (likedBy[myUid] === true || likedBy[myUid] === 'true' || likedBy[myUid] === 1)) isLiked = true;
               if (likesCount === 0) likesCount = Object.keys(likedBy).filter(k => likedBy[k] === true || likedBy[k] === 1).length;
+            }
+
+            if (isLiked && !userReaction) {
+              userReaction = 'Like';
+            }
+
+            const activeReactionTypes = Array.from(new Set(Object.values(rawUserReactions))).filter(Boolean);
+            if (activeReactionTypes.length === 0 && likesCount > 0) {
+              activeReactionTypes.push('Like');
             }
 
             // Robust timestamp parser
@@ -720,6 +738,9 @@ export function AppProvider({ children }) {
               image: data.imageUrl || data.image || data.photoUrl || data.photo || '',
               likes: likesCount,
               isLiked: isLiked,
+              userReaction: userReaction,
+              userReactions: rawUserReactions,
+              activeReactionTypes: activeReactionTypes,
               likedBy: Array.isArray(likedBy) ? likedBy : (likedBy ? Object.keys(likedBy) : []),
               comments: rawComments,
               commentsCount: typeof data.commentsCount === 'number' ? data.commentsCount : rawComments.length,
@@ -1101,9 +1122,9 @@ export function AppProvider({ children }) {
     showToast('✨ Story published to community feed!', 'success');
   };
 
-  // Toggle Like Post (Reliable Sync with Firestore and Flutter)
-  const toggleLike = async (postId) => {
-    const post = posts.find(p => p.id === postId);
+  // Toggle Post Reaction (100% Parity with Flutter FeedPostModel & FirebaseService)
+  const toggleReaction = async (postId, reactionType = 'Like') => {
+    const post = posts.find(p => p.id === postId || p.postId === postId);
     if (!post) return;
 
     let myUid = currentUser?.uid;
@@ -1115,35 +1136,79 @@ export function AppProvider({ children }) {
       }
     }
 
-    const isCurrentlyLiked = !!post.isLiked;
-    const newLiked = !isCurrentlyLiked;
-    const newLikesCount = newLiked ? (post.likes + 1) : Math.max(0, post.likes - 1);
+    const currentReaction = post.userReaction;
+    const isRemoving = currentReaction && currentReaction.toLowerCase() === reactionType.toLowerCase();
+    const isNewReaction = !currentReaction;
+
+    const newReaction = isRemoving ? null : reactionType;
+    const newLiked = !isRemoving;
+    let newLikesCount = post.likes || 0;
+    if (isRemoving) {
+      newLikesCount = Math.max(0, newLikesCount - 1);
+    } else if (isNewReaction) {
+      newLikesCount = newLikesCount + 1;
+    }
+
+    const newUserReactions = { ...(post.userReactions || {}) };
+    if (isRemoving) {
+      delete newUserReactions[myUid];
+    } else {
+      newUserReactions[myUid] = reactionType;
+    }
+
+    const newActiveReactionTypes = Array.from(new Set(Object.values(newUserReactions))).filter(Boolean);
 
     // 1. Instant Optimistic UI Update
     setPosts(prev => prev.map(p => {
-      if (p.id === postId) {
+      if (p.id === postId || p.postId === postId) {
         return {
           ...p,
           likes: newLikesCount,
           isLiked: newLiked,
-          likedBy: newLiked ? [...(p.likedBy || []), myUid] : (p.likedBy || []).filter(u => u !== myUid)
+          userReaction: newReaction,
+          userReactions: newUserReactions,
+          activeReactionTypes: newActiveReactionTypes,
+          likedBy: newLiked
+            ? Array.from(new Set([...(p.likedBy || []), myUid]))
+            : (p.likedBy || []).filter(u => u !== myUid)
         };
       }
       return p;
     }));
 
-    // 2. Persist to Firestore with SetOptions merge
+    // 2. Persist to Firestore with SetOptions merge (aligns with Flutter app)
     try {
       const postDocRef = doc(db, 'community_posts', postId);
-      await setDoc(postDocRef, {
-        likesCount: increment(newLiked ? 1 : -1),
-        likes: increment(newLiked ? 1 : -1),
-        likedByUserIds: newLiked ? arrayUnion(myUid) : arrayRemove(myUid),
-        likedBy: { [myUid]: newLiked }
-      }, { merge: true });
+      if (isRemoving) {
+        await setDoc(postDocRef, {
+          likesCount: increment(-1),
+          likes: increment(-1),
+          likedByUserIds: arrayRemove(myUid),
+          likedBy: { [myUid]: false },
+          userReactions: { [myUid]: deleteField() }
+        }, { merge: true });
+      } else {
+        const payload = {
+          likedByUserIds: arrayUnion(myUid),
+          likedBy: { [myUid]: true },
+          userReactions: { [myUid]: reactionType }
+        };
+        if (isNewReaction) {
+          payload.likesCount = increment(1);
+          payload.likes = increment(1);
+        }
+        await setDoc(postDocRef, payload, { merge: true });
+      }
     } catch (e) {
-      console.warn('[Firebase] toggleLike error:', e);
+      console.warn('[Firebase] toggleReaction error:', e);
     }
+  };
+
+  // Toggle Like Post (Calls toggleReaction with 'Like' or current reaction)
+  const toggleLike = async (postId) => {
+    const post = posts.find(p => p.id === postId || p.postId === postId);
+    const activeReaction = post?.userReaction || 'Like';
+    return toggleReaction(postId, activeReaction);
   };
 
   // Add Comment to Post (Reliable Sync with Firestore Document and Subcollection)
@@ -1730,6 +1795,7 @@ export function AppProvider({ children }) {
       updatePost,
       deletePost,
       toggleLike,
+      toggleReaction,
       addComment,
       resolveAmberAlert,
       appointments,

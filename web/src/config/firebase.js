@@ -28,7 +28,8 @@ import {
   addDoc,
   serverTimestamp,
   arrayUnion,
-  arrayRemove
+  arrayRemove,
+  deleteField
 } from 'firebase/firestore';
 import { 
   getStorage, 
@@ -81,6 +82,7 @@ export {
   serverTimestamp,
   arrayUnion,
   arrayRemove,
+  deleteField,
   ref,
   uploadBytesResumable,
   getDownloadURL

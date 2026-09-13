@@ -42,6 +42,7 @@ import {
 } from 'lucide-react';
 import { AppleReveal } from '../Animations/AppleReveal';
 import { AppleStagger } from '../Animations/AppleStagger';
+import LottieReactionButton, { REACTION_CONFIGS, ReactionIcon } from '../Common/LottieReactionButton';
 
 // ── AUTHENTIC RESILIENT USER AVATAR COMPONENT ──
 export function UserAvatar({ src, name, size = 40, userId, style = {} }) {
@@ -123,7 +124,7 @@ export function UserAvatar({ src, name, size = 40, userId, style = {} }) {
 }
 
 export default function Community() {
-  const { posts, isPostsLoading, usersMap, createPost, updatePost, deletePost, toggleLike, addComment, resolveAmberAlert, pets, vets, showToast, openModal } = useApp();
+  const { posts, isPostsLoading, usersMap, createPost, updatePost, deletePost, toggleLike, toggleReaction, addComment, resolveAmberAlert, pets, vets, showToast, openModal } = useApp();
   const { currentUser } = useAuth();
 
   // State for Create Post Modal & Inputs
@@ -565,6 +566,11 @@ export default function Community() {
   // ── Double Tap Heart Trigger (Instagram Style) ──
   const handleDoubleTap = (postId) => {
     toggleLike(postId);
+    if (toggleReaction) {
+      toggleReaction(postId, 'Love');
+    } else {
+      toggleLike(postId);
+    }
     setHeartAnimPostId(postId);
     setTimeout(() => {
       setHeartAnimPostId(null);
@@ -1709,22 +1715,49 @@ export default function Community() {
 
                     {/* ── Facebook Reaction & Comment Stats Row ── */}
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px 8px', fontSize: '13px', color: 'var(--text-muted)' }}>
-                      {/* Left: Like/Reaction Count */}
+                      {/* Left: Like/Reaction Count & Badges */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         {likesCount > 0 ? (
                           <>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-                              <span style={{ width: 18, height: 18, borderRadius: '50%', background: '#1877F2', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '10px' }}>
-                                <ThumbsUp size={10} fill="#fff" />
-                              </span>
-                              <span style={{ width: 18, height: 18, borderRadius: '50%', background: '#EF4444', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '10px', marginLeft: '-4px' }}>
-                                <Heart size={10} fill="#fff" />
-                              </span>
+                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                              {(() => {
+                                const types = post.activeReactionTypes && post.activeReactionTypes.length > 0
+                                  ? post.activeReactionTypes
+                                  : (post.userReaction ? [post.userReaction] : ['Like']);
+                                return types.slice(0, 3).map((typeKey, idx) => {
+                                  const cfg = REACTION_CONFIGS.find(r => r.key.toLowerCase() === typeKey.toLowerCase()) || REACTION_CONFIGS[0];
+                                  return (
+                                    <span 
+                                      key={cfg.key} 
+                                      title={cfg.label}
+                                      style={{ 
+                                        width: 20, 
+                                        height: 20, 
+                                        borderRadius: '50%', 
+                                        background: cfg.color, 
+                                        display: 'inline-flex', 
+                                        alignItems: 'center', 
+                                        justifyContent: 'center', 
+                                        color: '#fff', 
+                                        fontSize: '11px', 
+                                        marginLeft: idx > 0 ? '-5px' : '0',
+                                        border: '1.5px solid var(--surface, #fff)',
+                                        boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+                                        zIndex: 10 - idx
+                                      }}
+                                    >
+                                      {cfg.fallbackEmoji}
+                                    </span>
+                                  );
+                                });
+                              })()}
                             </div>
-                            <span>{likesCount}</span>
+                            <span style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: '12.5px', marginLeft: '2px' }}>
+                              {likesCount}
+                            </span>
                           </>
                         ) : (
-                          <span>Be the first to react</span>
+                          <span style={{ fontSize: '12.5px', color: 'var(--text-muted)' }}>Be the first to react</span>
                         )}
                       </div>
 
@@ -1733,7 +1766,7 @@ export default function Community() {
                         style={{ cursor: 'pointer' }}
                         onClick={() => setActiveCommentPostId(isCommentSectionOpen ? null : post.id)}
                       >
-                        <span>{post.comments?.length || 0} comments</span>
+                        <span style={{ fontSize: '12.5px' }}>{post.comments?.length || 0} comments</span>
                       </div>
                     </div>
 
@@ -1742,15 +1775,18 @@ export default function Community() {
 
                     {/* ── Facebook 3-Button Action Row ── */}
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around', padding: '3px 8px' }}>
-                      {/* Like Button */}
-                      <button 
-                        className={`fb-action-btn ${post.isLiked ? 'liked' : ''}`}
-                        onClick={() => toggleLike(post.id)}
-                        style={{ color: post.isLiked ? '#1877F2' : 'var(--text-muted)' }}
-                      >
-                        <ThumbsUp size={18} fill={post.isLiked ? '#1877F2' : 'none'} />
-                        <span>Like</span>
-                      </button>
+                      {/* Like / Dynamic Lottie Reaction Button */}
+                      <LottieReactionButton 
+                        userReaction={post.userReaction}
+                        isLiked={post.isLiked}
+                        onReact={(reactionKey) => {
+                          if (toggleReaction) {
+                            toggleReaction(post.id, reactionKey);
+                          } else {
+                            toggleLike(post.id);
+                          }
+                        }}
+                      />
 
                       {/* Comment Button */}
                       <button 
