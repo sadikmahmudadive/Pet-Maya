@@ -312,7 +312,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
         ),
       ),
     ),
-  );
+  ),
+);
 }
 
   Widget _buildNavBtn(IconData icon, VoidCallback onTap) {

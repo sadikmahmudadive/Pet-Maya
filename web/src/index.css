@@ -295,7 +295,7 @@ body {
 }
 
 .apple-hero-light {
-  background: #F5F5F7;
+  background: var(--bg);
   color: #1D1D1F;
 }
 
