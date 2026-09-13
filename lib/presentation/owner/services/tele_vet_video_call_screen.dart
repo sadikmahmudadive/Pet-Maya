@@ -6,7 +6,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_typography.dart';
 import '../../../data/models/vet_model.dart';
 import '../../../data/models/pet_model.dart';
 import '../../../data/models/service_record_model.dart';
@@ -202,7 +201,6 @@ class _TeleVetVideoCallScreenState extends State<TeleVetVideoCallScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
     final topPadding = MediaQuery.of(context).padding.top;
 
     return Scaffold(
@@ -216,7 +214,7 @@ class _TeleVetVideoCallScreenState extends State<TeleVetVideoCallScreen> {
                     fit: StackFit.expand,
                     children: [
                       ResilientNetworkImage(
-                        imageUrl: widget.vet.imageUrl,
+                        imageUrl: widget.vet.photoUrl,
                         fit: BoxFit.cover,
                         fallbackAssetPath: 'assets/images/vet_placeholder.png',
                       ),

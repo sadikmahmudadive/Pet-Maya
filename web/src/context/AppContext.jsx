@@ -234,6 +234,7 @@ export function AppProvider({ children }) {
       return !localStorage.getItem('pm_cached_posts');
     } catch (_) { return true; }
   });
+  const [usersMap, setUsersMap] = useState({});
 
   const [appointments, setAppointments] = useState([]);
   const [favoriteVetIds, setFavoriteVetIds] = useState(() => {
@@ -594,6 +595,32 @@ export function AppProvider({ children }) {
     }
   }, []);
 
+  // ─── 3.5. FIREBASE REAL-TIME USERS MAP ───
+  useEffect(() => {
+    try {
+      const usersRef = collection(db, 'users');
+      const unsubscribe = onSnapshot(usersRef, (snapshot) => {
+        if (!snapshot.empty) {
+          const map = {};
+          snapshot.docs.forEach(docSnap => {
+            const data = docSnap.data();
+            const photo = data.photoUrl || data.photoURL || data.userPhoto || data.avatar || '';
+            const name = (data.name || data.displayName || '').trim().toLowerCase();
+            if (docSnap.id) map[docSnap.id] = photo;
+            if (data.uid) map[data.uid] = photo;
+            if (name) map[name] = photo;
+          });
+          setUsersMap(map);
+        }
+      }, (err) => {
+        console.warn('[Firebase] users onSnapshot error:', err);
+      });
+      return () => unsubscribe();
+    } catch (e) {
+      console.warn('[Firebase] users init listener error:', e);
+    }
+  }, []);
+
   // ─── 4. FIREBASE REAL-TIME COMMUNITY POSTS ───
   useEffect(() => {
     try {
@@ -665,11 +692,26 @@ export function AppProvider({ children }) {
               createdAt: c.createdAt || (c.timestamp ? new Date(c.timestamp).toISOString() : new Date().toISOString())
             })) : [];
 
+            // Resolve author profile photo dynamically
+            const postUserId = data.userId || data.authorId || data.uid || '';
+            const postAuthor = data.userName || data.authorName || data.author || 'Pet Parent';
+            let authorPhoto = data.userPhoto || data.authorPhoto || data.userPhotoUrl || data.photoUrl || '';
+            if (!authorPhoto || authorPhoto.includes('tail_wagging_logo.png')) {
+              if (postUserId && usersMap[postUserId]) {
+                authorPhoto = usersMap[postUserId];
+              } else if (postAuthor && usersMap[postAuthor.toLowerCase().trim()]) {
+                authorPhoto = usersMap[postAuthor.toLowerCase().trim()];
+              } else if (currentUser && (currentUser.uid === postUserId || currentUser.name?.toLowerCase().trim() === postAuthor?.toLowerCase().trim())) {
+                authorPhoto = currentUser.photoUrl || '';
+              }
+            }
+
             return {
               id: docSnap.id,
               postId: data.postId || docSnap.id,
-              author: data.userName || data.authorName || data.author || 'Pet Parent',
-              authorPhoto: data.userPhoto || data.authorPhoto || data.userPhotoUrl || data.photoUrl || 'assets/images/tail_wagging_logo.png',
+              userId: postUserId,
+              author: postAuthor,
+              authorPhoto: authorPhoto || '',
               petTag: data.petTag || (postType ? `${postType}` : 'Pet'),
               category: postType,
               time: displayTime,
@@ -717,7 +759,7 @@ export function AppProvider({ children }) {
       console.warn('[Firebase] community_posts init listener error:', e);
       setIsPostsLoading(false);
     }
-  }, [currentUser]);
+  }, [currentUser, usersMap]);
 
   // ─── 5. FIREBASE APPOINTMENTS & EVENTS ───
   useEffect(() => {
@@ -983,7 +1025,7 @@ export function AppProvider({ children }) {
   // Add Community Post
   const createPost = async (postData) => {
     const userDisplayName = postData.author || (currentUser ? currentUser.name : 'Pet Parent');
-    const userPhotoUrl = currentUser?.photoUrl || 'assets/images/tail_wagging_logo.png';
+    const userPhotoUrl = currentUser?.photoUrl || '';
     const postType = (postData.category || 'MOMENT').toUpperCase();
 
     const isAmber = Boolean(postData.isAmberAlert || postData.category === 'Lost & Found' || postData.category === 'LOST_FOUND' || postData.category === 'LOST & FOUND');
@@ -1170,7 +1212,7 @@ export function AppProvider({ children }) {
   // Resolve Lost Pet / Amber Alert
   const resolveAmberAlert = async (postId) => {
     setPosts(prev => prev.map(p => {
-      if (p.id === postId) {
+      if (p.id === postId || p.postId === postId) {
         return { ...p, isResolved: true };
       }
       return p;
@@ -1183,6 +1225,54 @@ export function AppProvider({ children }) {
       console.warn('[Firebase] resolveAmberAlert notice:', e);
     }
     showToast('🎉 Wonderful news! Pet marked as safely reunited!', 'success');
+  };
+
+  // Update Community Post (Content, Category, Pet Tag, Image)
+  const updatePost = async (postId, updatedFields) => {
+    // Optimistic local state update
+    setPosts(prev => prev.map(p => {
+      if (p.id === postId || p.postId === postId) {
+        return { ...p, ...updatedFields };
+      }
+      return p;
+    }));
+
+    try {
+      const postDocRef = doc(db, 'community_posts', postId);
+      const payload = {
+        updatedAt: Date.now()
+      };
+      if (updatedFields.content !== undefined) payload.content = updatedFields.content;
+      if (updatedFields.category !== undefined) {
+        payload.category = updatedFields.category;
+        payload.postType = (updatedFields.category || 'MOMENT').toUpperCase();
+      }
+      if (updatedFields.petTag !== undefined) payload.petTag = updatedFields.petTag;
+      if (updatedFields.image !== undefined) {
+        payload.imageUrl = updatedFields.image;
+        payload.image = updatedFields.image;
+      }
+      await setDoc(postDocRef, payload, { merge: true });
+      showToast('✅ Post updated successfully!', 'success');
+    } catch (e) {
+      console.warn('[Firebase] updatePost error:', e);
+      showToast('Saved locally, could not reach database', 'info');
+    }
+  };
+
+  // Delete Community Post
+  const deletePost = async (postId) => {
+    // Optimistic local state update
+    setPosts(prev => prev.filter(p => p.id !== postId && p.postId !== postId));
+
+    try {
+      const postDocRef = doc(db, 'community_posts', postId);
+      await deleteDoc(postDocRef);
+      showToast('🗑️ Post deleted from community feed', 'info');
+    } catch (e) {
+      console.warn('[Firebase] deletePost error:', e);
+      showToast('Removed locally, could not reach database', 'info');
+    }
   };
 
   // Add Appointment / Event
@@ -1635,7 +1725,10 @@ export function AppProvider({ children }) {
       deleteProduct,
       posts,
       isPostsLoading,
+      usersMap,
       createPost,
+      updatePost,
+      deletePost,
       toggleLike,
       addComment,
       resolveAmberAlert,

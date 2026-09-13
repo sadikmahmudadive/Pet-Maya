@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { 
@@ -7,42 +7,123 @@ import {
   Send, 
   Image as ImageIcon, 
   Sparkles,
-  Share2,
-  Bookmark,
-  MoreHorizontal,
-  ShieldCheck,
-  Plus,
-  Compass,
-  Users,
-  Flame,
-  Tag,
-  Stethoscope,
-  Clock,
-  X,
-  ChevronRight,
-  ChevronLeft,
-  TrendingUp,
-  CheckCircle,
-  CheckCircle2,
-  HelpCircle,
-  Camera,
-  Activity,
-  Globe,
-  ThumbsUp,
-  MessageSquare,
-  AlertTriangle,
-  PhoneCall,
-  Eye,
-  MapPin,
-  Copy,
-  Check,
-  Radio
+  Share2, 
+  Bookmark, 
+  MoreHorizontal, 
+  ShieldCheck, 
+  Plus, 
+  Compass, 
+  Users, 
+  Flame, 
+  Tag, 
+  Stethoscope, 
+  Clock, 
+  X, 
+  ChevronRight, 
+  ChevronLeft, 
+  TrendingUp, 
+  CheckCircle, 
+  CheckCircle2, 
+  HelpCircle, 
+  Camera, 
+  Activity, 
+  Globe, 
+  ThumbsUp, 
+  MessageSquare, 
+  AlertTriangle, 
+  PhoneCall, 
+  Eye, 
+  MapPin, 
+  Copy, 
+  Check, 
+  Radio,
+  Edit3,
+  Trash2
 } from 'lucide-react';
 import { AppleReveal } from '../Animations/AppleReveal';
 import { AppleStagger } from '../Animations/AppleStagger';
 
+// ── AUTHENTIC RESILIENT USER AVATAR COMPONENT ──
+export function UserAvatar({ src, name, size = 40, userId, style = {} }) {
+  const { usersMap } = useApp();
+  const { currentUser } = useAuth();
+  const [imgError, setImgError] = useState(false);
+
+  useEffect(() => {
+    setImgError(false);
+  }, [src, userId]);
+
+  const resolvedSrc = useMemo(() => {
+    if (src && !src.includes('tail_wagging_logo.png')) return src;
+    if (userId && usersMap && usersMap[userId]) return usersMap[userId];
+    if (name && usersMap && usersMap[name.trim().toLowerCase()]) return usersMap[name.trim().toLowerCase()];
+    if (currentUser) {
+      if (currentUser.uid === userId || (name && currentUser.name?.trim().toLowerCase() === name.trim().toLowerCase())) {
+        return currentUser.photoUrl || null;
+      }
+    }
+    return null;
+  }, [src, userId, name, usersMap, currentUser]);
+
+  const initials = (name || 'Pet Parent').trim().charAt(0).toUpperCase();
+  const palettes = [
+    'linear-gradient(135deg, #0D9488 0%, #14B8A6 100%)', // Teal
+    'linear-gradient(135deg, #2563EB 0%, #3B82F6 100%)', // Blue
+    'linear-gradient(135deg, #7C3AED 0%, #8B5CF6 100%)', // Violet
+    'linear-gradient(135deg, #DB2777 0%, #EC4899 100%)', // Pink
+    'linear-gradient(135deg, #D97706 0%, #F59E0B 100%)', // Amber
+    'linear-gradient(135deg, #059669 0%, #10B981 100%)', // Emerald
+  ];
+  const charCode = (name || 'P').charCodeAt(0) || 0;
+  const gradient = palettes[charCode % palettes.length];
+
+  if (resolvedSrc && !imgError) {
+    return (
+      <img
+        src={resolvedSrc}
+        alt={name || 'Avatar'}
+        onError={() => setImgError(true)}
+        style={{
+          width: size,
+          height: size,
+          borderRadius: '50%',
+          objectFit: 'cover',
+          display: 'block',
+          border: '1.5px solid var(--border)',
+          flexShrink: 0,
+          ...style
+        }}
+      />
+    );
+  }
+
+  return (
+    <div
+      style={{
+        width: size,
+        height: size,
+        borderRadius: '50%',
+        background: gradient,
+        color: '#FFFFFF',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: `${Math.max(12, Math.round(size * 0.42))}px`,
+        fontWeight: 700,
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.12)',
+        flexShrink: 0,
+        userSelect: 'none',
+        border: '1.5px solid rgba(255, 255, 255, 0.25)',
+        ...style
+      }}
+    >
+      {initials}
+    </div>
+  );
+}
+
 export default function Community() {
-  const { posts, isPostsLoading, createPost, toggleLike, addComment, resolveAmberAlert, pets, vets, showToast, openModal } = useApp();
+  const { posts, isPostsLoading, usersMap, createPost, updatePost, deletePost, toggleLike, addComment, resolveAmberAlert, pets, vets, showToast, openModal } = useApp();
   const { currentUser } = useAuth();
 
   // State for Create Post Modal & Inputs
@@ -149,6 +230,76 @@ export default function Community() {
   });
   const [followedParents, setFollowedParents] = useState({});
   const [heartAnimPostId, setHeartAnimPostId] = useState(null);
+
+  // ── 3-DOT POST OPTIONS MENU & EDIT/DELETE STATES ──
+  const [activeMenuPostId, setActiveMenuPostId] = useState(null);
+  const [editingPost, setEditingPost] = useState(null);
+  const [editContent, setEditContent] = useState('');
+  const [editCategory, setEditCategory] = useState('Moment');
+  const [editPetTag, setEditPetTag] = useState('');
+  const [editImage, setEditImage] = useState('');
+  const [editImagePreview, setEditImagePreview] = useState(null);
+  const [isEditUploadingImage, setIsEditUploadingImage] = useState(false);
+  const editFileInputRef = useRef(null);
+
+  const [postToDelete, setPostToDelete] = useState(null);
+
+  useEffect(() => {
+    const handleOutsideClick = () => {
+      setActiveMenuPostId(null);
+    };
+    if (activeMenuPostId) {
+      window.addEventListener('click', handleOutsideClick);
+    }
+    return () => window.removeEventListener('click', handleOutsideClick);
+  }, [activeMenuPostId]);
+
+  const handleStartEditPost = (post) => {
+    setEditingPost(post);
+    setEditContent(post.content || '');
+    setEditCategory(post.category || 'Moment');
+    setEditPetTag(post.petTag || (pets[0]?.name || 'My Pet'));
+    setEditImage(post.image || '');
+    setEditImagePreview(post.image || null);
+  };
+
+  const handleEditImageSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsEditUploadingImage(true);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setEditImage(event.target.result);
+      setEditImagePreview(event.target.result);
+      setIsEditUploadingImage(false);
+      showToast('Photo updated!', 'success');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSaveEditPost = async (e) => {
+    if (e) e.preventDefault();
+    if (!editingPost) return;
+    if (!editContent.trim() && !editImage) {
+      showToast('Please provide text or an image for your story', 'error');
+      return;
+    }
+
+    await updatePost(editingPost.id, {
+      content: editContent.trim(),
+      category: editCategory,
+      petTag: editPetTag,
+      image: editImage || ''
+    });
+
+    setEditingPost(null);
+  };
+
+  const handleConfirmDeletePost = async () => {
+    if (!postToDelete) return;
+    await deletePost(postToDelete.id);
+    setPostToDelete(null);
+  };
 
   // ── DYNAMIC AMBER ALERT & LOST PET RECOVERY SYSTEM ──
   const [dismissedAmberIds, setDismissedAmberIds] = useState(() => {
@@ -881,10 +1032,11 @@ export default function Community() {
               
               {/* Top Row: Avatar + Clickable Pill Input */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <img 
-                  src={currentUser?.photoUrl || 'assets/images/tail_wagging_logo.png'} 
-                  alt="User" 
-                  style={{ width: 42, height: 42, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} 
+                <UserAvatar 
+                  src={currentUser?.photoUrl} 
+                  name={currentUser?.name} 
+                  userId={currentUser?.uid} 
+                  size={42} 
                 />
                 <div 
                   onClick={() => setIsCreateModalOpen(true)}
@@ -948,28 +1100,6 @@ export default function Community() {
             </div>
           </AppleReveal>
 
-          {/* ── FEED FILTER TABS ── */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
-            <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px', scrollbarWidth: 'none' }}>
-              <button className={`chip-pill ${feedFilter === 'all' ? 'active' : ''}`} onClick={() => setFeedFilter('all')}>
-                Trending
-              </button>
-              <button className={`chip-pill ${feedFilter === 'lost' ? 'active' : ''}`} onClick={() => setFeedFilter('lost')}>
-                <AlertTriangle size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '5px' }} />
-                Lost &amp; Found
-              </button>
-              <button className={`chip-pill ${feedFilter === 'moments' ? 'active' : ''}`} onClick={() => setFeedFilter('moments')}>
-                Moments
-              </button>
-              <button className={`chip-pill ${feedFilter === 'health' ? 'active' : ''}`} onClick={() => setFeedFilter('health')}>
-                Health
-              </button>
-              <button className={`chip-pill ${feedFilter === 'adoption' ? 'active' : ''}`} onClick={() => setFeedFilter('adoption')}>
-                Rescue
-              </button>
-              <button className={`chip-pill ${feedFilter === 'qa' ? 'active' : ''}`} onClick={() => setFeedFilter('qa')}>
-                Q&amp;A
-              </button>
           {/* ── FEED FILTER TABS (HORIZONTAL RECYCLERVIEW / SCROLLER) ── */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
             
@@ -987,10 +1117,6 @@ export default function Community() {
                 {filteredPosts.length} {filteredPosts.length === 1 ? 'story' : 'stories'}
               </span>
             </div>
-
-            <span style={{ fontSize: '12.5px', color: 'var(--text-muted)', fontWeight: 600 }}>
-              {filteredPosts.length} {filteredPosts.length === 1 ? 'story' : 'stories'}
-            </span>
             {/* RecyclerView Wrapper with Left/Right Navigation Chevrons & Edge Fades */}
             <div style={{ position: 'relative', width: '100%', display: 'flex', alignItems: 'center' }}>
               
@@ -1316,10 +1442,11 @@ export default function Community() {
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px 10px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         {/* Avatar */}
-                        <img 
-                          src={post.authorPhoto || 'assets/images/tail_wagging_logo.png'} 
-                          alt={post.author} 
-                          style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover', display: 'block', border: '1px solid var(--border)' }} 
+                        <UserAvatar 
+                          src={post.authorPhoto} 
+                          name={post.author} 
+                          userId={post.userId} 
+                          size={40} 
                         />
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
@@ -1348,7 +1475,7 @@ export default function Community() {
                       </div>
 
                       {/* Top Right Options: More & Bookmark */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', position: 'relative' }}>
                         <button 
                           className="icon-btn" 
                           style={{ width: 32, height: 32, border: 'none', background: 'transparent' }}
@@ -1358,14 +1485,171 @@ export default function Community() {
                           <Bookmark size={18} fill={isBookmarked ? '#F59E0B' : 'none'} color={isBookmarked ? '#F59E0B' : 'var(--text-muted)'} />
                         </button>
 
-                        <button 
-                          className="icon-btn" 
-                          style={{ width: 32, height: 32, border: 'none', background: 'transparent' }}
-                          onClick={() => handleSharePost(post.id)}
-                          title="More options"
-                        >
-                          <MoreHorizontal size={18} />
-                        </button>
+                        <div style={{ position: 'relative' }}>
+                          <button 
+                            className="icon-btn" 
+                            style={{ 
+                              width: 32, 
+                              height: 32, 
+                              border: 'none', 
+                              background: activeMenuPostId === post.id ? 'var(--surface-alt)' : 'transparent',
+                              borderRadius: '50%',
+                              cursor: 'pointer'
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveMenuPostId(activeMenuPostId === post.id ? null : post.id);
+                            }}
+                            title="Post options"
+                          >
+                            <MoreHorizontal size={18} />
+                          </button>
+
+                          {/* 3-Dot Options Dropdown Popover */}
+                          {activeMenuPostId === post.id && (
+                            <div 
+                              onClick={(e) => e.stopPropagation()}
+                              style={{
+                                position: 'absolute',
+                                top: '38px',
+                                right: 0,
+                                width: '190px',
+                                background: 'var(--surface)',
+                                border: '1px solid var(--border)',
+                                borderRadius: '14px',
+                                boxShadow: '0 12px 35px rgba(0, 0, 0, 0.22)',
+                                zIndex: 99,
+                                padding: '6px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '2px',
+                                backdropFilter: 'blur(20px)'
+                              }}
+                            >
+                              {/* Edit Post */}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setActiveMenuPostId(null);
+                                  handleStartEditPost(post);
+                                }}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '10px',
+                                  width: '100%',
+                                  padding: '8px 12px',
+                                  border: 'none',
+                                  background: 'transparent',
+                                  borderRadius: '10px',
+                                  color: 'var(--text-main)',
+                                  fontSize: '13px',
+                                  fontWeight: 500,
+                                  cursor: 'pointer',
+                                  textAlign: 'left',
+                                  transition: 'background 0.15s ease'
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.background = 'var(--surface-alt)'}
+                                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                              >
+                                <Edit3 size={15} color="var(--primary)" />
+                                <span>Edit Story</span>
+                              </button>
+
+                              {/* Save / Bookmark */}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setActiveMenuPostId(null);
+                                  handleToggleBookmark(post.id);
+                                }}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '10px',
+                                  width: '100%',
+                                  padding: '8px 12px',
+                                  border: 'none',
+                                  background: 'transparent',
+                                  borderRadius: '10px',
+                                  color: 'var(--text-main)',
+                                  fontSize: '13px',
+                                  fontWeight: 500,
+                                  cursor: 'pointer',
+                                  textAlign: 'left',
+                                  transition: 'background 0.15s ease'
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.background = 'var(--surface-alt)'}
+                                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                              >
+                                <Bookmark size={15} color={isBookmarked ? '#F59E0B' : 'var(--text-muted)'} fill={isBookmarked ? '#F59E0B' : 'none'} />
+                                <span>{isBookmarked ? 'Remove Bookmark' : 'Save Story'}</span>
+                              </button>
+
+                              {/* Copy Link */}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setActiveMenuPostId(null);
+                                  handleSharePost(post.id);
+                                }}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '10px',
+                                  width: '100%',
+                                  padding: '8px 12px',
+                                  border: 'none',
+                                  background: 'transparent',
+                                  borderRadius: '10px',
+                                  color: 'var(--text-main)',
+                                  fontSize: '13px',
+                                  fontWeight: 500,
+                                  cursor: 'pointer',
+                                  textAlign: 'left',
+                                  transition: 'background 0.15s ease'
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.background = 'var(--surface-alt)'}
+                                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                              >
+                                <Share2 size={15} color="#3B82F6" />
+                                <span>Copy Link</span>
+                              </button>
+
+                              <div style={{ height: '1px', background: 'var(--border)', margin: '4px 6px' }} />
+
+                              {/* Delete Post */}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setActiveMenuPostId(null);
+                                  setPostToDelete(post);
+                                }}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '10px',
+                                  width: '100%',
+                                  padding: '8px 12px',
+                                  border: 'none',
+                                  background: 'transparent',
+                                  borderRadius: '10px',
+                                  color: '#EF4444',
+                                  fontSize: '13px',
+                                  fontWeight: 600,
+                                  cursor: 'pointer',
+                                  textAlign: 'left',
+                                  transition: 'background 0.15s ease'
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'}
+                                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                              >
+                                <Trash2 size={15} color="#EF4444" />
+                                <span>Delete Story</span>
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
 
@@ -1493,23 +1777,24 @@ export default function Community() {
                         
                         {/* Write a comment input bar with current user avatar */}
                         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                          <img 
-                            src={currentUser?.photoUrl || 'assets/images/tail_wagging_logo.png'} 
-                            alt="Current User" 
-                            style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} 
+                          <UserAvatar 
+                            src={currentUser?.photoUrl} 
+                            name={currentUser?.name} 
+                            userId={currentUser?.uid} 
+                            size={34} 
                           />
                           <div style={{ display: 'flex', flex: 1, gap: '8px', alignItems: 'center', background: 'var(--surface)', borderRadius: '20px', padding: '4px 6px 4px 14px', border: '1px solid var(--border)' }}>
                             <input 
                               type="text" 
                               placeholder="Write a comment..." 
-                              value={commentInputs[post.id] || ''}
+                              value={commentInputs[post.id] || ''} 
                               onChange={(e) => setCommentInputs({ ...commentInputs, [post.id]: e.target.value })}
                               onKeyDown={(e) => { if (e.key === 'Enter') handleCommentSubmit(post.id); }}
                               style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: 'var(--text-main)', fontSize: '13px' }}
                             />
                             <button 
-                              type="button"
-                              className="icon-btn"
+                              type="button" 
+                              className="icon-btn" 
                               style={{ width: 28, height: 28, color: (commentInputs[post.id]?.trim()) ? 'var(--primary)' : 'var(--text-muted)' }}
                               onClick={() => handleCommentSubmit(post.id)}
                               disabled={!commentInputs[post.id]?.trim()}
@@ -1524,9 +1809,12 @@ export default function Community() {
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: 240, overflowY: 'auto', paddingTop: '4px' }}>
                             {post.comments.map((c, i) => (
                               <div key={i} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', fontSize: '13px' }}>
-                                <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 700, flexShrink: 0 }}>
-                                  {c.author ? c.author[0].toUpperCase() : 'P'}
-                                </div>
+                                <UserAvatar 
+                                  src={c.userPhoto || c.authorPhoto} 
+                                  name={c.author} 
+                                  userId={c.userId} 
+                                  size={32} 
+                                />
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', maxWidth: '85%' }}>
                                   <div style={{ background: 'var(--surface)', padding: '8px 14px', borderRadius: '16px', border: '1px solid var(--border)' }}>
                                     <strong style={{ color: 'var(--text-main)', fontSize: '13px', display: 'block', marginBottom: '2px' }}>
@@ -1666,10 +1954,11 @@ export default function Community() {
               
               {/* Author & Selectors Info Row */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <img 
-                  src={currentUser?.photoUrl || 'assets/images/tail_wagging_logo.png'} 
-                  alt="User" 
-                  style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover' }} 
+                <UserAvatar 
+                  src={currentUser?.photoUrl} 
+                  name={currentUser?.name} 
+                  userId={currentUser?.uid} 
+                  size={44} 
                 />
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                   <strong style={{ fontSize: '15px', fontWeight: 700 }}>
@@ -2355,10 +2644,12 @@ export default function Community() {
                   
                   {/* Guardian Card */}
                   <div style={{ padding: '16px', borderRadius: '16px', background: 'var(--surface-alt)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '14px' }}>
-                    <img 
-                      src={alert?.authorPhoto || 'assets/images/tail_wagging_logo.png'} 
-                      alt={guardianName} 
-                      style={{ width: 50, height: 50, borderRadius: '50%', objectFit: 'cover', border: '2px solid #EF4444' }} 
+                    <UserAvatar 
+                      src={alert?.authorPhoto} 
+                      name={guardianName} 
+                      userId={alert?.userId} 
+                      size={50} 
+                      style={{ border: '2px solid #EF4444' }} 
                     />
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -2461,6 +2752,307 @@ export default function Community() {
                 </div>
               );
             })()}
+          </div>
+        </div>
+      )}
+
+      {/* ── EDIT POST MODAL ── */}
+      {editingPost && (
+        <div className="modal-backdrop" onClick={() => setEditingPost(null)}>
+          <div 
+            className="modal-dialog" 
+            style={{ 
+              maxWidth: '540px', 
+              width: '100%', 
+              padding: '0', 
+              overflow: 'hidden', 
+              borderRadius: 'var(--radius-md)', 
+              background: 'var(--surface)', 
+              border: '1px solid var(--border)' 
+            }} 
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', padding: '16px 20px', borderBottom: '1px solid var(--border)' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: 700, margin: 0, textAlign: 'center' }}>Edit story</h3>
+              <button 
+                className="icon-btn" 
+                style={{ position: 'absolute', right: 14, top: 14, width: 34, height: 34 }} 
+                onClick={() => setEditingPost(null)}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <form onSubmit={handleSaveEditPost} style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px', maxHeight: '78vh', overflowY: 'auto' }}>
+              {/* Author & Selectors Info Row */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <UserAvatar 
+                  src={editingPost.authorPhoto} 
+                  name={editingPost.author} 
+                  userId={editingPost.userId} 
+                  size={44} 
+                />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <strong style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-main)' }}>
+                    {editingPost.author}
+                  </strong>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                    {/* Category Selector */}
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'var(--surface-alt)', padding: '3px 8px', borderRadius: '12px', fontSize: '11.5px', fontWeight: 600 }}>
+                      <Sparkles size={11} color="#F59E0B" />
+                      <select 
+                        value={editCategory} 
+                        onChange={(e) => setEditCategory(e.target.value)}
+                        style={{ background: 'transparent', border: 'none', color: 'var(--text-main)', fontSize: '11.5px', fontWeight: 600, outline: 'none', cursor: 'pointer' }}
+                      >
+                        <option value="Moment">Moment</option>
+                        <option value="Health">Health &amp; Care</option>
+                        <option value="Lost &amp; Found">Lost &amp; Found</option>
+                        <option value="Rescue">Rescue &amp; Adoption</option>
+                        <option value="Q&amp;A">Q&amp;A Advice</option>
+                      </select>
+                    </div>
+
+                    {/* Pet Tag Selector */}
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'var(--surface-alt)', padding: '3px 8px', borderRadius: '12px', fontSize: '11.5px', fontWeight: 600 }}>
+                      <Tag size={11} color="var(--primary)" />
+                      <input 
+                        type="text"
+                        value={editPetTag}
+                        onChange={(e) => setEditPetTag(e.target.value)}
+                        placeholder="Pet name"
+                        style={{ background: 'transparent', border: 'none', color: 'var(--text-main)', fontSize: '11.5px', fontWeight: 600, outline: 'none', width: '90px' }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Textarea */}
+              <textarea 
+                value={editContent} 
+                onChange={(e) => setEditContent(e.target.value)}
+                placeholder="What would you like to update?"
+                rows={4}
+                style={{
+                  width: '100%',
+                  background: 'var(--surface-alt)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '12px',
+                  padding: '14px',
+                  fontSize: '14.5px',
+                  color: 'var(--text-main)',
+                  resize: 'vertical',
+                  minHeight: '110px',
+                  outline: 'none',
+                  fontFamily: 'inherit',
+                  lineHeight: 1.5
+                }}
+              />
+
+              {/* Image Preview & Controls */}
+              {editImagePreview ? (
+                <div style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border)', background: '#000' }}>
+                  <img 
+                    src={editImagePreview} 
+                    alt="Story media" 
+                    style={{ width: '100%', maxHeight: 260, objectFit: 'contain', display: 'block' }} 
+                  />
+                  <div style={{ position: 'absolute', top: 10, right: 10, display: 'flex', gap: '8px' }}>
+                    <button
+                      type="button"
+                      onClick={() => editFileInputRef.current?.click()}
+                      style={{
+                        background: 'rgba(0,0,0,0.65)',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '8px',
+                        padding: '5px 10px',
+                        fontSize: '12px',
+                        cursor: 'pointer',
+                        backdropFilter: 'blur(8px)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px'
+                      }}
+                    >
+                      <Camera size={13} />
+                      <span>Change</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditImage('');
+                        setEditImagePreview(null);
+                      }}
+                      style={{
+                        background: 'rgba(239, 68, 68, 0.85)',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '8px',
+                        padding: '5px 10px',
+                        fontSize: '12px',
+                        cursor: 'pointer',
+                        backdropFilter: 'blur(8px)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px'
+                      }}
+                    >
+                      <X size={13} />
+                      <span>Remove</span>
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div 
+                  onClick={() => editFileInputRef.current?.click()}
+                  style={{
+                    border: '1.5px dashed var(--border)',
+                    borderRadius: '12px',
+                    padding: '18px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '10px',
+                    cursor: 'pointer',
+                    background: 'var(--surface-alt)',
+                    color: 'var(--text-muted)'
+                  }}
+                >
+                  <ImageIcon size={20} color="var(--primary)" />
+                  <span style={{ fontSize: '13.5px', fontWeight: 600 }}>Attach or change photo</span>
+                </div>
+              )}
+
+              <input 
+                type="file" 
+                ref={editFileInputRef} 
+                accept="image/*" 
+                style={{ display: 'none' }} 
+                onChange={handleEditImageSelect} 
+              />
+
+              {/* Action Buttons */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '10px', marginTop: '6px' }}>
+                <button 
+                  type="button" 
+                  onClick={() => setEditingPost(null)}
+                  style={{
+                    background: 'transparent',
+                    border: '1px solid var(--border)',
+                    borderRadius: '12px',
+                    padding: '9px 18px',
+                    color: 'var(--text-muted)',
+                    fontSize: '13.5px',
+                    fontWeight: 600,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  className="apple-btn-blue"
+                  disabled={isEditUploadingImage}
+                  style={{
+                    padding: '9px 22px',
+                    fontSize: '13.5px',
+                    fontWeight: 600,
+                    borderRadius: '12px'
+                  }}
+                >
+                  <Check size={15} />
+                  <span>Save Changes</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── DELETE POST CONFIRMATION DIALOG ── */}
+      {postToDelete && (
+        <div className="modal-backdrop" onClick={() => setPostToDelete(null)}>
+          <div 
+            className="modal-dialog" 
+            style={{ 
+              maxWidth: '420px', 
+              width: '100%', 
+              padding: '24px', 
+              borderRadius: '20px', 
+              background: 'var(--surface)', 
+              border: '1px solid var(--border)',
+              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '16px'
+            }} 
+            onClick={e => e.stopPropagation()}
+          >
+            <div style={{
+              width: 56,
+              height: 56,
+              borderRadius: '18px',
+              background: 'rgba(239, 68, 68, 0.12)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#EF4444'
+            }}>
+              <Trash2 size={28} />
+            </div>
+
+            <div>
+              <h3 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 6px', color: 'var(--text-main)' }}>
+                Delete this story?
+              </h3>
+              <p style={{ fontSize: '13.5px', color: 'var(--text-muted)', margin: 0, lineHeight: 1.5 }}>
+                Are you sure you want to permanently delete this story by <strong>{postToDelete.author}</strong>? This cannot be undone.
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px', width: '100%', marginTop: '4px' }}>
+              <button
+                type="button"
+                onClick={() => setPostToDelete(null)}
+                style={{
+                  flex: 1,
+                  background: 'var(--surface-alt)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '12px',
+                  padding: '11px',
+                  color: 'var(--text-main)',
+                  fontSize: '13.5px',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDeletePost}
+                style={{
+                  flex: 1,
+                  background: '#EF4444',
+                  border: 'none',
+                  borderRadius: '12px',
+                  padding: '11px',
+                  color: '#FFFFFF',
+                  fontSize: '13.5px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 15px rgba(239, 68, 68, 0.3)'
+                }}
+              >
+                Delete Story
+              </button>
+            </div>
           </div>
         </div>
       )}

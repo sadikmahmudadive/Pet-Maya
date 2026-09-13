@@ -457,15 +457,25 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
                           VetModel(
                             id: event.providerId ?? 'vet_default',
                             name: 'Dr. Sarah Jenkins',
+                            qualification: 'Veterinary Specialist',
                             tag: 'Veterinarian',
                             price: '৳800',
-                            imageUrl: 'assets/images/vet_placeholder.png',
+                            photoUrl: 'assets/images/vet_placeholder.png',
                             rating: 4.9,
                             reviewsCount: 124,
-                            about: 'Veterinary specialist',
+                            bio: 'Veterinary specialist',
                             businessHours: '09:00 AM - 08:00 PM',
                           );
-                      final targetPet = pet ?? PetModel(petID: event.petId, name: event.petName, type: 'Dog', breed: 'Golden Retriever', dob: '2022-01-01', gender: 'Male');
+                      final targetPet = pet ?? PetModel(
+                        petID: event.petId,
+                        ownerID: '',
+                        name: event.petName,
+                        type: 'Dog',
+                        breed: 'Golden Retriever',
+                        dob: '2022-01-01',
+                        age: '2',
+                        gender: 'Male',
+                      );
                       HapticFeedback.heavyImpact();
                       Navigator.push(
                         context,
@@ -480,7 +490,6 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
                     },
                   ),
                 ],
-                ),
               ] else ...[
                 Expanded(
                   child: OutlinedButton.icon(
