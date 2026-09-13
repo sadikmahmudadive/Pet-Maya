@@ -227,7 +227,7 @@ export function AppProvider({ children }) {
       const saved = localStorage.getItem('pm_cached_posts');
       if (saved) return JSON.parse(saved);
     } catch (_) {}
-    return [];
+    return INITIAL_POSTS;
   });
   const [isPostsLoading, setIsPostsLoading] = useState(() => {
     try {
@@ -685,7 +685,16 @@ export function AppProvider({ children }) {
               sharedPostId: data.sharedPostId,
               sharedPostAuthor: data.sharedPostAuthor,
               sharedPostContent: data.sharedPostContent,
-              sharedPostImageUrl: data.sharedPostImageUrl
+              sharedPostImageUrl: data.sharedPostImageUrl,
+              isAmberAlert: data.isAmberAlert === true || data.isAmberAlert === 'true' || postType.includes('LOST') || postType.includes('RESCUE') || (data.content && data.content.toLowerCase().includes('lost pet')),
+              isResolved: data.isResolved === true || data.isResolved === 'true',
+              petName: data.petName || '',
+              petBreed: data.petBreed || '',
+              location: data.location || '',
+              contactPhone: data.contactPhone || '',
+              microchipId: data.microchipId || '',
+              collarTag: data.collarTag || '',
+              reward: data.reward || ''
             };
           });
 
@@ -693,10 +702,13 @@ export function AppProvider({ children }) {
           fetchedPosts.sort((a, b) => b.timestamp - a.timestamp);
 
           setPosts(fetchedPosts);
+        } else {
+          setPosts(prev => prev.length > 0 ? prev : INITIAL_POSTS);
         }
         setIsPostsLoading(false);
       }, (err) => {
         console.warn('[Firebase] community_posts onSnapshot error:', err);
+        setPosts(prev => prev.length > 0 ? prev : INITIAL_POSTS);
         setIsPostsLoading(false);
       });
 
@@ -974,6 +986,8 @@ export function AppProvider({ children }) {
     const userPhotoUrl = currentUser?.photoUrl || 'assets/images/tail_wagging_logo.png';
     const postType = (postData.category || 'MOMENT').toUpperCase();
 
+    const isAmber = Boolean(postData.isAmberAlert || postData.category === 'Lost & Found' || postData.category === 'LOST_FOUND' || postData.category === 'LOST & FOUND');
+
     const newPost = {
       // Modern App Schema
       userId: currentUser ? currentUser.uid : 'guest',
@@ -996,7 +1010,18 @@ export function AppProvider({ children }) {
       category: postData.category || 'Moment',
       mood: postData.mood || '🐾 Playful & Energetic',
       comments: [],
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+
+      // Amber Alert / Lost Pet Fields
+      isAmberAlert: isAmber,
+      isResolved: false,
+      petName: postData.petName || '',
+      petBreed: postData.petBreed || '',
+      location: postData.location || '',
+      contactPhone: postData.contactPhone || '',
+      microchipId: postData.microchipId || '',
+      collarTag: postData.collarTag || '',
+      reward: postData.reward || ''
     };
 
     if (currentUser && !currentUser.uid.startsWith('demo_guest')) {
@@ -1013,11 +1038,21 @@ export function AppProvider({ children }) {
         petTag: postData.petTag || 'Pet',
         category: postData.category || 'Moment',
         time: 'Just now',
+        timestamp: Date.now(),
         content: postData.content || '',
         image: postData.image || '',
         likes: 0, 
         isLiked: false, 
-        comments: [] 
+        comments: [],
+        isAmberAlert: isAmber,
+        isResolved: false,
+        petName: postData.petName || '',
+        petBreed: postData.petBreed || '',
+        location: postData.location || '',
+        contactPhone: postData.contactPhone || '',
+        microchipId: postData.microchipId || '',
+        collarTag: postData.collarTag || '',
+        reward: postData.reward || ''
       }, ...prev]);
     }
     awardPoints(5);
@@ -1130,6 +1165,24 @@ export function AppProvider({ children }) {
     }
 
     showToast('Comment posted!', 'success');
+  };
+
+  // Resolve Lost Pet / Amber Alert
+  const resolveAmberAlert = async (postId) => {
+    setPosts(prev => prev.map(p => {
+      if (p.id === postId) {
+        return { ...p, isResolved: true };
+      }
+      return p;
+    }));
+
+    try {
+      const postDocRef = doc(db, 'community_posts', postId);
+      await setDoc(postDocRef, { isResolved: true }, { merge: true });
+    } catch (e) {
+      console.warn('[Firebase] resolveAmberAlert notice:', e);
+    }
+    showToast('🎉 Wonderful news! Pet marked as safely reunited!', 'success');
   };
 
   // Add Appointment / Event
@@ -1585,6 +1638,7 @@ export function AppProvider({ children }) {
       createPost,
       toggleLike,
       addComment,
+      resolveAmberAlert,
       appointments,
       addAppointment,
       removeAppointment,
