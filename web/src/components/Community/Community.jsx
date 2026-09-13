@@ -20,6 +20,7 @@ import {
   Clock,
   X,
   ChevronRight,
+  ChevronLeft,
   TrendingUp,
   CheckCircle,
   CheckCircle2,
@@ -57,6 +58,85 @@ export default function Community() {
   // Feed Filter & Search
   const [feedFilter, setFeedFilter] = useState('all'); // 'all', 'moments', 'health', 'adoption', 'qa', 'saved'
   const [searchTopic, setSearchTopic] = useState('');
+
+  // ── HORIZONTAL RECYCLERVIEW / SCROLLABLE TABS STATE ──
+  const feedTabsRef = useRef(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+  const isDraggingTabs = useRef(false);
+  const startXTabs = useRef(0);
+  const scrollLeftTabs = useRef(0);
+  const hasMovedTabs = useRef(false);
+
+  const checkTabsScroll = () => {
+    if (!feedTabsRef.current) return;
+    const { scrollLeft, scrollWidth, clientWidth } = feedTabsRef.current;
+    setCanScrollLeft(scrollLeft > 6);
+    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 6);
+  };
+
+  React.useEffect(() => {
+    checkTabsScroll();
+    const timer = setTimeout(checkTabsScroll, 300);
+    const el = feedTabsRef.current;
+    if (el) {
+      el.addEventListener('scroll', checkTabsScroll, { passive: true });
+    }
+    window.addEventListener('resize', checkTabsScroll);
+    return () => {
+      clearTimeout(timer);
+      if (el) el.removeEventListener('scroll', checkTabsScroll);
+      window.removeEventListener('resize', checkTabsScroll);
+    };
+  }, [feedFilter]);
+
+  const handleTabsScrollLeft = () => {
+    if (feedTabsRef.current) {
+      feedTabsRef.current.scrollBy({ left: -240, behavior: 'smooth' });
+    }
+  };
+
+  const handleTabsScrollRight = () => {
+    if (feedTabsRef.current) {
+      feedTabsRef.current.scrollBy({ left: 240, behavior: 'smooth' });
+    }
+  };
+
+  const handleTabsMouseDown = (e) => {
+    if (!feedTabsRef.current) return;
+    isDraggingTabs.current = true;
+    hasMovedTabs.current = false;
+    startXTabs.current = e.pageX - feedTabsRef.current.offsetLeft;
+    scrollLeftTabs.current = feedTabsRef.current.scrollLeft;
+  };
+
+  const handleTabsMouseMove = (e) => {
+    if (!isDraggingTabs.current || !feedTabsRef.current) return;
+    const x = e.pageX - feedTabsRef.current.offsetLeft;
+    const walk = (x - startXTabs.current) * 1.5;
+    if (Math.abs(walk) > 4) {
+      hasMovedTabs.current = true;
+    }
+    feedTabsRef.current.scrollLeft = scrollLeftTabs.current - walk;
+    checkTabsScroll();
+  };
+
+  const handleTabsMouseUp = () => {
+    isDraggingTabs.current = false;
+  };
+
+  const selectTab = (filterKey, e) => {
+    if (hasMovedTabs.current) {
+      hasMovedTabs.current = false;
+      return;
+    }
+    setFeedFilter(filterKey);
+    setSearchTopic('');
+    if (e?.currentTarget) {
+      e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
+    setTimeout(checkTabsScroll, 350);
+  };
 
   // Interactive Comments & Bookmarks
   const [commentInputs, setCommentInputs] = useState({});
@@ -868,33 +948,203 @@ export default function Community() {
             </div>
           </AppleReveal>
 
-          {/* ── FEED FILTER TABS ── */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
-            <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px', scrollbarWidth: 'none' }}>
-              <button className={`chip-pill ${feedFilter === 'all' ? 'active' : ''}`} onClick={() => setFeedFilter('all')}>
-                Trending
-              </button>
-              <button className={`chip-pill ${feedFilter === 'lost' ? 'active' : ''}`} onClick={() => setFeedFilter('lost')}>
-                <AlertTriangle size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '5px' }} />
-                Lost &amp; Found
-              </button>
-              <button className={`chip-pill ${feedFilter === 'moments' ? 'active' : ''}`} onClick={() => setFeedFilter('moments')}>
-                Moments
-              </button>
-              <button className={`chip-pill ${feedFilter === 'health' ? 'active' : ''}`} onClick={() => setFeedFilter('health')}>
-                Health
-              </button>
-              <button className={`chip-pill ${feedFilter === 'adoption' ? 'active' : ''}`} onClick={() => setFeedFilter('adoption')}>
-                Rescue
-              </button>
-              <button className={`chip-pill ${feedFilter === 'qa' ? 'active' : ''}`} onClick={() => setFeedFilter('qa')}>
-                Q&amp;A
-              </button>
+          {/* ── FEED FILTER TABS (HORIZONTAL RECYCLERVIEW / SCROLLER) ── */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
+            
+            {/* Top Stat Row: Section Label + Story Count */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 2px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-main)', letterSpacing: '-0.01em' }}>
+                  Community Topics
+                </span>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)', background: 'var(--surface-alt)', padding: '2px 8px', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                  Drag or scroll
+                </span>
+              </div>
+              <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 600 }}>
+                {filteredPosts.length} {filteredPosts.length === 1 ? 'story' : 'stories'}
+              </span>
             </div>
 
-            <span style={{ fontSize: '12.5px', color: 'var(--text-muted)', fontWeight: 600 }}>
-              {filteredPosts.length} {filteredPosts.length === 1 ? 'story' : 'stories'}
-            </span>
+            {/* RecyclerView Wrapper with Left/Right Navigation Chevrons & Edge Fades */}
+            <div style={{ position: 'relative', width: '100%', display: 'flex', alignItems: 'center' }}>
+              
+              {/* Left Scroll Chevron Button */}
+              {canScrollLeft && (
+                <button
+                  type="button"
+                  onClick={handleTabsScrollLeft}
+                  style={{
+                    position: 'absolute',
+                    left: 4,
+                    zIndex: 10,
+                    width: 32,
+                    height: 32,
+                    borderRadius: '50%',
+                    background: 'var(--surface)',
+                    border: '1px solid var(--border)',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.18)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    color: 'var(--text-main)',
+                    transition: 'all 0.2s ease'
+                  }}
+                  title="Scroll left"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+              )}
+
+              {/* Left Edge Fade */}
+              {canScrollLeft && (
+                <div style={{
+                  position: 'absolute',
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: 36,
+                  background: 'linear-gradient(to right, var(--bg) 0%, transparent 100%)',
+                  zIndex: 8,
+                  pointerEvents: 'none'
+                }} />
+              )}
+
+              {/* Scrollable RecyclerView Strip with Drag-to-Scroll */}
+              <div
+                ref={feedTabsRef}
+                onMouseDown={handleTabsMouseDown}
+                onMouseMove={handleTabsMouseMove}
+                onMouseUp={handleTabsMouseUp}
+                onMouseLeave={handleTabsMouseUp}
+                style={{
+                  display: 'flex',
+                  gap: '8px',
+                  overflowX: 'auto',
+                  padding: '4px 6px 8px 6px',
+                  scrollbarWidth: 'none',
+                  msOverflowStyle: 'none',
+                  width: '100%',
+                  cursor: isDraggingTabs.current ? 'grabbing' : 'grab',
+                  userSelect: 'none',
+                  WebkitOverflowScrolling: 'touch',
+                  scrollBehavior: 'smooth'
+                }}
+              >
+                <button 
+                  className={`chip-pill ${feedFilter === 'all' ? 'active' : ''}`} 
+                  onClick={(e) => selectTab('all', e)}
+                  style={{ whiteSpace: 'nowrap', flexShrink: 0 }}
+                >
+                  <TrendingUp size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
+                  Trending
+                </button>
+
+                <button 
+                  className={`chip-pill ${feedFilter === 'lost' ? 'active' : ''}`} 
+                  onClick={(e) => selectTab('lost', e)}
+                  style={{ 
+                    whiteSpace: 'nowrap', 
+                    flexShrink: 0, 
+                    color: feedFilter === 'lost' ? '#fff' : '#EF4444', 
+                    borderColor: feedFilter === 'lost' ? '#EF4444' : 'rgba(239, 68, 68, 0.35)', 
+                    background: feedFilter === 'lost' ? '#EF4444' : 'rgba(239, 68, 68, 0.08)' 
+                  }}
+                >
+                  <AlertTriangle size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
+                  Lost &amp; Found
+                </button>
+
+                <button 
+                  className={`chip-pill ${feedFilter === 'moments' ? 'active' : ''}`} 
+                  onClick={(e) => selectTab('moments', e)}
+                  style={{ whiteSpace: 'nowrap', flexShrink: 0 }}
+                >
+                  <Camera size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
+                  Moments
+                </button>
+
+                <button 
+                  className={`chip-pill ${feedFilter === 'health' ? 'active' : ''}`} 
+                  onClick={(e) => selectTab('health', e)}
+                  style={{ whiteSpace: 'nowrap', flexShrink: 0 }}
+                >
+                  <Stethoscope size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
+                  Health &amp; Care
+                </button>
+
+                <button 
+                  className={`chip-pill ${feedFilter === 'adoption' ? 'active' : ''}`} 
+                  onClick={(e) => selectTab('adoption', e)}
+                  style={{ whiteSpace: 'nowrap', flexShrink: 0 }}
+                >
+                  <Heart size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
+                  Rescue &amp; Adoption
+                </button>
+
+                <button 
+                  className={`chip-pill ${feedFilter === 'qa' ? 'active' : ''}`} 
+                  onClick={(e) => selectTab('qa', e)}
+                  style={{ whiteSpace: 'nowrap', flexShrink: 0 }}
+                >
+                  <HelpCircle size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
+                  Q&amp;A Advice
+                </button>
+
+                <button 
+                  className={`chip-pill ${feedFilter === 'saved' ? 'active' : ''}`} 
+                  onClick={(e) => selectTab('saved', e)}
+                  style={{ whiteSpace: 'nowrap', flexShrink: 0 }}
+                >
+                  <Bookmark size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
+                  Saved ({bookmarkedPosts.length})
+                </button>
+              </div>
+
+              {/* Right Edge Fade */}
+              {canScrollRight && (
+                <div style={{
+                  position: 'absolute',
+                  right: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: 36,
+                  background: 'linear-gradient(to left, var(--bg) 0%, transparent 100%)',
+                  zIndex: 8,
+                  pointerEvents: 'none'
+                }} />
+              )}
+
+              {/* Right Scroll Chevron Button */}
+              {canScrollRight && (
+                <button
+                  type="button"
+                  onClick={handleTabsScrollRight}
+                  style={{
+                    position: 'absolute',
+                    right: 4,
+                    zIndex: 10,
+                    width: 32,
+                    height: 32,
+                    borderRadius: '50%',
+                    background: 'var(--surface)',
+                    border: '1px solid var(--border)',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.18)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    color: 'var(--text-main)',
+                    transition: 'all 0.2s ease'
+                  }}
+                  title="Scroll right"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              )}
+
+            </div>
           </div>
 
           {/* ── POSTS FEED ── */}

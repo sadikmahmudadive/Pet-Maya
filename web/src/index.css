@@ -1109,6 +1109,9 @@ body {
   cursor: pointer;
   transition: all 0.2s var(--apple-spring);
   outline: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+  user-select: none;
 }
 
 .chip-pill:hover {
