@@ -17,18 +17,18 @@
   --accent: #F59E0B;
   --danger: #EF4444;
 
-  /* Pet Maya Emerald Design System (Aligned with Mobile App) */
-  --bg: #EFFCF2;
+  /* Pet Maya Light Theme (Clean White Background) */
+  --bg: #FFFFFF;
   --bg-pure: #FFFFFF;
   --surface: #FFFFFF;
   --surface-solid: #FFFFFF;
-  --surface-alt: #FFFFFF;
-  --nav-bg: rgba(239, 252, 242, 0.90);
+  --surface-alt: #F8FAFC;
+  --nav-bg: rgba(255, 255, 255, 0.90);
   --nav-text: #1D1D1F;
   --nav-text-subtle: #86868B;
-  --border: rgba(0, 0, 0, 0.06);
+  --border: rgba(0, 0, 0, 0.08);
   --border-specular: inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
-  --separator: #E2ECE5;
+  --separator: #E5E7EB;
 
   --text-main: #1D1D1F;
   --text-muted: #86868B;
@@ -631,12 +631,12 @@ body {
   box-sizing: border-box;
 }
 
-/* Apple TV/Home solid card — theme-aware, borderless */
+/* Apple TV/Home solid card — theme-aware */
 .apple-solid-card {
   background: var(--surface-alt);
   border-radius: 20px;
-  border: none;
-  box-shadow: none;
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
   padding: 22px;
   display: flex;
   flex-direction: column;

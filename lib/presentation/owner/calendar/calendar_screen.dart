@@ -87,12 +87,18 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 SizedBox(height: topPadding),
                 FadeInDown(child: _buildDynamicCalendar(state.events)),
                 const SizedBox(height: 24),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Row(
-                    children: _categories.map((cat) => _buildFilterChip(cat)).toList(),
+                Align(
+                  alignment: Alignment.center,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 720),
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(
+                        children: _categories.map((cat) => _buildFilterChip(cat)).toList(),
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -101,22 +107,43 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ),
           
           events.isEmpty
-              ? SliverFillRemaining(
-                  child: const EmptyState(
-                    icon: Icons.event_available_rounded,
-                    title: 'No activities',
-                    message: 'Nothing scheduled for this day',
+              ? SliverToBoxAdapter(
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 720),
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 40),
+                        child: EmptyState(
+                          icon: Icons.event_available_rounded,
+                          title: 'No activities',
+                          message: 'Nothing scheduled for this day',
+                        ),
+                      ),
+                    ),
                   ),
                 )
-              : SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) => FadeInUp(
-                        delay: Duration(milliseconds: 50 * index),
-                        child: _buildEventCard(events[index], state),
+              : SliverToBoxAdapter(
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 720),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Column(
+                          children: events.asMap().entries.map((entry) {
+                            final index = entry.key;
+                            final event = entry.value;
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: FadeInUp(
+                                delay: Duration(milliseconds: 50 * index),
+                                child: _buildEventCard(event, state),
+                              ),
+                            );
+                          }).toList(),
+                        ),
                       ),
-                      childCount: events.length,
                     ),
                   ),
                 ),
@@ -133,9 +160,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final startDate = firstDayOfMonth.subtract(Duration(days: daysBefore));
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: PremiumCard(
+    return Align(
+      alignment: Alignment.topCenter,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 720),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: PremiumCard(
         opacity: isDark ? 0.2 : 0.4,
         borderRadius: 36,
         child: Padding(
@@ -280,8 +311,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildNavBtn(IconData icon, VoidCallback onTap) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
