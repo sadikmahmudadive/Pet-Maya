@@ -33,6 +33,7 @@ export default function ModalRoot() {
     case 'editProfile':
       return <EditProfileModal />;
     case 'booking':
+    case 'bookAppointment':
       return <BookingModal />;
     case 'teleconsult':
       return <TeleConsultModal />;

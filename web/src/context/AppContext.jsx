@@ -91,6 +91,7 @@ export const TAB_ROUTES = {
   vaccines: '/reminders',
   profile: '/profile',
   admin: '/admin',
+  'book-vet': '/book-vet',
 };
 
 export const ROUTE_TABS = {
@@ -126,6 +127,7 @@ export const ROUTE_TABS = {
   '/vaccines': 'vaccines',
   '/profile': 'profile',
   '/admin': 'admin',
+  '/book-vet': 'book-vet',
 };
 
 const PAGE_TITLES = {
@@ -140,6 +142,7 @@ const PAGE_TITLES = {
   vaccines: 'Pet Maya — Medical Passport & Vaccine Schedule',
   profile: 'Pet Maya — Account & Pet EHR Records',
   admin: 'Pet Maya — Administration Control Center',
+  'book-vet': 'Pet Maya — Schedule Veterinary Appointment & Teleconsultation',
 };
 
 const PAGE_DESCRIPTIONS = {
@@ -153,21 +156,26 @@ const PAGE_DESCRIPTIONS = {
   food: 'Scientific RER/MER calorie calculators, dry/wet nutrition ratio guidelines, and expert veterinary dietary guides.',
   vaccines: 'Never miss an immunization: Digital vaccination passport with automated rabies reminders and 1-click Apple Calendar sync.',
   profile: 'Manage your verified pet owner profile, registered pets, electronic health records, and clinic appointment history.',
-  admin: 'Pet Maya administrative control center for specialist approvals, inventory management, and platform metrics.'
+  admin: 'Pet Maya administrative control center for specialist approvals, inventory management, and platform metrics.',
+  'book-vet': 'Schedule appointments and video teleconsultations with verified veterinarians and animal health clinicians.'
 };
 
 const resolveInitialTab = () => {
   if (typeof window === 'undefined') return 'landing';
 
-  // 1. Check hash first if present (e.g. #dashboard, #shop)
-  const hash = window.location.hash.replace(/^#\/?/, '').toLowerCase();
+  // 1. Check hash first if present (e.g. #dashboard, #shop, #shop-product/p1, #book-vet)
+  const rawHash = window.location.hash.replace(/^#\/?/, '');
+  const hash = rawHash.toLowerCase();
   if (hash) {
+    if (hash.startsWith('shop-product/')) return 'shop';
+    if (hash === 'book-vet') return 'book-vet';
     if (ROUTE_TABS['/' + hash]) return ROUTE_TABS['/' + hash];
     if (TAB_ROUTES[hash]) return hash;
   }
 
-  // 2. Check pathname (e.g. /digital-pet-passport, /features)
+  // 2. Check pathname (e.g. /digital-pet-passport, /features, /book-vet)
   const pathname = window.location.pathname.toLowerCase().replace(/\/$/, '') || '/';
+  if (pathname.startsWith('/shop-product/')) return 'shop';
   if (pathname !== '/' && ROUTE_TABS[pathname]) {
     return ROUTE_TABS[pathname];
   }

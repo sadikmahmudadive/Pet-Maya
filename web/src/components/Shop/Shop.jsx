@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import { AppleReveal } from '../Animations/AppleReveal';
 import { AppleStagger } from '../Animations/AppleStagger';
+import ProductDetailPage from './ProductDetailPage';
 
 // ── Category icon tiles shown above the product grid ───────────────────────
 const CATEGORY_TILES = [
@@ -193,6 +194,38 @@ export default function Shop() {
     setShowWishlistOnly(false);
   };
 
+  // Active Product Detail Page View
+  const [viewingProductId, setViewingProductId] = useState(() => {
+    if (typeof window !== 'undefined' && window.location.hash.startsWith('#shop-product/')) {
+      return window.location.hash.replace('#shop-product/', '');
+    }
+    return null;
+  });
+
+  useEffect(() => {
+    const handleHash = () => {
+      if (typeof window !== 'undefined' && window.location.hash.startsWith('#shop-product/')) {
+        setViewingProductId(window.location.hash.replace('#shop-product/', ''));
+      }
+    };
+    window.addEventListener('hashchange', handleHash);
+    return () => window.removeEventListener('hashchange', handleHash);
+  }, []);
+
+  if (viewingProductId) {
+    return (
+      <ProductDetailPage
+        productId={viewingProductId}
+        onBack={() => {
+          setViewingProductId(null);
+          if (typeof window !== 'undefined' && window.location.hash.startsWith('#shop-product/')) {
+            window.location.hash = 'shop';
+          }
+        }}
+      />
+    );
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%' }}>
       {toastMsg && <Toast message={toastMsg} onDone={() => setToastMsg(null)} />}
@@ -201,28 +234,47 @@ export default function Shop() {
       <AppleReveal duration={0.8} yOffset={25}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-              <span className="apple-card-eyebrow" style={{ color: '#10B981', margin: 0 }}>Verified Veterinary Pharmacy &amp; Store</span>
-              <span style={{ fontSize: '11px', background: 'rgba(16,185,129,0.12)', color: '#10B981', padding: '2px 8px', borderRadius: '10px', fontWeight: 700 }}>
-                Cold-Chain Ready
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+              <span className="sand-badge" style={{ margin: 0 }}>Verified Veterinary Pharmacy &amp; Store</span>
+              <span className="mint-badge">
+                Cold-Chain 24h
               </span>
             </div>
-            <h1 style={{ fontSize: '28px', fontWeight: 700, letterSpacing: '-0.03em', margin: 0 }}>Pet Shop &amp; Pharmacy</h1>
-            <p style={{ fontSize: '14px', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
+            <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '32px', fontWeight: 600, letterSpacing: '-0.02em', margin: 0, color: 'var(--foreground)' }}>
+              Care Shop &amp; Clinical Pharmacy
+            </h1>
+            <p style={{ fontSize: '15px', color: 'var(--text-secondary)', margin: '6px 0 0 0' }}>
               Veterinary-grade diets, genuine prescription medications, smart GPS collars, and specialty accessories.
             </p>
           </div>
 
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
             {orders.length > 0 && (
               <button className="btn-ghost" onClick={() => setOrderTrackingModal(true)}>
                 <PackageCheck size={15} />
                 <span>Track Orders ({orders.length})</span>
               </button>
             )}
-            <button className="apple-btn-blue" onClick={() => openModal('cart')}>
-              <ShoppingCart size={15} />
-              <span>View Bag</span>
+            <button 
+              onClick={() => openModal('cart')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                backgroundColor: 'var(--primary)',
+                color: '#1F2421',
+                fontWeight: 600,
+                fontSize: '14px',
+                padding: '10px 22px',
+                borderRadius: '9999px',
+                border: 'none',
+                cursor: 'pointer',
+                boxShadow: '0 2px 10px rgba(46, 204, 155, 0.25)',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <ShoppingCart size={16} />
+              <span>View Shopping Bag</span>
             </button>
           </div>
         </div>
@@ -448,7 +500,7 @@ export default function Shop() {
                 {/* Product Image & Badges */}
                 <div 
                   className="apple-card-image-box" 
-                  onClick={() => setSelectedProduct(p)} 
+                  onClick={() => setViewingProductId(p.id)} 
                   style={{ cursor: 'pointer', background: (p.category || '').includes('food') ? '#f3f4f6' : '#f8fafc', position: 'relative' }}
                 >
                   <img src={p.image} alt={p.name} loading="lazy" />
@@ -456,7 +508,7 @@ export default function Shop() {
                   {/* Top-Left: Badge or Discount */}
                   <div style={{ position: 'absolute', top: 12, left: 12, display: 'flex', flexDirection: 'column', gap: '4px', zIndex: 10 }}>
                     {p.badge && (
-                      <span style={{ background: '#10B981', color: '#fff', fontSize: '10px', fontWeight: 800, padding: '3px 8px', borderRadius: '6px', letterSpacing: '0.04em' }}>
+                      <span className="sand-badge" style={{ backgroundColor: 'rgba(217, 168, 115, 0.92)', color: '#FFFFFF', border: 'none' }}>
                         {p.badge}
                       </span>
                     )}
@@ -488,7 +540,11 @@ export default function Shop() {
                 </div>
 
                 {/* Product Title */}
-                <h3 className="apple-card-title" onClick={() => setSelectedProduct(p)} style={{ cursor: 'pointer', margin: '0 0 6px 0', fontSize: '15px', fontWeight: 700, lineHeight: 1.3 }}>
+                <h3 
+                  className="apple-card-title" 
+                  onClick={() => setViewingProductId(p.id)} 
+                  style={{ cursor: 'pointer', margin: '0 0 6px 0', fontSize: '16px', fontWeight: 600, lineHeight: 1.3, fontFamily: 'var(--font-heading)' }}
+                >
                   {p.name}
                 </h3>
 
@@ -499,7 +555,7 @@ export default function Shop() {
 
                 {/* Price Row with Strikethrough Comparison */}
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', margin: '6px 0' }}>
-                  <span style={{ fontSize: '17px', fontWeight: 800, color: 'var(--text-main)' }}>
+                  <span style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-main)', fontFamily: 'var(--font-heading)' }}>
                     ৳{Number(p.price || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                   {originalPrice && (
@@ -533,12 +589,21 @@ export default function Shop() {
                 {/* Actions Row */}
                 <div className="apple-card-actions" style={{ alignItems: 'center', marginTop: 'auto', paddingTop: '8px', borderTop: '1px solid var(--border)' }}>
                   <button
-                    className="apple-btn-blue"
-                    style={{ fontSize: '12.5px', padding: '6px 14px', opacity: isOOS ? 0.5 : 1 }}
-                    onClick={() => setSelectedProduct(p)}
+                    style={{
+                      fontSize: '12.5px',
+                      fontWeight: 500,
+                      padding: '6px 14px',
+                      borderRadius: '9999px',
+                      border: '1px solid var(--border)',
+                      backgroundColor: 'var(--surface)',
+                      color: 'var(--foreground)',
+                      cursor: 'pointer',
+                      opacity: isOOS ? 0.5 : 1
+                    }}
+                    onClick={() => setViewingProductId(p.id)}
                     disabled={isOOS}
                   >
-                    Quick View
+                    View Details
                   </button>
 
                   {/* Wishlist Heart Button */}
@@ -566,12 +631,30 @@ export default function Shop() {
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginLeft: 'auto' }}>
                     <button 
-                      className="btn-ghost" 
-                      style={{ padding: '5px 10px', fontSize: '12px', borderRadius: '14px', border: '1px solid var(--border)' }} 
-                      onClick={() => addToCart(p, 1)}
-                      title="Add to Bag"
+                      style={{
+                        padding: '6px 14px',
+                        fontSize: '12.5px',
+                        fontWeight: 600,
+                        borderRadius: '9999px',
+                        border: 'none',
+                        backgroundColor: 'var(--primary)',
+                        color: '#1F2421',
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                        boxShadow: '0 2px 8px rgba(46, 204, 155, 0.20)',
+                        transition: 'all 0.15s ease'
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        addToCart(p, 1);
+                        openModal('cart');
+                        setToastMsg(`Added ${p.name} to shopping bag!`);
+                      }}
+                      title="Add to Shopping Bag"
                     >
-                      <Plus size={12} />
+                      <Plus size={13} />
                       <span>Add</span>
                     </button>
                     <button 

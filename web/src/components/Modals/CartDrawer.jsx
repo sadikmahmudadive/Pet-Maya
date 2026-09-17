@@ -280,8 +280,23 @@ export default function CartDrawer() {
 
             {/* Checkout CTA */}
             <button 
-              className="btn-primary" 
-              style={{ padding: '12px', width: '100%', fontSize: '15px', justifyContent: 'center' }} 
+              style={{
+                padding: '14px',
+                width: '100%',
+                fontSize: '15px',
+                fontWeight: 600,
+                backgroundColor: 'var(--primary)',
+                color: '#1F2421',
+                borderRadius: '9999px',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                boxShadow: '0 4px 14px rgba(46, 204, 155, 0.25)',
+                transition: 'all 0.15s ease'
+              }} 
               onClick={handleProceedToCheckout}
             >
               <span>Proceed to Checkout</span>

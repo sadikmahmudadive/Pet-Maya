@@ -1,11 +1,14 @@
 /* ═════════════════════════════════════════════════════════════════
    PET MAYA — DUNA-INSPIRED EDITORIAL & CONNECTED CARE DESIGN SYSTEM
+   PET MAYA — BOUTIQUE-DTC HEALTHCARE & ESSENTIALS DESIGN SYSTEM
    ═════════════════════════════════════════════════════════════════ */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,800;1,9..144,400;1,9..144,600&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 :root {
   /* Typography Families */
   --font-heading: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-heading: 'Fraunces', Georgia, serif;
   --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
 
@@ -15,14 +18,24 @@
   --primary-light: #EBF8F3;
   --primary-tint: rgba(26, 182, 128, 0.12);
   --accent: #1AB680;
+  /* Pet Maya Mint Accent (#2ECC9B: CTAs, active states, accents only, never large fills) */
+  --primary: #2ECC9B;
+  --primary-hover: #26B388;
+  --primary-light: #EBF9F4;
+  --primary-tint: rgba(46, 204, 155, 0.12);
+  --accent: #2ECC9B;
   
   --secondary: #00B6D2;
   --secondary-dark: #008AA0;
   --secondary-light: #E0F9FD;
+  --secondary: #2ECC9B;
+  --secondary-dark: #26B388;
+  --secondary-light: #EBF9F4;
   --tertiary: #3B82F6;
   --danger: #EF4444;
   --warning: #F59E0B;
   --success: #10B981;
+  --success: #2ECC9B;
 
   /* Duna Warm Editorial Palette (Default Light Theme) */
   --bg: #FAFAF7;
@@ -31,20 +44,42 @@
   --text-main: #151515;
   --text-muted: #666662;
   --text-subtle: #8E8E89;
+  /* Boutique-DTC Warm Editorial Palette (Default Off-White) */
+  --bg: #FAFAF8;
+  --bg-pure: #FAFAF8;
+  --foreground: #1F2421;
+  --text-main: #1F2421;
+  --text-secondary: #8A8F8B;
+  --text-muted: #8A8F8B;
+  --text-subtle: #A3A8A4;
+
+  /* Shop Sand Accent (#D9A873: Used strictly in shop/product areas) */
+  --shop-accent: #D9A873;
+  --shop-accent-hover: #C5935F;
+  --shop-accent-light: #FBF6F0;
+  --shop-accent-tint: rgba(217, 168, 115, 0.15);
 
   --surface: #FFFFFF;
   --surface-solid: #FFFFFF;
   --surface-alt: #F3F3EE;
   --soft-surface: #F3F3EE;
+  --surface-alt: #F3F3EF;
+  --soft-surface: #F3F3EF;
 
   --nav-bg: rgba(250, 250, 247, 0.85);
   --nav-text: #151515;
   --nav-text-subtle: #666662;
+  --nav-bg: rgba(250, 250, 248, 0.90);
+  --nav-text: #1F2421;
+  --nav-text-subtle: #8A8F8B;
 
   --border: #E6E5DF;
   --border-subtle: #F0EFEA;
+  --border: #E8E8E3;
+  --border-subtle: #F0F0EA;
   --border-specular: inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
   --separator: #E6E5DF;
+  --separator: #E8E8E3;
 
   /* Contrast Dark Surface for GPS & Radar Hardware Sections */
   --dark-hero-bg: #0C1517;
@@ -52,6 +87,7 @@
   --dark-border: rgba(255, 255, 255, 0.10);
 
   /* Subtle Editorial Shadows */
+  /* Subtle Boutique Shadows */
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.02);
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.03);
   --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.04);
@@ -64,6 +100,7 @@
   --radius-xl: 28px;
   --radius-full: 9999px;
 
+  /* Subtle motion only — no bouncy/spring curves */
   --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-subtle: cubic-bezier(0.25, 1, 0.5, 1);
 
@@ -102,16 +139,40 @@
   --border-subtle: rgba(26, 182, 128, 0.12);
   --border-specular: inset 0 1px 0 0 rgba(255, 255, 255, 0.10);
   --separator: rgba(26, 182, 128, 0.20);
+  /* Dark Mode: background #141813, keep mint accent #2ECC9B */
+  --bg: #141813;
+  --bg-pure: #141813;
+  --foreground: #F2F4F2;
+  --surface: #1B211A;
+  --surface-solid: #1B211A;
+  --surface-alt: #222921;
+  --soft-surface: #1E251D;
+  --nav-bg: rgba(20, 24, 19, 0.92);
+  --nav-text: #F2F4F2;
+  --nav-text-subtle: #8A8F8B;
+  --border: #2B332A;
+  --border-subtle: #242B23;
+  --border-specular: inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
+  --separator: #2B332A;
 
   --text-main: #F5F5F7;
   --text-muted: #A3A39E;
   --text-subtle: #80807A;
+  --text-main: #F2F4F2;
+  --text-secondary: #8A8F8B;
+  --text-muted: #8A8F8B;
+  --text-subtle: #6D726E;
 
   --shadow-xs: 0 1px 3px rgba(0, 0, 0, 0.5);
   --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.55);
   --shadow-md: 0 8px 28px rgba(0, 0, 0, 0.65);
   --shadow-lg: 0 20px 56px rgba(0, 0, 0, 0.80);
   --shadow-xl: 0 40px 80px rgba(0, 0, 0, 0.90);
+  --shadow-xs: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.45);
+  --shadow-md: 0 8px 28px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 20px 56px rgba(0, 0, 0, 0.65);
+  --shadow-xl: 0 40px 80px rgba(0, 0, 0, 0.75);
 }
 
 * {
@@ -248,16 +309,21 @@ h1, h2, h3, h4, h5, h6 {
   gap: 10px;
   background-color: var(--primary);
   color: #FFFFFF;
+  color: #1F2421;
   font-family: var(--font-body);
   font-size: 15px;
+  font-size: 14.5px;
   font-weight: 600;
   padding: 13px 26px;
+  padding: 12px 24px;
   border-radius: var(--radius-full);
   border: 1px solid var(--primary);
   cursor: pointer;
   text-decoration: none;
   transition: all 0.2s var(--ease-subtle);
   box-shadow: 0 4px 14px rgba(26, 182, 128, 0.25);
+  transition: all 0.2s ease-out;
+  box-shadow: 0 2px 10px rgba(46, 204, 155, 0.20);
 }
 
 .editorial-btn-accent:hover {
@@ -265,6 +331,55 @@ h1, h2, h3, h4, h5, h6 {
   border-color: var(--primary-hover);
   transform: translateY(-1px);
   box-shadow: 0 6px 20px rgba(26, 182, 128, 0.35);
+  box-shadow: 0 4px 16px rgba(46, 204, 155, 0.30);
+}
+
+.font-fraunces {
+  font-family: var(--font-heading) !important;
+}
+
+.font-inter {
+  font-family: var(--font-body) !important;
+}
+
+.sand-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--shop-accent-tint, rgba(217, 168, 115, 0.15));
+  color: #9E6C38;
+  border: 1px solid rgba(217, 168, 115, 0.35);
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+[data-theme="dark"] .sand-badge {
+  color: #E2B98E;
+  background-color: rgba(217, 168, 115, 0.18);
+  border-color: rgba(217, 168, 115, 0.35);
+}
+
+.mint-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: rgba(46, 204, 155, 0.12);
+  color: #127958;
+  border: 1px solid rgba(46, 204, 155, 0.28);
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+[data-theme="dark"] .mint-badge {
+  color: #2ECC9B;
+  background-color: rgba(46, 204, 155, 0.15);
+  border-color: rgba(46, 204, 155, 0.30);
 }
 
 .editorial-card {

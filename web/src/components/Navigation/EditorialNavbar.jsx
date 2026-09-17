@@ -18,11 +18,12 @@ import {
   BookOpen, 
   HelpCircle,
   Sparkles,
-  LayoutDashboard
+  LayoutDashboard,
+  ShoppingBag
 } from 'lucide-react';
 
 export default function EditorialNavbar({ currentRoute, onNavigate }) {
-  const { openModal, showToast, setActiveTab } = useApp();
+  const { openModal, showToast, setActiveTab, cart } = useApp();
   const { currentUser, loginAsGuest } = useAuth();
 
   const [scrolled, setScrolled] = useState(false);
@@ -543,6 +544,38 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
             </AnimatePresence>
           </div>
 
+          {/* Shop Link */}
+          <a
+            href="/shop"
+            onClick={(e) => handleNavClick('shop', e)}
+            style={{
+              fontFamily: 'var(--font-body)',
+              fontSize: '14.5px',
+              fontWeight: 500,
+              color: currentRoute === 'shop' ? 'var(--foreground)' : 'var(--text-muted)',
+              textDecoration: 'none',
+              transition: 'color 0.15s ease',
+            }}
+          >
+            Care Shop
+          </a>
+
+          {/* Specialists Link */}
+          <a
+            href="/vets"
+            onClick={(e) => handleNavClick('vets', e)}
+            style={{
+              fontFamily: 'var(--font-body)',
+              fontSize: '14.5px',
+              fontWeight: 500,
+              color: currentRoute === 'vets' ? 'var(--foreground)' : 'var(--text-muted)',
+              textDecoration: 'none',
+              transition: 'color 0.15s ease',
+            }}
+          >
+            Specialists
+          </a>
+
           {/* About Link */}
           <a
             href="/about"
@@ -562,6 +595,49 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
 
         {/* Action Buttons (Right) */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          {/* Shopping Bag Trigger Button */}
+          <button
+            onClick={() => openModal('cart')}
+            aria-label="Open Shopping Bag"
+            title="Shopping Bag"
+            style={{
+              position: 'relative',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '40px',
+              height: '40px',
+              borderRadius: '50%',
+              backgroundColor: 'var(--surface)',
+              border: '1px solid var(--border)',
+              color: 'var(--foreground)',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            <ShoppingBag size={18} />
+            {cart && cart.length > 0 && (
+              <span style={{
+                position: 'absolute',
+                top: '-3px',
+                right: '-3px',
+                backgroundColor: 'var(--primary)',
+                color: '#1F2421',
+                fontSize: '11px',
+                fontWeight: 700,
+                width: '18px',
+                height: '18px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
+              }}>
+                {cart.reduce((acc, i) => acc + (i.qty || 1), 0)}
+              </span>
+            )}
+          </button>
+
           {currentUser ? (
             <button
               onClick={() => handleNavClick('dashboard')}
@@ -591,8 +667,22 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
 
               <button
                 onClick={handleGetStarted}
-                className="editorial-btn-primary"
-                style={{ padding: '9px 20px', fontSize: '14px' }}
+                style={{
+                  backgroundColor: 'var(--primary)',
+                  color: '#1F2421',
+                  border: 'none',
+                  fontFamily: 'var(--font-body)',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  padding: '10px 22px',
+                  borderRadius: '9999px',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  boxShadow: '0 2px 10px rgba(46, 204, 155, 0.20)',
+                  transition: 'all 0.15s ease'
+                }}
               >
                 <span>Get Started</span>
                 <ArrowRight size={14} />

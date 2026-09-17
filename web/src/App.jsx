@@ -33,6 +33,7 @@ import Shop from './components/Shop/Shop';
 import Reminders from './components/Reminders/Reminders';
 import Profile from './components/Profile/Profile';
 import AdminPortal from './components/Admin/AdminPortal';
+import VetBookingFlow from './components/Specialists/VetBookingFlow';
 
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -141,13 +142,17 @@ const TAB_SEO_MAP = {
   profile: {
     title: 'My Profile & Cloud EHR Medical Records | Pet Maya',
     description: 'Encrypted Electronic Health Records (EHR), verified clinical diagnoses, and prescriptions history.'
+  },
+  'book-vet': {
+    title: 'Schedule Veterinary Appointment & Teleconsultation | Pet Maya',
+    description: '3-step appointment booking with verified veterinarians, in-clinic exams, and HD video consultations.'
   }
 };
 
 const VALID_EDITORIAL_ROUTES = [
   'landing', 'features', 'digital-pet-passport', 'ai-pet-care', 'pet-gps', 
   'connected-care', 'for-pet-parents', 'for-veterinarians', 'for-clinics', 
-  'pet-health', 'pet-care', 'blog', 'about', 'contact', 'faq', 'privacy', 'terms'
+  'pet-health', 'pet-care', 'blog', 'about', 'contact', 'faq', 'privacy', 'terms', 'book-vet'
 ];
 
 const VALID_APP_ROUTES = [
@@ -161,13 +166,21 @@ function MainContent() {
 
   // Synchronize route from URL pathname and hash
   const resolveCurrentRoute = useCallback(() => {
-    // 1. Check hash first if present (e.g. #dashboard, #shop, #tracker)
-    const hash = window.location.hash.replace('#', '').toLowerCase();
+    // 1. Check hash first if present (e.g. #dashboard, #shop, #tracker, #shop-product/p1)
+    const rawHash = window.location.hash.replace('#', '');
+    const hash = rawHash.toLowerCase();
+    if (hash.startsWith('shop-product/')) {
+      return 'shop';
+    }
     if (hash && (VALID_EDITORIAL_ROUTES.includes(hash) || VALID_APP_ROUTES.includes(hash))) {
       return hash;
     }
     // 2. Check pathname (e.g. /digital-pet-passport, /features)
-    const path = window.location.pathname.replace(/^\//, '').toLowerCase();
+    const rawPath = window.location.pathname.replace(/^\//, '');
+    const path = rawPath.toLowerCase();
+    if (path.startsWith('shop-product/')) {
+      return 'shop';
+    }
     if (path && (VALID_EDITORIAL_ROUTES.includes(path) || VALID_APP_ROUTES.includes(path))) {
       return path;
     }
@@ -211,7 +224,9 @@ function MainContent() {
 
     // Sync URL cleanly
     if (activeTab && activeTab !== 'landing') {
-      if (VALID_EDITORIAL_ROUTES.includes(activeTab)) {
+      if (activeTab === 'shop' && window.location.hash.startsWith('#shop-product/')) {
+        // Keep active product hash
+      } else if (VALID_EDITORIAL_ROUTES.includes(activeTab)) {
         window.history.replaceState(null, '', `/${activeTab}`);
       } else {
         window.history.replaceState(null, '', `#${activeTab}`);
@@ -285,6 +300,8 @@ function MainContent() {
         return <EditorialCompanyPages page="privacy" onNavigate={handleNavigate} key="privacy" />;
       case 'terms':
         return <EditorialCompanyPages page="terms" onNavigate={handleNavigate} key="terms" />;
+      case 'book-vet':
+        return <VetBookingFlow key="book-vet" onComplete={() => handleNavigate('dashboard')} />;
 
       // Application platform views
       case 'dashboard':
