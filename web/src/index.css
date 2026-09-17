@@ -1,62 +1,76 @@
 /* ═════════════════════════════════════════════════════════════════
-   PET MAYA — APPLE.COM WEB DESIGN SYSTEM (OFFICIAL HIG SPEC)
+   PET MAYA — DUNA-INSPIRED EDITORIAL & CONNECTED CARE DESIGN SYSTEM
    ═════════════════════════════════════════════════════════════════ */
-@import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700;800;900&family=SF+Pro+Text:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap');
 
 :root {
-  /* Flutter AppColors Spec & Brand Gradients */
+  /* Typography Families */
+  --font-heading: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+
+  /* Pet Maya Brand & Accent */
   --primary: #1AB680;
   --primary-hover: #138A61;
-  --primary-light: #E2F9F0;
+  --primary-light: #EBF8F3;
   --primary-tint: rgba(26, 182, 128, 0.12);
+  --accent: #1AB680;
   
   --secondary: #00B6D2;
   --secondary-dark: #008AA0;
   --secondary-light: #E0F9FD;
   --tertiary: #3B82F6;
-  --accent: #F59E0B;
   --danger: #EF4444;
+  --warning: #F59E0B;
+  --success: #10B981;
 
-  /* Signature App Gradients */
-  --primary-gradient: linear-gradient(135deg, #1AB680 0%, #00B6D2 100%);
-  --cyan-gradient: linear-gradient(135deg, #00B6D2 0%, #38BDF8 100%);
-  --mint-gradient: linear-gradient(135deg, #1AB680 0%, #34D399 100%);
-  --accent-gradient: linear-gradient(135deg, #FF9500 0%, #FF5E3A 100%);
+  /* Duna Warm Editorial Palette (Default Light Theme) */
+  --bg: #FAFAF7;
+  --bg-pure: #FAFAF7;
+  --foreground: #151515;
+  --text-main: #151515;
+  --text-muted: #666662;
+  --text-subtle: #8E8E89;
 
-  /* Pet Maya Light Theme (Clean White Background) */
-  --bg: #FFFFFF;
-  --bg-pure: #FFFFFF;
   --surface: #FFFFFF;
   --surface-solid: #FFFFFF;
-  --surface-alt: #F8FAFC;
-  --nav-bg: rgba(255, 255, 255, 0.90);
-  --nav-text: #1D1D1F;
-  --nav-text-subtle: #86868B;
-  --border: rgba(0, 0, 0, 0.08);
+  --surface-alt: #F3F3EE;
+  --soft-surface: #F3F3EE;
+
+  --nav-bg: rgba(250, 250, 247, 0.85);
+  --nav-text: #151515;
+  --nav-text-subtle: #666662;
+
+  --border: #E6E5DF;
+  --border-subtle: #F0EFEA;
   --border-specular: inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
-  --separator: #E5E7EB;
+  --separator: #E6E5DF;
 
-  --text-main: #1D1D1F;
-  --text-muted: #86868B;
-  --text-subtle: #6E6E73;
+  /* Contrast Dark Surface for GPS & Radar Hardware Sections */
+  --dark-hero-bg: #0C1517;
+  --dark-surface: #121F21;
+  --dark-border: rgba(255, 255, 255, 0.10);
 
-  /* Refined shadows — softer and more dimensional */
-  --shadow-xs: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
-  --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.03);
-  --shadow-md: 0 8px 28px rgba(0, 0, 0, 0.07), 0 2px 8px rgba(0, 0, 0, 0.04);
-  --shadow-lg: 0 20px 56px rgba(0, 0, 0, 0.10), 0 4px 16px rgba(0, 0, 0, 0.05);
-  --shadow-xl: 0 40px 80px rgba(0, 0, 0, 0.13), 0 8px 24px rgba(0, 0, 0, 0.07);
+  /* Subtle Editorial Shadows */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.02);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.03);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 28px 64px rgba(0, 0, 0, 0.07);
 
-  --radius-sm: 12px;
-  --radius-md: 18px;
-  --radius-lg: 24px;
-  --radius-xl: 30px;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
   --radius-full: 9999px;
 
-  --apple-spring: cubic-bezier(0.25, 1, 0.5, 1);
-  --apple-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-subtle: cubic-bezier(0.25, 1, 0.5, 1);
 
-  /* Spacing scale */
+  /* Container and Spacing */
+  --container-max: 1240px;
+  --container-editorial: 1080px;
+
   --sp-1: 4px;
   --sp-2: 8px;
   --sp-3: 12px;
@@ -66,39 +80,32 @@
   --sp-8: 32px;
   --sp-10: 40px;
   --sp-12: 48px;
-  --sp-14: 56px;
-  --sp-18: 72px;
-
-  /* Typography scale */
-  --text-xs: 11px;
-  --text-sm: 13px;
-  --text-base: 15px;
-  --text-md: 17px;
-  --text-lg: 20px;
-  --text-xl: 24px;
-  --text-2xl: 28px;
-  --text-3xl: 34px;
-  --text-4xl: 42px;
-  --text-5xl: 56px;
+  --sp-16: 64px;
+  --sp-20: 80px;
+  --sp-24: 96px;
+  --sp-32: 128px;
 }
 
 [data-theme="dark"] {
   /* Flutter App Deep Emerald Dark Palette */
   --bg: #021E20;
   --bg-pure: #021E20;
+  --foreground: #F5F5F7;
   --surface: #0B2826;
   --surface-solid: #0B2826;
   --surface-alt: #103330;
+  --soft-surface: #0E302E;
   --nav-bg: rgba(2, 30, 32, 0.90);
   --nav-text: #F5F5F7;
   --nav-text-subtle: #86868B;
   --border: rgba(26, 182, 128, 0.18);
+  --border-subtle: rgba(26, 182, 128, 0.12);
   --border-specular: inset 0 1px 0 0 rgba(255, 255, 255, 0.10);
   --separator: rgba(26, 182, 128, 0.20);
 
   --text-main: #F5F5F7;
-  --text-muted: #8E8E93;
-  --text-subtle: #A1A1A6;
+  --text-muted: #A3A39E;
+  --text-subtle: #80807A;
 
   --shadow-xs: 0 1px 3px rgba(0, 0, 0, 0.5);
   --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.55);
@@ -115,16 +122,163 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "SF Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: var(--font-body);
   background-color: var(--bg);
   color: var(--text-main);
   min-height: 100vh;
-  line-height: 1.47;
+  line-height: 1.6;
   letter-spacing: -0.011em;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
-  transition: background-color 0.35s var(--apple-spring), color 0.35s var(--apple-spring);
+  transition: background-color 0.35s ease, color 0.35s ease;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  letter-spacing: -0.03em;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+/* ── DUNA-INSPIRED EDITORIAL UTILITIES ── */
+.font-heading { font-family: var(--font-heading); }
+.font-body { font-family: var(--font-body); }
+.font-mono { font-family: var(--font-mono); }
+
+.editorial-container {
+  width: 100%;
+  max-width: var(--container-max);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: clamp(20px, 4vw, 48px);
+  padding-right: clamp(20px, 4vw, 48px);
+}
+
+.editorial-container-narrow {
+  width: 100%;
+  max-width: var(--container-editorial);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: clamp(20px, 4vw, 40px);
+  padding-right: clamp(20px, 4vw, 40px);
+}
+
+.editorial-section {
+  padding-top: clamp(64px, 8vw, 120px);
+  padding-bottom: clamp(64px, 8vw, 120px);
+  position: relative;
+}
+
+.editorial-section-border {
+  border-bottom: 1px solid var(--border);
+}
+
+.text-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.text-eyebrow-accent {
+  color: var(--primary);
+}
+
+.editorial-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background-color: var(--foreground);
+  color: #FFFFFF;
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 500;
+  padding: 13px 26px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--foreground);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s var(--ease-subtle);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.editorial-btn-primary:hover {
+  background-color: #2D2D2D;
+  border-color: #2D2D2D;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.editorial-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background-color: var(--surface);
+  color: var(--foreground);
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 500;
+  padding: 13px 26px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s var(--ease-subtle);
+  box-shadow: var(--shadow-xs);
+}
+
+.editorial-btn-secondary:hover {
+  background-color: var(--soft-surface);
+  border-color: #D3D2CA;
+  transform: translateY(-1px);
+}
+
+.editorial-btn-accent {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background-color: var(--primary);
+  color: #FFFFFF;
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 600;
+  padding: 13px 26px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--primary);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s var(--ease-subtle);
+  box-shadow: 0 4px 14px rgba(26, 182, 128, 0.25);
+}
+
+.editorial-btn-accent:hover {
+  background-color: var(--primary-hover);
+  border-color: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(26, 182, 128, 0.35);
+}
+
+.editorial-card {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: clamp(24px, 4vw, 40px);
+  box-shadow: var(--shadow-xs);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.editorial-card:hover {
+  border-color: #D6D5CD;
+  box-shadow: var(--shadow-sm);
 }
 
 /* ── APPLE.COM GLOBAL NAVIGATION BAR ── */

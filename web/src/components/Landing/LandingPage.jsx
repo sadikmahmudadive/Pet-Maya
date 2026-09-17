@@ -3,788 +3,1279 @@ import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Radar, Activity, Utensils, Stethoscope, ShoppingBag, Bell, 
-  Download, Smartphone, ChevronRight, ShieldCheck, ExternalLink,
-  Sparkles, Heart, BookOpen, MapPin, MessageCircle, Calendar, Syringe, Star, ChevronDown, AlertTriangle, Building2
+  ShieldCheck, 
+  Activity, 
+  Radar, 
+  Cpu, 
+  ArrowRight, 
+  ChevronDown, 
+  CheckCircle2, 
+  Smartphone, 
+  Sparkles, 
+  Lock, 
+  FileText, 
+  Calendar, 
+  Bell, 
+  Eye, 
+  MapPin, 
+  Radio, 
+  Battery, 
+  Volume2, 
+  QrCode, 
+  Heart,
+  Stethoscope,
+  ChevronRight,
+  BookOpen
 } from 'lucide-react';
 
-// ── FAQ ACCORDION COMPONENT ──
-function FAQSection({ handleFeatureAccess, openModal }) {
-  const [openIdx, setOpenIdx] = useState(null);
-  const faqs = [
-    { q: 'How accurate is the GPS tracking?', a: 'The Pet Maya smart collar uses multi-constellation GNSS (GPS + GLONASS + Galileo) with proprietary Kalman filtering to achieve sub-2-meter accuracy in open areas. Indoor accuracy is approximately 5-8 meters via WiFi triangulation.' },
-    { q: 'Is the AI health scanner a replacement for a vet visit?', a: 'No — the AI Clinical Triage provides rapid symptom severity assessment and first-aid guidance to help you decide if and how urgently you need to see a vet. It is a decision-support tool, not a clinical diagnosis. Always consult a licensed veterinarian for treatment.' },
-    { q: 'What pets does Pet Maya support?', a: 'Pet Maya currently supports Dogs, Cats, Birds, and Rabbits across all features including GPS tracking, AI health scanning, vaccine reminders, and the medical passport. More species are planned for upcoming releases.' },
-    { q: 'How do geofence boundary alarms work?', a: 'You draw a custom safe zone on the map (home perimeter, garden, park area). If the collar detects the pet has moved outside this boundary, you receive an instant push notification within 3 seconds, along with the live map location.' },
-    { q: 'Can I book a teleconsultation with any vet on the platform?', a: 'Yes. All veterinarians on Pet Maya with the Telehealth badge offer HD video consultations. You can book directly from the Specialists page. Teleconsults are available 7 days a week, with 24/7 emergency on-call coverage.' },
-    { q: 'How is my pet\'s medical data stored?', a: 'All electronic health records (EHR) are encrypted with AES-256 and stored in Firebase Firestore with regional compliance. Only you and your authorized clinicians can access your pet\'s records. You can export or delete all data at any time from the Profile page.' },
-    { q: 'Is Pet Maya available in Bangladesh?', a: 'Yes — Pet Maya was built for the Bangladesh market first. Our verified specialist network includes clinics across Dhaka, Chittagong, Sylhet, Rajshahi, Khulna, and more. The app and website support BDT (৳) pricing and local pharmacy delivery.' },
-    { q: 'Is there a free plan?', a: 'Yes. Pet Maya Basic is completely free and includes GPS tracking (15-min update interval), AI health scanning (5 scans/month), vaccine reminders, community access, and the pet shop. Pet Maya Pro (৳499/month) adds real-time 5-second GPS updates, unlimited AI scans, teleconsultation credits, and priority vet booking.' },
-  ];
-  return (
-    <section style={{ background: 'var(--bg)', padding: '72px 20px', borderTop: '1px solid var(--border)' }}>
-      <div style={{ maxWidth: '760px', margin: '0 auto' }}>
-        <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.4 }} style={{ textAlign: 'center', marginBottom: '48px' }}>
-          <span style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', color: 'var(--primary)', textTransform: 'uppercase', display: 'block', marginBottom: '10px' }}>Got questions?</span>
-          <h2 style={{ fontSize: 'clamp(1.8rem, 4vw, 2.8rem)', fontWeight: 700, letterSpacing: '-0.03em', color: 'var(--text-main)', margin: 0, lineHeight: 1.15 }}>Frequently asked questions.</h2>
-        </motion.div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {faqs.map((faq, idx) => (
-            <motion.div key={idx} initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-5px' }} transition={{ duration: 0.3, delay: idx * 0.04 }} style={{ background: 'var(--surface-solid)', border: '1px solid var(--border)', borderRadius: '16px', overflow: 'hidden' }}>
-              <button
-                onClick={() => setOpenIdx(openIdx === idx ? null : idx)}
-                style={{ width: '100%', background: 'none', border: 'none', padding: '20px 22px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', fontFamily: 'inherit', gap: '16px', textAlign: 'left' }}
-              >
-                <span style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-main)', lineHeight: 1.4 }}>{faq.q}</span>
-                <motion.span animate={{ rotate: openIdx === idx ? 180 : 0 }} transition={{ duration: 0.22 }} style={{ flexShrink: 0, color: 'var(--text-muted)' }}>
-                  <ChevronDown size={18} />
-                </motion.span>
-              </button>
-              <AnimatePresence initial={false}>
-                {openIdx === idx && (
-                  <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.25 }} style={{ overflow: 'hidden' }}>
-                    <p style={{ fontSize: '13.5px', color: 'var(--text-muted)', lineHeight: 1.65, margin: 0, padding: '0 22px 20px' }}>{faq.a}</p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-
-
-export default function LandingPage() {
+export default function LandingPage({ onNavigate }) {
   const { setActiveTab, openModal, showToast } = useApp();
   const { currentUser, loginAsGuest } = useAuth();
 
-  const handleTryDemo = () => {
-    loginAsGuest('Pet Owner');
-    setActiveTab('dashboard');
-    showToast('Welcome to Pet Maya Demo Dashboard!', 'success');
-  };
-
-  const handleFeatureAccess = (tabId, featureName) => {
-    if (currentUser) {
-      setActiveTab(tabId);
+  const handleRoute = (path) => {
+    if (onNavigate) {
+      onNavigate(path);
     } else {
-      openModal('auth');
-      showToast(`Please sign in to access ${featureName}`, 'info');
+      window.location.hash = path.replace('/', '');
     }
   };
 
-  const [activePillar, setActivePillar] = useState(0);
+  const handleGetStarted = () => {
+    if (currentUser) {
+      handleRoute('dashboard');
+    } else {
+      loginAsGuest('Pet Owner');
+      handleRoute('dashboard');
+      showToast('Welcome to Pet Maya Platform Demo!', 'success');
+    }
+  };
 
-  // 12 Distinct Ecosystem Features for Compact Grid
-  const ecosystemFeatures = [
-    { id: 'tracker',   icon: Radar,         title: 'Tracker',        subtitle: 'Live GPS location',        color: '#10B981', bg: 'rgba(16,185,129,0.18)' },
-    { id: 'ai',        icon: Activity,      title: 'Wellness',       subtitle: 'AI health scan',           color: '#3B82F6', bg: 'rgba(59,130,246,0.18)' },
-    { id: 'vets',      icon: Stethoscope,   title: 'Specialists',    subtitle: '500+ Verified doctors',    color: '#F59E0B', bg: 'rgba(245,158,11,0.18)' },
-    { id: 'shop',      icon: ShoppingBag,   title: 'Pet Shop',       subtitle: 'Nutrition & essentials',   color: '#8B5CF6', bg: 'rgba(139,92,246,0.18)' },
-    { id: 'community', icon: MessageCircle, title: 'Community',      subtitle: 'Pet parent network',       color: '#06B6D4', bg: 'rgba(6,182,212,0.18)' },
-    { id: 'food',      icon: BookOpen,      title: 'Blog',           subtitle: 'Expert advice & diet',     color: '#EC4899', bg: 'rgba(236,72,153,0.18)' },
-    { id: 'tracker',   icon: Radar,         title: 'Hardware & GPS', subtitle: 'Live GPS & BLE Collars',   color: '#10B981', bg: 'rgba(16,185,129,0.18)' },
-    { id: 'ai',        icon: Activity,      title: 'Wellness AI',    subtitle: 'Vision scan & body map',   color: '#3B82F6', bg: 'rgba(59,130,246,0.18)' },
-    { id: 'vaccines',  icon: Calendar,      title: 'Reminders',      subtitle: 'Vaccine & vet calendar',   color: '#10B981', bg: 'rgba(16,185,129,0.18)' },
-    { id: 'shop',      icon: ShoppingBag,   title: 'Pet Pharmacy',   subtitle: 'Nutrition & RX items',     color: '#8B5CF6', bg: 'rgba(139,92,246,0.18)' },
-    { id: 'community', icon: AlertTriangle, title: 'Amber Alerts',   subtitle: 'Lost pet recovery grid',   color: '#EF4444', bg: 'rgba(239,68,68,0.18)' },
-    { id: 'vaccines',  icon: ShieldCheck,   title: 'Pet Passport',   subtitle: 'Microchip & rabies tag',   color: '#06B6D4', bg: 'rgba(6,182,212,0.18)' },
-  ];
+  const handleOpenAuth = () => {
+    openModal('auth');
+  };
 
-  // 3 Signature Pillars for Compact Interactive Showcase
-  const showcasePillars = [
+  // FAQ Accordion State
+  const [openFaq, setOpenFaq] = useState(0);
+
+  const faqs = [
     {
-      id: 'tracker',
-      tabId: 'tracker',
-      eyebrow: 'Pet Radar & Smart Collar',
-      color: '#10B981',
-      bg: 'rgba(16,185,129,0.15)',
-      border: 'rgba(16,185,129,0.3)',
-      icon: Radar,
-      title: 'Wonderfully fast. Astoundingly precise.',
-      subtitle: 'Multi-constellation GPS tracking with geofence breach alarms.',
-      tags: ['< 2m GNSS Satellites', '3-Sec Geofence Push', '85dB Acoustic Siren', 'BLE Beacon Radar'],
-      actionText: 'Explore Radar Telemetry',
+      q: 'What is Pet Maya?',
+      a: 'Pet Maya is a modern digital pet healthcare and connected-care ecosystem. It brings together your pet’s digital medical passport, vaccination records, AI-assisted symptom triage, satellite GPS safety radar, and veterinary telemedicine into one unified platform.'
     },
     {
-      id: 'ai',
-      tabId: 'ai',
-      eyebrow: 'Clinical AI Vision',
-      color: '#3B82F6',
-      bg: 'rgba(59,130,246,0.15)',
-      border: 'rgba(59,130,246,0.3)',
-      icon: Activity,
-      title: 'Clinical intelligence. Right on your camera.',
-      subtitle: 'Instant severity analysis and first aid advice from a photo.',
-      tags: ['Vision CNN Model', 'Severity Scoring 1-4', 'Body Region Mapping', 'Direct Vet Referral'],
-      actionText: 'Try AI Health Scan',
+      q: 'What is the Digital Pet Passport?',
+      a: 'The Digital Pet Passport is a lifelong, verifiable electronic health record for your pet. It stores verified ISO microchip registration, complete vaccination timelines, clinical diagnoses, surgical history, and travel certifications with paperless QR access.'
     },
     {
-      id: 'shop',
-      tabId: 'shop',
-      eyebrow: 'Pet Pharmacy & Care',
-      color: '#F59E0B',
-      bg: 'rgba(245,158,11,0.15)',
-      border: 'rgba(245,158,11,0.3)',
-      icon: ShoppingBag,
-      title: 'Everything they need. Delivered today.',
-      subtitle: 'Genuine prescription preventatives and specialty food.',
-      tags: ['100% Genuine RX', '24h Express Dispatch', 'Cold-Chain Shipping', 'Auto Refill Schedules'],
-      actionText: 'Browse Pet Shop',
+      q: 'How does Pet Maya help with my pet’s everyday health?',
+      a: 'Pet Maya helps you maintain preventive care schedules with automated vaccination and booster reminders, clinical weight and calorie tracking, medical history timelines, and direct 24/7 teleconsultations with verified veterinarians.'
     },
-  ];
-
-  const currentPillar = showcasePillars[activePillar];
-
-  // Bento grid features
-  const bentoFeatures = [
-    { id: 'tracker',  title: 'Live GPS Radar',       eyebrow: 'Radar Telemetry',      color: '#10B981', icon: Radar,         desc: 'Sub-meter satellite tracking, safe perimeter geofencing, and smart biometric collar sensors.' },
-    { id: 'ai',       title: 'Wellness AI',          eyebrow: 'AI Diagnostics',       color: '#3B82F6', icon: Activity,      desc: 'Instant multi-modal neural triage for skin, eye, dental, and mobility conditions.' },
-    { id: 'vets',     title: 'Specialists',          eyebrow: 'Specialist Network',   color: '#F59E0B', icon: Stethoscope,   desc: 'In-clinic visits, surgery consultations, and HD teleconsultations with verified doctors.' },
-    { id: 'food',     title: 'Blog & Nutrition',     eyebrow: 'Precision Diet',       color: '#EC4899', icon: BookOpen,      desc: 'Scientific calorie calculators, portion guides, and breed-specific feeding plans.' },
-    { id: 'shop',     title: 'Pet Pharmacy',         eyebrow: 'Shop & Pharmacy',      color: '#8B5CF6', icon: ShoppingBag,   desc: 'Genuine prescription preventatives and specialty food with live order dispatch.' },
-    { id: 'vaccines', title: 'Medical Passport',     eyebrow: 'Immunization',         color: '#06B6D4', icon: Syringe,       desc: 'Automated immunization schedules, rabies tracking, and calendar export.' },
-    { id: 'tracker',  title: 'Hardware & GPS Radar', eyebrow: 'Smart Tracker Ecosystem', color: '#10B981', icon: Radar,         desc: 'Sub-meter multi-GNSS tracking, 85dB acoustic chime siren, geofence security perimeter, and BLE beacon pairing.' },
-    { id: 'ai',       title: 'Clinical AI Diagnostics', eyebrow: 'Vision & Body Triage',  color: '#3B82F6', icon: Activity,      desc: 'Instant multi-modal neural triage for dermatological, ocular, dental, and mobility conditions with interactive body maps.' },
-    { id: 'vets',     title: 'Veterinary Specialists', eyebrow: 'Specialist Network',     color: '#F59E0B', icon: Stethoscope,   desc: 'In-clinic appointments, surgical consultations, and 24/7 on-call HD teleconsultations with certified clinicians.' },
-    { id: 'community', title: 'Amber Alert Recovery',  eyebrow: 'Community Safe Shield',  color: '#EF4444', icon: AlertTriangle, desc: 'Instant neighborhood missing pet broadcasts, live sighting map alerts, and direct guardian emergency contact.' },
-    { id: 'vaccines', title: 'Digital Pet Passport',  eyebrow: 'Microchip & Biometrics', color: '#06B6D4', icon: ShieldCheck,   desc: 'Official ISO 11784 microchip registry, verified rabies immunity tracking, travel certifications, and QR lookup.' },
-    { id: 'shop',     title: 'Pet Pharmacy & Care',   eyebrow: 'Shop & Express Dispatch', color: '#8B5CF6', icon: ShoppingBag,   desc: 'Genuine veterinary-grade preventatives, clinical diets, and smart tech accessories with 24h express dispatch.' },
+    {
+      q: 'Does the AI symptom scanner replace a licensed veterinarian?',
+      a: 'No. Pet Maya’s clinical AI vision scanner provides immediate first-aid guidance and triage severity assessment (Levels 1 to 4) to help you understand what might be happening and how urgently you should seek professional veterinary care. It is a decision-support guide, not a veterinary medical diagnosis.'
+    },
+    {
+      q: 'How does the GPS & Safety Radar work?',
+      a: 'The Pet Maya smart collar utilizes multi-constellation GNSS (GPS + GLONASS + Galileo) combined with cellular telemetry. It provides live satellite tracking, safe-zone geofence breach notifications within 3 seconds, and an 85dB acoustic chime siren for rapid local recovery.'
+    },
+    {
+      q: 'Does Pet Maya support connected IoT devices?',
+      a: 'Yes. The platform seamlessly integrates with Pet Maya 4G cellular smart collars, Bluetooth activity telemetry beacons, and temperature-controlled medical shipment trackers.'
+    },
+    {
+      q: 'How is my pet’s sensitive information protected?',
+      a: 'All pet medical records, personal identity data, and clinical history are encrypted and stored in secure Firebase cloud infrastructure. Only authorized pet owners and their chosen veterinary specialists have access.'
+    },
+    {
+      q: 'How do I get started with Pet Maya?',
+      a: 'Getting started takes under two minutes. Click "Get Started" to create a profile for your pet (dog, cat, bird, or rabbit), upload existing records, and connect smart tools.'
+    }
   ];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', margin: '-24px -16px 0', width: 'calc(100% + 32px)', backgroundColor: '#000' }}>
+    <div style={{ backgroundColor: 'var(--bg)', color: 'var(--foreground)', overflowX: 'hidden' }}>
 
-      {/* ═══ HERO 1: UNIFIED SPATIAL HERO & COMPACT ECOSYSTEM ═══ */}
-      <section style={{
-        position: 'relative',
-        padding: '44px 16px 36px',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        background: 'radial-gradient(circle at 50% 12%, rgba(16,185,129,0.16) 0%, rgba(0,0,0,0) 65%), #000',
-        overflow: 'hidden',
-        textAlign: 'center',
-      }}>
-        {/* Title stage */}
-        <div style={{ maxWidth: '780px', margin: '0 auto', zIndex: 10 }}>
-          {/* Animated pill eyebrow badge */}
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginBottom: '14px' }}
-          >
-            <div style={{
-              display: 'inline-flex', alignItems: 'center', gap: '7px',
-              background: 'rgba(16,185,129,0.14)',
-              border: '1px solid rgba(16,185,129,0.28)',
-              borderRadius: '999px',
-              padding: '4px 12px 4px 8px',
-            }}>
-              <span style={{
-                width: 7, height: 7, borderRadius: '50%', background: '#10B981',
-                animation: 'pulseDot 2s ease-in-out infinite',
-                display: 'inline-block',
-                flexShrink: 0,
-              }} />
-              <span style={{ fontSize: '11.5px', fontWeight: 600, color: '#10B981', letterSpacing: '0.02em' }}>
-                Pet Maya 2.0 — Now Live
+      {/* ═══════════════════════════════════════════════════════════════
+          SECTION 01 — HERO
+          ═══════════════════════════════════════════════════════════════ */}
+      <section
+        className="editorial-section"
+        style={{
+          paddingTop: 'clamp(56px, 8vw, 100px)',
+          paddingBottom: 'clamp(64px, 8vw, 110px)',
+          borderBottom: '1px solid var(--border)',
+        }}
+      >
+        <div className="editorial-container">
+          <div style={{ maxWidth: '860px', margin: '0 auto', textAlign: 'center' }}>
+            {/* Eyebrow */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+              style={{ marginBottom: '18px' }}
+            >
+              <span className="text-eyebrow text-eyebrow-accent">
+                <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: 'var(--primary)' }} />
+                PET MAYA
               </span>
-            </div>
-          </motion.div>
+            </motion.div>
 
-          <motion.h1
-            initial={{ opacity: 0, y: 12 }}
+            {/* Main Headline */}
+            <motion.h1
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.05 }}
+              style={{
+                fontFamily: 'var(--font-heading)',
+                fontSize: 'clamp(42px, 6.5vw, 84px)',
+                fontWeight: 800,
+                letterSpacing: '-0.04em',
+                lineHeight: 1.06,
+                color: 'var(--foreground)',
+                marginBottom: '24px',
+              }}
+            >
+              Better care for the pets you love.
+            </motion.h1>
+
+            {/* Supporting Copy */}
+            <motion.p
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              style={{
+                fontSize: 'clamp(17px, 2vw, 21px)',
+                color: 'var(--text-muted)',
+                lineHeight: 1.55,
+                maxWidth: '680px',
+                margin: '0 auto 36px',
+              }}
+            >
+              Pet Maya brings health records, intelligent care, safety and connected pet technology together in one simple platform.
+            </motion.p>
+
+            {/* CTAs */}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.15 }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '14px',
+                flexWrap: 'wrap',
+                marginBottom: '56px',
+              }}
+            >
+              <button
+                onClick={handleGetStarted}
+                className="editorial-btn-primary"
+                style={{ padding: '15px 32px', fontSize: '16px' }}
+              >
+                <span>Get Started</span>
+                <ArrowRight size={16} />
+              </button>
+              <button
+                onClick={() => handleRoute('/features')}
+                className="editorial-btn-secondary"
+                style={{ padding: '15px 30px', fontSize: '16px' }}
+              >
+                <span>Explore Pet Maya</span>
+              </button>
+            </motion.div>
+          </div>
+
+          {/* Hero Visual Composition — Real Product UI with Floating Indicators */}
+          <motion.div
+            initial={{ opacity: 0, y: 28 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05, duration: 0.35 }}
+            transition={{ duration: 0.65, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
             style={{
-              fontSize: 'clamp(2.2rem, 6vw, 4.4rem)',
-              fontWeight: 700,
-              letterSpacing: '-0.04em',
-              color: '#FFF',
-              lineHeight: 1.08,
-              margin: '0 0 12px 0',
-              wordBreak: 'break-word',
+              position: 'relative',
+              maxWidth: '1120px',
+              margin: '0 auto',
             }}
           >
-            Titanium intelligence.
-          </motion.h1>
+            {/* Main Stage Frame */}
+            <div
+              style={{
+                borderRadius: 'var(--radius-xl)',
+                overflow: 'hidden',
+                border: '1px solid var(--border)',
+                backgroundColor: 'var(--surface)',
+                boxShadow: '0 24px 72px rgba(0, 0, 0, 0.08), 0 4px 16px rgba(0, 0, 0, 0.03)',
+              }}
+            >
+              {/* Device Window Bar */}
+              <div
+                style={{
+                  height: '42px',
+                  backgroundColor: 'var(--soft-surface)',
+                  borderBottom: '1px solid var(--border)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: '0 18px',
+                  gap: '8px',
+                }}
+              >
+                <div style={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: '#E2E1DA' }} />
+                <div style={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: '#E2E1DA' }} />
+                <div style={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: '#E2E1DA' }} />
+                <div
+                  style={{
+                    margin: '0 auto',
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '11px',
+                    color: 'var(--text-muted)',
+                    letterSpacing: '0.02em',
+                  }}
+                >
+                  petmaya.app/dashboard
+                </div>
+              </div>
 
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.1, duration: 0.35 }}
-            style={{ fontSize: 'clamp(0.95rem, 2.5vw, 1.2rem)', color: '#A1A1A6', maxWidth: '560px', margin: '0 auto 22px', lineHeight: 1.5, padding: '0 10px' }}
-          >
-            Next-generation pet healthcare, live GPS radar, and clinical AI triage. All in one place.
-          </motion.p>
+              {/* Product UI Image */}
+              <img
+                src="/assets/screens/02_dashboard_desktop.png"
+                alt="Pet Maya Health Dashboard"
+                style={{
+                  width: '100%',
+                  height: 'auto',
+                  display: 'block',
+                  maxHeight: '620px',
+                  objectFit: 'cover',
+                  objectPosition: 'top',
+                }}
+                onError={(e) => {
+                  e.target.src = 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=1200&auto=format&fit=crop&q=80';
+                }}
+              />
+            </div>
 
-          <motion.div
-            initial={{ opacity: 0, scale: 0.96 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.15, duration: 0.3 }}
-            className="apple-cta-group"
-            style={{ justifyContent: 'center', marginBottom: '8px' }}
-          >
-            <button className="apple-btn-blue" onClick={() => openModal('auth')}>
-              <span>Get Started</span>
-            </button>
-            <button className="apple-link-cta" onClick={handleTryDemo} style={{ color: '#FFF', opacity: 0.85 }}>
-              <span>Explore Live Demo</span>
-              <ChevronRight size={15} />
-            </button>
+            {/* Floating Live Product Indicator: Health Score */}
+            <div
+              className="editorial-hero-chip"
+              style={{
+                position: 'absolute',
+                top: '-20px',
+                left: '-16px',
+                backgroundColor: 'var(--surface)',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-md)',
+                padding: '12px 18px',
+                boxShadow: 'var(--shadow-md)',
+                display: 'none',
+                alignItems: 'center',
+                gap: '12px',
+              }}
+            >
+              <div style={{ width: 34, height: 34, borderRadius: '50%', backgroundColor: 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)' }}>
+                <CheckCircle2 size={18} />
+              </div>
+              <div>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Health Score</div>
+                <div style={{ fontFamily: 'var(--font-heading)', fontSize: '15px', fontWeight: 700 }}>100% — Optimal</div>
+              </div>
+            </div>
+
+            {/* Floating Live Product Indicator: GPS Safe Zone */}
+            <div
+              className="editorial-hero-chip"
+              style={{
+                position: 'absolute',
+                bottom: '24px',
+                right: '-16px',
+                backgroundColor: 'var(--surface)',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-md)',
+                padding: '12px 18px',
+                boxShadow: 'var(--shadow-md)',
+                display: 'none',
+                alignItems: 'center',
+                gap: '12px',
+              }}
+            >
+              <div style={{ width: 34, height: 34, borderRadius: '50%', backgroundColor: '#E0F9FD', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#008AA0' }}>
+                <Radar size={18} />
+              </div>
+              <div>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>GPS Radar</div>
+                <div style={{ fontFamily: 'var(--font-heading)', fontSize: '15px', fontWeight: 700 }}>Safe Zone • Home Perimeter</div>
+              </div>
+            </div>
           </motion.div>
         </div>
 
-        {/* Ecosystem card overlay (Integrated cleanly with tight vertical margin) */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.4 }}
-          style={{
-            marginTop: '28px',
-            width: 'calc(100% - 32px)',
-            maxWidth: '880px',
-            zIndex: 10,
-          }}
-        >
-          <div style={{
-            background: 'rgba(20,20,22,0.94)',
-            backdropFilter: 'blur(32px)',
-            WebkitBackdropFilter: 'blur(32px)',
-            border: '1px solid rgba(255,255,255,0.12)',
-            borderRadius: '24px',
-            padding: 'clamp(16px, 2.8vw, 24px)',
-            boxShadow: '0 24px 60px rgba(0,0,0,0.85), 0 0 30px rgba(16,185,129,0.08)',
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(185px, 1fr))',
-            gap: 'clamp(10px, 1.8vw, 16px)',
-            textAlign: 'left',
-          }}>
-            {ecosystemFeatures.map((item) => (
-              <motion.div
-                key={`${item.id}-${item.title}`}
-                whileHover={{ scale: 1.03, y: -2 }}
-                whileTap={{ scale: 0.97 }}
-                style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', padding: '5px 4px' }}
-                onClick={() => handleFeatureAccess(item.id, item.title)}
-              >
-                <div style={{ width: 38, height: 38, borderRadius: '11px', background: item.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: item.color, flexShrink: 0 }}>
-                  <item.icon size={18} />
-                </div>
-                <div>
-                  <strong style={{ fontSize: '13.5px', color: '#FFFFFF', display: 'block', letterSpacing: '-0.01em', fontWeight: 600 }}>{item.title}</strong>
-                  <span style={{ fontSize: '11px', color: '#86868B' }}>{item.subtitle}</span>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
+        <style>{`
+          @media (min-width: 900px) {
+            .editorial-hero-chip {
+              display: flex !important;
+            }
+          }
+        `}</style>
       </section>
 
-      {/* ═══ HERO 2: COMPACT INTERACTIVE PILLARS SHOWCASE ═══ */}
-      <section style={{
-        background: '#000',
-        padding: '36px 16px 40px',
-        borderTop: '1px solid rgba(255,255,255,0.07)',
-        borderBottom: '1px solid rgba(255,255,255,0.07)',
-        position: 'relative',
-        overflow: 'hidden',
-      }}>
-        <div style={{
-          position: 'absolute',
-          top: '50%', left: '50%',
-          width: '600px', height: '300px',
-          transform: 'translate(-50%, -50%)',
-          background: 'radial-gradient(circle, rgba(30,58,138,0.18) 0%, rgba(0,0,0,0) 70%)',
-          pointerEvents: 'none',
-        }} />
+      {/* ═══════════════════════════════════════════════════════════════
+          SECTION 02 — PRODUCT PROMISE
+          ═══════════════════════════════════════════════════════════════ */}
+      <section
+        className="editorial-section"
+        style={{
+          backgroundColor: 'var(--soft-surface)',
+          borderBottom: '1px solid var(--border)',
+          textAlign: 'center',
+        }}
+      >
+        <div className="editorial-container-narrow">
+          <span className="text-eyebrow" style={{ marginBottom: '16px' }}>
+            MODERN PET CARE
+          </span>
+          <h2
+            style={{
+              fontSize: 'clamp(32px, 4.5vw, 56px)',
+              fontWeight: 800,
+              letterSpacing: '-0.03em',
+              lineHeight: 1.15,
+              marginBottom: '24px',
+              color: 'var(--foreground)',
+            }}
+          >
+            Your pet’s health shouldn’t live in scattered places.
+          </h2>
+          <p
+            style={{
+              fontSize: 'clamp(16px, 1.8vw, 19px)',
+              color: 'var(--text-muted)',
+              lineHeight: 1.65,
+              maxWidth: '720px',
+              margin: '0 auto',
+            }}
+          >
+            Vaccination records, medical history, medications, appointments, health information and safety tools should not exist in disconnected places. Pet Maya brings them together into one unified, intelligent companion.
+          </p>
+        </div>
+      </section>
 
-        <div style={{ maxWidth: '820px', margin: '0 auto', textAlign: 'center', position: 'relative', zIndex: 2 }}>
-          {/* Switcher Tabs */}
-          <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            background: 'rgba(255,255,255,0.06)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: '999px',
-            padding: '4px',
-            marginBottom: '24px',
-            flexWrap: 'wrap',
-            justifyContent: 'center',
-          }}>
-            {showcasePillars.map((p, idx) => {
-              const isActive = activePillar === idx;
-              return (
-                <button
-                  key={p.id}
-                  onClick={() => setActivePillar(idx)}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '7px 16px',
-                    borderRadius: '999px',
-                    border: 'none',
-                    background: isActive ? p.bg : 'transparent',
-                    color: isActive ? p.color : '#86868B',
-                    fontWeight: 600,
-                    fontSize: '12.5px',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                  }}
-                >
-                  <p.icon size={14} />
-                  <span>{p.eyebrow}</span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Active Feature Showcase */}
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activePillar}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.25 }}
-              style={{
-                background: 'rgba(255,255,255,0.03)',
-                border: `1px solid ${currentPillar.border}`,
-                borderRadius: '22px',
-                padding: 'clamp(22px, 3.5vw, 32px)',
-                boxShadow: `0 16px 40px rgba(0,0,0,0.6), 0 0 25px ${currentPillar.bg}`,
-              }}
-            >
-              <span className="apple-hero-eyebrow" style={{ color: currentPillar.color, fontSize: 'clamp(11px, 2.5vw, 13px)', display: 'block', marginBottom: '8px' }}>
-                {currentPillar.eyebrow}
+      {/* ═══════════════════════════════════════════════════════════════
+          SECTION 03 — HEALTH
+          ═══════════════════════════════════════════════════════════════ */}
+      <section
+        className="editorial-section"
+        style={{ borderBottom: '1px solid var(--border)' }}
+      >
+        <div className="editorial-container">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '48px', alignItems: 'center' }}>
+            <div>
+              <span className="text-eyebrow" style={{ marginBottom: '14px' }}>
+                01 / HEALTH
               </span>
-              <h2 style={{ fontSize: 'clamp(1.6rem, 4.5vw, 2.8rem)', fontWeight: 700, color: '#FFF', margin: '0 0 10px', lineHeight: 1.15, letterSpacing: '-0.025em' }}>
-                {currentPillar.title}
+              <h2
+                style={{
+                  fontSize: 'clamp(32px, 4vw, 52px)',
+                  fontWeight: 800,
+                  letterSpacing: '-0.03em',
+                  lineHeight: 1.12,
+                  marginBottom: '20px',
+                }}
+              >
+                Your pet’s health, finally organized.
               </h2>
-              <p style={{ fontSize: 'clamp(0.95rem, 2.5vw, 1.15rem)', color: '#A1A1A6', maxWidth: '540px', margin: '0 auto 20px', lineHeight: 1.5 }}>
-                {currentPillar.subtitle}
+              <p style={{ fontSize: '17px', color: 'var(--text-muted)', lineHeight: 1.65, marginBottom: '32px' }}>
+                No more paper vaccination cards lost in drawers or forgotten rabies boosters. Pet Maya maintains complete, chronological medical records synced with certified veterinary clinics.
               </p>
 
-              {/* Badges row */}
-              <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '8px', marginBottom: '22px' }}>
-                {currentPillar.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    style={{
-                      background: 'rgba(255,255,255,0.06)',
-                      border: '1px solid rgba(255,255,255,0.08)',
-                      borderRadius: '8px',
-                      padding: '4px 10px',
-                      fontSize: '11.5px',
-                      color: '#D1D5DB',
-                      fontWeight: 500,
-                    }}
-                  >
-                    ✓ {tag}
-                  </span>
-                ))}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+                <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
+                  <div style={{ width: 26, height: 26, borderRadius: '50%', backgroundColor: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '2px' }}>
+                    <CheckCircle2 size={16} />
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: '15px' }}>Digital Health Records</div>
+                    <div style={{ fontSize: '13.5px', color: 'var(--text-muted)', marginTop: '2px' }}>Diagnoses, prescriptions, allergies, and surgical notes stored permanently.</div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
+                  <div style={{ width: 26, height: 26, borderRadius: '50%', backgroundColor: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '2px' }}>
+                    <CheckCircle2 size={16} />
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: '15px' }}>Vaccination Timelines & Reminders</div>
+                    <div style={{ fontSize: '13.5px', color: 'var(--text-muted)', marginTop: '2px' }}>Automated notifications for rabies, core vaccines, and parasite prevention.</div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
+                  <div style={{ width: 26, height: 26, borderRadius: '50%', backgroundColor: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '2px' }}>
+                    <CheckCircle2 size={16} />
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: '15px' }}>Telemedicine & In-Clinic Scheduling</div>
+                    <div style={{ fontSize: '13.5px', color: 'var(--text-muted)', marginTop: '2px' }}>Book verified veterinary specialists for physical visits or HD video consults.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Health Dashboard Visual */}
+            <div
+              style={{
+                borderRadius: 'var(--radius-xl)',
+                overflow: 'hidden',
+                border: '1px solid var(--border)',
+                backgroundColor: 'var(--surface)',
+                boxShadow: 'var(--shadow-lg)',
+              }}
+            >
+              <img
+                src="/assets/screens/08_reminders_desktop.png"
+                alt="Vaccination & Health Schedule"
+                style={{ width: '100%', height: 'auto', display: 'block' }}
+                onError={(e) => {
+                  e.target.src = '/assets/screens/02_dashboard_desktop.png';
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════
+          SECTION 04 — DIGITAL PET PASSPORT
+          ═══════════════════════════════════════════════════════════════ */}
+      <section
+        className="editorial-section"
+        style={{
+          backgroundColor: 'var(--soft-surface)',
+          borderBottom: '1px solid var(--border)',
+        }}
+      >
+        <div className="editorial-container">
+          <div style={{ maxWidth: '780px', margin: '0 auto 56px', textAlign: 'center' }}>
+            <span className="text-eyebrow text-eyebrow-accent" style={{ marginBottom: '14px' }}>
+              DIGITAL PET PASSPORT
+            </span>
+            <h2
+              style={{
+                fontSize: 'clamp(32px, 4.5vw, 54px)',
+                fontWeight: 800,
+                letterSpacing: '-0.03em',
+                lineHeight: 1.1,
+                marginBottom: '18px',
+              }}
+            >
+              Your pet’s health story, wherever you go.
+            </h2>
+            <p style={{ fontSize: '17px', color: 'var(--text-muted)', lineHeight: 1.6 }}>
+              The flagship Pet Maya digital passport replaces fragile paper records with an encrypted, cloud-verified identity complete with ISO microchip registry, verified immunity records, and instant QR sharing.
+            </p>
+          </div>
+
+          {/* Passport Visual Composition */}
+          <div
+            style={{
+              maxWidth: '920px',
+              margin: '0 auto',
+              borderRadius: 'var(--radius-xl)',
+              overflow: 'hidden',
+              border: '1px solid var(--border)',
+              backgroundColor: 'var(--surface)',
+              boxShadow: 'var(--shadow-xl)',
+              padding: 'clamp(28px, 4vw, 56px)',
+            }}
+          >
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '40px', alignItems: 'center' }}>
+              {/* Pet Identity Card */}
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
+                  <img
+                    src="https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=160&auto=format&fit=crop&q=80"
+                    alt="Max the Golden Retriever"
+                    style={{ width: '84px', height: '84px', borderRadius: '50%', objectFit: 'cover', border: '3px solid var(--primary)' }}
+                  />
+                  <div>
+                    <h3 style={{ fontSize: '24px', fontWeight: 800, margin: '0 0 4px 0' }}>Max</h3>
+                    <div style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Golden Retriever • 3 Years Old</div>
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--primary)', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <ShieldCheck size={14} />
+                      <span>ISO 11784 Verified #985141002381</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ borderTop: '1px solid var(--border)', paddingTop: '20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div>
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Rabies Immunity</div>
+                    <div style={{ fontSize: '14px', fontWeight: 600, marginTop: '2px', color: '#10B981' }}>Active (Valid to 2027)</div>
+                  </div>
+                  <div>
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Weight</div>
+                    <div style={{ fontSize: '14px', fontWeight: 600, marginTop: '2px' }}>28.4 kg (Optimal)</div>
+                  </div>
+                  <div>
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Primary Clinic</div>
+                    <div style={{ fontSize: '14px', fontWeight: 600, marginTop: '2px' }}>Central Vet Hospital</div>
+                  </div>
+                  <div>
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Emergency Hotline</div>
+                    <div style={{ fontSize: '14px', fontWeight: 600, marginTop: '2px' }}>+880 1712-345678</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Passport QR & Travel Ready Panel */}
+              <div
+                style={{
+                  backgroundColor: 'var(--soft-surface)',
+                  borderRadius: 'var(--radius-lg)',
+                  padding: '28px',
+                  textAlign: 'center',
+                  border: '1px solid var(--border)',
+                }}
+              >
+                <div style={{ width: 120, height: 120, margin: '0 auto 16px', backgroundColor: '#FFF', borderRadius: '12px', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border)' }}>
+                  <QrCode size={96} color="#151515" />
+                </div>
+                <div style={{ fontFamily: 'var(--font-heading)', fontSize: '16px', fontWeight: 700, marginBottom: '6px' }}>
+                  Digital Identity QR
+                </div>
+                <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.5, margin: '0 0 16px 0' }}>
+                  Scan at border security, airlines, or emergency veterinary hospitals for instant read-only health clearance.
+                </p>
+                <button
+                  onClick={() => handleRoute('/digital-pet-passport')}
+                  className="editorial-btn-secondary"
+                  style={{ width: '100%', fontSize: '13.5px', padding: '10px 16px' }}
+                >
+                  <span>Explore Passport Features</span>
+                  <ArrowRight size={14} />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════
+          SECTION 05 — AI
+          ═══════════════════════════════════════════════════════════════ */}
+      <section
+        className="editorial-section"
+        style={{ borderBottom: '1px solid var(--border)' }}
+      >
+        <div className="editorial-container">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '48px', alignItems: 'center' }}>
+            {/* AI Interactive Chat / Scanner Showcase */}
+            <div
+              style={{
+                borderRadius: 'var(--radius-xl)',
+                overflow: 'hidden',
+                border: '1px solid var(--border)',
+                backgroundColor: 'var(--surface)',
+                boxShadow: 'var(--shadow-lg)',
+                padding: 'clamp(24px, 3vw, 36px)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '16px', borderBottom: '1px solid var(--border)', marginBottom: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{ width: 28, height: 28, borderRadius: '50%', backgroundColor: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Sparkles size={16} />
+                  </div>
+                  <div>
+                    <strong style={{ fontSize: '14.5px', display: 'block' }}>Pet Maya Clinical AI</strong>
+                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Multi-Modal Symptom Guidance</span>
+                  </div>
+                </div>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#10B981', backgroundColor: 'var(--primary-light)', padding: '2px 8px', borderRadius: 'var(--radius-full)' }}>
+                  Decision Support Active
+                </span>
+              </div>
+
+              {/* Chat Dialog Simulation */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div style={{ alignSelf: 'flex-start', maxWidth: '85%', backgroundColor: 'var(--soft-surface)', padding: '12px 16px', borderRadius: '14px 14px 14px 2px', fontSize: '13.5px', lineHeight: 1.5 }}>
+                  "My cat Bella has been scratching her right ear frequently and shaking her head since yesterday."
+                </div>
+
+                <div style={{ alignSelf: 'flex-end', maxWidth: '90%', backgroundColor: 'var(--foreground)', color: '#FFF', padding: '14px 18px', borderRadius: '14px 14px 2px 14px', fontSize: '13.5px', lineHeight: 1.55 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#34D399', fontWeight: 600, fontSize: '12.5px', marginBottom: '4px' }}>
+                    <Activity size={14} />
+                    <span>Severity Triage: Level 2 (Moderate — Non-Emergency)</span>
+                  </div>
+                  Head shaking and focal ear scratching commonly indicate Otitis Externa (ear canal inflammation) or ear mite infestation. Do not insert cotton swabs. Recommended next step: schedule a non-emergency veterinary ear exam within 48 hours.
+                </div>
+              </div>
+
+              {/* Disclaimer */}
+              <div style={{ marginTop: '20px', padding: '10px 14px', backgroundColor: 'var(--soft-surface)', borderRadius: 'var(--radius-sm)', fontSize: '11.5px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                ⚠️ <strong>Clinical Notice:</strong> AI assistance provides triage insights and first-aid protocols. It is not a replacement for professional veterinary examination, diagnosis, or prescription.
+              </div>
+            </div>
+
+            {/* AI Editorial Text */}
+            <div>
+              <span className="text-eyebrow" style={{ marginBottom: '14px' }}>
+                02 / INTELLIGENCE
+              </span>
+              <h2
+                style={{
+                  fontSize: 'clamp(32px, 4vw, 52px)',
+                  fontWeight: 800,
+                  letterSpacing: '-0.03em',
+                  lineHeight: 1.12,
+                  marginBottom: '20px',
+                }}
+              >
+                Smarter insights for better pet care.
+              </h2>
+              <p style={{ fontSize: '17px', color: 'var(--text-muted)', lineHeight: 1.65, marginBottom: '28px' }}>
+                When your pet behaves differently, you shouldn't have to panic through conflicting forum threads. Pet Maya's vision models analyze symptoms, map physiological regions, and provide calm, structured guidance.
+              </p>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '32px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: 'var(--primary)' }} />
+                  <span style={{ fontSize: '15px', fontWeight: 500 }}>Multi-modal image analysis for skin, coat, and eye lesions</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: 'var(--primary)' }} />
+                  <span style={{ fontSize: '15px', fontWeight: 500 }}>Standardized 4-level veterinary urgency scoring</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: 'var(--primary)' }} />
+                  <span style={{ fontSize: '15px', fontWeight: 500 }}>Direct seamless escalation to on-call tele-vets</span>
+                </div>
               </div>
 
               <button
-                onClick={() => handleFeatureAccess(currentPillar.tabId, currentPillar.eyebrow)}
-                className="apple-btn-blue"
-                style={{
-                  background: currentPillar.color,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '9px 20px',
-                  fontSize: '13px',
-                  margin: '0 auto',
-                }}
+                onClick={() => handleRoute('/ai-pet-care')}
+                className="editorial-btn-secondary"
               >
-                <span>{currentPillar.actionText}</span>
-                <ChevronRight size={14} />
+                <span>Learn About AI Health Care</span>
+                <ArrowRight size={14} />
               </button>
-            </motion.div>
-          </AnimatePresence>
-        </div>
-      </section>
-
-      {/* ═══ STATS BAR ═══ */}
-      <section style={{ background: '#0A0A0A', borderTop: '1px solid rgba(255,255,255,0.07)', borderBottom: '1px solid rgba(255,255,255,0.07)', padding: '28px 20px' }}>
-        <div style={{ maxWidth: '800px', margin: '0 auto', display: 'flex', justifyContent: 'space-around', alignItems: 'center', flexWrap: 'wrap', gap: '24px', textAlign: 'center' }}>
-          {[
-            { value: '500+', label: 'Verified Vets' },
-            { value: '50K+', label: 'Pet Families' },
-            { value: '4.9★', label: 'App Rating' },
-          ].map((stat, i) => (
-            <motion.div
-              key={stat.label}
-              initial={{ opacity: 0, y: 12 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-20px' }}
-              transition={{ duration: 0.35, delay: i * 0.06 }}
-              style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}
-            >
-              <span style={{ fontSize: 'clamp(1.8rem, 4vw, 2.6rem)', fontWeight: 700, color: '#FFF', letterSpacing: '-0.03em', lineHeight: 1 }}>
-                {stat.value}
-              </span>
-              <span style={{ fontSize: '12.5px', color: '#86868B', fontWeight: 500 }}>
-                {stat.label}
-              </span>
-            </motion.div>
-          ))}
-        </div>
-      </section>
-
-      {/* ═══ BENTO FEATURE GRID ═══ */}
-      <section style={{ background: 'var(--bg)', padding: '44px 20px' }}>
-        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-          {/* Section header */}
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.35 }}
-            style={{ textAlign: 'center', marginBottom: '28px' }}
-          >
-            <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', color: 'var(--primary)', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
-              Everything in one place
-            </span>
-            <h2 style={{ fontSize: 'clamp(1.6rem, 3.5vw, 2.4rem)', fontWeight: 700, letterSpacing: '-0.03em', color: 'var(--text-main)', margin: 0, lineHeight: 1.15 }}>
-              Built for every pet parent.
-            </h2>
-          </motion.div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
-            {bentoFeatures.map((item, idx) => (
-              <motion.div
-                key={`${item.id}-${idx}`}
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-10px' }}
-                transition={{ duration: 0.32, delay: (idx % 4) * 0.04 }}
-                whileHover={{ y: -3, boxShadow: 'var(--shadow-md)' }}
-                style={{
-                  background: 'var(--surface-solid)',
-                  border: '1px solid var(--border)',
-                  borderRadius: '18px',
-                  padding: '22px 20px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '10px',
-                  cursor: 'pointer',
-                  transition: 'box-shadow 0.25s ease',
-                  borderTop: `3px solid ${item.color}`,
-                }}
-                onClick={() => handleFeatureAccess(item.id, item.title)}
-              >
-                <div style={{ width: 40, height: 40, borderRadius: '12px', background: `${item.color}14`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: item.color }}>
-                  <item.icon size={19} />
-                </div>
-                <div>
-                  <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.06em', color: item.color, textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>
-                    {item.eyebrow}
-                  </span>
-                  <h3 style={{ fontSize: '16.5px', fontWeight: 700, letterSpacing: '-0.02em', margin: '0 0 5px', color: 'var(--text-main)' }}>
-                    {item.title}
-                  </h3>
-                  <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', lineHeight: 1.5, margin: 0 }}>
-                    {item.desc}
-                  </p>
-                </div>
-                <div style={{ marginTop: 'auto', paddingTop: '4px' }}>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '12.5px', color: item.color, fontWeight: 600 }}>
-                    Explore <ChevronRight size={13} />
-                  </span>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ SOCIAL PROOF TESTIMONIALS ═══ */}
-      <section style={{ background: 'var(--bg)', padding: '44px 20px', borderTop: '1px solid var(--border)' }}>
-        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.35 }}
-            style={{ textAlign: 'center', marginBottom: '28px' }}
-          >
-            <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', color: 'var(--primary)', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
-              Trusted by thousands
-            </span>
-            <h2 style={{ fontSize: 'clamp(1.6rem, 3.5vw, 2.4rem)', fontWeight: 700, letterSpacing: '-0.03em', color: 'var(--text-main)', margin: '0 0 8px', lineHeight: 1.15 }}>
-              Pet parents love it.
-            </h2>
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '4px' }}>
-              {[1,2,3,4,5].map(i => <Star key={i} size={16} fill="#F59E0B" color="#F59E0B" />)}
-              <span style={{ fontSize: '13px', color: 'var(--text-muted)', marginLeft: '8px' }}>4.9 avg · 3,200+ reviews</span>
             </div>
-          </motion.div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
-            {[
-              { name: 'Nafisa Rahman', role: 'Dog Parent · Dhaka', quote: 'The GPS collar alert saved my Golden Retriever Biscuit from crossing the boundary. Got the geofence alert within seconds. Life-changing.', icon: Radar, iconColor: '#10B981', stars: 5 },
-              { name: 'Dr. Touhid Hossain', role: 'Veterinarian · Chittagong', quote: 'The AI triage tool is surprisingly accurate. It correctly flagged a secondary pyoderma on a Labrador photo a client sent before clinic visit.', icon: Stethoscope, iconColor: '#3B82F6', stars: 5 },
-              { name: 'Meher Afroz', role: 'Cat Parent · Sylhet', quote: 'Our Persian cat Mia had conjunctivitis. I uploaded a photo, got the diagnosis plus the right doctor. Saved us so much panic and time.', icon: Heart, iconColor: '#EC4899', stars: 5 },
-              { name: 'Tanvir Ahmed', role: 'Multi-Pet Owner · Rajshahi', quote: 'Managing 3 dogs vaccine schedules was chaotic. The Medical Passport feature keeps everything in one place with automatic calendar export.', icon: Activity, iconColor: '#F59E0B', stars: 5 },
-              { name: 'Sabrina Islam', role: 'Rabbit Parent · Khulna', quote: 'I did not expect rabbit-specific content but the AI correctly identified ear mite signs and gave breed-appropriate advice. Excellent app.', icon: Sparkles, iconColor: '#8B5CF6', stars: 4 },
-              { name: 'Kamrul Hassan', role: 'Vet Clinic Owner · Dhaka', quote: 'We registered our clinic and started receiving teleconsultation bookings within the first week. The platform quality matches international standards.', icon: Building2, iconColor: '#06B6D4', stars: 5 },
-            ].map((t, idx) => {
-              const IconComponent = t.icon;
-              return (
-                <motion.div
-                  key={t.name}
-                  initial={{ opacity: 0, y: 14 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: '-10px' }}
-                  transition={{ duration: 0.3, delay: (idx % 3) * 0.04 }}
-                  style={{ background: 'var(--surface-solid)', border: '1px solid var(--border)', borderRadius: '16px', padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: '10px' }}
-                >
-                  <div style={{ display: 'flex', gap: '2px' }}>
-                    {Array(t.stars).fill(0).map((_, i) => <Star key={i} size={12} fill="#F59E0B" color="#F59E0B" />)}
-                    {Array(5 - t.stars).fill(0).map((_, i) => <Star key={`e${i}`} size={12} fill="none" color="#86868B" />)}
-                  </div>
-                  <p style={{ fontSize: '13px', color: 'var(--text-main)', lineHeight: 1.5, margin: 0, fontStyle: 'italic' }}>"{t.quote}"</p>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: 'auto', paddingTop: '6px', borderTop: '1px solid var(--border)' }}>
-                    <div style={{
-                      width: 36,
-                      height: 36,
-                      borderRadius: '50%',
-                      background: `${t.iconColor}18`,
-                      color: t.iconColor,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0
-                    }}>
-                      <IconComponent size={18} />
-                    </div>
-                    <div>
-                      <strong style={{ fontSize: '12.5px', display: 'block', color: 'var(--text-main)' }}>{t.name}</strong>
-                      <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{t.role}</span>
-                    </div>
-                  </div>
-                </motion.div>
-              );
-            })}
           </div>
         </div>
       </section>
 
-      {/* ═══ TECHNOLOGY SPECS ═══ */}
-      <section style={{ background: '#000', padding: '44px 20px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.35 }}
-            style={{ textAlign: 'center', marginBottom: '28px' }}
-          >
-            <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', color: '#3B82F6', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>Under the hood</span>
-            <h2 style={{ fontSize: 'clamp(1.6rem, 3.5vw, 2.4rem)', fontWeight: 700, letterSpacing: '-0.03em', color: '#FFF', margin: 0, lineHeight: 1.15 }}>Titanium engineering.</h2>
-          </motion.div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '14px' }}>
-            {[
-              { icon: Radar, color: '#10B981', title: 'GPS Accuracy', spec: '< 2 meter', detail: 'Multi-constellation GNSS (GPS+GLONASS+Galileo) with Kalman filtering' },
-              { icon: Radar, color: '#10B981', title: 'Hardware Ecosystem', spec: 'Sub-meter GNSS', detail: 'Smart GPS collars, BLE beacons, 85dB acoustic siren & live telemetry' },
-              { icon: Sparkles, color: '#3B82F6', title: 'AI Model', spec: 'Clinical V3.4', detail: '50,000+ veterinary case training set, multi-modal vision CNN architecture' },
-              { icon: ShieldCheck, color: '#F59E0B', title: 'Data Security', spec: 'AES-256', detail: 'End-to-end encrypted health records with Firebase Firestore backend' },
-              { icon: Bell, color: '#EC4899', title: 'Alert Latency', spec: '< 3 seconds', detail: 'Real-time geofence breach push notification via FCM cloud messaging' },
-              { icon: ShieldCheck, color: '#06B6D4', title: 'Digital Passport', spec: 'ISO 11784', detail: 'Encrypted microchip registry, rabies verification & biometric recovery QR' },
-              { icon: AlertTriangle, color: '#EF4444', title: 'Amber Alert Net', spec: '< 3 seconds', detail: 'Real-time neighborhood missing pet broadcasts & geofence perimeter alarms' },
-              { icon: Activity, color: '#8B5CF6', title: 'Biometrics', spec: '8 sensors', detail: 'Heart rate, activity, temperature, humidity, orientation, steps, GPS, battery' },
-              { icon: Calendar, color: '#10B981', title: 'Cloud Reliability', spec: '99.95% SLA', detail: 'Firebase cloud infrastructure with automatic regional failover' },
-            ].map((spec, idx) => (
-              <motion.div
-                key={spec.title}
-                initial={{ opacity: 0, y: 14 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-10px' }}
-                transition={{ duration: 0.3, delay: (idx % 3) * 0.04 }}
-                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: '8px' }}
+      {/* ═══════════════════════════════════════════════════════════════
+          SECTION 06 — GPS & SAFETY (High-Contrast Dark Section)
+          ═══════════════════════════════════════════════════════════════ */}
+      <section
+        className="editorial-section"
+        style={{
+          backgroundColor: 'var(--dark-hero-bg)',
+          color: '#FFFFFF',
+          borderBottom: '1px solid var(--dark-border)',
+        }}
+      >
+        <div className="editorial-container">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '56px', alignItems: 'center' }}>
+            <div>
+              <span className="text-eyebrow" style={{ color: '#10B981', marginBottom: '14px' }}>
+                03 / SAFETY
+              </span>
+              <h2
+                style={{
+                  fontSize: 'clamp(32px, 4.5vw, 54px)',
+                  fontWeight: 800,
+                  letterSpacing: '-0.03em',
+                  lineHeight: 1.1,
+                  color: '#FFFFFF',
+                  marginBottom: '20px',
+                }}
               >
-                <div style={{ width: 36, height: 36, borderRadius: '10px', background: `${spec.color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: spec.color }}>
-                  <spec.icon size={18} />
+                Know where they are. Know they’re safe.
+              </h2>
+              <p style={{ fontSize: '17px', color: '#94A3B8', lineHeight: 1.65, marginBottom: '32px' }}>
+                Real-time multi-constellation satellite telemetry delivers sub-2-meter precision. Set geofence security perimeters around home or park, and receive instant push alarms the second a boundary is breached.
+              </p>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '36px' }}>
+                <div style={{ backgroundColor: 'var(--dark-surface)', border: '1px solid var(--dark-border)', borderRadius: 'var(--radius-md)', padding: '16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#10B981', marginBottom: '6px' }}>
+                    <MapPin size={18} />
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px' }}>GNSS Satellite</span>
+                  </div>
+                  <div style={{ fontSize: '15px', fontWeight: 600 }}>&lt; 2-Meter Precision</div>
+                  <div style={{ fontSize: '12px', color: '#64748B', marginTop: '2px' }}>GPS + GLONASS + Galileo</div>
                 </div>
-                <div>
-                  <span style={{ fontSize: '10.5px', fontWeight: 700, color: spec.color, letterSpacing: '0.05em', textTransform: 'uppercase', display: 'block', marginBottom: '3px' }}>{spec.title}</span>
-                  <strong style={{ fontSize: '20px', fontWeight: 700, color: '#FFF', letterSpacing: '-0.02em', display: 'block', lineHeight: 1.2 }}>{spec.spec}</strong>
-                  <p style={{ fontSize: '11.5px', color: '#86868B', margin: '4px 0 0', lineHeight: 1.5 }}>{spec.detail}</p>
+
+                <div style={{ backgroundColor: 'var(--dark-surface)', border: '1px solid var(--dark-border)', borderRadius: 'var(--radius-md)', padding: '16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#38BDF8', marginBottom: '6px' }}>
+                    <Volume2 size={18} />
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px' }}>Acoustic Siren</span>
+                  </div>
+                  <div style={{ fontSize: '15px', fontWeight: 600 }}>85dB Audio Chime</div>
+                  <div style={{ fontSize: '12px', color: '#64748B', marginTop: '2px' }}>Locate in brush & night</div>
                 </div>
-              </motion.div>
+              </div>
+
+              <button
+                onClick={() => handleRoute('/pet-gps')}
+                className="editorial-btn-accent"
+              >
+                <span>Discover GPS & Radar</span>
+                <ArrowRight size={14} />
+              </button>
+            </div>
+
+            {/* Dark Radar Map Visual */}
+            <div
+              style={{
+                borderRadius: 'var(--radius-xl)',
+                overflow: 'hidden',
+                border: '1px solid var(--dark-border)',
+                boxShadow: '0 20px 60px rgba(0, 0, 0, 0.6)',
+              }}
+            >
+              <img
+                src="/assets/screens/07_tracker_desktop.png"
+                alt="Pet Maya GPS Radar Live Map"
+                style={{ width: '100%', height: 'auto', display: 'block' }}
+                onError={(e) => {
+                  e.target.src = 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=1000&auto=format&fit=crop&q=80';
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════
+          SECTION 07 — CONNECTED CARE / IoT
+          ═══════════════════════════════════════════════════════════════ */}
+      <section
+        className="editorial-section"
+        style={{ borderBottom: '1px solid var(--border)' }}
+      >
+        <div className="editorial-container">
+          <div style={{ maxWidth: '780px', margin: '0 auto 56px', textAlign: 'center' }}>
+            <span className="text-eyebrow" style={{ marginBottom: '14px' }}>
+              04 / CONNECTED CARE
+            </span>
+            <h2
+              style={{
+                fontSize: 'clamp(32px, 4.5vw, 54px)',
+                fontWeight: 800,
+                letterSpacing: '-0.03em',
+                lineHeight: 1.12,
+                marginBottom: '18px',
+              }}
+            >
+              Your pet. Your devices. One connected ecosystem.
+            </h2>
+            <p style={{ fontSize: '17px', color: 'var(--text-muted)', lineHeight: 1.6 }}>
+              A continuous, calm bridge from your pet's everyday collar telemetry to cloud health diagnostics and certified veterinary care.
+            </p>
+          </div>
+
+          {/* Connected Flow Diagram */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))',
+              gap: '20px',
+            }}
+          >
+            {[
+              { step: '01', title: 'Pet & Collar', desc: 'Smart 4G Collar with motion, temperature, and GPS telemetry sensors.' },
+              { step: '02', title: 'Secure Gateway', desc: 'Encrypted BLE and LTE-M cloud sync with ultra-low battery drain.' },
+              { step: '03', title: 'Pet Maya Cloud', desc: 'Unified Electronic Health Record (EHR) and biometric history vault.' },
+              { step: '04', title: 'Clinical AI', desc: 'Continuous baseline learning for early detection of lethargy or pain.' },
+              { step: '05', title: 'Vet & Parent', desc: 'Proactive alerts dispatched directly to you and your veterinarian.' }
+            ].map((node, i) => (
+              <div
+                key={node.step}
+                className="editorial-card"
+                style={{ padding: '24px 20px', position: 'relative' }}
+              >
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--primary)', fontWeight: 600, marginBottom: '12px' }}>
+                  {node.step}
+                </div>
+                <h4 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '6px' }}>{node.title}</h4>
+                <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.5, margin: 0 }}>
+                  {node.desc}
+                </p>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ═══ FAQ ACCORDION ═══ */}
-      <FAQSection />
-
-      {/* ═══ MOBILE DOWNLOADS ═══ */}
-      <section id="mobile-downloads" style={{ background: '#000', padding: '44px 20px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.4 }}
-          style={{ maxWidth: '900px', margin: '0 auto', textAlign: 'center' }}
-        >
-          <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', color: 'var(--primary)', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
-            Apple & Android Ecosystem
+      {/* ═══════════════════════════════════════════════════════════════
+          SECTION 08 — MOBILE EXPERIENCE
+          ═══════════════════════════════════════════════════════════════ */}
+      <section
+        className="editorial-section"
+        style={{
+          backgroundColor: 'var(--soft-surface)',
+          borderBottom: '1px solid var(--border)',
+          textAlign: 'center',
+        }}
+      >
+        <div className="editorial-container">
+          <span className="text-eyebrow" style={{ marginBottom: '14px' }}>
+            CROSS-PLATFORM CONTINUITY
           </span>
-          <h2 style={{ fontSize: 'clamp(1.6rem, 3.5vw, 2.4rem)', fontWeight: 700, letterSpacing: '-0.03em', color: '#FFF', margin: '0 0 10px', lineHeight: 1.15 }}>
-            Connected seamlessly.
+          <h2
+            style={{
+              fontSize: 'clamp(32px, 4.5vw, 54px)',
+              fontWeight: 800,
+              letterSpacing: '-0.03em',
+              lineHeight: 1.1,
+              marginBottom: '18px',
+            }}
+          >
+            Pet care, wherever you are.
           </h2>
-          <p style={{ fontSize: '14.5px', color: '#86868B', maxWidth: '580px', margin: '0 auto 28px', lineHeight: 1.5 }}>
-            Full Bluetooth collar telemetry, background boundary alarms, push notifications, and camera triage on your phone.
+          <p style={{ fontSize: '17px', color: 'var(--text-muted)', lineHeight: 1.6, maxWidth: '640px', margin: '0 auto 56px' }}>
+            Experience total synchronization between the web platform and native mobile apps for iOS and Android.
           </p>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px', maxWidth: '700px', margin: '0 auto' }}>
-            {/* iOS */}
-            <div style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', padding: '22px', borderRadius: '18px', display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'left' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Smartphone size={19} color="#0071E3" />
-                <strong style={{ fontSize: '15.5px', fontWeight: 600, color: '#FFF' }}>iPhone & iPad</strong>
+          {/* 3 Real Mobile App Screens */}
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              gap: 'clamp(16px, 3vw, 40px)',
+              flexWrap: 'wrap',
+            }}
+          >
+            {[
+              { src: '/assets/screens/14_dashboard_mobile.png', title: 'Dashboard & Vitals' },
+              { src: '/assets/screens/15_shop_mobile.png', title: 'Care Pharmacy' },
+              { src: '/assets/screens/16_ai_mobile.png', title: 'Vision AI Triage' }
+            ].map((mock, idx) => (
+              <div
+                key={mock.title}
+                style={{
+                  width: '260px',
+                  borderRadius: '36px',
+                  overflow: 'hidden',
+                  border: '6px solid #151515',
+                  boxShadow: '0 20px 48px rgba(0,0,0,0.12)',
+                  backgroundColor: '#000',
+                }}
+              >
+                <img
+                  src={mock.src}
+                  alt={mock.title}
+                  style={{ width: '100%', height: 'auto', display: 'block' }}
+                  onError={(e) => {
+                    e.target.src = '/assets/screens/02_dashboard_desktop.png';
+                  }}
+                />
               </div>
-              <p style={{ fontSize: '12.5px', color: '#86868B', margin: 0, lineHeight: 1.5 }}>
-                Install via Wireless OTA Manifest or download the <strong style={{ color: '#A1A1A6' }}>.ipa</strong> package for AltStore, Sideloadly, or TrollStore.
-              </p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: 'auto' }}>
-                <a
-                  href="itms-services://?action=download-manifest&url=https://www.petmaya.app/manifest.plist"
-                  className="apple-btn-blue"
-                  style={{ justifyContent: 'center', textDecoration: 'none', padding: '9px 16px', fontSize: '13px' }}
-                >
-                  <Download size={14} />
-                  <span>1-Click Install on iPhone</span>
-                </a>
-                <a href="https://github.com/sadikmahmudadive/Pet-Maya/releases" target="_blank" rel="noreferrer"
-                  className="apple-link-cta"
-                  style={{ justifyContent: 'center', fontSize: '12.5px', color: '#86868B' }}
-                >
-                  <span>Download .IPA</span>
-                  <ExternalLink size={12} />
-                </a>
-              </div>
-            </div>
-
-            {/* Android */}
-            <div style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', padding: '22px', borderRadius: '18px', display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'left' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Smartphone size={19} color="#10B981" />
-                <strong style={{ fontSize: '15.5px', fontWeight: 600, color: '#FFF' }}>Android</strong>
-              </div>
-              <p style={{ fontSize: '12.5px', color: '#86868B', margin: 0, lineHeight: 1.5 }}>
-                Get the official app on Google Play Store or download the universal Android APK release binary.
-              </p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: 'auto' }}>
-                <a
-                  href="https://play.google.com/store/apps/details?id=com.vertexhand.petmaya"
-                  target="_blank" rel="noreferrer"
-                  className="apple-btn-blue"
-                  style={{ background: '#10B981', justifyContent: 'center', textDecoration: 'none', padding: '9px 16px', fontSize: '13px' }}
-                >
-                  <Download size={14} />
-                  <span>Get on Google Play</span>
-                </a>
-                <a href="https://github.com/sadikmahmudadive/Pet-Maya/releases" target="_blank" rel="noreferrer"
-                  className="apple-link-cta"
-                  style={{ justifyContent: 'center', fontSize: '12.5px', color: '#86868B' }}
-                >
-                  <span>Download APK</span>
-                  <ExternalLink size={12} />
-                </a>
-              </div>
-            </div>
+            ))}
           </div>
-        </motion.div>
+        </div>
       </section>
 
-      {/* ═══ FOOTER (MINIMAL 3-COL) ═══ */}
-      <footer style={{ background: 'var(--bg)', borderTop: '1px solid var(--border)', padding: '32px 20px 24px', color: 'var(--text-muted)', fontSize: '12px' }}>
-        <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-          {/* Brand + cols */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr repeat(3, auto)', gap: '24px', flexWrap: 'wrap', marginBottom: '24px' }}>
-            {/* Brand blurb */}
-            <div style={{ gridColumn: '1', display: 'flex', flexDirection: 'column', gap: '6px', maxWidth: '220px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '4px' }}>
-                <img src="assets/images/tail_wagging_logo.png" alt="Pet Maya" style={{ width: 22, height: 22, borderRadius: '50%' }} />
-                <strong style={{ fontSize: '13px', color: 'var(--text-main)', fontWeight: 700 }}>Pet Maya</strong>
-              </div>
-              <p style={{ fontSize: '11.5px', color: 'var(--text-muted)', lineHeight: 1.5, margin: 0 }}>
-                Next-generation pet healthcare platform for modern pet parents.
-              </p>
-            </div>
-
-            {/* Services */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <strong style={{ fontSize: '12px', color: 'var(--text-main)', fontWeight: 600 }}>Services</strong>
-              {[
-                ['shop', 'Pet Shop'], ['tracker', 'Tracker'], ['ai', 'Wellness'],
-                ['vets', 'Specialists'], ['community', 'Community'], ['food', 'Blog'], ['vaccines', 'Reminders'],
-              ].map(([id, label]) => (
-                <button key={id} onClick={() => handleFeatureAccess(id, label)}
-                  style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '12px', cursor: 'pointer', padding: 0, textAlign: 'left', fontFamily: 'inherit', transition: 'color 0.15s' }}
-                  onMouseEnter={e => e.currentTarget.style.color = 'var(--text-main)'}
-                  onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-
-            {/* Account */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <strong style={{ fontSize: '12px', color: 'var(--text-main)', fontWeight: 600 }}>Account</strong>
-              <button onClick={() => openModal('auth')} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '12px', cursor: 'pointer', padding: 0, textAlign: 'left', fontFamily: 'inherit' }}
-                onMouseEnter={e => e.currentTarget.style.color = 'var(--text-main)'}
-                onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
-              >Sign In</button>
-              <button onClick={handleTryDemo} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '12px', cursor: 'pointer', padding: 0, textAlign: 'left', fontFamily: 'inherit' }}
-                onMouseEnter={e => e.currentTarget.style.color = 'var(--text-main)'}
-                onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
-              >Guest Demo</button>
-            </div>
-
-            {/* Legal */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <strong style={{ fontSize: '12px', color: 'var(--text-main)', fontWeight: 600 }}>Legal</strong>
-              {[
-                ['/privacy_policy.html', 'Privacy Policy'],
-                ['/terms_of_service.html', 'Terms of Use'],
-                ['/about.html', 'About'],
-                ['https://github.com/sadikmahmudadive/Pet-Maya', 'GitHub'],
-              ].map(([href, label]) => (
-                <a key={label} href={href} target="_blank" rel="noreferrer"
-                  style={{ color: 'var(--text-muted)', fontSize: '12px', textDecoration: 'none' }}
-                  onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-main)'; e.currentTarget.style.textDecoration = 'underline'; }}
-                  onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.textDecoration = 'none'; }}
-                >
-                  {label}
-                </a>
-              ))}
-            </div>
+      {/* ═══════════════════════════════════════════════════════════════
+          SECTION 09 — HOW IT WORKS
+          ═══════════════════════════════════════════════════════════════ */}
+      <section
+        className="editorial-section"
+        style={{ borderBottom: '1px solid var(--border)' }}
+      >
+        <div className="editorial-container">
+          <div style={{ maxWidth: '720px', margin: '0 auto 64px', textAlign: 'center' }}>
+            <span className="text-eyebrow" style={{ marginBottom: '14px' }}>
+              GETTING STARTED
+            </span>
+            <h2
+              style={{
+                fontSize: 'clamp(32px, 4.5vw, 52px)',
+                fontWeight: 800,
+                letterSpacing: '-0.03em',
+                lineHeight: 1.12,
+                marginBottom: '16px',
+              }}
+            >
+              Four simple steps to complete care.
+            </h2>
           </div>
 
-          {/* Copyright row */}
-          <div style={{ borderTop: '1px solid var(--border)', paddingTop: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', fontSize: '11px', color: 'var(--text-muted)' }}>
-            <span>Copyright © 2026 Pet Maya Inc. All rights reserved.</span>
-            <div style={{ display: 'flex', gap: '14px' }}>
-              <a href="/privacy_policy.html" target="_blank" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>Privacy</a>
-              <a href="/terms_of_service.html" target="_blank" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>Terms</a>
-              <a href="/sitemap.xml" target="_blank" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>Sitemap</a>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+              gap: '32px',
+            }}
+          >
+            {[
+              { num: '01', title: 'Create your pet profile', text: 'Add your dog, cat, bird or rabbit with age, breed, microchip, and clinical history.' },
+              { num: '02', title: 'Track health & everyday care', text: 'Log vaccinations, record weight trajectories, and set automatic reminders.' },
+              { num: '03', title: 'Connect safety & smart tools', text: 'Pair the GPS smart collar or activate AI camera triage whenever symptoms arise.' },
+              { num: '04', title: 'Understand your pet better', text: 'Access proactive preventative insights and book verified veterinary consultations.' }
+            ].map((step) => (
+              <div key={step.num} style={{ padding: '16px 0' }}>
+                <div
+                  style={{
+                    fontFamily: 'var(--font-heading)',
+                    fontSize: '44px',
+                    fontWeight: 800,
+                    color: 'var(--border)',
+                    lineHeight: 1,
+                    marginBottom: '14px',
+                  }}
+                >
+                  {step.num}
+                </div>
+                <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '8px' }}>
+                  {step.title}
+                </h3>
+                <p style={{ fontSize: '14.5px', color: 'var(--text-muted)', lineHeight: 1.6, margin: 0 }}>
+                  {step.text}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════
+          SECTION 10 — PET PARENT EXPERIENCE (Emotional Foundation)
+          ═══════════════════════════════════════════════════════════════ */}
+      <section
+        className="editorial-section"
+        style={{
+          backgroundColor: 'var(--soft-surface)',
+          borderBottom: '1px solid var(--border)',
+        }}
+      >
+        <div className="editorial-container">
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+              gap: '48px',
+              alignItems: 'center',
+            }}
+          >
+            <div>
+              <span className="text-eyebrow text-eyebrow-accent" style={{ marginBottom: '14px' }}>
+                OUR PHILOSOPHY
+              </span>
+              <h2
+                style={{
+                  fontSize: 'clamp(34px, 4.5vw, 56px)',
+                  fontWeight: 800,
+                  letterSpacing: '-0.03em',
+                  lineHeight: 1.1,
+                  marginBottom: '20px',
+                }}
+              >
+                Because they’re family.
+              </h2>
+              <p style={{ fontSize: '17.5px', color: 'var(--text-muted)', lineHeight: 1.65, marginBottom: '24px' }}>
+                Their health history, everyday care and important moments deserve a place of their own. We designed Pet Maya with the same precision, beauty, and privacy standards you expect for human health.
+              </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <button onClick={handleGetStarted} className="editorial-btn-primary">
+                  <span>Start Caring With Us</span>
+                  <ArrowRight size={14} />
+                </button>
+              </div>
+            </div>
+
+            <div style={{ borderRadius: 'var(--radius-xl)', overflow: 'hidden', border: '1px solid var(--border)' }}>
+              <img
+                src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=800&auto=format&fit=crop&q=80"
+                alt="Happy dogs playing"
+                style={{ width: '100%', height: '380px', objectFit: 'cover', display: 'block' }}
+              />
             </div>
           </div>
         </div>
-      </footer>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════
+          SECTION 11 — TRUST & PRIVACY
+          ═══════════════════════════════════════════════════════════════ */}
+      <section
+        className="editorial-section"
+        style={{ borderBottom: '1px solid var(--border)' }}
+      >
+        <div className="editorial-container">
+          <div style={{ maxWidth: '780px', margin: '0 auto 56px', textAlign: 'center' }}>
+            <span className="text-eyebrow" style={{ marginBottom: '14px' }}>
+              SECURITY & PRIVACY
+            </span>
+            <h2
+              style={{
+                fontSize: 'clamp(32px, 4.5vw, 52px)',
+                fontWeight: 800,
+                letterSpacing: '-0.03em',
+                lineHeight: 1.12,
+                marginBottom: '18px',
+              }}
+            >
+              Built with your pet’s information in mind.
+            </h2>
+            <p style={{ fontSize: '17px', color: 'var(--text-muted)', lineHeight: 1.6 }}>
+              We apply rigorous data protection principles. Your pet's medical records and your family's personal data belong exclusively to you.
+            </p>
+          </div>
+
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              gap: '24px',
+            }}
+          >
+            <div className="editorial-card">
+              <div style={{ width: 40, height: 40, borderRadius: '10px', backgroundColor: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+                <Lock size={20} />
+              </div>
+              <h4 style={{ fontSize: '17px', fontWeight: 700, marginBottom: '8px' }}>Secure Cloud Storage</h4>
+              <p style={{ fontSize: '14px', color: 'var(--text-muted)', lineHeight: 1.55, margin: 0 }}>
+                Electronic health records are stored in Google Cloud infrastructure with role-based Firestore security rules.
+              </p>
+            </div>
+
+            <div className="editorial-card">
+              <div style={{ width: 40, height: 40, borderRadius: '10px', backgroundColor: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+                <ShieldCheck size={20} />
+              </div>
+              <h4 style={{ fontSize: '17px', fontWeight: 700, marginBottom: '8px' }}>Owner Controlled Access</h4>
+              <p style={{ fontSize: '14px', color: 'var(--text-muted)', lineHeight: 1.55, margin: 0 }}>
+                Only you choose which veterinarians or emergency clinics receive access to medical histories and prescription logs.
+              </p>
+            </div>
+
+            <div className="editorial-card">
+              <div style={{ width: 40, height: 40, borderRadius: '10px', backgroundColor: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+                <FileText size={20} />
+              </div>
+              <h4 style={{ fontSize: '17px', fontWeight: 700, marginBottom: '8px' }}>Paperless Data Export</h4>
+              <p style={{ fontSize: '14px', color: 'var(--text-muted)', lineHeight: 1.55, margin: 0 }}>
+                Download comprehensive clinical health summaries as PDF passports anytime for travel, boarding, or relocation.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════
+          SECTION 12 — PET MAYA JOURNAL
+          ═══════════════════════════════════════════════════════════════ */}
+      <section
+        className="editorial-section"
+        style={{
+          backgroundColor: 'var(--soft-surface)',
+          borderBottom: '1px solid var(--border)',
+        }}
+      >
+        <div className="editorial-container">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '48px', flexWrap: 'wrap', gap: '20px' }}>
+            <div>
+              <span className="text-eyebrow" style={{ marginBottom: '12px' }}>
+                EDITORIAL
+              </span>
+              <h2 style={{ fontSize: 'clamp(32px, 4vw, 48px)', fontWeight: 800, margin: 0 }}>
+                Pet Maya Journal
+              </h2>
+            </div>
+            <button
+              onClick={() => handleRoute('/blog')}
+              className="editorial-btn-secondary"
+              style={{ fontSize: '14px', padding: '10px 20px' }}
+            >
+              <span>View All Articles</span>
+              <ArrowRight size={14} />
+            </button>
+          </div>
+
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+              gap: '28px',
+            }}
+          >
+            {[
+              {
+                category: 'Pet Health',
+                title: 'Understanding Canine Vaccination Timelines: Core vs Non-Core',
+                readTime: '6 min read',
+                image: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=600&auto=format&fit=crop&q=80',
+              },
+              {
+                category: 'Nutrition',
+                title: 'Clinical Calorie Management for Indoor Domestic Cats',
+                readTime: '5 min read',
+                image: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=600&auto=format&fit=crop&q=80',
+              },
+              {
+                category: 'Technology',
+                title: 'How Multi-GNSS Satellite Collars Filter Out Multipath Interference',
+                readTime: '8 min read',
+                image: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=600&auto=format&fit=crop&q=80',
+              }
+            ].map((article) => (
+              <div
+                key={article.title}
+                className="editorial-card"
+                style={{ padding: '0', overflow: 'hidden', cursor: 'pointer' }}
+                onClick={() => handleRoute('/blog')}
+              >
+                <img
+                  src={article.image}
+                  alt={article.title}
+                  style={{ width: '100%', height: '200px', objectFit: 'cover' }}
+                />
+                <div style={{ padding: '24px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--primary)', textTransform: 'uppercase' }}>{article.category}</span>
+                    <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{article.readTime}</span>
+                  </div>
+                  <h4 style={{ fontSize: '17px', fontWeight: 700, lineHeight: 1.35, margin: 0 }}>
+                    {article.title}
+                  </h4>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════
+          SECTION 13 — FAQ ACCORDION
+          ═══════════════════════════════════════════════════════════════ */}
+      <section
+        className="editorial-section"
+        style={{ borderBottom: '1px solid var(--border)' }}
+      >
+        <div className="editorial-container-narrow">
+          <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+            <span className="text-eyebrow" style={{ marginBottom: '12px' }}>
+              QUESTIONS & ANSWERS
+            </span>
+            <h2 style={{ fontSize: 'clamp(32px, 4vw, 48px)', fontWeight: 800 }}>
+              Frequently asked questions.
+            </h2>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {faqs.map((faq, idx) => (
+              <div
+                key={idx}
+                style={{
+                  backgroundColor: 'var(--surface)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 'var(--radius-md)',
+                  overflow: 'hidden',
+                }}
+              >
+                <button
+                  onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
+                  style={{
+                    width: '100%',
+                    background: 'none',
+                    border: 'none',
+                    padding: '20px 24px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                    textAlign: 'left',
+                    gap: '16px',
+                  }}
+                >
+                  <span style={{ fontSize: '16px', fontWeight: 600, color: 'var(--foreground)' }}>
+                    {faq.q}
+                  </span>
+                  <ChevronDown
+                    size={18}
+                    style={{
+                      color: 'var(--text-muted)',
+                      transform: openFaq === idx ? 'rotate(180deg)' : 'none',
+                      transition: 'transform 0.2s ease',
+                      flexShrink: 0,
+                    }}
+                  />
+                </button>
+                <AnimatePresence initial={false}>
+                  {openFaq === idx && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.25 }}
+                      style={{ overflow: 'hidden' }}
+                    >
+                      <div style={{ padding: '0 24px 22px', fontSize: '14.5px', color: 'var(--text-muted)', lineHeight: 1.65 }}>
+                        {faq.a}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════
+          FINAL CTA
+          ═══════════════════════════════════════════════════════════════ */}
+      <section
+        className="editorial-section"
+        style={{
+          backgroundColor: 'var(--soft-surface)',
+          textAlign: 'center',
+        }}
+      >
+        <div className="editorial-container-narrow">
+          <h2
+            style={{
+              fontSize: 'clamp(36px, 5.5vw, 64px)',
+              fontWeight: 800,
+              letterSpacing: '-0.03em',
+              lineHeight: 1.1,
+              marginBottom: '20px',
+            }}
+          >
+            Give your pet a healthier tomorrow.
+          </h2>
+          <p
+            style={{
+              fontSize: 'clamp(17px, 2vw, 20px)',
+              color: 'var(--text-muted)',
+              lineHeight: 1.6,
+              maxWidth: '600px',
+              margin: '0 auto 36px',
+            }}
+          >
+            Everything you need to understand, protect and care for your pet, in one simple place.
+          </p>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '14px', flexWrap: 'wrap' }}>
+            <button
+              onClick={handleGetStarted}
+              className="editorial-btn-primary"
+              style={{ padding: '16px 36px', fontSize: '16px' }}
+            >
+              <span>Get Started Free</span>
+              <ArrowRight size={16} />
+            </button>
+            <button
+              onClick={() => handleRoute('/contact')}
+              className="editorial-btn-secondary"
+              style={{ padding: '16px 32px', fontSize: '16px' }}
+            >
+              <span>Contact Veterinary Team</span>
+            </button>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

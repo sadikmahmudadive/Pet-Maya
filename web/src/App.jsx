@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-// Pet Maya Web Portal - v2.5.0 Production Build
+import React, { useEffect, useState, useCallback } from 'react';
+// Pet Maya Web Portal - v3.0.0 Duna-Inspired Editorial Architecture
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AppProvider, useApp } from './context/AppContext';
 import GlobalBanner from './components/GlobalBanner';
@@ -9,7 +9,20 @@ import PermissionPrompt from './components/PermissionPrompt';
 import ModalRoot from './components/Modals/ModalRoot';
 import QuickActionSheet from './components/Common/QuickActionSheet';
 
+// Editorial Components
+import EditorialNavbar from './components/Navigation/EditorialNavbar';
+import EditorialFooter from './components/Navigation/EditorialFooter';
 import LandingPage from './components/Landing/LandingPage';
+import ProductFeatures from './components/Pages/ProductFeatures';
+import DigitalPassportPage from './components/Pages/DigitalPassportPage';
+import AIPetCarePage from './components/Pages/AIPetCarePage';
+import PetGPSPage from './components/Pages/PetGPSPage';
+import ConnectedCarePage from './components/Pages/ConnectedCarePage';
+import SolutionsPages from './components/Pages/SolutionsPages';
+import PetHealthHub from './components/Pages/PetHealthHub';
+import EditorialCompanyPages from './components/Pages/EditorialCompanyPages';
+
+// Functional App Platform Views
 import Dashboard from './components/Dashboard/Dashboard';
 import PetTracker from './components/Tracker/PetTracker';
 import Specialists from './components/Specialists/Specialists';
@@ -22,76 +35,167 @@ import Profile from './components/Profile/Profile';
 import AdminPortal from './components/Admin/AdminPortal';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap } from 'lucide-react';
 
 const TAB_SEO_MAP = {
   landing: {
-    title: 'Pet Maya — Modern Pet Healthcare, Live GPS Radar & AI Triage Portal',
-    description: 'Pet Maya is the next-generation pet healthcare ecosystem: Sub-meter satellite GPS radar, AI vision health diagnostics, 500+ verified veterinary specialists, genuine pet pharmacy, and community network.'
+    title: 'Pet Maya — Better care for the pets you love | Connected Healthcare',
+    description: 'Pet Maya brings digital health records, clinical AI triage, satellite GPS radar, and verified veterinary care together in one simple platform.'
   },
-  shop: {
-    title: 'Pet Shop & Pharmacy — Buy Diets, Meds & GPS Collars | Pet Maya',
-    description: 'Shop authentic veterinary prescription medications, clinically formulated diets (Royal Canin, Purina), and 4G smart GPS tracking collars with cold-chain delivery across Bangladesh.'
+  features: {
+    title: 'Platform Features & Connected Architecture | Pet Maya',
+    description: 'Explore all capabilities of the Pet Maya connected pet healthcare ecosystem: Digital Passport, GPS Radar, AI Scanner, and Veterinary Telehealth.'
   },
-  vets: {
-    title: 'Find Verified Veterinarians & Specialists | Pet Maya Healthcare',
-    description: 'Book online teleconsultations and in-clinic visits with 500+ verified veterinarians, surgeons, dermatologists, and pet specialists in Dhaka, Chittagong, and Sylhet.'
+  'digital-pet-passport': {
+    title: 'Digital Pet Passport & ISO Microchip Health Vault | Pet Maya',
+    description: 'Permanent cloud medical vault for vaccinations, rabies certification, surgical history, and paperless travel QR identity check.'
   },
-  ai: {
-    title: 'Clinical AI Vision Health Triage & Symptom Checker | Pet Maya',
-    description: 'Free multi-modal AI pet symptom checker. Instant first-aid triage protocol, lesion analysis, and differential veterinary guidance for dogs, cats, birds, and rabbits.'
+  'ai-pet-care': {
+    title: 'Clinical AI Vision Triage & Symptom Checker | Pet Maya',
+    description: 'Multi-modal diagnostic triage that analyzes symptom photos, anatomical regions, and standardized veterinary urgency levels.'
   },
-  tracker: {
-    title: 'Live Pet Radar & Satellite GPS Smart Collar Tracking | Pet Maya',
-    description: 'Real-time cellular GPS tracking, geofence boundary escape alerts, activity telemetry, and acoustic chime with sub-2-meter satellite accuracy.'
+  'pet-gps': {
+    title: 'Live GPS Satellite Radar & Smart Safety Collar | Pet Maya',
+    description: 'Sub-2-meter multi-constellation GPS tracking, 3-second boundary geofence push alarms, and an 85dB recovery siren.'
   },
-  community: {
-    title: 'Pet Parent Community Feed & Lost Pet Alerts | Pet Maya',
-    description: 'Join verified pet owners across Bangladesh. Share clinical milestones, moments, adoption stories, and real-time community lost & found pet radar alerts.'
+  'connected-care': {
+    title: 'Connected Care & IoT Wearable Collar Sensors | Pet Maya',
+    description: 'Continuous biometric telemetry, Bluetooth proximity beacons, and real-time cloud vitals synchronization for dogs and cats.'
   },
-  food: {
+  'for-pet-parents': {
+    title: 'Pet Maya for Pet Parents — Proactive Care for Family | Pet Maya',
+    description: 'Keep your pet healthy, happy, and safe with automated vaccination timelines, smart radar tracking, and 24/7 veterinary support.'
+  },
+  'for-veterinarians': {
+    title: 'For Verified Veterinarians & Specialists | Pet Maya Clinical Network',
+    description: 'Join 500+ clinicians offering HD video teleconsultations, digital prescription dispensing, and verified EHR patient records.'
+  },
+  'for-clinics': {
+    title: 'Veterinary Hospital & Multi-Doctor Scheduling | Pet Maya',
+    description: 'Equip your veterinary clinic with unified digital health records, online appointment booking, and automated client follow-ups.'
+  },
+  'pet-health': {
+    title: 'Pet Health Knowledge Hub & Preventative Care | Pet Maya',
+    description: 'Evidence-based canine and feline health articles, vaccination guidelines, emergency first aid, and clinical nutrition.'
+  },
+  'pet-care': {
     title: 'Pet Nutrition & Scientific Breed Care Guides | Pet Maya',
     description: 'Veterinary-reviewed clinical nutrition advice, breed-specific dietary requirements, calorie calculators, and preventive care regimens.'
   },
+  blog: {
+    title: 'Pet Maya Journal — Stories in Veterinary Medicine & Tech',
+    description: 'Editorial essays, clinical veterinary updates, canine lifestyle advice, and advances in pet health technology.'
+  },
+  about: {
+    title: 'About Pet Maya — Our Mission, Ethics & Clinical Advisory Board',
+    description: 'Learn why we started Pet Maya and our commitment to treating pet healthcare with the same dignity and precision as human health.'
+  },
+  contact: {
+    title: 'Contact Pet Maya — Support & Veterinary Clinic Onboarding',
+    description: 'Get in touch with the Pet Maya support team, order smart collars, or onboard your veterinary clinic to the clinical network.'
+  },
+  faq: {
+    title: 'Frequently Asked Questions — Pet Maya Connected Ecosystem',
+    description: 'Find answers about the Digital Pet Passport, GPS tracking accuracy, AI triage capabilities, and data security.'
+  },
+  privacy: {
+    title: 'Privacy Policy & Medical Data Security | Pet Maya',
+    description: 'How Pet Maya protects electronic health records with AES-256 cloud encryption and owner-controlled veterinary access.'
+  },
+  terms: {
+    title: 'Terms of Service & Clinical Care Disclaimers | Pet Maya',
+    description: 'Terms of service, emergency medical boundaries, and account responsibilities for the Pet Maya platform.'
+  },
+  // Platform App Views
+  shop: {
+    title: 'Care Shop & Pharmacy — Royal Canin, Meds & GPS Collars | Pet Maya',
+    description: 'Shop authentic veterinary prescription medications, clinically formulated diets, and 4G smart GPS tracking collars.'
+  },
+  vets: {
+    title: 'Find Verified Veterinarians & Teleconsultations | Pet Maya',
+    description: 'Book online teleconsultations and in-clinic visits with 500+ verified veterinarians and pet specialists.'
+  },
+  ai: {
+    title: 'Clinical AI Vision Health Triage & Scanner | Pet Maya',
+    description: 'Instant first-aid triage protocol, lesion analysis, and differential veterinary guidance for dogs and cats.'
+  },
+  tracker: {
+    title: 'Live GPS Radar & Smart Collar Telemetry | Pet Maya',
+    description: 'Real-time cellular GPS tracking, geofence boundary escape alerts, activity telemetry, and acoustic chime.'
+  },
+  community: {
+    title: 'Pet Parent Community Feed & Lost Pet Alerts | Pet Maya',
+    description: 'Join verified pet owners across Bangladesh. Share clinical milestones, moments, and real-time Amber Alerts.'
+  },
+  food: {
+    title: 'Pet Nutrition & Scientific Diets | Pet Maya',
+    description: 'Veterinary calorie calculators, breed specs, and clinical feeding plans.'
+  },
   vaccines: {
-    title: 'Digital Pet Passport & Vaccination Schedule Reminders | Pet Maya',
-    description: 'Official WHO-aligned vaccination milestones, rabies booster alarms, calendar export, and paperless electronic medical passport.'
+    title: 'Immunization Schedule & Digital Passport | Pet Maya',
+    description: 'Official vaccination milestones, rabies booster alarms, and calendar export.'
   },
   dashboard: {
     title: 'My Pets & Health Dashboard | Pet Maya',
-    description: 'Manage your pet family, monitor vital activity scores, schedule upcoming vet appointments, and access quick medical triage.'
+    description: 'Manage your pet family, monitor vital activity scores, and schedule upcoming vet appointments.'
   },
   profile: {
     title: 'My Profile & Cloud EHR Medical Records | Pet Maya',
-    description: 'Encrypted Electronic Health Records (EHR), verified clinical diagnoses, prescriptions history, referral rewards, and account security.'
+    description: 'Encrypted Electronic Health Records (EHR), verified clinical diagnoses, and prescriptions history.'
   }
 };
+
+const VALID_EDITORIAL_ROUTES = [
+  'landing', 'features', 'digital-pet-passport', 'ai-pet-care', 'pet-gps', 
+  'connected-care', 'for-pet-parents', 'for-veterinarians', 'for-clinics', 
+  'pet-health', 'pet-care', 'blog', 'about', 'contact', 'faq', 'privacy', 'terms'
+];
+
+const VALID_APP_ROUTES = [
+  'dashboard', 'shop', 'vets', 'ai', 'tracker', 'community', 'food', 'vaccines', 'profile'
+];
 
 function MainContent() {
   const { activeTab, setActiveTab } = useApp();
   const { currentUser } = useAuth();
   const [isQuickActionOpen, setIsQuickActionOpen] = useState(false);
 
-  // Initial URL hash navigation & dynamic hash listener
+  // Synchronize route from URL pathname and hash
+  const resolveCurrentRoute = useCallback(() => {
+    // 1. Check hash first if present (e.g. #dashboard, #shop, #tracker)
+    const hash = window.location.hash.replace('#', '').toLowerCase();
+    if (hash && (VALID_EDITORIAL_ROUTES.includes(hash) || VALID_APP_ROUTES.includes(hash))) {
+      return hash;
+    }
+    // 2. Check pathname (e.g. /digital-pet-passport, /features)
+    const path = window.location.pathname.replace(/^\//, '').toLowerCase();
+    if (path && (VALID_EDITORIAL_ROUTES.includes(path) || VALID_APP_ROUTES.includes(path))) {
+      return path;
+    }
+    return 'landing';
+  }, []);
+
+  // Initial and dynamic routing listener
   useEffect(() => {
-    const handleHash = () => {
-      const hash = window.location.hash.replace('#', '').toLowerCase();
-      const validTabs = ['landing', 'shop', 'vets', 'ai', 'tracker', 'community', 'food', 'vaccines', 'dashboard', 'profile'];
-      if (hash && validTabs.includes(hash)) {
-        setActiveTab(hash);
+    const handleRouteChange = () => {
+      const route = resolveCurrentRoute();
+      if (route) {
+        setActiveTab(route);
       }
     };
-    handleHash();
-    window.addEventListener('hashchange', handleHash);
-    return () => window.removeEventListener('hashchange', handleHash);
-  }, [setActiveTab]);
+    handleRouteChange();
+    window.addEventListener('hashchange', handleRouteChange);
+    window.addEventListener('popstate', handleRouteChange);
+    return () => {
+      window.removeEventListener('hashchange', handleRouteChange);
+      window.removeEventListener('popstate', handleRouteChange);
+    };
+  }, [resolveCurrentRoute, setActiveTab]);
 
-  // Dynamic SEO metadata & URL hash update on tab change
+  // Dynamic SEO metadata update
   useEffect(() => {
     const seo = TAB_SEO_MAP[activeTab] || TAB_SEO_MAP.landing;
     document.title = seo.title;
     
-    // Update meta description
     let metaDesc = document.querySelector('meta[name="description"]');
     if (!metaDesc) {
       metaDesc = document.createElement('meta');
@@ -100,30 +204,30 @@ function MainContent() {
     }
     metaDesc.content = seo.description;
 
-    // Update OpenGraph title and description
     const ogTitle = document.querySelector('meta[property="og:title"]');
     if (ogTitle) ogTitle.content = seo.title;
     const ogDesc = document.querySelector('meta[property="og:description"]');
     if (ogDesc) ogDesc.content = seo.description;
 
-    // Sync URL hash for bookmarking and SEO
+    // Sync URL cleanly
     if (activeTab && activeTab !== 'landing') {
-      window.history.replaceState(null, '', `#${activeTab}`);
-    } else if (activeTab === 'landing') {
-      if (window.location.hash) {
-        window.history.replaceState(null, '', window.location.pathname);
+      if (VALID_EDITORIAL_ROUTES.includes(activeTab)) {
+        window.history.replaceState(null, '', `/${activeTab}`);
+      } else {
+        window.history.replaceState(null, '', `#${activeTab}`);
       }
+    } else if (activeTab === 'landing') {
+      window.history.replaceState(null, '', '/');
     }
   }, [activeTab]);
 
-  // Subdomain check: admin.petmaya.app (or admin.localhost, ?portal=admin, /admin)
+  // Subdomain check: admin.petmaya.app / portal=admin / /admin
   const isAdminSubdomain = typeof window !== 'undefined' && (
     window.location.hostname.startsWith('admin.') || 
     window.location.search.includes('portal=admin') ||
     window.location.pathname.startsWith('/admin')
   );
 
-  // If accessed via admin subdomain, route directly to dedicated Admin Portal
   if (isAdminSubdomain) {
     return (
       <div className="app-container" style={{ padding: '24px 16px' }}>
@@ -134,17 +238,55 @@ function MainContent() {
     );
   }
 
-  // Standard consumer site: landing page for overview or default unsigned visit
-  const isLanding = activeTab === 'landing' || (!currentUser && activeTab === 'dashboard');
+  // Navigation dispatcher
+  const handleNavigate = (target) => {
+    const cleanTarget = target.replace(/^\//, '').replace(/^#/, '');
+    setActiveTab(cleanTarget);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
+  // Determine whether current view is an editorial marketing page
+  const isEditorial = VALID_EDITORIAL_ROUTES.includes(activeTab) || activeTab === 'landing';
+
+  // Render current screen component
   const renderActiveScreen = () => {
-    if (isLanding) {
-      return <LandingPage key="landing" />;
-    }
-
     switch (activeTab) {
+      // Editorial marketing & product pages
       case 'landing':
-        return <LandingPage key="landing" />;
+        return <LandingPage onNavigate={handleNavigate} key="landing" />;
+      case 'features':
+        return <ProductFeatures onNavigate={handleNavigate} key="features" />;
+      case 'digital-pet-passport':
+        return <DigitalPassportPage onNavigate={handleNavigate} key="passport" />;
+      case 'ai-pet-care':
+        return <AIPetCarePage onNavigate={handleNavigate} key="ai-care" />;
+      case 'pet-gps':
+        return <PetGPSPage onNavigate={handleNavigate} key="pet-gps" />;
+      case 'connected-care':
+        return <ConnectedCarePage onNavigate={handleNavigate} key="connected-care" />;
+      case 'for-pet-parents':
+        return <SolutionsPages type="parents" onNavigate={handleNavigate} key="parents" />;
+      case 'for-veterinarians':
+        return <SolutionsPages type="vets" onNavigate={handleNavigate} key="vets" />;
+      case 'for-clinics':
+        return <SolutionsPages type="clinics" onNavigate={handleNavigate} key="clinics" />;
+      case 'pet-health':
+      case 'pet-care':
+        return <PetHealthHub onNavigate={handleNavigate} key="health-hub" />;
+      case 'about':
+        return <EditorialCompanyPages page="about" onNavigate={handleNavigate} key="about" />;
+      case 'contact':
+        return <EditorialCompanyPages page="contact" onNavigate={handleNavigate} key="contact" />;
+      case 'faq':
+        return <LandingPage onNavigate={handleNavigate} key="faq" />;
+      case 'blog':
+        return <PetHealthHub onNavigate={handleNavigate} key="blog" />;
+      case 'privacy':
+        return <EditorialCompanyPages page="privacy" onNavigate={handleNavigate} key="privacy" />;
+      case 'terms':
+        return <EditorialCompanyPages page="terms" onNavigate={handleNavigate} key="terms" />;
+
+      // Application platform views
       case 'dashboard':
         return <Dashboard key="dashboard" />;
       case 'tracker':
@@ -164,15 +306,41 @@ function MainContent() {
       case 'profile':
         return <Profile key="profile" />;
       default:
-        return currentUser ? <Dashboard key="dashboard" /> : <LandingPage key="landing" />;
+        return <LandingPage onNavigate={handleNavigate} key="landing-default" />;
     }
   };
 
+  // If viewing an editorial marketing page, wrap in EditorialNavbar and EditorialFooter
+  if (isEditorial) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg)' }}>
+        <EditorialNavbar currentRoute={activeTab} onNavigate={handleNavigate} />
+        <main style={{ flex: 1 }}>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.22, ease: 'easeInOut' }}
+            >
+              {renderActiveScreen()}
+            </motion.div>
+          </AnimatePresence>
+        </main>
+        <EditorialFooter onNavigate={handleNavigate} />
+        <ModalRoot />
+        <Toast />
+      </div>
+    );
+  }
+
+  // Otherwise, user is viewing an app platform screen (Dashboard, Shop, Specialists, Tracker, etc.)
   return (
     <div className="app-container">
       <Header />
       <GlobalBanner />
-      <main className={isLanding ? "apple-landing-main" : "app-main"}>
+      <main className="app-main">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
@@ -186,19 +354,50 @@ function MainContent() {
           </motion.div>
         </AnimatePresence>
       </main>
-      {/* Floating Quick Action FAB (Flutter mobile app parity) */}
-      <button 
-        className="floating-quick-fab" 
-        onClick={() => setIsQuickActionOpen(true)}
-        aria-label="Quick Actions"
-        title="Quick Actions ⚡"
+
+      {/* Floating Action Bar */}
+      <div
+        className="fab-dock"
+        style={{
+          position: 'fixed',
+          bottom: '24px',
+          right: '24px',
+          zIndex: 9990,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'flex-end',
+          gap: '12px'
+        }}
       >
-        <Zap size={24} />
-      </button>
-      <QuickActionSheet 
-        isOpen={isQuickActionOpen} 
-        onClose={() => setIsQuickActionOpen(false)} 
+        <motion.button
+          className="fab-pulse-btn"
+          onClick={() => setIsQuickActionOpen(true)}
+          aria-label="Quick Action Trigger"
+          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.94 }}
+          style={{
+            width: '56px',
+            height: '56px',
+            borderRadius: '50%',
+            backgroundColor: 'var(--primary)',
+            color: '#FFFFFF',
+            border: 'none',
+            boxShadow: '0 8px 24px rgba(26, 182, 128, 0.4)',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <span style={{ fontSize: '24px' }}>⚡</span>
+        </motion.button>
+      </div>
+
+      <QuickActionSheet
+        isOpen={isQuickActionOpen}
+        onClose={() => setIsQuickActionOpen(false)}
       />
+
       <ModalRoot />
       <Toast />
       <PermissionPrompt />

@@ -66,6 +66,21 @@ export const INITIAL_DEVICES = [
 export const TAB_ROUTES = {
   landing: '/',
   overview: '/',
+  features: '/features',
+  'digital-pet-passport': '/digital-pet-passport',
+  'ai-pet-care': '/ai-pet-care',
+  'pet-gps': '/pet-gps',
+  'connected-care': '/connected-care',
+  'for-pet-parents': '/for-pet-parents',
+  'for-veterinarians': '/for-veterinarians',
+  'for-clinics': '/for-clinics',
+  'pet-health': '/pet-health',
+  'pet-care': '/pet-care',
+  about: '/about',
+  contact: '/contact',
+  faq: '/faq',
+  privacy: '/privacy',
+  terms: '/terms',
   dashboard: '/dashboard',
   shop: '/shop',
   tracker: '/tracker',
@@ -81,6 +96,21 @@ export const TAB_ROUTES = {
 export const ROUTE_TABS = {
   '/': 'landing',
   '/overview': 'landing',
+  '/features': 'features',
+  '/digital-pet-passport': 'digital-pet-passport',
+  '/ai-pet-care': 'ai-pet-care',
+  '/pet-gps': 'pet-gps',
+  '/connected-care': 'connected-care',
+  '/for-pet-parents': 'for-pet-parents',
+  '/for-veterinarians': 'for-veterinarians',
+  '/for-clinics': 'for-clinics',
+  '/pet-health': 'pet-health',
+  '/pet-care': 'pet-care',
+  '/about': 'about',
+  '/contact': 'contact',
+  '/faq': 'faq',
+  '/privacy': 'privacy',
+  '/terms': 'terms',
   '/dashboard': 'dashboard',
   '/shop': 'shop',
   '/pet-shop': 'shop',
@@ -90,7 +120,7 @@ export const ROUTE_TABS = {
   '/specialists': 'vets',
   '/vets': 'vets',
   '/community': 'community',
-  '/blog': 'food',
+  '/blog': 'blog',
   '/nutrition': 'food',
   '/reminders': 'vaccines',
   '/vaccines': 'vaccines',
@@ -127,17 +157,26 @@ const PAGE_DESCRIPTIONS = {
 };
 
 const resolveInitialTab = () => {
-  if (typeof window === 'undefined') return 'dashboard';
+  if (typeof window === 'undefined') return 'landing';
+
+  // 1. Check hash first if present (e.g. #dashboard, #shop)
+  const hash = window.location.hash.replace(/^#\/?/, '').toLowerCase();
+  if (hash) {
+    if (ROUTE_TABS['/' + hash]) return ROUTE_TABS['/' + hash];
+    if (TAB_ROUTES[hash]) return hash;
+  }
+
+  // 2. Check pathname (e.g. /digital-pet-passport, /features)
   const pathname = window.location.pathname.toLowerCase().replace(/\/$/, '') || '/';
-  if (ROUTE_TABS[pathname]) {
+  if (pathname !== '/' && ROUTE_TABS[pathname]) {
     return ROUTE_TABS[pathname];
   }
-  // Support hash routing fallback (#/shop or #tracker)
-  const hash = window.location.hash.replace(/^#\/?/, '').toLowerCase();
-  if (hash && (ROUTE_TABS['/' + hash] || TAB_ROUTES[hash])) {
-    return ROUTE_TABS['/' + hash] || hash;
+
+  if (pathname === '/') {
+    return 'landing';
   }
-  return localStorage.getItem('pm_active_tab') || 'dashboard';
+
+  return localStorage.getItem('pm_active_tab') || 'landing';
 };
 
 const AppContext = createContext();
@@ -147,7 +186,7 @@ export function AppProvider({ children }) {
 
   // Navigation
   const [activeTab, setActiveTab] = useState(resolveInitialTab);
-  const [theme, setTheme] = useState(() => localStorage.getItem('pm_theme') || 'dark');
+  const [theme, setTheme] = useState(() => localStorage.getItem('pm_theme') || 'light');
 
   // Handle Browser Back / Forward button navigation
   useEffect(() => {

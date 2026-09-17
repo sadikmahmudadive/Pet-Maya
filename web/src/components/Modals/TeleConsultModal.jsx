@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
 import { 
   X, Mic, MicOff, Video, VideoOff, PhoneOff, FileText,
@@ -76,7 +76,7 @@ export default function TeleConsultModal() {
       streamRef.current.getAudioTracks().forEach(t => { t.enabled = !micOn; });
     }
     setMicOn(prev => !prev);
-    showToast(micOn ? '🔇 Microphone muted' : '🎤 Microphone unmuted', 'info');
+    showToast(micOn ? 'Microphone muted' : 'Microphone unmuted', 'info');
   };
 
   const handleVideoToggle = () => {
@@ -111,7 +111,7 @@ export default function TeleConsultModal() {
       cost: 35, 
       nextBooster: '2026-10-15'
     });
-    showToast('💊 Digital prescription saved & dispatched to Pet Owner!', 'success');
+    showToast('Digital prescription saved & dispatched to Pet Owner!', 'success');
   };
 
   return (
@@ -169,11 +169,6 @@ export default function TeleConsultModal() {
               <ShieldCheck size={14} color="#10b981" />
               <span>You ({doctorName})</span>
             </div>
-            {!micOn && streamReady && (
-              <div style={{ position: 'absolute', top: 10, right: 10, background: '#ef4444', borderRadius: '50%', padding: '4px', display: 'flex' }}>
-                <MicOff size={12} color="#fff" />
-              </div>
-            )}
           </div>
 
           {/* Right — patient photo + notes */}
