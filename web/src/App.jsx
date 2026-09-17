@@ -72,13 +72,18 @@ function MainContent() {
   const { currentUser } = useAuth();
   const [isQuickActionOpen, setIsQuickActionOpen] = useState(false);
 
-  // Initial URL hash navigation on mount
+  // Initial URL hash navigation & dynamic hash listener
   useEffect(() => {
-    const hash = window.location.hash.replace('#', '').toLowerCase();
-    const validTabs = ['landing', 'shop', 'vets', 'ai', 'tracker', 'community', 'food', 'vaccines', 'dashboard', 'profile'];
-    if (hash && validTabs.includes(hash)) {
-      setActiveTab(hash);
-    }
+    const handleHash = () => {
+      const hash = window.location.hash.replace('#', '').toLowerCase();
+      const validTabs = ['landing', 'shop', 'vets', 'ai', 'tracker', 'community', 'food', 'vaccines', 'dashboard', 'profile'];
+      if (hash && validTabs.includes(hash)) {
+        setActiveTab(hash);
+      }
+    };
+    handleHash();
+    window.addEventListener('hashchange', handleHash);
+    return () => window.removeEventListener('hashchange', handleHash);
   }, [setActiveTab]);
 
   // Dynamic SEO metadata & URL hash update on tab change

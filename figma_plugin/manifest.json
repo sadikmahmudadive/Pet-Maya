@@ -1,0 +1,11 @@
+{
+  "name": "Pet Maya — Website Design Importer",
+  "id": "pet-maya-web-importer",
+  "api": "1.0.0",
+  "main": "code.js",
+  "capabilities": [],
+  "enableProposedApi": false,
+  "editorType": [
+    "figma"
+  ]
+}

@@ -1,0 +1,237 @@
+[
+  {
+    "id": "01_landing_desktop",
+    "name": "Landing Page (Desktop)",
+    "tab": "landing",
+    "viewport": {
+      "width": 1440,
+      "height": 960
+    },
+    "guest": false,
+    "filePath": "F:\\Code\\Flutter Projects\\Pet Maya\\figma_exports\\01_landing_desktop.png",
+    "fileName": "01_landing_desktop.png",
+    "sizeKB": 914
+  },
+  {
+    "id": "02_dashboard_desktop",
+    "name": "Dashboard & Pets (Desktop)",
+    "tab": "dashboard",
+    "viewport": {
+      "width": 1440,
+      "height": 960
+    },
+    "guest": true,
+    "filePath": "F:\\Code\\Flutter Projects\\Pet Maya\\figma_exports\\02_dashboard_desktop.png",
+    "fileName": "02_dashboard_desktop.png",
+    "sizeKB": 291
+  },
+  {
+    "id": "03_shop_desktop",
+    "name": "Care Shop & Pharmacy",
+    "tab": "shop",
+    "viewport": {
+      "width": 1440,
+      "height": 960
+    },
+    "guest": true,
+    "filePath": "F:\\Code\\Flutter Projects\\Pet Maya\\figma_exports\\03_shop_desktop.png",
+    "fileName": "03_shop_desktop.png",
+    "sizeKB": 555
+  },
+  {
+    "id": "04_ai_scanner_desktop",
+    "name": "AI Health Triage & Scanner",
+    "tab": "ai",
+    "viewport": {
+      "width": 1440,
+      "height": 960
+    },
+    "guest": true,
+    "filePath": "F:\\Code\\Flutter Projects\\Pet Maya\\figma_exports\\04_ai_scanner_desktop.png",
+    "fileName": "04_ai_scanner_desktop.png",
+    "sizeKB": 1282
+  },
+  {
+    "id": "05_specialists_desktop",
+    "name": "Specialists & Veterinarians",
+    "tab": "vets",
+    "viewport": {
+      "width": 1440,
+      "height": 960
+    },
+    "guest": true,
+    "filePath": "F:\\Code\\Flutter Projects\\Pet Maya\\figma_exports\\05_specialists_desktop.png",
+    "fileName": "05_specialists_desktop.png",
+    "sizeKB": 364
+  },
+  {
+    "id": "06_community_desktop",
+    "name": "Pet Parent Community",
+    "tab": "community",
+    "viewport": {
+      "width": 1440,
+      "height": 960
+    },
+    "guest": true,
+    "filePath": "F:\\Code\\Flutter Projects\\Pet Maya\\figma_exports\\06_community_desktop.png",
+    "fileName": "06_community_desktop.png",
+    "sizeKB": 566
+  },
+  {
+    "id": "07_tracker_desktop",
+    "name": "Live GPS Radar & Collar",
+    "tab": "tracker",
+    "viewport": {
+      "width": 1440,
+      "height": 960
+    },
+    "guest": true,
+    "filePath": "F:\\Code\\Flutter Projects\\Pet Maya\\figma_exports\\07_tracker_desktop.png",
+    "fileName": "07_tracker_desktop.png",
+    "sizeKB": 400
+  },
+  {
+    "id": "08_reminders_desktop",
+    "name": "Reminders & Vaccinations",
+    "tab": "vaccines",
+    "viewport": {
+      "width": 1440,
+      "height": 960
+    },
+    "guest": true,
+    "filePath": "F:\\Code\\Flutter Projects\\Pet Maya\\figma_exports\\08_reminders_desktop.png",
+    "fileName": "08_reminders_desktop.png",
+    "sizeKB": 327
+  },
+  {
+    "id": "09_nutrition_desktop",
+    "name": "Nutrition & Scientific Diets",
+    "tab": "food",
+    "viewport": {
+      "width": 1440,
+      "height": 960
+    },
+    "guest": true,
+    "filePath": "F:\\Code\\Flutter Projects\\Pet Maya\\figma_exports\\09_nutrition_desktop.png",
+    "fileName": "09_nutrition_desktop.png",
+    "sizeKB": 287
+  },
+  {
+    "id": "10_profile_desktop",
+    "name": "User Profile & EHR Vault",
+    "tab": "profile",
+    "viewport": {
+      "width": 1440,
+      "height": 960
+    },
+    "guest": true,
+    "filePath": "F:\\Code\\Flutter Projects\\Pet Maya\\figma_exports\\10_profile_desktop.png",
+    "fileName": "10_profile_desktop.png",
+    "sizeKB": 628
+  },
+  {
+    "id": "11_admin_desktop",
+    "name": "Admin Portal & Analytics",
+    "customUrl": "http://localhost:5173/?portal=admin",
+    "viewport": {
+      "width": 1440,
+      "height": 960
+    },
+    "guest": true,
+    "filePath": "F:\\Code\\Flutter Projects\\Pet Maya\\figma_exports\\11_admin_desktop.png",
+    "fileName": "11_admin_desktop.png",
+    "sizeKB": 75
+  },
+  {
+    "id": "12_teleconsult_modal",
+    "name": "Teleconsultation Video Call",
+    "tab": "vets",
+    "modalAction": "open_teleconsult",
+    "viewport": {
+      "width": 1440,
+      "height": 960
+    },
+    "guest": true,
+    "filePath": "F:\\Code\\Flutter Projects\\Pet Maya\\figma_exports\\12_teleconsult_modal.png",
+    "fileName": "12_teleconsult_modal.png",
+    "sizeKB": 413
+  },
+  {
+    "id": "13_landing_mobile",
+    "name": "Landing Page (Mobile)",
+    "tab": "landing",
+    "viewport": {
+      "width": 393,
+      "height": 852
+    },
+    "guest": false,
+    "filePath": "F:\\Code\\Flutter Projects\\Pet Maya\\figma_exports\\13_landing_mobile.png",
+    "fileName": "13_landing_mobile.png",
+    "sizeKB": 293
+  },
+  {
+    "id": "14_dashboard_mobile",
+    "name": "Dashboard (Mobile)",
+    "tab": "dashboard",
+    "viewport": {
+      "width": 393,
+      "height": 852
+    },
+    "guest": true,
+    "filePath": "F:\\Code\\Flutter Projects\\Pet Maya\\figma_exports\\14_dashboard_mobile.png",
+    "fileName": "14_dashboard_mobile.png",
+    "sizeKB": 221
+  },
+  {
+    "id": "15_shop_mobile",
+    "name": "Care Shop (Mobile)",
+    "tab": "shop",
+    "viewport": {
+      "width": 393,
+      "height": 852
+    },
+    "guest": true,
+    "filePath": "F:\\Code\\Flutter Projects\\Pet Maya\\figma_exports\\15_shop_mobile.png",
+    "fileName": "15_shop_mobile.png",
+    "sizeKB": 185
+  },
+  {
+    "id": "16_ai_mobile",
+    "name": "AI Triage (Mobile)",
+    "tab": "ai",
+    "viewport": {
+      "width": 393,
+      "height": 852
+    },
+    "guest": true,
+    "filePath": "F:\\Code\\Flutter Projects\\Pet Maya\\figma_exports\\16_ai_mobile.png",
+    "fileName": "16_ai_mobile.png",
+    "sizeKB": 392
+  },
+  {
+    "id": "17_specialists_mobile",
+    "name": "Specialists (Mobile)",
+    "tab": "vets",
+    "viewport": {
+      "width": 393,
+      "height": 852
+    },
+    "guest": true,
+    "filePath": "F:\\Code\\Flutter Projects\\Pet Maya\\figma_exports\\17_specialists_mobile.png",
+    "fileName": "17_specialists_mobile.png",
+    "sizeKB": 183
+  },
+  {
+    "id": "18_community_mobile",
+    "name": "Community (Mobile)",
+    "tab": "community",
+    "viewport": {
+      "width": 393,
+      "height": 852
+    },
+    "guest": true,
+    "filePath": "F:\\Code\\Flutter Projects\\Pet Maya\\figma_exports\\18_community_mobile.png",
+    "fileName": "18_community_mobile.png",
+    "sizeKB": 206
+  }
+]
