@@ -11,6 +11,7 @@ import '../../../data/repositories/app_state_repository.dart';
 import '../../../data/models/vet_model.dart';
 import '../../../data/models/pet_model.dart';
 import '../../../data/models/event_model.dart';
+import '../../../data/models/notification_model.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -93,6 +94,14 @@ class _BookingScreenState extends State<BookingScreen> {
     );
 
     repo.addEvent(event);
+
+    repo.addNotification(
+      title: 'Appointment Scheduled! 📹',
+      message:
+          'Your video consultation with Dr. ${widget.vet.name} is scheduled for ${DateFormat('MMM d').format(_selectedDate)} at $_selectedTimeSlot. Live video call unlocks on appointment day!',
+      type: NotificationType.social,
+    );
+
     HapticFeedback.heavyImpact();
 
     showDialog(

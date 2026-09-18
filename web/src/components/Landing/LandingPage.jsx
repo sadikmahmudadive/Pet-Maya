@@ -37,6 +37,9 @@ export default function LandingPage({ onNavigate }) {
     if (currentUser) {
       handleRoute('dashboard');
     } else {
+      loginAsGuest('Pet Owner');
+      handleRoute('dashboard');
+      showToast('Welcome to Pet Maya Platform!', 'success');
       handleRoute('signup');
     }
   };

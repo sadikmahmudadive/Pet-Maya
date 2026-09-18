@@ -1077,3 +1077,4 @@ export default function AuthPage({ initialMode = 'signin', onNavigate }) {
     </div>
   );
 }
+
