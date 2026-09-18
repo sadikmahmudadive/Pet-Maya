@@ -111,6 +111,8 @@ const TAB_SEO_MAP = {
   shop: {
     title: 'Care Shop & Pharmacy — Royal Canin, Meds & GPS Collars | Pet Maya',
     description: 'Shop authentic veterinary prescription medications, clinically formulated diets, and 4G smart GPS tracking collars.'
+    title: 'Prescription Formulary & Clinical Biologics | Pet Maya Veterinary Medicine',
+    description: 'Cold-chain monitored pharmaceuticals, targeted veterinary nutrition, and bio-engineered therapeutics verified under strict veterinarian oversight.'
   },
   vets: {
     title: 'Find Verified Veterinarians & Teleconsultations | Pet Maya',
@@ -171,10 +173,12 @@ const VALID_EDITORIAL_ROUTES = [
   'connected-care', 'for-pet-parents', 'for-veterinarians', 'for-clinics', 
   'pet-health', 'pet-care', 'blog', 'about', 'contact', 'faq', 'privacy', 'terms', 'book-vet',
   'login', 'signin', 'signup', 'auth'
+  'login', 'signin', 'signup', 'auth', 'shop'
 ];
 
 const VALID_APP_ROUTES = [
   'dashboard', 'shop', 'vets', 'ai', 'tracker', 'community', 'food', 'vaccines', 'profile'
+  'dashboard', 'vets', 'ai', 'tracker', 'community', 'food', 'vaccines', 'profile'
 ];
 
 function MainContent() {
@@ -342,6 +346,7 @@ function MainContent() {
         return <Community key="community" />;
       case 'shop':
         return <Shop key="shop" />;
+        return <Shop key="shop" onNavigate={handleNavigate} />;
       case 'vaccines':
         return <Reminders key="vaccines" />;
       case 'profile':

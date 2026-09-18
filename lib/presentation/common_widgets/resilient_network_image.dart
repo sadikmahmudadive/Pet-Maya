@@ -72,11 +72,16 @@ class ResilientNetworkImage extends StatelessWidget {
       return assetWidget;
     }
 
+    final memWidth = width != null ? (width! * 2.5).toInt().clamp(120, 1080) : 600;
+    final memHeight = height != null ? (height! * 2.5).toInt().clamp(120, 1080) : 600;
+
     Widget imageWidget = CachedNetworkImage(
       imageUrl: cleanUrl,
       width: width,
       height: height,
       fit: fit,
+      memCacheWidth: memWidth,
+      memCacheHeight: memHeight,
       placeholder: (context, url) =>
           placeholder ??
           Container(

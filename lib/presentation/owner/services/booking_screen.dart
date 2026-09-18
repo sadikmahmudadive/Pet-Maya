@@ -88,9 +88,10 @@ class _BookingScreenState extends State<BookingScreen> {
   }
 
   Future<void> _selectCustomTime() async {
+    final nowTime = TimeOfDay.now();
     final picked = await showTimePicker(
       context: context,
-      initialTime: const TimeOfDay(hour: 10, minute: 0),
+      initialTime: nowTime,
     );
     if (picked != null) {
       final hour = picked.hourOfPeriod == 0 ? 12 : picked.hourOfPeriod;
@@ -109,6 +110,13 @@ class _BookingScreenState extends State<BookingScreen> {
     super.initState();
     final pets = context.read<AppStateRepository>().pets;
     if (pets.isNotEmpty) _selectedPet = pets.first;
+
+    // Sync initial selected slot with current device time
+    final nowTime = TimeOfDay.now();
+    final hour = nowTime.hourOfPeriod == 0 ? 12 : nowTime.hourOfPeriod;
+    final minute = nowTime.minute.toString().padLeft(2, '0');
+    final period = nowTime.period == DayPeriod.am ? 'AM' : 'PM';
+    _selectedTimeSlot = '${hour.toString().padLeft(2, '0')}:$minute $period';
   }
 
   void _confirmBooking() {

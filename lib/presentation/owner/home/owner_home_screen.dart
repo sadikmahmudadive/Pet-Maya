@@ -400,9 +400,11 @@ class HomeDashboardFragment extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (pets.isNotEmpty)
-                HeroPetCarousel(
-                  pets: pets,
-                  allRecords: allRecords,
+                RepaintBoundary(
+                  child: HeroPetCarousel(
+                    pets: pets,
+                    allRecords: allRecords,
+                  ),
                 ),
               // ─── MY PETS ──────────────────────────────────────────────────
               FadeInDown(
@@ -477,11 +479,13 @@ class HomeDashboardFragment extends StatelessWidget {
                       ).textTheme.titleLarge?.copyWith(fontSize: 20),
                     ),
                     const SizedBox(height: 14),
-                    _buildBentoServicesGrid(
-                      context,
-                      pets,
-                      events,
-                      onNavRequested,
+                    RepaintBoundary(
+                      child: _buildBentoServicesGrid(
+                        context,
+                        pets,
+                        events,
+                        onNavRequested,
+                      ),
                     ),
                   ],
                 ),
