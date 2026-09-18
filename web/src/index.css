@@ -1,14 +1,19 @@
 /* ═════════════════════════════════════════════════════════════════
    PET MAYA — DUNA-INSPIRED EDITORIAL & CONNECTED CARE DESIGN SYSTEM
    PET MAYA — BOUTIQUE-DTC HEALTHCARE & ESSENTIALS DESIGN SYSTEM
+   PET MAYA — CLINICAL CALM COMPANION DESIGN SYSTEM (DUNA-INSPIRED)
+   Synthesizing Clinical Precision with Warm Editorial Health
    ═════════════════════════════════════════════════════════════════ */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,800;1,9..144,400;1,9..144,600&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,600&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
   /* Typography Families */
   --font-heading: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-heading: 'Fraunces', Georgia, serif;
+  --font-heading: 'Newsreader', 'Fraunces', Georgia, serif;
+  --font-serif: 'Newsreader', 'Fraunces', Georgia, serif;
   --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
 
@@ -23,7 +28,22 @@
   --primary-hover: #26B388;
   --primary-light: #EBF9F4;
   --primary-tint: rgba(46, 204, 155, 0.12);
+  /* Primary Medical Teal (#0D9488) */
+  --primary: #0D9488;
+  --primary-hover: #0F766E;
+  --primary-light: #F0FDFA;
+  --primary-tint: rgba(13, 148, 136, 0.12);
+
+  /* Secondary Clinical Emerald (#059669) */
+  --secondary: #059669;
+  --secondary-emerald: #059669;
+  --secondary-hover: #047857;
+  --secondary-light: #ECFDF5;
+
+  /* Tertiary Mint Accent (#2ECC9B) */
+  --accent-mint: #2ECC9B;
   --accent: #2ECC9B;
+  --brand-mint: #2ECC9B;
   
   --secondary: #00B6D2;
   --secondary-dark: #008AA0;
@@ -36,6 +56,7 @@
   --warning: #F59E0B;
   --success: #10B981;
   --success: #2ECC9B;
+  --success: #059669;
 
   /* Duna Warm Editorial Palette (Default Light Theme) */
   --bg: #FAFAF7;
@@ -52,19 +73,35 @@
   --text-secondary: #8A8F8B;
   --text-muted: #8A8F8B;
   --text-subtle: #A3A8A4;
+  /* Warm Editorial Canvas & Ground (#FDF8F5 / #F8FAFC) */
+  --bg: #FDF8F5;
+  --bg-pure: #FDF8F5;
+  --surface-canvas: #F8FAFC;
+  --foreground: #160F0C;
+  --text-main: #160F0C;
+  --text-secondary: #675C58;
+  --text-muted: #898683;
+  --text-subtle: #A8A4A0;
 
   /* Shop Sand Accent (#D9A873: Used strictly in shop/product areas) */
+  /* Shop Sand Accent (#D9A873: Used strictly in shop/formulary areas) */
   --shop-accent: #D9A873;
   --shop-accent-hover: #C5935F;
   --shop-accent-light: #FBF6F0;
+  --shop-accent-light: #FDF8F3;
   --shop-accent-tint: rgba(217, 168, 115, 0.15);
 
+  /* Elevated Surfaces */
   --surface: #FFFFFF;
   --surface-solid: #FFFFFF;
   --surface-alt: #F3F3EE;
   --soft-surface: #F3F3EE;
   --surface-alt: #F3F3EF;
   --soft-surface: #F3F3EF;
+  --surface-card: #FFFFFF;
+  --surface-alt: #F8F3EF;
+  --soft-surface: #F8F3EF;
+  --surface-subtle: #EFEFEA;
 
   --nav-bg: rgba(250, 250, 247, 0.85);
   --nav-text: #151515;
@@ -72,14 +109,22 @@
   --nav-bg: rgba(250, 250, 248, 0.90);
   --nav-text: #1F2421;
   --nav-text-subtle: #8A8F8B;
+  --nav-bg: rgba(253, 248, 245, 0.92);
+  --nav-text: #160F0C;
+  --nav-text-subtle: #675C58;
 
   --border: #E6E5DF;
   --border-subtle: #F0EFEA;
   --border: #E8E8E3;
   --border-subtle: #F0F0EA;
+  /* Borders & Dividers */
+  --border: #E2E8F0;
+  --border-subtle: #EFEFEA;
+  --border-hairline: rgba(22, 15, 12, 0.08);
   --border-specular: inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
   --separator: #E6E5DF;
   --separator: #E8E8E3;
+  --separator: #E2E8F0;
 
   /* Contrast Dark Surface for GPS & Radar Hardware Sections */
   --dark-hero-bg: #0C1517;
@@ -195,6 +240,65 @@ body {
   transition: background-color 0.35s ease, color 0.35s ease;
 }
 
+/* Stitch Keyframe Animations & Micro-interactions */
+@keyframes subtlePulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(69, 132, 141, 0.4);
+  }
+  50% {
+    transform: scale(1.08);
+    box-shadow: 0 0 0 5px rgba(69, 132, 141, 0);
+  }
+}
+
+@keyframes liveGlow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+@keyframes blinkCursor {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.ambient-pulse-dot {
+  animation: subtlePulse 2.4s infinite cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+.pulse-beacon {
+  animation: liveGlow 1.8s infinite ease-in-out;
+}
+
+.cursor-blink {
+  display: inline-block;
+  width: 6px;
+  height: 12px;
+  background-color: #45848d;
+  margin-left: 4px;
+  vertical-align: middle;
+  animation: blinkCursor 1s infinite steps(1);
+}
+
+.interactive-card {
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.35s ease, border-color 0.35s ease;
+}
+.interactive-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 30px -10px rgba(33, 41, 38, 0.08);
+}
+
+.btn-elevate {
+  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.2s ease, background-color 0.25s ease;
+}
+.btn-elevate:hover {
+  transform: translateY(-1.5px);
+  box-shadow: 0 6px 16px -4px rgba(22, 15, 12, 0.16);
+}
+.btn-elevate:active {
+  transform: translateY(0.5px);
+}
+
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
   letter-spacing: -0.03em;
@@ -203,9 +307,54 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ── DUNA-INSPIRED EDITORIAL UTILITIES ── */
+/* ── CLINICAL CALM COMPANION UTILITIES & PHYSICS ── */
 .font-heading { font-family: var(--font-heading); }
+.font-serif { font-family: var(--font-serif); }
 .font-body { font-family: var(--font-body); }
 .font-mono { font-family: var(--font-mono); }
+
+@keyframes subtlePulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(13, 148, 136, 0.4);
+  }
+  50% {
+    transform: scale(1.15);
+    box-shadow: 0 0 0 6px rgba(13, 148, 136, 0);
+  }
+}
+
+@keyframes liveGlow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+.ambient-pulse-dot {
+  animation: subtlePulse 2.4s infinite cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+.pulse-beacon {
+  animation: liveGlow 1.8s infinite ease-in-out;
+}
+
+.interactive-card {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+}
+.interactive-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px -8px rgba(22, 15, 12, 0.08);
+}
+
+.btn-elevate {
+  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.2s ease, background-color 0.2s ease;
+}
+.btn-elevate:hover {
+  transform: translateY(-1.5px);
+  box-shadow: 0 6px 16px -4px rgba(22, 15, 12, 0.16);
+}
+.btn-elevate:active {
+  transform: translateY(0.5px);
+}
 
 .editorial-container {
   width: 100%;

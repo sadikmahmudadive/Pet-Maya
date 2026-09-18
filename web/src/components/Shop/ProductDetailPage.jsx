@@ -409,7 +409,7 @@ export default function ProductDetailPage({ productId, onBack, onNavigate }) {
                   justifyContent: 'center',
                   gap: '10px',
                   backgroundColor: 'var(--primary)',
-                  color: '#1F2421',
+                  color: '#FFFFFF',
                   fontSize: '15px',
                   fontWeight: 600,
                   padding: '14px 28px',

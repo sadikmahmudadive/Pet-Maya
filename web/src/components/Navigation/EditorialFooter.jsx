@@ -1,7 +1,10 @@
-import React from 'react';
-import { ArrowUpRight, ShieldCheck, Heart } from 'lucide-react';
+import React, { useState } from 'react';
+import { useApp } from '../../context/AppContext';
 
 export default function EditorialFooter({ onNavigate }) {
+  const { showToast } = useApp ? useApp() : { showToast: () => {} };
+  const [email, setEmail] = useState('');
+
   const handleLinkClick = (path, e) => {
     if (e) e.preventDefault();
     if (onNavigate) {
@@ -11,149 +14,142 @@ export default function EditorialFooter({ onNavigate }) {
     }
   };
 
+  const handleSubscribe = (e) => {
+    e.preventDefault();
+    if (!email || !email.includes('@')) {
+      if (showToast) showToast('Please enter a valid email address.', 'error');
+      return;
+    }
+    if (showToast) showToast('Subscribed to The Clinical Gazette!', 'success');
+    setEmail('');
+  };
+
   return (
-    <footer
-      style={{
-        backgroundColor: 'var(--bg)',
-        borderTop: '1px solid var(--border)',
-        paddingTop: 'clamp(64px, 8vw, 96px)',
-        paddingBottom: '48px',
-        color: 'var(--text-main)',
-      }}
-    >
-      <div className="editorial-container">
-        {/* Top 5-Column Grid */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
-            gap: '40px 32px',
-            marginBottom: '64px',
-          }}
-        >
-          {/* Brand Column */}
-          <div style={{ gridColumn: 'span 2', maxWidth: '340px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-              <img
-                src="/assets/images/tail_wagging_logo.png"
-                alt="Pet Maya"
-                style={{ width: '28px', height: '28px', objectFit: 'contain' }}
-                onError={(e) => { e.target.style.display = 'none'; }}
-              />
-              <span style={{ fontFamily: 'var(--font-heading)', fontSize: '22px', fontWeight: 800, letterSpacing: '-0.03em' }}>
-                Pet Maya
+    <footer style={{ width: '100%', backgroundColor: '#EFEFEA', color: '#160F0C', marginTop: 'auto', borderTop: '1px solid rgba(222, 217, 214, 0.6)' }}>
+      <div style={{ maxWidth: '1360px', margin: '0 auto', padding: '56px 24px 36px' }}>
+        
+        {/* Main Grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '48px', paddingBottom: '48px', borderBottom: '1px solid rgba(222, 217, 214, 0.5)' }}>
+          
+          {/* Brand & Newsletter Column */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '440px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <span style={{ fontFamily: 'var(--font-heading)', fontSize: '20px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#160F0C' }}>
+                PET MAYA
               </span>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '9.5px', fontWeight: 700, letterSpacing: '0.18em', color: '#45848D', textTransform: 'uppercase' }}>
+                VETERINARY MEDICINE &amp; CLINICAL TRIAGE
+              </span>
+              <p style={{ fontSize: '14px', color: '#675C58', lineHeight: 1.6, margin: '8px 0 0' }}>
+                Elevated veterinary intelligence, preventive biological care, and clinical empathy designed for the modern companion life.
+              </p>
             </div>
-            <p style={{ fontSize: '14.5px', color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: '20px' }}>
-              Better care for the pets you love. The unified digital healthcare, smart radar, and connected medical passport ecosystem.
-            </p>
-            <div
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '6px 12px',
-                backgroundColor: 'var(--surface)',
-                border: '1px solid var(--border)',
-                borderRadius: 'var(--radius-full)',
-                fontSize: '12px',
-                fontFamily: 'var(--font-mono)',
-                color: 'var(--text-muted)',
-              }}
-            >
-              <span style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: 'var(--primary)' }} />
-              <span>All Systems Operational</span>
+
+            {/* Newsletter */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#675C58', fontWeight: 600 }}>
+                The Clinical Gazette
+              </span>
+              <form onSubmit={handleSubscribe} style={{ display: 'flex', gap: '8px', maxWidth: '380px' }}>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter email address..."
+                  style={{
+                    flex: 1,
+                    padding: '10px 14px',
+                    borderRadius: '9999px',
+                    border: '1px solid rgba(222, 217, 214, 0.7)',
+                    backgroundColor: '#FFFFFF',
+                    fontSize: '13px',
+                    color: '#160F0C',
+                    outline: 'none'
+                  }}
+                />
+                <button
+                  type="submit"
+                  className="btn-elevate"
+                  style={{
+                    padding: '10px 20px',
+                    borderRadius: '9999px',
+                    backgroundColor: '#160F0C',
+                    color: '#FFFFFF',
+                    fontSize: '12.5px',
+                    fontWeight: 500,
+                    border: 'none',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Join
+                </button>
+              </form>
             </div>
           </div>
 
-          {/* Column: Platform */}
-          <div>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11.5px', fontWeight: 600, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '18px' }}>
-              Platform
+          {/* Nav Directory Columns */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '32px', flex: 1 }}>
+            {/* Column 1: Clinical Care */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#160F0C', fontWeight: 600 }}>
+                Clinical Care
+              </span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13.5px' }}>
+                <a onClick={(e) => handleLinkClick('shop', e)} style={{ color: '#675C58', textDecoration: 'none', cursor: 'pointer' }} className="footer-link">Care Shop</a>
+                <a onClick={(e) => handleLinkClick('ai', e)} style={{ color: '#675C58', textDecoration: 'none', cursor: 'pointer' }} className="footer-link">AI Triage</a>
+                <a onClick={(e) => handleLinkClick('vets', e)} style={{ color: '#675C58', textDecoration: 'none', cursor: 'pointer' }} className="footer-link">Board Specialists</a>
+                <a onClick={(e) => handleLinkClick('profile', e)} style={{ color: '#675C58', textDecoration: 'none', cursor: 'pointer' }} className="footer-link">Health Vault</a>
+                <a onClick={(e) => handleLinkClick('tracker', e)} style={{ color: '#675C58', textDecoration: 'none', cursor: 'pointer' }} className="footer-link">GPS Safety Radar</a>
+              </div>
             </div>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '11px' }}>
-              <li><a href="/digital-pet-passport" onClick={(e) => handleLinkClick('/digital-pet-passport', e)} className="editorial-footer-link">Digital Pet Passport</a></li>
-              <li><a href="/ai-pet-care" onClick={(e) => handleLinkClick('/ai-pet-care', e)} className="editorial-footer-link">Clinical AI Triage</a></li>
-              <li><a href="/pet-gps" onClick={(e) => handleLinkClick('/pet-gps', e)} className="editorial-footer-link">GPS Safety Radar</a></li>
-              <li><a href="/connected-care" onClick={(e) => handleLinkClick('/connected-care', e)} className="editorial-footer-link">Connected Care IoT</a></li>
-              <li><a href="/features" onClick={(e) => handleLinkClick('/features', e)} className="editorial-footer-link">All Platform Features</a></li>
-            </ul>
+
+            {/* Column 2: Infrastructure */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#160F0C', fontWeight: 600 }}>
+                Infrastructure
+              </span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13.5px' }}>
+                <a onClick={(e) => handleLinkClick('features', e)} style={{ color: '#675C58', textDecoration: 'none', cursor: 'pointer' }} className="footer-link">Cold-Chain (2°C–8°C)</a>
+                <a onClick={(e) => handleLinkClick('digital-pet-passport', e)} style={{ color: '#675C58', textDecoration: 'none', cursor: 'pointer' }} className="footer-link">ISO Microchip Vault</a>
+                <a onClick={(e) => handleLinkClick('connected-care', e)} style={{ color: '#675C58', textDecoration: 'none', cursor: 'pointer' }} className="footer-link">Telemetry API</a>
+                <a onClick={(e) => handleLinkClick('for-clinics', e)} style={{ color: '#675C58', textDecoration: 'none', cursor: 'pointer' }} className="footer-link">Clinical Security</a>
+              </div>
+            </div>
+
+            {/* Column 3: Editorial */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#160F0C', fontWeight: 600 }}>
+                Editorial
+              </span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13.5px' }}>
+                <a onClick={(e) => handleLinkClick('blog', e)} style={{ color: '#675C58', textDecoration: 'none', cursor: 'pointer' }} className="footer-link">Companion Journal</a>
+                <a onClick={(e) => handleLinkClick('pet-care', e)} style={{ color: '#675C58', textDecoration: 'none', cursor: 'pointer' }} className="footer-link">Clinical Nutrition</a>
+                <a onClick={(e) => handleLinkClick('pet-health', e)} style={{ color: '#675C58', textDecoration: 'none', cursor: 'pointer' }} className="footer-link">Biosecurity Guidelines</a>
+                <a onClick={(e) => handleLinkClick('about', e)} style={{ color: '#675C58', textDecoration: 'none', cursor: 'pointer' }} className="footer-link">About Pet Maya</a>
+              </div>
+            </div>
           </div>
 
-          {/* Column: Solutions */}
-          <div>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11.5px', fontWeight: 600, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '18px' }}>
-              Solutions
-            </div>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '11px' }}>
-              <li><a href="/for-pet-parents" onClick={(e) => handleLinkClick('/for-pet-parents', e)} className="editorial-footer-link">For Pet Parents</a></li>
-              <li><a href="/for-veterinarians" onClick={(e) => handleLinkClick('/for-veterinarians', e)} className="editorial-footer-link">For Veterinarians</a></li>
-              <li><a href="/for-clinics" onClick={(e) => handleLinkClick('/for-clinics', e)} className="editorial-footer-link">For Clinics & Hospitals</a></li>
-              <li><a href="/connected-care" onClick={(e) => handleLinkClick('/connected-care', e)} className="editorial-footer-link">Smart Collars & Hardware</a></li>
-              <li><a href="#shop" onClick={(e) => handleLinkClick('shop', e)} className="editorial-footer-link">Pet Shop & Pharmacy</a></li>
-            </ul>
-          </div>
-
-          {/* Column: Resources */}
-          <div>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11.5px', fontWeight: 600, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '18px' }}>
-              Resources
-            </div>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '11px' }}>
-              <li><a href="/pet-health" onClick={(e) => handleLinkClick('/pet-health', e)} className="editorial-footer-link">Pet Health Knowledge Hub</a></li>
-              <li><a href="/pet-care" onClick={(e) => handleLinkClick('/pet-care', e)} className="editorial-footer-link">Canine & Feline Nutrition</a></li>
-              <li><a href="/blog" onClick={(e) => handleLinkClick('/blog', e)} className="editorial-footer-link">Pet Maya Journal</a></li>
-              <li><a href="/faq" onClick={(e) => handleLinkClick('/faq', e)} className="editorial-footer-link">Help & FAQs</a></li>
-            </ul>
-          </div>
-
-          {/* Column: Company */}
-          <div>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11.5px', fontWeight: 600, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '18px' }}>
-              Company
-            </div>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '11px' }}>
-              <li><a href="/about" onClick={(e) => handleLinkClick('/about', e)} className="editorial-footer-link">About Pet Maya</a></li>
-              <li><a href="/contact" onClick={(e) => handleLinkClick('/contact', e)} className="editorial-footer-link">Contact & Support</a></li>
-              <li><a href="/privacy" onClick={(e) => handleLinkClick('/privacy', e)} className="editorial-footer-link">Privacy Policy</a></li>
-              <li><a href="/terms" onClick={(e) => handleLinkClick('/terms', e)} className="editorial-footer-link">Terms of Service</a></li>
-            </ul>
-          </div>
         </div>
 
-        {/* Bottom Legal & Ethics Bar */}
-        <div
-          style={{
-            paddingTop: '32px',
-            borderTop: '1px solid var(--border)',
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '16px',
-            fontSize: '13px',
-            color: 'var(--text-muted)',
-          }}
-        >
+        {/* Legal & Regulatory Bottom Bar */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '16px', paddingTop: '28px', fontSize: '12px', color: '#675C58' }}>
           <div>
-            © {new Date().getFullYear()} Pet Maya Inc. All rights reserved. Built with love for pets and their humans.
+            Pet Maya Veterinary Group © {new Date().getFullYear()}. Licensed under the Department of Livestock Services (DLS) &amp; Bangladesh Veterinary Council (BVC).
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-            <span>Security: AES-256 Cloud Vault</span>
-            <span>Region: Bangladesh & Global</span>
+            <a onClick={(e) => handleLinkClick('privacy', e)} style={{ color: 'inherit', textDecoration: 'none', cursor: 'pointer' }}>Privacy Policy</a>
+            <a onClick={(e) => handleLinkClick('terms', e)} style={{ color: 'inherit', textDecoration: 'none', cursor: 'pointer' }}>Terms of Service</a>
+            <a onClick={(e) => handleLinkClick('faq', e)} style={{ color: 'inherit', textDecoration: 'none', cursor: 'pointer' }}>Clinical FAQ</a>
           </div>
         </div>
+
       </div>
 
       <style>{`
-        .editorial-footer-link {
-          color: var(--text-muted);
-          text-decoration: none;
-          font-size: 14px;
-          transition: color 0.15s ease;
-        }
-        .editorial-footer-link:hover {
-          color: var(--foreground);
+        .footer-link:hover {
+          color: #160F0C !important;
+          text-decoration: underline;
         }
       `}</style>
     </footer>

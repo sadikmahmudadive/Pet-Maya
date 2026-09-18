@@ -1,31 +1,29 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
-import { motion } from 'framer-motion';
-import { 
-  ShieldCheck, 
-  ChevronRight, 
-  ChevronLeft,
-  Star, 
-  ShoppingBag, 
-  Clock, 
-  Truck, 
-  Sparkles, 
-  Heart, 
-  Stethoscope, 
-  BookOpen, 
-  MessageSquare, 
-  Check, 
-  Video, 
-  ExternalLink,
-  Lock,
-  ArrowRight
-} from 'lucide-react';
 
 export default function LandingPage({ onNavigate }) {
-  const { setActiveTab, openModal, showToast, products, vets, addToCart } = useApp();
+  const { showToast, addToCart } = useApp();
   const { currentUser, loginAsGuest } = useAuth();
-  const carouselRef = useRef(null);
+
+  // Dynamic telemetry pulse states for Milo
+  const [vitalsState, setVitalsState] = useState('Vitals Optimal (68 bpm)');
+  const [addedItems, setAddedItems] = useState({});
+
+  useEffect(() => {
+    const vitalStates = [
+      'Vitals Optimal (68 bpm)',
+      'Vitals Optimal (71 bpm)',
+      'Resting Pulse Calm (66 bpm)',
+      'Vitals Optimal (69 bpm)'
+    ];
+    let idx = 0;
+    const interval = setInterval(() => {
+      idx = (idx + 1) % vitalStates.length;
+      setVitalsState(vitalStates[idx]);
+    }, 4500);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleRoute = (path) => {
     if (onNavigate) {
@@ -41,791 +39,503 @@ export default function LandingPage({ onNavigate }) {
     } else {
       loginAsGuest('Pet Owner');
       handleRoute('dashboard');
-      showToast('Welcome to Pet Maya!', 'success');
+      showToast('Welcome to Pet Maya Platform!', 'success');
     }
   };
 
-  const scrollCarousel = (direction) => {
-    if (carouselRef.current) {
-      const scrollAmount = direction === 'left' ? -340 : 340;
-      carouselRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-    }
+  const handleQuickAdd = (product) => {
+    addToCart(product, 1);
+    setAddedItems((prev) => ({ ...prev, [product.id]: true }));
+    showToast(`${product.name} added to dispatch bag`, 'success');
+    setTimeout(() => {
+      setAddedItems((prev) => ({ ...prev, [product.id]: false }));
+    }, 2000);
   };
 
-  // Curated shop items for the carousel
-  const shopItems = (products && products.length > 0) ? products.slice(0, 6) : [
+  // Curated 4-item prescription formulary matching exact Stitch specification
+  const formularyItems = [
     {
       id: 'p1',
-      name: 'Royal Canin Golden Retriever Adult',
-      brand: 'Royal Canin',
-      price: 64.99,
-      originalPrice: 79.99,
-      rating: 4.9,
-      ratingCount: 128,
-      badge: 'BEST SELLER',
-      image: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=500&auto=format&fit=crop&q=80'
+      name: 'NexGard Spectra Chews',
+      badge: 'Schedule Rx',
+      category: 'Broad Spectrum Antiparasitic',
+      desc: 'Monthly oral prophylaxis against heartworm, ticks, fleas, and mites.',
+      price: 1650,
+      unit: '3-month blister',
+      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAyyaRDTb2W0SyWzpotHdYAApqW2ydxhtGyeEKl6loLi_sYPbDWkdK5abfVRN9IKB4VURTDfr4KM87oTm4tTleP5tpUVnjtMaFBhPdmHM5VsoerwkyzFt0iGGLkM92fmTpK6cSKeAtoffqDf8pMSx5UIR2kr0CXLUKEcWxhdQNDi6xwl6s-upiyklCSkWtQom61laln9mF-vojFZAeX8erkCObUVa0YkuH810Jx9alUj5Y2EBk1q8y5'
     },
     {
       id: 'p2',
-      name: 'Simparica Trio Chewables (3-Pack)',
-      brand: 'Zoetis Rx',
-      price: 42.50,
-      originalPrice: 49.99,
-      rating: 5.0,
-      ratingCount: 215,
-      badge: 'VET APPROVED',
-      image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=500&auto=format&fit=crop&q=80'
+      name: 'Royal Canin Gastro Low Fat',
+      badge: 'Clinical Diet',
+      category: 'Digestive Microbiome Support',
+      desc: 'Formulated with highly digestible proteins, prebiotics, and EPA/DHA.',
+      price: 3450,
+      unit: '4.0 kg bag',
+      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB9U3FvzjziZczps6X5sPuuKuOX40qPLobWacnfI85tXLCZynTpweICAvn1dLwFc9T5lqog-bfsF38U9Dym32m7PzER89u92kYfrWQZMXJVhsSwuSAYglUNVMBtRSS_UPDx21dAcpP859PySdRyKwRCayRXp0_C6n0msFfQiMHQ4NavEuLEEtANuQeqX6v63iNpa9j2pOz8oP7OznX_dJp2msH0v7vP4bj-QRFW8ZLuf_lel-VHhL0L'
     },
     {
       id: 'p3',
-      name: 'Smart GPS & Health Collar V3',
-      brand: 'Pet Maya Wearables',
-      price: 89.00,
-      originalPrice: 119.00,
-      rating: 4.8,
-      ratingCount: 94,
-      badge: 'COLD-CHAIN',
-      image: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=500&auto=format&fit=crop&q=80'
+      name: 'Nobivac Rabies 1-Dose',
+      badge: 'Cold-Chain Biologic',
+      category: 'Inactivated Immunization',
+      desc: 'Insulated temp-logged delivery with certified clinical batch serial.',
+      price: 850,
+      unit: 'Single Vial + Ice Core',
+      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCl5hQZ6ayu5ehyl5fSHlkzD2Mfci7ba4G5q4HZbE6yHowWAuV0pLdSTsGsvDQSjSQG1X76gwnYLJk3Ojlx7jPKLE5GOWy31Z0bYwwMHrwhqCQiPqGjU2WORBhZB_7wXYga5YQgph5DnjXRDVrhapnWE-Ko5xCvXt0UX9m0N7qFFiQzIG-VWAEZKH33hGIJZ_PDZPYWVyv-hXWuwXNcldIw0YakHmMrkSdcx9tUP3i87_EOQM-qKbsU'
     },
     {
       id: 'p4',
-      name: 'Hill\'s Prescription Diet Gastrointestinal Biome',
-      brand: 'Hill\'s Pet Nutrition',
-      price: 58.20,
-      originalPrice: 68.00,
-      rating: 4.9,
-      ratingCount: 88,
-      badge: 'CLINICAL RX',
-      image: 'https://images.unsplash.com/photo-1568640347023-a616a30bc3bd?w=500&auto=format&fit=crop&q=80'
-    },
-    {
-      id: 'p5',
-      name: 'ProDen PlaqueOff Dental Care Powder',
-      brand: 'Swedencare',
-      price: 24.50,
-      originalPrice: 29.00,
-      rating: 4.7,
-      ratingCount: 142,
-      badge: 'PREVENTATIVE',
-      image: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=500&auto=format&fit=crop&q=80'
+      name: 'Synoquin EFA Joint Care',
+      badge: 'Joint Therapy',
+      category: 'High Purity Glucosamine + Dexahan',
+      desc: 'Clinically proven chondroprotective support for senior & active mobility.',
+      price: 2100,
+      unit: '30 Chewable Tabs',
+      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAtnwsm_JiwhU3Ov-f5bQDXY-4k8fGBLuVf7PSzSjR4M3p6D32krDyyQplZFL0O3qGzaXhazXOi84U-lYKxymoS2pLtaszYPb5w-tlmgWY0FE432Btn5Dl7qVgXk7bkuem38s2Ow4xx35YI_VHtZd4fNB1YPq2HjNyiORfxzRLPHiWO6wEl9WrucZHItG-glHVv0jKeJ165nrNmdQrnN1XJ_pkpAiaKPaezgoIcAUk0SCcf6P2AoR0A'
     }
   ];
 
-  // Top veterinarians
-  const topVets = (vets && vets.length > 0) ? vets.slice(0, 3) : [
+  // Faculty specialists matching exact Stitch specification
+  const clinicalFaculty = [
     {
-      id: 'v1',
+      id: 'vet1',
       name: 'Dr. Sarah Jenkins',
-      qualification: 'DVM, MRCVS • Small Animal Surgery',
-      rating: 4.9,
-      reviewsCount: 68,
-      price: '৳500 / session',
-      clinic: 'Greenwood Animal Hospital',
-      photo: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&auto=format&fit=crop&q=80'
+      title: 'BVM&S, MRCVS · Small Animal Internal Medicine',
+      bio: 'Specializing in chronic renal pathology, feline longevity protocols, and microbiome stabilization.',
+      price: '৳500',
+      status: 'On Duty Now',
+      statusType: 'pulse',
+      rating: '4.98',
+      reviews: '340+ consults',
+      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB_EBxEWwm0PmUwbCrPwYgD3SRV4KNUmkFkUdyUqF8Gw4r87SVmFFhGYTf2JtDSSjRpwAZTkNJo12DqsuqU41MiJGEcjIt4144IMCy4v2smytrZu6dtx3bgkSJOtLCW6Y-hsDstAZRGCIPzWwFExr8JPCqVKI1hyIeeXlzODM83gfORG0KfplYn5ReE3W3ul9BOZoX8xGqWUB92uYd_FLWNFlfIjtjNANWjBI2SqHF-B7bq7Q-v5pZX'
     },
     {
-      id: 'v2',
-      name: 'Dr. Aris Thorne',
-      qualification: 'BVSc, PhD • Feline Medicine & Dermatology',
-      rating: 5.0,
-      reviewsCount: 42,
-      price: '৳650 / session',
-      clinic: 'Metropolitan Veterinary Center',
-      photo: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=400&auto=format&fit=crop&q=80'
+      id: 'vet2',
+      name: 'Dr. Nazmul Hoda',
+      title: 'DVM, MS (Surgery), PhD · Orthopedics & Trauma',
+      bio: '22 years clinical leadership in canine CCL repair, hip dysplasia triage, and regenerative post-op rehab.',
+      price: '৳500',
+      status: 'Available in 20m',
+      statusType: 'beacon',
+      rating: '4.99',
+      reviews: '610+ consults',
+      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBOiVSgR5xqx0wvB4JoCg0RowBoAK-Mkv-jwHmdh_ylJlTG57ES5ZmvLpxiEkj4lqOAdeDecV9xJDfBogYLzTu3A5YQ3vswYyjjsqkrqMPDGUNfH3zG-KCBhrLZaTMtvNw8pgeOitSN48RpEF47XHV04jVVm539VS6c5VIjWBXwq2P3C4Q0ijOblOWrjsB0FFRepEKzsKo1Ep1JlLyl1WqZOHmD2DHgOQms6QSwXMA40j0GKxJcbc6F'
     },
     {
-      id: 'v3',
-      name: 'Dr. Emily Vance',
-      qualification: 'DVM • Internal Medicine & Cardiology',
-      rating: 4.8,
-      reviewsCount: 51,
-      price: '৳550 / session',
-      clinic: 'City Vets & Diagnostics',
-      photo: 'https://images.unsplash.com/photo-1594824813589-9a25b293883a?w=400&auto=format&fit=crop&q=80'
+      id: 'vet3',
+      name: 'Dr. Ananya Roy',
+      title: 'DVM, Dip. ECVD · Clinical Dermatology & Allergies',
+      bio: 'Targeted cytological diagnostics for tropical atopic dermatitis, ear canal care, and allergen immunotherapy.',
+      price: '৳500',
+      status: 'Today at 16:30',
+      statusType: 'static',
+      rating: '4.96',
+      reviews: '280+ consults',
+      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD-Bv2wqoDb7QPMqXHqASOH_Id5I5T8ssyg0z9XhUJw2d3DEXWJnGOpMA70D2d41tP4lNX4AH99It1aDqteGz3CoMFwMOqRkN3B2CpmPOPClatcIm6zcnhtIJrYrig8VvNR85wI5y2BWMzA5og9FCybuTcpQiZ2v0x1aCy8pCwU15R2QLmzxcLBtz9rE-PWaZW-_tdla2DkqN_vAYy5y4IpUE7xWTx7l-XO3MUs0_VUr0ZkWeLetek-'
     }
   ];
 
-  // Editorial blog posts
-  const blogPosts = [
+  // Editorial journal dispatches matching exact Stitch specification
+  const journalArticles = [
     {
-      id: 1,
-      tag: 'CLINICAL NUTRITION',
-      title: 'The Mindful Transition: Switching Your Dog to Clinically Balanced Diets',
-      excerpt: 'How gradual ratio adjustments protect gut microbiome health and prevent gastrointestinal sensitivity.',
-      readTime: '5 min read',
-      author: 'Dr. Aris Thorne, BVSc',
-      image: 'https://images.unsplash.com/photo-1548767797-d8c844163c4c?w=600&auto=format&fit=crop&q=80'
+      id: 'art1',
+      category: 'Clinical Nutrition',
+      readTime: '6 Min Read',
+      title: 'Beyond Kibble: Microbiome Diversification in Senior Canines',
+      excerpt: 'A veterinary look at short-chain fatty acids, enterocyte vitality, and the scientific calibration of gut biodiversity.',
+      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBCTG161_-30cq7pyoNxdxZsTFRXq_3S3CEpk1schZ0tM6ubQAQiW-3SscP-g7brCTyemZmh0SUMqQPeYA3B3PheTWt7SE0_VNZ7OeTb4Fj30IpTuopvmuTlhHPWSHzvykO0qmdx0YuP34HuMAqAgYGLPLljQT31C1W0OGqLLG_Ix_dR-Jnmp5KgJ6W99YgI32Ueg05cGk2f-XYLE2m38XFQCgPFLox6ngWVPGAFMSN0PsWwFRBTJPG'
     },
     {
-      id: 2,
-      tag: 'FELINE HEALTH',
-      title: 'Recognizing Seasonal Allergy and Dermatitis Patterns in Indoor Felines',
-      excerpt: 'Subtle behavioral signs — from excessive paw-licking to focal coat thinning — that warrant an ear and skin check.',
-      readTime: '7 min read',
-      author: 'Dr. Sarah Jenkins, MRCVS',
-      image: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=600&auto=format&fit=crop&q=80'
+      id: 'art2',
+      category: 'Preventive Biomarkers',
+      readTime: '4 Min Read',
+      title: 'The Silent Renal Index: Deciphering SDMA Before Creatinine Spikes',
+      excerpt: 'How contemporary symmetric dimethylarginine screening detects kidney dysfunction up to 17 months earlier than conventional tests.',
+      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuApSEASDFKwzPeG9HuGX4dTl68IVTage1i_V6SCTa3xjwbqCO-36_BQaD7KRP508Lih3lb8iDBGoRmqkvDFyuCkRpi2RebI_IqHn4tdO05kMnVBvWvPiqglBEhhf3j1xYfSKVwZFstVUyV6qRlkg2QlXMnbR4DnXqIpytXPKwJSnlKM1Hvz-bCMJ0j58yi1PBFG9Wi-QxRsTDSzCsr0w94zxUAFH6CtnLOQJHl-Qbce7OXQUh5_mrt4'
     },
     {
-      id: 3,
-      tag: 'TRAVEL & RECORDS',
-      title: 'Digital Travel Clearance: What Border Control Looks for in Pet Passports',
-      excerpt: 'A comprehensive guide to rabies titers, ISO 11784 microchip standards, and veterinary health certifications.',
-      readTime: '4 min read',
-      author: 'Pet Maya Clinical Editorial',
-      image: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=600&auto=format&fit=crop&q=80'
+      id: 'art3',
+      category: 'Global Biosecurity',
+      readTime: '8 Min Read',
+      title: 'Navigating UK, EU & UAE Pet Export: A Step-by-Step Biosecurity Protocol',
+      excerpt: 'FAVN titre windows, USDA/DEFRA endorsements, tapeworm timing, and avoiding traumatic port quarantine holdovers.',
+      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuABej4DKT3CNZP08PvnGuZsc2OVsxvU908vK53QW1DBABH9iSs2PWZQ85G8NgfeWoOxkCDPWZtzLJCxAdWvAyMYDAphOaO4aNM9NXL3rnDHg2UK2LWDiGkXIpUQMpkobFPlBhHdQnCO4YVMLhwiwjBjyGaGEE_L8CJc-142i_kCr8iU9maJiRN6vhHMrOsyCsDG7hZnMa80yl9KTdUd7Uu3a4C3kVFXiFygPxAwun2WW5-6LxMUm1Hr'
     }
   ];
 
   return (
-    <div style={{ backgroundColor: 'var(--bg)', color: 'var(--foreground)', minHeight: '100vh' }}>
+    <div style={{ backgroundColor: '#FDF8F5', color: '#160F0C', minHeight: '100vh' }}>
       
       {/* ═══════════════════════════════════════════════════════════════
-          SECTION 01: HERO (SPLIT LAYOUT WITH REAL PET PHOTOGRAPHY)
+          SECTION 1: HERO (Duna-Inspired Split Editorial)
           ═══════════════════════════════════════════════════════════════ */}
-      <section style={{ padding: 'clamp(48px, 8vw, 96px) 24px clamp(40px, 6vw, 80px)', borderBottom: '1px solid var(--border)' }}>
-        <div style={{ maxWidth: 'var(--container-max)', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 'clamp(36px, 6vw, 72px)', alignItems: 'center' }}>
-          
-          {/* Hero Content Left */}
-          <div>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '6px 14px', borderRadius: '9999px', backgroundColor: 'rgba(46, 204, 155, 0.12)', border: '1px solid rgba(46, 204, 155, 0.28)', color: '#158763', fontSize: '12.5px', fontWeight: 600, letterSpacing: '0.02em', marginBottom: '24px' }}>
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#2ECC9B' }} />
-              <span>Veterinary-Led Companion Care</span>
+      <section style={{ maxWidth: '1360px', margin: '0 auto', padding: '32px 24px 56px' }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+          gap: '48px',
+          alignItems: 'center'
+        }}>
+          {/* Left Editorial Column */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            {/* Pill Badge */}
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '6px 14px',
+              borderRadius: '9999px',
+              backgroundColor: '#F8F3EF',
+              border: '1px solid rgba(222, 217, 214, 0.5)',
+              width: 'fit-content'
+            }}>
+              <span className="ambient-pulse-dot" style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#45848D' }}></span>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600, color: '#160F0C' }}>
+                Next-Gen Veterinary Collective
+              </span>
             </div>
 
-            <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 'clamp(38px, 5.2vw, 66px)', fontWeight: 600, lineHeight: 1.12, letterSpacing: '-0.025em', color: 'var(--foreground)', margin: '0 0 24px 0' }}>
-              Thoughtful healthcare and honest nutrition for everyday pets.
+            {/* Editorial Headline */}
+            <h1 style={{
+              fontFamily: 'var(--font-heading)',
+              fontSize: 'clamp(36px, 5.5vw, 56px)',
+              fontWeight: 300,
+              lineHeight: 1.1,
+              letterSpacing: '-0.03em',
+              color: '#160F0C',
+              margin: 0
+            }}>
+              Thoughtful veterinary care, <span style={{ fontStyle: 'italic', fontFamily: 'var(--font-heading)', color: '#45848D' }}>designed</span> for everyday peace of mind.
             </h1>
 
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: '17px', lineHeight: 1.65, color: 'var(--text-secondary)', maxWidth: '540px', margin: '0 0 36px 0' }}>
-              A calm, modern ecosystem for the companions who give us everything. From temperature-guaranteed prescription nutrition to 24/7 AI first-aid triage, certified specialists, and encrypted health records.
+            {/* Narrative Subtitle */}
+            <p style={{
+              fontSize: '17px',
+              lineHeight: 1.6,
+              color: '#675C58',
+              margin: 0,
+              maxWidth: '540px'
+            }}>
+              Pet Maya unifies 24/7 AI-guided symptom triage, cold-chain biologics delivery, and connected longitudinal health records into one serene daily sanctuary for your companion.
             </p>
 
             {/* CTAs */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'center' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '14px', paddingTop: '4px' }}>
               <button
-                onClick={handleGetStarted}
+                onClick={() => handleRoute('shop')}
+                className="btn-elevate"
                 style={{
-                  backgroundColor: 'var(--primary)',
-                  color: '#1F2421',
-                  fontWeight: 600,
-                  fontSize: '15px',
-                  padding: '13px 30px',
+                  padding: '14px 28px',
                   borderRadius: '9999px',
-                  border: 'none',
-                  cursor: 'pointer',
-                  boxShadow: '0 2px 10px rgba(46, 204, 155, 0.28)',
-                  display: 'inline-flex',
+                  backgroundColor: '#160F0C',
+                  color: '#FFFFFF',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  transition: 'all 0.18s ease'
+                  border: 'none',
+                  cursor: 'pointer'
                 }}
               >
-                <span>Start Your Pet’s Vault</span>
-                <ChevronRight size={17} />
+                <span>Explore Formulary</span>
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>arrow_forward</span>
               </button>
 
               <button
-                onClick={() => handleRoute('shop')}
+                onClick={() => handleRoute('profile')}
+                className="btn-elevate"
                 style={{
-                  backgroundColor: 'transparent',
-                  color: 'var(--foreground)',
-                  fontWeight: 500,
-                  fontSize: '15px',
-                  padding: '12px 26px',
+                  padding: '14px 28px',
                   borderRadius: '9999px',
-                  border: '1px solid var(--border)',
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  transition: 'all 0.18s ease'
+                  backgroundColor: '#F8F3EF',
+                  color: '#160F0C',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  border: '1px solid rgba(222, 217, 214, 0.5)',
+                  cursor: 'pointer'
                 }}
               >
-                <ShoppingBag size={16} />
-                <span>Explore Care Shop</span>
+                Start Health Vault
               </button>
             </div>
 
-            {/* Micro Trust Indicators */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '22px', marginTop: '36px', paddingTop: '24px', borderTop: '1px solid var(--border)', color: 'var(--text-secondary)', fontSize: '13px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <ShieldCheck size={16} color="#2ECC9B" />
-                <span>ISO Microchip Ready</span>
+            {/* Trust Signals Bar */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, 1fr)',
+              gap: '12px',
+              paddingTop: '16px'
+            }}>
+              <div style={{
+                backgroundColor: 'rgba(248, 243, 239, 0.7)',
+                padding: '14px',
+                borderRadius: '12px',
+                border: '1px solid rgba(222, 217, 214, 0.4)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '4px'
+              }}>
+                <span className="material-symbols-outlined" style={{ color: '#45848D', fontSize: '20px' }}>verified_user</span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', textTransform: 'uppercase', color: '#675C58', fontWeight: 600 }}>AAHA Protocols</span>
+                <span style={{ fontSize: '13px', fontWeight: 500, color: '#160F0C' }}>Clinical rigor</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Truck size={16} color="#D9A873" />
-                <span>Cold-Chain Express</span>
+
+              <div style={{
+                backgroundColor: 'rgba(248, 243, 239, 0.7)',
+                padding: '14px',
+                borderRadius: '12px',
+                border: '1px solid rgba(222, 217, 214, 0.4)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '4px'
+              }}>
+                <span className="material-symbols-outlined" style={{ color: '#45848D', fontSize: '20px' }}>ac_unit</span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', textTransform: 'uppercase', color: '#675C58', fontWeight: 600 }}>Cold-Chain</span>
+                <span style={{ fontSize: '13px', fontWeight: 500, color: '#160F0C' }}>2°C – 8°C Monitored</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Star size={16} color="#F59E0B" fill="#F59E0B" />
-                <span>4.9/5 by 12,000+ Pets</span>
+
+              <div style={{
+                backgroundColor: 'rgba(248, 243, 239, 0.7)',
+                padding: '14px',
+                borderRadius: '12px',
+                border: '1px solid rgba(222, 217, 214, 0.4)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '4px'
+              }}>
+                <span className="material-symbols-outlined" style={{ color: '#45848D', fontSize: '20px' }}>medical_services</span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', textTransform: 'uppercase', color: '#675C58', fontWeight: 600 }}>Faculty Vets</span>
+                <span style={{ fontSize: '13px', fontWeight: 500, color: '#160F0C' }}>MRCVS &amp; DVM Lead</span>
               </div>
             </div>
           </div>
 
-          {/* Hero Image Right (Real Pet Photography with Floating Clinical Guarantee Card) */}
+          {/* Right Cinematic Visual Column */}
           <div style={{ position: 'relative' }}>
-            <div style={{ borderRadius: '28px', overflow: 'hidden', boxShadow: '0 20px 48px rgba(0,0,0,0.08)', aspectRatio: '4/4.5', backgroundColor: '#EDECE8' }}>
-              <img 
-                src="https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=900&auto=format&fit=crop&q=85" 
-                alt="Golden retriever looking healthy and peaceful"
-                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            <div style={{
+              position: 'relative',
+              width: '100%',
+              height: '520px',
+              borderRadius: '20px',
+              overflow: 'hidden',
+              backgroundColor: '#EFEFEA'
+            }}>
+              <img
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYFuFEX44Uc7Gl_EA6UI3koMPA0GHbxpHv4uzyM-NhstFZK80Pgmd7J58cf-P_2X-1ZsTz1eVi0kOTT5XmwndUrWwYHcugyuWCWLbIYQ-vuWYF0qP4FMOEHaYgv2kjZ_3jX6cjuNDbO8tIELKoyqXSABoXLFts6j1g8mJN4orPxG5BbUFmw0n8-KLnCDA48kN-mQYwq5XZ2boybhW9mFHvTUh2GNNArsLn4ZYjFefhMkSIM5Y2VWG6"
+                alt="A tranquil golden retriever resting peacefully beside sunlit minimalist window"
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
-            </div>
 
-            {/* Floating Quality Assurance Card */}
-            <div 
-              style={{
+              {/* Floating Status Badge Milo */}
+              <div style={{
                 position: 'absolute',
-                bottom: '-20px',
-                left: '-16px',
-                backgroundColor: 'var(--surface)',
-                border: '1px solid var(--border)',
-                borderRadius: '18px',
-                padding: '16px 20px',
-                boxShadow: '0 12px 32px rgba(0,0,0,0.10)',
-                maxWidth: '280px',
-                backdropFilter: 'blur(8px)'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'rgba(217, 168, 115, 0.20)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#D9A873' }}>
-                  <ShieldCheck size={18} />
+                bottom: '20px',
+                left: '20px',
+                right: '20px',
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
+                padding: '14px 18px',
+                borderRadius: '16px',
+                boxShadow: '0 8px 30px rgba(22, 15, 12, 0.1)',
+                border: '1px solid rgba(222, 217, 214, 0.6)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{
+                    width: '42px',
+                    height: '42px',
+                    borderRadius: '50%',
+                    backgroundColor: '#EFEFEA',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 600,
+                    fontSize: '16px',
+                    color: '#160F0C'
+                  }}>
+                    M
+                  </div>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontWeight: 600, fontSize: '15px', color: '#160F0C' }}>Milo</span>
+                      <span style={{
+                        padding: '2px 8px',
+                        borderRadius: '9999px',
+                        backgroundColor: '#F8F3EF',
+                        color: '#45848D',
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: '10px',
+                        textTransform: 'uppercase',
+                        fontWeight: 600,
+                        border: '1px solid rgba(222, 217, 214, 0.5)'
+                      }}>
+                        Golden Retriever · 3y
+                      </span>
+                    </div>
+                    <p style={{ margin: '2px 0 0', fontSize: '12.5px', color: '#675C58' }}>
+                      <span style={{ fontWeight: 600, color: '#160F0C', transition: 'all 0.3s ease' }}>{vitalsState}</span> · Heartgard Cycle Active (Day 18/30)
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-secondary)', fontWeight: 600 }}>Clinical Quality</div>
-                  <div style={{ fontFamily: 'var(--font-heading)', fontSize: '14.5px', fontWeight: 600, color: 'var(--foreground)' }}>100% Guaranteed</div>
+
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  backgroundColor: '#F8F3EF',
+                  padding: '5px 10px',
+                  borderRadius: '9999px',
+                  border: '1px solid rgba(69, 132, 141, 0.2)'
+                }}>
+                  <span className="material-symbols-outlined pulse-beacon" style={{ fontSize: '15px', color: '#45848D' }}>signal_cellular_alt</span>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10.5px', fontWeight: 600, color: '#45848D' }}>Live Synced</span>
                 </div>
               </div>
-              <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>
-                Authentic veterinary pharmaceuticals and climate-monitored courier transit.
-              </p>
             </div>
           </div>
         </div>
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════
-          SECTION 02: 4-ITEM VALUE STRIP
+          SECTION 2: CURATED FORMULARY & DAILY ESSENTIALS
           ═══════════════════════════════════════════════════════════════ */}
-      <section style={{ borderBottom: '1px solid var(--border)', backgroundColor: 'var(--surface)' }}>
-        <div style={{ maxWidth: 'var(--container-max)', margin: '0 auto', padding: '36px 24px' }}>
+      <section style={{ backgroundColor: '#F8F3EF', borderTop: '1px solid rgba(222, 217, 214, 0.3)', borderBottom: '1px solid rgba(222, 217, 214, 0.3)', padding: '56px 24px' }}>
+        <div style={{ maxWidth: '1360px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '32px' }}>
+          {/* Header */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-end', justifyContent: 'space-between', gap: '16px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#675C58', fontWeight: 600 }}>
+                Veterinary Formulary
+              </span>
+              <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '30px', fontWeight: 400, letterSpacing: '-0.02em', color: '#160F0C', margin: 0 }}>
+                Prescription essentials &amp; targeted biologics.
+              </h2>
+            </div>
+            <a
+              onClick={() => handleRoute('shop')}
+              style={{
+                cursor: 'pointer',
+                fontFamily: 'var(--font-mono)',
+                fontSize: '12.5px',
+                color: '#45848D',
+                fontWeight: 600,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                textDecoration: 'none'
+              }}
+            >
+              <span>Browse Full Dispensary (140+)</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>north_east</span>
+            </a>
+          </div>
+
+          {/* Product Cards Grid */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-            gap: '28px'
+            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+            gap: '24px'
           }}>
-            {[
-              {
-                icon: ShieldCheck,
-                title: 'Veterinary-Formulated',
-                desc: 'Every diet, medication, and supplement is strictly certified by licensed veterinary surgeons.'
-              },
-              {
-                icon: Truck,
-                title: 'Cold-Chain Express',
-                desc: 'Guaranteed 24-hour temperature-monitored pharmaceutical delivery directly to your doorstep.'
-              },
-              {
-                icon: Sparkles,
-                title: 'Calm AI Triage',
-                desc: 'Evidence-based symptom evaluation and immediate clinical first-aid protocol.'
-              },
-              {
-                icon: Lock,
-                title: 'Encrypted Passport',
-                desc: 'Permanent ISO microchip records, vaccination milestones, and paperless travel QR.'
-              }
-            ].map((item, idx) => (
-              <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
-                <div style={{
-                  width: '42px',
-                  height: '42px',
-                  borderRadius: '12px',
-                  backgroundColor: 'rgba(46, 204, 155, 0.12)',
+            {formularyItems.map((item) => (
+              <div
+                key={item.id}
+                className="interactive-card"
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: '16px',
+                  padding: '18px',
                   display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#2ECC9B',
-                  flexShrink: 0
-                }}>
-                  <item.icon size={20} />
-                </div>
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
+                  border: '1px solid rgba(222, 217, 214, 0.4)'
+                }}
+              >
                 <div>
-                  <h4 style={{ fontFamily: 'var(--font-heading)', fontSize: '15.5px', fontWeight: 600, color: 'var(--foreground)', margin: '0 0 4px 0' }}>
-                    {item.title}
-                  </h4>
-                  <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>
+                  <div style={{
+                    position: 'relative',
+                    width: '100%',
+                    height: '220px',
+                    borderRadius: '12px',
+                    overflow: 'hidden',
+                    backgroundColor: '#F8F3EF',
+                    marginBottom: '14px'
+                  }}>
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                    <span style={{
+                      position: 'absolute',
+                      top: '10px',
+                      left: '10px',
+                      padding: '4px 10px',
+                      borderRadius: '9999px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.92)',
+                      backdropFilter: 'blur(8px)',
+                      WebkitBackdropFilter: 'blur(8px)',
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '10px',
+                      textTransform: 'uppercase',
+                      fontWeight: 600,
+                      color: '#160F0C',
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.06)'
+                    }}>
+                      {item.badge}
+                    </span>
+                  </div>
+
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10.5px', textTransform: 'uppercase', color: '#675C58', fontWeight: 600, letterSpacing: '0.04em' }}>
+                    {item.category}
+                  </span>
+                  <h3 style={{ fontSize: '17px', fontWeight: 600, color: '#160F0C', margin: '4px 0 6px' }}>
+                    {item.name}
+                  </h3>
+                  <p style={{ fontSize: '13px', color: '#675C58', margin: 0, lineHeight: 1.5 }}>
                     {item.desc}
                   </p>
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
-      {/* ═══════════════════════════════════════════════════════════════
-          SECTION 03: SHOP PRODUCT CAROUSEL (BOUTIQUE FORMULARY)
-          ═══════════════════════════════════════════════════════════════ */}
-      <section style={{ padding: 'clamp(56px, 8vw, 96px) 24px', borderBottom: '1px solid var(--border)' }}>
-        <div style={{ maxWidth: 'var(--container-max)', margin: '0 auto' }}>
-          
-          {/* Section Header */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '36px', flexWrap: 'wrap', gap: '16px' }}>
-            <div>
-              <div style={{ display: 'inline-block', marginBottom: '8px' }}>
-                <span className="sand-badge">Curated Formulary</span>
-              </div>
-              <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 'clamp(28px, 4vw, 42px)', fontWeight: 600, letterSpacing: '-0.02em', color: 'var(--foreground)', margin: 0 }}>
-                Veterinary-Grade Essentials
-              </h2>
-              <p style={{ fontSize: '15px', color: 'var(--text-secondary)', marginTop: '8px', maxWidth: '520px' }}>
-                Authentic diets, clinically validated parasite prevention, and precision monitoring collars.
-              </p>
-            </div>
-
-            {/* Carousel Controls & All Products link */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <button
-                onClick={() => scrollCarousel('left')}
-                aria-label="Scroll left"
-                style={{
-                  width: '38px',
-                  height: '38px',
-                  borderRadius: '50%',
-                  border: '1px solid var(--border)',
-                  backgroundColor: 'var(--surface)',
+                <div style={{
+                  paddingTop: '16px',
+                  marginTop: '16px',
+                  borderTop: '1px solid rgba(222, 217, 214, 0.4)',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'var(--foreground)',
-                  cursor: 'pointer'
-                }}
-              >
-                <ChevronLeft size={18} />
-              </button>
-              <button
-                onClick={() => scrollCarousel('right')}
-                aria-label="Scroll right"
-                style={{
-                  width: '38px',
-                  height: '38px',
-                  borderRadius: '50%',
-                  border: '1px solid var(--border)',
-                  backgroundColor: 'var(--surface)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'var(--foreground)',
-                  cursor: 'pointer'
-                }}
-              >
-                <ChevronRight size={18} />
-              </button>
-              <button
-                onClick={() => handleRoute('shop')}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: 'var(--foreground)',
-                  fontSize: '14.5px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  marginLeft: '8px',
-                  textDecoration: 'underline'
-                }}
-              >
-                View Catalog
-              </button>
-            </div>
-          </div>
-
-          {/* Carousel Track */}
-          <div
-            ref={carouselRef}
-            style={{
-              display: 'flex',
-              gap: '20px',
-              overflowX: 'auto',
-              paddingBottom: '16px',
-              scrollSnapType: 'x mandatory',
-              scrollbarWidth: 'none',
-              msOverflowStyle: 'none'
-            }}
-          >
-            {shopItems.map((item) => (
-              <div
-                key={item.id}
-                style={{
-                  flex: '0 0 290px',
-                  scrollSnapAlign: 'start',
-                  backgroundColor: 'var(--surface)',
-                  border: '1px solid var(--border)',
-                  borderRadius: '20px',
-                  overflow: 'hidden',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  transition: 'transform 0.18s ease, box-shadow 0.18s ease'
-                }}
-              >
-                {/* Image & Sand Badge */}
-                <div 
-                  onClick={() => {
-                    window.location.hash = `shop-product/${item.id}`;
-                    handleRoute('shop');
-                  }}
-                  style={{ position: 'relative', height: '220px', backgroundColor: '#F2F1ED', cursor: 'pointer', overflow: 'hidden' }}
-                >
-                  <img 
-                    src={item.image} 
-                    alt={item.name} 
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  />
-                  {item.badge && (
-                    <span 
-                      className="sand-badge"
-                      style={{
-                        position: 'absolute',
-                        top: '12px',
-                        left: '12px',
-                        backgroundColor: 'rgba(217, 168, 115, 0.94)',
-                        color: '#FFFFFF',
-                        border: 'none'
-                      }}
-                    >
-                      {item.badge}
-                    </span>
-                  )}
-                </div>
-
-                {/* Details */}
-                <div style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                    <span style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-secondary)', fontWeight: 600 }}>
-                      {item.brand}
-                    </span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '12px', fontWeight: 600, color: 'var(--foreground)' }}>
-                      <Star size={12} color="#F59E0B" fill="#F59E0B" />
-                      <span>{item.rating}</span>
-                    </div>
-                  </div>
-
-                  <h3 
-                    onClick={() => {
-                      window.location.hash = `shop-product/${item.id}`;
-                      handleRoute('shop');
-                    }}
-                    style={{
-                      fontFamily: 'var(--font-heading)',
-                      fontSize: '16.5px',
-                      fontWeight: 600,
-                      lineHeight: 1.3,
-                      color: 'var(--foreground)',
-                      margin: '0 0 12px 0',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    {item.name}
-                  </h3>
-
-                  {/* Price Row & Add to Bag CTA */}
-                  <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: '1px solid var(--border)' }}>
-                    <div>
-                      <span style={{ fontFamily: 'var(--font-heading)', fontSize: '18px', fontWeight: 700, color: 'var(--foreground)' }}>
-                        ৳{item.price}
-                      </span>
-                      {item.originalPrice && (
-                        <span style={{ fontSize: '13px', color: 'var(--text-secondary)', textDecoration: 'line-through', marginLeft: '6px' }}>
-                          ৳{item.originalPrice}
-                        </span>
-                      )}
-                    </div>
-
-                    <button
-                      onClick={() => {
-                        addToCart(item, 1);
-                        openModal('cart');
-                        showToast(`Added ${item.name} to shopping bag!`, 'success');
-                      }}
-                      style={{
-                        backgroundColor: 'var(--primary)',
-                        color: '#1F2421',
-                        fontWeight: 600,
-                        fontSize: '12.5px',
-                        padding: '7px 16px',
-                        borderRadius: '9999px',
-                        border: 'none',
-                        cursor: 'pointer',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '5px'
-                      }}
-                    >
-                      <span>Add</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════════
-          SECTION 04: AI SCANNER (CHAT-STYLE MOCK, ZERO SCI-FI RADAR)
-          ═══════════════════════════════════════════════════════════════ */}
-      <section style={{ padding: 'clamp(56px, 8vw, 96px) 24px', borderBottom: '1px solid var(--border)', backgroundColor: 'var(--surface)' }}>
-        <div style={{ maxWidth: 'var(--container-max)', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 'clamp(36px, 6vw, 64px)', alignItems: 'center' }}>
-          
-          {/* Section Description Left */}
-          <div>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '5px 12px', borderRadius: '9999px', backgroundColor: 'rgba(46, 204, 155, 0.12)', color: '#158763', fontSize: '12px', fontWeight: 600, marginBottom: '16px' }}>
-              <Sparkles size={14} color="#2ECC9B" />
-              <span>Calm Clinical Decision Support</span>
-            </div>
-
-            <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 'clamp(30px, 4.5vw, 48px)', fontWeight: 600, letterSpacing: '-0.02em', color: 'var(--foreground)', lineHeight: 1.15, margin: '0 0 20px 0' }}>
-              Immediate first-aid triage, without the panic.
-            </h2>
-
-            <p style={{ fontSize: '16px', lineHeight: 1.65, color: 'var(--text-secondary)', margin: '0 0 24px 0' }}>
-              When your pet exhibits subtle distress, you don’t need flashing graphs or alarming radars. Pet Maya’s clinical AI conducts a gentle conversational evaluation, assesses urgency levels, and delivers actionable first-aid steps validated by veterinary guidelines.
-            </p>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '32px' }}>
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-                <Check size={18} color="#2ECC9B" style={{ flexShrink: 0, marginTop: '2px' }} />
-                <span style={{ fontSize: '14px', color: 'var(--foreground)' }}><strong>Standardized Triage Levels</strong> — Clear categorization from routine to urgent care.</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-                <Check size={18} color="#2ECC9B" style={{ flexShrink: 0, marginTop: '2px' }} />
-                <span style={{ fontSize: '14px', color: 'var(--foreground)' }}><strong>First-Aid Action Protocol</strong> — Exact step-by-step measures before veterinary arrival.</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-                <Check size={18} color="#2ECC9B" style={{ flexShrink: 0, marginTop: '2px' }} />
-                <span style={{ fontSize: '14px', color: 'var(--foreground)' }}><strong>Direct Telehealth Bridge</strong> — Seamless handoff to licensed veterinarians.</span>
-              </div>
-            </div>
-
-            <button
-              onClick={() => handleRoute('ai')}
-              style={{
-                backgroundColor: 'var(--primary)',
-                color: '#1F2421',
-                fontWeight: 600,
-                fontSize: '14.5px',
-                padding: '12px 28px',
-                borderRadius: '9999px',
-                border: 'none',
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}
-            >
-              <span>Try Triage Checker</span>
-              <ChevronRight size={16} />
-            </button>
-          </div>
-
-          {/* Chat-Style Mock Right (Clean, Elegant, Boutique DTC) */}
-          <div style={{
-            backgroundColor: 'var(--bg)',
-            borderRadius: '24px',
-            border: '1px solid var(--border)',
-            padding: '24px',
-            boxShadow: '0 16px 40px rgba(0,0,0,0.06)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '16px'
-          }}>
-            {/* Chat Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '14px', borderBottom: '1px solid var(--border)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'rgba(46, 204, 155, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#158763' }}>
-                  <Sparkles size={16} />
-                </div>
-                <div>
-                  <div style={{ fontFamily: 'var(--font-heading)', fontSize: '14.5px', fontWeight: 600, color: 'var(--foreground)' }}>Maya Clinical Triage</div>
-                  <div style={{ fontSize: '11px', color: '#10B981', fontWeight: 500 }}>Evidence-Based Model</div>
-                </div>
-              </div>
-              <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Case #4092</span>
-            </div>
-
-            {/* User Message */}
-            <div style={{ alignSelf: 'flex-end', maxWidth: '85%' }}>
-              <div style={{
-                backgroundColor: 'var(--surface)',
-                border: '1px solid var(--border)',
-                borderRadius: '16px 16px 4px 16px',
-                padding: '12px 16px',
-                fontSize: '13.5px',
-                lineHeight: 1.5,
-                color: 'var(--foreground)'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                  <img 
-                    src="https://images.unsplash.com/photo-1548767797-d8c844163c4c?w=100&auto=format&fit=crop&q=80" 
-                    alt="Uploaded pet lesion photo" 
-                    style={{ width: '48px', height: '48px', borderRadius: '8px', objectFit: 'cover' }}
-                  />
-                  <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Milo (Golden Retriever, 3y)</span>
-                </div>
-                Milo has been licking his left front paw obsessively for 2 days. The pad looks slightly inflamed and pink.
-              </div>
-            </div>
-
-            {/* AI Assistant Response */}
-            <div style={{ alignSelf: 'flex-start', maxWidth: '92%' }}>
-              <div style={{
-                backgroundColor: 'var(--surface)',
-                border: '1px solid var(--border)',
-                borderRadius: '16px 16px 16px 4px',
-                padding: '16px 18px',
-                fontSize: '13.5px',
-                lineHeight: 1.5,
-                color: 'var(--foreground)'
-              }}>
-                {/* Triage Urgency Badge */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                  <span style={{
-                    backgroundColor: 'rgba(217, 168, 115, 0.20)',
-                    color: '#8A5D2E',
-                    fontSize: '11.5px',
-                    fontWeight: 700,
-                    padding: '3px 10px',
-                    borderRadius: '9999px',
-                    letterSpacing: '0.02em'
-                  }}>
-                    Level 2 Triage — Non-Emergent / Monitor
-                  </span>
-                </div>
-
-                <p style={{ margin: '0 0 10px 0' }}>
-                  Based on anatomical inspection and presentation, this suggests mild <strong>interdigital dermatitis</strong> or environmental contact sensitivity. No visible deep punctures or purulent discharge.
-                </p>
-
-                {/* Protocol Checklist */}
-                <div style={{ backgroundColor: 'var(--bg)', borderRadius: '10px', padding: '10px 12px', margin: '10px 0', border: '1px solid var(--border)' }}>
-                  <div style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-secondary)', marginBottom: '6px' }}>First-Aid Protocol</div>
-                  <div style={{ fontSize: '12.5px', color: 'var(--foreground)', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <div>1. Gently rinse the paw in lukewarm saline or dilute chlorhexidine.</div>
-                    <div>2. Pat dry thoroughly; do not apply human hydrocortisone.</div>
-                    <div>3. Utilize a soft recovery bootie if licking resumes.</div>
-                  </div>
-                </div>
-
-                <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', margin: '10px 0 14px 0' }}>
-                  Recommended: If erythema intensifies or limping develops within 24 hours, schedule a clinical consult.
-                </p>
-
-                {/* Consultation Trigger Button */}
-                <button
-                  onClick={() => handleRoute('book-vet')}
-                  style={{
-                    backgroundColor: 'var(--primary)',
-                    color: '#1F2421',
-                    fontWeight: 600,
-                    fontSize: '12.5px',
-                    padding: '8px 18px',
-                    borderRadius: '9999px',
-                    border: 'none',
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px'
-                  }}
-                >
-                  <Video size={14} />
-                  <span>Book Consult with Dr. Thorne (৳500)</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════════
-          SECTION 05: VET MARKETPLACE GRID
-          ═══════════════════════════════════════════════════════════════ */}
-      <section style={{ padding: 'clamp(56px, 8vw, 96px) 24px', borderBottom: '1px solid var(--border)' }}>
-        <div style={{ maxWidth: 'var(--container-max)', margin: '0 auto' }}>
-          
-          <div style={{ textAlign: 'center', maxWidth: '640px', margin: '0 auto 48px auto' }}>
-            <div style={{ display: 'inline-block', marginBottom: '8px' }}>
-              <span className="mint-badge">Verified Specialists</span>
-            </div>
-            <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 'clamp(28px, 4vw, 42px)', fontWeight: 600, letterSpacing: '-0.02em', color: 'var(--foreground)', margin: '0 0 12px 0' }}>
-              Licensed Veterinary Surgeons &amp; Clinicians
-            </h2>
-            <p style={{ fontSize: '15.5px', color: 'var(--text-secondary)', margin: 0 }}>
-              Access 500+ verified veterinarians for HD teleconsultations, electronic prescriptions, and second opinions.
-            </p>
-          </div>
-
-          {/* Vets Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
-            {topVets.map((vet) => (
-              <div
-                key={vet.id}
-                style={{
-                  backgroundColor: 'var(--surface)',
-                  border: '1px solid var(--border)',
-                  borderRadius: '20px',
-                  padding: '24px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '16px'
-                }}
-              >
-                <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
-                  <img 
-                    src={vet.photo} 
-                    alt={vet.name}
-                    style={{ width: '64px', height: '64px', borderRadius: '50%', objectFit: 'cover' }}
-                  />
+                  justifyContent: 'space-between'
+                }}>
                   <div>
-                    <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '17px', fontWeight: 600, color: 'var(--foreground)', margin: '0 0 4px 0' }}>
-                      {vet.name}
-                    </h3>
-                    <div style={{ fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
-                      {vet.qualification}
-                    </div>
+                    <span style={{ fontSize: '18px', fontWeight: 700, color: '#160F0C' }}>৳{item.price.toLocaleString()}</span>
+                    <span style={{ fontSize: '11px', color: '#675C58', display: 'block' }}>{item.unit}</span>
                   </div>
-                </div>
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', fontWeight: 600, color: 'var(--foreground)' }}>
-                    <Star size={14} color="#F59E0B" fill="#F59E0B" />
-                    <span>{vet.rating}</span>
-                    <span style={{ color: 'var(--text-secondary)', fontWeight: 400 }}>({vet.reviewsCount} reviews)</span>
-                  </div>
-                  <span style={{ fontFamily: 'var(--font-heading)', fontSize: '14.5px', fontWeight: 600, color: 'var(--foreground)' }}>
-                    {vet.price}
-                  </span>
-                </div>
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
-                  <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-                    {vet.clinic}
-                  </span>
                   <button
-                    onClick={() => handleRoute('book-vet')}
+                    onClick={() => handleQuickAdd(item)}
+                    className="btn-elevate"
                     style={{
-                      backgroundColor: 'var(--primary)',
-                      color: '#1F2421',
-                      fontWeight: 600,
-                      fontSize: '13px',
-                      padding: '8px 18px',
+                      padding: '8px 16px',
                       borderRadius: '9999px',
+                      backgroundColor: addedItems[item.id] ? '#45848D' : '#160F0C',
+                      color: '#FFFFFF',
+                      fontSize: '12.5px',
+                      fontWeight: 500,
                       border: 'none',
                       cursor: 'pointer',
-                      transition: 'all 0.15s ease'
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      transition: 'all 0.25s ease'
                     }}
                   >
-                    Book Visit
+                    <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
+                      {addedItems[item.id] ? 'check' : 'add'}
+                    </span>
+                    <span>{addedItems[item.id] ? 'Added' : 'Quick Add'}</span>
                   </button>
                 </div>
               </div>
@@ -835,77 +545,576 @@ export default function LandingPage({ onNavigate }) {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════
-          SECTION 06: COMMUNITY & PET MAYA JOURNAL STRIP
+          SECTION 3: DETERMINISTIC AI ENGINE (Clinical Precision)
           ═══════════════════════════════════════════════════════════════ */}
-      <section style={{ padding: 'clamp(56px, 8vw, 96px) 24px', borderBottom: '1px solid var(--border)', backgroundColor: 'var(--surface)' }}>
-        <div style={{ maxWidth: 'var(--container-max)', margin: '0 auto' }}>
-          
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '36px', flexWrap: 'wrap', gap: '16px' }}>
-            <div>
-              <div style={{ display: 'inline-block', marginBottom: '8px' }}>
-                <span className="sand-badge">The Pet Maya Journal</span>
+      <section style={{ maxWidth: '1360px', margin: '0 auto', padding: '64px 24px' }}>
+        <div style={{
+          backgroundColor: '#F8F3EF',
+          borderRadius: '24px',
+          padding: 'clamp(24px, 4vw, 48px)',
+          border: '1px solid rgba(222, 217, 214, 0.5)'
+        }}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+            gap: '40px',
+            alignItems: 'center'
+          }}>
+            {/* Left Story Narrative */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '5px 12px',
+                borderRadius: '9999px',
+                backgroundColor: '#FFFFFF',
+                color: '#45848D',
+                border: '1px solid rgba(222, 217, 214, 0.5)',
+                width: 'fit-content'
+              }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>health_and_safety</span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10.5px', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>
+                  Deterministic AI Engine
+                </span>
               </div>
-              <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 'clamp(28px, 4vw, 42px)', fontWeight: 600, letterSpacing: '-0.02em', color: 'var(--foreground)', margin: 0 }}>
-                Clinical Insights &amp; Companion Care
+
+              <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 'clamp(28px, 4vw, 36px)', fontWeight: 400, letterSpacing: '-0.02em', color: '#160F0C', margin: 0 }}>
+                Clinical precision, zero panic.
+              </h2>
+
+              <p style={{ fontSize: '16px', lineHeight: 1.6, color: '#675C58', margin: 0 }}>
+                When subtle symptoms arise late at night, avoid frantic searches. Pet Maya’s clinical triage evaluates species, weight, vitals, and onset velocity against 12,000+ veterinary protocols—calmly delineating between immediate home observation and urgent clinical dispatch.
+              </p>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', paddingTop: '4px' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                  <div style={{ width: '22px', height: '22px', borderRadius: '50%', backgroundColor: 'rgba(69, 132, 141, 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '2px' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '15px', color: '#45848D' }}>check</span>
+                  </div>
+                  <p style={{ fontSize: '14px', color: '#160F0C', margin: 0, fontWeight: 500 }}>
+                    Immediate protocol checklists vetted by emergency veterinary intensivists.
+                  </p>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                  <div style={{ width: '22px', height: '22px', borderRadius: '50%', backgroundColor: 'rgba(69, 132, 141, 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '2px' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '15px', color: '#45848D' }}>check</span>
+                  </div>
+                  <p style={{ fontSize: '14px', color: '#160F0C', margin: 0, fontWeight: 500 }}>
+                    One-tap escalation to live on-duty faculty DVM with full pre-loaded context.
+                  </p>
+                </div>
+              </div>
+
+              <div style={{ paddingTop: '8px' }}>
+                <button
+                  onClick={() => handleRoute('ai')}
+                  className="btn-elevate"
+                  style={{
+                    padding: '12px 24px',
+                    borderRadius: '9999px',
+                    backgroundColor: '#45848D',
+                    color: '#FFFFFF',
+                    fontSize: '13.5px',
+                    fontWeight: 500,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    border: 'none',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>chat_bubble_outline</span>
+                  <span>Launch Symptom Evaluation</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Right Diagnostic Live Card Mockup */}
+            <div>
+              <div className="interactive-card" style={{
+                backgroundColor: '#FFFFFF',
+                borderRadius: '18px',
+                padding: '24px',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.04)',
+                border: '1px solid rgba(222, 217, 214, 0.4)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '18px'
+              }}>
+                {/* Header Row */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '14px', borderBottom: '1px solid rgba(222, 217, 214, 0.4)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#F8F3EF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, color: '#160F0C' }}>
+                      M
+                    </div>
+                    <div>
+                      <h4 style={{ fontSize: '16px', fontWeight: 600, color: '#160F0C', margin: 0 }}>Milo · Case #PM-8924</h4>
+                      <p style={{ fontSize: '12px', color: '#675C58', margin: '2px 0 0' }}>Evaluated 4 minutes ago · Golden Retriever (28.4 kg)</p>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 10px', borderRadius: '9999px', backgroundColor: '#F8F3EF', border: '1px solid rgba(222, 217, 214, 0.5)' }}>
+                    <span className="ambient-pulse-dot" style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#45848D' }}></span>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', textTransform: 'uppercase', color: '#45848D', fontWeight: 600 }}>Triage Resolved</span>
+                  </div>
+                </div>
+
+                {/* Metric Wells */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+                  <div style={{ backgroundColor: '#F8F3EF', padding: '12px', borderRadius: '10px', border: '1px solid rgba(222, 217, 214, 0.3)' }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '9.5px', textTransform: 'uppercase', color: '#675C58', fontWeight: 600 }}>Reported Symptom</span>
+                    <p style={{ fontSize: '14px', fontWeight: 600, color: '#160F0C', margin: '4px 0 2px' }}>Mild Lethargy</p>
+                    <span style={{ fontSize: '11px', color: '#675C58' }}>Duration: 3 hours</span>
+                  </div>
+
+                  <div style={{ backgroundColor: '#F8F3EF', padding: '12px', borderRadius: '10px', border: '1px solid rgba(222, 217, 214, 0.3)' }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '9.5px', textTransform: 'uppercase', color: '#675C58', fontWeight: 600 }}>Hydration Index</span>
+                    <p style={{ fontSize: '14px', fontWeight: 600, color: '#160F0C', margin: '4px 0 2px' }}>Normal (1.1s)</p>
+                    <span style={{ fontSize: '11px', color: '#675C58' }}>Capillary refill ok</span>
+                  </div>
+
+                  <div style={{ backgroundColor: '#F8F3EF', padding: '12px', borderRadius: '10px', border: '1px solid rgba(222, 217, 214, 0.3)' }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '9.5px', textTransform: 'uppercase', color: '#675C58', fontWeight: 600 }}>Clinical Risk</span>
+                    <p style={{ fontSize: '14px', fontWeight: 600, color: '#45848D', margin: '4px 0 2px' }}>Low Severity</p>
+                    <span style={{ fontSize: '11px', color: '#675C58' }}>Tier 1 Monitoring</span>
+                  </div>
+                </div>
+
+                {/* Recommended Home Protocol Checklist */}
+                <div style={{ backgroundColor: '#FDF8F5', padding: '16px', borderRadius: '12px', border: '1px solid rgba(222, 217, 214, 0.4)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', textTransform: 'uppercase', color: '#675C58', fontWeight: 600, letterSpacing: '0.05em' }}>
+                      Recommended Home Protocol <span className="cursor-blink"></span>
+                    </span>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#45848D', backgroundColor: '#F8F3EF', padding: '2px 8px', borderRadius: '9999px', fontWeight: 600 }}>
+                      Next Checkpoint: 22:00
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12.5px', color: '#160F0C' }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#45848D' }}>radio_button_checked</span>
+                      <span>Offer 150ml cool water with electrolyte powder (hydrating well)</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12.5px', color: '#160F0C' }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#45848D' }}>radio_button_checked</span>
+                      <span>Withhold high-fat treats for 6 hours; prepare steamed white rice + lean chicken</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12.5px', color: '#160F0C' }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#45848D' }}>radio_button_checked</span>
+                      <span>Monitor respiration rate at rest (expected baseline: 18-24 breaths/min)</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Doctor Handshake Footer */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '12px', paddingTop: '4px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12.5px', color: '#675C58' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#45848D' }}>verified</span>
+                    <span>Reviewed by On-Duty Triage Clinician Dr. Sarah Jenkins</span>
+                  </div>
+                  <button
+                    onClick={() => handleRoute('vets')}
+                    className="btn-elevate"
+                    style={{
+                      padding: '8px 18px',
+                      borderRadius: '9999px',
+                      backgroundColor: '#F8F3EF',
+                      color: '#160F0C',
+                      fontSize: '12px',
+                      fontWeight: 500,
+                      border: '1px solid rgba(222, 217, 214, 0.6)',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Connect Live Video
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════
+          SECTION 4: CONNECTED PET HEALTH VAULT & DIGITAL PASSPORT
+          ═══════════════════════════════════════════════════════════════ */}
+      <section style={{ backgroundColor: '#FDF8F5', borderBottom: '1px solid rgba(222, 217, 214, 0.3)', padding: '64px 24px' }}>
+        <div style={{ maxWidth: '1360px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '32px' }}>
+          {/* Header */}
+          <div style={{ textAlign: 'center', maxWidth: '640px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#675C58', fontWeight: 600 }}>
+              Connected Infrastructure
+            </span>
+            <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '32px', fontWeight: 400, letterSpacing: '-0.02em', color: '#160F0C', margin: 0 }}>
+              The Pet Maya Digital Passport.
+            </h2>
+            <p style={{ fontSize: '15px', color: '#675C58', margin: 0, lineHeight: 1.6 }}>
+              No lost paper vaccination booklets. An immutable biometric record with ISO microchip telemetry, valid for border customs and clinical handoffs worldwide.
+            </p>
+          </div>
+
+          {/* Passport Card Component */}
+          <div className="interactive-card" style={{
+            maxWidth: '920px',
+            margin: '0 auto',
+            width: '100%',
+            backgroundColor: '#FFFFFF',
+            borderRadius: '20px',
+            padding: 'clamp(20px, 3.5vw, 36px)',
+            boxShadow: '0 4px 24px rgba(0,0,0,0.04)',
+            border: '1px solid rgba(222, 217, 214, 0.5)'
+          }}>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              gap: '32px',
+              alignItems: 'center'
+            }}>
+              {/* Left Visual Passport Card */}
+              <div style={{
+                backgroundColor: '#F8F3EF',
+                borderRadius: '16px',
+                padding: '20px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '16px',
+                border: '1px solid rgba(222, 217, 214, 0.4)'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10.5px', textTransform: 'uppercase', color: '#675C58', fontWeight: 600 }}>Pet Passport ID</span>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#45848D', backgroundColor: '#FFFFFF', padding: '2px 8px', borderRadius: '9999px', border: '1px solid rgba(222, 217, 214, 0.4)', fontWeight: 600 }}>
+                    ISO 11784 Compliant
+                  </span>
+                </div>
+
+                <div style={{ width: '100%', height: '180px', borderRadius: '12px', overflow: 'hidden', backgroundColor: '#EFEFEA' }}>
+                  <img
+                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuCs0_jT2c5SFLFxzgBTifOfd9_jM01PN4UidNRUZGMYDIIu7C3vYlf_kj4y6YP07nUrUmOdXfVbIjWTJQGNJ5gjd4fpBQHD-ZgBGnBj6HxT0vnxiWBf0yXY5Ll5aaog8l9VWcPCDLzANE25bHKFvHhGunCu_XMWlnUgqmR0vaswxMN1rAtcvCuwOFaZzD9F-6J6ihovbWJ4zZXIbKoKmL3YjVKvvNBoVrn8hXSEyztal4aInHkPDmB3"
+                    alt="Milo of Kensington"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                </div>
+
+                <div>
+                  <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#160F0C', margin: '0 0 2px' }}>Milo of Kensington</h3>
+                  <p style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#675C58', margin: 0 }}>CHIP: 981020002847192</p>
+                </div>
+
+                <div style={{
+                  padding: '12px',
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: '10px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  border: '1px solid rgba(222, 217, 214, 0.4)'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#45848D' }}>qr_code_2</span>
+                    <span style={{ fontSize: '13px', fontWeight: 500, color: '#160F0C' }}>Instant Scan Token</span>
+                  </div>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', textTransform: 'uppercase', color: '#675C58', fontWeight: 600 }}>AES-256 Valid</span>
+                </div>
+              </div>
+
+              {/* Right Clinical History Table */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10.5px', textTransform: 'uppercase', color: '#675C58', fontWeight: 600 }}>
+                    Telemetry &amp; Active Immunization
+                  </span>
+                  <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#160F0C', margin: '4px 0 0' }}>Verified Clinical History</h3>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <div style={{ padding: '12px 14px', borderRadius: '10px', backgroundColor: '#F8F3EF', display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid rgba(222, 217, 214, 0.3)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#45848D' }}>vaccines</span>
+                      <div>
+                        <p style={{ fontSize: '13.5px', fontWeight: 600, color: '#160F0C', margin: 0 }}>Nobivac DHPPi + L4</p>
+                        <span style={{ fontSize: '11.5px', color: '#675C58' }}>Administered Nov 14, 2024 · Batch #NB-092</span>
+                      </div>
+                    </div>
+                    <span style={{ padding: '3px 8px', borderRadius: '9999px', backgroundColor: '#FFFFFF', color: '#45848D', fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase' }}>
+                      Valid (320d)
+                    </span>
+                  </div>
+
+                  <div style={{ padding: '12px 14px', borderRadius: '10px', backgroundColor: '#F8F3EF', display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid rgba(222, 217, 214, 0.3)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#45848D' }}>verified</span>
+                      <div>
+                        <p style={{ fontSize: '13.5px', fontWeight: 600, color: '#160F0C', margin: 0 }}>Rabies Antibody Titre (FAVN)</p>
+                        <span style={{ fontSize: '11.5px', color: '#675C58' }}>Titre Level: 2.45 IU/mL (&gt;0.5 IU/mL required)</span>
+                      </div>
+                    </div>
+                    <span style={{ padding: '3px 8px', borderRadius: '9999px', backgroundColor: '#FFFFFF', color: '#45848D', fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase' }}>
+                      Customs Cleared
+                    </span>
+                  </div>
+
+                  <div style={{ padding: '12px 14px', borderRadius: '10px', backgroundColor: '#F8F3EF', display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid rgba(222, 217, 214, 0.3)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: '20px', color: '#45848D' }}>monitor_heart</span>
+                      <div>
+                        <p style={{ fontSize: '13.5px', fontWeight: 600, color: '#160F0C', margin: 0 }}>Annual Preventive Blood Panel</p>
+                        <span style={{ fontSize: '11.5px', color: '#675C58' }}>ALT 32 U/L · BUN 14 mg/dL · Creatinine 0.9</span>
+                      </div>
+                    </div>
+                    <span style={{ padding: '3px 8px', borderRadius: '9999px', backgroundColor: '#FFFFFF', color: '#160F0C', fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase' }}>
+                      Optimal
+                    </span>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '4px' }}>
+                  <p style={{ fontSize: '12px', color: '#675C58', margin: 0 }}>
+                    Auto-syncs across Dhaka, Chittagong, Singapore, and UK quarantine networks.
+                  </p>
+                  <a
+                    onClick={() => {
+                      showToast('Exporting Clinical Passport PDF...', 'info');
+                      setTimeout(() => showToast('Passport exported successfully', 'success'), 1500);
+                    }}
+                    style={{
+                      cursor: 'pointer',
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '12px',
+                      color: '#45848D',
+                      fontWeight: 600,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      textDecoration: 'none'
+                    }}
+                  >
+                    <span>Export PDF</span>
+                    <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>file_download</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════
+          SECTION 5: DIRECT CONSULT WITH BOARD SPECIALISTS
+          ═══════════════════════════════════════════════════════════════ */}
+      <section style={{ backgroundColor: '#F8F3EF', padding: '64px 24px' }}>
+        <div style={{ maxWidth: '1360px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '32px' }}>
+          {/* Header */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-end', justifyContent: 'space-between', gap: '16px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#675C58', fontWeight: 600 }}>
+                Clinical Faculty
+              </span>
+              <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '30px', fontWeight: 400, letterSpacing: '-0.02em', color: '#160F0C', margin: 0 }}>
+                Direct consult with board specialists.
               </h2>
             </div>
-            <button
+            <p style={{ fontSize: '14px', color: '#675C58', margin: 0, maxWidth: '420px', lineHeight: 1.5 }}>
+              Transparent flat consults at ৳500 with zero surprise billings. Instant HD clinical tele-sessions with digital prescriptions issued to your door.
+            </p>
+          </div>
+
+          {/* Clinicians Grid */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+            gap: '24px'
+          }}>
+            {clinicalFaculty.map((vet) => (
+              <div
+                key={vet.id}
+                className="interactive-card"
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: '16px',
+                  padding: '18px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
+                  border: '1px solid rgba(222, 217, 214, 0.4)'
+                }}
+              >
+                <div>
+                  <div style={{
+                    position: 'relative',
+                    width: '100%',
+                    height: '240px',
+                    borderRadius: '12px',
+                    overflow: 'hidden',
+                    backgroundColor: '#EFEFEA',
+                    marginBottom: '14px'
+                  }}>
+                    <img
+                      src={vet.image}
+                      alt={vet.name}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                    <div style={{
+                      position: 'absolute',
+                      top: '10px',
+                      right: '10px',
+                      padding: '4px 10px',
+                      borderRadius: '9999px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.92)',
+                      backdropFilter: 'blur(8px)',
+                      WebkitBackdropFilter: 'blur(8px)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.06)'
+                    }}>
+                      <span className={vet.statusType === 'pulse' ? 'ambient-pulse-dot' : vet.statusType === 'beacon' ? 'pulse-beacon' : ''} style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#45848D' }}></span>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', textTransform: 'uppercase', color: '#45848D', fontWeight: 600 }}>
+                        {vet.status}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <h3 style={{ fontSize: '17px', fontWeight: 600, color: '#160F0C', margin: 0 }}>{vet.name}</h3>
+                    <span style={{ fontSize: '16px', fontWeight: 700, color: '#160F0C' }}>{vet.price}</span>
+                  </div>
+
+                  <p style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#675C58', margin: '4px 0 8px' }}>
+                    {vet.title}
+                  </p>
+                  <p style={{ fontSize: '13px', color: '#675C58', margin: 0, lineHeight: 1.5 }}>
+                    {vet.bio}
+                  </p>
+                </div>
+
+                <div style={{
+                  paddingTop: '16px',
+                  marginTop: '16px',
+                  borderTop: '1px solid rgba(222, 217, 214, 0.4)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12.5px', color: '#675C58' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#45848D' }}>star</span>
+                    <span style={{ fontWeight: 600, color: '#160F0C' }}>{vet.rating}</span>
+                    <span>({vet.reviews})</span>
+                  </div>
+                  <button
+                    onClick={() => handleRoute('book-vet')}
+                    className="btn-elevate"
+                    style={{
+                      padding: '8px 18px',
+                      borderRadius: '9999px',
+                      backgroundColor: '#160F0C',
+                      color: '#FFFFFF',
+                      fontSize: '12.5px',
+                      fontWeight: 500,
+                      border: 'none',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Book Call
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════
+          SECTION 6: THE COMPANION JOURNAL
+          ═══════════════════════════════════════════════════════════════ */}
+      <section style={{ maxWidth: '1360px', margin: '0 auto', padding: '64px 24px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+          {/* Header */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-end', justifyContent: 'space-between', gap: '16px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#675C58', fontWeight: 600 }}>
+                The Companion Journal
+              </span>
+              <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '30px', fontWeight: 400, letterSpacing: '-0.02em', color: '#160F0C', margin: 0 }}>
+                Clinical intelligence for curious caretakers.
+              </h2>
+            </div>
+            <a
               onClick={() => handleRoute('blog')}
               style={{
-                background: 'none',
-                border: 'none',
-                color: 'var(--foreground)',
-                fontSize: '14.5px',
-                fontWeight: 600,
                 cursor: 'pointer',
+                fontFamily: 'var(--font-mono)',
+                fontSize: '12.5px',
+                color: '#45848D',
+                fontWeight: 600,
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '4px',
-                textDecoration: 'underline'
+                textDecoration: 'none'
               }}
             >
-              <span>Browse All Articles</span>
-              <ChevronRight size={16} />
-            </button>
+              <span>Read All Dispatches</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>arrow_forward</span>
+            </a>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '28px' }}>
-            {blogPosts.map((post) => (
+          {/* Article Cards Grid */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+            gap: '24px'
+          }}>
+            {journalArticles.map((art) => (
               <article
-                key={post.id}
+                key={art.id}
                 onClick={() => handleRoute('blog')}
+                className="interactive-card"
                 style={{
-                  cursor: 'pointer',
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: '16px',
+                  overflow: 'hidden',
+                  boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
+                  border: '1px solid rgba(222, 217, 214, 0.4)',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '14px'
+                  justifyContent: 'space-between',
+                  cursor: 'pointer'
                 }}
               >
-                <div style={{ borderRadius: '16px', overflow: 'hidden', height: '210px', backgroundColor: '#F0EFEA' }}>
-                  <img 
-                    src={post.image} 
-                    alt={post.title}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.25s ease' }}
-                  />
-                </div>
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '11.5px', color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                    <span style={{ fontWeight: 700, color: '#D9A873', letterSpacing: '0.04em' }}>{post.tag}</span>
-                    <span>•</span>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                      <Clock size={12} />
-                      {post.readTime}
-                    </span>
+                  <div style={{ width: '100%', height: '200px', overflow: 'hidden', backgroundColor: '#EFEFEA' }}>
+                    <img
+                      src={art.image}
+                      alt={art.title}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
                   </div>
-                  <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '18px', fontWeight: 600, lineHeight: 1.35, color: 'var(--foreground)', margin: '0 0 8px 0' }}>
-                    {post.title}
-                  </h3>
-                  <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.5, margin: '0 0 10px 0' }}>
-                    {post.excerpt}
-                  </p>
-                  <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--foreground)' }}>
-                    By {post.author}
-                  </span>
+
+                  <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', textTransform: 'uppercase', color: '#45848D', fontWeight: 600 }}>
+                        {art.category}
+                      </span>
+                      <span style={{ color: '#675C58' }}>•</span>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', textTransform: 'uppercase', color: '#675C58' }}>
+                        {art.readTime}
+                      </span>
+                    </div>
+
+                    <h3 style={{ fontSize: '17px', fontWeight: 600, color: '#160F0C', margin: 0, lineHeight: 1.35 }}>
+                      {art.title}
+                    </h3>
+                    <p style={{ fontSize: '13px', color: '#675C58', margin: 0, lineHeight: 1.5 }}>
+                      {art.excerpt}
+                    </p>
+                  </div>
+                </div>
+
+                <div style={{ padding: '0 20px 20px', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12.5px', fontWeight: 600, color: '#160F0C' }}>
+                  <span>Read Article</span>
+                  <span>→</span>
                 </div>
               </article>
             ))}
@@ -914,107 +1123,304 @@ export default function LandingPage({ onNavigate }) {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════
-          SECTION 07: EDITORIAL BOUTIQUE FOOTER
+          SECTION 7: COMPANION MOBILITY (APP DOWNLOAD SHOWCASE)
           ═══════════════════════════════════════════════════════════════ */}
-      <footer style={{ backgroundColor: 'var(--bg)', padding: '64px 24px 40px 24px' }}>
-        <div style={{ maxWidth: 'var(--container-max)', margin: '0 auto' }}>
-          
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '48px', marginBottom: '48px' }}>
-            
-            {/* Brand column */}
-            <div style={{ maxWidth: '320px' }}>
-              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '24px', fontWeight: 600, color: 'var(--foreground)', margin: '0 0 12px 0' }}>
-                Pet Maya
-              </h3>
-              <p style={{ fontSize: '14px', lineHeight: 1.6, color: 'var(--text-secondary)', margin: '0 0 20px 0' }}>
-                A modern connected pet healthcare companion. Built with dignity, clinical rigor, and endless love for our animal companions.
-              </p>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12.5px', color: '#158763', fontWeight: 600 }}>
-                <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#2ECC9B' }} />
-                <span>All Systems Clinical &amp; Operational</span>
+      <section style={{ maxWidth: '1360px', margin: '0 auto', padding: '0 24px 64px' }}>
+        <div style={{
+          backgroundColor: '#F8F3EF',
+          borderRadius: '24px',
+          padding: 'clamp(24px, 4vw, 48px)',
+          border: '1px solid rgba(222, 217, 214, 0.5)'
+        }}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+            gap: '40px',
+            alignItems: 'center'
+          }}>
+            {/* Left Narrative & Download CTAs */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '5px 12px',
+                borderRadius: '9999px',
+                backgroundColor: '#FFFFFF',
+                color: '#45848D',
+                border: '1px solid rgba(222, 217, 214, 0.5)',
+                width: 'fit-content'
+              }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>phone_iphone</span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10.5px', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>
+                  Companion Mobility • iOS &amp; Android Ecosystem
+                </span>
               </div>
-            </div>
 
-            {/* Links column 1: Ecosystem */}
-            <div>
-              <h4 style={{ fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--foreground)', fontWeight: 700, marginBottom: '16px' }}>
-                Ecosystem
-              </h4>
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '14px', color: 'var(--text-secondary)' }}>
-                <li><a onClick={() => handleRoute('digital-pet-passport')} style={{ cursor: 'pointer', color: 'inherit', textDecoration: 'none' }}>Digital Passport</a></li>
-                <li><a onClick={() => handleRoute('ai-pet-care')} style={{ cursor: 'pointer', color: 'inherit', textDecoration: 'none' }}>AI Symptom Triage</a></li>
-                <li><a onClick={() => handleRoute('pet-gps')} style={{ cursor: 'pointer', color: 'inherit', textDecoration: 'none' }}>Smart GPS Collar</a></li>
-                <li><a onClick={() => handleRoute('connected-care')} style={{ cursor: 'pointer', color: 'inherit', textDecoration: 'none' }}>Connected Telemetry</a></li>
-              </ul>
-            </div>
+              <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 'clamp(28px, 4vw, 36px)', fontWeight: 400, letterSpacing: '-0.02em', color: '#160F0C', margin: 0 }}>
+                Clinical continuity in your pocket. <span style={{ fontStyle: 'italic', fontFamily: 'var(--font-heading)', color: '#45848D' }}>Wherever</span> your companion travels.
+              </h2>
 
-            {/* Links column 2: Care & Shop */}
-            <div>
-              <h4 style={{ fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--foreground)', fontWeight: 700, marginBottom: '16px' }}>
-                Care &amp; Pharmacy
-              </h4>
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '14px', color: 'var(--text-secondary)' }}>
-                <li><a onClick={() => handleRoute('shop')} style={{ cursor: 'pointer', color: 'inherit', textDecoration: 'none' }}>Curated Care Shop</a></li>
-                <li><a onClick={() => handleRoute('vets')} style={{ cursor: 'pointer', color: 'inherit', textDecoration: 'none' }}>Veterinary Marketplace</a></li>
-                <li><a onClick={() => handleRoute('book-vet')} style={{ cursor: 'pointer', color: 'inherit', textDecoration: 'none' }}>Book Consultation</a></li>
-                <li><a onClick={() => handleRoute('vaccines')} style={{ cursor: 'pointer', color: 'inherit', textDecoration: 'none' }}>Vaccine Milestones</a></li>
-              </ul>
-            </div>
-
-            {/* Newsletter Column */}
-            <div>
-              <h4 style={{ fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--foreground)', fontWeight: 700, marginBottom: '16px' }}>
-                The Mindful Companion
-              </h4>
-              <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.5, margin: '0 0 14px 0' }}>
-                Receive clinical nutrition notes, preventive health alerts, and seasonal veterinary updates.
+              <p style={{ fontSize: '16px', lineHeight: 1.6, color: '#675C58', margin: 0 }}>
+                Pet Maya unifies 24/7 AI-guided triage, continuous collar vitals telemetry, and express cold-chain formulary replenishment right to your palm. Keep validated travel microchip passports and emergency clinician hotlines primed at every checkpoint.
               </p>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <input 
-                  type="email" 
-                  placeholder="name@domain.com"
-                  style={{
-                    backgroundColor: 'var(--surface)',
-                    border: '1px solid var(--border)',
-                    borderRadius: '9999px',
-                    padding: '8px 16px',
-                    fontSize: '13px',
-                    color: 'var(--foreground)',
-                    flex: 1,
-                    outline: 'none'
-                  }}
-                />
-                <button
-                  onClick={() => showToast('Subscribed to the Pet Maya Journal!', 'success')}
-                  style={{
-                    backgroundColor: 'var(--primary)',
-                    color: '#1F2421',
-                    border: 'none',
-                    borderRadius: '9999px',
-                    padding: '8px 16px',
-                    fontSize: '13px',
-                    fontWeight: 600,
-                    cursor: 'pointer'
-                  }}
-                >
-                  Join
-                </button>
+
+              {/* Feature Pills */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                <span style={{
+                  padding: '6px 14px',
+                  borderRadius: '9999px',
+                  backgroundColor: '#FFFFFF',
+                  color: '#160F0C',
+                  fontSize: '13px',
+                  fontWeight: 500,
+                  border: '1px solid rgba(222, 217, 214, 0.5)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#45848D' }}>bolt</span>
+                  <span>Instant 24/7 Triage</span>
+                </span>
+
+                <span style={{
+                  padding: '6px 14px',
+                  borderRadius: '9999px',
+                  backgroundColor: '#FFFFFF',
+                  color: '#160F0C',
+                  fontSize: '13px',
+                  fontWeight: 500,
+                  border: '1px solid rgba(222, 217, 214, 0.5)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#45848D' }}>qr_code_scanner</span>
+                  <span>ISO Telemetry Vault</span>
+                </span>
+
+                <span style={{
+                  padding: '6px 14px',
+                  borderRadius: '9999px',
+                  backgroundColor: '#FFFFFF',
+                  color: '#160F0C',
+                  fontSize: '13px',
+                  fontWeight: 500,
+                  border: '1px solid rgba(222, 217, 214, 0.5)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#45848D' }}>wifi_off</span>
+                  <span>Offline Emergency Protocols</span>
+                </span>
+              </div>
+
+              {/* App Download Badges */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', paddingTop: '4px' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px' }}>
+                  {/* Apple App Store */}
+                  <a
+                    href="#download-ios"
+                    onClick={(e) => { e.preventDefault(); showToast('Directing to Apple TestFlight / App Store build...', 'info'); }}
+                    className="btn-elevate"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      padding: '10px 18px',
+                      borderRadius: '12px',
+                      backgroundColor: '#160F0C',
+                      color: '#FFFFFF',
+                      textDecoration: 'none'
+                    }}
+                  >
+                    <svg style={{ width: '22px', height: '22px', fill: 'currentColor' }} viewBox="0 0 24 24">
+                      <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.62-.75 1.04-1.8 0.92-2.85-.9.04-2 .6-2.65 1.35-.58.66-1.09 1.73-.95 2.76.99.08 2.04-.51 2.68-1.26z"></path>
+                    </svg>
+                    <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
+                      <span style={{ fontSize: '9px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>Download on the</span>
+                      <span style={{ fontSize: '15px', fontWeight: 600 }}>App Store</span>
+                    </div>
+                  </a>
+
+                  {/* Google Play */}
+                  <a
+                    href="#download-android"
+                    onClick={(e) => { e.preventDefault(); showToast('Directing to Google Play Store build...', 'info'); }}
+                    className="btn-elevate"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      padding: '10px 18px',
+                      borderRadius: '12px',
+                      backgroundColor: '#FFFFFF',
+                      color: '#160F0C',
+                      textDecoration: 'none',
+                      border: '1px solid rgba(222, 217, 214, 0.6)'
+                    }}
+                  >
+                    <svg style={{ width: '22px', height: '22px' }} viewBox="0 0 24 24">
+                      <path d="M3.609 1.814L13.792 12 3.61 22.186a1.954 1.954 0 0 1-.61-1.42V3.234c0-.547.226-1.048.61-1.42z" fill="#4285F4"></path>
+                      <path d="M17.478 8.314L14.743 11.05 4.56 0.866a1.93 1.93 0 0 1 1.09-.328c.552 0 1.08.196 1.554.508l10.274 7.268z" fill="#EA4335"></path>
+                      <path d="M17.478 15.686L7.204 22.954c-.474.312-1.002.508-1.554.508a1.93 1.93 0 0 1-1.09-.328L14.743 12.95l2.735 2.736z" fill="#34A853"></path>
+                      <path d="M21.282 12.87l-2.88 1.92-2.906-2.906 2.906-2.906 2.88 1.92c.718.479 1.15 1.198 1.15 1.986s-.432 1.507-1.15 1.986z" fill="#FBBC04"></path>
+                    </svg>
+                    <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ fontSize: '9px', textTransform: 'uppercase', color: '#675C58', fontWeight: 600 }}>GET IT ON</span>
+                        <span style={{ fontSize: '9px', padding: '1px 4px', borderRadius: '9999px', backgroundColor: '#F8F3EF', color: '#45848D', fontWeight: 600 }}>v3.2.0</span>
+                      </div>
+                      <span style={{ fontSize: '15px', fontWeight: 600 }}>Google Play</span>
+                    </div>
+                  </a>
+                </div>
+
+                {/* Direct IPA Package & QR Code row */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '14px', fontSize: '12.5px', color: '#675C58' }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#45848D' }}>inventory_2</span>
+                    <span>Direct Enterprise Build <strong style={{ fontFamily: 'var(--font-mono)', color: '#160F0C' }}>.IPA</strong></span>
+                  </span>
+                  <span>•</span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#45848D' }}>qr_code_2</span>
+                    <span>Scan below or on mobile browser</span>
+                  </span>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Right Phone Chassis Visual Showcase */}
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <div className="interactive-card" style={{
+                position: 'relative',
+                backgroundColor: '#FFFFFF',
+                padding: '12px',
+                borderRadius: '24px',
+                boxShadow: '0 8px 30px rgba(0,0,0,0.08)',
+                border: '1px solid rgba(222, 217, 214, 0.5)',
+                maxWidth: '340px',
+                width: '100%'
+              }}>
+                <div style={{ width: '100%', borderRadius: '16px', overflow: 'hidden', backgroundColor: '#EFEFEA' }}>
+                  <img
+                    src="https://lh3.googleusercontent.com/aida/AEtjO1WKw2bYnnDWFbk2fwYuWS9sZ0H1HltnfG_gQ08t9GxtbfTIgD8WQcJ3pLnBfwNtHPgmgJFrTBCTM_C91zrVnUzm-i92YVUx43DgmRJHT1oNAvOG0-pQbrgSdfGnFsdd6qAz8NVCvejjTh7UajiRyC3yw-Ym9ShzG74JI9wIiqZpyA5nvMgW3qaIerUKqqvvb-vGEoCN3HVc4GnrLosMDD749wAY1ox-965FcSojF8IG_rD0Gf3v3chJtr8"
+                    alt="Pet Maya mobile app preview"
+                    style={{ width: '100%', height: 'auto', display: 'block' }}
+                  />
+                </div>
+
+                {/* Floating QR Code Badge */}
+                <div style={{
+                  position: 'absolute',
+                  bottom: '20px',
+                  left: '-16px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                  backdropFilter: 'blur(10px)',
+                  WebkitBackdropFilter: 'blur(10px)',
+                  padding: '10px 14px',
+                  borderRadius: '14px',
+                  boxShadow: '0 8px 24px rgba(22, 15, 12, 0.12)',
+                  border: '1px solid rgba(222, 217, 214, 0.6)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px'
+                }}>
+                  <div style={{ width: '38px', height: '38px', borderRadius: '8px', backgroundColor: '#EFEFEA', border: '1px solid rgba(222, 217, 214, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '24px', color: '#160F0C' }}>qr_code_2</span>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', textTransform: 'uppercase', color: '#45848D', fontWeight: 700 }}>Scan to Install</span>
+                    <span style={{ fontSize: '11px', fontWeight: 600, color: '#160F0C' }}>iOS &amp; Android Ready</span>
+                  </div>
+                </div>
               </div>
             </div>
 
           </div>
-
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '28px', borderTop: '1px solid var(--border)', fontSize: '12.5px', color: 'var(--text-secondary)', flexWrap: 'wrap', gap: '12px' }}>
-            <div>© {new Date().getFullYear()} Pet Maya Inc. All rights reserved. Clinical veterinary companion platform.</div>
-            <div style={{ display: 'flex', gap: '18px' }}>
-              <a onClick={() => handleRoute('privacy')} style={{ cursor: 'pointer', color: 'inherit', textDecoration: 'none' }}>Privacy Policy</a>
-              <a onClick={() => handleRoute('terms')} style={{ cursor: 'pointer', color: 'inherit', textDecoration: 'none' }}>Terms of Service</a>
-              <a onClick={() => handleRoute('faq')} style={{ cursor: 'pointer', color: 'inherit', textDecoration: 'none' }}>Clinical FAQ</a>
-            </div>
-          </div>
-
         </div>
-      </footer>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════
+          SECTION 8: ONBOARD IN 2 MINUTES BANNER
+          ═══════════════════════════════════════════════════════════════ */}
+      <section style={{ maxWidth: '1360px', margin: '0 auto', padding: '0 24px 72px' }}>
+        <div style={{
+          backgroundColor: '#EFEFEA',
+          borderRadius: '24px',
+          padding: 'clamp(32px, 6vw, 64px)',
+          position: 'relative',
+          overflow: 'hidden',
+          border: '1px solid rgba(222, 217, 214, 0.5)'
+        }}>
+          <div style={{ position: 'relative', zIndex: 10, maxWidth: '640px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#675C58', fontWeight: 600 }}>
+              Onboard in 2 Minutes
+            </span>
+            <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 400, letterSpacing: '-0.02em', color: '#160F0C', margin: 0, lineHeight: 1.2 }}>
+              Your companion deserves clinical continuity, not reactive guesswork.
+            </h2>
+            <p style={{ fontSize: '16px', lineHeight: 1.65, color: '#675C58', margin: 0 }}>
+              Join thousands of mindful pet guardians who trust Pet Maya for cold-chain home delivery, live physician triage, and unified medical documentation.
+            </p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '14px', paddingTop: '8px' }}>
+              <button
+                onClick={handleGetStarted}
+                className="btn-elevate"
+                style={{
+                  padding: '14px 30px',
+                  borderRadius: '9999px',
+                  backgroundColor: '#160F0C',
+                  color: '#FFFFFF',
+                  fontSize: '14.5px',
+                  fontWeight: 500,
+                  border: 'none',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 14px rgba(22, 15, 12, 0.16)'
+                }}
+              >
+                Create Companion Account
+              </button>
+              <button
+                onClick={() => handleRoute('shop')}
+                className="btn-elevate"
+                style={{
+                  padding: '14px 30px',
+                  borderRadius: '9999px',
+                  backgroundColor: '#FFFFFF',
+                  color: '#160F0C',
+                  fontSize: '14.5px',
+                  fontWeight: 500,
+                  border: '1px solid rgba(222, 217, 214, 0.5)',
+                  cursor: 'pointer'
+                }}
+              >
+                Order Prescriptions
+              </button>
+            </div>
+          </div>
+
+          {/* Ambient Decorative Paw Seal */}
+          <div style={{
+            position: 'absolute',
+            bottom: '-48px',
+            right: '-48px',
+            width: '320px',
+            height: '320px',
+            borderRadius: '50%',
+            backgroundColor: 'rgba(242, 237, 233, 0.6)',
+            pointerEvents: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '160px', color: 'rgba(69, 132, 141, 0.1)' }}>pets</span>
+          </div>
+        </div>
+      </section>
 
     </div>
   );

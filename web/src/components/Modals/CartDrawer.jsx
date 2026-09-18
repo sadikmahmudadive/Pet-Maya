@@ -286,7 +286,7 @@ export default function CartDrawer() {
                 fontSize: '15px',
                 fontWeight: 600,
                 backgroundColor: 'var(--primary)',
-                color: '#1F2421',
+                color: '#FFFFFF',
                 borderRadius: '9999px',
                 border: 'none',
                 cursor: 'pointer',
