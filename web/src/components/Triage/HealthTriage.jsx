@@ -1,577 +1,1374 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
+import { useAuth } from '../../context/AuthContext';
 import { 
-  Sparkles, 
-  ShieldAlert, 
-  Calendar,
-  HeartPulse,
-  Stethoscope,
-  Activity,
-  Eye,
-  Ear,
-  BookmarkCheck,
-  CheckCircle2,
-  AlertTriangle,
-  Flame,
-  Info,
-  FileText
+  ShieldCheck, 
+  Activity, 
+  Eye, 
+  Smile, 
+  Bone, 
+  Wind, 
+  Clock, 
+  Droplet, 
+  CalendarCheck, 
+  Video, 
+  Check, 
+  ChevronDown, 
+  ChevronUp, 
+  AlertCircle, 
+  Phone, 
+  Plus, 
+  Package, 
+  ArrowRight,
+  RefreshCw,
+  Stethoscope
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { AppleReveal } from '../Animations/AppleReveal';
-import LottieUploadIcon from '../Common/LottieUploadIcon';
-import catDiseasePlaceholder from '../../../assets/images/cat_disease.jpg';
-import { runAiHealthDiagnosis } from '../../services/aiService';
 
-const SAMPLE_CASES = {
-  dermatitis: {
-    title: 'Feline Dermatitis & Otitis Externa Symptoms',
-    image: catDiseasePlaceholder,
-    severity: 'Moderate Priority',
-    confidence: '96.2%',
-    care: 'Clean hotspot with warm saline or chlorhexidine wipe. Fit protective cone collar to stop self-mutilation scratching.',
-    clinic: 'Book cytology swab with Dr. Aris Thorne (Feline Medicine) to determine antibiotic vs antifungal course.',
-    differential: ['Otodectes cynotis (Ear Mites)', 'Flea Allergy Dermatitis (FAD)', 'Malassezia Yeast Dermatitis'],
-    bbox: { top: '22%', left: '46%', width: '90px', height: '80px' }
+// ── Anatomical Locus Definitions ──────────────────────────────────────────────
+const ANATOMICAL_LOCI = [
+  {
+    id: 'gi',
+    label: 'Gastrointestinal',
+    subtitle: 'Nausea, stool shifts',
+    icon: Activity,
+    color: '#0D9488'
   },
-  conjunctivitis: {
-    title: 'Feline Infectious Conjunctivitis / Ocular Discharge',
-    image: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=600&auto=format&fit=crop&q=80',
-    severity: 'High Priority',
-    confidence: '94.8%',
-    care: 'Gently wipe discharge with sterile warm water gauze. Do not administer human eye drops.',
-    clinic: 'Schedule immediate fluorescein corneal stain test with Dr. Emily Vance to rule out ulceration.',
-    differential: ['Feline Herpesvirus-1 (FHV-1)', 'Chlamydia felis Infection', 'Corneal Foreign Body / Abrasion'],
-    bbox: { top: '28%', left: '38%', width: '90px', height: '60px' }
+  {
+    id: 'eyes',
+    label: 'Head & Eyes',
+    subtitle: 'Discharge, squinting',
+    icon: Eye,
+    color: '#0284C7'
   },
-  otitis: {
-    title: 'Otitis Externa (Ear Mite & Cerumen Irritation)',
-    image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=600&auto=format&fit=crop&q=80',
-    severity: 'Moderate Priority',
-    confidence: '92.5%',
-    care: 'Avoid deep probing with cotton swabs. Keep ear canal dry and gently wipe outer pinna.',
-    clinic: 'Video or in-clinic otoscopic examination with Dr. Sarah Jenkins for prescription ear drops.',
-    differential: ['Otodectes cynotis (Ear Mites)', 'Pseudomonas Biofilm Infection', 'Allergic Otitis Externa'],
-    bbox: { top: '20%', left: '22%', width: '80px', height: '80px' }
+  {
+    id: 'oral',
+    label: 'Oral & Tooth',
+    subtitle: 'Ptyalism, breath, gums',
+    icon: Smile,
+    color: '#D97706'
   },
-  healthy: {
-    title: 'Normal Physiological Markers (No Acute Pathology)',
-    image: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=600&auto=format&fit=crop&q=80',
-    severity: 'Routine / Healthy',
-    confidence: '98.5%',
-    care: 'Pet shows clear eyes, intact skin barrier, and alert posture. Continue regular preventative schedule.',
-    clinic: 'Maintain annual DHPP/Rabies vaccinations and monthly flea & tick chewables.',
-    differential: ['Optimal Vital Range', 'Benign Physiological Baseline'],
-    bbox: { top: '40%', left: '35%', width: '140px', height: '100px' }
+  {
+    id: 'skin',
+    label: 'Skin & Coat',
+    subtitle: 'Pruritus, alopecia, rash',
+    icon: Stethoscope,
+    color: '#8B5CF6'
+  },
+  {
+    id: 'ortho',
+    label: 'Musculoskeletal',
+    subtitle: 'Limping, stiffness',
+    icon: Bone,
+    color: '#EA580C'
+  },
+  {
+    id: 'resp',
+    label: 'Respiratory',
+    subtitle: 'Cough, panting rate',
+    icon: Wind,
+    color: '#0284C7'
   }
-};
+];
 
-export default function HealthTriage() {
-  const { pets = [], openModal, showToast, addMedicalRecord, setActiveTab } = useApp();
+// ── Accordion FAQs for Clinical Transparency Framework ────────────────────────
+const TRANSPARENCY_FAQS = [
+  {
+    id: 'red-alert',
+    question: 'When does Pet Maya trigger Emergency Red-Alert?',
+    answer: 'Pet Maya immediately escalates to Tier 3 Emergency Red-Alert upon detection of critical physiological compromises including: prolonged capillary refill time (> 3.0 seconds indicating hypovolemia or shock), resting respiratory rate exceeding 40 breaths/minute or acute dyspnea, pale/blue/brick-red mucosal membranes, suspected Gastric Dilatation-Volvulus (bloat/non-productive retching), toxic ingestion within 2 hours (e.g. lilies, dark chocolate, rodenticide), or status epilepticus. In Red-Alert status, emergency GPS transit routing to the nearest 24/7 ICU facility is initiated automatically.'
+  },
+  {
+    id: 'validation',
+    question: 'How are protocols cross-referenced and validated?',
+    answer: 'Our diagnostic algorithms are calibrated using peer-reviewed emergency guidelines from the American Animal Hospital Association (AAHA), World Small Animal Veterinary Association (WSAVA), and the Veterinary Emergency and Critical Care Society (VECCS). Every algorithmic decision pathway is validated against a repository of 12,000+ verified clinical cases and reviewed monthly by board-certified veterinary internists and toxicologists.'
+  },
+  {
+    id: 'replacement',
+    question: 'Does algorithmic triage replace hands-on veterinary care?',
+    answer: 'No. Algorithmic triage serves as a rapid risk-stratification and stabilization tool designed to eliminate guardian paralysis and prevent unnecessary emergency clinic wait times for benign self-limiting conditions. For cases exhibiting any physiological instability, Pet Maya connects guardians directly with licensed faculty veterinarians via encrypted real-time video consult or initiates priority dispatch to an accredited hospital partner.'
+  }
+];
 
-  const [selectedPet, setSelectedPet] = useState(pets.length > 0 ? pets[0] : null);
-  const [issueDescription, setIssueDescription] = useState('Mild redness and scratching behind left ear for 2 days.');
-  const [uploadedImage, setUploadedImage] = useState(catDiseasePlaceholder);
-  const [selectedScanMode, setSelectedScanMode] = useState('skin');
-  const [isScanning, setIsScanning] = useState(false);
-  const [scanProgress, setScanProgress] = useState(0);
-  const [statusMsg, setStatusMsg] = useState('');
-  const [scanResult, setScanResult] = useState(null);
-  const [isSavedToEHR, setIsSavedToEHR] = useState(false);
-  const [showFullReport, setShowFullReport] = useState(false);
+export default function HealthTriage({ onNavigate }) {
+  const { pets = [], openModal, addToCart, showToast } = useApp();
+  const { currentUser } = useAuth();
 
-  const activePetName = selectedPet?.name || 'Miko';
+  // Companion Patient selection
+  const defaultPets = useMemo(() => {
+    return [
+      {
+        id: 'pet_milo',
+        name: 'Milo',
+        breed: 'Golden Retriever',
+        age: '3.4 yrs',
+        weight: '31.2 kg',
+        vaccination: 'Current',
+        microchip: '9814-0012-78',
+        image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=200&auto=format&fit=crop&q=80'
+      },
+      {
+        id: 'pet_cleo',
+        name: 'Cleo',
+        breed: 'Persian Feline',
+        age: '4.8 yrs',
+        weight: '4.1 kg',
+        vaccination: 'Current',
+        microchip: '9814-0044-19',
+        image: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=200&auto=format&fit=crop&q=80'
+      }
+    ];
+  }, []);
 
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  const [selectedPetId, setSelectedPetId] = useState('pet_milo');
+  const activePet = defaultPets.find(p => p.id === selectedPetId) || defaultPets[0];
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      setUploadedImage(event.target.result);
-      setScanResult(null);
-      setIsSavedToEHR(false);
-      runScanProcess(null, event.target.result);
+  // Anatomical Symptom Locator state
+  const [selectedLocus, setSelectedLocus] = useState('gi');
+  const [chiefComplaint, setChiefComplaint] = useState(
+    'Milo refused his afternoon meal and vomited clear bile once at 15:30. Otherwise responsive but less energetic.'
+  );
+
+  // Clinical Observations & Vitals state
+  const [symptomDuration, setSymptomDuration] = useState('4-8h'); // 'under2h' | '4-8h' | '12-24h' | '48h+'
+  const [crtStatus, setCrtStatus] = useState('brisk'); // 'brisk' (<2s) | 'delayed' (2-3s) | 'sluggish' (>3s)
+  const [respiratoryRate, setRespiratoryRate] = useState(24); // breaths/min
+  const [isEvaluating, setIsEvaluating] = useState(false);
+
+  // Accordion state
+  const [openFaq, setOpenFaq] = useState(null);
+
+  // Dynamic Triage Calculation
+  const triageResult = useMemo(() => {
+    // If CRT sluggish or respiratory rate >= 40: Tier 3 Emergency
+    if (crtStatus === 'sluggish' || respiratoryRate >= 40) {
+      return {
+        tier: 'Tier 3: Emergency Red-Alert',
+        tierClass: 'emergency',
+        tierColor: '#DC2626',
+        tierBg: '#FEF2F2',
+        conclusion: 'Critical physiological instability detected with compromised perfusion or acute tachypnea. Immediate hands-on transfer to the nearest 24/7 veterinary hospital is required.',
+        steps: [
+          { title: 'Immediate Hospital Transit', desc: 'Secure pet calmly in vehicle. Do not offer oral medications, water, or food.' },
+          { title: 'Emergency Dispatch Active', desc: 'Pet Maya has flagged partner ICU facilities along your direct GPS transit corridor.' },
+          { title: 'Airway & Posture Clearance', desc: 'Ensure neck is extended and chest is unencumbered during transit.' }
+        ]
+      };
+    }
+
+    // If CRT delayed or duration 48h+: Tier 2 Moderate
+    if (crtStatus === 'delayed' || symptomDuration === '48h+' || respiratoryRate > 32) {
+      return {
+        tier: 'Tier 2: Elevated / Same-Day Exam',
+        tierClass: 'moderate',
+        tierColor: '#D97706',
+        tierBg: '#FFFBEB',
+        conclusion: 'Moderate physiological disturbance with mild dehydration risk. Condition requires in-person or telehealth clinician review within 6 to 12 hours.',
+        steps: [
+          { title: 'Continuous Hydration Monitoring', desc: 'Offer 100ml electrolyte fluids hourly. Check gum moisture every 60 minutes.' },
+          { title: 'Bland Gastrointestinal Rest', desc: 'Boiled chicken and white rice in small tablespoon portions if vomiting ceases.' },
+          { title: 'Telehealth Clinical Handoff', desc: 'Review with on-duty veterinarian to authorize prescription anti-emetics.' }
+        ]
+      };
+    }
+
+    // Default: Tier 1 Stable / Home Protocol (exact match to reference)
+    return {
+      tier: 'Tier 1: Stable / Home Protocol',
+      tierClass: 'stable',
+      tierColor: '#346B73',
+      tierBg: '#EBF4F4',
+      conclusion: 'Mild acute dietary indisposition with intact tissue perfusion. No respiratory distress or circulatory red flags detected. Emergency transfer is not indicated at this hour.',
+      steps: [
+        {
+          title: 'Solid Diet Fast (4 Hours)',
+          desc: 'Withhold kibble and chews until 20:00 to let the gastric mucosa settle.',
+          icon: Clock
+        },
+        {
+          title: 'Micro-Hydration Protocol',
+          desc: 'Offer 150ml lukewarm electrolyte water or organic bone broth every 2h min. Do not allow large gulps.',
+          icon: Droplet
+        },
+        {
+          title: 'Next Algorithmic Checkpoint: 22:00',
+          desc: 'Automated push review will check for stool consistency and energy rebound.',
+          icon: CalendarCheck
+        }
+      ]
     };
-    reader.readAsDataURL(file);
+  }, [crtStatus, respiratoryRate, symptomDuration]);
+
+  // Re-evaluate animation
+  const handleReevaluate = () => {
+    setIsEvaluating(true);
+    setTimeout(() => {
+      setIsEvaluating(false);
+      showToast('Diagnostic Protocol Re-Evaluated • Vitals Synchronized', 'success');
+    }, 450);
   };
 
-  const loadSample = (key) => {
-    const sample = SAMPLE_CASES[key];
-    setUploadedImage(sample.image);
-    setScanResult(null);
-    setIsSavedToEHR(false);
-
-    if (key === 'dermatitis') setIssueDescription('Mild redness and scratching behind left ear for 2 days.');
-    else if (key === 'conjunctivitis') setIssueDescription('Unusual eye discharge, squinting, and red conjunctival irritation.');
-    else if (key === 'otitis') setIssueDescription('Frequent head shaking, ear canal odor, and dark cerumen build-up.');
-    else if (key === 'healthy') setIssueDescription('Routine preventative wellness checkup and baseline physiological check.');
-
-    runScanProcess(sample, sample.image);
-  };
-
-  const runScanProcess = async (samplePayload, imageSrc) => {
-    const targetImage = imageSrc || uploadedImage;
-    if (!targetImage) {
-      showToast('Please upload or select a symptom photo first.', 'error');
-      return;
-    }
-
-    setIsScanning(true);
-    setScanProgress(15);
-    setStatusMsg('Connecting to OpenAI GPT-4.0 Veterinary Diagnostic engine…');
-    setIsSavedToEHR(false);
-
-    let p = 15;
-    const timer = setInterval(() => {
-      p = Math.min(p + 14, 90);
-      setScanProgress(p);
-
-      if (p >= 30 && p < 55) setStatusMsg('Analyzing photo margins with GPT-4.0 multi-modal vision…');
-      if (p >= 55 && p < 80) setStatusMsg('Correlating symptom description with 50,000+ veterinary clinical cases…');
-      if (p >= 80) setStatusMsg('Synthesizing immediate first aid protocol and differential diagnosis…');
-    }, 160);
-
-    try {
-      const result = await runAiHealthDiagnosis({
-        petName: activePetName,
-        prompt: issueDescription,
-        imageSrc: targetImage
-      });
-
-      clearInterval(timer);
-      setScanProgress(100);
-      setTimeout(() => {
-        setIsScanning(false);
-        setScanResult(result);
-        showToast('Diagnostic assessment completed via OpenAI GPT-4.0!', 'success');
-      }, 300);
-    } catch (e) {
-      clearInterval(timer);
-      setIsScanning(false);
-      setScanResult(samplePayload || SAMPLE_CASES.dermatitis);
-      showToast('Completed with clinical diagnostic protocol.', 'info');
-    }
-  };
-
-  const handleSaveToMedicalRecord = () => {
-    if (!scanResult) return;
-    addMedicalRecord({
-      petName: activePetName,
-      serviceType: 'AI Health Assessment',
-      diagnosis: scanResult.title,
-      prescription: scanResult.care,
-      cost: 0,
-      date: new Date().toISOString().split('T')[0],
-      nextBooster: '48h Follow-up'
-    });
-    setIsSavedToEHR(true);
-    showToast(`Saved AI assessment to ${activePetName}'s Medical History!`, 'success');
+  const handleStageProbiotic = () => {
+    addToCart({
+      id: 'maya_gi_probiotic',
+      name: 'Maya GI Calming Probiotic Suspension',
+      price: 1250,
+      brand: 'PET MAYA CLINICAL',
+      category: 'pharma',
+      categoryLabel: 'GI Therapeutics',
+      image: 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=200&auto=format&fit=crop&q=80'
+    }, 1);
+    showToast('Maya GI Probiotic staged into your Care Bag', 'success');
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '860px', margin: '0 auto', width: '100%' }}>
-      <AppleReveal duration={0.6} yOffset={18}>
-        <div 
-          style={{ 
-            background: 'var(--surface-alt)',
-            borderRadius: '28px',
-            border: '1px solid var(--border)',
-            boxShadow: '0 4px 24px rgba(0,0,0,0.03)',
-            padding: '28px 30px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '22px'
-          }}
-        >
-          {/* Header */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-            <div>
-              <h1 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--text-main)', margin: '0 0 4px', letterSpacing: '-0.02em' }}>
-                AI Health Scanner
-              </h1>
-              <p style={{ fontSize: '13.5px', color: 'var(--text-muted)', margin: 0 }}>
-                Instant triage, lesion analysis &amp; multi-modal diagnostic protocol for pets.
-              </p>
+    <div style={{
+      backgroundColor: '#FDF8F5',
+      minHeight: '100vh',
+      color: '#160F0C',
+      fontFamily: 'var(--font-sans, "Inter", sans-serif)',
+      paddingBottom: '80px'
+    }}>
+      <div style={{
+        maxWidth: '1360px',
+        margin: '0 auto',
+        padding: '36px 24px 0 24px'
+      }}>
+
+        {/* ── 1. HEADER SECTION & DIAGNOSTIC INTELLIGENCE SUITE TAG ── */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '32px',
+          marginBottom: '36px'
+        }}>
+          {/* Left Title Area */}
+          <div style={{ flex: '1 1 540px', maxWidth: '720px' }}>
+            {/* Monospace Badge */}
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              backgroundColor: '#EBF4F4',
+              border: '1px solid rgba(69, 132, 141, 0.3)',
+              borderRadius: '9999px',
+              padding: '4px 14px',
+              fontFamily: 'var(--font-mono, monospace)',
+              fontSize: '9.5px',
+              fontWeight: 700,
+              letterSpacing: '0.14em',
+              color: '#346B73',
+              textTransform: 'uppercase',
+              marginBottom: '14px'
+            }}>
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#45848D' }} />
+              <span>• DIAGNOSTIC INTELLIGENCE SUITE V4.0</span>
             </div>
+
+            {/* Headline */}
+            <h1 style={{
+              fontFamily: 'var(--font-display, "Playfair Display", Georgia, serif)',
+              fontSize: 'clamp(28px, 3.8vw, 44px)',
+              fontWeight: 600,
+              color: '#160F0C',
+              letterSpacing: '-0.02em',
+              lineHeight: 1.15,
+              margin: '0 0 12px 0'
+            }}>
+              Evidence-based triage, designed to replace panic with clarity.
+            </h1>
+
+            {/* Subtitle */}
+            <p style={{
+              fontSize: '14.5px',
+              color: '#675C58',
+              lineHeight: 1.55,
+              margin: 0
+            }}>
+              Pet Maya's algorithmic triage system cross-references 12,000+ veterinary protocols to calmly evaluate symptoms, identify urgency tiers, and provide immediate stabilizing steps.
+            </p>
           </div>
 
-          {/* Pet Selector (Matching App) */}
-          {pets.length > 0 && (
-            <div>
-              <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '8px' }}>
-                Select Pet for Assessment:
-              </span>
-              <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
-                {pets.map((p) => {
-                  const isSelected = selectedPet?.id === p.id || selectedPet?.petID === p.petID;
+          {/* Right 3 Metric Stat Boxes */}
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '10px',
+            width: '260px',
+            flexShrink: 0
+          }} className="triage-metrics-col">
+            {/* Metric 1 */}
+            <div style={{
+              backgroundColor: '#FFFFFF',
+              border: '1px solid #DED9D6',
+              borderRadius: '12px',
+              padding: '10px 16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              boxShadow: '0 1px 4px rgba(22, 15, 12, 0.02)'
+            }}>
+              <div>
+                <div style={{
+                  fontFamily: 'var(--font-mono, monospace)',
+                  fontSize: '8.5px',
+                  fontWeight: 700,
+                  letterSpacing: '0.12em',
+                  color: '#707973',
+                  textTransform: 'uppercase',
+                  marginBottom: '2px'
+                }}>
+                  DIAGNOSTIC FIDELITY
+                </div>
+                <div style={{
+                  fontFamily: 'var(--font-mono, monospace)',
+                  fontSize: '20px',
+                  fontWeight: 700,
+                  color: '#160F0C'
+                }}>
+                  98.4%
+                </div>
+              </div>
+              <div style={{
+                width: '28px',
+                height: '28px',
+                borderRadius: '50%',
+                backgroundColor: '#E0F2FE',
+                color: '#0284C7',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <ShieldCheck size={16} />
+              </div>
+            </div>
+
+            {/* Metric 2 */}
+            <div style={{
+              backgroundColor: '#FFFFFF',
+              border: '1px solid #DED9D6',
+              borderRadius: '12px',
+              padding: '10px 16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              boxShadow: '0 1px 4px rgba(22, 15, 12, 0.02)'
+            }}>
+              <div>
+                <div style={{
+                  fontFamily: 'var(--font-mono, monospace)',
+                  fontSize: '8.5px',
+                  fontWeight: 700,
+                  letterSpacing: '0.12em',
+                  color: '#707973',
+                  textTransform: 'uppercase',
+                  marginBottom: '2px'
+                }}>
+                  CLINICIAN ESCALATION
+                </div>
+                <div style={{
+                  fontFamily: 'var(--font-mono, monospace)',
+                  fontSize: '20px',
+                  fontWeight: 700,
+                  color: '#160F0C'
+                }}>
+                  &lt; 3 Minutes
+                </div>
+              </div>
+              <div style={{
+                width: '28px',
+                height: '28px',
+                borderRadius: '50%',
+                backgroundColor: '#CCFBF1',
+                color: '#0D9488',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <Clock size={16} />
+              </div>
+            </div>
+
+            {/* Metric 3 */}
+            <div style={{
+              backgroundColor: '#FFFFFF',
+              border: '1px solid #DED9D6',
+              borderRadius: '12px',
+              padding: '10px 16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              boxShadow: '0 1px 4px rgba(22, 15, 12, 0.02)'
+            }}>
+              <div>
+                <div style={{
+                  fontFamily: 'var(--font-mono, monospace)',
+                  fontSize: '8.5px',
+                  fontWeight: 700,
+                  letterSpacing: '0.12em',
+                  color: '#707973',
+                  textTransform: 'uppercase',
+                  marginBottom: '2px'
+                }}>
+                  SAFELY GUIDED OUTCOMES
+                </div>
+                <div style={{
+                  fontFamily: 'var(--font-mono, monospace)',
+                  fontSize: '20px',
+                  fontWeight: 700,
+                  color: '#160F0C'
+                }}>
+                  14,280+ Cases
+                </div>
+              </div>
+              <div style={{
+                width: '28px',
+                height: '28px',
+                borderRadius: '50%',
+                backgroundColor: '#EBF4F4',
+                color: '#346B73',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <ShieldCheck size={16} />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── 2. TWO-COLUMN WORKSPACE: ASSESSMENT STEPS & LIVE DOSSIER ── */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'minmax(0, 1.25fr) minmax(340px, 0.75fr)',
+          gap: '28px',
+          alignItems: 'start'
+        }} className="triage-main-layout">
+
+          {/* LEFT: 3 STEP ASSESSMENT CARDS */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+
+            {/* ── CARD 1: COMPANION PATIENT ── */}
+            <div style={{
+              backgroundColor: '#FFFFFF',
+              borderRadius: '16px',
+              border: '1px solid #EAE5E2',
+              padding: '24px',
+              boxShadow: '0 1px 4px rgba(22, 15, 12, 0.02)'
+            }}>
+              {/* Header */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: '18px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{
+                    width: '24px',
+                    height: '24px',
+                    borderRadius: '50%',
+                    backgroundColor: '#F5F1EE',
+                    color: '#160F0C',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    1
+                  </div>
+                  <h2 style={{ fontSize: '16px', fontWeight: 700, color: '#160F0C', margin: 0 }}>
+                    Companion Patient
+                  </h2>
+                </div>
+                <span style={{
+                  fontFamily: 'var(--font-mono, monospace)',
+                  fontSize: '9.5px',
+                  fontWeight: 700,
+                  letterSpacing: '0.12em',
+                  color: '#45848D',
+                  textTransform: 'uppercase'
+                }}>
+                  BASELINE VITALS ACTIVE
+                </span>
+              </div>
+
+              {/* Pet Selection Row */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+                gap: '14px',
+                marginBottom: '16px'
+              }}>
+                {defaultPets.map(pet => {
+                  const isSelected = pet.id === selectedPetId;
                   return (
-                    <button
-                      key={p.id || p.petID}
-                      onClick={() => setSelectedPet(p)}
+                    <div
+                      key={pet.id}
+                      onClick={() => setSelectedPetId(pet.id)}
                       style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '8px',
-                        padding: '6px 14px',
-                        borderRadius: '999px',
-                        fontSize: '13px',
-                        fontWeight: 700,
+                        gap: '12px',
+                        padding: '12px 14px',
+                        borderRadius: '12px',
+                        border: isSelected ? '2px solid #346B73' : '1px solid #EAE5E2',
+                        backgroundColor: isSelected ? '#F6FBFA' : '#FAFAF9',
                         cursor: 'pointer',
-                        border: isSelected ? '1.5px solid #10B981' : '1px solid var(--border)',
-                        background: isSelected ? 'rgba(16, 185, 129, 0.12)' : 'var(--surface)',
-                        color: isSelected ? '#10B981' : 'var(--text-main)',
-                        transition: 'all 0.15s ease'
+                        transition: 'all 0.18s ease'
                       }}
                     >
-                      <img 
-                        src={p.photo || p.photoUrl || 'assets/images/Pet_1.jpg'} 
-                        alt={p.name} 
-                        style={{ width: 22, height: 22, borderRadius: '50%', objectFit: 'cover' }}
+                      <img
+                        src={pet.image}
+                        alt={pet.name}
+                        style={{
+                          width: '42px',
+                          height: '42px',
+                          borderRadius: '50%',
+                          objectFit: 'cover',
+                          border: '1px solid #DED9D6'
+                        }}
                       />
-                      <span>{p.name}</span>
-                    </button>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ fontSize: '14px', fontWeight: 700, color: '#160F0C' }}>
+                            {pet.name}
+                          </span>
+                          {isSelected && (
+                            <span style={{
+                              width: '16px',
+                              height: '16px',
+                              borderRadius: '50%',
+                              backgroundColor: '#346B73',
+                              color: '#FFFFFF',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: '10px'
+                            }}>
+                              ✓
+                            </span>
+                          )}
+                        </div>
+                        <div style={{ fontSize: '12px', color: '#675C58' }}>
+                          {pet.breed} • {pet.age}
+                        </div>
+                      </div>
+                    </div>
                   );
                 })}
               </div>
-            </div>
-          )}
 
-          {/* Photo Dropzone / Camera Area */}
-          <div style={{ position: 'relative' }}>
-            <label 
-              style={{
+              {/* Vitals Summary Footer */}
+              <div style={{
                 display: 'flex',
-                flexDirection: 'column',
                 alignItems: 'center',
-                justifyContent: 'center',
-                padding: '28px 20px',
-                borderRadius: '24px',
-                border: '2px dashed rgba(124, 77, 255, 0.3)',
-                background: 'rgba(124, 77, 255, 0.03)',
-                cursor: 'pointer',
-                textAlign: 'center',
-                transition: 'all 0.2s ease',
-              }}
-            >
-              <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFileUpload} />
-              <LottieUploadIcon size={56} style={{ margin: '0 auto 8px' }} />
-              <strong style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-main)', display: 'block', marginBottom: '4px' }}>
-                Drop or Click to Upload Symptom Photo
-              </strong>
-              <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                Skin lesion, red eye, cloudy ear canal, dental plaque, or stool sample
-              </span>
-            </label>
-          </div>
-
-          {/* Clinical Presets Chips */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)' }}>Clinical Presets:</span>
-            <button className="chip-pill" onClick={() => loadSample('dermatitis')}>
-              <Activity size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
-              Feline Dermatitis
-            </button>
-            <button className="chip-pill" onClick={() => loadSample('conjunctivitis')}>
-              <Eye size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
-              Eye Infection
-            </button>
-            <button className="chip-pill" onClick={() => loadSample('otitis')}>
-              <Ear size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
-              Ear Canal Mites
-            </button>
-            <button className="chip-pill" onClick={() => loadSample('healthy')}>
-              <Sparkles size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
-              Routine Baseline
-            </button>
-          </div>
-
-          {/* Scanner Preview with Laser Beam Animation */}
-          {uploadedImage && (
-            <div style={{ position: 'relative', borderRadius: '22px', overflow: 'hidden', height: '240px', background: '#000' }}>
-              <img 
-                src={uploadedImage} 
-                alt="Symptom Preview" 
-                style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: isScanning ? 0.7 : 1, transition: 'opacity 0.3s' }} 
-              />
-              
-              {/* Laser Scanning Line */}
-              {isScanning && (
-                <motion.div
-                  animate={{ y: [0, 240, 0] }}
-                  transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: '3px',
-                    background: 'linear-gradient(90deg, transparent, #10B981, #7C4DFF, transparent)',
-                    boxShadow: '0 0 16px 4px rgba(16, 185, 129, 0.7)',
-                    zIndex: 10
-                  }}
-                />
-              )}
-            </div>
-          )}
-
-          {/* Clinical Issue Prompt Input */}
-          <div>
-            <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
-              Describe Observed Symptoms &amp; Duration:
-            </label>
-            <textarea
-              rows={2}
-              value={issueDescription}
-              onChange={(e) => setIssueDescription(e.target.value)}
-              placeholder="e.g. Mild redness and scratching behind left ear for 2 days..."
-              style={{
-                width: '100%',
-                borderRadius: '16px',
-                border: '1px solid var(--border)',
-                background: 'var(--surface)',
-                color: 'var(--text-main)',
-                padding: '12px 16px',
-                fontSize: '13.5px',
-                fontFamily: 'inherit',
-                resize: 'none',
-                outline: 'none',
-                lineHeight: 1.45
-              }}
-            />
-          </div>
-
-          {/* Action Button: Run Diagnosis */}
-          <button 
-            onClick={() => runScanProcess(SAMPLE_CASES.dermatitis, uploadedImage)}
-            disabled={isScanning}
-            style={{
-              background: 'linear-gradient(135deg, #10B981, #059669)',
-              color: '#FFFFFF',
-              border: 'none',
-              borderRadius: '18px',
-              padding: '14px 28px',
-              fontSize: '15px',
-              fontWeight: 800,
-              cursor: isScanning ? 'not-allowed' : 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-              boxShadow: '0 4px 16px rgba(16, 185, 129, 0.25)',
-              opacity: isScanning ? 0.7 : 1,
-              transition: 'transform 0.15s ease'
-            }}
-          >
-            <HeartPulse size={18} />
-            <span>{isScanning ? 'Analyzing Clinical Morphology…' : 'Run AI Health Diagnosis'}</span>
-          </button>
-
-          {/* Scan Progress Feedback */}
-          {isScanning && (
-            <div style={{ background: 'var(--surface)', padding: '16px', borderRadius: '16px', border: '1px solid var(--border)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px', fontWeight: 700, marginBottom: '6px' }}>
-                <span style={{ color: 'var(--text-muted)' }}>{statusMsg}</span>
-                <span style={{ color: '#10B981' }}>{scanProgress}%</span>
-              </div>
-              <div style={{ height: '6px', background: 'var(--border)', borderRadius: '999px', overflow: 'hidden' }}>
-                <div 
-                  style={{ 
-                    height: '100%', 
-                    width: `${scanProgress}%`, 
-                    background: 'linear-gradient(90deg, #10B981, #7C4DFF)', 
-                    transition: 'width 0.2s ease' 
-                  }} 
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Diagnostic Result Section */}
-          {scanResult && !isScanning && (
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              style={{
-                background: 'rgba(16, 185, 129, 0.05)',
-                border: '1px solid rgba(16, 185, 129, 0.2)',
-                borderRadius: '24px',
-                padding: '24px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '18px'
-              }}
-            >
-              {/* Header result row */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                  <span style={{
-                    background: scanResult.urgency === 'Urgent' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)',
-                    color: scanResult.urgency === 'Urgent' ? '#EF4444' : '#10B981',
-                    fontSize: '11.5px',
-                    fontWeight: 800,
-                    padding: '4px 12px',
-                    borderRadius: '8px',
-                    letterSpacing: '0.4px',
-                    textTransform: 'uppercase'
-                  }}>
-                    {scanResult.urgency === 'Urgent' ? 'Urgent Care Required' : 'Advisory Evaluation'}
-                  </span>
-                  <span style={{
-                    background: 'rgba(124, 77, 255, 0.12)',
-                    color: '#7C4DFF',
-                    fontSize: '11px',
-                    fontWeight: 800,
-                    padding: '4px 10px',
-                    borderRadius: '8px',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '4px'
-                  }}>
-                    <Sparkles size={12} /> OpenAI GPT-4.0
-                  </span>
+                justifyContent: 'space-between',
+                paddingTop: '12px',
+                borderTop: '1px solid #F5F1EE',
+                fontSize: '12px',
+                color: '#675C58',
+                flexWrap: 'wrap',
+                gap: '8px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <span>Weight: <strong style={{ color: '#160F0C' }}>{activePet.weight}</strong></span>
+                  <span>Vaccination: <strong style={{ color: '#059669' }}>{activePet.vaccination}</strong></span>
+                  <span>Microchip: <strong style={{ fontFamily: 'var(--font-mono)' }}>{activePet.microchip}</strong></span>
                 </div>
-                <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--primary)' }}>
-                  {scanResult.confidence}
-                </span>
-              </div>
-
-              {/* Title */}
-              <div>
-                <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
-                  PRIMARY CLINICAL ASSESSMENT FOR {activePetName.toUpperCase()}
-                </span>
-                <h3 style={{ fontSize: '19px', fontWeight: 800, color: 'var(--text-main)', margin: '4px 0 0' }}>
-                  {scanResult.title}
-                </h3>
-              </div>
-
-              {/* Protocol Grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
-                <div style={{ background: 'var(--surface)', padding: '16px', borderRadius: '16px', border: '1px solid var(--border)' }}>
-                  <strong style={{ fontSize: '11px', color: '#10B981', display: 'flex', alignItems: 'center', gap: '5px', textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '6px' }}>
-                    <ShieldAlert size={14} /> Immediate First Aid Protocol
-                  </strong>
-                  <p style={{ fontSize: '12.5px', color: 'var(--text-main)', lineHeight: 1.45, margin: 0 }}>
-                    {scanResult.care}
-                  </p>
-                </div>
-
-                <div style={{ background: 'var(--surface)', padding: '16px', borderRadius: '16px', border: '1px solid var(--border)' }}>
-                  <strong style={{ fontSize: '11px', color: '#3B82F6', display: 'flex', alignItems: 'center', gap: '5px', textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '6px' }}>
-                    <Stethoscope size={14} /> Recommended Specialist Action
-                  </strong>
-                  <p style={{ fontSize: '12.5px', color: 'var(--text-main)', lineHeight: 1.45, margin: 0 }}>
-                    {scanResult.clinic}
-                  </p>
-                </div>
-              </div>
-
-              {/* Differential Diagnosis Pills */}
-              {scanResult.differential && (
-                <div>
-                  <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>
-                    Differential Diagnosis Considerations:
-                  </span>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                    {scanResult.differential.map((d, idx) => (
-                      <span 
-                        key={idx}
-                        style={{
-                          background: 'var(--surface)',
-                          border: '1px solid var(--border)',
-                          color: 'var(--text-muted)',
-                          padding: '3px 10px',
-                          borderRadius: '8px',
-                          fontSize: '11px',
-                          fontWeight: 600
-                        }}
-                      >
-                        • {d}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Detailed GPT-4.0 Diagnostic Report Drawer/Toggle */}
-              {scanResult.rawReport && (
-                <div style={{ background: 'var(--surface)', borderRadius: '16px', border: '1px solid var(--border)', padding: '14px 16px' }}>
-                  <div 
-                    onClick={() => setShowFullReport(!showFullReport)}
-                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', userSelect: 'none' }}
-                  >
-                    <span style={{ fontSize: '12.5px', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <FileText size={15} color="#7C4DFF" /> Full GPT-4.0 Clinical Report Transcript
-                    </span>
-                    <span style={{ fontSize: '11px', color: 'var(--primary)', fontWeight: 700 }}>
-                      {showFullReport ? 'Hide ▲' : 'View ▼'}
-                    </span>
-                  </div>
-                  {showFullReport && (
-                    <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid var(--border)', fontSize: '13px', lineHeight: 1.6, color: 'var(--text-main)', whiteSpace: 'pre-wrap' }}>
-                      {scanResult.rawReport}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Action Buttons: Save to EHR & Book */}
-              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', paddingTop: '4px' }}>
                 <button
-                  onClick={handleSaveToMedicalRecord}
-                  disabled={isSavedToEHR}
+                  onClick={() => openModal('addPet')}
                   style={{
-                    flex: 1,
-                    minWidth: '180px',
-                    background: isSavedToEHR ? 'var(--primary-tint)' : 'var(--surface)',
-                    color: isSavedToEHR ? 'var(--primary)' : 'var(--text-main)',
-                    border: '1px solid var(--border)',
-                    padding: '12px 18px',
-                    borderRadius: '16px',
-                    fontSize: '13px',
-                    fontWeight: 700,
-                    cursor: isSavedToEHR ? 'default' : 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px',
-                    transition: 'all 0.18s ease'
+                    background: 'none',
+                    border: 'none',
+                    color: '#346B73',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    padding: 0
                   }}
                 >
-                  <BookmarkCheck size={17} color={isSavedToEHR ? 'var(--primary)' : 'currentColor'} />
-                  <span>{isSavedToEHR ? 'Saved to Medical History ✅' : 'Save to Medical History'}</span>
+                  + Register Companion
                 </button>
+              </div>
+            </div>
+
+            {/* ── CARD 2: ANATOMICAL SYMPTOM LOCATOR ── */}
+            <div style={{
+              backgroundColor: '#FFFFFF',
+              borderRadius: '16px',
+              border: '1px solid #EAE5E2',
+              padding: '24px',
+              boxShadow: '0 1px 4px rgba(22, 15, 12, 0.02)'
+            }}>
+              {/* Header */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: '8px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{
+                    width: '24px',
+                    height: '24px',
+                    borderRadius: '50%',
+                    backgroundColor: '#F5F1EE',
+                    color: '#160F0C',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    2
+                  </div>
+                  <h2 style={{ fontSize: '16px', fontWeight: 700, color: '#160F0C', margin: 0 }}>
+                    Anatomical Symptom Locator
+                  </h2>
+                </div>
+                <span style={{
+                  fontFamily: 'var(--font-mono, monospace)',
+                  fontSize: '9.5px',
+                  fontWeight: 700,
+                  letterSpacing: '0.12em',
+                  color: '#707973',
+                  textTransform: 'uppercase'
+                }}>
+                  STEP 2 OF 3
+                </span>
+              </div>
+
+              {/* Sub-instruction */}
+              <p style={{ fontSize: '13px', color: '#675C58', margin: '0 0 16px 0' }}>
+                Select primary locus of discomfort or physiological change observed in the last 24 hours.
+              </p>
+
+              {/* 6 Anatomical Tiles Grid */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+                gap: '12px',
+                marginBottom: '20px'
+              }} className="triage-tiles-grid">
+                {ANATOMICAL_LOCI.map(locus => {
+                  const Icon = locus.icon;
+                  const isSelected = selectedLocus === locus.id;
+                  return (
+                    <div
+                      key={locus.id}
+                      onClick={() => setSelectedLocus(locus.id)}
+                      style={{
+                        padding: '14px',
+                        borderRadius: '12px',
+                        backgroundColor: isSelected ? '#EBF4F4' : '#FAFAF9',
+                        border: isSelected ? '1.5px solid #346B73' : '1px solid #EAE5E2',
+                        cursor: 'pointer',
+                        transition: 'all 0.18s ease'
+                      }}
+                    >
+                      <div style={{
+                        color: isSelected ? '#346B73' : locus.color,
+                        marginBottom: '8px'
+                      }}>
+                        <Icon size={20} />
+                      </div>
+                      <div style={{
+                        fontSize: '13.5px',
+                        fontWeight: 700,
+                        color: '#160F0C',
+                        marginBottom: '2px'
+                      }}>
+                        {locus.label}
+                      </div>
+                      <div style={{
+                        fontSize: '11px',
+                        color: '#707973'
+                      }}>
+                        {locus.subtitle}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Chief Complaint Textarea */}
+              <div>
+                <label style={{
+                  display: 'block',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  color: '#160F0C',
+                  marginBottom: '6px'
+                }}>
+                  Chief Complaint Description
+                </label>
+                <textarea
+                  rows={3}
+                  value={chiefComplaint}
+                  onChange={(e) => setChiefComplaint(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '12px 14px',
+                    borderRadius: '12px',
+                    border: '1px solid #DED9D6',
+                    fontSize: '13px',
+                    color: '#160F0C',
+                    backgroundColor: '#FAFAF9',
+                    lineHeight: 1.45,
+                    boxSizing: 'border-box',
+                    outline: 'none'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = '#160F0C'}
+                  onBlur={(e) => e.target.style.borderColor = '#DED9D6'}
+                />
+              </div>
+            </div>
+
+            {/* ── CARD 3: CLINICAL OBSERVATIONS & VITALS ── */}
+            <div style={{
+              backgroundColor: '#FFFFFF',
+              borderRadius: '16px',
+              border: '1px solid #EAE5E2',
+              padding: '24px',
+              boxShadow: '0 1px 4px rgba(22, 15, 12, 0.02)'
+            }}>
+              {/* Header */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: '18px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{
+                    width: '24px',
+                    height: '24px',
+                    borderRadius: '50%',
+                    backgroundColor: '#F5F1EE',
+                    color: '#160F0C',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    3
+                  </div>
+                  <h2 style={{ fontSize: '16px', fontWeight: 700, color: '#160F0C', margin: 0 }}>
+                    Clinical Observations &amp; Vitals
+                  </h2>
+                </div>
+                <span style={{
+                  fontFamily: 'var(--font-mono, monospace)',
+                  fontSize: '9.5px',
+                  fontWeight: 700,
+                  letterSpacing: '0.12em',
+                  color: '#707973',
+                  textTransform: 'uppercase'
+                }}>
+                  STEP 3 OF 3
+                </span>
+              </div>
+
+              {/* Symptom Duration Buttons */}
+              <div style={{ marginBottom: '22px' }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: '8px'
+                }}>
+                  <span style={{ fontSize: '12.5px', fontWeight: 600, color: '#160F0C' }}>
+                    Symptom Duration
+                  </span>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#160F0C' }}>
+                    {symptomDuration === 'under2h' && 'Under 2 Hours'}
+                    {symptomDuration === '4-8h' && '4 to 8 Hours'}
+                    {symptomDuration === '12-24h' && '12 to 24 Hours'}
+                    {symptomDuration === '48h+' && '48+ Hours'}
+                  </span>
+                </div>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+                  gap: '8px'
+                }}>
+                  {[
+                    { id: 'under2h', label: 'Under 2h' },
+                    { id: '4-8h', label: '4 - 8h' },
+                    { id: '12-24h', label: '12 - 24h' },
+                    { id: '48h+', label: '48h +' }
+                  ].map(item => {
+                    const isSelected = symptomDuration === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => setSymptomDuration(item.id)}
+                        style={{
+                          padding: '8px',
+                          borderRadius: '8px',
+                          border: isSelected ? '1px solid #160F0C' : '1px solid #DED9D6',
+                          backgroundColor: isSelected ? '#160F0C' : '#FAFAF9',
+                          color: isSelected ? '#FFFFFF' : '#525B57',
+                          fontSize: '12px',
+                          fontWeight: 600,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {item.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Hydration: Capillary Refill Time (CRT) */}
+              <div style={{ marginBottom: '22px' }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: '4px'
+                }}>
+                  <span style={{ fontSize: '12.5px', fontWeight: 600, color: '#160F0C' }}>
+                    Hydration: Capillary Refill Time (CRT)
+                  </span>
+                  <span style={{
+                    backgroundColor: '#EBF4F4',
+                    color: '#346B73',
+                    fontSize: '9.5px',
+                    fontWeight: 700,
+                    padding: '2px 8px',
+                    borderRadius: '4px',
+                    fontFamily: 'var(--font-mono)'
+                  }}>
+                    NORMAL (&lt; 2S)
+                  </span>
+                </div>
+                <p style={{ fontSize: '11.5px', color: '#707973', margin: '0 0 8px 0' }}>
+                  Press gently on upper gum until blanched, measure seconds to return pink.
+                </p>
+
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+                  gap: '8px'
+                }}>
+                  {[
+                    { id: 'brisk', time: 'Brisk (< 2 seconds)', label: 'Healthy hydration', isAlert: false },
+                    { id: 'delayed', time: 'Delayed (2-3 seconds)', label: 'Mild dehydration', isAlert: false },
+                    { id: 'sluggish', time: 'Sluggish (> 3 seconds)', label: 'Urgent attention', isAlert: true }
+                  ].map(crt => {
+                    const isSelected = crtStatus === crt.id;
+                    return (
+                      <div
+                        key={crt.id}
+                        onClick={() => setCrtStatus(crt.id)}
+                        style={{
+                          padding: '10px 12px',
+                          borderRadius: '10px',
+                          border: isSelected ? '1.5px solid #160F0C' : '1px solid #EAE5E2',
+                          backgroundColor: isSelected ? '#F6F2EE' : '#FAFAF9',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <div style={{ fontSize: '11.5px', fontWeight: 700, color: '#160F0C' }}>
+                          {crt.time}
+                        </div>
+                        <div style={{
+                          fontSize: '10.5px',
+                          color: crt.isAlert ? '#DC2626' : '#675C58',
+                          fontWeight: crt.isAlert ? 600 : 400
+                        }}>
+                          {crt.label}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Resting Respiratory Rate */}
+              <div style={{ marginBottom: '24px' }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: '8px'
+                }}>
+                  <span style={{ fontSize: '12.5px', fontWeight: 600, color: '#160F0C' }}>
+                    Resting Respiratory Rate
+                  </span>
+                  <span style={{
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    color: '#160F0C'
+                  }}>
+                    {respiratoryRate} <span style={{ fontSize: '11px', color: '#707973', fontWeight: 500 }}>breaths / min</span>
+                  </span>
+                </div>
+
+                <input
+                  type="range"
+                  min="10"
+                  max="60"
+                  value={respiratoryRate}
+                  onChange={(e) => setRespiratoryRate(parseInt(e.target.value, 10))}
+                  style={{
+                    width: '100%',
+                    accentColor: '#346B73',
+                    cursor: 'pointer',
+                    marginBottom: '6px'
+                  }}
+                />
+
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  fontSize: '10px',
+                  color: '#707973',
+                  fontFamily: 'var(--font-mono)'
+                }}>
+                  <span>10 (Brady)</span>
+                  <span style={{ color: '#346B73', fontWeight: 700 }}>18 - 30 (Physiologic Baseline)</span>
+                  <span>40+ (Tachypnea)</span>
+                </div>
+              </div>
+
+              {/* Re-evaluate Primary CTA Button */}
+              <button
+                onClick={handleReevaluate}
+                disabled={isEvaluating}
+                style={{
+                  width: '100%',
+                  padding: '13px 20px',
+                  borderRadius: '9999px',
+                  backgroundColor: '#160F0C',
+                  color: '#FFFFFF',
+                  fontSize: '13.5px',
+                  fontWeight: 600,
+                  border: 'none',
+                  cursor: isEvaluating ? 'wait' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  boxShadow: '0 4px 12px rgba(22, 15, 12, 0.15)',
+                  transition: 'all 0.18s ease'
+                }}
+              >
+                <RefreshCw size={15} className={isEvaluating ? 'spin-anim' : ''} />
+                <span>{isEvaluating ? 'Recalculating Protocols...' : 'Re-evaluate Clinical Protocol ⇄'}</span>
+              </button>
+            </div>
+
+          </div>
+
+          {/* RIGHT: STICKY EVALUATION DOSSIER */}
+          <div style={{
+            position: 'sticky',
+            top: '84px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px'
+          }}>
+
+            {/* ── Main Dossier Card ── */}
+            <div style={{
+              backgroundColor: '#FFFFFF',
+              borderRadius: '16px',
+              border: '1px solid #DED9D6',
+              padding: '22px',
+              boxShadow: '0 4px 20px rgba(22, 15, 12, 0.04)'
+            }}>
+              {/* Dossier Top Bar */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                paddingBottom: '14px',
+                borderBottom: '1px solid #F0ECE9',
+                marginBottom: '16px'
+              }}>
+                <span style={{
+                  fontFamily: 'var(--font-mono, monospace)',
+                  fontSize: '10.5px',
+                  fontWeight: 700,
+                  letterSpacing: '0.08em',
+                  color: '#707973'
+                }}>
+                  EVALUATION DOSSIER: EPR-8936
+                </span>
+                <span style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  backgroundColor: '#E0F2FE',
+                  color: '#0369A1',
+                  fontSize: '9.5px',
+                  fontWeight: 700,
+                  letterSpacing: '0.08em',
+                  padding: '2px 8px',
+                  borderRadius: '9999px',
+                  fontFamily: 'var(--font-mono)'
+                }}>
+                  <span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#0284C7' }} />
+                  <span>LIVE CASE</span>
+                </span>
+              </div>
+
+              {/* Urgency Stratification */}
+              <div style={{ marginBottom: '14px' }}>
+                <div style={{
+                  fontFamily: 'var(--font-mono, monospace)',
+                  fontSize: '9.5px',
+                  fontWeight: 700,
+                  letterSpacing: '0.12em',
+                  color: '#707973',
+                  textTransform: 'uppercase',
+                  marginBottom: '4px'
+                }}>
+                  URGENCY STRATIFICATION
+                </div>
+                <div style={{
+                  fontSize: '18px',
+                  fontWeight: 700,
+                  color: triageResult.tierColor,
+                  lineHeight: 1.2
+                }}>
+                  {triageResult.tier}
+                </div>
+              </div>
+
+              {/* Algorithmic Conclusion Box */}
+              <div style={{
+                backgroundColor: '#FBF8F5',
+                border: '1px solid #EAE5E2',
+                borderRadius: '12px',
+                padding: '14px 16px',
+                marginBottom: '18px'
+              }}>
+                <div style={{
+                  fontFamily: 'var(--font-mono, monospace)',
+                  fontSize: '8.5px',
+                  fontWeight: 700,
+                  letterSpacing: '0.1em',
+                  color: '#707973',
+                  textTransform: 'uppercase',
+                  marginBottom: '4px'
+                }}>
+                  ALGORITHMIC CONCLUSION
+                </div>
+                <p style={{
+                  fontSize: '12.5px',
+                  color: '#160F0C',
+                  lineHeight: 1.5,
+                  margin: 0
+                }}>
+                  {triageResult.conclusion}
+                </p>
+              </div>
+
+              {/* Prescribed Home Care Steps */}
+              <div style={{ marginBottom: '20px' }}>
+                <div style={{
+                  fontFamily: 'var(--font-mono, monospace)',
+                  fontSize: '9px',
+                  fontWeight: 700,
+                  letterSpacing: '0.12em',
+                  color: '#707973',
+                  textTransform: 'uppercase',
+                  marginBottom: '12px'
+                }}>
+                  PRESCRIBED HOME CARE STEPS
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {triageResult.steps.map((step, idx) => {
+                    const StepIcon = step.icon || Check;
+                    return (
+                      <div key={idx} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                        <div style={{
+                          width: '24px',
+                          height: '24px',
+                          borderRadius: '50%',
+                          backgroundColor: '#EBF4F4',
+                          color: '#346B73',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                          marginTop: '2px'
+                        }}>
+                          <StepIcon size={13} />
+                        </div>
+                        <div>
+                          <div style={{ fontSize: '13px', fontWeight: 700, color: '#160F0C' }}>
+                            {step.title}
+                          </div>
+                          <div style={{ fontSize: '11.5px', color: '#675C58', lineHeight: 1.4 }}>
+                            {step.desc}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Clinician Escalation Box */}
+              <div style={{
+                backgroundColor: '#F0F5F4',
+                border: '1px solid #D1E3E1',
+                borderRadius: '14px',
+                padding: '16px'
+              }}>
+                {/* Doctor profile header */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+                  <img
+                    src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=100&auto=format&fit=crop&q=80"
+                    alt="Dr. Sarah Jenkins"
+                    style={{
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '50%',
+                      objectFit: 'cover',
+                      border: '1px solid #BEE3DB'
+                    }}
+                  />
+                  <div>
+                    <div style={{ fontSize: '13px', fontWeight: 700, color: '#160F0C' }}>
+                      Dr. Sarah Jenkins, MRCVS
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#346B73', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <span>Internal Medicine Faculty • On Call Now</span>
+                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10B981' }} />
+                    </div>
+                  </div>
+                </div>
+
+                <p style={{ fontSize: '11.5px', color: '#675C58', lineHeight: 1.45, margin: '0 0 12px 0' }}>
+                  Want immediate human reassurance? Dr. Jenkins can inspect oral gums and posture in a 10-minute encrypted video consult.
+                </p>
 
                 <button
-                  onClick={() => setActiveTab('vets')}
+                  onClick={() => openModal('booking')}
                   style={{
-                    flex: 1,
-                    minWidth: '180px',
-                    background: 'var(--primary-gradient)',
+                    width: '100%',
+                    padding: '11px 16px',
+                    borderRadius: '9999px',
+                    backgroundColor: '#388E9C',
                     color: '#FFFFFF',
                     border: 'none',
-                    padding: '12px 18px',
-                    borderRadius: '16px',
-                    fontSize: '13px',
-                    fontWeight: 800,
+                    fontSize: '12.5px',
+                    fontWeight: 600,
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: '8px',
-                    boxShadow: '0 4px 14px rgba(26, 182, 128, 0.30)',
-                    transition: 'transform 0.18s ease'
+                    gap: '6px',
+                    boxShadow: '0 2px 6px rgba(56, 142, 156, 0.25)'
                   }}
                 >
-                  <Stethoscope size={17} />
-                  <span>Find a Veterinarian</span>
+                  <Video size={15} />
+                  <span>Connect Live Video ($0 Copay Included)</span>
                 </button>
               </div>
-            </motion.div>
-          )}
+            </div>
 
+            {/* ── Supportive Formulary Synchronized Box ── */}
+            <div 
+              onClick={handleStageProbiotic}
+              style={{
+                backgroundColor: '#FFFFFF',
+                borderRadius: '14px',
+                border: '1px solid #DED9D6',
+                padding: '14px 16px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                cursor: 'pointer',
+                boxShadow: '0 1px 4px rgba(22, 15, 12, 0.02)',
+                transition: 'border-color 0.18s ease'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.borderColor = '#388E9C'}
+              onMouseOut={(e) => e.currentTarget.style.borderColor = '#DED9D6'}
+            >
+              <div style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                backgroundColor: '#EBF4F4',
+                color: '#346B73',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0
+              }}>
+                <Package size={16} />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: '12px', fontWeight: 700, color: '#160F0C' }}>
+                  Supportive Formulary Synchronized
+                </div>
+                <div style={{ fontSize: '11px', color: '#707973', lineHeight: 1.3 }}>
+                  Maya GI Calming Probiotic suspension has been staged in your Care Bag.
+                </div>
+              </div>
+              <ArrowRight size={14} color="#707973" />
+            </div>
+
+          </div>
         </div>
-      </AppleReveal>
+
+        {/* ── 3. CLINICAL TRANSPARENCY FRAMEWORK (GOVERNANCE SECTION) ── */}
+        <div style={{
+          marginTop: '64px',
+          textAlign: 'center'
+        }}>
+          {/* Section Tag */}
+          <div style={{
+            fontFamily: 'var(--font-mono, monospace)',
+            fontSize: '10px',
+            fontWeight: 700,
+            letterSpacing: '0.14em',
+            color: '#45848D',
+            textTransform: 'uppercase',
+            marginBottom: '8px'
+          }}>
+            GOVERNANCE &amp; MEDICAL RIGOR
+          </div>
+
+          {/* Headline */}
+          <h2 style={{
+            fontFamily: 'var(--font-display, "Playfair Display", Georgia, serif)',
+            fontSize: 'clamp(24px, 3vw, 34px)',
+            fontWeight: 600,
+            color: '#160F0C',
+            letterSpacing: '-0.02em',
+            margin: '0 0 32px 0'
+          }}>
+            Clinical Transparency Framework
+          </h2>
+
+          {/* Accordion FAQ Cards */}
+          <div style={{
+            maxWidth: '820px',
+            margin: '0 auto 32px auto',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+            textAlign: 'left'
+          }}>
+            {TRANSPARENCY_FAQS.map((faq) => {
+              const isOpen = openFaq === faq.id;
+              return (
+                <div
+                  key={faq.id}
+                  style={{
+                    backgroundColor: '#FFFFFF',
+                    border: '1px solid #EAE5E2',
+                    borderRadius: '12px',
+                    overflow: 'hidden',
+                    transition: 'border-color 0.2s ease',
+                    boxShadow: '0 1px 4px rgba(22, 15, 12, 0.02)'
+                  }}
+                >
+                  <button
+                    onClick={() => setOpenFaq(isOpen ? null : faq.id)}
+                    style={{
+                      width: '100%',
+                      padding: '18px 24px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontSize: '14.5px',
+                      fontWeight: 600,
+                      color: '#160F0C',
+                      textAlign: 'left'
+                    }}
+                  >
+                    <span>{faq.question}</span>
+                    {isOpen ? <ChevronUp size={18} color="#707973" /> : <ChevronDown size={18} color="#707973" />}
+                  </button>
+
+                  {isOpen && (
+                    <div style={{
+                      padding: '0 24px 20px 24px',
+                      fontSize: '13px',
+                      color: '#675C58',
+                      lineHeight: 1.6,
+                      borderTop: '1px solid #F5F1EE'
+                    }}>
+                      <div style={{ paddingTop: '12px' }}>
+                        {faq.answer}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Emergency Hospital Dispatch Banner */}
+          <div style={{
+            maxWidth: '720px',
+            margin: '0 auto',
+            backgroundColor: '#F3EFEA',
+            border: '1px solid #E5DFD9',
+            borderRadius: '9999px',
+            padding: '12px 24px',
+            fontSize: '12.5px',
+            color: '#675C58',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px'
+          }}>
+            <span>Need urgent hospital dispatch? Pet Maya Emergency Dispatch line is active 24/7 at</span>
+            <strong style={{ color: '#160F0C', fontFamily: 'var(--font-mono)' }}>1-800-MAYA-VET</strong>
+          </div>
+        </div>
+
+      </div>
+
+      {/* ── RESPONSIVE STYLES ── */}
+      <style>{`
+        @media (max-width: 1080px) {
+          .triage-main-layout {
+            grid-template-columns: 1fr !important;
+          }
+          .triage-metrics-col {
+            width: 100% !important;
+            flex-direction: row !important;
+            flex-wrap: wrap !important;
+          }
+          .triage-metrics-col > div {
+            flex: 1 1 calc(33.333% - 10px) !important;
+          }
+        }
+        @media (max-width: 720px) {
+          .triage-tiles-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+          }
+          .triage-metrics-col > div {
+            flex: 1 1 100% !important;
+          }
+        }
+        .spin-anim {
+          animation: spin 0.7s linear infinite;
+        }
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 }

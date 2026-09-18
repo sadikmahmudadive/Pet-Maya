@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:animate_do/animate_do.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../core/services/battery_optimization_helper.dart';
 import '../../../data/models/notification_model.dart';
 import '../../../data/repositories/app_state_repository.dart';
 import '../../common_widgets/glass_scaffold.dart';
@@ -25,6 +26,14 @@ class NotificationScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.bolt_rounded, color: AppColors.primary),
+            tooltip: 'Background Notification Optimization',
+            onPressed: () {
+              HapticFeedback.lightImpact();
+              BatteryOptimizationHelper.showOptimizationGuideModal(context);
+            },
+          ),
           if (notifications.isNotEmpty)
             TextButton(
               onPressed: () {

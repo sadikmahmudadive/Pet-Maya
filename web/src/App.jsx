@@ -109,8 +109,6 @@ const TAB_SEO_MAP = {
   },
   // Platform App Views
   shop: {
-    title: 'Care Shop & Pharmacy — Royal Canin, Meds & GPS Collars | Pet Maya',
-    description: 'Shop authentic veterinary prescription medications, clinically formulated diets, and 4G smart GPS tracking collars.'
     title: 'Prescription Formulary & Clinical Biologics | Pet Maya Veterinary Medicine',
     description: 'Cold-chain monitored pharmaceuticals, targeted veterinary nutrition, and bio-engineered therapeutics verified under strict veterinarian oversight.'
   },
@@ -119,8 +117,12 @@ const TAB_SEO_MAP = {
     description: 'Book online teleconsultations and in-clinic visits with 500+ verified veterinarians and pet specialists.'
   },
   ai: {
-    title: 'Clinical AI Vision Health Triage & Scanner | Pet Maya',
-    description: 'Instant first-aid triage protocol, lesion analysis, and differential veterinary guidance for dogs and cats.'
+    title: 'Evidence-Based AI Veterinary Triage | Pet Maya Veterinary Medicine',
+    description: "Pet Maya's algorithmic triage system cross-references 12,000+ veterinary protocols to calmly evaluate symptoms, identify urgency tiers, and provide immediate stabilizing steps."
+  },
+  wellness: {
+    title: 'Evidence-Based AI Veterinary Triage | Pet Maya Veterinary Medicine',
+    description: "Pet Maya's algorithmic triage system cross-references 12,000+ veterinary protocols to calmly evaluate symptoms, identify urgency tiers, and provide immediate stabilizing steps."
   },
   tracker: {
     title: 'Live GPS Radar & Smart Collar Telemetry | Pet Maya',
@@ -172,13 +174,11 @@ const VALID_EDITORIAL_ROUTES = [
   'landing', 'features', 'digital-pet-passport', 'ai-pet-care', 'pet-gps', 
   'connected-care', 'for-pet-parents', 'for-veterinarians', 'for-clinics', 
   'pet-health', 'pet-care', 'blog', 'about', 'contact', 'faq', 'privacy', 'terms', 'book-vet',
-  'login', 'signin', 'signup', 'auth'
-  'login', 'signin', 'signup', 'auth', 'shop'
+  'login', 'signin', 'signup', 'auth', 'shop', 'ai', 'wellness'
 ];
 
 const VALID_APP_ROUTES = [
-  'dashboard', 'shop', 'vets', 'ai', 'tracker', 'community', 'food', 'vaccines', 'profile'
-  'dashboard', 'vets', 'ai', 'tracker', 'community', 'food', 'vaccines', 'profile'
+  'dashboard', 'vets', 'tracker', 'community', 'food', 'vaccines', 'profile'
 ];
 
 function MainContent() {
@@ -339,13 +339,13 @@ function MainContent() {
       case 'vets':
         return <Specialists key="vets" />;
       case 'ai':
-        return <HealthTriage key="ai" />;
+      case 'wellness':
+        return <HealthTriage key="ai" onNavigate={handleNavigate} />;
       case 'food':
         return <NutritionBreeds key="food" />;
       case 'community':
         return <Community key="community" />;
       case 'shop':
-        return <Shop key="shop" />;
         return <Shop key="shop" onNavigate={handleNavigate} />;
       case 'vaccines':
         return <Reminders key="vaccines" />;

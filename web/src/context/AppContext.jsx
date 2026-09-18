@@ -84,7 +84,7 @@ export const TAB_ROUTES = {
   dashboard: '/dashboard',
   shop: '/shop',
   tracker: '/tracker',
-  ai: '/wellness',
+  ai: '/ai',
   vets: '/specialists',
   community: '/community',
   food: '/blog',
