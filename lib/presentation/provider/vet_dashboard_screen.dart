@@ -7,6 +7,8 @@ import 'package:animate_do/animate_do.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../data/models/event_model.dart';
+import '../../data/models/pet_model.dart';
+import '../../data/models/vet_model.dart';
 import '../../data/models/user_model.dart';
 import '../../data/repositories/app_state_repository.dart';
 import '../common_widgets/glass_scaffold.dart';
@@ -17,8 +19,10 @@ import '../common_widgets/passport_qr_scanner.dart';
 import '../auth/login_screen.dart';
 import '../owner/community/community_feed_screen.dart';
 import '../owner/home/user_profile_screen.dart';
+import '../owner/services/tele_vet_video_call_screen.dart';
 import 'add_service_record_modal.dart';
 import 'client_list_screen.dart';
+import 'edit_practice_hours_modal.dart';
 
 class ProviderRoleConfig {
   final String consoleTitle;
@@ -373,6 +377,62 @@ class VetConsoleHomeFragment extends StatelessWidget {
               ),
               const SizedBox(height: 16),
 
+              // Action button to Launch Tele-Vet Video Call Room
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF0288D1),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  onPressed: () {
+                    final pet = state.pets.where((p) => p.petID == evt.petId).firstOrNull ??
+                        PetModel(
+                          petID: evt.petId,
+                          ownerID: evt.userId,
+                          name: evt.petName,
+                          type: 'Dog',
+                          breed: 'Golden Retriever',
+                          dob: '2022-01-01',
+                          age: '2',
+                          gender: 'Male',
+                        );
+                    final user = state.currentUser;
+                    final vet = state.vets.firstOrNull ??
+                        VetModel(
+                          id: user?.uid ?? 'vet_1',
+                          name: user?.name ?? 'Dr. Specialist',
+                          qualification: 'Veterinary Specialist',
+                          tag: 'Veterinarian',
+                          price: '৳800',
+                          photoUrl: user?.photoUrl ?? 'assets/images/vet_placeholder.png',
+                        );
+                    Navigator.pop(ctx);
+                    HapticFeedback.heavyImpact();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => TeleVetVideoCallScreen(
+                          vet: vet,
+                          pet: pet,
+                          channelId: 'channel_${evt.id}',
+                        ),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.videocam_rounded),
+                  label: const Text(
+                    'Start Live Video Consultation',
+                    style: TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+
               // Action button to Add Service EHR log
               SizedBox(
                 width: double.infinity,
@@ -406,6 +466,97 @@ class VetConsoleHomeFragment extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildPracticeScheduleCard(BuildContext context, UserModel? user, AppStateRepository state, bool isDark) {
+    final vet = state.vets.where((v) => v.id == user?.uid).firstOrNull ??
+        state.vets.firstOrNull ??
+        VetModel(
+          id: user?.uid ?? 'vet_1',
+          name: user?.name ?? 'Dr. Specialist',
+          qualification: 'Veterinary Specialist',
+          tag: user?.role?.name ?? 'Veterinarian',
+          price: '৳800/visit',
+          businessHours: 'Mon - Sat: 09:00 AM - 08:00 PM',
+          phone: user?.phone ?? '',
+        );
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.25)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.access_time_filled_rounded, color: AppColors.primary, size: 20),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Practice Hours & Fee',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                      color: isDark ? Colors.white : AppColors.textPrimary,
+                    ),
+                  ),
+                ],
+              ),
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.primary,
+                  side: const BorderSide(color: AppColors.primary),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                onPressed: () {
+                  HapticFeedback.mediumImpact();
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (_) => EditPracticeHoursModal(vet: vet),
+                  );
+                },
+                icon: const Icon(Icons.edit_calendar_rounded, size: 14),
+                label: const Text('Edit Hours', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Schedule', style: TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 2),
+                    Text(vet.businessHours, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700)),
+                  ],
+                ),
+              ),
+              Container(width: 1, height: 28, color: Colors.grey.withValues(alpha: 0.2)),
+              const SizedBox(width: 16),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Consultation Fee', style: TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 2),
+                  Text(vet.price, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900, color: AppColors.primary)),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -673,6 +824,13 @@ class VetConsoleHomeFragment extends StatelessWidget {
                     ),
                   ],
                 ),
+                const SizedBox(height: 20),
+
+                // Practice Schedule & Fee Card
+                FadeInUp(
+                  child: _buildPracticeScheduleCard(context, user, state, isDark),
+                ),
+
                 const SizedBox(height: 24),
 
                 // Quick Actions
