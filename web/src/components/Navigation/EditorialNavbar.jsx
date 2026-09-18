@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { Search, ShoppingBag, Menu, X } from 'lucide-react';
+import GlobalBanner from '../GlobalBanner';
 
 export default function EditorialNavbar({ currentRoute, onNavigate }) {
   const { openModal, showToast, cart } = useApp();
@@ -29,8 +30,8 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
 
   const navLinks = [
     { label: 'Care Shop', path: 'shop' },
-    { label: 'AI Triage', path: 'ai' },
-    { label: 'Specialists', path: 'vets' },
+    { label: 'AI Triage', path: 'ai-pet-care' },
+    { label: 'Specialists', path: 'for-veterinarians' },
     { label: 'Health Vault', path: 'digital-pet-passport' },
     { label: 'Journal', path: 'blog' },
   ];
@@ -50,21 +51,8 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
       borderBottom: '1px solid rgba(222, 217, 214, 0.6)',
       transition: 'all 0.25s ease'
     }}>
-      {/* Winter Clinical Protocol Top Announcement Ticker */}
-      <div style={{
-        backgroundColor: '#F8F3EF',
-        borderBottom: '1px solid rgba(222, 217, 214, 0.5)',
-        padding: '7px 16px',
-        textAlign: 'center',
-        fontFamily: 'var(--font-mono)',
-        fontSize: '10px',
-        fontWeight: 600,
-        letterSpacing: '0.14em',
-        textTransform: 'uppercase',
-        color: '#675C58'
-      }}>
-        Winter Clinical Protocol • Complimentary Veterinary Telehealth Triage with Every Bespoke Wellness Plan.
-      </div>
+      {/* Global Top Promotional Banner */}
+      <GlobalBanner />
 
       {/* Main Navbar Bar */}
       <div style={{

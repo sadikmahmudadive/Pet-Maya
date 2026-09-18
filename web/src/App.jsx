@@ -405,8 +405,8 @@ function MainContent() {
   // Otherwise, user is viewing an app platform screen (Dashboard, Shop, Specialists, Tracker, etc.)
   return (
     <div className="app-container">
-      <Header />
       <GlobalBanner />
+      <Header />
       <main className="app-main">
         <AnimatePresence mode="wait">
           <motion.div

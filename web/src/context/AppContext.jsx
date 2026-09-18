@@ -336,18 +336,24 @@ export function AppProvider({ children }) {
 
   // Global Promotional Banner
   const [globalBanner, setGlobalBanner] = useState(() => {
+    const DEFAULT_BANNER = {
+      isActive: true,
+      text: "WINTER CLINICAL PROTOCOL • COMPLIMENTARY VETERINARY TELEHEALTH TRIAGE WITH EVERY BESPOKE WELLNESS PLAN.",
+      linkText: "",
+      linkUrl: "#",
+      bgColor: "#F8F3EF",
+      textColor: "#707973"
+    };
     try {
       const saved = localStorage.getItem('pm_global_banner');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.text && !parsed.text.includes('Shop online')) {
+          return parsed;
+        }
+      }
     } catch (_) {}
-    return {
-      isActive: true,
-      text: "Shop online and get specialist help, free delivery, and more.",
-      linkText: "store's services",
-      linkUrl: "#",
-      bgColor: "#f5f5f7",
-      textColor: "#1d1d1f"
-    };
+    return DEFAULT_BANNER;
   });
 
   // Permissions & Device Geolocation

@@ -12,6 +12,7 @@ import {
   ShieldCheck, 
   PlayCircle 
 } from 'lucide-react';
+import GlobalBanner from '../GlobalBanner';
 
 export default function AuthPage({ initialMode = 'signin', onNavigate }) {
   const { showToast, openModal, cart } = useApp();
@@ -106,22 +107,8 @@ export default function AuthPage({ initialMode = 'signin', onNavigate }) {
       color: '#160F0C',
       fontFamily: 'var(--font-body)'
     }}>
-      {/* ── TOP ANNOUNCEMENT PROTOCOL TICKER ── */}
-      <div style={{
-        width: '100%',
-        backgroundColor: '#F8F3EF',
-        borderBottom: '1px solid #DED9D6',
-        padding: '8px 16px',
-        textAlign: 'center',
-        fontFamily: 'var(--font-mono)',
-        fontSize: '10px',
-        fontWeight: 600,
-        letterSpacing: '0.2em',
-        textTransform: 'uppercase',
-        color: '#707973'
-      }}>
-        WINTER CLINICAL PROTOCOL • COMPLIMENTARY VETERINARY TELEHEALTH TRIAGE WITH EVERY BESPOKE WELLNESS PLAN.
-      </div>
+      {/* ── GLOBAL TOP PROMOTIONAL BANNER ── */}
+      <GlobalBanner />
 
       {/* ── TOP NAVIGATION BAR ── */}
       <header style={{
