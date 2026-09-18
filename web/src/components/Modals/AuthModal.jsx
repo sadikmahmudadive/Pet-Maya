@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { X, Sparkles, LogIn, UserPlus } from 'lucide-react';
 
 export default function AuthModal() {
-  const { closeModal, showToast } = useApp();
+  const { closeModal, showToast, setActiveTab } = useApp();
   const { loginWithEmail, signupWithEmail, loginWithGoogle, loginAsGuest } = useAuth();
 
   const [tab, setTab] = useState('signin');
@@ -120,6 +120,27 @@ export default function AuthModal() {
           <button className="btn-ghost" style={{ justifyContent: 'center', padding: '10px' }} onClick={handleGuest}>
             <Sparkles size={16} color="#10b981" />
             <span>Continue as Guest Demo Mode</span>
+          </button>
+
+          <button 
+            type="button" 
+            style={{ 
+              background: 'none', 
+              border: 'none', 
+              color: '#45848D', 
+              fontSize: '12px', 
+              fontWeight: 600, 
+              cursor: 'pointer', 
+              padding: '6px 0', 
+              textAlign: 'center' 
+            }}
+            onClick={() => {
+              closeModal();
+              if (setActiveTab) setActiveTab(tab === 'signup' ? 'signup' : 'login');
+              else window.location.hash = tab === 'signup' ? 'signup' : 'login';
+            }}
+          >
+            Open Dedicated Guardian Portal Screen →
           </button>
         </div>
       </div>

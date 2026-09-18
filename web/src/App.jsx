@@ -21,6 +21,7 @@ import ConnectedCarePage from './components/Pages/ConnectedCarePage';
 import SolutionsPages from './components/Pages/SolutionsPages';
 import PetHealthHub from './components/Pages/PetHealthHub';
 import EditorialCompanyPages from './components/Pages/EditorialCompanyPages';
+import AuthPage from './components/Pages/AuthPage';
 
 // Functional App Platform Views
 import Dashboard from './components/Dashboard/Dashboard';
@@ -146,13 +147,30 @@ const TAB_SEO_MAP = {
   'book-vet': {
     title: 'Schedule Veterinary Appointment & Teleconsultation | Pet Maya',
     description: '3-step appointment booking with verified veterinarians, in-clinic exams, and HD video consultations.'
+  },
+  login: {
+    title: 'Guardian Portal Access & Sign In | Pet Maya Veterinary Medicine',
+    description: 'Access your pet companion health vault, ISO microchip registry, telehealth consults, and clinical history.'
+  },
+  signin: {
+    title: 'Guardian Portal Access & Sign In | Pet Maya Veterinary Medicine',
+    description: 'Access your pet companion health vault, ISO microchip registry, telehealth consults, and clinical history.'
+  },
+  signup: {
+    title: 'Register Sovereign Guardian Account & Microchip | Pet Maya',
+    description: 'Create your Pet Maya guardian account. Link ISO 11784 microchips, unlock 24/7 veterinary triage, and digital health records.'
+  },
+  auth: {
+    title: 'Guardian Portal Access & Sign In | Pet Maya Veterinary Medicine',
+    description: 'Access your pet companion health vault, ISO microchip registry, telehealth consults, and clinical history.'
   }
 };
 
 const VALID_EDITORIAL_ROUTES = [
   'landing', 'features', 'digital-pet-passport', 'ai-pet-care', 'pet-gps', 
   'connected-care', 'for-pet-parents', 'for-veterinarians', 'for-clinics', 
-  'pet-health', 'pet-care', 'blog', 'about', 'contact', 'faq', 'privacy', 'terms', 'book-vet'
+  'pet-health', 'pet-care', 'blog', 'about', 'contact', 'faq', 'privacy', 'terms', 'book-vet',
+  'login', 'signin', 'signup', 'auth'
 ];
 
 const VALID_APP_ROUTES = [
@@ -302,6 +320,12 @@ function MainContent() {
         return <EditorialCompanyPages page="terms" onNavigate={handleNavigate} key="terms" />;
       case 'book-vet':
         return <VetBookingFlow key="book-vet" onComplete={() => handleNavigate('dashboard')} />;
+      case 'login':
+      case 'signin':
+      case 'auth':
+        return <AuthPage initialMode="signin" onNavigate={handleNavigate} key="auth-signin" />;
+      case 'signup':
+        return <AuthPage initialMode="signup" onNavigate={handleNavigate} key="auth-signup" />;
 
       // Application platform views
       case 'dashboard':
@@ -326,6 +350,32 @@ function MainContent() {
         return <LandingPage onNavigate={handleNavigate} key="landing-default" />;
     }
   };
+
+  // Dedicated Guardian Portal Auth Screen (renders standalone with its own protocol header & footer)
+  const isAuthRoute = ['login', 'signin', 'signup', 'auth'].includes(activeTab);
+
+  if (isAuthRoute) {
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: '#FDF8F5' }}>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <AuthPage
+              initialMode={activeTab === 'signup' ? 'signup' : 'signin'}
+              onNavigate={handleNavigate}
+            />
+          </motion.div>
+        </AnimatePresence>
+        <ModalRoot />
+        <Toast />
+      </div>
+    );
+  }
 
   // If viewing an editorial marketing page, wrap in EditorialNavbar and EditorialFooter
   if (isEditorial) {

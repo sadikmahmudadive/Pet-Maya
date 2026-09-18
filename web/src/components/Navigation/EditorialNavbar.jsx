@@ -237,19 +237,17 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
             Book Consult
           </button>
 
-          {/* Profile Button */}
+          {/* Profile / Portal Access Button */}
           <button
             onClick={() => {
               if (currentUser) {
                 handleNavClick('dashboard');
               } else {
-                loginAsGuest('Pet Owner');
-                handleNavClick('dashboard');
-                showToast('Welcome to Pet Maya Platform!', 'success');
+                handleNavClick('login');
               }
             }}
             aria-label="Account profile"
-            title={currentUser ? (currentUser.name || 'Dashboard') : 'Sign In'}
+            title={currentUser ? (currentUser.name || 'Dashboard') : 'Sign In to Health Vault'}
             className="btn-elevate"
             style={{
               width: '36px',
@@ -329,7 +327,7 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
               {link.label}
             </a>
           ))}
-          <div style={{ paddingTop: '8px', borderTop: '1px solid rgba(222, 217, 214, 0.5)' }}>
+          <div style={{ paddingTop: '8px', borderTop: '1px solid rgba(222, 217, 214, 0.5)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <button
               onClick={() => handleNavClick('book-vet')}
               style={{
@@ -346,6 +344,22 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
               }}
             >
               Book Consult (৳500)
+            </button>
+            <button
+              onClick={() => handleNavClick(currentUser ? 'dashboard' : 'login')}
+              style={{
+                width: '100%',
+                padding: '12px',
+                borderRadius: '9999px',
+                backgroundColor: '#F8F3EF',
+                color: '#160F0C',
+                fontSize: '13px',
+                fontWeight: 600,
+                border: '1px solid #DED9D6',
+                cursor: 'pointer'
+              }}
+            >
+              {currentUser ? 'Guardian Dashboard' : 'Sign In to Guardian Portal'}
             </button>
           </div>
         </div>

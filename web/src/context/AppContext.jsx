@@ -92,6 +92,10 @@ export const TAB_ROUTES = {
   profile: '/profile',
   admin: '/admin',
   'book-vet': '/book-vet',
+  login: '/login',
+  signin: '/login',
+  signup: '/signup',
+  auth: '/login',
 };
 
 export const ROUTE_TABS = {
@@ -128,6 +132,10 @@ export const ROUTE_TABS = {
   '/profile': 'profile',
   '/admin': 'admin',
   '/book-vet': 'book-vet',
+  '/login': 'login',
+  '/signin': 'login',
+  '/signup': 'signup',
+  '/auth': 'login',
 };
 
 const PAGE_TITLES = {
@@ -143,6 +151,10 @@ const PAGE_TITLES = {
   profile: 'Pet Maya — Account & Pet EHR Records',
   admin: 'Pet Maya — Administration Control Center',
   'book-vet': 'Pet Maya — Schedule Veterinary Appointment & Teleconsultation',
+  login: 'Pet Maya — Guardian Portal Access & Sovereign Health Vault',
+  signin: 'Pet Maya — Guardian Portal Access & Sovereign Health Vault',
+  signup: 'Pet Maya — Register Sovereign Guardian Account & Microchip',
+  auth: 'Pet Maya — Guardian Portal Access & Sovereign Health Vault',
 };
 
 const PAGE_DESCRIPTIONS = {
@@ -157,7 +169,11 @@ const PAGE_DESCRIPTIONS = {
   vaccines: 'Never miss an immunization: Digital vaccination passport with automated rabies reminders and 1-click Apple Calendar sync.',
   profile: 'Manage your verified pet owner profile, registered pets, electronic health records, and clinic appointment history.',
   admin: 'Pet Maya administrative control center for specialist approvals, inventory management, and platform metrics.',
-  'book-vet': 'Schedule appointments and video teleconsultations with verified veterinarians and animal health clinicians.'
+  'book-vet': 'Schedule appointments and video teleconsultations with verified veterinarians and animal health clinicians.',
+  login: 'Sign in to Pet Maya Guardian Portal. Manage electronic health records, cold-chain biologics formulary, and live collar telemetry.',
+  signin: 'Sign in to Pet Maya Guardian Portal. Manage electronic health records, cold-chain biologics formulary, and live collar telemetry.',
+  signup: 'Create your Pet Maya guardian account. Link ISO 11784 microchips, unlock 24/7 veterinary triage, and digital health records.',
+  auth: 'Sign in to Pet Maya Guardian Portal. Manage electronic health records, cold-chain biologics formulary, and live collar telemetry.',
 };
 
 const resolveInitialTab = () => {
