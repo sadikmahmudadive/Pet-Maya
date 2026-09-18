@@ -28,17 +28,81 @@ class BookingScreen extends StatefulWidget {
 class _BookingScreenState extends State<BookingScreen> {
   PetModel? _selectedPet;
   DateTime _selectedDate = DateTime.now().add(const Duration(days: 1));
-  String _selectedTimeSlot = '10:30 AM';
+  String _selectedTimeSlot = '10:00 AM';
   bool _isTeleconsult = false;
   final _reasonController = TextEditingController(text: 'Routine comprehensive health checkup');
 
-  final List<String> _slots = [
-    '09:00 AM',
-    '10:30 AM',
-    '01:00 PM',
-    '02:30 PM',
-    '04:00 PM',
-  ];
+  List<String> _generateDynamicTimeSlots(String businessHours) {
+    int openHour = 9;
+    int openMinute = 0;
+    int closeHour = 20;
+    int closeMinute = 0;
+
+    try {
+      final matches = RegExp(r'(\d{1,2}):(\d{2})\s*(AM|PM)', caseSensitive: false)
+          .allMatches(businessHours)
+          .toList();
+
+      if (matches.length >= 2) {
+        int h1 = int.parse(matches[0].group(1)!);
+        int m1 = int.parse(matches[0].group(2)!);
+        String p1 = matches[0].group(3)!.toUpperCase();
+        if (p1 == 'PM' && h1 < 12) h1 += 12;
+        if (p1 == 'AM' && h1 == 12) h1 = 0;
+        openHour = h1;
+        openMinute = m1;
+
+        int h2 = int.parse(matches[1].group(1)!);
+        int m2 = int.parse(matches[1].group(2)!);
+        String p2 = matches[1].group(3)!.toUpperCase();
+        if (p2 == 'PM' && h2 < 12) h2 += 12;
+        if (p2 == 'AM' && h2 == 12) h2 = 0;
+        closeHour = h2;
+        closeMinute = m2;
+      }
+    } catch (e) {
+      debugPrint('[BookingScreen] Error parsing business hours: $e');
+    }
+
+    final List<String> generatedSlots = [];
+    int currentMinutes = openHour * 60 + openMinute;
+    final endMinutes = closeHour * 60 + closeMinute;
+
+    while (currentMinutes + 30 <= endMinutes) {
+      final hour = currentMinutes ~/ 60;
+      final minute = currentMinutes % 60;
+
+      final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
+      final period = hour >= 12 ? 'PM' : 'AM';
+      final minStr = minute.toString().padLeft(2, '0');
+
+      generatedSlots.add('${displayHour.toString().padLeft(2, '0')}:$minStr $period');
+      currentMinutes += 60; // 1-hour interval slots
+    }
+
+    if (generatedSlots.isEmpty) {
+      return ['09:00 AM', '10:30 AM', '01:00 PM', '02:30 PM', '04:00 PM', '06:00 PM'];
+    }
+
+    return generatedSlots;
+  }
+
+  Future<void> _selectCustomTime() async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: const TimeOfDay(hour: 10, minute: 0),
+    );
+    if (picked != null) {
+      final hour = picked.hourOfPeriod == 0 ? 12 : picked.hourOfPeriod;
+      final minute = picked.minute.toString().padLeft(2, '0');
+      final period = picked.period == DayPeriod.am ? 'AM' : 'PM';
+      final formatted = '${hour.toString().padLeft(2, '0')}:$minute $period';
+      setState(() {
+        _selectedTimeSlot = formatted;
+      });
+      HapticFeedback.selectionClick();
+    }
+  }
 
   @override
   void initState() {
@@ -380,15 +444,31 @@ class _BookingScreenState extends State<BookingScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  _buildSectionLabel('Available Time Slots'),
-                  const SizedBox(height: 16),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    children: _slots.map((slot) {
-                      final isSelected = _selectedTimeSlot == slot;
-                      return _buildTimeChip(slot, isSelected);
-                    }).toList(),
+                  _buildSectionLabel('Provider Practice Slots (${widget.vet.businessHours})'),
+                  const SizedBox(height: 12),
+                  Builder(
+                    builder: (context) {
+                      final dynamicSlots = _generateDynamicTimeSlots(widget.vet.businessHours);
+                      return Wrap(
+                        spacing: 10,
+                        runSpacing: 10,
+                        children: [
+                          ...dynamicSlots.map((slot) {
+                            final isSelected = _selectedTimeSlot == slot;
+                            return _buildTimeChip(slot, isSelected);
+                          }),
+                          // Custom Time Picker Chip
+                          ActionChip(
+                            avatar: const Icon(Icons.edit_calendar_rounded, size: 16, color: AppColors.primary),
+                            label: Text('Custom Time (${_selectedTimeSlot})'),
+                            onPressed: _selectCustomTime,
+                            backgroundColor: isDark ? const Color(0xFF143D38) : Colors.grey[200],
+                            side: BorderSide(color: AppColors.primary.withValues(alpha: 0.3)),
+                            labelStyle: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 12),
+                          ),
+                        ],
+                      );
+                    },
                   ),
                   const SizedBox(height: 24),
 
