@@ -20,6 +20,7 @@ import PetGPSPage from './components/Pages/PetGPSPage';
 import ConnectedCarePage from './components/Pages/ConnectedCarePage';
 import SolutionsPages from './components/Pages/SolutionsPages';
 import PetHealthHub from './components/Pages/PetHealthHub';
+import JournalPage from './components/Pages/JournalPage';
 import EditorialCompanyPages from './components/Pages/EditorialCompanyPages';
 import AuthPage from './components/Pages/AuthPage';
 
@@ -86,10 +87,6 @@ const TAB_SEO_MAP = {
   'pet-care': {
     title: 'Pet Nutrition & Scientific Breed Care Guides | Pet Maya',
     description: 'Veterinary-reviewed clinical nutrition advice, breed-specific dietary requirements, calorie calculators, and preventive care regimens.'
-  },
-  blog: {
-    title: 'Pet Maya Journal — Stories in Veterinary Medicine & Tech',
-    description: 'Editorial essays, clinical veterinary updates, canine lifestyle advice, and advances in pet health technology.'
   },
   about: {
     title: 'About Pet Maya — Our Mission, Ethics & Clinical Advisory Board',
@@ -187,13 +184,25 @@ const TAB_SEO_MAP = {
   tracking: {
     title: 'Live Cold-Chain Telemetry & Order Status | Pet Maya',
     description: 'Live continuous datalogger telemetry (<8°C) and automated medical vault ledger synchronization.'
+  },
+  journal: {
+    title: 'Clinical Journal & Evidence-Based Repository | Pet Maya Veterinary Medicine',
+    description: 'Peer-reviewed veterinary monographs, biosecurity protocols, cold-chain telemetry studies, and longevity research.'
+  },
+  blog: {
+    title: 'Clinical Journal & Evidence-Based Repository | Pet Maya Veterinary Medicine',
+    description: 'Peer-reviewed veterinary monographs, biosecurity protocols, cold-chain telemetry studies, and longevity research.'
+  },
+  gazette: {
+    title: 'The Mindful Companion Digest & Gazette | Pet Maya',
+    description: 'Fortnightly clinical correspondence, seasonal parasite forecasts, and peer-reviewed veterinary medicine.'
   }
 };
 
 const VALID_EDITORIAL_ROUTES = [
   'landing', 'features', 'digital-pet-passport', 'ai-pet-care', 'pet-gps', 
   'connected-care', 'for-pet-parents', 'for-veterinarians', 'for-clinics', 
-  'pet-health', 'pet-care', 'blog', 'about', 'contact', 'faq', 'privacy', 'terms', 'book-vet',
+  'pet-health', 'pet-care', 'blog', 'journal', 'gazette', 'about', 'contact', 'faq', 'privacy', 'terms', 'book-vet',
   'login', 'signin', 'signup', 'auth', 'shop', 'ai', 'wellness', 'specialists', 'vets',
   'product', 'product-detail', 'pdp', 'tracker', 'gps', 'radar', 'dashboard', 'community',
   'cart', 'bag', 'dispensary', 'checkout', 'payment', 'settlement',
@@ -201,7 +210,7 @@ const VALID_EDITORIAL_ROUTES = [
 ];
 
 const VALID_APP_ROUTES = [
-  'dashboard', 'vets', 'tracker', 'community', 'food', 'vaccines', 'profile'
+  'dashboard', 'vets', 'tracker', 'community', 'food', 'vaccines', 'profile', 'journal'
 ];
 
 function MainContent() {
@@ -335,15 +344,16 @@ function MainContent() {
         return <SolutionsPages type="clinics" onNavigate={handleNavigate} key="clinics" />;
       case 'pet-health':
       case 'pet-care':
-        return <PetHealthHub onNavigate={handleNavigate} key="health-hub" />;
+      case 'blog':
+      case 'journal':
+      case 'gazette':
+        return <JournalPage onNavigate={handleNavigate} key="journal" />;
       case 'about':
         return <EditorialCompanyPages page="about" onNavigate={handleNavigate} key="about" />;
       case 'contact':
         return <EditorialCompanyPages page="contact" onNavigate={handleNavigate} key="contact" />;
       case 'faq':
         return <LandingPage onNavigate={handleNavigate} key="faq" />;
-      case 'blog':
-        return <PetHealthHub onNavigate={handleNavigate} key="blog" />;
       case 'privacy':
         return <EditorialCompanyPages page="privacy" onNavigate={handleNavigate} key="privacy" />;
       case 'terms':
@@ -511,6 +521,29 @@ function MainContent() {
             transition={{ duration: 0.2 }}
           >
             <Community onNavigate={handleNavigate} />
+          </motion.div>
+        </AnimatePresence>
+        <ModalRoot />
+        <Toast />
+      </div>
+    );
+  }
+
+  // Dedicated Clinical Journal & Evidence-Based Repository Screen
+  const isJournalRoute = ['journal', 'blog', 'gazette', 'pet-health', 'pet-care'].includes(activeTab);
+
+  if (isJournalRoute) {
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: '#FAF7F5' }}>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <JournalPage onNavigate={handleNavigate} />
           </motion.div>
         </AnimatePresence>
         <ModalRoot />

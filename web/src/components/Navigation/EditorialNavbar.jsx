@@ -33,7 +33,7 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
     { label: 'AI Triage', path: 'ai' },
     { label: 'Specialists', path: 'specialists' },
     { label: 'Health Vault', path: 'digital-pet-passport' },
-    { label: 'Journal', path: 'blog' },
+    { label: 'Journal', path: 'journal' },
     { label: 'GPS Radar', path: 'pet-gps' },
     { label: 'Community', path: 'community' },
     { label: 'Dashboard', path: 'dashboard' },
@@ -106,7 +106,7 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
               (link.path === 'ai' && (currentRoute === 'ai' || currentRoute === '/ai' || currentRoute === 'ai-pet-care' || currentRoute === '/ai-pet-care' || currentRoute === 'wellness' || currentRoute === '/wellness')) ||
               (link.path === 'specialists' && (currentRoute === 'specialists' || currentRoute === '/specialists' || currentRoute === 'vets' || currentRoute === '/vets' || currentRoute === 'for-veterinarians' || currentRoute === '/for-veterinarians')) ||
               (link.path === 'digital-pet-passport' && (currentRoute === 'digital-pet-passport' || currentRoute === '/digital-pet-passport' || currentRoute === 'health-vault' || currentRoute === '/health-vault' || currentRoute === 'profile' || currentRoute === '/profile')) ||
-              (link.path === 'blog' && (currentRoute === 'blog' || currentRoute === '/blog' || currentRoute === 'journal' || currentRoute === '/journal')) ||
+              ((link.path === 'journal' || link.path === 'blog') && (currentRoute === 'blog' || currentRoute === '/blog' || currentRoute === 'journal' || currentRoute === '/journal' || currentRoute === 'gazette' || currentRoute === '/gazette' || currentRoute === 'pet-health' || currentRoute === 'pet-care')) ||
               (link.path === 'pet-gps' && (currentRoute === 'pet-gps' || currentRoute === '/pet-gps' || currentRoute === 'tracker' || currentRoute === '/tracker' || currentRoute === 'gps' || currentRoute === '/gps' || currentRoute === 'radar' || currentRoute === '/radar')) ||
               (link.path === 'community' && (currentRoute === 'community' || currentRoute === '/community' || currentRoute === 'social' || currentRoute === '/social' || currentRoute === 'circle' || currentRoute === '/circle')) ||
               (link.path === 'dashboard' && (currentRoute === 'dashboard' || currentRoute === '/dashboard' || currentRoute === 'portal' || currentRoute === '/portal'));
