@@ -34,6 +34,7 @@ import Shop from './components/Shop/Shop';
 import ProductDetailPage from './components/Shop/ProductDetailPage';
 import CartPage from './components/Pages/CartPage';
 import CheckoutPage from './components/Pages/CheckoutPage';
+import OrdersPage from './components/Pages/OrdersPage';
 import Reminders from './components/Reminders/Reminders';
 import Profile from './components/Profile/Profile';
 import AdminPortal from './components/Admin/AdminPortal';
@@ -178,6 +179,14 @@ const TAB_SEO_MAP = {
   checkout: {
     title: 'Cold-Chain Checkout & Honorarium Settlement | Pet Maya Veterinary Medicine',
     description: 'Secure 256-bit TLS clinical checkout, thermal continuity audit, and instant EHR synchronization.'
+  },
+  orders: {
+    title: 'Dispensary Orders & Cold-Chain Telemetry Tracking | Pet Maya Veterinary Medicine',
+    description: 'Live thermal monitoring, continuous datalogger telemetry (<8°C), and automated medical vault ledger synchronization.'
+  },
+  tracking: {
+    title: 'Live Cold-Chain Telemetry & Order Status | Pet Maya',
+    description: 'Live continuous datalogger telemetry (<8°C) and automated medical vault ledger synchronization.'
   }
 };
 
@@ -187,7 +196,8 @@ const VALID_EDITORIAL_ROUTES = [
   'pet-health', 'pet-care', 'blog', 'about', 'contact', 'faq', 'privacy', 'terms', 'book-vet',
   'login', 'signin', 'signup', 'auth', 'shop', 'ai', 'wellness', 'specialists', 'vets',
   'product', 'product-detail', 'pdp', 'tracker', 'gps', 'radar', 'dashboard', 'community',
-  'cart', 'bag', 'dispensary', 'checkout', 'payment', 'settlement'
+  'cart', 'bag', 'dispensary', 'checkout', 'payment', 'settlement',
+  'orders', 'order', 'tracking', 'telemetry', 'order-tracking', 'dispensary-orders'
 ];
 
 const VALID_APP_ROUTES = [
@@ -374,6 +384,13 @@ function MainContent() {
       case 'payment':
       case 'settlement':
         return <CheckoutPage key="checkout" onNavigate={handleNavigate} />;
+      case 'orders':
+      case 'order':
+      case 'tracking':
+      case 'telemetry':
+      case 'order-tracking':
+      case 'dispensary-orders':
+        return <OrdersPage key="orders" onNavigate={handleNavigate} />;
       case 'vaccines':
         return <Reminders key="vaccines" />;
       case 'profile':
@@ -425,6 +442,52 @@ function MainContent() {
             transition={{ duration: 0.2 }}
           >
             <CheckoutPage onNavigate={handleNavigate} />
+          </motion.div>
+        </AnimatePresence>
+        <ModalRoot />
+        <Toast />
+      </div>
+    );
+  }
+
+  // Dedicated Dispensary Orders & Cold-Chain Telemetry Screen
+  const isOrdersRoute = ['orders', 'order', 'tracking', 'telemetry', 'order-tracking', 'dispensary-orders'].includes(activeTab);
+
+  if (isOrdersRoute) {
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: '#FAF7F5' }}>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <OrdersPage onNavigate={handleNavigate} />
+          </motion.div>
+        </AnimatePresence>
+        <ModalRoot />
+        <Toast />
+      </div>
+    );
+  }
+
+  // Dedicated Guardian Account & Longitudinal Health Vault Profile Screen
+  const isProfileRoute = ['profile', 'account', 'guardian-profile', 'health-vault-profile'].includes(activeTab);
+
+  if (isProfileRoute) {
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: '#FAF7F5' }}>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Profile onNavigate={handleNavigate} />
           </motion.div>
         </AnimatePresence>
         <ModalRoot />

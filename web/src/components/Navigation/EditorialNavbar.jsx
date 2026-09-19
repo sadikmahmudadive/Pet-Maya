@@ -239,13 +239,13 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
           <button
             onClick={() => {
               if (currentUser) {
-                handleNavClick('dashboard');
+                handleNavClick('profile');
               } else {
                 handleNavClick('login');
               }
             }}
             aria-label="Account profile"
-            title={currentUser ? (currentUser.name || 'Dashboard') : 'Sign In to Health Vault'}
+            title={currentUser ? (currentUser.name || 'Profile') : 'Sign In to Health Vault'}
             className="btn-elevate"
             style={{
               width: '36px',

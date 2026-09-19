@@ -83,9 +83,25 @@ export default function OrderTrackerModal() {
           </div>
         </div>
 
-        <button className="btn-primary" style={{ width: '100%', marginTop: '18px', padding: '12px' }} onClick={closeModal}>
-          Done
-        </button>
+        <div style={{ display: 'flex', gap: '10px', marginTop: '18px' }}>
+          <button
+            className="btn-primary"
+            style={{ flex: 1, padding: '12px' }}
+            onClick={() => {
+              closeModal();
+              window.location.hash = 'orders';
+            }}
+          >
+            Open Full Telemetry Cockpit
+          </button>
+          <button
+            className="btn-secondary"
+            style={{ padding: '12px 18px' }}
+            onClick={closeModal}
+          >
+            Close
+          </button>
+        </div>
       </div>
     </div>
   );

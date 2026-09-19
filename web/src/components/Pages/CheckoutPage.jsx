@@ -215,7 +215,7 @@ export default function CheckoutPage({ onNavigate }) {
 
             {/* Dynamic Logged-in User Avatar Placeholder */}
             <div
-              onClick={() => handleRoute(currentUser ? 'dashboard' : 'login')}
+              onClick={() => handleRoute(currentUser ? 'profile' : 'login')}
               title={currentUser ? (currentUser.name || 'Guardian Profile') : 'Sign In to Health Vault'}
               style={{
                 width: '32px',

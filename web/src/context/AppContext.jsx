@@ -99,7 +99,11 @@ export const TAB_ROUTES = {
   cart: '/cart',
   bag: '/cart',
   dispensary: '/cart',
-  checkout: '/cart',
+  checkout: '/checkout',
+  orders: '/orders',
+  tracking: '/orders',
+  telemetry: '/orders',
+  'order-tracking': '/orders',
 };
 
 export const ROUTE_TABS = {
@@ -126,7 +130,12 @@ export const ROUTE_TABS = {
   '/cart': 'cart',
   '/bag': 'cart',
   '/dispensary': 'cart',
-  '/checkout': 'cart',
+  '/checkout': 'checkout',
+  '/orders': 'orders',
+  '/order': 'orders',
+  '/tracking': 'orders',
+  '/telemetry': 'orders',
+  '/order-tracking': 'orders',
   '/tracker': 'tracker',
   '/wellness': 'ai',
   '/ai': 'ai',
