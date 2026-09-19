@@ -54,12 +54,16 @@ export async function runAiHealthDiagnosis({ petName, prompt, imageBase64, image
 
   // 1. Try Firebase Cloud Function: openai_proxy (Same as Flutter app)
   try {
-    const result = await openaiProxy({
+    const proxyPromise = openaiProxy({
       method: 'health_diagnosis',
       petName: effectivePetName,
       prompt: effectivePrompt,
       image: base64Data || undefined,
     });
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Cloud Function timeout')), 2200)
+    );
+    const result = await Promise.race([proxyPromise, timeoutPromise]);
 
     const responseText = result?.data?.response;
     if (
