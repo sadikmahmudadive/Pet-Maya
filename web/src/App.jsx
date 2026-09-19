@@ -496,6 +496,29 @@ function MainContent() {
     );
   }
 
+  // Dedicated Dhaka Mesh Guardian Community Screen
+  const isCommunityRoute = ['community', 'guardian-circle', 'circle', 'feed'].includes(activeTab);
+
+  if (isCommunityRoute) {
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: '#FAF7F5' }}>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Community onNavigate={handleNavigate} />
+          </motion.div>
+        </AnimatePresence>
+        <ModalRoot />
+        <Toast />
+      </div>
+    );
+  }
+
   // If viewing an editorial marketing page, wrap in EditorialNavbar and EditorialFooter
   if (isEditorial) {
     return (

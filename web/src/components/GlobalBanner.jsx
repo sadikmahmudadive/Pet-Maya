@@ -14,7 +14,6 @@ export default function GlobalBanner({ customText }) {
 
   const bannerText = customText || (contextBanner && contextBanner.text) || 
     'WINTER CLINICAL PROTOCOL • COMPLIMENTARY VETERINARY TELEHEALTH TRIAGE WITH EVERY BESPOKE WELLNESS PLAN.';
-    'WINTER CLINICAL PROTOCOL – COMPLIMENTARY VETERINARY TELEHEALTH TRIAGE WITH EVERY BESPOKE WELLNESS PLAN.';
 
   return (
     <div

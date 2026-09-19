@@ -61,7 +61,7 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
       <div style={{
         maxWidth: '1360px',
         margin: '0 auto',
-        padding: '12px 24px',
+        padding: '10px 24px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -71,29 +71,18 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
         <a
           href="#landing"
           onClick={(e) => handleNavClick('landing', e)}
-          style={{ display: 'flex', flexDirection: 'column', textDecoration: 'none', cursor: 'pointer' }}
+          style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', cursor: 'pointer' }}
         >
           <span style={{
-            fontFamily: 'var(--font-heading)',
-            fontSize: '19px',
-            fontWeight: 700,
+            fontFamily: 'var(--font-heading, "Playfair Display", Georgia, serif)',
+            fontSize: '20px',
+            fontWeight: 800,
             letterSpacing: '0.18em',
             textTransform: 'uppercase',
             color: '#160F0C',
             lineHeight: 1
           }}>
             PET MAYA
-          </span>
-          <span style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: '8.5px',
-            fontWeight: 700,
-            letterSpacing: '0.22em',
-            textTransform: 'uppercase',
-            color: '#45848D',
-            marginTop: '3px',
-            lineHeight: 1
-          }}>
           </span>
         </a>
 
@@ -103,12 +92,12 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '4px',
-            backgroundColor: 'rgba(248, 243, 239, 0.85)',
-            padding: '4px 8px',
+            gap: '2px',
+            backgroundColor: 'rgba(240, 236, 230, 0.88)',
+            padding: '4px 6px',
             borderRadius: '9999px',
-            border: '1px solid rgba(222, 217, 214, 0.6)',
-            boxShadow: '0 1px 4px rgba(22, 15, 12, 0.02)'
+            border: '1px solid rgba(220, 214, 206, 0.85)',
+            boxShadow: '0 1px 3px rgba(22, 15, 12, 0.03)'
           }}
         >
           {navLinks.map((link) => {
@@ -116,9 +105,10 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
               (link.path === 'shop' && (currentRoute === '/shop' || currentRoute === 'shop')) ||
               (link.path === 'ai' && (currentRoute === 'ai' || currentRoute === '/ai' || currentRoute === 'ai-pet-care' || currentRoute === '/ai-pet-care' || currentRoute === 'wellness' || currentRoute === '/wellness')) ||
               (link.path === 'specialists' && (currentRoute === 'specialists' || currentRoute === '/specialists' || currentRoute === 'vets' || currentRoute === '/vets' || currentRoute === 'for-veterinarians' || currentRoute === '/for-veterinarians')) ||
-              (link.path === 'digital-pet-passport' && (currentRoute === 'digital-pet-passport' || currentRoute === '/digital-pet-passport' || currentRoute === 'health-vault' || currentRoute === '/health-vault')) ||
-              (link.path === 'pet-gps' && (currentRoute === 'pet-gps' || currentRoute === '/pet-gps' || currentRoute === 'tracker' || currentRoute === '/tracker' || currentRoute === 'gps' || currentRoute === '/gps' || currentRoute === 'radar' || currentRoute === '/radar'));
-              (link.path === 'community' && (currentRoute === 'community' || currentRoute === '/community' || currentRoute === 'social' || currentRoute === '/social')) ||
+              (link.path === 'digital-pet-passport' && (currentRoute === 'digital-pet-passport' || currentRoute === '/digital-pet-passport' || currentRoute === 'health-vault' || currentRoute === '/health-vault' || currentRoute === 'profile' || currentRoute === '/profile')) ||
+              (link.path === 'blog' && (currentRoute === 'blog' || currentRoute === '/blog' || currentRoute === 'journal' || currentRoute === '/journal')) ||
+              (link.path === 'pet-gps' && (currentRoute === 'pet-gps' || currentRoute === '/pet-gps' || currentRoute === 'tracker' || currentRoute === '/tracker' || currentRoute === 'gps' || currentRoute === '/gps' || currentRoute === 'radar' || currentRoute === '/radar')) ||
+              (link.path === 'community' && (currentRoute === 'community' || currentRoute === '/community' || currentRoute === 'social' || currentRoute === '/social' || currentRoute === 'circle' || currentRoute === '/circle')) ||
               (link.path === 'dashboard' && (currentRoute === 'dashboard' || currentRoute === '/dashboard' || currentRoute === 'portal' || currentRoute === '/portal'));
             return (
               <a
@@ -126,15 +116,22 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
                 href={`#${link.path}`}
                 onClick={(e) => handleNavClick(link.path, e)}
                 style={{
-                  padding: '6px 14px',
+                  padding: isActive ? '6px 16px' : '6px 14px',
                   borderRadius: '9999px',
-                  fontSize: '13.5px',
-                  fontWeight: isActive ? 600 : 500,
-                  color: isActive ? '#160F0C' : '#525B57',
+                  fontSize: '13px',
+                  fontWeight: isActive ? 700 : 500,
+                  color: isActive ? '#160F0C' : '#55605C',
                   backgroundColor: isActive ? '#FFFFFF' : 'transparent',
-                  boxShadow: isActive ? '0 1px 4px rgba(0,0,0,0.05)' : 'none',
+                  boxShadow: isActive ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
                   textDecoration: 'none',
-                  transition: 'all 0.18s ease'
+                  transition: 'all 0.15s ease',
+                  whiteSpace: 'nowrap'
+                }}
+                onMouseEnter={(e) => {
+                  if (!isActive) e.currentTarget.style.color = '#160F0C';
+                }}
+                onMouseLeave={(e) => {
+                  if (!isActive) e.currentTarget.style.color = '#55605C';
                 }}
               >
                 {link.label}
@@ -144,7 +141,7 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
         </nav>
 
         {/* Right: Utility Items */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           {/* Search Button */}
           <button
             onClick={() => handleNavClick('shop')}
@@ -159,10 +156,12 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
               borderRadius: '50%',
               backgroundColor: 'transparent',
               border: 'none',
-              color: '#525B57',
+              color: '#55605C',
               cursor: 'pointer',
-              transition: 'background-color 0.15s ease'
+              transition: 'color 0.15s ease'
             }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = '#160F0C'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = '#55605C'; }}
           >
             <Search size={18} />
           </button>
@@ -181,7 +180,7 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
               height: '36px',
               borderRadius: '50%',
               backgroundColor: currentRoute === 'cart' || currentRoute === '/cart' ? '#160F0C' : '#FFFFFF',
-              border: '1px solid rgba(222, 217, 214, 0.7)',
+              border: '1px solid rgba(222, 217, 214, 0.9)',
               color: currentRoute === 'cart' || currentRoute === '/cart' ? '#FFFFFF' : '#160F0C',
               cursor: 'pointer',
               boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
@@ -195,7 +194,7 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
               right: '-4px',
               backgroundColor: '#160F0C',
               color: '#FFFFFF',
-              border: '2px solid #FDF8F5',
+              border: '2px solid #FAF7F5',
               fontSize: '10px',
               fontWeight: 700,
               width: '18px',
@@ -210,7 +209,7 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
             </span>
           </button>
 
-          {/* Stitch Elevated "Book Consult" Button */}
+          {/* Stitch Elevated "BOOK CONSULT" Button */}
           <button
             onClick={() => handleNavClick('book-vet')}
             className="btn-elevate editorial-book-consult-btn"
@@ -222,16 +221,17 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
               color: '#FFFFFF',
               padding: '9px 20px',
               borderRadius: '9999px',
-              fontSize: '12px',
-              fontWeight: 600,
-              letterSpacing: '0.06em',
+              fontSize: '11.5px',
+              fontWeight: 700,
+              letterSpacing: '0.08em',
               textTransform: 'uppercase',
               border: 'none',
               cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.12)'
+              boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
+              whiteSpace: 'nowrap'
             }}
           >
-            Book Consult
+            BOOK CONSULT
           </button>
 
           {/* Profile / Portal Access Button */}
@@ -246,28 +246,26 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
               width: '36px',
               height: '36px',
               borderRadius: '50%',
-              backgroundColor: '#45848D',
-              color: '#FFFFFF',
+              backgroundColor: '#EBE5DF',
+              border: '1px solid rgba(222, 217, 214, 0.9)',
+              cursor: 'pointer',
+              overflow: 'hidden',
+              padding: 0,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              border: 'none',
-              cursor: 'pointer',
-              overflow: 'hidden',
-              boxShadow: '0 2px 6px rgba(69, 132, 141, 0.25)',
               marginLeft: '2px'
             }}
           >
-            {currentUser && currentUser.photoUrl ? (
-              <img
-                src={currentUser.photoUrl}
-                alt="Profile"
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                onError={(e) => { e.target.src = '/assets/images/tail_wagging_logo.png'; }}
-              />
-            ) : (
-              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>person</span>
-            )}
+            <img
+              src={currentUser?.photoUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80'}
+              alt="Guardian Profile"
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80';
+              }}
+            />
           </button>
 
           {/* Mobile Menu Toggle Button */}

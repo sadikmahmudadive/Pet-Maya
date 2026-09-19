@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
+import EditorialNavbar from '../Navigation/EditorialNavbar';
 import {
   FileText,
   Headphones,
@@ -186,163 +187,9 @@ export default function OrdersPage({ onNavigate }) {
     }}>
 
       {/* ════════════════════════════════════════════════════════════════
-          TOP GLOBAL ANNOUNCEMENT BANNER
+          1. TOP GLOBAL PROTOCOL BANNER & EDITORIAL NAVBAR
           ════════════════════════════════════════════════════════════════ */}
-      <div style={{
-        backgroundColor: '#F5EFEB',
-        borderBottom: '1px solid rgba(222, 217, 214, 0.8)',
-        padding: '7px 16px',
-        textAlign: 'center',
-        fontSize: '11px',
-        fontWeight: 600,
-        letterSpacing: '0.08em',
-        color: '#675C58',
-        textTransform: 'uppercase'
-      }}>
-        WINTER CLINICAL PROTOCOL • COMPLIMENTARY VETERINARY TELEHEALTH TRIAGE WITH EVERY BESPOKE WELLNESS PLAN
-      </div>
-
-      {/* ════════════════════════════════════════════════════════════════
-          EDITORIAL NAVIGATION BAR
-          ════════════════════════════════════════════════════════════════ */}
-      <header style={{
-        position: 'sticky',
-        top: 0,
-        zIndex: 50,
-        backgroundColor: 'rgba(253, 248, 245, 0.95)',
-        backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid rgba(222, 217, 214, 0.6)'
-      }}>
-        <div style={{
-          maxWidth: '1360px',
-          margin: '0 auto',
-          padding: '12px 24px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '16px'
-        }}>
-          {/* Brand Logo */}
-          <a
-            onClick={() => handleRoute('landing')}
-            style={{ display: 'flex', flexDirection: 'column', textDecoration: 'none', cursor: 'pointer' }}
-          >
-            <span style={{
-              fontFamily: 'var(--font-heading, "Playfair Display", Georgia, serif)',
-              fontSize: '19px',
-              fontWeight: 800,
-              letterSpacing: '0.14em',
-              textTransform: 'uppercase',
-              color: '#160F0C',
-              lineHeight: 1
-            }}>
-              PET MAYA
-            </span>
-            <span style={{
-              fontFamily: 'var(--font-mono, monospace)',
-              fontSize: '8.5px',
-              fontWeight: 700,
-              letterSpacing: '0.22em',
-              textTransform: 'uppercase',
-              color: '#45848D',
-              marginTop: '3px',
-              lineHeight: 1
-            }}>
-              VETERINARY MEDICINE
-            </span>
-          </a>
-
-          {/* Center Links Capsule */}
-          <nav style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            backgroundColor: 'rgba(248, 243, 239, 0.9)',
-            padding: '4px 10px',
-            borderRadius: '9999px',
-            border: '1px solid rgba(222, 217, 214, 0.7)'
-          }}>
-            {[
-              { label: 'Care Shop', path: 'shop' },
-              { label: 'AI Triage', path: 'ai' },
-              { label: 'Specialists', path: 'specialists' },
-              { label: 'Health Vault', path: 'digital-pet-passport' },
-              { label: 'Community', path: 'community' },
-              { label: 'Journal', path: 'blog' }
-            ].map(item => (
-              <button
-                key={item.label}
-                onClick={() => handleRoute(item.path)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  padding: '6px 14px',
-                  borderRadius: '9999px',
-                  fontSize: '13px',
-                  fontWeight: 500,
-                  color: '#675C58',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease'
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = '#160F0C'; e.currentTarget.style.backgroundColor = '#FFFFFF'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = '#675C58'; e.currentTarget.style.backgroundColor = 'transparent'; }}
-              >
-                {item.label}
-              </button>
-            ))}
-          </nav>
-
-          {/* Right Action & User Avatar */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <button
-              onClick={() => handleRoute('book-vet')}
-              style={{
-                backgroundColor: '#160F0C',
-                color: '#FFFFFF',
-                padding: '8px 18px',
-                borderRadius: '9999px',
-                fontSize: '12.5px',
-                fontWeight: 600,
-                border: 'none',
-                cursor: 'pointer',
-                transition: 'transform 0.15s ease'
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.02)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
-            >
-              Book Consult
-            </button>
-
-            {/* Logged in User Avatar */}
-            <div
-              onClick={() => handleRoute('profile')}
-              title={currentUser?.name || 'Guardian Account Profile'}
-              style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '50%',
-                overflow: 'hidden',
-                border: '2px solid #45848D',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: '#EBE5DF'
-              }}
-            >
-              <img
-                src={currentUser?.photoUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80'}
-                alt={currentUser?.name || 'User Avatar'}
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80';
-                }}
-              />
-            </div>
-          </div>
-        </div>
-      </header>
+      <EditorialNavbar currentRoute="orders" onNavigate={handleRoute} />
 
       {/* ════════════════════════════════════════════════════════════════
           MAIN BODY CONTAINER
