@@ -222,9 +222,9 @@ export default function JournalPage({ onNavigate }) {
 
   return (
     <div style={{
-      backgroundColor: '#FAF7F5',
+      backgroundColor: 'var(--bg)',
       minHeight: '100vh',
-      color: '#160F0C',
+      color: 'var(--text-primary)',
       fontFamily: 'var(--font-sans, "Inter", -apple-system, BlinkMacSystemFont, sans-serif)',
       display: 'flex',
       flexDirection: 'column'

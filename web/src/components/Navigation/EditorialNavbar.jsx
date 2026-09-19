@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
-import { Search, ShoppingBag, Menu, X } from 'lucide-react';
+import { Search, ShoppingBag, Menu, X, Sun, Moon } from 'lucide-react';
 import GlobalBanner from '../GlobalBanner';
 
 export default function EditorialNavbar({ currentRoute, onNavigate }) {
-  const { openModal, showToast, cart } = useApp();
+  const { openModal, showToast, cart, theme, toggleTheme } = useApp();
   const { currentUser, loginAsGuest } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+
+  const isDark = theme === 'dark';
 
   useEffect(() => {
     const handleScroll = () => {
@@ -48,10 +50,12 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
       left: 0,
       right: 0,
       zIndex: 50,
-      backgroundColor: scrolled ? 'rgba(253, 248, 245, 0.94)' : '#FDF8F5',
+      backgroundColor: isDark 
+        ? (scrolled ? 'rgba(2, 30, 32, 0.96)' : '#021E20')
+        : (scrolled ? 'rgba(253, 248, 245, 0.94)' : '#FDF8F5'),
       backdropFilter: 'blur(12px)',
       WebkitBackdropFilter: 'blur(12px)',
-      borderBottom: '1px solid rgba(222, 217, 214, 0.6)',
+      borderBottom: isDark ? '1px solid rgba(26, 182, 128, 0.22)' : '1px solid rgba(222, 217, 214, 0.6)',
       transition: 'all 0.25s ease'
     }}>
       {/* Global Top Promotional Banner */}
@@ -79,8 +83,9 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
             fontWeight: 800,
             letterSpacing: '0.18em',
             textTransform: 'uppercase',
-            color: '#160F0C',
-            lineHeight: 1
+            color: isDark ? '#FFFFFF' : '#160F0C',
+            lineHeight: 1,
+            transition: 'color 0.2s ease'
           }}>
             PET MAYA
           </span>
@@ -93,11 +98,12 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
             display: 'flex',
             alignItems: 'center',
             gap: '2px',
-            backgroundColor: 'rgba(240, 236, 230, 0.88)',
+            backgroundColor: isDark ? 'rgba(11, 40, 38, 0.88)' : 'rgba(240, 236, 230, 0.88)',
             padding: '4px 6px',
             borderRadius: '9999px',
-            border: '1px solid rgba(220, 214, 206, 0.85)',
-            boxShadow: '0 1px 3px rgba(22, 15, 12, 0.03)'
+            border: isDark ? '1px solid rgba(26, 182, 128, 0.25)' : '1px solid rgba(220, 214, 206, 0.85)',
+            boxShadow: isDark ? '0 2px 8px rgba(0, 0, 0, 0.4)' : '0 1px 3px rgba(22, 15, 12, 0.03)',
+            transition: 'all 0.25s ease'
           }}
         >
           {navLinks.map((link) => {
@@ -110,6 +116,11 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
               (link.path === 'pet-gps' && (currentRoute === 'pet-gps' || currentRoute === '/pet-gps' || currentRoute === 'tracker' || currentRoute === '/tracker' || currentRoute === 'gps' || currentRoute === '/gps' || currentRoute === 'radar' || currentRoute === '/radar')) ||
               (link.path === 'community' && (currentRoute === 'community' || currentRoute === '/community' || currentRoute === 'social' || currentRoute === '/social' || currentRoute === 'circle' || currentRoute === '/circle')) ||
               (link.path === 'dashboard' && (currentRoute === 'dashboard' || currentRoute === '/dashboard' || currentRoute === 'portal' || currentRoute === '/portal'));
+            
+            const activeBg = isDark ? '#103330' : '#FFFFFF';
+            const activeColor = isDark ? '#FFFFFF' : '#160F0C';
+            const inactiveColor = isDark ? '#8EA6A2' : '#55605C';
+
             return (
               <a
                 key={link.label}
@@ -120,18 +131,19 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
                   borderRadius: '9999px',
                   fontSize: '13px',
                   fontWeight: isActive ? 700 : 500,
-                  color: isActive ? '#160F0C' : '#55605C',
-                  backgroundColor: isActive ? '#FFFFFF' : 'transparent',
-                  boxShadow: isActive ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
+                  color: isActive ? activeColor : inactiveColor,
+                  backgroundColor: isActive ? activeBg : 'transparent',
+                  border: isActive && isDark ? '1px solid rgba(26, 182, 128, 0.35)' : '1px solid transparent',
+                  boxShadow: isActive ? (isDark ? '0 1px 6px rgba(0,0,0,0.3)' : '0 1px 4px rgba(0,0,0,0.08)') : 'none',
                   textDecoration: 'none',
                   transition: 'all 0.15s ease',
                   whiteSpace: 'nowrap'
                 }}
                 onMouseEnter={(e) => {
-                  if (!isActive) e.currentTarget.style.color = '#160F0C';
+                  if (!isActive) e.currentTarget.style.color = isDark ? '#FFFFFF' : '#160F0C';
                 }}
                 onMouseLeave={(e) => {
-                  if (!isActive) e.currentTarget.style.color = '#55605C';
+                  if (!isActive) e.currentTarget.style.color = inactiveColor;
                 }}
               >
                 {link.label}
@@ -141,7 +153,7 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
         </nav>
 
         {/* Right: Utility Items */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           {/* Search Button */}
           <button
             onClick={() => handleNavClick('shop')}
@@ -156,14 +168,38 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
               borderRadius: '50%',
               backgroundColor: 'transparent',
               border: 'none',
-              color: '#55605C',
+              color: isDark ? '#8EA6A2' : '#55605C',
               cursor: 'pointer',
               transition: 'color 0.15s ease'
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = '#160F0C'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = '#55605C'; }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = isDark ? '#FFFFFF' : '#160F0C'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = isDark ? '#8EA6A2' : '#55605C'; }}
           >
             <Search size={18} />
+          </button>
+
+          {/* Theme Toggle Button (Light/Dark mode) */}
+          <button
+            onClick={toggleTheme}
+            aria-label="Toggle Light and Dark Mode"
+            title={isDark ? "Switch to Light Mode" : "Switch to Deep Emerald Dark Mode"}
+            className="btn-elevate theme-toggle-nav-btn"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '36px',
+              height: '36px',
+              borderRadius: '50%',
+              backgroundColor: isDark ? '#0B2826' : '#FFFFFF',
+              border: isDark ? '1px solid rgba(26, 182, 128, 0.35)' : '1px solid rgba(222, 217, 214, 0.9)',
+              color: isDark ? '#1AB680' : '#160F0C',
+              cursor: 'pointer',
+              boxShadow: isDark ? '0 1px 6px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.04)',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            {isDark ? <Sun size={17} /> : <Moon size={17} />}
           </button>
 
           {/* Shopping Bag Button with Badge */}
@@ -179,9 +215,13 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
               width: '36px',
               height: '36px',
               borderRadius: '50%',
-              backgroundColor: currentRoute === 'cart' || currentRoute === '/cart' ? '#160F0C' : '#FFFFFF',
-              border: '1px solid rgba(222, 217, 214, 0.9)',
-              color: currentRoute === 'cart' || currentRoute === '/cart' ? '#FFFFFF' : '#160F0C',
+              backgroundColor: isDark 
+                ? (currentRoute === 'cart' || currentRoute === '/cart' ? '#1AB680' : '#0B2826')
+                : (currentRoute === 'cart' || currentRoute === '/cart' ? '#160F0C' : '#FFFFFF'),
+              border: isDark ? '1px solid rgba(26, 182, 128, 0.35)' : '1px solid rgba(222, 217, 214, 0.9)',
+              color: isDark 
+                ? (currentRoute === 'cart' || currentRoute === '/cart' ? '#021E20' : '#FFFFFF')
+                : (currentRoute === 'cart' || currentRoute === '/cart' ? '#FFFFFF' : '#160F0C'),
               cursor: 'pointer',
               boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
               transition: 'all 0.18s ease'
@@ -192,11 +232,11 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
               position: 'absolute',
               top: '-4px',
               right: '-4px',
-              backgroundColor: '#160F0C',
-              color: '#FFFFFF',
-              border: '2px solid #FAF7F5',
+              backgroundColor: isDark ? '#1AB680' : '#160F0C',
+              color: isDark ? '#021E20' : '#FFFFFF',
+              border: isDark ? '2px solid #021E20' : '2px solid #FAF7F5',
               fontSize: '10px',
-              fontWeight: 700,
+              fontWeight: 800,
               width: '18px',
               height: '18px',
               borderRadius: '50%',
@@ -209,7 +249,7 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
             </span>
           </button>
 
-          {/* Stitch Elevated "BOOK CONSULT" Button */}
+          {/* Elevated "BOOK CONSULT" Button */}
           <button
             onClick={() => handleNavClick('book-vet')}
             className="btn-elevate editorial-book-consult-btn"
@@ -217,8 +257,8 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: '#160F0C',
-              color: '#FFFFFF',
+              backgroundColor: isDark ? '#1AB680' : '#160F0C',
+              color: isDark ? '#021E20' : '#FFFFFF',
               padding: '9px 20px',
               borderRadius: '9999px',
               fontSize: '11.5px',
@@ -227,8 +267,9 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
               textTransform: 'uppercase',
               border: 'none',
               cursor: 'pointer',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
-              whiteSpace: 'nowrap'
+              boxShadow: isDark ? '0 2px 10px rgba(26, 182, 128, 0.35)' : '0 2px 6px rgba(0,0,0,0.12)',
+              whiteSpace: 'nowrap',
+              transition: 'all 0.2s ease'
             }}
           >
             BOOK CONSULT
@@ -246,8 +287,8 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
               width: '36px',
               height: '36px',
               borderRadius: '50%',
-              backgroundColor: '#EBE5DF',
-              border: '1px solid rgba(222, 217, 214, 0.9)',
+              backgroundColor: isDark ? '#0B2826' : '#EBE5DF',
+              border: isDark ? '1.5px solid rgba(26, 182, 128, 0.4)' : '1px solid rgba(222, 217, 214, 0.9)',
               cursor: 'pointer',
               overflow: 'hidden',
               padding: 0,
@@ -280,9 +321,9 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
               width: '36px',
               height: '36px',
               borderRadius: '8px',
-              border: '1px solid rgba(222, 217, 214, 0.7)',
-              backgroundColor: '#FFFFFF',
-              color: '#160F0C',
+              border: isDark ? '1px solid rgba(26, 182, 128, 0.35)' : '1px solid rgba(222, 217, 214, 0.7)',
+              backgroundColor: isDark ? '#0B2826' : '#FFFFFF',
+              color: isDark ? '#FFFFFF' : '#160F0C',
               cursor: 'pointer'
             }}
           >
@@ -294,13 +335,13 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
       {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
         <div style={{
-          backgroundColor: '#FFFFFF',
-          borderBottom: '1px solid rgba(222, 217, 214, 0.7)',
+          backgroundColor: isDark ? '#0B2826' : '#FFFFFF',
+          borderBottom: isDark ? '1px solid rgba(26, 182, 128, 0.25)' : '1px solid rgba(222, 217, 214, 0.7)',
           padding: '16px 24px',
           display: 'flex',
           flexDirection: 'column',
           gap: '12px',
-          boxShadow: '0 8px 24px rgba(0,0,0,0.06)'
+          boxShadow: isDark ? '0 12px 32px rgba(0,0,0,0.6)' : '0 8px 24px rgba(0,0,0,0.06)'
         }}>
           {navLinks.map((link) => (
             <a
@@ -310,7 +351,7 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
               style={{
                 fontSize: '15px',
                 fontWeight: 500,
-                color: '#160F0C',
+                color: isDark ? '#FFFFFF' : '#160F0C',
                 textDecoration: 'none',
                 padding: '8px 0'
               }}
@@ -318,17 +359,46 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
               {link.label}
             </a>
           ))}
-          <div style={{ paddingTop: '8px', borderTop: '1px solid rgba(222, 217, 214, 0.5)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ 
+            paddingTop: '12px', 
+            borderTop: isDark ? '1px solid rgba(26, 182, 128, 0.2)' : '1px solid rgba(222, 217, 214, 0.5)', 
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: '8px' 
+          }}>
+            {/* Mobile Theme Toggle Button */}
+            <button
+              onClick={toggleTheme}
+              style={{
+                width: '100%',
+                padding: '10px 16px',
+                borderRadius: '9999px',
+                backgroundColor: isDark ? '#103330' : '#F3F3EF',
+                color: isDark ? '#1AB680' : '#160F0C',
+                fontSize: '13px',
+                fontWeight: 600,
+                border: isDark ? '1px solid rgba(26, 182, 128, 0.3)' : '1px solid #DED9D6',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px'
+              }}
+            >
+              {isDark ? <Sun size={16} /> : <Moon size={16} />}
+              <span>{isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}</span>
+            </button>
+
             <button
               onClick={() => handleNavClick('book-vet')}
               style={{
                 width: '100%',
                 padding: '12px',
                 borderRadius: '9999px',
-                backgroundColor: '#160F0C',
-                color: '#FFFFFF',
+                backgroundColor: isDark ? '#1AB680' : '#160F0C',
+                color: isDark ? '#021E20' : '#FFFFFF',
                 fontSize: '13px',
-                fontWeight: 600,
+                fontWeight: 700,
                 textTransform: 'uppercase',
                 border: 'none',
                 cursor: 'pointer'
@@ -342,11 +412,11 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
                 width: '100%',
                 padding: '12px',
                 borderRadius: '9999px',
-                backgroundColor: '#F8F3EF',
-                color: '#160F0C',
+                backgroundColor: isDark ? '#103330' : '#F8F3EF',
+                color: isDark ? '#FFFFFF' : '#160F0C',
                 fontSize: '13px',
                 fontWeight: 600,
-                border: '1px solid #DED9D6',
+                border: isDark ? '1px solid rgba(26, 182, 128, 0.3)' : '1px solid #DED9D6',
                 cursor: 'pointer'
               }}
             >

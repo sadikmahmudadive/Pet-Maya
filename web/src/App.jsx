@@ -415,7 +415,7 @@ function MainContent() {
 
   if (isAuthRoute) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#FDF8F5' }}>
+      <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg)' }}>
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
@@ -441,7 +441,7 @@ function MainContent() {
 
   if (isCheckoutRoute) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#FAF7F5' }}>
+      <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg)' }}>
         <GlobalBanner />
         <AnimatePresence mode="wait">
           <motion.div
@@ -465,7 +465,7 @@ function MainContent() {
 
   if (isOrdersRoute) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#FAF7F5' }}>
+      <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg)' }}>
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
@@ -488,7 +488,7 @@ function MainContent() {
 
   if (isProfileRoute) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#FAF7F5' }}>
+      <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg)' }}>
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
@@ -511,7 +511,7 @@ function MainContent() {
 
   if (isCommunityRoute) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#FAF7F5' }}>
+      <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg)' }}>
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
@@ -534,7 +534,7 @@ function MainContent() {
 
   if (isJournalRoute) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#FAF7F5' }}>
+      <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg)' }}>
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
