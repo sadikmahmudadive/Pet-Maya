@@ -33,6 +33,7 @@ import Community from './components/Community/Community';
 import Shop from './components/Shop/Shop';
 import ProductDetailPage from './components/Shop/ProductDetailPage';
 import CartPage from './components/Pages/CartPage';
+import CheckoutPage from './components/Pages/CheckoutPage';
 import Reminders from './components/Reminders/Reminders';
 import Profile from './components/Profile/Profile';
 import AdminPortal from './components/Admin/AdminPortal';
@@ -173,6 +174,10 @@ const TAB_SEO_MAP = {
   cart: {
     title: 'Dispensary Bag & Cold-Chain Vault Dispatch | Pet Maya',
     description: 'Review prescribed medications, cold-chain courier logistics, and digital health vault synchronization for your pet companion.'
+  },
+  checkout: {
+    title: 'Cold-Chain Checkout & Honorarium Settlement | Pet Maya Veterinary Medicine',
+    description: 'Secure 256-bit TLS clinical checkout, thermal continuity audit, and instant EHR synchronization.'
   }
 };
 
@@ -182,7 +187,7 @@ const VALID_EDITORIAL_ROUTES = [
   'pet-health', 'pet-care', 'blog', 'about', 'contact', 'faq', 'privacy', 'terms', 'book-vet',
   'login', 'signin', 'signup', 'auth', 'shop', 'ai', 'wellness', 'specialists', 'vets',
   'product', 'product-detail', 'pdp', 'tracker', 'gps', 'radar', 'dashboard', 'community',
-  'cart', 'bag', 'dispensary', 'checkout'
+  'cart', 'bag', 'dispensary', 'checkout', 'payment', 'settlement'
 ];
 
 const VALID_APP_ROUTES = [
@@ -364,8 +369,11 @@ function MainContent() {
       case 'cart':
       case 'bag':
       case 'dispensary':
-      case 'checkout':
         return <CartPage key="cart" onNavigate={handleNavigate} />;
+      case 'checkout':
+      case 'payment':
+      case 'settlement':
+        return <CheckoutPage key="checkout" onNavigate={handleNavigate} />;
       case 'vaccines':
         return <Reminders key="vaccines" />;
       case 'profile':
@@ -393,6 +401,30 @@ function MainContent() {
               initialMode={activeTab === 'signup' ? 'signup' : 'signin'}
               onNavigate={handleNavigate}
             />
+          </motion.div>
+        </AnimatePresence>
+        <ModalRoot />
+        <Toast />
+      </div>
+    );
+  }
+
+  // Dedicated Clinical Cold-Chain Checkout Screen (renders with its own protocol header & legal footer)
+  const isCheckoutRoute = ['checkout', 'payment', 'settlement'].includes(activeTab);
+
+  if (isCheckoutRoute) {
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: '#FAF7F5' }}>
+        <GlobalBanner />
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <CheckoutPage onNavigate={handleNavigate} />
           </motion.div>
         </AnimatePresence>
         <ModalRoot />

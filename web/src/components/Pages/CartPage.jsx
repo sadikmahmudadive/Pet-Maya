@@ -142,12 +142,7 @@ export default function CartPage({ onNavigate }) {
       showToast('Your dispensary bag is empty', 'warning');
       return;
     }
-    openModal('checkout', {
-      subtotal,
-      shipping: shippingCost,
-      total: totalHonorarium,
-      items: items.map(i => ({ id: i.id, name: i.name, price: i.price, qty: i.qty, image: i.image }))
-    });
+    handleRoute('checkout');
   };
 
   const handleRoute = (path) => {
