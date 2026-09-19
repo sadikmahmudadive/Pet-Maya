@@ -94,7 +94,6 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
             marginTop: '3px',
             lineHeight: 1
           }}>
-            VETERINARY MEDICINE
           </span>
         </a>
 
