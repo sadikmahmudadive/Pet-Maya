@@ -150,10 +150,10 @@ export default function Header() {
           {/* Shopping Bag */}
           <button
             className="icon-btn"
-            onClick={() => openModal('cart')}
+            onClick={() => navTo('cart')}
             style={{ width: 32, height: 32, position: 'relative' }}
-            title="Shopping Bag"
-            aria-label={`Shopping Bag (${cartCount} items)`}
+            title="Dispensary Bag"
+            aria-label="Dispensary Bag"
           >
             <ShoppingBag size={16} />
             <AnimatePresence>

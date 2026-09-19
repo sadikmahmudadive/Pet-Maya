@@ -34,6 +34,9 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
     { label: 'Specialists', path: 'specialists' },
     { label: 'Health Vault', path: 'digital-pet-passport' },
     { label: 'Journal', path: 'blog' },
+    { label: 'GPS Radar', path: 'pet-gps' },
+    { label: 'Community', path: 'community' },
+    { label: 'Dashboard', path: 'dashboard' },
   ];
 
   const totalCartCount = (cart || []).reduce((sum, item) => sum + (item.quantity || 1), 0);
@@ -113,7 +116,11 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
             const isActive = currentRoute === link.path || 
               (link.path === 'shop' && (currentRoute === '/shop' || currentRoute === 'shop')) ||
               (link.path === 'ai' && (currentRoute === 'ai' || currentRoute === '/ai' || currentRoute === 'ai-pet-care' || currentRoute === '/ai-pet-care' || currentRoute === 'wellness' || currentRoute === '/wellness')) ||
-              (link.path === 'specialists' && (currentRoute === 'specialists' || currentRoute === '/specialists' || currentRoute === 'vets' || currentRoute === '/vets' || currentRoute === 'for-veterinarians' || currentRoute === '/for-veterinarians'));
+              (link.path === 'specialists' && (currentRoute === 'specialists' || currentRoute === '/specialists' || currentRoute === 'vets' || currentRoute === '/vets' || currentRoute === 'for-veterinarians' || currentRoute === '/for-veterinarians')) ||
+              (link.path === 'digital-pet-passport' && (currentRoute === 'digital-pet-passport' || currentRoute === '/digital-pet-passport' || currentRoute === 'health-vault' || currentRoute === '/health-vault')) ||
+              (link.path === 'pet-gps' && (currentRoute === 'pet-gps' || currentRoute === '/pet-gps' || currentRoute === 'tracker' || currentRoute === '/tracker' || currentRoute === 'gps' || currentRoute === '/gps' || currentRoute === 'radar' || currentRoute === '/radar'));
+              (link.path === 'community' && (currentRoute === 'community' || currentRoute === '/community' || currentRoute === 'social' || currentRoute === '/social')) ||
+              (link.path === 'dashboard' && (currentRoute === 'dashboard' || currentRoute === '/dashboard' || currentRoute === 'portal' || currentRoute === '/portal'));
             return (
               <a
                 key={link.label}
@@ -163,9 +170,9 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
 
           {/* Shopping Bag Button with Badge */}
           <button
-            onClick={() => openModal('cart')}
-            aria-label="View shopping bag"
-            title="Bag"
+            onClick={(e) => handleNavClick('cart', e)}
+            aria-label="View shopping bag & clinical dispensary"
+            title="Dispensary Bag"
             style={{
               position: 'relative',
               display: 'flex',
@@ -174,34 +181,34 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
               width: '36px',
               height: '36px',
               borderRadius: '50%',
-              backgroundColor: '#FFFFFF',
+              backgroundColor: currentRoute === 'cart' || currentRoute === '/cart' ? '#160F0C' : '#FFFFFF',
               border: '1px solid rgba(222, 217, 214, 0.7)',
-              color: '#160F0C',
+              color: currentRoute === 'cart' || currentRoute === '/cart' ? '#FFFFFF' : '#160F0C',
               cursor: 'pointer',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+              boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+              transition: 'all 0.18s ease'
             }}
           >
             <ShoppingBag size={17} />
-            {totalCartCount > 0 && (
-              <span style={{
-                position: 'absolute',
-                top: '-3px',
-                right: '-3px',
-                backgroundColor: '#160F0C',
-                color: '#FFFFFF',
-                fontSize: '10px',
-                fontWeight: 700,
-                width: '18px',
-                height: '18px',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                lineHeight: 1
-              }}>
-                {totalCartCount}
-              </span>
-            )}
+            <span style={{
+              position: 'absolute',
+              top: '-4px',
+              right: '-4px',
+              backgroundColor: '#160F0C',
+              color: '#FFFFFF',
+              border: '2px solid #FDF8F5',
+              fontSize: '10px',
+              fontWeight: 700,
+              width: '18px',
+              height: '18px',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              lineHeight: 1
+            }}>
+              {totalCartCount > 0 ? totalCartCount : 3}
+            </span>
           </button>
 
           {/* Stitch Elevated "Book Consult" Button */}

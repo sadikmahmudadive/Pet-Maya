@@ -137,15 +137,11 @@ export default function EditorialFooter({ onNavigate }) {
         {/* Legal & Regulatory Bottom Bar */}
         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '16px', paddingTop: '28px', fontSize: '12px', color: '#707973' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-            <span>© 2026 Pet Maya Health Group Inc. All clinical rights reserved.</span>
+            <span>© 2026 Pet Maya Group Inc. All clinical rights reserved.</span>
             <span>•</span>
             <a onClick={(e) => handleLinkClick('privacy', e)} style={{ color: 'inherit', textDecoration: 'none', cursor: 'pointer' }}>Privacy Policy</a>
             <span>•</span>
             <a onClick={(e) => handleLinkClick('terms', e)} style={{ color: 'inherit', textDecoration: 'none', cursor: 'pointer' }}>Terms of Medical Service</a>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontFamily: 'var(--font-mono)', fontSize: '10.5px', fontWeight: 700, letterSpacing: '0.08em', color: '#346B73' }}>
-            <span style={{ fontSize: '14px' }}>🛡</span>
-            <span>AAHA CLINICAL STANDARDS ACCREDITED</span>
           </div>
         </div>
 

@@ -31,6 +31,8 @@ import HealthTriage from './components/Triage/HealthTriage';
 import NutritionBreeds from './components/Nutrition/NutritionBreeds';
 import Community from './components/Community/Community';
 import Shop from './components/Shop/Shop';
+import ProductDetailPage from './components/Shop/ProductDetailPage';
+import CartPage from './components/Pages/CartPage';
 import Reminders from './components/Reminders/Reminders';
 import Profile from './components/Profile/Profile';
 import AdminPortal from './components/Admin/AdminPortal';
@@ -167,6 +169,10 @@ const TAB_SEO_MAP = {
   auth: {
     title: 'Guardian Portal Access & Sign In | Pet Maya Veterinary Medicine',
     description: 'Access your pet companion health vault, ISO microchip registry, telehealth consults, and clinical history.'
+  },
+  cart: {
+    title: 'Dispensary Bag & Cold-Chain Vault Dispatch | Pet Maya',
+    description: 'Review prescribed medications, cold-chain courier logistics, and digital health vault synchronization for your pet companion.'
   }
 };
 
@@ -174,7 +180,9 @@ const VALID_EDITORIAL_ROUTES = [
   'landing', 'features', 'digital-pet-passport', 'ai-pet-care', 'pet-gps', 
   'connected-care', 'for-pet-parents', 'for-veterinarians', 'for-clinics', 
   'pet-health', 'pet-care', 'blog', 'about', 'contact', 'faq', 'privacy', 'terms', 'book-vet',
-  'login', 'signin', 'signup', 'auth', 'shop', 'ai', 'wellness', 'specialists', 'vets'
+  'login', 'signin', 'signup', 'auth', 'shop', 'ai', 'wellness', 'specialists', 'vets',
+  'product', 'product-detail', 'pdp', 'tracker', 'gps', 'radar', 'dashboard', 'community',
+  'cart', 'bag', 'dispensary', 'checkout'
 ];
 
 const VALID_APP_ROUTES = [
@@ -298,6 +306,9 @@ function MainContent() {
       case 'ai-pet-care':
         return <HealthTriage key="ai-pet-care" onNavigate={handleNavigate} />;
       case 'pet-gps':
+      case 'tracker':
+      case 'gps':
+      case 'radar':
         return <PetGPSPage onNavigate={handleNavigate} key="pet-gps" />;
       case 'connected-care':
         return <ConnectedCarePage onNavigate={handleNavigate} key="connected-care" />;
@@ -334,8 +345,6 @@ function MainContent() {
       // Application platform views
       case 'dashboard':
         return <Dashboard key="dashboard" />;
-      case 'tracker':
-        return <PetTracker key="tracker" />;
       case 'specialists':
       case 'vets':
         return <Specialists key="specialists" onNavigate={handleNavigate} />;
@@ -348,6 +357,15 @@ function MainContent() {
         return <Community key="community" />;
       case 'shop':
         return <Shop key="shop" onNavigate={handleNavigate} />;
+      case 'product':
+      case 'product-detail':
+      case 'pdp':
+        return <ProductDetailPage key="pdp" onNavigate={handleNavigate} onBack={() => handleNavigate('shop')} />;
+      case 'cart':
+      case 'bag':
+      case 'dispensary':
+      case 'checkout':
+        return <CartPage key="cart" onNavigate={handleNavigate} />;
       case 'vaccines':
         return <Reminders key="vaccines" />;
       case 'profile':

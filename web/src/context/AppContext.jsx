@@ -96,6 +96,10 @@ export const TAB_ROUTES = {
   signin: '/login',
   signup: '/signup',
   auth: '/login',
+  cart: '/cart',
+  bag: '/cart',
+  dispensary: '/cart',
+  checkout: '/cart',
 };
 
 export const ROUTE_TABS = {
@@ -119,6 +123,10 @@ export const ROUTE_TABS = {
   '/dashboard': 'dashboard',
   '/shop': 'shop',
   '/pet-shop': 'shop',
+  '/cart': 'cart',
+  '/bag': 'cart',
+  '/dispensary': 'cart',
+  '/checkout': 'cart',
   '/tracker': 'tracker',
   '/wellness': 'ai',
   '/ai': 'ai',
