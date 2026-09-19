@@ -174,7 +174,7 @@ const VALID_EDITORIAL_ROUTES = [
   'landing', 'features', 'digital-pet-passport', 'ai-pet-care', 'pet-gps', 
   'connected-care', 'for-pet-parents', 'for-veterinarians', 'for-clinics', 
   'pet-health', 'pet-care', 'blog', 'about', 'contact', 'faq', 'privacy', 'terms', 'book-vet',
-  'login', 'signin', 'signup', 'auth', 'shop', 'ai', 'wellness'
+  'login', 'signin', 'signup', 'auth', 'shop', 'ai', 'wellness', 'specialists', 'vets'
 ];
 
 const VALID_APP_ROUTES = [
@@ -336,8 +336,9 @@ function MainContent() {
         return <Dashboard key="dashboard" />;
       case 'tracker':
         return <PetTracker key="tracker" />;
+      case 'specialists':
       case 'vets':
-        return <Specialists key="vets" />;
+        return <Specialists key="specialists" onNavigate={handleNavigate} />;
       case 'ai':
       case 'wellness':
         return <HealthTriage key="ai" onNavigate={handleNavigate} />;

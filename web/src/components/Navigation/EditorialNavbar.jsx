@@ -31,7 +31,7 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
   const navLinks = [
     { label: 'Care Shop', path: 'shop' },
     { label: 'AI Triage', path: 'ai' },
-    { label: 'Specialists', path: 'for-veterinarians' },
+    { label: 'Specialists', path: 'specialists' },
     { label: 'Health Vault', path: 'digital-pet-passport' },
     { label: 'Journal', path: 'blog' },
   ];
@@ -112,7 +112,8 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
           {navLinks.map((link) => {
             const isActive = currentRoute === link.path || 
               (link.path === 'shop' && (currentRoute === '/shop' || currentRoute === 'shop')) ||
-              (link.path === 'ai' && (currentRoute === 'ai' || currentRoute === '/ai' || currentRoute === 'ai-pet-care' || currentRoute === '/ai-pet-care' || currentRoute === 'wellness' || currentRoute === '/wellness'));
+              (link.path === 'ai' && (currentRoute === 'ai' || currentRoute === '/ai' || currentRoute === 'ai-pet-care' || currentRoute === '/ai-pet-care' || currentRoute === 'wellness' || currentRoute === '/wellness')) ||
+              (link.path === 'specialists' && (currentRoute === 'specialists' || currentRoute === '/specialists' || currentRoute === 'vets' || currentRoute === '/vets' || currentRoute === 'for-veterinarians' || currentRoute === '/for-veterinarians'));
             return (
               <a
                 key={link.label}

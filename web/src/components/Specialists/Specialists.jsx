@@ -1,468 +1,1152 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { 
-  Search, 
   Star, 
+  Video, 
   MapPin, 
   Clock, 
   Calendar, 
-  Video, 
-  MessageSquarePlus, 
-  ShieldCheck,
-  Heart,
-  Flame,
+  ShieldCheck, 
+  Check, 
+  Stethoscope, 
+  Building, 
+  Phone, 
+  FileText, 
+  Sparkles, 
+  CheckCircle2, 
+  Lock, 
+  Activity, 
+  Flame, 
+  ArrowRight,
+  ExternalLink,
   ChevronRight,
-  Briefcase,
-  History,
-  Navigation
+  Filter
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
-// ── Specialty filter chip definitions ──────────────────────────────────────
-const SPECIALTY_CHIPS = [
-  { id: 'all',               label: 'All Specialties' },
-  { id: 'Surgery',           label: 'Surgery' },
-  { id: 'Dermatology',       label: 'Dermatology' },
-  { id: 'Internal Medicine', label: 'Internal Medicine' },
-  { id: 'Dentistry',         label: 'Dentistry' },
-  { id: 'Ophthalmology',     label: 'Ophthalmology' },
+// ── Specialty Filter Categories ──────────────────────────────────────────────
+const SPECIALTY_CATEGORIES = [
+  { id: 'all',       label: 'All Specialties' },
+  { id: 'ortho',     label: 'Orthopedics & Soft Tissue' },
+  { id: 'internal',  label: 'Internal Medicine & Oncology' },
+  { id: 'derma',     label: 'Dermatology & Allergies' },
+  { id: 'nutrition', label: 'Clinical Nutrition & Metabolism' },
 ];
 
-// ── Simulated rating-breakdown distribution ────────────────────────────────
-const RATING_DIST = [
-  { stars: 5, pct: 0.70 },
-  { stars: 4, pct: 0.20 },
-  { stars: 3, pct: 0.07 },
-  { stars: 2, pct: 0.02 },
-  { stars: 1, pct: 0.01 },
+// ── Faculty Specialists Data Matching Reference ──────────────────────────────
+const FACULTY_CLINICIANS = [
+  {
+    id: 'dr_sarah',
+    name: 'Dr. Sarah Jenkins, MRCVS',
+    degrees: 'MRCVS, BVM&S',
+    role: 'Companion Internal Medicine & Feline Longevity Therapeutics',
+    specialtyId: 'internal',
+    rating: 4.98,
+    reviewsCount: 184,
+    availability: 'AVAILABLE IN 15M',
+    availabilityType: 'normal',
+    price: 650,
+    unit: '/ 25 min',
+    priceLabel: 'TELEHEALTH STANDARD',
+    bio: '12 years of clinical research at Cambridge Veterinary School. Specialized in chronic renal management, complex endocrine disorders, and preventative metabolic...',
+    image: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=300&auto=format&fit=crop&q=80',
+    badgeType: 'video',
+    slots: [
+      { id: 's1', time: '15:15 - 15:40' },
+      { id: 's2', time: '16:00 - 16:25' },
+      { id: 's3', time: '17:30 - 17:55' }
+    ]
+  },
+  {
+    id: 'dr_nazmul',
+    name: 'Dr. Nazmul Hoda, DVM, MS',
+    degrees: 'DVM, MS (Surg)',
+    role: 'Orthopedics & Canine Cruciate Biomechanical Rehabilitation',
+    specialtyId: 'ortho',
+    rating: 4.99,
+    reviewsCount: 312,
+    availability: 'AVAILABLE TODAY 16:30',
+    availabilityType: 'normal',
+    price: 500,
+    unit: '/ 25 min',
+    priceLabel: 'TELEHEALTH STANDARD',
+    bio: 'Certified canine sports rehabilitation specialist. Pioneering non-invasive biomechanical joint therapies, post-operative TPLO recoveries, and geriatric...',
+    image: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=200&auto=format&fit=crop&q=80',
+    badgeType: 'stethoscope',
+    slots: [
+      { id: 'n1', time: '15:00 - 15:25' },
+      { id: 'n2', time: '16:30 - 16:55' },
+      { id: 'n3', time: '18:15 - 18:40' }
+    ]
+  },
+  {
+    id: 'dr_ananya',
+    name: 'Dr. Ananya Roy, DVM, Dip. ECVD',
+    degrees: 'DVM, Dip. ECVD',
+    role: 'Clinical Dermatology & Tropical Atopic Allergies',
+    specialtyId: 'derma',
+    rating: 4.96,
+    reviewsCount: 97,
+    availability: 'AVAILABLE TODAY 18:00',
+    availabilityType: 'normal',
+    price: 500,
+    unit: '/ 25 min',
+    priceLabel: 'TELEHEALTH STANDARD',
+    bio: 'European Board diplomat specializing in canine refractory pruritus, feline eosinophilic granuloma complex, and cytology-guided immunotherapy for humid...',
+    image: 'https://images.unsplash.com/photo-1651008376811-b90baee60c1f?w=300&auto=format&fit=crop&q=80',
+    badgeType: 'stethoscope',
+    slots: [
+      { id: 'a1', time: '18:00 - 18:25' },
+      { id: 'a2', time: '19:00 - 19:25' },
+      { id: 'a3', time: '20:15 - 20:40' }
+    ]
+  },
+  {
+    id: 'dr_samira',
+    name: 'Dr. Samira Khan, DVM',
+    degrees: 'DVM (Emergency & ICU)',
+    role: 'Emergency & Critical Care Intensivist',
+    specialtyId: 'internal',
+    rating: 5.0,
+    reviewsCount: 420,
+    availability: 'ON-CALL EMERGENCY NOW',
+    availabilityType: 'emergency',
+    price: 600,
+    unit: '/ Priority Queue',
+    priceLabel: 'URGENT TELECONSULT',
+    bio: 'Senior veterinary triage intensivist. Immediate evaluation of acute respiratory distress, toxic ingestion protocols, traumatic shock triage, and bedside telemetry...',
+    image: 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=300&auto=format&fit=crop&q=80',
+    badgeType: 'emergency',
+    slots: [
+      { id: 'e1', time: 'Instant Connect (0m wait)' },
+      { id: 'e2', time: 'Priority Escalation' }
+    ]
+  }
 ];
 
-// ── Clinic hours helper ────────────────────────────────────────────────────
-function isOpenNow() {
-  const h = new Date().getHours();
-  return h >= 9 && h < 20;
-}
-
-// ── Visual star row component ──────────────────────────────────────────────
-function StarRow({ rating }) {
-  return (
-    <span style={{ display: 'inline-flex', gap: '1px', alignItems: 'center' }}>
-      {Array(5).fill(0).map((_, idx) => (
-        <Star
-          key={idx}
-          size={11}
-          color="#F59E0B"
-          fill={idx < Math.floor(rating) ? '#F59E0B' : 'none'}
-        />
-      ))}
-    </span>
-  );
-}
-
-// ── Rating breakdown mini bar-chart (details/summary) ─────────────────────
-function RatingBreakdown({ reviews }) {
-  return (
-    <details style={{ fontSize: '11px', marginTop: '6px' }}>
-      <summary style={{ cursor: 'pointer', color: 'var(--text-muted)', listStyle: 'none', userSelect: 'none' }}>
-        ▸ Rating breakdown
-      </summary>
-      <div style={{ marginTop: '6px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
-        {RATING_DIST.map(({ stars, pct }) => {
-          const count = Math.round((reviews || 0) * pct);
-          return (
-            <div key={stars} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <span style={{ width: '18px', textAlign: 'right', fontWeight: 600 }}>{stars}★</span>
-              {/* Track */}
-              <div style={{ position: 'relative', width: '60px', height: '4px', background: 'var(--border)', borderRadius: '2px', overflow: 'hidden' }}>
-                {/* Fill bar */}
-                <div style={{
-                  position: 'absolute', left: 0, top: 0, bottom: 0,
-                  width: `${pct * 100}%`,
-                  background: stars >= 4 ? '#10B981' : stars === 3 ? '#F59E0B' : '#EF4444',
-                  borderRadius: '2px'
-                }} />
-              </div>
-              <span style={{ color: 'var(--text-muted)', minWidth: '28px' }}>{count}</span>
-            </div>
-          );
-        })}
-      </div>
-    </details>
-  );
-}
-
-export default function Specialists() {
-  const { vets, isVetsLoading, openModal, favoriteVetIds, toggleFavoriteVet } = useApp();
+export default function Specialists({ onNavigate }) {
+  const { pets = [], openModal, showToast, addAppointment } = useApp();
   const { currentUser } = useAuth();
 
-  const [searchQuery,        setSearchQuery]        = useState('');
-  const [selectedCategory,   setSelectedCategory]   = useState('all');
-  const [sortBy,             setSortBy]             = useState('rating');
-  const [selectedSpecialty,  setSelectedSpecialty]  = useState('all');
-  const [onlyNearby,         setOnlyNearby]         = useState(false);
+  // Mode: 'telehealth' (HD Video Teleconsultation) | 'clinic' (In-Clinic Physical Visit)
+  const [consultMode, setConsultMode] = useState('telehealth');
 
-  const openNow = isOpenNow();
+  // Specialty category filter
+  const [selectedSpecialty, setSelectedSpecialty] = useState('all');
 
-  const filteredVets = vets.filter(v => {
-    const matchesSearch = (v.name || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          (v.qualification || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          (v.clinic || '').toLowerCase().includes(searchQuery.toLowerCase());
+  // Selected Clinician for Reservation (default: Dr. Nazmul Hoda matching reference UI)
+  const [selectedClinicianId, setSelectedClinicianId] = useState('dr_nazmul');
+  const activeClinician = FACULTY_CLINICIANS.find(c => c.id === selectedClinicianId) || FACULTY_CLINICIANS[1];
 
-    const matchesCat = selectedCategory === 'all' || 
-                       (selectedCategory === 'vet'      && (v.tag || '').toLowerCase().includes('vet')) ||
-                       (selectedCategory === 'grooming' && (v.tag || '').toLowerCase().includes('groom')) ||
-                       (selectedCategory === 'boarding' && (v.tag || '').toLowerCase().includes('board'));
+  // Schedule Dates
+  const [selectedDate, setSelectedDate] = useState('today'); // 'today' | 'tomorrow' | 'wed' | 'thu'
+  const [selectedSlot, setSelectedSlot] = useState('16:30 - 16:55');
 
-    const matchesSpecialty = selectedSpecialty === 'all' ||
-      (v.qualification || '').toLowerCase().includes(selectedSpecialty.toLowerCase()) ||
-      (v.bio || '').toLowerCase().includes(selectedSpecialty.toLowerCase());
+  // Companion Patient selection (Milo vs Cleo)
+  const [selectedCompanionId, setSelectedCompanionId] = useState('milo');
 
-    const distVal = parseFloat(v.distance || '10');
-    const matchesNearby = !onlyNearby || distVal < 3.0;
+  // AI Triage Scan Link Checkbox
+  const [linkAiScan, setLinkAiScan] = useState(true);
 
-    return matchesSearch && matchesCat && matchesSpecialty && matchesNearby;
-  }).sort((a, b) => {
-    if (sortBy === 'rating')   return (b.rating || 0) - (a.rating || 0);
-    if (sortBy === 'distance') return parseFloat(a.distance) - parseFloat(b.distance);
-    if (sortBy === 'name')     return (a.name || '').localeCompare(b.name || '');
-    return 0;
-  });
+  // Symptoms description
+  const [symptomNotes, setSymptomNotes] = useState('');
+
+  // Booking process state
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Filtered Clinicians
+  const filteredClinicians = useMemo(() => {
+    if (selectedSpecialty === 'all') return FACULTY_CLINICIANS;
+    return FACULTY_CLINICIANS.filter(c => c.specialtyId === selectedSpecialty);
+  }, [selectedSpecialty]);
+
+  // Handle Selection of Clinician
+  const handleSelectClinician = (clinician) => {
+    setSelectedClinicianId(clinician.id);
+    if (clinician.slots && clinician.slots.length > 0) {
+      setSelectedSlot(clinician.slots[0].time);
+    }
+    showToast(`Selected ${clinician.name} for Clinical Session`, 'info');
+  };
+
+  // Handle Final Booking Confirmation
+  const handleConfirmConsultation = () => {
+    setIsSubmitting(true);
+    setTimeout(() => {
+      setIsSubmitting(false);
+      const newAppt = {
+        id: `appt_${Date.now()}`,
+        vetId: activeClinician.id,
+        vetName: activeClinician.name,
+        petName: selectedCompanionId === 'milo' ? 'Milo' : 'Cleo',
+        date: selectedDate === 'today' ? '2026-02-24' : '2026-02-25',
+        time: selectedSlot,
+        type: consultMode === 'telehealth' ? 'Video Telehealth' : 'In-Clinic Physical',
+        status: 'confirmed',
+        fee: activeClinician.price,
+        notes: symptomNotes || 'Routine clinical assessment.'
+      };
+
+      if (typeof addAppointment === 'function') {
+        addAppointment(newAppt);
+      }
+
+      showToast(`Consultation Confirmed with ${activeClinician.name}! Encrypted room ready.`, 'success');
+      if (typeof openModal === 'function') {
+        openModal('bookingSuccess', { appointment: newAppt });
+      }
+    }, 600);
+  };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-      {/* ── HEADER & ACTIONS ── */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
-        <div>
-          <span className="apple-card-eyebrow" style={{ color: '#F59E0B' }}>Clinical Network</span>
-          <h1 style={{ fontSize: '28px', fontWeight: 700, letterSpacing: '-0.03em' }}>Specialists &amp; Clinicians</h1>
-          <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Discover verified veterinarians, specialist surgeons, grooming spas &amp; boarding resorts.</p>
-        </div>
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-          <button 
-            type="button"
-            className="btn-secondary" 
-            style={{ padding: '8px 14px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
-            onClick={() => openModal('favoriteVets')}
-          >
-            <Heart size={14} color="#EF4444" fill="#EF4444" />
-            <span>Saved Specialists</span>
-          </button>
-          <button className="apple-btn-blue" onClick={() => openModal('booking')}>
-            <Calendar size={15} />
-            <span>Book In-Clinic Visit</span>
-          </button>
-        </div>
-      </div>
+    <div style={{
+      minHeight: '100vh',
+      backgroundColor: '#FAF7F5',
+      color: '#160F0C',
+      fontFamily: 'var(--font-sans, "Inter", -apple-system, sans-serif)',
+      paddingBottom: '80px'
+    }}>
 
-      {/* ── 24/7 EMERGENCY ON-CALL BANNER ── */}
-      <div 
-        className="apple-solid-card"
-        style={{
-          padding: '24px 30px',
+      {/* ── 1. HERO HEADER SECTION ── */}
+      <section style={{
+        maxWidth: '1240px',
+        margin: '0 auto',
+        padding: '36px 32px 28px 32px'
+      }}>
+        {/* Top Flex Row: Eyebrow + Mode Toggle */}
+        <div style={{
+          display: 'flex',
           alignItems: 'center',
-          flexDirection: 'row',
           justifyContent: 'space-between',
           flexWrap: 'wrap',
           gap: '16px',
-          textAlign: 'left'
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(239, 68, 68, 0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#EF4444' }}>
-            <Flame size={22} />
+          marginBottom: '16px'
+        }}>
+          {/* Eyebrow Badge */}
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            backgroundColor: '#EDF5F3',
+            border: '1px solid #C4DCD6',
+            borderRadius: '9999px',
+            padding: '4px 14px',
+            fontFamily: 'var(--font-mono, monospace)',
+            fontSize: '9.5px',
+            fontWeight: 700,
+            letterSpacing: '0.12em',
+            color: '#346B73',
+            textTransform: 'uppercase'
+          }}>
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#0D9488' }} />
+            <span>LIVE CLINICAL REGISTRY</span>
           </div>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <strong style={{ fontSize: '16px', fontWeight: 700 }}>24/7 Emergency Clinical Triage</strong>
-              <span className="badge badge-green" style={{ fontSize: '10.5px' }}>Live On-Call</span>
-            </div>
-            <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Immediate video tele-health connection with on-duty emergency veterinarians.</p>
+
+          {/* Mode Switcher: HD Video Teleconsultation vs In-Clinic Visit */}
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            padding: '4px',
+            backgroundColor: '#EFEFEA',
+            borderRadius: '9999px',
+            border: '1px solid #DFE8E5',
+            gap: '4px'
+          }}>
+            <button
+              onClick={() => setConsultMode('telehealth')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 18px',
+                borderRadius: '9999px',
+                border: consultMode === 'telehealth' ? '1px solid #DFE8E5' : 'none',
+                backgroundColor: consultMode === 'telehealth' ? '#FFFFFF' : 'transparent',
+                color: consultMode === 'telehealth' ? '#160F0C' : '#707973',
+                fontSize: '12.5px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                boxShadow: consultMode === 'telehealth' ? '0 2px 8px rgba(0,0,0,0.04)' : 'none',
+                transition: 'all 0.18s ease'
+              }}
+            >
+              <Video size={14} color={consultMode === 'telehealth' ? '#346B73' : '#707973'} />
+              <span>HD Video Teleconsultation</span>
+            </button>
+
+            <button
+              onClick={() => setConsultMode('clinic')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 18px',
+                borderRadius: '9999px',
+                border: consultMode === 'clinic' ? '1px solid #DFE8E5' : 'none',
+                backgroundColor: consultMode === 'clinic' ? '#FFFFFF' : 'transparent',
+                color: consultMode === 'clinic' ? '#160F0C' : '#707973',
+                fontSize: '12.5px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                boxShadow: consultMode === 'clinic' ? '0 2px 8px rgba(0,0,0,0.04)' : 'none',
+                transition: 'all 0.18s ease'
+              }}
+            >
+              <Building size={14} color={consultMode === 'clinic' ? '#346B73' : '#707973'} />
+              <span>In-Clinic Physical Visit</span>
+            </button>
           </div>
         </div>
-        <button 
-          className="apple-btn-blue" 
-          style={{ background: '#EF4444' }}
-          onClick={() => openModal('booking', { doctor: 'Dr. Sarah Jenkins', mode: 'HD Tele-Consultation' })}
-        >
-          <Video size={15} />
-          <span>Instant Video Triage</span>
-        </button>
-      </div>
 
-      {/* ── SEARCH & FILTER CONTROLS ── */}
-      <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-        <div style={{ flex: 1, minWidth: '260px', position: 'relative' }}>
-          <Search size={16} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }} />
-          <input 
-            type="text" 
-            className="input-clean" 
-            placeholder="Search by clinician name, qualification, or clinic..." 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            style={{ paddingLeft: '38px' }}
-          />
+        {/* Main Headline */}
+        <h1 style={{
+          fontFamily: 'var(--font-display, "Playfair Display", Georgia, serif)',
+          fontSize: 'clamp(30px, 3.4vw, 42px)',
+          fontWeight: 600,
+          color: '#160F0C',
+          letterSpacing: '-0.025em',
+          lineHeight: 1.18,
+          margin: '0 0 12px 0'
+        }}>
+          Consult board-certified clinicians without<br />
+          friction.
+        </h1>
+
+        {/* Subtitle */}
+        <p style={{
+          fontSize: '14px',
+          color: '#5C524E',
+          lineHeight: 1.55,
+          maxWidth: '680px',
+          margin: '0 0 24px 0'
+        }}>
+          Choose between high-definition video teleconsultations or in-clinic physical appointments
+          with direct electronic health record synchronization.
+        </p>
+
+        {/* Specialty Filter Pills */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          flexWrap: 'wrap'
+        }}>
+          {SPECIALTY_CATEGORIES.map(category => {
+            const isSelected = selectedSpecialty === category.id;
+            return (
+              <button
+                key={category.id}
+                onClick={() => setSelectedSpecialty(category.id)}
+                style={{
+                  padding: '7px 18px',
+                  borderRadius: '9999px',
+                  border: isSelected ? 'none' : '1px solid #EAE5E1',
+                  backgroundColor: isSelected ? '#160F0C' : '#FFFFFF',
+                  color: isSelected ? '#FFFFFF' : '#5C524E',
+                  fontSize: '12px',
+                  fontWeight: isSelected ? 600 : 500,
+                  cursor: 'pointer',
+                  transition: 'all 0.18s ease'
+                }}
+              >
+                {category.label}
+              </button>
+            );
+          })}
         </div>
+      </section>
 
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <button
-            type="button"
-            onClick={() => setOnlyNearby(!onlyNearby)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '8px 14px',
-              borderRadius: '12px',
-              fontSize: '13px',
-              fontWeight: 700,
-              cursor: 'pointer',
-              border: onlyNearby ? '1px solid #10B981' : '1px solid var(--border)',
-              background: onlyNearby ? 'rgba(16, 185, 129, 0.12)' : 'var(--surface)',
-              color: onlyNearby ? '#10B981' : 'var(--text-muted)',
-              transition: 'all 0.18s ease',
-            }}
-          >
-            <Navigation size={13} color={onlyNearby ? '#10B981' : 'currentColor'} />
-            <span>Nearby (&lt; 3 km)</span>
-          </button>
+      {/* ── 2. MAIN 2-COLUMN LAYOUT: CLINICIANS + CHECKOUT ── */}
+      <section style={{
+        maxWidth: '1240px',
+        margin: '0 auto',
+        padding: '0 32px'
+      }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'minmax(0, 1fr) 390px',
+          gap: '32px',
+          alignItems: 'start'
+        }} className="specialists-main-grid">
 
-          <select 
-            className="input-clean" 
-            style={{ width: 'auto', fontWeight: 600 }}
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-          >
-            <option value="rating">Highest Rating</option>
-            <option value="distance">Nearest to Me</option>
-            <option value="name">Name (A-Z)</option>
-          </select>
-        </div>
-      </div>
+          {/* ══════════════════════════════════════════════════════════════
+              LEFT COLUMN: FACULTY CLINICIANS DIRECTORY + ASSURANCE BANNER
+             ══════════════════════════════════════════════════════════════ */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
-      {/* ── CATEGORY PILLS ── */}
-      <div className="chip-row">
-        <button className={`chip-pill ${selectedCategory === 'all' ? 'active' : ''}`} onClick={() => setSelectedCategory('all')}>
-          All Specialists ({vets.length})
-        </button>
-        <button className={`chip-pill ${selectedCategory === 'vet' ? 'active' : ''}`} onClick={() => setSelectedCategory('vet')}>
-          Veterinarians
-        </button>
-        <button className={`chip-pill ${selectedCategory === 'grooming' ? 'active' : ''}`} onClick={() => setSelectedCategory('grooming')}>
-          Grooming Spas
-        </button>
-        <button className={`chip-pill ${selectedCategory === 'boarding' ? 'active' : ''}`} onClick={() => setSelectedCategory('boarding')}>
-          Boarding Resorts
-        </button>
-      </div>
+            {filteredClinicians.map((doctor) => {
+              const isSelected = doctor.id === selectedClinicianId;
+              const isEmergency = doctor.availabilityType === 'emergency';
 
-      {/* ── NEW: SPECIALTY FILTER CHIPS ── */}
-      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
-        <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', marginRight: '4px', whiteSpace: 'nowrap' }}>
-          Specialty:
-        </span>
-        {SPECIALTY_CHIPS.map(chip => (
-          <button
-            key={chip.id}
-            onClick={() => setSelectedSpecialty(chip.id)}
-            style={{
-              padding: '5px 13px',
-              borderRadius: '20px',
-              fontSize: '12px',
-              fontWeight: 600,
-              border: '1.5px solid',
-              cursor: 'pointer',
-              transition: 'all 0.18s ease',
-              borderColor: selectedSpecialty === chip.id ? '#10B981' : 'var(--border)',
-              background:  selectedSpecialty === chip.id ? 'rgba(16, 185, 129, 0.12)' : 'transparent',
-              color:       selectedSpecialty === chip.id ? '#10B981' : 'var(--text-muted)',
-            }}
-          >
-            {chip.label}
-          </button>
-        ))}
-      </div>
-
-      {/* ── SPECIALISTS GRID ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '18px' }}>
-        {isVetsLoading && vets.length === 0 ? (
-          [1, 2, 3].map((n) => (
-            <div 
-              key={n} 
-              className="apple-solid-card" 
-              style={{ display: 'flex', flexDirection: 'column', gap: '14px', padding: '22px', opacity: 0.6 }}
-            >
-              <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
-                <div style={{ width: 54, height: 54, borderRadius: '50%', background: 'var(--surface-alt)' }} />
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <div style={{ width: '60%', height: 16, background: 'var(--surface-alt)', borderRadius: 4 }} />
-                  <div style={{ width: '40%', height: 12, background: 'var(--surface-alt)', borderRadius: 4 }} />
-                </div>
-              </div>
-              <div style={{ width: '100%', height: 38, background: 'var(--surface-alt)', borderRadius: 6 }} />
-              <div style={{ width: '100%', height: 34, background: 'var(--surface-alt)', borderRadius: 8, marginTop: 'auto' }} />
-            </div>
-          ))
-        ) : (
-          filteredVets.map((v) => {
-          const isFav = (currentUser?.favoriteVetIds || favoriteVetIds || []).includes(v.id);
-          const isVet = (v.tag || '').toLowerCase().includes('vet');
-
-          return (
-            <div 
-              key={v.id} 
-              className="apple-solid-card" 
-              style={{ display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'stretch', textAlign: 'left', padding: '22px' }}
-            >
-              {/* Card Header */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
-                  {/* Avatar with Open/Closed badge overlay */}
-                  <div style={{ position: 'relative', flexShrink: 0 }}>
-                    <img 
-                      src={v.photo || 'assets/images/Pet_1.jpg'} 
-                      alt={v.name} 
-                      style={{ width: 54, height: 54, borderRadius: '50%', objectFit: 'cover' }} 
-                    />
-                    {/* ── NEW: Clinic Hours Badge ── */}
-                    <span style={{
-                      position: 'absolute',
-                      bottom: -2,
-                      right: -2,
-                      fontSize: '9px',
-                      fontWeight: 700,
-                      padding: '2px 5px',
-                      borderRadius: '8px',
-                      background: openNow ? '#10B981' : '#6B7280',
-                      color: '#fff',
-                      border: '1.5px solid var(--surface)',
-                      whiteSpace: 'nowrap',
-                      lineHeight: 1.3,
-                    }}>
-                      {openNow ? '● Open' : '● Closed'}
-                    </span>
-                  </div>
-
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <strong style={{ fontSize: '17px', fontWeight: 700 }}>{v.name}</strong>
-                      {v.isVerified && <ShieldCheck size={16} color="#10B981" />}
-                    </div>
-                    <span style={{ fontSize: '12px', color: 'var(--primary)', fontWeight: 600, display: 'block' }}>
-                      {v.qualification}
-                    </span>
-                    <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>{v.clinic}</span>
-                  </div>
-                </div>
-
-                <button 
-                  className="icon-btn" 
-                  style={{ width: 32, height: 32, color: isFav ? '#EF4444' : 'var(--text-muted)' }}
-                  onClick={() => toggleFavoriteVet(v.id)}
-                  title="Save to Favorites"
-                >
-                  <Heart size={15} fill={isFav ? '#EF4444' : 'none'} />
-                </button>
-              </div>
-
-              {/* Professional Profile Box (Matching App) */}
-              <div style={{
-                background: 'var(--surface-alt)',
-                padding: '12px 14px',
-                borderRadius: '14px',
-                border: '1px solid var(--border)',
-              }}>
-                <span style={{
-                  fontSize: '9px',
-                  fontWeight: 800,
-                  color: 'var(--text-muted)',
-                  letterSpacing: '0.8px',
-                  textTransform: 'uppercase',
-                  display: 'block',
-                  marginBottom: '4px'
-                }}>
-                  PROFESSIONAL PROFILE
-                </span>
-                <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', lineHeight: 1.45, margin: 0 }}>
-                  {v.bio || 'Experienced in complex surgeries and preventive care for small animals.'}
-                </p>
-              </div>
-
-              {/* Meta Stats & Rating Breakdown */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', background: 'var(--surface-alt)', padding: '10px 12px', borderRadius: 'var(--radius-sm)' }}>
-                {/* Top row: rating + distance */}
-                <div style={{ display: 'flex', gap: '12px', fontSize: '12px', flexWrap: 'wrap' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 700 }}>
-                    <StarRow rating={v.rating} />
-                    <span style={{ marginLeft: '3px' }}>{v.rating}</span>
-                    <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>({v.reviews} reviews)</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-muted)' }}>
-                    <MapPin size={13} />
-                    <span>{v.distance}</span>
-                  </div>
-                </div>
-                <RatingBreakdown reviews={v.reviews} />
-              </div>
-
-              {/* Badges Row (Exp + Teleconsult) & Action CTA */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '6px', flexWrap: 'wrap', gap: '8px' }}>
-                <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    background: 'var(--surface-alt)',
-                    padding: '5px 10px',
-                    borderRadius: '10px',
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    color: 'var(--text-muted)',
-                    border: '1px solid var(--border)'
-                  }}>
-                    <Briefcase size={11} />
-                    <span>{v.experience || '10 Years'} Exp</span>
-                  </div>
-
-                  {isVet && (
-                    <button 
-                      className="btn-ghost" 
-                      style={{ padding: '5px 8px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px', borderRadius: '10px' }}
-                      onClick={() => openModal('teleconsult', { doctor: v.name })}
-                      title="Instant Video Consult"
-                    >
-                      <Video size={12} color="#3B82F6" />
-                      <span>৳500 Video</span>
-                    </button>
-                  )}
-                </div>
-
-                {/* Start / Book In-Clinic Button */}
-                <button 
-                  onClick={() => openModal('booking', { doctor: v.name, clinic: v.clinic })}
+              return (
+                <div
+                  key={doctor.id}
+                  onClick={() => handleSelectClinician(doctor)}
                   style={{
-                    background: '#10B981',
-                    color: '#FFF',
-                    border: 'none',
-                    padding: '8px 18px',
-                    borderRadius: '999px',
-                    fontWeight: 800,
-                    fontSize: '12.5px',
+                    backgroundColor: '#FFFFFF',
+                    borderRadius: '24px',
+                    border: isSelected ? '1.5px solid #346B73' : '1px solid #EAE5E1',
+                    padding: '24px',
+                    boxShadow: isSelected ? '0 4px 18px rgba(52, 107, 115, 0.08)' : '0 2px 10px rgba(22, 15, 12, 0.02)',
                     cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    boxShadow: '0 2px 8px rgba(16, 185, 129, 0.25)',
-                    transition: 'all 0.15s ease',
+                    transition: 'all 0.2s ease',
+                    position: 'relative'
                   }}
                 >
-                  <span>Start</span>
-                  <ChevronRight size={13} />
-                </button>
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: '110px 1fr',
+                    gap: '22px',
+                    alignItems: 'start'
+                  }} className="doctor-card-grid">
+
+                    {/* Avatar with Floating Badge */}
+                    <div style={{ position: 'relative', width: '100px', height: '100px' }}>
+                      <img
+                        src={doctor.image}
+                        alt={doctor.name}
+                        style={{
+                          width: '100px',
+                          height: '100px',
+                          borderRadius: '50%',
+                          objectFit: 'cover',
+                          border: '2px solid #F5F1EE'
+                        }}
+                      />
+                      {/* Floating Badge Icon */}
+                      <div style={{
+                        position: 'absolute',
+                        bottom: '2px',
+                        right: '2px',
+                        width: '24px',
+                        height: '24px',
+                        borderRadius: '50%',
+                        backgroundColor: isEmergency ? '#DC2626' : '#346B73',
+                        color: '#FFFFFF',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        border: '2px solid #FFFFFF',
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
+                      }}>
+                        {doctor.badgeType === 'video' && <Video size={12} />}
+                        {doctor.badgeType === 'stethoscope' && <Stethoscope size={12} />}
+                        {doctor.badgeType === 'emergency' && <Flame size={12} />}
+                      </div>
+                    </div>
+
+                    {/* Doctor Details */}
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+
+                      {/* Top Meta: Availability Pill + Rating */}
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        marginBottom: '8px',
+                        flexWrap: 'wrap',
+                        gap: '8px'
+                      }}>
+                        {/* Availability Tag */}
+                        <div style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          backgroundColor: isEmergency ? '#FEF2F2' : '#EDF5F3',
+                          border: isEmergency ? '1px solid #FCA5A5' : '1px solid #C4DCD6',
+                          color: isEmergency ? '#DC2626' : '#0D9488',
+                          padding: '3px 10px',
+                          borderRadius: '9999px',
+                          fontFamily: 'var(--font-mono, monospace)',
+                          fontSize: '9.5px',
+                          fontWeight: 700,
+                          letterSpacing: '0.08em',
+                          textTransform: 'uppercase'
+                        }}>
+                          {isEmergency && <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#DC2626' }} />}
+                          <span>{doctor.availability}</span>
+                        </div>
+
+                        {/* Star Rating */}
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          color: '#160F0C'
+                        }}>
+                          <Star size={13} color="#F59E0B" fill="#F59E0B" />
+                          <span>{doctor.rating.toFixed(2)}</span>
+                          <span style={{ color: '#707973', fontWeight: 500, fontSize: '11px' }}>
+                            ({doctor.reviewsCount} reviews)
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Doctor Name */}
+                      <h3 style={{
+                        fontSize: '17px',
+                        fontWeight: 700,
+                        color: '#160F0C',
+                        margin: '0 0 3px 0',
+                        letterSpacing: '-0.01em'
+                      }}>
+                        {doctor.name}
+                      </h3>
+
+                      {/* Department / Specialty */}
+                      <div style={{
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        color: '#5C524E',
+                        marginBottom: '8px'
+                      }}>
+                        {doctor.role}
+                      </div>
+
+                      {/* Bio Snippet */}
+                      <p style={{
+                        fontSize: '11.5px',
+                        color: '#707973',
+                        lineHeight: 1.45,
+                        margin: '0 0 16px 0'
+                      }}>
+                        {doctor.bio}
+                      </p>
+
+                      {/* Bottom Pricing & Action Button Row */}
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        paddingTop: '12px',
+                        borderTop: '1px solid #F5F1EE',
+                        flexWrap: 'wrap',
+                        gap: '12px'
+                      }}>
+                        {/* Price Breakdown */}
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                          <span style={{
+                            fontFamily: 'var(--font-mono, monospace)',
+                            fontSize: '8.5px',
+                            fontWeight: 700,
+                            letterSpacing: '0.08em',
+                            color: '#707973',
+                            textTransform: 'uppercase'
+                          }}>
+                            {doctor.priceLabel}
+                          </span>
+                          <span style={{
+                            fontSize: '18px',
+                            fontWeight: 700,
+                            color: '#160F0C',
+                            letterSpacing: '-0.02em'
+                          }}>
+                            ৳{doctor.price}
+                          </span>
+                          <span style={{ fontSize: '11.5px', color: '#707973' }}>
+                            {doctor.unit}
+                          </span>
+                        </div>
+
+                        {/* CTA Select / Active Button */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSelectClinician(doctor);
+                          }}
+                          style={{
+                            padding: '8px 22px',
+                            borderRadius: '9999px',
+                            border: 'none',
+                            backgroundColor: isSelected ? '#346B73' : '#160F0C',
+                            color: '#FFFFFF',
+                            fontSize: '12.5px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            boxShadow: isSelected ? '0 2px 8px rgba(52, 107, 115, 0.25)' : 'none',
+                            transition: 'all 0.18s ease'
+                          }}
+                        >
+                          {isSelected ? 'Clinician Active' : 'Select Clinician'}
+                        </button>
+                      </div>
+
+                    </div>
+
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* ── PEER-REVIEWED FACULTY STANDARDS BOTTOM CARD ── */}
+            <div style={{
+              backgroundColor: '#F8F6F4',
+              borderRadius: '24px',
+              border: '1px solid #EAE5E1',
+              padding: '20px 24px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '16px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <div style={{
+                  width: '38px',
+                  height: '38px',
+                  borderRadius: '50%',
+                  backgroundColor: '#FFFFFF',
+                  border: '1px solid #DFE8E5',
+                  color: '#346B73',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}>
+                  <ShieldCheck size={20} />
+                </div>
+                <div>
+                  <div style={{ fontSize: '14px', fontWeight: 700, color: '#160F0C', marginBottom: '2px' }}>
+                    Peer-Reviewed Faculty Standards
+                  </div>
+                  <div style={{ fontSize: '11.5px', color: '#707973', lineHeight: 1.4 }}>
+                    All clinicians hold active surgical licensure, peer credential verification, and automated EHR indemnity bonding.
+                  </div>
+                </div>
+              </div>
+
+              <div style={{
+                fontFamily: 'var(--font-mono, monospace)',
+                fontSize: '9.5px',
+                fontWeight: 700,
+                letterSpacing: '0.1em',
+                color: '#346B73',
+                textTransform: 'uppercase'
+              }}>
+                AAHA CERTIFIED
               </div>
             </div>
-          );
-        }))}
-      </div>
+
+          </div>
+
+          {/* ══════════════════════════════════════════════════════════════
+              RIGHT COLUMN: STICKY TELEHEALTH CHECKOUT PANEL
+             ══════════════════════════════════════════════════════════════ */}
+          <div style={{
+            position: 'sticky',
+            top: '84px',
+            backgroundColor: '#FFFFFF',
+            borderRadius: '24px',
+            border: '1px solid #DFE8E5',
+            padding: '24px',
+            boxShadow: '0 2px 14px rgba(22, 15, 12, 0.03)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '20px'
+          }}>
+
+            {/* Header: Title + Encrypted Badge */}
+            <div>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: '6px'
+              }}>
+                <span style={{
+                  fontFamily: 'var(--font-mono, monospace)',
+                  fontSize: '9px',
+                  fontWeight: 700,
+                  letterSpacing: '0.12em',
+                  color: '#707973',
+                  textTransform: 'uppercase'
+                }}>
+                  TELEHEALTH CHECKOUT
+                </span>
+
+                <span style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  backgroundColor: '#EDF5F3',
+                  border: '1px solid #C4DCD6',
+                  color: '#0D9488',
+                  fontSize: '9.5px',
+                  fontWeight: 700,
+                  letterSpacing: '0.08em',
+                  padding: '2px 8px',
+                  borderRadius: '9999px',
+                  fontFamily: 'var(--font-mono)'
+                }}>
+                  <span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#0D9488' }} />
+                  <span>Encrypted Vitals</span>
+                </span>
+              </div>
+
+              <h2 style={{
+                fontFamily: 'var(--font-display, "Playfair Display", Georgia, serif)',
+                fontSize: '20px',
+                fontWeight: 600,
+                color: '#160F0C',
+                margin: 0
+              }}>
+                Reserve Clinical Session
+              </h2>
+            </div>
+
+            {/* 3-Step Stepper Progress Bar */}
+            <div>
+              {/* Top Accent Line */}
+              <div style={{
+                height: '3px',
+                backgroundColor: '#346B73',
+                borderRadius: '9999px',
+                marginBottom: '8px'
+              }} />
+
+              {/* Stepper Labels */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                fontFamily: 'var(--font-mono, monospace)',
+                fontSize: '8.5px',
+                fontWeight: 700,
+                letterSpacing: '0.08em',
+                color: '#160F0C',
+                textTransform: 'uppercase'
+              }}>
+                <span>1. CLINICIAN</span>
+                <span>2. SCHEDULE</span>
+                <span>3. COMPANION</span>
+              </div>
+            </div>
+
+            {/* STEP 01: ACTIVE FACULTY CARD */}
+            <div>
+              <div style={{
+                backgroundColor: '#F0FDF4',
+                border: '1px solid #C4DCD6',
+                borderRadius: '18px',
+                padding: '14px 16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '12px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '50%',
+                    backgroundColor: '#FFFFFF',
+                    border: '1px solid #A7D0C8',
+                    color: '#346B73',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0
+                  }}>
+                    <Stethoscope size={18} />
+                  </div>
+                  <div>
+                    <div style={{
+                      fontFamily: 'var(--font-mono, monospace)',
+                      fontSize: '8px',
+                      fontWeight: 700,
+                      letterSpacing: '0.08em',
+                      color: '#707973',
+                      textTransform: 'uppercase',
+                      marginBottom: '1px'
+                    }}>
+                      STEP 01 • ACTIVE FACULTY
+                    </div>
+                    <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#160F0C' }}>
+                      {activeClinician.name}
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#707973' }}>
+                      {activeClinician.role.split('&')[0]}
+                    </div>
+                  </div>
+                </div>
+
+                <span style={{
+                  fontFamily: 'var(--font-mono, monospace)',
+                  fontSize: '8.5px',
+                  fontWeight: 700,
+                  color: '#0D9488',
+                  backgroundColor: '#FFFFFF',
+                  padding: '2px 8px',
+                  borderRadius: '9999px',
+                  border: '1px solid #C4DCD6',
+                  whiteSpace: 'nowrap'
+                }}>
+                  {activeClinician.availability.replace('AVAILABLE ', '')}
+                </span>
+              </div>
+            </div>
+
+            {/* STEP 02: SELECT DATE & WINDOW */}
+            <div>
+              <div style={{
+                fontFamily: 'var(--font-mono, monospace)',
+                fontSize: '8.5px',
+                fontWeight: 700,
+                letterSpacing: '0.1em',
+                color: '#707973',
+                textTransform: 'uppercase',
+                marginBottom: '10px'
+              }}>
+                STEP 02 • SELECT DATE &amp; WINDOW
+              </div>
+
+              {/* Date Capsule Grid */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+                gap: '6px',
+                marginBottom: '10px'
+              }}>
+                {[
+                  { id: 'today',    day: 'TODAY',    date: 'Feb 24' },
+                  { id: 'tomorrow', day: 'TOMORROW', date: 'Feb 25' },
+                  { id: 'wed',      day: 'WED',      date: 'Feb 26' },
+                  { id: 'thu',      day: 'THU',      date: 'Feb 27' }
+                ].map(item => {
+                  const isSelected = selectedDate === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => setSelectedDate(item.id)}
+                      style={{
+                        padding: '8px 4px',
+                        borderRadius: '14px',
+                        border: isSelected ? 'none' : '1px solid #EAE5E1',
+                        backgroundColor: isSelected ? '#160F0C' : '#FAF7F5',
+                        color: isSelected ? '#FFFFFF' : '#160F0C',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <span style={{
+                        fontFamily: 'var(--font-mono, monospace)',
+                        fontSize: '7.5px',
+                        fontWeight: 700,
+                        letterSpacing: '0.06em',
+                        color: isSelected ? '#D1D5DB' : '#707973'
+                      }}>
+                        {item.day}
+                      </span>
+                      <span style={{ fontSize: '11px', fontWeight: 700 }}>
+                        {item.date}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Time Window Pills */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+                gap: '6px'
+              }}>
+                {(activeClinician.slots || [
+                  { id: '1', time: '15:00 - 15:25' },
+                  { id: '2', time: '16:30 - 16:55' },
+                  { id: '3', time: '18:15 - 18:40' }
+                ]).map(slot => {
+                  const isSelected = selectedSlot === slot.time;
+                  return (
+                    <button
+                      key={slot.id}
+                      onClick={() => setSelectedSlot(slot.time)}
+                      style={{
+                        padding: '8px 6px',
+                        borderRadius: '12px',
+                        border: isSelected ? '1.5px solid #346B73' : '1px solid #EAE5E1',
+                        backgroundColor: isSelected ? '#EDF5F3' : '#FFFFFF',
+                        color: isSelected ? '#346B73' : '#160F0C',
+                        fontSize: '11px',
+                        fontWeight: isSelected ? 700 : 500,
+                        cursor: 'pointer',
+                        textAlign: 'center',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      {slot.time}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* STEP 03: PATIENT INTAKE & MEDICAL TRIAGE */}
+            <div>
+              <div style={{
+                fontFamily: 'var(--font-mono, monospace)',
+                fontSize: '8.5px',
+                fontWeight: 700,
+                letterSpacing: '0.1em',
+                color: '#707973',
+                textTransform: 'uppercase',
+                marginBottom: '10px'
+              }}>
+                STEP 03 • PATIENT INTAKE &amp; MEDICAL TRIAGE
+              </div>
+
+              {/* Companion Patients Row */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+                gap: '10px',
+                marginBottom: '12px'
+              }}>
+                {/* Milo */}
+                <div
+                  onClick={() => setSelectedCompanionId('milo')}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    padding: '8px 12px',
+                    borderRadius: '16px',
+                    backgroundColor: selectedCompanionId === 'milo' ? '#EFEFEA' : '#FAF7F5',
+                    border: selectedCompanionId === 'milo' ? '1px solid #DFE8E5' : '1px solid transparent',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  <img
+                    src="https://images.unsplash.com/photo-1552053831-71594a27632d?w=100&auto=format&fit=crop&q=80"
+                    alt="Milo"
+                    style={{ width: '30px', height: '30px', borderRadius: '50%', objectFit: 'cover' }}
+                  />
+                  <div>
+                    <div style={{ fontSize: '12px', fontWeight: 700, color: '#160F0C' }}>
+                      Milo
+                    </div>
+                    <div style={{ fontSize: '10.5px', color: '#707973' }}>
+                      Retriever • 4 yrs
+                    </div>
+                  </div>
+                </div>
+
+                {/* Cleo */}
+                <div
+                  onClick={() => setSelectedCompanionId('cleo')}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    padding: '8px 12px',
+                    borderRadius: '16px',
+                    backgroundColor: selectedCompanionId === 'cleo' ? '#EFEFEA' : '#FAF7F5',
+                    border: selectedCompanionId === 'cleo' ? '1px solid #DFE8E5' : '1px solid transparent',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  <img
+                    src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=100&auto=format&fit=crop&q=80"
+                    alt="Cleo"
+                    style={{ width: '30px', height: '30px', borderRadius: '50%', objectFit: 'cover' }}
+                  />
+                  <div>
+                    <div style={{ fontSize: '12px', fontWeight: 700, color: '#160F0C' }}>
+                      Cleo
+                    </div>
+                    <div style={{ fontSize: '10.5px', color: '#707973' }}>
+                      Shorthair • 2 yrs
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Linked AI Triage Scan Integration Box */}
+              <div
+                onClick={() => setLinkAiScan(!linkAiScan)}
+                style={{
+                  backgroundColor: '#EDF5F3',
+                  border: '1px solid #C4DCD6',
+                  borderRadius: '14px',
+                  padding: '10px 14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  cursor: 'pointer',
+                  marginBottom: '10px',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{ color: '#346B73', flexShrink: 0 }}>
+                    <Activity size={16} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '11.5px', fontWeight: 700, color: '#160F0C' }}>
+                      Link Maya AI Triage Scan #4092
+                    </div>
+                    <div style={{ fontSize: '10px', color: '#707973' }}>
+                      Gait anomaly analysis • Timestamp 09:12 Today
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{
+                  width: '18px',
+                  height: '18px',
+                  borderRadius: '4px',
+                  backgroundColor: linkAiScan ? '#346B73' : '#FFFFFF',
+                  border: linkAiScan ? 'none' : '1px solid #C4DCD6',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#FFFFFF'
+                }}>
+                  {linkAiScan && <Check size={12} strokeWidth={3} />}
+                </div>
+              </div>
+
+              {/* Chief Complaint / Symptoms Input */}
+              <div>
+                <textarea
+                  rows={2}
+                  value={symptomNotes}
+                  onChange={(e) => setSymptomNotes(e.target.value)}
+                  placeholder="Briefly describe symptoms (e.g. slight right-hind limp after running, no vocal distress)..."
+                  style={{
+                    width: '100%',
+                    backgroundColor: '#FAF7F5',
+                    border: '1px solid #EAE5E1',
+                    borderRadius: '14px',
+                    padding: '10px 14px',
+                    fontSize: '11.5px',
+                    color: '#160F0C',
+                    fontFamily: 'inherit',
+                    resize: 'none',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                    lineHeight: 1.45
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Price Breakdown Section */}
+            <div style={{
+              paddingTop: '12px',
+              borderTop: '1px solid #F5F1EE',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '8px'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#5C524E' }}>
+                <span>Clinician Video Teleconsultation</span>
+                <span style={{ fontWeight: 600, color: '#160F0C' }}>৳{activeClinician.price}</span>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#5C524E' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <span>Digital Prescription Protocol</span>
+                  <CheckCircle2 size={12} color="#0D9488" />
+                </span>
+                <span style={{ fontWeight: 600, color: '#0D9488' }}>৳0</span>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#5C524E' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <span>Maya Health Vault Cloud Sync</span>
+                  <Lock size={11} color="#0D9488" />
+                </span>
+                <span style={{ fontWeight: 600, color: '#0D9488' }}>৳0</span>
+              </div>
+
+              {/* Total Row */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'baseline',
+                paddingTop: '8px',
+                borderTop: '1px solid #EAE5E1',
+                marginTop: '4px'
+              }}>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: '#160F0C' }}>
+                  Total Medical Honorarium
+                </span>
+                <span style={{ fontSize: '20px', fontWeight: 700, color: '#346B73', letterSpacing: '-0.02em' }}>
+                  ৳{activeClinician.price}
+                </span>
+              </div>
+            </div>
+
+            {/* Action Button: Confirm & Secure Consultation */}
+            <button
+              onClick={handleConfirmConsultation}
+              disabled={isSubmitting}
+              style={{
+                width: '100%',
+                padding: '14px 20px',
+                borderRadius: '9999px',
+                backgroundColor: '#160F0C',
+                color: '#FFFFFF',
+                border: 'none',
+                fontSize: '13.5px',
+                fontWeight: 600,
+                cursor: isSubmitting ? 'wait' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                boxShadow: '0 2px 10px rgba(22, 15, 12, 0.15)',
+                transition: 'all 0.18s ease'
+              }}
+            >
+              <Video size={16} />
+              <span>{isSubmitting ? 'Securing Encrypted Room...' : `Confirm & Secure Consultation (৳${activeClinician.price})`}</span>
+            </button>
+
+            {/* Continuity Guarantee Footer Note */}
+            <div style={{
+              textAlign: 'center',
+              fontFamily: 'var(--font-mono, monospace)',
+              fontSize: '8px',
+              fontWeight: 700,
+              letterSpacing: '0.08em',
+              color: '#707973',
+              textTransform: 'uppercase'
+            }}>
+              PROTECTED BY PET MAYA 100% CLINICAL CONTINUITY GUARANTEE
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      {/* ── RESPONSIVE STYLES ── */}
+      <style>{`
+        @media (max-width: 1080px) {
+          .specialists-main-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+        @media (max-width: 640px) {
+          .doctor-card-grid {
+            grid-template-columns: 1fr !important;
+            text-align: center;
+          }
+          .doctor-card-grid > div:first-child {
+            margin: 0 auto;
+          }
+        }
+      `}</style>
+
     </div>
   );
 }
