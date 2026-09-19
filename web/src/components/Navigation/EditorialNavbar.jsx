@@ -238,14 +238,10 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
           {/* Profile / Portal Access Button */}
           <button
             onClick={() => {
-              if (currentUser) {
-                handleNavClick('profile');
-              } else {
-                handleNavClick('login');
-              }
+              handleNavClick('profile');
             }}
             aria-label="Account profile"
-            title={currentUser ? (currentUser.name || 'Profile') : 'Sign In to Health Vault'}
+            title={currentUser ? (currentUser.name || 'Profile') : 'Guardian Profile & Health Vault'}
             className="btn-elevate"
             style={{
               width: '36px',
