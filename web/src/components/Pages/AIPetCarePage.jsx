@@ -18,7 +18,7 @@ export default function AIPetCarePage({ onNavigate }) {
   };
 
   return (
-    <div style={{ backgroundColor: 'var(--bg)', color: 'var(--foreground)' }}>
+    <div style={{ backgroundColor: '#FDF8F5', color: '#160F0C', minHeight: '100vh' }}>
       {/* ── HERO ── */}
       <section className="editorial-section editorial-section-border" style={{ paddingTop: '80px', textAlign: 'center' }}>
         <div className="editorial-container">

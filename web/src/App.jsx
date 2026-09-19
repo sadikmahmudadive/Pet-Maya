@@ -297,6 +297,7 @@ function MainContent() {
         return <DigitalPassportPage onNavigate={handleNavigate} key="passport" />;
       case 'ai-pet-care':
         return <AIPetCarePage onNavigate={handleNavigate} key="ai-care" />;
+        return <HealthTriage key="ai-pet-care" onNavigate={handleNavigate} />;
       case 'pet-gps':
         return <PetGPSPage onNavigate={handleNavigate} key="pet-gps" />;
       case 'connected-care':
