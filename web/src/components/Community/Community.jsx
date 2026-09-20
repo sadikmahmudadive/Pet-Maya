@@ -46,7 +46,18 @@ import {
 } from 'lucide-react';
 
 export default function Community({ onNavigate }) {
-  const { showToast, openModal, cart } = useApp ? useApp() : { showToast: () => {}, openModal: () => {}, cart: [] };
+  const { 
+    showToast, 
+    openModal, 
+    cart = [], 
+    communityPosts = [], 
+    createCommunityPost, 
+    togglePostReaction, 
+    addPostComment, 
+    resolveAmberAlert, 
+    uploadImageFile, 
+    pets = [] 
+  } = useApp ? useApp() : { showToast: () => {}, openModal: () => {}, cart: [] };
   const { currentUser } = useAuth ? useAuth() : { currentUser: null };
 
   // Category filter state
@@ -55,6 +66,8 @@ export default function Community({ onNavigate }) {
 
   // Post composer state
   const [postContent, setPostContent] = useState('');
+  const [postImageUrl, setPostImageUrl] = useState('');
+  const [taggedPetName, setTaggedPetName] = useState(pets[0]?.name || 'Milo');
   const [showAmberAlert, setShowAmberAlert] = useState(true);
   const [showReportSightingModal, setShowReportSightingModal] = useState(false);
   const [showContactGuardianModal, setShowContactGuardianModal] = useState(false);
@@ -95,14 +108,29 @@ export default function Community({ onNavigate }) {
     });
   };
 
-  const handlePublishPost = (e) => {
-    e.preventDefault();
+  const handlePublishPost = async (e) => {
+    if (e) e.preventDefault();
     if (!postContent.trim()) {
       showToast('Please enter a thought or recovery update to publish.', 'error');
       return;
     }
-    showToast('✨ Moment published to Dhaka Mesh Community!', 'success');
-    setPostContent('');
+    try {
+      if (createCommunityPost) {
+        await createCommunityPost({
+          content: postContent.trim(),
+          postType: activeCategory === 'all' ? 'recovery' : activeCategory,
+          imageUrl: postImageUrl || '',
+          petName: taggedPetName || 'Milo',
+          userName: currentUser?.name || 'Rehan S.',
+          userPhoto: currentUser?.photoUrl || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80'
+        });
+      }
+      showToast('✨ Moment published to Dhaka Mesh Community!', 'success');
+      setPostContent('');
+      setPostImageUrl('');
+    } catch (err) {
+      showToast('Failed to publish: ' + err.message, 'error');
+    }
   };
 
   const handleSubscribeNewsletter = (e) => {
@@ -586,23 +614,63 @@ export default function Community({ onNavigate }) {
                 borderTop: '1px solid #F5EFEB'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '12px', color: '#675C58' }}>
+                  <label style={{
+                    background: 'none',
+                    border: 'none',
+                    color: postImageUrl ? '#047857' : '#675C58',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    cursor: 'pointer',
+                    fontSize: '12px',
+                    fontWeight: postImageUrl ? 700 : 500
+                  }}>
+                    <Camera size={15} color={postImageUrl ? '#047857' : '#3E7B84'} /> {postImageUrl ? 'Photo Attached ✓' : 'Photo/Video'}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      style={{ display: 'none' }}
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file && uploadImageFile) {
+                          try {
+                            showToast('Uploading photo to mesh...', 'info');
+                            const url = await uploadImageFile(file, 'community');
+                            setPostImageUrl(url);
+                            showToast('Photo attached to moment!', 'success');
+                          } catch (err) {
+                            showToast('Upload failed: ' + err.message, 'error');
+                          }
+                        }
+                      }}
+                    />
+                  </label>
                   <button
-                    onClick={() => showToast('Photo / Video upload opened', 'info')}
+                    type="button"
+                    onClick={() => {
+                      const names = (pets || []).map(p => p.name).filter(Boolean);
+                      if (!names.includes('Milo')) names.push('Milo');
+                      if (!names.includes('Cleo')) names.push('Cleo');
+                      const currentIdx = names.indexOf(taggedPetName);
+                      const nextName = names[(currentIdx + 1) % names.length];
+                      setTaggedPetName(nextName);
+                      showToast(`Tagged companion: ${nextName}`, 'info');
+                    }}
                     style={{ background: 'none', border: 'none', color: '#675C58', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '12px' }}
                   >
-                    <Camera size={15} color="#3E7B84" /> Photo/Video
+                    🐾 Tag: <strong>{taggedPetName}</strong>
                   </button>
                   <button
-                    onClick={() => showToast('Tagged Milo (Golden Retriever)', 'info')}
+                    type="button"
+                    onClick={() => {
+                      const cats = ['all', 'recovery', 'nutrition', 'social'];
+                      const next = cats[(cats.indexOf(activeCategory) + 1) % cats.length];
+                      setActiveCategory(next);
+                      showToast(`Category switched to: ${next}`, 'info');
+                    }}
                     style={{ background: 'none', border: 'none', color: '#675C58', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '12px' }}
                   >
-                    🐾 Tag Pet (Milo / Cleo)
-                  </button>
-                  <button
-                    onClick={() => showToast('Category selector opened', 'info')}
-                    style={{ background: 'none', border: 'none', color: '#675C58', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '12px' }}
-                  >
-                    🏷 Category
+                    🏷 Category: {activeCategory}
                   </button>
                 </div>
 
@@ -661,6 +729,97 @@ export default function Community({ onNavigate }) {
                 </button>
               ))}
             </div>
+
+            {/* Dynamic Community Posts from Firestore */}
+            {communityPosts.map(post => {
+              const pId = post.postId || post.id;
+              const hasLiked = post.likedByMe || (post.likedByUserIds && currentUser && post.likedByUserIds.includes(currentUser.uid));
+              const likes = post.likesCount || (post.likedBy ? post.likedBy.length : 0) || 0;
+              return (
+                <div key={pId} style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: '18px',
+                  border: '1px solid #EBE5DF',
+                  padding: '22px',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+                  marginBottom: '20px'
+                }}>
+                  {/* Author Header */}
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <img
+                        src={post.userPhoto || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80'}
+                        alt={post.userName || 'Member'}
+                        style={{ width: '42px', height: '42px', borderRadius: '50%', objectFit: 'cover' }}
+                      />
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ fontSize: '14.5px', fontWeight: 800, color: '#160F0C' }}>{post.userName || 'Dhaka Guardian'}</span>
+                          <span style={{
+                            backgroundColor: 'rgba(62, 123, 132, 0.12)',
+                            color: '#3E7B84',
+                            fontSize: '9.5px',
+                            fontWeight: 700,
+                            padding: '1px 6px',
+                            borderRadius: '4px'
+                          }}>
+                            {post.petName || 'Companion'}
+                          </span>
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#8C827A' }}>
+                          {post.timestamp ? new Date(post.timestamp).toLocaleDateString() : 'Just now'} • Verified Mesh Member
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Content */}
+                  <p style={{ fontSize: '13.5px', color: '#160F0C', lineHeight: 1.6, margin: '0 0 14px 0' }}>
+                    {post.content}
+                  </p>
+
+                  {post.imageUrl && (
+                    <div style={{ marginBottom: '14px', borderRadius: '12px', overflow: 'hidden', maxHeight: '380px' }}>
+                      <img src={post.imageUrl} alt="Post media" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    </div>
+                  )}
+
+                  {/* Actions & Reactions */}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    paddingTop: '12px',
+                    borderTop: '1px solid #F5EFEB',
+                    fontSize: '12px',
+                    color: '#675C58'
+                  }}>
+                    <button
+                      onClick={() => {
+                        if (togglePostReaction) togglePostReaction(pId, 'Like');
+                        showToast('Reaction updated', 'success');
+                      }}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: hasLiked ? '#EF4444' : '#675C58',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        cursor: 'pointer',
+                        fontWeight: 600
+                      }}
+                    >
+                      <Heart size={15} fill={hasLiked ? '#EF4444' : 'none'} color={hasLiked ? '#EF4444' : '#675C58'} /> {likes}
+                    </button>
+
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <MessageCircle size={14} /> {post.commentsCount || 0} comments
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
 
             {/* ── POST 1: Milo's 8-Week Post-TPLO Rehabilitation ── */}
             {(activeCategory === 'all' || activeCategory === 'recovery') && (

@@ -192,8 +192,31 @@ export default function HealthTriage({ onNavigate }) {
     ];
   }, []);
 
+  const availablePets = useMemo(() => {
+    const base = [...defaultPets];
+    (pets || []).forEach(p => {
+      const pid = p.id || p.petID || p.name?.toLowerCase();
+      if (!base.find(b => b.id === pid || b.name?.toLowerCase() === p.name?.toLowerCase())) {
+        base.push({
+          id: pid,
+          rawPet: p,
+          name: p.name || 'Companion',
+          breed: p.breed || 'Companion Breed',
+          age: p.age ? (String(p.age).includes('yr') ? String(p.age) : `${p.age} yrs`) : '2.5 yrs',
+          weight: p.weight ? (String(p.weight).includes('kg') ? String(p.weight) : `${p.weight} kg`) : '15.0 kg',
+          vaccination: p.nextVaccine ? 'Current' : 'Verified',
+          microchip: p.microchip || p.petID || 'ISO-9814-0099',
+          image: p.photo || (String(p.species).toLowerCase().includes('cat') || String(p.species).toLowerCase().includes('fel')
+            ? 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=200&auto=format&fit=crop&q=80'
+            : 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=200&auto=format&fit=crop&q=80')
+        });
+      }
+    });
+    return base;
+  }, [defaultPets, pets]);
+
   const [selectedPetId, setSelectedPetId] = useState('pet_milo');
-  const activePet = defaultPets.find(p => p.id === selectedPetId) || defaultPets[0];
+  const activePet = availablePets.find(p => p.id === selectedPetId) || availablePets[0];
 
   // Anatomical Symptom Locator state
   const [selectedLocus, setSelectedLocus] = useState('gi');
@@ -398,10 +421,12 @@ export default function HealthTriage({ onNavigate }) {
     if (!scanResult) return;
     if (typeof addMedicalRecord === 'function') {
       addMedicalRecord({
+        petId: activePet.id || activePet.petId,
         petName: activePet.name,
         serviceType: 'AI Health Assessment',
         diagnosis: scanResult.title,
-        prescription: scanResult.care || triageResult.conclusion,
+        prescription: scanResult.care || triageResult?.conclusion || 'Self-limiting symptomatic monitoring',
+        weight: activePet.weight,
         cost: 0,
         date: new Date().toISOString().split('T')[0],
         nextBooster: '48h Follow-up'
@@ -789,7 +814,7 @@ export default function HealthTriage({ onNavigate }) {
                       marginBottom: '24px',
                       flexWrap: 'wrap'
                     }}>
-                      {defaultPets.map(pet => {
+                      {availablePets.map(pet => {
                         const isSelected = pet.id === selectedPetId;
                         return (
                           <div
@@ -1388,7 +1413,7 @@ export default function HealthTriage({ onNavigate }) {
                         Companion Patient
                       </span>
                       <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                        {defaultPets.map(pet => {
+                        {availablePets.map(pet => {
                           const isSelected = pet.id === selectedPetId;
                           return (
                             <button

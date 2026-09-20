@@ -71,19 +71,40 @@ const DEFAULT_DISPENSARY_ITEMS = [
 ];
 
 export default function CartPage({ onNavigate }) {
-  const { openModal, showToast } = useApp();
+  const { 
+    cart = [], 
+    updateCartQty, 
+    removeFromCart, 
+    clearCart, 
+    addToCart, 
+    appliedCoupon, 
+    applyCoupon, 
+    openModal, 
+    showToast 
+  } = useApp();
   const { currentUser } = useAuth();
 
-  // Prescribed items in cart state
-  const [items, setItems] = useState(DEFAULT_DISPENSARY_ITEMS);
+  // Normalize cart items with clinical styling fallbacks
+  const items = (cart && cart.length > 0) ? cart.map(item => ({
+    id: item.id,
+    name: item.name,
+    specBadge: item.specBadge || item.category || 'Clinical Form',
+    badgeType: item.badgeType || (item.category === 'cold_chain' ? 'mint' : (item.isRx ? 'purple' : 'gray')),
+    subtitle: item.subtitle || `${item.brand || 'Pet Maya Clinical'} • Verified Batch`,
+    vaultTemp: item.vaultTemp || (item.category === 'cold_chain' || item.isRx ? 'Calibrated 4.2°C Vault' : null),
+    patient: item.patient || 'Milo (Canine • 28.4kg)',
+    clinicianApproval: item.clinicianApproval || 'Dr. Vance Approved',
+    price: Number(item.price) || 500,
+    qty: Number(item.qty || item.quantity) || 1,
+    image: item.image || item.imageUrl || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&auto=format&fit=crop&q=80',
+    rxType: item.rxType || (item.isRx ? 'Rx Only' : 'Clinical Care')
+  })) : [];
   
   // Shipping Option: 'priority' (150 BDT) vs 'standard' (Free 0 BDT)
   const [shippingMethod, setShippingMethod] = useState('standard');
 
   // Coupon / Token state
-  const [couponCode, setCouponCode] = useState('PETHAYA10');
-  const [couponApplied, setCouponApplied] = useState(true);
-  const [couponInput, setCouponInput] = useState('PETHAYA10');
+  const [couponInput, setCouponInput] = useState(appliedCoupon?.code || 'PETMAYA10');
 
   // Protocol Modal state
   const [showProtocolModal, setShowProtocolModal] = useState(false);
@@ -91,24 +112,20 @@ export default function CartPage({ onNavigate }) {
 
   // Quantity updates
   const handleUpdateQty = (id, delta) => {
-    setItems(prev => prev.map(item => {
-      if (item.id === id) {
-        const newQty = Math.max(1, item.qty + delta);
-        return { ...item, qty: newQty };
-      }
-      return item;
-    }));
+    updateCartQty(id, delta);
   };
 
   // Remove item
   const handleRemove = (id) => {
-    setItems(prev => prev.filter(item => item.id !== id));
+    removeFromCart(id);
     showToast('Prescription formulation removed from bag', 'info');
   };
 
   // Restore defaults if all cleared
   const handleRestoreDefaults = () => {
-    setItems(DEFAULT_DISPENSARY_ITEMS);
+    DEFAULT_DISPENSARY_ITEMS.forEach(item => {
+      addToCart(item, item.qty || 1);
+    });
     showToast('Dispensary bag restored to active Milo prescriptions', 'success');
   };
 
@@ -117,23 +134,16 @@ export default function CartPage({ onNavigate }) {
   const freeShippingThreshold = 2500;
   const isQualifiedColdChain = subtotal >= freeShippingThreshold;
   const shippingCost = shippingMethod === 'priority' ? 150 : 0;
+  const couponDiscount = typeof appliedCoupon?.discount === 'number' ? Math.round(subtotal * appliedCoupon.discount) : 0;
   
-  // Total Honorarium (matches reference ৳5,868 when default items are selected)
-  const totalHonorarium = subtotal + shippingCost;
+  // Total Honorarium
+  const totalHonorarium = Math.max(0, subtotal - couponDiscount + shippingCost);
 
   // Apply Coupon
   const handleApplyCoupon = (e) => {
     e?.preventDefault();
     if (!couponInput.trim()) return;
-    if (couponInput.toUpperCase() === 'PETHAYA10' || couponInput.toUpperCase() === 'MAYA10') {
-      setCouponCode(couponInput.toUpperCase());
-      setCouponApplied(true);
-      showToast('10% Wellness care credit applied at invoice settlement', 'success');
-    } else {
-      setCouponCode(couponInput.toUpperCase());
-      setCouponApplied(true);
-      showToast(`Partner voucher token ${couponInput.toUpperCase()} activated`, 'success');
-    }
+    applyCoupon(couponInput.trim());
   };
 
   // Proceed to Checkout

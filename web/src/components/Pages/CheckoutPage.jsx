@@ -27,23 +27,52 @@ import {
 } from 'lucide-react';
 
 export default function CheckoutPage({ onNavigate }) {
-  const { openModal, showToast, placeOrder, clearCart } = useApp();
-  const { currentUser } = useAuth();
+  const { cart = [], cartTotal, appliedCoupon, pets = [], openModal, showToast, placeOrder, clearCart } = useApp();
+  const { currentUser, updateUserProfile } = useAuth();
+
+  // Active items in checkout
+  const activeItems = (cart && cart.length > 0) ? cart.map(i => ({
+    id: i.id,
+    name: i.name,
+    price: Number(i.price) || 500,
+    qty: Number(i.qty || i.quantity) || 1,
+    image: i.image || i.imageUrl || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&auto=format&fit=crop&q=80',
+    specBadge: i.specBadge || (i.category === 'cold_chain' ? '2°C - 8°C Cold Biologic' : (i.isRx ? 'Rx Formulary' : 'Clinical Diet'))
+  })) : [
+    { id: 'p1', name: 'NexGard Spectra® Chewables (15.1-30.0kg)', price: 1568, qty: 1, image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&auto=format&fit=crop&q=80', specBadge: '15.1-30.0 kg • 3 Chews' },
+    { id: 'p2', name: 'Royal Canin Gastrointestinal Low Fat (4.0kg)', price: 3450, qty: 1, image: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=600&auto=format&fit=crop&q=80', specBadge: 'Dry Veterinary Diet • 4.0 kg' },
+    { id: 'p3', name: 'Nobivac® Rabies Biologic 1-Dose', price: 850, qty: 1, image: 'https://images.unsplash.com/photo-1584017911766-d451b3d0e843?w=600&auto=format&fit=crop&q=80', specBadge: 'Active Cold Pod • 1 Dose' }
+  ];
+
+  // Selected Patient
+  const [selectedPetId, setSelectedPetId] = useState(() => pets[0]?.id || 'milo');
+  const activePatient = pets.find(p => p.id === selectedPetId || p.petID === selectedPetId) || {
+    name: 'Milo',
+    species: 'Canine',
+    breed: 'Golden Retriever',
+    weight: '28.4 kg',
+    microchip: '985141002938411',
+    photo: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=150&auto=format&fit=crop&q=80'
+  };
 
   // Form State
-  const [selectedPatient, setSelectedPatient] = useState('milo');
   const [paymentMethod, setPaymentMethod] = useState('card'); // 'card', 'bkash', 'wallet', 'cod'
   const [smsTelemetry, setSmsTelemetry] = useState(true);
   const [saveVaultCredentials, setSaveVaultCredentials] = useState(true);
   const [deliveryNote, setDeliveryNote] = useState(
-    'Ring gate bell. Hand insulated pod directly to guardian Tanzim or keep shaded in porch.'
+    'Ring gate bell. Hand insulated pod directly to guardian or keep shaded in porch.'
   );
+
+  // Address state
+  const [guardianAddress, setGuardianAddress] = useState(() => currentUser?.address || 'House 42, Road 11, Block D, Banani, Dhaka-1213');
+  const [guardianPhone, setGuardianPhone] = useState(() => currentUser?.phone || '+880 1711-209482');
+  const [guardianName, setGuardianName] = useState(() => currentUser?.name || 'Tanzim R.');
 
   // Card Inputs
   const [cardNumber, setCardNumber] = useState('4820 8811 0024 8831');
   const [expDate, setExpDate] = useState('08 / 27');
   const [cvv, setCvv] = useState('742');
-  const [cardName, setCardName] = useState('TANZIM RAHMAN');
+  const [cardName, setCardName] = useState(currentUser?.name ? currentUser.name.toUpperCase() : 'TANZIM RAHMAN');
 
   // Mobile Banking Inputs
   const [mobileNumber, setMobileNumber] = useState('01711209482');
@@ -58,10 +87,12 @@ export default function CheckoutPage({ onNavigate }) {
   const [showPatientModal, setShowPatientModal] = useState(false);
   const [showChatModal, setShowChatModal] = useState(false);
 
-  // Pricing constants (matches reference 1:1)
-  const prescriptionSubtotal = 5868;
-  const privilegeDiscount = 232;
-  const netPayable = prescriptionSubtotal - privilegeDiscount; // ৳5,636
+  // Pricing calculations
+  const prescriptionSubtotal = activeItems.reduce((acc, item) => acc + item.price * item.qty, 0);
+  const privilegeDiscount = typeof appliedCoupon?.discount === 'number' 
+    ? Math.round(prescriptionSubtotal * appliedCoupon.discount) 
+    : 232;
+  const netPayable = Math.max(0, prescriptionSubtotal - privilegeDiscount);
 
   const handleRoute = (path) => {
     if (onNavigate) onNavigate(path);
@@ -76,31 +107,42 @@ export default function CheckoutPage({ onNavigate }) {
     setTimeout(async () => {
       try {
         if (placeOrder) {
-          await placeOrder({
-            patient: 'Milo (Canine • 28.4kg)',
-            microchip: '985141002938411',
-            address: 'House 42, Road 11, Block D, Banani, Dhaka-1213',
+          const createdOrder = await placeOrder({
+            patient: `${activePatient.name} (${activePatient.species || 'Canine'} • ${activePatient.weight || '28.4 kg'})`,
+            microchip: activePatient.microchip || '985141002938411',
+            address: guardianAddress,
+            phone: guardianPhone,
             deliveryNote,
-            paymentMethod: paymentMethod === 'card' ? 'Visa / MC 256-Bit Vault' : paymentMethod,
+            paymentMethod: paymentMethod === 'card' 
+              ? 'Visa / MC 256-Bit Vault' 
+              : paymentMethod === 'bkash' 
+                ? `${mobileProvider} (${mobileNumber})` 
+                : paymentMethod,
             subtotal: prescriptionSubtotal,
             discount: privilegeDiscount,
             total: netPayable,
-            items: [
-              { name: 'NexGard Spectra® Chewables (15.1-30.0kg)', price: 1568, qty: 1 },
-              { name: 'Royal Canin Gastrointestinal Low Fat (4.0kg)', price: 3450, qty: 1 },
-              { name: 'Nobivac® Rabies Biologic 1-Dose', price: 850, qty: 1 }
-            ]
+            items: activeItems
           });
+
+          setIsProcessing(false);
+          setIsOrderComplete(true);
+          showToast('🎉 Dispatch Authorized! Digital cold-chain ledger synchronized.', 'success');
+          
+          setTimeout(() => {
+            handleRoute('orders');
+          }, 1200);
+          return;
         }
-      } catch (err) {}
+      } catch (err) {
+        console.warn('Place order error:', err);
+      }
 
       setIsProcessing(false);
       setIsOrderComplete(true);
       showToast('🎉 Dispatch Authorized! Digital cold-chain ledger synchronized.', 'success');
       
-      // Auto open Order Tracker after 1.5s
       setTimeout(() => {
-        openModal('orderTracker', { orderId: 'ORD-9821-COLD', total: netPayable });
+        handleRoute('orders');
       }, 1200);
     }, 1800);
   };
@@ -500,7 +542,7 @@ export default function CheckoutPage({ onNavigate }) {
                 </span>
               </div>
 
-              {/* Milo Specimen Box */}
+              {/* Active Patient Specimen Box */}
               <div style={{
                 backgroundColor: '#FAF8F5',
                 border: '1px solid #EBE5DF',
@@ -513,8 +555,8 @@ export default function CheckoutPage({ onNavigate }) {
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <img
-                    src="https://images.unsplash.com/photo-1552053831-71594a27632d?w=150&auto=format&fit=crop&q=80"
-                    alt="Milo"
+                    src={activePatient.photo || activePatient.image || 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=150&auto=format&fit=crop&q=80'}
+                    alt={activePatient.name}
                     style={{
                       width: '44px',
                       height: '44px',
@@ -525,8 +567,8 @@ export default function CheckoutPage({ onNavigate }) {
                   />
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '15px', fontWeight: 700, color: '#160F0C' }}>Milo</span>
-                      <span style={{ fontSize: '12px', color: '#6B7280' }}>Canine • Golden Retriever</span>
+                      <span style={{ fontSize: '15px', fontWeight: 700, color: '#160F0C' }}>{activePatient.name}</span>
+                      <span style={{ fontSize: '12px', color: '#6B7280' }}>{activePatient.species || 'Canine'} • {activePatient.breed || 'Golden Retriever'}</span>
                     </div>
                     <div style={{
                       fontSize: '11.5px',
@@ -534,7 +576,7 @@ export default function CheckoutPage({ onNavigate }) {
                       color: '#525B57',
                       marginTop: '2px'
                     }}>
-                      Weight: <strong>28.4 kg</strong> • Prescribing Clinician: <strong>Dr. Evelyn Vance (MRCVS)</strong>
+                      Weight: <strong>{activePatient.weight || '28.4 kg'}</strong> • Microchip: <strong>{activePatient.microchip || '985141002938411'}</strong>
                     </div>
                   </div>
                 </div>
@@ -603,7 +645,7 @@ export default function CheckoutPage({ onNavigate }) {
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                       <span style={{ fontSize: '14px', fontWeight: 700, color: '#160F0C' }}>
-                        {currentUser?.name || 'Tanzim R.'}
+                        {guardianName}
                       </span>
                       <span style={{
                         backgroundColor: '#E0F2FE',
@@ -618,8 +660,8 @@ export default function CheckoutPage({ onNavigate }) {
                       </span>
                     </div>
                     <div style={{ fontSize: '12.5px', color: '#4B5563', lineHeight: 1.45 }}>
-                      {currentUser?.address || 'House 42, Road 11, Block D, Banani'}<br />
-                      Dhaka-1213, Bangladesh • {currentUser?.phone || '+880 1711-209482'}
+                      {guardianAddress}<br />
+                      Dhaka, Bangladesh • {guardianPhone}
                     </div>
                   </div>
                   <MapPin size={18} color="#0D9488" style={{ marginTop: '2px' }} />
@@ -1240,162 +1282,63 @@ export default function CheckoutPage({ onNavigate }) {
                   padding: '3px 8px',
                   borderRadius: '9999px'
                 }}>
-                  3 Regulated Items
+                  {activeItems.length} Regulated Items
                 </span>
               </div>
 
-              {/* 3 Item Rows */}
+              {/* Dynamic Item Rows */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
-                {/* Item 1: NexGard Spectra */}
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'flex-start',
-                  paddingBottom: '10px',
-                  borderBottom: '1px solid #F3EFEB'
-                }}>
-                  <div style={{ display: 'flex', gap: '10px' }}>
-                    <div style={{
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '6px',
-                      backgroundColor: '#F3E8FF',
+                {activeItems.map((item, idx) => (
+                  <div
+                    key={item.id || idx}
+                    style={{
                       display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '14px',
-                      flexShrink: 0
-                    }}>
-                      💊
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '13px', fontWeight: 700, color: '#160F0C' }}>
-                        NexGard Spectra® Chewables
-                      </div>
-                      <div style={{ fontSize: '11px', color: '#6B7280' }}>
-                        15.1-30.0 kg • 3 Chews (Purple Box)
-                      </div>
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-start',
+                      paddingBottom: '10px',
+                      borderBottom: '1px solid #F3EFEB'
+                    }}
+                  >
+                    <div style={{ display: 'flex', gap: '10px' }}>
                       <div style={{
-                        fontFamily: 'var(--font-mono, monospace)',
-                        fontSize: '9.5px',
-                        color: '#9CA3AF',
-                        marginTop: '2px',
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '6px',
+                        backgroundColor: '#E6F4F1',
                         display: 'flex',
-                        gap: '6px'
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '14px',
+                        flexShrink: 0
                       }}>
-                        <span>Batch: #NX-887</span>
-                        <span style={{ color: '#0D9488' }}>Exp: Nov 2026</span>
+                        💊
                       </div>
-                    </div>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#160F0C' }}>৳1,568</div>
-                    <div style={{ fontSize: '10.5px', color: '#9CA3AF' }}>Qty: 1 box</div>
-                  </div>
-                </div>
-
-                {/* Item 2: Royal Canin Gastro */}
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'flex-start',
-                  paddingBottom: '10px',
-                  borderBottom: '1px solid #F3EFEB'
-                }}>
-                  <div style={{ display: 'flex', gap: '10px' }}>
-                    <div style={{
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '6px',
-                      backgroundColor: '#F3F4F6',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '14px',
-                      flexShrink: 0
-                    }}>
-                      🍲
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '13px', fontWeight: 700, color: '#160F0C' }}>
-                        Royal Canin Gastrointestinal Low Fat
-                      </div>
-                      <div style={{ fontSize: '11px', color: '#6B7280' }}>
-                        Dry Veterinary Diet • 4.0 kg
-                      </div>
-                      <div style={{
-                        fontFamily: 'var(--font-mono, monospace)',
-                        fontSize: '9.5px',
-                        color: '#9CA3AF',
-                        marginTop: '2px'
-                      }}>
-                        <span>Batch: #RC-99021</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#160F0C' }}>৳3,450</div>
-                    <div style={{ fontSize: '10.5px', color: '#9CA3AF' }}>Qty: 1 bag</div>
-                  </div>
-                </div>
-
-                {/* Item 3: Nobivac Rabies */}
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'flex-start',
-                  paddingBottom: '10px',
-                  borderBottom: '1px solid #F3EFEB'
-                }}>
-                  <div style={{ display: 'flex', gap: '10px' }}>
-                    <div style={{
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '6px',
-                      backgroundColor: '#E6F4F1',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '14px',
-                      flexShrink: 0
-                    }}>
-                      🧪
-                    </div>
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ fontSize: '13px', fontWeight: 700, color: '#160F0C' }}>
-                          Nobivac® Rabies Biologic
-                        </span>
-                        <span style={{
-                          backgroundColor: '#E6F4F1',
-                          color: '#0D9488',
-                          fontSize: '8.5px',
-                          fontWeight: 700,
-                          padding: '1px 5px',
-                          borderRadius: '4px',
-                          fontFamily: 'var(--font-mono)'
+                      <div>
+                        <div style={{ fontSize: '13px', fontWeight: 700, color: '#160F0C' }}>
+                          {item.name}
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#6B7280' }}>
+                          {item.specBadge || 'Clinical Formulation'}
+                        </div>
+                        <div style={{
+                          fontFamily: 'var(--font-mono, monospace)',
+                          fontSize: '9.5px',
+                          color: '#9CA3AF',
+                          marginTop: '2px',
+                          display: 'flex',
+                          gap: '6px'
                         }}>
-                          Cold-Chain Only
-                        </span>
-                      </div>
-                      <div style={{ fontSize: '11px', color: '#6B7280' }}>
-                        1-Dose Sealed Hermetic Pod
-                      </div>
-                      <div style={{
-                        fontFamily: 'var(--font-mono, monospace)',
-                        fontSize: '9.5px',
-                        color: '#0D9488',
-                        marginTop: '2px'
-                      }}>
-                        <span>Requires 2°C-8°C</span>
+                          <span>Batch: #NX-{880 + idx}</span>
+                          <span style={{ color: '#0D9488' }}>Exp: Nov 2026</span>
+                        </div>
                       </div>
                     </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#160F0C' }}>৳{Number(item.price).toLocaleString()}</div>
+                      <div style={{ fontSize: '10.5px', color: '#9CA3AF' }}>Qty: {item.qty}</div>
+                    </div>
                   </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#160F0C' }}>৳850</div>
-                    <div style={{ fontSize: '10.5px', color: '#9CA3AF' }}>Qty: 1 vial</div>
-                  </div>
-                </div>
+                ))}
               </div>
 
               {/* Ledger Breakdown Lines */}
@@ -1425,10 +1368,10 @@ export default function CheckoutPage({ onNavigate }) {
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#0D9488', fontWeight: 600 }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <span>Care Partner Privilege (PETMAYA10)</span>
+                    <span>Care Partner Privilege ({appliedCoupon?.code || 'PETMAYA10'})</span>
                     <span>🏷</span>
                   </span>
-                  <span>-৳{privilegeDiscount}</span>
+                  <span>-৳{privilegeDiscount.toLocaleString()}</span>
                 </div>
               </div>
 
@@ -1810,28 +1753,40 @@ export default function CheckoutPage({ onNavigate }) {
               </h3>
               <button onClick={() => setShowAddressModal(false)} style={{ border: 'none', background: 'none', fontSize: '20px', cursor: 'pointer' }}>✕</button>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              setShowAddressModal(false);
+              if (updateUserProfile) {
+                await updateUserProfile({ address: guardianAddress, phone: guardianPhone, name: guardianName });
+              }
+              showToast('Delivery address updated and saved to Guardian Vault.', 'success');
+            }} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div>
                 <label style={{ fontSize: '12px', fontWeight: 600, color: '#374151' }}>Recipient Name</label>
-                <input defaultValue="Tanzim R." style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #D1D5DB', marginTop: '4px' }} />
+                <input 
+                  value={guardianName} 
+                  onChange={e => setGuardianName(e.target.value)} 
+                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #D1D5DB', marginTop: '4px', boxSizing: 'border-box' }} 
+                />
               </div>
               <div>
-                <label style={{ fontSize: '12px', fontWeight: 600, color: '#374151' }}>Street Address</label>
-                <input defaultValue="House 42, Road 11, Block D, Banani" style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #D1D5DB', marginTop: '4px' }} />
-              </div>
-              <div>
-                <label style={{ fontSize: '12px', fontWeight: 600, color: '#374151' }}>City & Zone</label>
-                <input defaultValue="Dhaka-1213, Bangladesh" style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #D1D5DB', marginTop: '4px' }} />
+                <label style={{ fontSize: '12px', fontWeight: 600, color: '#374151' }}>Street Address & Zone</label>
+                <input 
+                  value={guardianAddress} 
+                  onChange={e => setGuardianAddress(e.target.value)} 
+                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #D1D5DB', marginTop: '4px', boxSizing: 'border-box' }} 
+                />
               </div>
               <div>
                 <label style={{ fontSize: '12px', fontWeight: 600, color: '#374151' }}>Direct Phone</label>
-                <input defaultValue="+880 1711-209482" style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #D1D5DB', marginTop: '4px' }} />
+                <input 
+                  value={guardianPhone} 
+                  onChange={e => setGuardianPhone(e.target.value)} 
+                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #D1D5DB', marginTop: '4px', boxSizing: 'border-box' }} 
+                />
               </div>
               <button
-                onClick={() => {
-                  setShowAddressModal(false);
-                  showToast('Delivery address updated and re-verified for cold-chain route.', 'success');
-                }}
+                type="submit"
                 style={{
                   padding: '12px',
                   backgroundColor: '#160F0C',
@@ -1845,7 +1800,7 @@ export default function CheckoutPage({ onNavigate }) {
               >
                 Save & Continue
               </button>
-            </div>
+            </form>
           </div>
         </div>
       )}
@@ -1886,53 +1841,44 @@ export default function CheckoutPage({ onNavigate }) {
               <button onClick={() => setShowPatientModal(false)} style={{ border: 'none', background: 'none', fontSize: '20px', cursor: 'pointer' }}>✕</button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <div
-                onClick={() => {
-                  setSelectedPatient('milo');
-                  setShowPatientModal(false);
-                  showToast('Active patient set to Milo', 'info');
-                }}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  padding: '12px',
-                  borderRadius: '12px',
-                  border: selectedPatient === 'milo' ? '2px solid #0D9488' : '1px solid #E5DFD9',
-                  backgroundColor: selectedPatient === 'milo' ? '#E6F4F1' : '#FFFFFF',
-                  cursor: 'pointer'
-                }}
-              >
-                <img src="https://images.unsplash.com/photo-1552053831-71594a27632d?w=100&auto=format&fit=crop&q=80" alt="Milo" style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'cover' }} />
-                <div>
-                  <div style={{ fontWeight: 700 }}>Milo (Active)</div>
-                  <div style={{ fontSize: '12px', color: '#6B7280' }}>Golden Retriever • 28.4 kg • #985141002938411</div>
-                </div>
-              </div>
-
-              <div
-                onClick={() => {
-                  setSelectedPatient('luna');
-                  setShowPatientModal(false);
-                  showToast('Active patient set to Luna', 'info');
-                }}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  padding: '12px',
-                  borderRadius: '12px',
-                  border: selectedPatient === 'luna' ? '2px solid #0D9488' : '1px solid #E5DFD9',
-                  backgroundColor: selectedPatient === 'luna' ? '#E6F4F1' : '#FFFFFF',
-                  cursor: 'pointer'
-                }}
-              >
-                <img src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=100&auto=format&fit=crop&q=80" alt="Luna" style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'cover' }} />
-                <div>
-                  <div style={{ fontWeight: 700 }}>Luna</div>
-                  <div style={{ fontSize: '12px', color: '#6B7280' }}>British Shorthair • 4.2 kg • #985141088219033</div>
-                </div>
-              </div>
+              {pets.map((pet) => {
+                const isSelected = (selectedPetId === pet.id || selectedPetId === pet.petID);
+                return (
+                  <div
+                    key={pet.id || pet.petID}
+                    onClick={() => {
+                      setSelectedPetId(pet.id || pet.petID);
+                      setShowPatientModal(false);
+                      showToast(`Active prescription patient set to ${pet.name}`, 'info');
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      padding: '12px',
+                      borderRadius: '12px',
+                      border: isSelected ? '2px solid #0D9488' : '1px solid #E5DFD9',
+                      backgroundColor: isSelected ? '#E6F4F1' : '#FFFFFF',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <img
+                      src={pet.photo || pet.image || 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=100&auto=format&fit=crop&q=80'}
+                      alt={pet.name}
+                      style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'cover' }}
+                    />
+                    <div>
+                      <div style={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span>{pet.name}</span>
+                        {isSelected && <span style={{ fontSize: '10.5px', color: '#0D9488', fontWeight: 800 }}>✓ ACTIVE</span>}
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#6B7280' }}>
+                        {pet.breed || pet.species || 'Companion'} • {pet.weight || '12 kg'} • #{pet.microchip || 'ISO Microchip'}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>

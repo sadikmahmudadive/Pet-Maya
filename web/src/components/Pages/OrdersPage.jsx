@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import EditorialNavbar from '../Navigation/EditorialNavbar';
+import { generateOrderInvoicePDF } from '../../services/pdfGenerator';
 import {
   FileText,
   Headphones,
@@ -33,13 +34,14 @@ import {
 } from 'lucide-react';
 
 export default function OrdersPage({ onNavigate }) {
-  const { showToast, openModal, addToCart } = useApp ? useApp() : { showToast: () => {}, openModal: () => {}, addToCart: () => {} };
+  const { orders = [], showToast, openModal, addToCart } = useApp ? useApp() : { orders: [], showToast: () => {}, openModal: () => {}, addToCart: () => {} };
   const { currentUser } = useAuth ? useAuth() : { currentUser: null };
 
   // Archive Filter Tab State
   const [archiveFilter, setArchiveFilter] = useState('all'); // 'all', 'cold-chain', 'hardware', 'auto-refill'
   const [showCertificateModal, setShowCertificateModal] = useState(false);
   const [activeCert, setActiveCert] = useState(null);
+  const [activeInvoiceOrder, setActiveInvoiceOrder] = useState(null);
   const [showContactCourierModal, setShowContactCourierModal] = useState(false);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [showConciergeModal, setShowConciergeModal] = useState(false);
@@ -168,13 +170,57 @@ export default function OrdersPage({ onNavigate }) {
     }
   ];
 
-  const filteredOrders = archiveOrders.filter(order => {
+  // Merge live orders from Firestore with verified archival orders
+  const allOrders = useMemo(() => {
+    const liveList = (orders || []).map(o => ({
+      id: o.orderId || o.id,
+      rawOrder: o,
+      status: (o.status || 'In Preparation').toUpperCase() + ' • ' + (o.date || new Date().toISOString().split('T')[0]),
+      statusColor: o.status === 'Delivered' ? '#10B981' : '#0284C7',
+      recipient: o.patient ? o.patient.split(' ')[0] : 'Companion',
+      category: 'cold-chain',
+      tempTag: '🌡 Temp Verified at Pod: 3.8°C (Optimal Stasis)',
+      tempTagColor: '#047857',
+      tempTagBg: 'rgba(16, 185, 129, 0.1)',
+      title: Array.isArray(o.items) && o.items.length > 0 
+        ? o.items.map(i => `${i.name || i.title || 'Item'} (x${i.qty || 1})`).join(' • ')
+        : 'Veterinary Clinical Prescription',
+      total: `৳${Number(o.total || 0).toLocaleString()}`,
+      paymentMethod: o.paymentMethod || 'bKash Merchant Sync',
+      syncNote: '⚡ Sovereign Health Vault Cold Ledger Synchronized',
+      priceNum: o.total || 0,
+      batch: o.batch || 'PM-BATCH-891',
+      cryptoHash: o.cryptoHash || '0x44ce...e1091a'
+    }));
+
+    return [...liveList, ...archiveOrders];
+  }, [orders]);
+
+  const filteredOrders = allOrders.filter(order => {
     if (archiveFilter === 'all') return true;
     if (archiveFilter === 'cold-chain') return order.category.includes('cold-chain');
     if (archiveFilter === 'hardware') return order.category.includes('hardware');
     if (archiveFilter === 'auto-refill') return order.category.includes('auto-refill');
     return true;
   });
+
+  const handleDownloadInvoice = (order) => {
+    generateOrderInvoicePDF({
+      order: order?.rawOrder || order || {
+        orderId: order?.id,
+        items: [
+          { name: order?.title || 'Veterinary Clinical Prescription', price: order?.priceNum || 5636, qty: 1 }
+        ],
+        subtotal: order?.priceNum || 5636,
+        total: order?.priceNum || 5636,
+        patient: order?.recipient || 'Milo',
+        deliveryAddress: currentUser?.address || 'Banani, Dhaka',
+        phone: currentUser?.phone || '+880 1711-209482'
+      },
+      user: currentUser
+    });
+    showToast('Official Cold-Chain PDF Invoice downloaded', 'success');
+  };
 
   return (
     <div style={{
@@ -250,7 +296,10 @@ export default function OrdersPage({ onNavigate }) {
           {/* Top Right Action Buttons */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <button
-              onClick={() => setShowInvoiceModal(true)}
+              onClick={() => {
+                setActiveInvoiceOrder(allOrders[0] || null);
+                setShowInvoiceModal(true);
+              }}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -1543,6 +1592,24 @@ export default function OrdersPage({ onNavigate }) {
                     ) : (
                       <>
                         <button
+                          onClick={() => {
+                            setActiveInvoiceOrder(order);
+                            setShowInvoiceModal(true);
+                          }}
+                          style={{
+                            padding: '6px 14px',
+                            borderRadius: '9999px',
+                            backgroundColor: '#FFFFFF',
+                            border: '1px solid #D6CEC7',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            color: '#160F0C',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          📄 Tax Invoice
+                        </button>
+                        <button
                           onClick={() => handleOpenCertificate(order.id, order.title, order.batch, '4.2°C', order.cryptoHash)}
                           style={{
                             padding: '6px 14px',
@@ -1555,7 +1622,7 @@ export default function OrdersPage({ onNavigate }) {
                             cursor: 'pointer'
                           }}
                         >
-                          📄 Batch Certificate
+                          🔬 Batch Cert
                         </button>
                         <button
                           onClick={() => {
@@ -2133,40 +2200,45 @@ export default function OrdersPage({ onNavigate }) {
                 PET MAYA APOTHECARY & CLINIC LTD.
               </div>
               <h2 style={{ fontSize: '22px', fontWeight: 800, margin: '4px 0 0', color: '#160F0C' }}>
-                Tax Invoice & Manifest #PM-88902-DX
+                Tax Invoice & Manifest #{activeInvoiceOrder?.id || activeInvoiceOrder?.orderId || 'PM-88902-DX'}
               </h2>
               <div style={{ fontSize: '12px', color: '#707973', marginTop: '4px' }}>
-                Issued: 20 Oct 2026 • Patient: Milo (Golden Retriever)
+                Issued: {activeInvoiceOrder?.rawOrder?.date || activeInvoiceOrder?.date || '20 Oct 2026'} • Patient: {activeInvoiceOrder?.recipient || activeInvoiceOrder?.rawOrder?.patient || 'Milo'}
               </div>
             </div>
 
             <div style={{ fontSize: '13px', display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>NexGard Spectra® Chewables</span>
-                <strong>৳1,568.00</strong>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Royal Canin Gastrointestinal Low Fat (4.0kg)</span>
-                <strong>৳3,450.00</strong>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Nobivac® Rabies Biologic Vial</span>
-                <strong>৳850.00</strong>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#047857' }}>
-                <span>Dispensary Voucher (PETMAN15)</span>
-                <strong>-৳232.00</strong>
-              </div>
+              {activeInvoiceOrder?.rawOrder?.items && activeInvoiceOrder.rawOrder.items.length > 0 ? (
+                activeInvoiceOrder.rawOrder.items.map((it, idx) => (
+                  <div key={idx} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span>{it.name || it.title} (x{it.qty || 1})</span>
+                    <strong>৳{Number((it.price || 0) * (it.qty || 1)).toLocaleString()}</strong>
+                  </div>
+                ))
+              ) : (
+                <>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span>{activeInvoiceOrder?.title || 'NexGard Spectra® Chewables'}</span>
+                    <strong>{activeInvoiceOrder?.total || '৳5,636.00'}</strong>
+                  </div>
+                </>
+              )}
+              {activeInvoiceOrder?.rawOrder?.discount > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#047857' }}>
+                  <span>Dispensary Voucher</span>
+                  <strong>-৳{Number(activeInvoiceOrder.rawOrder.discount).toLocaleString()}</strong>
+                </div>
+              )}
               <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #EBE5DF', paddingTop: '10px', fontSize: '15px' }}>
                 <strong>Total Amount Paid</strong>
-                <strong>৳5,636.00</strong>
+                <strong>{activeInvoiceOrder?.total || (activeInvoiceOrder?.rawOrder ? `৳${Number(activeInvoiceOrder.rawOrder.total || 0).toLocaleString()}` : '৳5,636.00')}</strong>
               </div>
             </div>
 
             <div style={{ display: 'flex', gap: '10px' }}>
               <button
                 onClick={() => {
-                  showToast('Official PDF Invoice downloaded', 'success');
+                  handleDownloadInvoice(activeInvoiceOrder || allOrders[0]);
                   setShowInvoiceModal(false);
                 }}
                 style={{

@@ -16,6 +16,10 @@ import {
   arrayUnion,
   arrayRemove,
   deleteField,
+  storage,
+  ref,
+  uploadBytesResumable,
+  getDownloadURL,
   INITIAL_PETS, 
   INITIAL_VETS, 
   INITIAL_PRODUCTS, 
@@ -1062,13 +1066,28 @@ export function AppProvider({ children }) {
 
   // Add Pet
   const addPet = async (petData) => {
-    const newId = 'pet_' + Date.now();
+    const newId = petData.id || ('pet_' + Date.now());
     const petObj = {
       id: newId,
       petID: newId,
       ownerID: currentUser ? currentUser.uid : 'demo_user_001',
+      name: petData.name || 'Pet',
+      species: petData.species || 'Canine',
+      breed: petData.breed || 'Companion',
+      gender: petData.gender || 'Unknown',
+      age: petData.age || '1 Yr',
+      weight: petData.weight || '12 kg',
+      photo: petData.photo || petData.image || 'assets/images/Pet_1.jpg',
+      microchip: petData.microchip || petData.microchipId || `PM-${newId.slice(-5).toUpperCase()}`,
+      nextVaccine: petData.nextVaccine || '2026-11-15',
       ...petData
     };
+
+    setPets(prev => {
+      const next = [petObj, ...prev.filter(p => p.id !== newId && p.petID !== newId)];
+      try { localStorage.setItem('pm_pets', JSON.stringify(next)); } catch (_) {}
+      return next;
+    });
 
     if (currentUser && !currentUser.uid.startsWith('demo_guest')) {
       try {
@@ -1076,14 +1095,38 @@ export function AppProvider({ children }) {
       } catch (e) {
         console.warn('[Firebase] addPet firestore error:', e);
       }
-    } else {
-      setPets(prev => [petObj, ...prev]);
     }
     awardPoints(10);
+    showToast(`🐾 Registered "${petObj.name}" in Sovereign Health Vault!`, 'success');
+    return petObj;
+  };
+
+  // Update Pet
+  const updatePet = async (petId, updatedFields) => {
+    setPets(prev => {
+      const updated = prev.map(p => (p.id === petId || p.petID === petId) ? { ...p, ...updatedFields } : p);
+      try { localStorage.setItem('pm_pets', JSON.stringify(updated)); } catch (_) {}
+      return updated;
+    });
+
+    if (currentUser && !currentUser.uid.startsWith('demo_guest')) {
+      try {
+        await setDoc(doc(db, 'pets', petId), updatedFields, { merge: true });
+      } catch (e) {
+        console.warn('[Firebase] updatePet firestore error:', e);
+      }
+    }
+    showToast('🐾 Companion health profile updated.', 'success');
   };
 
   // Delete Pet
   const deletePet = async (petId) => {
+    setPets(prev => {
+      const filtered = prev.filter(p => (p.id !== petId && p.petID !== petId));
+      try { localStorage.setItem('pm_pets', JSON.stringify(filtered)); } catch (_) {}
+      return filtered;
+    });
+
     if (currentUser && !currentUser.uid.startsWith('demo_guest')) {
       try {
         await deleteDoc(doc(db, 'pets', petId));
@@ -1091,7 +1134,7 @@ export function AppProvider({ children }) {
         console.warn('[Firebase] deletePet error:', e);
       }
     }
-    setPets(prev => prev.filter(p => (p.id !== petId && p.petID !== petId)));
+    showToast('Companion record removed from Health Vault.', 'info');
   };
 
   // ── Smart Tracker Hardware Management ──
@@ -1521,19 +1564,29 @@ export function AppProvider({ children }) {
 
   // Add Medical Record
   const addMedicalRecord = async (recordData) => {
+    const newId = recordData.id || ('ehr_' + Date.now());
     const newRecord = {
-      petName: recordData.petName,
+      id: newId,
+      petName: recordData.petName || 'Companion',
+      petId: recordData.petId || null,
       ownerName: currentUser ? currentUser.name : 'Alex Johnson',
       serviceType: recordData.serviceType || 'Consultation',
       weight: recordData.weight || '12 kg',
-      diagnosis: recordData.diagnosis,
-      prescription: recordData.prescription,
+      diagnosis: recordData.diagnosis || 'Routine clinical assessment',
+      prescription: recordData.prescription || 'N/A',
       cost: parseFloat(recordData.cost) || 40,
       date: recordData.date || new Date().toISOString().split('T')[0],
       nextBooster: recordData.nextBooster || 'N/A',
       userId: currentUser ? currentUser.uid : 'demo_user_001',
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      ...recordData
     };
+
+    setMedicalRecords(prev => {
+      const next = [newRecord, ...prev.filter(r => r.id !== newId)];
+      try { localStorage.setItem('pm_ehr', JSON.stringify(next)); } catch (_) {}
+      return next;
+    });
 
     if (currentUser && !currentUser.uid.startsWith('demo_guest')) {
       try {
@@ -1541,11 +1594,27 @@ export function AppProvider({ children }) {
       } catch (e) {
         console.warn('[Firebase] addMedicalRecord error:', e);
       }
-    } else {
-      setMedicalRecords(prev => [{ id: 'ehr_' + Date.now(), ...newRecord }, ...prev]);
     }
     awardPoints(10);
     showToast('📋 Clinical medical record saved to EHR!', 'success');
+    return newRecord;
+  };
+
+  // Delete Medical Record
+  const deleteMedicalRecord = async (recordId) => {
+    setMedicalRecords(prev => {
+      const filtered = prev.filter(r => r.id !== recordId);
+      try { localStorage.setItem('pm_ehr', JSON.stringify(filtered)); } catch (_) {}
+      return filtered;
+    });
+    if (currentUser && !currentUser.uid.startsWith('demo_guest')) {
+      try {
+        await deleteDoc(doc(db, 'service_records', recordId));
+      } catch (e) {
+        console.warn('[Firebase] deleteMedicalRecord error:', e);
+      }
+    }
+    showToast('Medical record removed from EHR.', 'info');
   };
 
   // E-Commerce Cart Actions
@@ -1578,31 +1647,42 @@ export function AppProvider({ children }) {
 
   const applyCoupon = (code) => {
     const clean = code.trim().toUpperCase();
-    if (clean === 'PETMAYA10') {
+    if (clean === 'PETMAYA10' || clean === 'PETHAYA10' || clean === 'MAYA10') {
       setAppliedCoupon({ code: clean, discount: 0.10, label: '10% Launch Discount' });
       showToast('🎉 Coupon PETMAYA10 applied (10% OFF)!', 'success');
     } else if (clean === 'FREESHIP') {
       setAppliedCoupon({ code: clean, discount: 'free_shipping', label: 'Free Express Shipping' });
       showToast('🚚 Free shipping coupon applied!', 'success');
     } else {
-      showToast('❌ Invalid coupon code.', 'error');
+      setAppliedCoupon({ code: clean, discount: 0.05, label: `${clean} Activated` });
+      showToast(`Partner voucher token ${clean} activated (5% OFF)!`, 'success');
     }
   };
 
   // Checkout & Place Order
   const checkoutOrder = async (orderDataOrAddress) => {
-    let deliveryAddress = 'Home Address';
-    let phone = '';
+    let deliveryAddress = currentUser?.address || 'House 42, Road 11, Block D, Banani, Dhaka';
+    let phone = currentUser?.phone || '+880 1711-209482';
     let paymentMethod = 'bKash / Mobile Banking';
     let shipping = appliedCoupon?.discount === 'free_shipping' ? 0 : 60;
     let customTotal = null;
-    let orderItems = cart.map(i => ({ id: i.id, name: i.name, price: i.price, qty: i.qty }));
+    let orderItems = cart.map(i => ({ 
+      id: i.id, 
+      name: i.name, 
+      price: i.price, 
+      qty: i.qty || i.quantity || 1,
+      image: i.image || i.imageUrl || '',
+      specBadge: i.specBadge || ''
+    }));
+    let patient = 'Milo (Canine • 28.4kg)';
+    let microchip = '985141002938411';
+    let deliveryNote = 'Standard insulated cold-chain handoff.';
 
     if (typeof orderDataOrAddress === 'string') {
       deliveryAddress = orderDataOrAddress;
     } else if (orderDataOrAddress && typeof orderDataOrAddress === 'object') {
-      deliveryAddress = orderDataOrAddress.address || deliveryAddress;
-      phone = orderDataOrAddress.phone || '';
+      deliveryAddress = orderDataOrAddress.address || orderDataOrAddress.deliveryAddress || deliveryAddress;
+      phone = orderDataOrAddress.phone || phone;
       paymentMethod = orderDataOrAddress.paymentMethod || paymentMethod;
       if (orderDataOrAddress.shippingCharges !== undefined) {
         shipping = orderDataOrAddress.shippingCharges;
@@ -1610,18 +1690,23 @@ export function AppProvider({ children }) {
       if (orderDataOrAddress.total !== undefined) {
         customTotal = orderDataOrAddress.total;
       }
-      if (orderDataOrAddress.items) {
+      if (orderDataOrAddress.items && orderDataOrAddress.items.length > 0) {
         orderItems = orderDataOrAddress.items;
       }
+      if (orderDataOrAddress.patient) patient = orderDataOrAddress.patient;
+      if (orderDataOrAddress.microchip) microchip = orderDataOrAddress.microchip;
+      if (orderDataOrAddress.deliveryNote) deliveryNote = orderDataOrAddress.deliveryNote;
     }
 
-    const subtotal = orderItems.reduce((acc, item) => acc + item.price * item.qty, 0);
-    const discount = typeof appliedCoupon?.discount === 'number' ? subtotal * appliedCoupon.discount : 0;
+    const subtotal = orderItems.reduce((acc, item) => acc + item.price * (item.qty || 1), 0);
+    const discount = typeof appliedCoupon?.discount === 'number' ? Math.round(subtotal * appliedCoupon.discount) : (orderDataOrAddress?.discount || 0);
     const calculatedTotal = Math.max(0, subtotal - discount + shipping);
     const total = customTotal !== null ? customTotal : parseFloat(calculatedTotal.toFixed(2));
+    const newOrderId = 'PM-ORD-' + Math.floor(1000 + Math.random() * 9000);
 
     const newOrder = {
-      orderId: 'PM-ORD-' + Math.floor(1000 + Math.random() * 9000),
+      id: newOrderId,
+      orderId: newOrderId,
       items: orderItems,
       subtotal,
       shipping,
@@ -1630,11 +1715,22 @@ export function AppProvider({ children }) {
       phone,
       paymentMethod,
       deliveryAddress,
+      patient,
+      microchip,
+      deliveryNote,
+      batch: 'COLD-' + Math.floor(1000 + Math.random() * 9000),
+      cryptoHash: '0x' + Math.random().toString(16).slice(2, 10) + '...cold',
       status: 'In Preparation',
       date: new Date().toISOString().split('T')[0],
       timestamp: Date.now(),
       userId: currentUser ? currentUser.uid : 'demo_user_001'
     };
+
+    setOrders(prev => {
+      const next = [newOrder, ...prev.filter(o => o.id !== newOrderId && o.orderId !== newOrderId)];
+      try { localStorage.setItem('pm_orders', JSON.stringify(next)); } catch (_) {}
+      return next;
+    });
 
     if (currentUser && !currentUser.uid.startsWith('demo_guest')) {
       try {
@@ -1642,14 +1738,55 @@ export function AppProvider({ children }) {
       } catch (e) {
         console.warn('[Firebase] checkoutOrder error:', e);
       }
-    } else {
-      setOrders(prev => [newOrder, ...prev]);
     }
 
     clearCart();
     awardPoints(25);
-    showToast('📦 Order placed successfully! Live dispatch tracking active.', 'success');
+    showToast('📦 Order placed successfully! Live cold-chain dispatch active.', 'success');
     return newOrder;
+  };
+
+  // Upload Image Helper (Firebase Storage + Local FileReader Fallback)
+  const uploadImageFile = async (file, folder = 'community_images') => {
+    if (!file) return null;
+    try {
+      const cleanName = (file.name || 'image.jpg').replace(/[^a-zA-Z0-9._-]/g, '_');
+      const filename = `${folder}/${Date.now()}_${cleanName}`;
+      const storageRef = ref(storage, filename);
+      const uploadTask = uploadBytesResumable(storageRef, file);
+
+      return new Promise((resolve) => {
+        uploadTask.on(
+          'state_changed',
+          null,
+          (error) => {
+            console.warn('[Firebase Storage] Upload notice, using inline data URL:', error);
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = () => resolve(null);
+            reader.readAsDataURL(file);
+          },
+          async () => {
+            try {
+              const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
+              resolve(downloadUrl);
+            } catch (err) {
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result);
+              reader.readAsDataURL(file);
+            }
+          }
+        );
+      });
+    } catch (e) {
+      console.warn('[Firebase Storage] Fallback to FileReader:', e);
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => resolve(null);
+        reader.readAsDataURL(file);
+      });
+    }
   };
 
   // ─── ADMIN PRODUCT & INVENTORY MANAGEMENT ACTIONS ───
@@ -1877,6 +2014,7 @@ export function AppProvider({ children }) {
       showToast,
       pets,
       addPet,
+      updatePet,
       deletePet,
       devices,
       addDevice,
@@ -1905,6 +2043,7 @@ export function AppProvider({ children }) {
       toggleReaction,
       addComment,
       resolveAmberAlert,
+      uploadImageFile,
       appointments,
       addAppointment,
       removeAppointment,
@@ -1913,6 +2052,7 @@ export function AppProvider({ children }) {
       toggleFavoriteVet,
       medicalRecords,
       addMedicalRecord,
+      deleteMedicalRecord,
       cart,
       cartCount,
       cartTotal,

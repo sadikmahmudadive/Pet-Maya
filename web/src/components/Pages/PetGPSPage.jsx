@@ -36,7 +36,35 @@ import {
 } from 'lucide-react';
 
 export default function PetGPSPage({ onNavigate }) {
-  const { showToast, openModal } = useApp();
+  const { 
+    showToast, 
+    openModal, 
+    devices = [], 
+    updateDevice, 
+    triggerRingDevice, 
+    ringingDeviceId, 
+    pets = [], 
+    userLiveLocation 
+  } = useApp ? useApp() : { showToast: () => {}, openModal: () => {} };
+
+  const activeDevice = devices[0] || {
+    id: 'halo-01',
+    name: 'Maya Halo™ V3 (Titanium Edition)',
+    collarId: 'HL-8821',
+    batteryLevel: 89,
+    signalStrength: 98,
+    lat: 23.7937,
+    lng: 90.4066,
+    isOnline: true
+  };
+
+  const activePet = pets[0] || {
+    name: 'Milo',
+    breed: 'Golden Retriever',
+    weight: '28.4',
+    photo: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=120&auto=format&fit=crop&q=80',
+    device: 'Maya Halo™ Collar #HL-8821'
+  };
 
   // Map Mode State
   const [mapMode, setMapMode] = useState('paper'); // 'paper' | 'topo' | 'sat'
@@ -46,9 +74,12 @@ export default function PetGPSPage({ onNavigate }) {
   const [activeZone, setActiveZone] = useState('home');
 
   // Interactive Audio Acoustic Chime Synthesizer
-  const triggerAcousticChime = () => {
+  const triggerAcousticChime = async () => {
     setIsChimeActive(true);
-    showToast('🔊 85dB Acoustic Recovery Chime Emitted on Collar #HL-8821', 'info');
+    if (triggerRingDevice) {
+      await triggerRingDevice(activeDevice.id || 'halo-01');
+    }
+    showToast(`🔊 85dB Acoustic Recovery Chime Emitted on Collar #${activeDevice.collarId || 'HL-8821'}`, 'info');
 
     // Web Audio API chirp
     try {
@@ -197,7 +228,7 @@ export default function PetGPSPage({ onNavigate }) {
                   BATTERY STATE
                 </div>
                 <div style={{ fontSize: '11.5px', fontWeight: 700, color: '#160F0C' }}>
-                  89% (Est. 18 days)
+                  {activeDevice.batteryLevel || 89}% (Est. {Math.round((activeDevice.batteryLevel || 89) * 0.2)} days)
                 </div>
               </div>
             </div>
@@ -486,8 +517,8 @@ export default function PetGPSPage({ onNavigate }) {
                 zIndex: 10
               }}>
                 <img
-                  src="https://images.unsplash.com/photo-1552053831-71594a27632d?w=120&auto=format&fit=crop&q=80"
-                  alt="Milo"
+                  src={activePet.photo || "https://images.unsplash.com/photo-1552053831-71594a27632d?w=120&auto=format&fit=crop&q=80"}
+                  alt={activePet.name || "Companion"}
                   style={{
                     width: '36px',
                     height: '36px',
@@ -499,7 +530,7 @@ export default function PetGPSPage({ onNavigate }) {
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span style={{ fontSize: '13px', fontWeight: 800, color: '#160F0C' }}>
-                      Milo
+                      {activePet.name || 'Milo'}
                     </span>
                     <span style={{
                       backgroundColor: '#E6F4F1',
@@ -514,7 +545,7 @@ export default function PetGPSPage({ onNavigate }) {
                     </span>
                   </div>
                   <div style={{ fontSize: '10.5px', color: '#707973', fontFamily: 'var(--font-mono, monospace)' }}>
-                    Golden Retriever • 28.4 kg • Collar #HL-8821
+                    {activePet.breed || 'Golden Retriever'} • {activePet.weight ? `${activePet.weight} kg` : '28.4 kg'} • Collar #{activeDevice.collarId || 'HL-8821'}
                   </div>
                 </div>
               </div>

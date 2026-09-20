@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import EditorialNavbar from '../Navigation/EditorialNavbar';
+import { generatePetMedicalPassport } from '../../services/pdfGenerator';
 import {
   ShieldCheck,
   CheckCircle2,
@@ -42,10 +43,22 @@ import {
 } from 'lucide-react';
 
 export default function Profile({ onNavigate }) {
-  const { showToast, openModal, cart } = useApp ? useApp() : { showToast: () => {}, openModal: () => {}, cart: [] };
-  const { currentUser } = useAuth ? useAuth() : { currentUser: null };
+  const { 
+    showToast, 
+    openModal, 
+    cart = [], 
+    pets = [], 
+    addPet, 
+    updatePet, 
+    deletePet, 
+    medicalRecords = [], 
+    addMedicalRecord, 
+    deleteMedicalRecord,
+    uploadImageFile 
+  } = useApp ? useApp() : { showToast: () => {}, openModal: () => {}, cart: [] };
+  const { currentUser, updateUserProfile } = useAuth ? useAuth() : { currentUser: null, updateUserProfile: () => {} };
 
-  // Active Patient Selector ('milo' or 'cleo')
+  // Active Patient Selector
   const [activePatientId, setActivePatientId] = useState('milo');
 
   // Navigation Tabs State
@@ -65,6 +78,16 @@ export default function Profile({ onNavigate }) {
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
   const [showSymptomsModal, setShowSymptomsModal] = useState(false);
   const [symptomNote, setSymptomNote] = useState('');
+
+  // Register Companion Form State
+  const [newPetName, setNewPetName] = useState('');
+  const [newPetSpecies, setNewPetSpecies] = useState('Canine');
+  const [newPetBreed, setNewPetBreed] = useState('');
+  const [newPetMicrochip, setNewPetMicrochip] = useState('');
+  const [newPetAge, setNewPetAge] = useState('');
+  const [newPetWeight, setNewPetWeight] = useState('');
+  const [newPetPhoto, setNewPetPhoto] = useState('');
+  const [isRegisteringPet, setIsRegisteringPet] = useState(false);
 
   // Newsletter subscription
   const [footerEmail, setFooterEmail] = useState('');
@@ -91,8 +114,8 @@ export default function Profile({ onNavigate }) {
     setFooterEmail('');
   };
 
-  // Patients Data
-  const patientsData = {
+  // Baseline Patients Data
+  const baselinePatientsData = {
     milo: {
       id: 'milo',
       name: 'Milo',
@@ -142,7 +165,133 @@ export default function Profile({ onNavigate }) {
     }
   };
 
-  const currentPatient = patientsData[activePatientId] || patientsData.milo;
+  // Merge live pets from Firestore/localStorage with baseline patients
+  const combinedPatients = useMemo(() => {
+    const base = { ...baselinePatientsData };
+    (pets || []).forEach((p, idx) => {
+      const pid = p.id || p.petID || `pet-${idx}`;
+      base[pid] = {
+        id: pid,
+        rawPet: p,
+        name: p.name || 'Companion',
+        species: (p.species || 'Canine').toUpperCase(),
+        breed: p.breed || 'Companion Breed',
+        age: p.age ? (String(p.age).includes('yr') ? String(p.age) : `${p.age} yrs`) : '2 yrs',
+        device: p.device || 'Maya Halo™ Connected',
+        weight: p.weight ? (String(p.weight).includes('kg') ? String(p.weight) : `${p.weight} kg`) : '16.5 kg',
+        status: p.status || 'Active Patient',
+        healthIndex: p.healthIndex || 95,
+        avatarUrl: p.photo || (String(p.species).toLowerCase().includes('cat') || String(p.species).toLowerCase().includes('fel')
+          ? 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=160&q=80'
+          : 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=160&q=80'),
+        ehrId: p.petID || p.microchip || `EHR-${(p.name || 'PM').toUpperCase().slice(0, 2)}-${Math.floor(1000 + Math.random() * 9000)}`,
+        restingHr: p.restingHr || '72 BPM',
+        restingHrNote: 'Normal Resting',
+        bodyTemp: p.bodyTemp || '38.4 °C',
+        bodyTempNote: 'Afebrile (Ideal)',
+        rabiesTitre: p.rabiesTitre || 'Compliant',
+        rabiesNote: p.nextVaccine ? `Valid Thru ${p.nextVaccine}` : 'Valid Thru 2027',
+        nextCheckup: p.nextCheckup || '28 days',
+        nextCheckupNote: 'Wellness Screening',
+        hrvTrend: 'Stable Homeostasis (±0.0%)',
+        hrvRange: '64 - 76 BPM'
+      };
+    });
+    return base;
+  }, [pets]);
+
+  const patientList = useMemo(() => Object.values(combinedPatients), [combinedPatients]);
+  const currentPatient = combinedPatients[activePatientId] || patientList[0] || baselinePatientsData.milo;
+
+  const currentPatientRecords = useMemo(() => {
+    return (medicalRecords || []).filter(r => {
+      if (!r.petName) return true;
+      return r.petName.toLowerCase() === (currentPatient?.name || '').toLowerCase();
+    });
+  }, [medicalRecords, currentPatient]);
+
+  const handleRegisterPetSubmit = async (e) => {
+    if (e) e.preventDefault();
+    if (!newPetName.trim()) {
+      showToast('Please enter a companion name.', 'error');
+      return;
+    }
+    setIsRegisteringPet(true);
+    try {
+      const photoFallback = newPetSpecies.toLowerCase() === 'feline'
+        ? 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=160&q=80'
+        : 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=160&q=80';
+
+      const created = await addPet({
+        name: newPetName.trim(),
+        species: newPetSpecies,
+        breed: newPetBreed.trim() || 'Companion Breed',
+        microchip: newPetMicrochip.trim() || `ISO-${Math.floor(100000000 + Math.random() * 900000000)}`,
+        age: newPetAge.trim() || '2 yrs',
+        weight: newPetWeight.trim() || '15.0',
+        photo: newPetPhoto || photoFallback,
+        status: 'Active Companion',
+        healthIndex: 96
+      });
+      showToast(`Companion ${newPetName} provisioned in Sovereign Cloud Vault!`, 'success');
+      setActivePatientId(created?.id || newPetName.toLowerCase());
+      setNewPetName('');
+      setNewPetBreed('');
+      setNewPetMicrochip('');
+      setNewPetAge('');
+      setNewPetWeight('');
+      setNewPetPhoto('');
+      setShowRegisterPetModal(false);
+    } catch (err) {
+      console.error(err);
+      showToast('Failed to register companion: ' + err.message, 'error');
+    } finally {
+      setIsRegisteringPet(false);
+    }
+  };
+
+  const handleSaveGuardianBio = async () => {
+    try {
+      if (updateUserProfile) {
+        await updateUserProfile({
+          name: guardianName,
+          email: guardianEmail,
+          address: guardianAddress
+        });
+      }
+      showToast('Guardian profile updated and synchronized with Vault', 'success');
+      setShowEditBioModal(false);
+    } catch (err) {
+      showToast('Failed to update bio: ' + err.message, 'error');
+    }
+  };
+
+  const handleDownloadDossier = () => {
+    generatePetMedicalPassport({
+      pet: currentPatient?.rawPet || {
+        name: currentPatient.name,
+        species: currentPatient.species,
+        breed: currentPatient.breed,
+        age: currentPatient.age,
+        weight: currentPatient.weight,
+        petID: currentPatient.ehrId,
+        microchip: currentPatient.ehrId,
+        nextVaccine: 'Oct 2027',
+        photo: currentPatient.avatarUrl
+      },
+      owner: currentUser || {
+        name: guardianName,
+        email: guardianEmail,
+        address: guardianAddress,
+        phone: '+880 1711-209482'
+      },
+      medicalRecords: (medicalRecords || []).filter(r => 
+        (r.petName || '').toLowerCase() === (currentPatient?.name || '').toLowerCase() || !r.petName
+      )
+    });
+    showToast(`Official Certified Medical Passport for ${currentPatient.name} downloaded!`, 'success');
+    setShowPdfDossierModal(false);
+  };
 
   return (
     <div style={{
@@ -322,191 +471,114 @@ export default function Profile({ onNavigate }) {
             {/* Patient Cards Grid */}
             <div style={{
               display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
+              gridTemplateColumns: patientList.length > 1 ? 'repeat(auto-fill, minmax(280px, 1fr))' : '1fr',
               gap: '16px',
               marginBottom: '10px'
             }}>
+              {patientList.map((p, idx) => {
+                const isSelected = activePatientId === p.id;
+                return (
+                  <div
+                    key={p.id || idx}
+                    onClick={() => {
+                      setActivePatientId(p.id);
+                      showToast(`${p.name}'s longitudinal records loaded`, 'info');
+                    }}
+                    style={{
+                      backgroundColor: '#FFFFFF',
+                      borderRadius: '18px',
+                      border: isSelected ? '2px solid #3E7B84' : '1px solid #EBE5DF',
+                      padding: '16px 18px',
+                      cursor: 'pointer',
+                      boxShadow: isSelected ? '0 4px 14px rgba(62, 123, 132, 0.12)' : 'none',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <img
+                          src={p.avatarUrl}
+                          alt={p.name}
+                          style={{ width: '42px', height: '42px', borderRadius: '50%', objectFit: 'cover' }}
+                        />
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span style={{ fontSize: '15px', fontWeight: 800, color: '#160F0C' }}>{p.name}</span>
+                            <span style={{
+                              fontSize: '9.5px',
+                              fontWeight: 700,
+                              backgroundColor: '#EBE5DF',
+                              color: '#675C58',
+                              padding: '1px 6px',
+                              borderRadius: '4px'
+                            }}>
+                              {p.species}
+                            </span>
+                          </div>
+                          <div style={{ fontSize: '11.5px', color: '#707973' }}>
+                            {p.breed} • {p.age}
+                          </div>
+                          <div style={{ fontSize: '11px', color: isSelected ? '#3E7B84' : '#675C58', fontWeight: 600 }}>
+                            {p.device}
+                          </div>
+                        </div>
+                      </div>
 
-              {/* Patient 1: Milo */}
-              <div
-                onClick={() => {
-                  setActivePatientId('milo');
-                  showToast("Milo's longitudinal records loaded", 'info');
-                }}
-                style={{
-                  backgroundColor: '#FFFFFF',
-                  borderRadius: '18px',
-                  border: activePatientId === 'milo' ? '2px solid #3E7B84' : '1px solid #EBE5DF',
-                  padding: '16px 18px',
-                  cursor: 'pointer',
-                  boxShadow: activePatientId === 'milo' ? '0 4px 14px rgba(62, 123, 132, 0.12)' : 'none',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '12px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <img
-                      src={patientsData.milo.avatarUrl}
-                      alt="Milo"
-                      style={{ width: '42px', height: '42px', borderRadius: '50%', objectFit: 'cover' }}
-                    />
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ fontSize: '15px', fontWeight: 800, color: '#160F0C' }}>Milo</span>
+                      {isSelected ? (
                         <span style={{
                           fontSize: '9.5px',
                           fontWeight: 700,
-                          backgroundColor: '#EBE5DF',
-                          color: '#675C58',
-                          padding: '1px 6px',
-                          borderRadius: '4px'
+                          backgroundColor: 'rgba(62, 123, 132, 0.12)',
+                          color: '#3E7B84',
+                          padding: '3px 8px',
+                          borderRadius: '9999px',
+                          letterSpacing: '0.04em'
                         }}>
-                          CANINE
+                          ● ACTIVE DOSSIER
                         </span>
-                      </div>
-                      <div style={{ fontSize: '11.5px', color: '#707973' }}>
-                        Golden Retriever • 3 yrs 2 mos
-                      </div>
-                      <div style={{ fontSize: '11px', color: '#3E7B84', fontWeight: 600 }}>
-                        Maya Halo™ V3 Active
-                      </div>
+                      ) : (
+                        <span style={{ fontSize: '9.5px', color: '#8C827A', fontFamily: 'monospace' }}>PATIENT 0{idx + 1}</span>
+                      )}
                     </div>
-                  </div>
 
-                  {activePatientId === 'milo' ? (
-                    <span style={{
-                      fontSize: '9.5px',
-                      fontWeight: 700,
-                      backgroundColor: 'rgba(62, 123, 132, 0.12)',
-                      color: '#3E7B84',
-                      padding: '3px 8px',
-                      borderRadius: '9999px',
-                      letterSpacing: '0.04em'
+                    {/* Metrics 3 Cols */}
+                    <div style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(3, 1fr)',
+                      gap: '8px',
+                      backgroundColor: '#FAF7F5',
+                      padding: '8px 10px',
+                      borderRadius: '10px',
+                      border: '1px solid #EFE9E4',
+                      marginBottom: '10px',
+                      textAlign: 'center'
                     }}>
-                      ● ACTIVE DOSSIER
-                    </span>
-                  ) : (
-                    <span style={{ fontSize: '9.5px', color: '#8C827A', fontFamily: 'monospace' }}>PATIENT 01</span>
-                  )}
-                </div>
-
-                {/* Metrics 3 Cols */}
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(3, 1fr)',
-                  gap: '8px',
-                  backgroundColor: '#FAF7F5',
-                  padding: '8px 10px',
-                  borderRadius: '10px',
-                  border: '1px solid #EFE9E4',
-                  marginBottom: '10px',
-                  textAlign: 'center'
-                }}>
-                  <div>
-                    <div style={{ fontSize: '9px', color: '#8C827A', textTransform: 'uppercase' }}>WEIGHT</div>
-                    <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#160F0C' }}>28.4 <span style={{ fontSize: '10px', fontWeight: 500 }}>kg</span></div>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '9px', color: '#8C827A', textTransform: 'uppercase' }}>STATUS</div>
-                    <div style={{ fontSize: '12px', fontWeight: 700, color: '#160F0C' }}>Neutered</div>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '9px', color: '#8C827A', textTransform: 'uppercase' }}>HEALTH INDEX</div>
-                    <div style={{ fontSize: '12.5px', fontWeight: 800, color: '#3E7B84' }}>96<span style={{ fontSize: '10px', color: '#8C827A' }}>/100</span></div>
-                  </div>
-                </div>
-
-                {/* Sub-status */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '11px' }}>
-                  <span style={{ color: '#3E7B84', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <Radio size={11} /> Bio-Telemetry Streaming
-                  </span>
-                  <span style={{ color: '#047857', fontWeight: 600 }}>Records Loaded ✓</span>
-                </div>
-              </div>
-
-              {/* Patient 2: Cleo */}
-              <div
-                onClick={() => {
-                  setActivePatientId('cleo');
-                  showToast("Cleo's longitudinal records loaded", 'info');
-                }}
-                style={{
-                  backgroundColor: '#FFFFFF',
-                  borderRadius: '18px',
-                  border: activePatientId === 'cleo' ? '2px solid #3E7B84' : '1px solid #EBE5DF',
-                  padding: '16px 18px',
-                  cursor: 'pointer',
-                  boxShadow: activePatientId === 'cleo' ? '0 4px 14px rgba(62, 123, 132, 0.12)' : 'none',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '12px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <img
-                      src={patientsData.cleo.avatarUrl}
-                      alt="Cleo"
-                      style={{ width: '42px', height: '42px', borderRadius: '50%', objectFit: 'cover' }}
-                    />
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ fontSize: '15px', fontWeight: 800, color: '#160F0C' }}>Cleo</span>
-                        <span style={{
-                          fontSize: '9.5px',
-                          fontWeight: 700,
-                          backgroundColor: '#EBE5DF',
-                          color: '#675C58',
-                          padding: '1px 6px',
-                          borderRadius: '4px'
-                        }}>
-                          FELINE
-                        </span>
+                      <div>
+                        <div style={{ fontSize: '9px', color: '#8C827A', textTransform: 'uppercase' }}>WEIGHT</div>
+                        <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#160F0C' }}>{p.weight}</div>
                       </div>
-                      <div style={{ fontSize: '11.5px', color: '#707973' }}>
-                        Persian • 4 yrs • Spayed
+                      <div>
+                        <div style={{ fontSize: '9px', color: '#8C827A', textTransform: 'uppercase' }}>STATUS</div>
+                        <div style={{ fontSize: '12px', fontWeight: 700, color: '#160F0C' }}>{p.status}</div>
                       </div>
-                      <div style={{ fontSize: '11px', color: '#675C58' }}>
-                        Smart Tag Pro #CL-92
+                      <div>
+                        <div style={{ fontSize: '9px', color: '#8C827A', textTransform: 'uppercase' }}>HEALTH INDEX</div>
+                        <div style={{ fontSize: '12.5px', fontWeight: 800, color: '#3E7B84' }}>{p.healthIndex}<span style={{ fontSize: '10px', color: '#8C827A' }}>/100</span></div>
                       </div>
                     </div>
-                  </div>
 
-                  <span style={{ fontSize: '9.5px', color: '#8C827A', fontFamily: 'monospace' }}>PATIENT 02</span>
-                </div>
-
-                {/* Metrics 3 Cols */}
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(3, 1fr)',
-                  gap: '8px',
-                  backgroundColor: '#FAF7F5',
-                  padding: '8px 10px',
-                  borderRadius: '10px',
-                  border: '1px solid #EFE9E4',
-                  marginBottom: '10px',
-                  textAlign: 'center'
-                }}>
-                  <div>
-                    <div style={{ fontSize: '9px', color: '#8C827A', textTransform: 'uppercase' }}>WEIGHT</div>
-                    <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#160F0C' }}>4.1 <span style={{ fontSize: '10px', fontWeight: 500 }}>kg</span></div>
+                    {/* Sub-status */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '11px' }}>
+                      <span style={{ color: isSelected ? '#3E7B84' : '#8C827A', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <Radio size={11} /> {isSelected ? 'Bio-Telemetry Streaming' : '((•)) Connected'}
+                      </span>
+                      <span style={{ color: isSelected ? '#047857' : '#160F0C', fontWeight: 600 }}>
+                        {isSelected ? 'Records Loaded ✓' : 'Switch Companion ⇄'}
+                      </span>
+                    </div>
                   </div>
-                  <div>
-                    <div style={{ fontSize: '9px', color: '#8C827A', textTransform: 'uppercase' }}>NUTRITION</div>
-                    <div style={{ fontSize: '12px', fontWeight: 700, color: '#160F0C' }}>Renal Care</div>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '9px', color: '#8C827A', textTransform: 'uppercase' }}>HEALTH INDEX</div>
-                    <div style={{ fontSize: '12.5px', fontWeight: 800, color: '#3E7B84' }}>92<span style={{ fontSize: '10px', color: '#8C827A' }}>/100</span></div>
-                  </div>
-                </div>
-
-                {/* Sub-status */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '11px' }}>
-                  <span style={{ color: '#8C827A' }}>((•)) Last sync 4h ago</span>
-                  <span style={{ color: '#160F0C', fontWeight: 600 }}>Switch Companion ⇄</span>
-                </div>
-              </div>
-
+                );
+              })}
             </div>
 
             {/* Bottom Register Bar */}
@@ -873,6 +945,97 @@ export default function Profile({ onNavigate }) {
                   ⚡ Filter Category
                 </button>
               </div>
+
+              {/* Dynamic Live EHR Records from Firestore / Triage */}
+              {currentPatientRecords.map(record => (
+                <div key={record.id} style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: '16px',
+                  border: '1.5px solid #3E7B84',
+                  padding: '20px',
+                  marginBottom: '16px',
+                  boxShadow: '0 2px 10px rgba(62, 123, 132, 0.08)'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
+                    <div style={{
+                      width: '38px',
+                      height: '38px',
+                      borderRadius: '50%',
+                      backgroundColor: 'rgba(62, 123, 132, 0.12)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#3E7B84',
+                      flexShrink: 0
+                    }}>
+                      <FileCheck size={18} />
+                    </div>
+
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '4px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: '11px', color: '#8C827A', fontFamily: 'monospace' }}>
+                            {(record.date || new Date().toISOString().split('T')[0]).toUpperCase()} • LIVE EHR VAULT
+                          </span>
+                          <span style={{
+                            fontSize: '9.5px',
+                            fontWeight: 700,
+                            backgroundColor: 'rgba(16, 185, 129, 0.12)',
+                            color: '#047857',
+                            padding: '2px 6px',
+                            borderRadius: '4px'
+                          }}>
+                            {record.serviceType || 'CLINICAL TRIAGE'}
+                          </span>
+                        </div>
+                        <span style={{ fontSize: '11.5px', color: '#675C58' }}>
+                          Patient: <strong>{record.petName || currentPatient.name}</strong>
+                        </span>
+                      </div>
+
+                      <h4 style={{ fontSize: '15.5px', fontWeight: 800, color: '#160F0C', margin: '0 0 6px 0' }}>
+                        {record.diagnosis || 'Clinical Medical Consultation'}
+                      </h4>
+
+                      <p style={{ fontSize: '12.5px', color: '#675C58', lineHeight: 1.5, margin: '0 0 14px 0' }}>
+                        {record.prescription ? `Prescription & Protocol: ${record.prescription}` : 'Longitudinal electronic health record synchronized with sovereign patient vault.'}
+                      </p>
+
+                      <div style={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '10px',
+                        paddingTop: '10px',
+                        borderTop: '1px solid #F5EFEB',
+                        fontSize: '11.5px'
+                      }}>
+                        <span style={{ color: '#707973' }}>
+                          Weight: <strong>{record.weight || currentPatient.weight}</strong> • Total Ledger: <strong>৳{record.cost || '0'}</strong>
+                        </span>
+                        <button
+                          onClick={() => {
+                            if (deleteMedicalRecord) deleteMedicalRecord(record.id);
+                            showToast('Clinical record archived from vault', 'info');
+                          }}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#EF4444',
+                            fontSize: '11px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            padding: 0
+                          }}
+                        >
+                          Archive Record ✕
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
 
               {/* Entry 1: Follow-up Wellness Consultation */}
               <div style={{
@@ -1816,10 +1979,7 @@ export default function Profile({ onNavigate }) {
 
             <div style={{ display: 'flex', gap: '10px' }}>
               <button
-                onClick={() => {
-                  showToast('Guardian profile updated successfully', 'success');
-                  setShowEditBioModal(false);
-                }}
+                onClick={handleSaveGuardianBio}
                 style={{ flex: 1, padding: '11px', borderRadius: '9999px', backgroundColor: '#160F0C', color: '#FFFFFF', fontWeight: 700, border: 'none', cursor: 'pointer' }}
               >
                 Save Changes
@@ -1851,7 +2011,7 @@ export default function Profile({ onNavigate }) {
           <div style={{
             backgroundColor: '#FFFFFF',
             borderRadius: '20px',
-            maxWidth: '500px',
+            maxWidth: '520px',
             width: '100%',
             padding: '28px',
             boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
@@ -1868,48 +2028,139 @@ export default function Profile({ onNavigate }) {
               Register New Companion
             </h3>
             <p style={{ fontSize: '12px', color: '#707973', margin: '0 0 16px 0' }}>
-              Add a new canine or feline patient to your guardian encrypted health vault.
+              Add a new companion patient to your guardian encrypted health vault and live telemetry registry.
             </p>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
-              <input
-                type="text"
-                placeholder="Companion Name (e.g. Luna)"
-                style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #D6CEC7', boxSizing: 'border-box' }}
-              />
-              <select style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #D6CEC7', boxSizing: 'border-box' }}>
-                <option value="canine">Canine (Dog)</option>
-                <option value="feline">Feline (Cat)</option>
-              </select>
-              <input
-                type="text"
-                placeholder="Breed (e.g. Labrador Retriever)"
-                style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #D6CEC7', boxSizing: 'border-box' }}
-              />
-              <input
-                type="text"
-                placeholder="ISO Microchip Number (Optional)"
-                style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #D6CEC7', boxSizing: 'border-box' }}
-              />
-            </div>
+            <form onSubmit={handleRegisterPetSubmit}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
+                <input
+                  type="text"
+                  placeholder="Companion Name (e.g. Luna)"
+                  value={newPetName}
+                  onChange={(e) => setNewPetName(e.target.value)}
+                  required
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #D6CEC7', boxSizing: 'border-box' }}
+                />
 
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <button
-                onClick={() => {
-                  showToast('New companion registered and provisioned in Cloud Repository!', 'success');
-                  setShowRegisterPetModal(false);
-                }}
-                style={{ flex: 1, padding: '11px', borderRadius: '9999px', backgroundColor: '#160F0C', color: '#FFFFFF', fontWeight: 700, border: 'none', cursor: 'pointer' }}
-              >
-                Provision Patient Vault
-              </button>
-              <button
-                onClick={() => setShowRegisterPetModal(false)}
-                style={{ padding: '11px 20px', borderRadius: '9999px', backgroundColor: '#FAF7F5', border: '1px solid #D6CEC7', fontWeight: 600, cursor: 'pointer' }}
-              >
-                Cancel
-              </button>
-            </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <select
+                    value={newPetSpecies}
+                    onChange={(e) => setNewPetSpecies(e.target.value)}
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #D6CEC7', boxSizing: 'border-box', backgroundColor: '#FFFFFF' }}
+                  >
+                    <option value="Canine">Canine (Dog)</option>
+                    <option value="Feline">Feline (Cat)</option>
+                    <option value="Avian">Avian (Bird)</option>
+                  </select>
+                  <input
+                    type="text"
+                    placeholder="Breed (e.g. Labrador)"
+                    value={newPetBreed}
+                    onChange={(e) => setNewPetBreed(e.target.value)}
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #D6CEC7', boxSizing: 'border-box' }}
+                  />
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <input
+                    type="text"
+                    placeholder="Age (e.g. 2 yrs)"
+                    value={newPetAge}
+                    onChange={(e) => setNewPetAge(e.target.value)}
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #D6CEC7', boxSizing: 'border-box' }}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Weight in kg (e.g. 14.5)"
+                    value={newPetWeight}
+                    onChange={(e) => setNewPetWeight(e.target.value)}
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #D6CEC7', boxSizing: 'border-box' }}
+                  />
+                </div>
+
+                <input
+                  type="text"
+                  placeholder="ISO Microchip Number (Optional)"
+                  value={newPetMicrochip}
+                  onChange={(e) => setNewPetMicrochip(e.target.value)}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #D6CEC7', boxSizing: 'border-box' }}
+                />
+
+                {/* Photo Upload or URL */}
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: 600, color: '#675C58', display: 'block', marginBottom: '4px' }}>
+                    Companion Photo (Upload or Paste URL)
+                  </label>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <input
+                      type="url"
+                      placeholder="https://..."
+                      value={newPetPhoto}
+                      onChange={(e) => setNewPetPhoto(e.target.value)}
+                      style={{ flex: 1, padding: '8px 12px', borderRadius: '8px', border: '1px solid #D6CEC7', fontSize: '12px' }}
+                    />
+                    <label style={{
+                      padding: '8px 14px',
+                      borderRadius: '8px',
+                      backgroundColor: '#FAF7F5',
+                      border: '1px solid #D6CEC7',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}>
+                      <Upload size={13} /> Upload
+                      <input
+                        type="file"
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (file && uploadImageFile) {
+                            try {
+                              showToast('Uploading companion photo...', 'info');
+                              const url = await uploadImageFile(file, 'pets');
+                              setNewPetPhoto(url);
+                              showToast('Photo uploaded successfully!', 'success');
+                            } catch (err) {
+                              showToast('Photo upload failed: ' + err.message, 'error');
+                            }
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button
+                  type="submit"
+                  disabled={isRegisteringPet}
+                  style={{
+                    flex: 1,
+                    padding: '11px',
+                    borderRadius: '9999px',
+                    backgroundColor: '#160F0C',
+                    color: '#FFFFFF',
+                    fontWeight: 700,
+                    border: 'none',
+                    cursor: isRegisteringPet ? 'wait' : 'pointer'
+                  }}
+                >
+                  {isRegisteringPet ? 'Provisioning Vault...' : 'Provision Patient Vault'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowRegisterPetModal(false)}
+                  style={{ padding: '11px 20px', borderRadius: '9999px', backgroundColor: '#FAF7F5', border: '1px solid #D6CEC7', fontWeight: 600, cursor: 'pointer' }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
@@ -1950,7 +2201,7 @@ export default function Profile({ onNavigate }) {
                   Certified Longitudinal Medical Dossier
                 </h3>
                 <div style={{ fontSize: '11.5px', color: '#707973' }}>
-                  Patient: {currentPatient.name} ({currentPatient.ehrId})
+                  Patient: {currentPatient.name} ({currentPatient.ehrId}) • Species: {currentPatient.species}
                 </div>
               </div>
             </div>
@@ -1966,19 +2217,16 @@ export default function Profile({ onNavigate }) {
               marginBottom: '20px',
               border: '1px solid #EBE5DF'
             }}>
-              <div><strong>Vaccination & Rabies Titre:</strong> Verified Compliant (Expires Oct 2026)</div>
-              <div><strong>Biochemistry Panel:</strong> 14 Biomarkers Normal (ALT 42, Creatinine 1.1)</div>
-              <div><strong>Surgical History:</strong> Ultrasonic Dental Prophylaxis (Aug 2026)</div>
-              <div><strong>Continuous Biometrics:</strong> HRV Stasis Normal (62 - 74 BPM)</div>
-              <div><strong>Cryptographic Authenticity:</strong> BSEC Digital Cert #EHR-ML-8812-2026</div>
+              <div><strong>Vaccination & Rabies Titre:</strong> {currentPatient.rabiesNote}</div>
+              <div><strong>Weight & Vitals:</strong> {currentPatient.weight} • {currentPatient.restingHr} ({currentPatient.restingHrNote})</div>
+              <div><strong>Core Body Temp:</strong> {currentPatient.bodyTemp} ({currentPatient.bodyTempNote})</div>
+              <div><strong>Continuous Biometrics:</strong> HRV Trend {currentPatient.hrvTrend}</div>
+              <div><strong>Guardian Authenticity:</strong> {guardianName} • AAHA Telehealth Node #PM-ACC-4410</div>
             </div>
 
             <div style={{ display: 'flex', gap: '10px' }}>
               <button
-                onClick={() => {
-                  showToast('Official Certified PDF Dossier downloaded', 'success');
-                  setShowPdfDossierModal(false);
-                }}
+                onClick={handleDownloadDossier}
                 style={{ flex: 1, padding: '11px', borderRadius: '9999px', backgroundColor: '#160F0C', color: '#FFFFFF', fontWeight: 700, border: 'none', cursor: 'pointer' }}
               >
                 Download Official PDF Dossier
