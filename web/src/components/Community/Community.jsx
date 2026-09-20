@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import EditorialNavbar from '../Navigation/EditorialNavbar';
@@ -50,15 +50,16 @@ export default function Community({ onNavigate }) {
     showToast, 
     openModal, 
     cart = [], 
-    communityPosts = [], 
-    createCommunityPost, 
-    togglePostReaction, 
-    addPostComment, 
+    posts: communityPosts = [], 
+    createPost: createCommunityPost, 
+    toggleReaction: togglePostReaction, 
+    addComment: addPostComment, 
     resolveAmberAlert, 
     uploadImageFile, 
     pets = [],
-    devices = []
-  } = useApp ? useApp() : { showToast: () => {}, openModal: () => {}, cart: [] };
+    devices = [],
+    vets = []
+  } = useApp ? useApp() : { showToast: () => {}, openModal: () => {}, cart: [], posts: [] };
   const { currentUser } = useAuth ? useAuth() : { currentUser: null };
 
   const primaryPetName = pets[0]?.name || 'Companion';
@@ -144,7 +145,7 @@ export default function Community({ onNavigate }) {
   const handleAddQuestion = (e) => {
     e.preventDefault();
     if (!questionInput.trim()) return;
-    showToast('Clinical question submitted to Sarah Ahmed & verified clinicians!', 'success');
+    showToast(`Clinical question submitted to ${vets[0]?.name || 'verified clinicians'}!`, 'success');
     setQuestionInput('');
   };
 
@@ -239,7 +240,7 @@ export default function Community({ onNavigate }) {
                     PAW POINTS
                   </div>
                   <div style={{ fontSize: '14px', fontWeight: 800, color: '#160F0C' }}>
-                    480 <span style={{ fontSize: '10px', fontWeight: 500 }}>pts</span>
+                    {communityPosts.filter(p => p.userId === currentUser?.uid || p.userEmail === currentUser?.email).length * 40 || currentUser ? communityPosts.filter(p => p.userId === currentUser?.uid || p.userEmail === currentUser?.email).length * 40 : 0} <span style={{ fontSize: '10px', fontWeight: 500 }}>pts</span>
                   </div>
                   <div style={{ fontSize: '9.5px', color: '#3E7B84', fontWeight: 600 }}>
                     Guardian Rank
@@ -251,10 +252,10 @@ export default function Community({ onNavigate }) {
                     COMMUNITY KARMA
                   </div>
                   <div style={{ fontSize: '14px', fontWeight: 800, color: '#047857' }}>
-                    +98 Score
+                    +{communityPosts.filter(p => p.userId === currentUser?.uid || p.userEmail === currentUser?.email).reduce((sum, p) => sum + (p.likesCount || 0), 0)} Score
                   </div>
                   <div style={{ fontSize: '9.5px', color: '#8C827A' }}>
-                    12 Helpful Acts
+                    {communityPosts.filter(p => p.userId === currentUser?.uid || p.userEmail === currentUser?.email).length} Post{communityPosts.filter(p => p.userId === currentUser?.uid || p.userEmail === currentUser?.email).length !== 1 ? 's' : ''} Published
                   </div>
                 </div>
               </div>
@@ -272,12 +273,12 @@ export default function Community({ onNavigate }) {
               boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
             }}>
               {[
-                { id: 'all', label: 'All Stories', badge: '342', icon: Layers },
-                { id: 'photos', label: 'Photo Moments', badge: '128', icon: Camera },
+                { id: 'all', label: 'All Stories', badge: communityPosts.length || '0', icon: Layers },
+                { id: 'photos', label: 'Photo Moments', badge: communityPosts.filter(p => p.imageUrl).length || '0', icon: Camera },
                 { id: 'recovery', label: 'Health & Recovery', badge: 'TPLO Hub', badgeColor: '#3E7B84', badgeBg: 'rgba(62,123,132,0.12)', icon: Stethoscope },
-                { id: 'rescue', label: 'Rescue & Adoption', badge: '14', icon: Users },
-                { id: 'amber', label: 'Lost & Found Alerts', badge: '1 Active', badgeColor: '#EF4444', badgeBg: 'rgba(239,68,68,0.1)', icon: AlertTriangle },
-                { id: 'bookmarks', label: 'Saved Bookmarks', badge: '9', icon: Bookmark }
+                { id: 'rescue', label: 'Rescue & Adoption', badge: communityPosts.filter(p => p.postType === 'rescue' || p.category === 'rescue').length || '0', icon: Users },
+                { id: 'amber', label: 'Lost & Found Alerts', badge: communityPosts.filter(p => p.isAmberAlert || p.category === 'amber').length > 0 ? `${communityPosts.filter(p => p.isAmberAlert || p.category === 'amber').length} Active` : '0', badgeColor: '#EF4444', badgeBg: 'rgba(239,68,68,0.1)', icon: AlertTriangle },
+                { id: 'bookmarks', label: 'Saved Bookmarks', badge: '0', icon: Bookmark }
               ].map(item => {
                 const Icon = item.icon;
                 const isActive = activeNavRail === item.id;
@@ -602,7 +603,7 @@ export default function Community({ onNavigate }) {
                 <textarea
                   value={postContent}
                   onChange={(e) => setPostContent(e.target.value)}
-                  placeholder="What's on your pet's mind, Rehan? Share a recovery update or moment..."
+                  placeholder={`What's on your pet's mind, ${currentUser?.name || currentUser?.displayName || 'Guardian'}? Share a recovery update or moment...`}
                   rows={2}
                   style={{
                     flex: 1,
@@ -985,28 +986,48 @@ export default function Community({ onNavigate }) {
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '12.5px' }}>
-                {[
-                  { tag: '#TPLORecovery', count: '43 posts' },
-                  { tag: '#GutMicrobiome', count: '88 posts' },
-                  { tag: '#AmberReunited', count: '19 posts' },
-                  { tag: '#FearFreeDhaka', count: '35 posts' },
-                  { tag: '#VaccineAwareness', count: '64 posts' }
-                ].map(item => (
-                  <div
-                    key={item.tag}
-                    onClick={() => showToast(`Filtered by ${item.tag}`, 'info')}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      cursor: 'pointer',
-                      padding: '3px 0'
-                    }}
-                  >
-                    <span style={{ fontWeight: 700, color: '#160F0C' }}>{item.tag}</span>
-                    <span style={{ fontSize: '11px', color: '#8C827A' }}>{item.count}</span>
-                  </div>
-                ))}
+                {(() => {
+                  // Extract hashtags from post content and build frequency map
+                  const tagFreq = {};
+                  communityPosts.forEach(post => {
+                    const matches = ((post.content || '') + ' ' + (post.tags || []).join(' ')).match(/#[\w]+/g) || [];
+                    matches.forEach(tag => {
+                      const normalized = tag.toLowerCase();
+                      tagFreq[normalized] = (tagFreq[normalized] || 0) + 1;
+                    });
+                    // Also count post types as implicit tags
+                    if (post.postType && post.postType !== 'general') {
+                      const typeTag = `#${post.postType}`;
+                      tagFreq[typeTag] = (tagFreq[typeTag] || 0) + 1;
+                    }
+                  });
+                  const dynamicTags = Object.entries(tagFreq)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 5)
+                    .map(([tag, count]) => ({ tag, count: `${count} post${count !== 1 ? 's' : ''}` }));
+                  // Fallback placeholders if DB has no hashtag data
+                  const displayTags = dynamicTags.length >= 3 ? dynamicTags : [
+                    { tag: '#PetMayaCommunity', count: `${communityPosts.length} posts` },
+                    { tag: '#DhakaMesh', count: 'Active' },
+                    { tag: '#PetHealth', count: 'Trending' }
+                  ].slice(0, 3);
+                  return displayTags.map(item => (
+                    <div
+                      key={item.tag}
+                      onClick={() => showToast(`Filtered by ${item.tag}`, 'info')}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        cursor: 'pointer',
+                        padding: '3px 0'
+                      }}
+                    >
+                      <span style={{ fontWeight: 700, color: '#160F0C' }}>{item.tag}</span>
+                      <span style={{ fontSize: '11px', color: '#8C827A' }}>{item.count}</span>
+                    </div>
+                  ));
+                })()}
               </div>
             </div>
 
@@ -1026,59 +1047,77 @@ export default function Community({ onNavigate }) {
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {[
-                  { initials: 'EV', name: 'Dr. Evelyn Vance, MRCVS', role: 'Head of Internal Med (Cambridge)' },
-                  { initials: 'NH', name: 'Dr. Nazmul Huda, AO VET', role: 'Orthopedic & Trauma Specialist' },
-                  { initials: 'AK', name: 'Dr. Arman K. Rahman', role: "PharmD • Clinical Nutritionist" }
-                ].map(clinician => (
-                  <div
-                    key={clinician.name}
-                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <div style={{
-                        width: '32px',
-                        height: '32px',
-                        borderRadius: '50%',
-                        backgroundColor: '#FAF7F5',
-                        border: '1px solid #E5DED6',
-                        color: '#3E7B84',
-                        fontSize: '11px',
-                        fontWeight: 800,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0
-                      }}>
-                        {clinician.initials}
-                      </div>
-                      <div>
-                        <div style={{ fontSize: '12px', fontWeight: 700, color: '#160F0C' }}>
-                          {clinician.name}
-                        </div>
-                        <div style={{ fontSize: '10px', color: '#8C827A' }}>
-                          {clinician.role}
-                        </div>
-                      </div>
-                    </div>
+                {vets.slice(0, 3).length > 0
+                  ? vets.slice(0, 3).map(vet => {
+                      const initials = (vet.name || '').split(' ').filter(Boolean).map(w => w[0]).slice(0, 2).join('').toUpperCase();
+                      return (
+                        <div
+                          key={vet.id}
+                          style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            {vet.photo ? (
+                              <img
+                                src={vet.photo}
+                                alt={vet.name}
+                                style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
+                              />
+                            ) : (
+                              <div style={{
+                                width: '32px',
+                                height: '32px',
+                                borderRadius: '50%',
+                                backgroundColor: '#FAF7F5',
+                                border: '1px solid #E5DED6',
+                                color: '#3E7B84',
+                                fontSize: '11px',
+                                fontWeight: 800,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0
+                              }}>
+                                {initials}
+                              </div>
+                            )}
+                            <div>
+                              <div style={{ fontSize: '12px', fontWeight: 700, color: '#160F0C' }}>
+                                {vet.name}
+                              </div>
+                              <div style={{ fontSize: '10px', color: '#8C827A' }}>
+                                {vet.qualification || vet.tag || ''}
+                              </div>
+                            </div>
+                          </div>
 
-                    <button
-                      onClick={() => handleToggleFollow(clinician.name)}
-                      style={{
-                        padding: '4px 10px',
-                        borderRadius: '9999px',
-                        backgroundColor: followedClinicians[clinician.name] ? '#047857' : '#FAF7F5',
-                        color: followedClinicians[clinician.name] ? '#FFFFFF' : '#160F0C',
-                        border: '1px solid #D6CEC7',
-                        fontSize: '10.5px',
-                        fontWeight: 700,
-                        cursor: 'pointer'
-                      }}
-                    >
-                      {followedClinicians[clinician.name] ? 'Following' : 'Follow'}
-                    </button>
-                  </div>
-                ))}
+                          <button
+                            onClick={() => handleToggleFollow(vet.name)}
+                            style={{
+                              padding: '4px 10px',
+                              borderRadius: '9999px',
+                              backgroundColor: followedClinicians[vet.name] ? '#047857' : '#FAF7F5',
+                              color: followedClinicians[vet.name] ? '#FFFFFF' : '#160F0C',
+                              border: '1px solid #D6CEC7',
+                              fontSize: '10.5px',
+                              fontWeight: 700,
+                              cursor: 'pointer'
+                            }}
+                          >
+                            {followedClinicians[vet.name] ? 'Following' : 'Follow'}
+                          </button>
+                        </div>
+                      );
+                    })
+                  : [0, 1, 2].map(i => (
+                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#EFEFEA', flexShrink: 0 }} />
+                        <div style={{ flex: 1 }}>
+                          <div style={{ height: '10px', width: '80%', borderRadius: '4px', backgroundColor: '#EFEFEA', marginBottom: '4px' }} />
+                          <div style={{ height: '8px', width: '60%', borderRadius: '4px', backgroundColor: '#EFEFEA' }} />
+                        </div>
+                      </div>
+                    ))
+                }
               </div>
             </div>
 
