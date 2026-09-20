@@ -65,27 +65,28 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
       <div style={{
         maxWidth: '1360px',
         margin: '0 auto',
-        padding: '10px 24px',
+        padding: '10px clamp(12px, 3vw, 24px)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        gap: '16px'
+        gap: '8px'
       }}>
         {/* Left: Brand Logotype */}
         <a
           href="#landing"
           onClick={(e) => handleNavClick('landing', e)}
-          style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', cursor: 'pointer' }}
+          style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', cursor: 'pointer', flexShrink: 0 }}
         >
           <span style={{
             fontFamily: 'var(--font-heading, "Playfair Display", Georgia, serif)',
-            fontSize: '20px',
+            fontSize: 'clamp(17px, 4.5vw, 20px)',
             fontWeight: 800,
-            letterSpacing: '0.18em',
+            letterSpacing: '0.16em',
             textTransform: 'uppercase',
             color: isDark ? '#FFFFFF' : '#160F0C',
             lineHeight: 1,
-            transition: 'color 0.2s ease'
+            transition: 'color 0.2s ease',
+            whiteSpace: 'nowrap'
           }}>
             PET MAYA
           </span>
@@ -153,12 +154,13 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
         </nav>
 
         {/* Right: Utility Items */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          {/* Search Button */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+          {/* Search Button (desktop/tablet) */}
           <button
             onClick={() => handleNavClick('shop')}
             aria-label="Search formulary and clinical database"
             title="Search"
+            className="editorial-nav-search-btn"
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -196,7 +198,8 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
               color: isDark ? '#1AB680' : '#160F0C',
               cursor: 'pointer',
               boxShadow: isDark ? '0 1px 6px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.04)',
-              transition: 'all 0.2s ease'
+              transition: 'all 0.2s ease',
+              flexShrink: 0
             }}
           >
             {isDark ? <Sun size={17} /> : <Moon size={17} />}
@@ -224,7 +227,8 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
                 : (currentRoute === 'cart' || currentRoute === '/cart' ? '#FFFFFF' : '#160F0C'),
               cursor: 'pointer',
               boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-              transition: 'all 0.18s ease'
+              transition: 'all 0.18s ease',
+              flexShrink: 0
             }}
           >
             <ShoppingBag size={17} />
@@ -269,7 +273,8 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
               cursor: 'pointer',
               boxShadow: isDark ? '0 2px 10px rgba(26, 182, 128, 0.35)' : '0 2px 6px rgba(0,0,0,0.12)',
               whiteSpace: 'nowrap',
-              transition: 'all 0.2s ease'
+              transition: 'all 0.2s ease',
+              flexShrink: 0
             }}
           >
             BOOK CONSULT
@@ -295,7 +300,7 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              marginLeft: '2px'
+              flexShrink: 0
             }}
           >
             <img
@@ -324,7 +329,8 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
               border: isDark ? '1px solid rgba(26, 182, 128, 0.35)' : '1px solid rgba(222, 217, 214, 0.7)',
               backgroundColor: isDark ? '#0B2826' : '#FFFFFF',
               color: isDark ? '#FFFFFF' : '#160F0C',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              flexShrink: 0
             }}
           >
             {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
@@ -337,41 +343,101 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
         <div style={{
           backgroundColor: isDark ? '#0B2826' : '#FFFFFF',
           borderBottom: isDark ? '1px solid rgba(26, 182, 128, 0.25)' : '1px solid rgba(222, 217, 214, 0.7)',
-          padding: '16px 24px',
+          padding: '16px 20px 24px',
           display: 'flex',
           flexDirection: 'column',
-          gap: '12px',
-          boxShadow: isDark ? '0 12px 32px rgba(0,0,0,0.6)' : '0 8px 24px rgba(0,0,0,0.06)'
+          gap: '6px',
+          boxShadow: isDark ? '0 16px 40px rgba(0,0,0,0.7)' : '0 12px 30px rgba(0,0,0,0.08)',
+          maxHeight: 'calc(100vh - 70px)',
+          overflowY: 'auto'
         }}>
-          {navLinks.map((link) => (
-            <a
-              key={link.label}
-              href={`#${link.path}`}
-              onClick={(e) => handleNavClick(link.path, e)}
-              style={{
-                fontSize: '15px',
-                fontWeight: 500,
-                color: isDark ? '#FFFFFF' : '#160F0C',
-                textDecoration: 'none',
-                padding: '8px 0'
+          {/* Quick Search in Drawer */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '8px 12px',
+            borderRadius: '9999px',
+            backgroundColor: isDark ? '#07211F' : '#F4EFEB',
+            marginBottom: '8px'
+          }}>
+            <Search size={16} color={isDark ? '#1AB680' : '#707973'} />
+            <input 
+              type="text" 
+              placeholder="Search formulary, articles, records..."
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleNavClick('shop');
+                }
               }}
-            >
-              {link.label}
-            </a>
-          ))}
+              style={{
+                border: 'none',
+                background: 'transparent',
+                outline: 'none',
+                fontSize: '13px',
+                color: isDark ? '#FFFFFF' : '#160F0C',
+                width: '100%'
+              }}
+            />
+          </div>
+
+          {navLinks.map((link) => {
+            const isActive = currentRoute === link.path || 
+              (link.path === 'shop' && (currentRoute === '/shop' || currentRoute === 'shop')) ||
+              (link.path === 'ai' && (currentRoute === 'ai' || currentRoute === '/ai')) ||
+              (link.path === 'specialists' && (currentRoute === 'specialists' || currentRoute === '/specialists')) ||
+              (link.path === 'digital-pet-passport' && (currentRoute === 'digital-pet-passport' || currentRoute === '/digital-pet-passport')) ||
+              (link.path === 'journal' && (currentRoute === 'journal' || currentRoute === 'blog')) ||
+              (link.path === 'pet-gps' && (currentRoute === 'pet-gps' || currentRoute === 'tracker')) ||
+              (link.path === 'community' && (currentRoute === 'community' || currentRoute === '/community')) ||
+              (link.path === 'dashboard' && (currentRoute === 'dashboard' || currentRoute === '/dashboard'));
+
+            return (
+              <a
+                key={link.label}
+                href={`#${link.path}`}
+                onClick={(e) => handleNavClick(link.path, e)}
+                style={{
+                  fontSize: '14.5px',
+                  fontWeight: isActive ? 700 : 500,
+                  color: isActive ? (isDark ? '#1AB680' : '#160F0C') : (isDark ? '#9DB4B0' : '#55605C'),
+                  backgroundColor: isActive ? (isDark ? 'rgba(26, 182, 128, 0.12)' : 'rgba(22, 15, 12, 0.05)') : 'transparent',
+                  borderRadius: '8px',
+                  textDecoration: 'none',
+                  padding: '10px 12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                <span>{link.label}</span>
+                {isActive && (
+                  <span style={{
+                    width: '6px',
+                    height: '6px',
+                    borderRadius: '50%',
+                    backgroundColor: isDark ? '#1AB680' : '#160F0C'
+                  }} />
+                )}
+              </a>
+            );
+          })}
+
           <div style={{ 
-            paddingTop: '12px', 
+            paddingTop: '14px', 
             borderTop: isDark ? '1px solid rgba(26, 182, 128, 0.2)' : '1px solid rgba(222, 217, 214, 0.5)', 
             display: 'flex', 
             flexDirection: 'column', 
-            gap: '8px' 
+            gap: '10px',
+            marginTop: '6px'
           }}>
             {/* Mobile Theme Toggle Button */}
             <button
               onClick={toggleTheme}
               style={{
                 width: '100%',
-                padding: '10px 16px',
+                padding: '11px 16px',
                 borderRadius: '9999px',
                 backgroundColor: isDark ? '#103330' : '#F3F3EF',
                 color: isDark ? '#1AB680' : '#160F0C',
@@ -435,6 +501,11 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
             display: flex !important;
           }
           .editorial-book-consult-btn {
+            display: none !important;
+          }
+        }
+        @media (max-width: 600px) {
+          .editorial-nav-search-btn {
             display: none !important;
           }
         }
