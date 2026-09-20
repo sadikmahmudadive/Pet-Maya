@@ -167,37 +167,11 @@ export default function HealthTriage({ onNavigate }) {
   const [activeMode, setActiveMode] = useState('protocol');
 
   // Companion Patient selection
-  const defaultPets = useMemo(() => {
-    return [
-      {
-        id: 'pet_milo',
-        name: 'Milo',
-        breed: 'Golden Retriever',
-        age: '3.4 yrs',
-        weight: '31.2 kg',
-        vaccination: 'Current',
-        microchip: '9814-0012-78',
-        image: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=200&auto=format&fit=crop&q=80'
-      },
-      {
-        id: 'pet_cleo',
-        name: 'Cleo',
-        breed: 'Persian Feline',
-        age: '4.8 yrs',
-        weight: '4.1 kg',
-        vaccination: 'Current',
-        microchip: '9814-0044-19',
-        image: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=200&auto=format&fit=crop&q=80'
-      }
-    ];
-  }, []);
-
   const availablePets = useMemo(() => {
-    const base = [...defaultPets];
-    (pets || []).forEach(p => {
-      const pid = p.id || p.petID || p.name?.toLowerCase();
-      if (!base.find(b => b.id === pid || b.name?.toLowerCase() === p.name?.toLowerCase())) {
-        base.push({
+    if (pets && pets.length > 0) {
+      return pets.map(p => {
+        const pid = p.id || p.petID || p.name?.toLowerCase();
+        return {
           id: pid,
           rawPet: p,
           name: p.name || 'Companion',
@@ -205,24 +179,30 @@ export default function HealthTriage({ onNavigate }) {
           age: p.age ? (String(p.age).includes('yr') ? String(p.age) : `${p.age} yrs`) : '2.5 yrs',
           weight: p.weight ? (String(p.weight).includes('kg') ? String(p.weight) : `${p.weight} kg`) : '15.0 kg',
           vaccination: p.nextVaccine ? 'Current' : 'Verified',
-          microchip: p.microchip || p.petID || 'ISO-9814-0099',
-          image: p.photo || (String(p.species).toLowerCase().includes('cat') || String(p.species).toLowerCase().includes('fel')
+          microchip: p.microchip || p.petID || 'UNREGISTERED',
+          image: p.photo || p.image || (String(p.species).toLowerCase().includes('cat') || String(p.species).toLowerCase().includes('fel')
             ? 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=200&auto=format&fit=crop&q=80'
             : 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=200&auto=format&fit=crop&q=80')
-        });
-      }
-    });
-    return base;
-  }, [defaultPets, pets]);
+        };
+      });
+    }
+    return [];
+  }, [pets]);
 
-  const [selectedPetId, setSelectedPetId] = useState('pet_milo');
-  const activePet = availablePets.find(p => p.id === selectedPetId) || availablePets[0];
+  const [selectedPetId, setSelectedPetId] = useState(() => availablePets[0]?.id || '');
+  const activePet = availablePets.find(p => p.id === selectedPetId) || availablePets[0] || {
+    name: 'Companion',
+    breed: 'Companion Breed',
+    age: '2.5 yrs',
+    weight: '15.0 kg',
+    vaccination: 'Verified',
+    microchip: 'UNREGISTERED',
+    image: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=200&auto=format&fit=crop&q=80'
+  };
 
   // Anatomical Symptom Locator state
   const [selectedLocus, setSelectedLocus] = useState('gi');
-  const [chiefComplaint, setChiefComplaint] = useState(
-    'Milo refused his afternoon meal and vomited clear bile once at 15:30. Otherwise responsive but less energetic.'
-  );
+  const [chiefComplaint, setChiefComplaint] = useState('');
 
   // Clinical Observations & Vitals state
   const [symptomDuration, setSymptomDuration] = useState('4-8h'); // 'under2h' | '4-8h' | '12-24h' | '48h+'
@@ -814,49 +794,55 @@ export default function HealthTriage({ onNavigate }) {
                       marginBottom: '24px',
                       flexWrap: 'wrap'
                     }}>
-                      {availablePets.map(pet => {
-                        const isSelected = pet.id === selectedPetId;
-                        return (
-                          <div
-                            key={pet.id}
-                            onClick={() => setSelectedPetId(pet.id)}
-                            style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '12px',
-                              padding: '6px 20px 6px 8px',
-                              borderRadius: '9999px',
-                              backgroundColor: isSelected ? '#EFEFEA' : 'transparent',
-                              cursor: 'pointer',
-                              transition: 'all 0.2s ease'
-                            }}
-                          >
-                            <img
-                              src={pet.image}
-                              alt={pet.name}
+                      {availablePets.length === 0 ? (
+                        <div style={{ padding: '8px 16px', fontSize: '13px', color: '#8C827A' }}>
+                          No companions registered yet. <button type="button" onClick={() => openModal ? openModal('addPet') : null} style={{ background: 'none', border: 'none', color: '#0D9488', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}>Register Companion</button>
+                        </div>
+                      ) : (
+                        availablePets.map(pet => {
+                          const isSelected = pet.id === selectedPetId;
+                          return (
+                            <div
+                              key={pet.id}
+                              onClick={() => setSelectedPetId(pet.id)}
                               style={{
-                                width: '38px',
-                                height: '38px',
-                                borderRadius: '50%',
-                                objectFit: 'cover'
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '12px',
+                                padding: '6px 20px 6px 8px',
+                                borderRadius: '9999px',
+                                backgroundColor: isSelected ? '#EFEFEA' : 'transparent',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease'
                               }}
-                            />
-                            <div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                <span style={{ fontSize: '13.5px', fontWeight: 700, color: '#160F0C' }}>
-                                  {pet.name}
-                                </span>
-                                {pet.id === 'pet_milo' && (
-                                  <CheckCircle2 size={13} color="#0D9488" fill="#CCFBF1" />
-                                )}
-                              </div>
-                              <div style={{ fontSize: '11.5px', color: '#707973' }}>
-                                {pet.breed} • {pet.age}
+                            >
+                              <img
+                                src={pet.image}
+                                alt={pet.name}
+                                style={{
+                                  width: '38px',
+                                  height: '38px',
+                                  borderRadius: '50%',
+                                  objectFit: 'cover'
+                                }}
+                              />
+                              <div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                  <span style={{ fontSize: '13.5px', fontWeight: 700, color: '#160F0C' }}>
+                                    {pet.name}
+                                  </span>
+                                  {isSelected && (
+                                    <CheckCircle2 size={13} color="#0D9488" fill="#CCFBF1" />
+                                  )}
+                                </div>
+                                <div style={{ fontSize: '11.5px', color: '#707973' }}>
+                                  {pet.breed} • {pet.age}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        })
+                      )}
                     </div>
 
                     {/* Vitals Summary Footer */}
@@ -1020,7 +1006,7 @@ export default function HealthTriage({ onNavigate }) {
                           rows={2}
                           value={chiefComplaint}
                           onChange={(e) => setChiefComplaint(e.target.value)}
-                          placeholder="e.g., Milo refused his afternoon meal and vomited clear bile once at 15:30. Otherwise responsive but less energetic."
+                          placeholder="Describe specific symptoms observed (e.g. refused food, vomiting, altered gait, low energy)..."
                           style={{
                             width: '100%',
                             border: 'none',

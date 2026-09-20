@@ -24,9 +24,9 @@ export default function AuthPage({ initialMode = 'signin', onNavigate }) {
 
   // Form fields
   const [name, setName] = useState('');
-  const [email, setEmail] = useState('tanzim@petmaya.app');
+  const [email, setEmail] = useState('');
   const [microchip, setMicrochip] = useState('');
-  const [password, setPassword] = useState('calmclinical2025!');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -85,7 +85,7 @@ export default function AuthPage({ initialMode = 'signin', onNavigate }) {
 
   const handleDemoAccess = () => {
     loginAsGuest('Pet Owner');
-    showToast('Signed in as Guest Guardian (Milo\'s Profile)', 'success');
+    showToast('Signed in as Guest Guardian', 'success');
     handleRoute('dashboard');
   };
 
@@ -436,7 +436,7 @@ export default function AuthPage({ initialMode = 'signin', onNavigate }) {
                     border: '1px solid rgba(255,255,255,0.15)'
                   }}>
                     <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#92D1DA' }}></span>
-                    <span style={{ fontWeight: 500 }}>Milo • Golden Retriever</span>
+                    <span style={{ fontWeight: 500 }}>Verified Companion Record</span>
                   </div>
                   <span style={{
                     fontFamily: 'var(--font-mono)',
@@ -688,7 +688,7 @@ export default function AuthPage({ initialMode = 'signin', onNavigate }) {
                 </h2>
                 <p style={{ fontSize: '12.5px', color: '#675C58', margin: 0, lineHeight: 1.5 }}>
                   {mode === 'signin'
-                    ? "Access Milo's vitals, verified medical records, cold-chain prescriptions, and collar radar telemetry."
+                    ? "Access your companion's vitals, verified medical records, cold-chain prescriptions, and collar radar telemetry."
                     : "Establish an encrypted clinical record, connect your veterinary clinic, and configure urgent telemetry."}
                 </p>
               </div>
@@ -827,7 +827,7 @@ export default function AuthPage({ initialMode = 'signin', onNavigate }) {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="tanzim@petmaya.app"
+                    placeholder="guardian@example.com"
                     style={{
                       width: '100%',
                       borderRadius: '8px',
@@ -1019,7 +1019,7 @@ export default function AuthPage({ initialMode = 'signin', onNavigate }) {
                   onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
                 >
                   <PlayCircle size={15} />
-                  <span>Quick Demo Access: Sign In as Guest Guardian (Milo's Profile)</span>
+                  <span>Quick Demo Access: Sign In as Guest Guardian</span>
                 </button>
               </div>
 

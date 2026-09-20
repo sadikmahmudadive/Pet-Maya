@@ -526,23 +526,15 @@ export function AppProvider({ children }) {
             localStorage.setItem('pm_pets', JSON.stringify(fetchedPets));
           } catch (_) {}
         } else {
-          // If query returned empty, check local storage or use initial pets
-          const saved = localStorage.getItem('pm_pets');
-          if (saved) {
-            try {
-              const parsed = JSON.parse(saved);
-              if (Array.isArray(parsed) && parsed.length > 0) {
-                setPets(parsed);
-                return;
-              }
-            } catch (_) {}
-          }
-          setPets(INITIAL_PETS);
+          // User has no pets registered in Firestore yet
+          setPets([]);
+          try {
+            localStorage.removeItem('pm_pets');
+          } catch (_) {}
         }
       }, (err) => {
         console.warn('[Firebase] Pets stream warning:', err);
-        const saved = localStorage.getItem('pm_pets');
-        setPets(saved ? JSON.parse(saved) : INITIAL_PETS);
+        setPets([]);
       });
 
       return () => unsubscribe();
@@ -1661,8 +1653,8 @@ export function AppProvider({ children }) {
 
   // Checkout & Place Order
   const checkoutOrder = async (orderDataOrAddress) => {
-    let deliveryAddress = currentUser?.address || 'House 42, Road 11, Block D, Banani, Dhaka';
-    let phone = currentUser?.phone || '+880 1711-209482';
+    let deliveryAddress = currentUser?.address || 'Banani, Dhaka';
+    let phone = currentUser?.phone || currentUser?.phoneNumber || '';
     let paymentMethod = 'bKash / Mobile Banking';
     let shipping = appliedCoupon?.discount === 'free_shipping' ? 0 : 60;
     let customTotal = null;
@@ -1674,8 +1666,8 @@ export function AppProvider({ children }) {
       image: i.image || i.imageUrl || '',
       specBadge: i.specBadge || ''
     }));
-    let patient = 'Milo (Canine • 28.4kg)';
-    let microchip = '985141002938411';
+    let patient = pets && pets.length > 0 ? `${pets[0].name} (${pets[0].species || 'Canine'}${pets[0].weight ? ` • ${pets[0].weight}` : ''})` : 'Registered Companion';
+    let microchip = pets && pets.length > 0 && pets[0].microchip ? pets[0].microchip : (pets && pets[0]?.transponderId ? pets[0].transponderId : 'UNREGISTERED');
     let deliveryNote = 'Standard insulated cold-chain handoff.';
 
     if (typeof orderDataOrAddress === 'string') {
@@ -2013,6 +2005,7 @@ export function AppProvider({ children }) {
       toasts,
       showToast,
       pets,
+      activePet: pets && pets.length > 0 ? pets[0] : null,
       addPet,
       updatePet,
       deletePet,

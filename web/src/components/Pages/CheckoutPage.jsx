@@ -38,20 +38,16 @@ export default function CheckoutPage({ onNavigate }) {
     qty: Number(i.qty || i.quantity) || 1,
     image: i.image || i.imageUrl || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&auto=format&fit=crop&q=80',
     specBadge: i.specBadge || (i.category === 'cold_chain' ? '2°C - 8°C Cold Biologic' : (i.isRx ? 'Rx Formulary' : 'Clinical Diet'))
-  })) : [
-    { id: 'p1', name: 'NexGard Spectra® Chewables (15.1-30.0kg)', price: 1568, qty: 1, image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&auto=format&fit=crop&q=80', specBadge: '15.1-30.0 kg • 3 Chews' },
-    { id: 'p2', name: 'Royal Canin Gastrointestinal Low Fat (4.0kg)', price: 3450, qty: 1, image: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=600&auto=format&fit=crop&q=80', specBadge: 'Dry Veterinary Diet • 4.0 kg' },
-    { id: 'p3', name: 'Nobivac® Rabies Biologic 1-Dose', price: 850, qty: 1, image: 'https://images.unsplash.com/photo-1584017911766-d451b3d0e843?w=600&auto=format&fit=crop&q=80', specBadge: 'Active Cold Pod • 1 Dose' }
-  ];
+  })) : [];
 
   // Selected Patient
-  const [selectedPetId, setSelectedPetId] = useState(() => pets[0]?.id || 'milo');
-  const activePatient = pets.find(p => p.id === selectedPetId || p.petID === selectedPetId) || {
-    name: 'Milo',
+  const [selectedPetId, setSelectedPetId] = useState(() => pets[0]?.id || pets[0]?.petID || '');
+  const activePatient = pets.find(p => p.id === selectedPetId || p.petID === selectedPetId) || pets[0] || {
+    name: 'Companion',
     species: 'Canine',
-    breed: 'Golden Retriever',
-    weight: '28.4 kg',
-    microchip: '985141002938411',
+    breed: 'Companion',
+    weight: 'N/A',
+    microchip: 'UNREGISTERED',
     photo: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=150&auto=format&fit=crop&q=80'
   };
 
@@ -64,18 +60,18 @@ export default function CheckoutPage({ onNavigate }) {
   );
 
   // Address state
-  const [guardianAddress, setGuardianAddress] = useState(() => currentUser?.address || 'House 42, Road 11, Block D, Banani, Dhaka-1213');
-  const [guardianPhone, setGuardianPhone] = useState(() => currentUser?.phone || '+880 1711-209482');
-  const [guardianName, setGuardianName] = useState(() => currentUser?.name || 'Tanzim R.');
+  const [guardianAddress, setGuardianAddress] = useState(() => currentUser?.address || '');
+  const [guardianPhone, setGuardianPhone] = useState(() => currentUser?.phone || '');
+  const [guardianName, setGuardianName] = useState(() => currentUser?.name || currentUser?.displayName || 'Guardian');
 
   // Card Inputs
-  const [cardNumber, setCardNumber] = useState('4820 8811 0024 8831');
-  const [expDate, setExpDate] = useState('08 / 27');
-  const [cvv, setCvv] = useState('742');
-  const [cardName, setCardName] = useState(currentUser?.name ? currentUser.name.toUpperCase() : 'TANZIM RAHMAN');
+  const [cardNumber, setCardNumber] = useState('');
+  const [expDate, setExpDate] = useState('');
+  const [cvv, setCvv] = useState('');
+  const [cardName, setCardName] = useState(() => currentUser?.name ? currentUser.name.toUpperCase() : (currentUser?.displayName ? currentUser.displayName.toUpperCase() : ''));
 
   // Mobile Banking Inputs
-  const [mobileNumber, setMobileNumber] = useState('01711209482');
+  const [mobileNumber, setMobileNumber] = useState(() => currentUser?.phone ? currentUser.phone.replace(/[^0-9]/g, '') : '');
   const [mobileProvider, setMobileProvider] = useState('bKash');
 
   // Processing state
@@ -91,7 +87,7 @@ export default function CheckoutPage({ onNavigate }) {
   const prescriptionSubtotal = activeItems.reduce((acc, item) => acc + item.price * item.qty, 0);
   const privilegeDiscount = typeof appliedCoupon?.discount === 'number' 
     ? Math.round(prescriptionSubtotal * appliedCoupon.discount) 
-    : 232;
+    : (appliedCoupon?.discountAmount || 0);
   const netPayable = Math.max(0, prescriptionSubtotal - privilegeDiscount);
 
   const handleRoute = (path) => {
@@ -108,8 +104,8 @@ export default function CheckoutPage({ onNavigate }) {
       try {
         if (placeOrder) {
           const createdOrder = await placeOrder({
-            patient: `${activePatient.name} (${activePatient.species || 'Canine'} • ${activePatient.weight || '28.4 kg'})`,
-            microchip: activePatient.microchip || '985141002938411',
+            patient: `${activePatient.name} (${activePatient.species || 'Canine'}${activePatient.weight ? ' • ' + activePatient.weight + ' kg' : ''})`,
+            microchip: activePatient.microchip || 'UNREGISTERED',
             address: guardianAddress,
             phone: guardianPhone,
             deliveryNote,
@@ -478,7 +474,7 @@ export default function CheckoutPage({ onNavigate }) {
             color: '#374151'
           }}>
             <ShieldCheck size={16} color="#0D9488" />
-            <span>Microchip Verified: <strong>#985141002938411</strong></span>
+            <span>Microchip Verified: <strong>#{activePatient.microchip || 'UNREGISTERED'}</strong></span>
           </div>
         </div>
       </div>
@@ -568,7 +564,7 @@ export default function CheckoutPage({ onNavigate }) {
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span style={{ fontSize: '15px', fontWeight: 700, color: '#160F0C' }}>{activePatient.name}</span>
-                      <span style={{ fontSize: '12px', color: '#6B7280' }}>{activePatient.species || 'Canine'} • {activePatient.breed || 'Golden Retriever'}</span>
+                      <span style={{ fontSize: '12px', color: '#6B7280' }}>{activePatient.species || 'Companion'}{activePatient.breed ? ` • ${activePatient.breed}` : ''}</span>
                     </div>
                     <div style={{
                       fontSize: '11.5px',
@@ -576,7 +572,7 @@ export default function CheckoutPage({ onNavigate }) {
                       color: '#525B57',
                       marginTop: '2px'
                     }}>
-                      Weight: <strong>{activePatient.weight || '28.4 kg'}</strong> • Microchip: <strong>{activePatient.microchip || '985141002938411'}</strong>
+                      Weight: <strong>{activePatient.weight ? `${activePatient.weight} kg` : 'N/A'}</strong> • Microchip: <strong>#{activePatient.microchip || 'UNREGISTERED'}</strong>
                     </div>
                   </div>
                 </div>
@@ -803,7 +799,7 @@ export default function CheckoutPage({ onNavigate }) {
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#160F0C', fontWeight: 500 }}>
                     <span style={{ color: '#0D9488', fontFamily: 'var(--font-mono, monospace)', fontWeight: 700 }}>&gt;&gt;</span>
-                    <span>Send live continuous temperature SMS telemetry to <strong>+880 1711-209482</strong></span>
+                    <span>Send live continuous temperature SMS telemetry to <strong>{guardianPhone || currentUser?.phone || 'guardian device'}</strong></span>
                   </div>
 
                   {/* Toggle Switch */}
@@ -1107,7 +1103,7 @@ export default function CheckoutPage({ onNavigate }) {
                       {saveVaultCredentials && '✓'}
                     </div>
                     <span style={{ fontSize: '11.5px', color: '#525B57', lineHeight: 1.45 }}>
-                      Save tokenized credentials in Pet Maya Secure Vault for Milo's scheduled quarterly parasite prophylaxis refills.
+                      Save tokenized credentials in Pet Maya Secure Vault for {activePatient.name}'s scheduled quarterly parasite prophylaxis refills.
                     </span>
                   </div>
                 </div>
@@ -1179,7 +1175,7 @@ export default function CheckoutPage({ onNavigate }) {
                     <span style={{ fontSize: '18px', fontWeight: 800, color: '#0D9488', fontFamily: 'var(--font-mono)' }}>৳9,200.00</span>
                   </div>
                   <div style={{ fontSize: '12px', color: '#2D5D5A', lineHeight: 1.45 }}>
-                    Sufficient funds available. <strong>৳{netPayable.toLocaleString()}</strong> will be automatically settled from Milo's wellness ledger.
+                    Sufficient funds available. <strong>৳{netPayable.toLocaleString()}</strong> will be automatically settled from {activePatient.name}'s wellness ledger.
                   </div>
                 </div>
               )}
@@ -1922,7 +1918,7 @@ export default function CheckoutPage({ onNavigate }) {
             </div>
             <div style={{ backgroundColor: '#F9FAFB', borderRadius: '12px', padding: '14px', marginBottom: '14px', fontSize: '12.5px', color: '#374151' }}>
               <strong>Dr. Navid Rahman, PharmD:</strong><br />
-              "Hello Tanzim, I have verified Milo's NexGard and Nobivac cold batch records. All units are currently resting in our 4.1°C calibrated vault ready for 120m dispatch."
+              {`"Hello ${guardianName || 'Guardian'}, I have verified ${activePatient.name}'s prescription and cold batch records. All units are currently resting in our calibrated vault ready for dispatch."`}
             </div>
             <input placeholder="Type response..." style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #D1D5DB', fontSize: '13px', marginBottom: '12px' }} />
             <button

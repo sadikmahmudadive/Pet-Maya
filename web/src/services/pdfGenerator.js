@@ -9,7 +9,7 @@ export function generatePetMedicalPassport({ pet, owner, medicalRecords = [], ap
   const patientAge = pet?.age || '2 Years';
   const patientGender = pet?.gender || 'Neutered Male';
   const patientWeight = pet?.weight || '14.5 kg';
-  const microchipId = pet?.microchipId || pet?.chipNumber || '985141002948210 (ISO 11784)';
+  const microchipId = pet?.microchipId || pet?.chipNumber || pet?.microchip || 'ISO 11784 Verified';
   const ownerName = owner?.name || 'Verified Pet Parent';
   const ownerContact = owner?.email || owner?.phone || 'Emergency Contact On File';
   const generatedDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -165,24 +165,20 @@ export function shareMedicalPassportWithVet({ pet, owner, vetEmail = '', vetPhon
 export function generateOrderInvoicePDF({ order, user }) {
   const orderId = order?.orderId || order?.id || ('PM-ORD-' + Math.floor(1000 + Math.random() * 9000));
   const orderDate = order?.date || new Date().toISOString().split('T')[0];
-  const patient = order?.patient || order?.recipient || 'Milo (Companion)';
-  const microchip = order?.microchip || '985141002938411 (ISO 11784)';
-  const deliveryAddress = order?.deliveryAddress || order?.address || user?.address || 'House 42, Road 11, Block D, Banani, Dhaka';
-  const guardianName = user?.name || 'Verified Pet Guardian';
-  const guardianPhone = order?.phone || user?.phone || '+880 1711-209482';
+  const patient = order?.patient || order?.recipient || 'Companion Patient';
+  const microchip = order?.microchip || 'ISO Transponder Verified';
+  const deliveryAddress = order?.deliveryAddress || order?.address || user?.address || 'Banani, Dhaka';
+  const guardianName = user?.name || user?.displayName || 'Verified Pet Guardian';
+  const guardianPhone = order?.phone || user?.phone || '';
   const paymentMethod = order?.paymentMethod || 'bKash / Mobile Banking';
   const deliveryNote = order?.deliveryNote || 'Standard cold-chain handoff directly to guardian.';
   const batch = order?.batch || ('BATCH-' + Math.floor(10000 + Math.random() * 90000));
   const cryptoHash = order?.cryptoHash || ('0x' + Math.random().toString(16).slice(2, 10) + '...cold');
 
-  const items = Array.isArray(order?.items) && order.items.length > 0 ? order.items : [
-    { name: 'NexGard Spectra® Chewables (15.1-30.0kg)', price: 1568, qty: 1 },
-    { name: 'Royal Canin Gastrointestinal Low Fat (4.0kg)', price: 3450, qty: 1 },
-    { name: 'Nobivac® Rabies Biologic 1-Dose', price: 850, qty: 1 }
-  ];
+  const items = Array.isArray(order?.items) && order.items.length > 0 ? order.items : [];
 
   const subtotal = order?.subtotal || items.reduce((sum, item) => sum + (item.price || 0) * (item.qty || 1), 0);
-  const discount = order?.discount !== undefined ? order.discount : 232;
+  const discount = order?.discount !== undefined ? order.discount : 0;
   const shipping = order?.shipping !== undefined ? order.shipping : 0;
   const total = order?.total || Math.max(0, subtotal - discount + shipping);
 
@@ -247,7 +243,7 @@ export function generateOrderInvoicePDF({ order, user }) {
       <div>
         <div class="brand-title">PET MAYA PHARMACEUTICALS</div>
         <div class="brand-sub">Licensed Cold-Chain Veterinary Dispensary &bull; AAHA #V-2024</div>
-        <div style="font-size: 12px; color: #6B7280; margin-top: 4px;">Plot 42, Road 11, Banani, Dhaka-1213 &bull; +880 1711-209482</div>
+        <div style="font-size: 12px; color: #6B7280; margin-top: 4px;">Plot 42, Road 11, Banani, Dhaka-1213 &bull; dispensary@petmaya.app</div>
       </div>
       <div class="meta-box">
         <div class="status-badge">✓ COLD DISPATCH VERIFIED</div>

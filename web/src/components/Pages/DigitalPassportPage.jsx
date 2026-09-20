@@ -34,6 +34,15 @@ export default function DigitalPassportPage({ onNavigate }) {
   const { pets = [], showToast, openModal } = useApp();
   const { currentUser } = useAuth();
 
+  const activePet = pets[0] || { 
+    name: 'Companion', 
+    breed: 'Companion', 
+    microchip: 'UNREGISTERED', 
+    weight: '28.4', 
+    age: '3 yrs',
+    photo: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&auto=format&fit=crop&q=80'
+  };
+
   const [copiedTransponder, setCopiedTransponder] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [isUploading, setIsUploading] = useState(false);
@@ -63,7 +72,7 @@ export default function DigitalPassportPage({ onNavigate }) {
   // Share QR Code
   const handleShareQR = () => {
     if (typeof openModal === 'function') {
-      openModal('passportQR', { petName: 'Milo', transponder: '981020002847192' });
+      openModal('passportQR', { petName: activePet.name, transponder: activePet.microchip || 'UNREGISTERED' });
     }
     showToast('Clinician QR Link Ready for Inspection', 'info');
   };
@@ -82,7 +91,7 @@ export default function DigitalPassportPage({ onNavigate }) {
         { name: file.name, size: `${(file.size / (1024 * 1024)).toFixed(1)} MB` },
         ...prev
       ]);
-      showToast(`Attested ${file.name} to Milo's Sovereign Vault ✅`, 'success');
+      showToast(`Attested ${file.name} to ${activePet.name}'s Sovereign Vault ✅`, 'success');
     }, 1500);
   };
 
@@ -307,8 +316,8 @@ export default function DigitalPassportPage({ onNavigate }) {
               {/* Pet Photo with Specimen Tag */}
               <div style={{ position: 'relative', borderRadius: '18px', overflow: 'hidden', height: '180px' }}>
                 <img
-                  src="https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&auto=format&fit=crop&q=80"
-                  alt="Milo"
+                  src={activePet.photo || activePet.image || "https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&auto=format&fit=crop&q=80"}
+                  alt={activePet.name}
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 />
                 <div style={{
@@ -354,10 +363,10 @@ export default function DigitalPassportPage({ onNavigate }) {
                       color: '#160F0C',
                       margin: '0 0 2px 0'
                     }}>
-                      Milo
+                      {activePet.name}
                     </h2>
                     <div style={{ fontSize: '12px', color: '#5C524E' }}>
-                      Golden Retriever • Intact Male • 3.4 Years
+                      {activePet.breed || 'Companion'}{activePet.age ? ` • ${activePet.age}` : ''}
                     </div>
                   </div>
 
@@ -427,10 +436,10 @@ export default function DigitalPassportPage({ onNavigate }) {
                       letterSpacing: '0.06em',
                       color: '#160F0C'
                     }}>
-                      981020002847192
+                      {activePet.microchip || 'UNREGISTERED'}
                     </span>
                     <button
-                      onClick={() => handleCopyTransponder('981020002847192')}
+                      onClick={() => handleCopyTransponder(activePet.microchip || 'UNREGISTERED')}
                       style={{
                         padding: '3px 10px',
                         borderRadius: '9999px',
@@ -1610,7 +1619,7 @@ export default function DigitalPassportPage({ onNavigate }) {
             </div>
 
             <div style={{ fontSize: '11.5px', color: '#707973', maxWidth: '520px', lineHeight: 1.45, marginBottom: '18px' }}>
-              Accepted formats: PDF, DICOM, JPG, PNG up to 150MB per file. Automatically attested to Milo's microchip hash.
+              Accepted formats: PDF, DICOM, JPG, PNG up to 150MB per file. Automatically attested to {activePet.name}'s microchip hash.
             </div>
 
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>

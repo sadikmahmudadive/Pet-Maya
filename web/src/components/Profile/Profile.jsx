@@ -51,6 +51,7 @@ export default function Profile({ onNavigate }) {
     addPet, 
     updatePet, 
     deletePet, 
+    devices = [],
     medicalRecords = [], 
     addMedicalRecord, 
     deleteMedicalRecord,
@@ -59,7 +60,7 @@ export default function Profile({ onNavigate }) {
   const { currentUser, updateUserProfile } = useAuth ? useAuth() : { currentUser: null, updateUserProfile: () => {} };
 
   // Active Patient Selector
-  const [activePatientId, setActivePatientId] = useState('milo');
+  const [activePatientId, setActivePatientId] = useState('');
 
   // Navigation Tabs State
   const [activeNavTab, setActiveNavTab] = useState('ehr-vault'); // 'ehr-vault', 'prescriptions', 'hardware', 'consultations', 'billing', 'settings'
@@ -93,9 +94,9 @@ export default function Profile({ onNavigate }) {
   const [footerEmail, setFooterEmail] = useState('');
 
   // Guardian Bio Form State
-  const [guardianName, setGuardianName] = useState(currentUser?.name || 'Tanzim R.');
-  const [guardianEmail, setGuardianEmail] = useState(currentUser?.email || 'tanzim@petmaya.app');
-  const [guardianAddress, setGuardianAddress] = useState(currentUser?.address || 'Banani, Dhaka, BD • Zone 2');
+  const [guardianName, setGuardianName] = useState(currentUser?.displayName || currentUser?.name || 'Guardian');
+  const [guardianEmail, setGuardianEmail] = useState(currentUser?.email || '');
+  const [guardianAddress, setGuardianAddress] = useState(currentUser?.address || 'Dhaka, Bangladesh');
 
   const totalCartCount = (cart || []).reduce((sum, item) => sum + (item.quantity || 1), 0);
 
@@ -114,60 +115,9 @@ export default function Profile({ onNavigate }) {
     setFooterEmail('');
   };
 
-  // Baseline Patients Data
-  const baselinePatientsData = {
-    milo: {
-      id: 'milo',
-      name: 'Milo',
-      species: 'CANINE',
-      breed: 'Golden Retriever',
-      age: '3 yrs 2 mos',
-      device: 'Maya Halo™ V3 Active',
-      weight: '28.4 kg',
-      status: 'Neutered',
-      healthIndex: 96,
-      avatarUrl: 'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=160&q=80',
-      ehrId: 'EHR-ML-8812',
-      restingHr: '68 BPM',
-      restingHrNote: 'Normal Resting',
-      bodyTemp: '38.3 °C',
-      bodyTempNote: 'Afebrile (Ideal)',
-      rabiesTitre: 'Compliant',
-      rabiesNote: 'Valid Thru Oct 2026',
-      nextCheckup: '18 days',
-      nextCheckupNote: 'Bi-Annual Wellness',
-      hrvTrend: 'Stable Homeostasis (+0.2%)',
-      hrvRange: '62 - 74 BPM'
-    },
-    cleo: {
-      id: 'cleo',
-      name: 'Cleo',
-      species: 'FELINE',
-      breed: 'Persian',
-      age: '4 yrs',
-      device: 'Smart Tag Pro #CL-92',
-      weight: '4.1 kg',
-      status: 'Spayed',
-      nutrition: 'Renal Care',
-      healthIndex: 92,
-      avatarUrl: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=160&q=80',
-      ehrId: 'EHR-CL-4109',
-      restingHr: '138 BPM',
-      restingHrNote: 'Optimal Feline',
-      bodyTemp: '38.6 °C',
-      bodyTempNote: 'Afebrile (Ideal)',
-      rabiesTitre: 'Compliant',
-      rabiesNote: 'Valid Thru Aug 2027',
-      nextCheckup: '42 days',
-      nextCheckupNote: 'Renal Function Screen',
-      hrvTrend: 'Optimal Feline Stasis (±0.0%)',
-      hrvRange: '130 - 150 BPM'
-    }
-  };
-
-  // Merge live pets from Firestore/localStorage with baseline patients
+  // Merge live pets from Firestore/localStorage
   const combinedPatients = useMemo(() => {
-    const base = { ...baselinePatientsData };
+    const base = {};
     (pets || []).forEach((p, idx) => {
       const pid = p.id || p.petID || `pet-${idx}`;
       base[pid] = {
@@ -201,7 +151,7 @@ export default function Profile({ onNavigate }) {
   }, [pets]);
 
   const patientList = useMemo(() => Object.values(combinedPatients), [combinedPatients]);
-  const currentPatient = combinedPatients[activePatientId] || patientList[0] || baselinePatientsData.milo;
+  const currentPatient = combinedPatients[activePatientId] || patientList[0] || null;
 
   const currentPatientRecords = useMemo(() => {
     return (medicalRecords || []).filter(r => {
@@ -267,6 +217,10 @@ export default function Profile({ onNavigate }) {
   };
 
   const handleDownloadDossier = () => {
+    if (!currentPatient) {
+      showToast('No companion selected to generate dossier', 'error');
+      return;
+    }
     generatePetMedicalPassport({
       pet: currentPatient?.rawPet || {
         name: currentPatient.name,
@@ -283,7 +237,7 @@ export default function Profile({ onNavigate }) {
         name: guardianName,
         email: guardianEmail,
         address: guardianAddress,
-        phone: '+880 1711-209482'
+        phone: currentUser?.phone || ''
       },
       medicalRecords: (medicalRecords || []).filter(r => 
         (r.petName || '').toLowerCase() === (currentPatient?.name || '').toLowerCase() || !r.petName
@@ -380,7 +334,7 @@ export default function Profile({ onNavigate }) {
                     fontWeight: 800,
                     color: '#675C58'
                   }}>
-                    TR
+                    {(guardianName || 'U').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'U'}
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -388,7 +342,7 @@ export default function Profile({ onNavigate }) {
                       <ShieldCheck size={16} color="#047857" />
                     </div>
                     <div style={{ fontSize: '11.5px', color: '#3E7B84', fontWeight: 600 }}>
-                      Premium Care Guardian
+                      Care Guardian
                     </div>
                   </div>
                 </div>
@@ -402,7 +356,7 @@ export default function Profile({ onNavigate }) {
                   borderRadius: '4px',
                   border: '1px solid #EFE9E4'
                 }}>
-                  SINCE JAN 2024
+                  ACCOUNT ACTIVE
                 </span>
               </div>
 
@@ -410,11 +364,11 @@ export default function Profile({ onNavigate }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '12.5px', color: '#675C58', marginBottom: '20px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Mail size={14} color="#8C827A" />
-                  <span>{guardianEmail}</span>
+                  <span>{guardianEmail || 'No email provided'}</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <MapPin size={14} color="#8C827A" />
-                  <span>{guardianAddress}</span>
+                  <span>{guardianAddress || 'No address provided'}</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#3E7B84', fontWeight: 600 }}>
                   <Sparkles size={14} color="#3E7B84" />
@@ -433,7 +387,7 @@ export default function Profile({ onNavigate }) {
               fontSize: '11.5px'
             }}>
               <span style={{ color: '#675C58', fontWeight: 600 }}>
-                ● 2 DEPENDENTS ACTIVE
+                ● {patientList.length} DEPENDENT{patientList.length === 1 ? '' : 'S'} ACTIVE
               </span>
               <button
                 onClick={() => setShowEditBioModal(true)}
@@ -475,7 +429,56 @@ export default function Profile({ onNavigate }) {
               gap: '16px',
               marginBottom: '10px'
             }}>
-              {patientList.map((p, idx) => {
+              {patientList.length === 0 ? (
+                <div style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: '18px',
+                  border: '1.5px dashed #D6CEC7',
+                  padding: '28px',
+                  textAlign: 'center',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '10px',
+                  gridColumn: '1 / -1'
+                }}>
+                  <div style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '50%',
+                    backgroundColor: 'rgba(62, 123, 132, 0.1)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#3E7B84'
+                  }}>
+                    <Heart size={20} />
+                  </div>
+                  <div style={{ fontSize: '14px', fontWeight: 700, color: '#160F0C' }}>
+                    No Companions Registered Yet
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#675C58', maxWidth: '360px' }}>
+                    Register your pet companion to initialize continuous telemetry, EHR records, and prescription dossiers.
+                  </div>
+                  <button
+                    onClick={() => setShowRegisterPetModal(true)}
+                    style={{
+                      marginTop: '4px',
+                      padding: '8px 18px',
+                      borderRadius: '9999px',
+                      backgroundColor: '#160F0C',
+                      color: '#FFFFFF',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      border: 'none',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    ⊕ Register Your Companion
+                  </button>
+                </div>
+              ) : (
+                patientList.map((p, idx) => {
                 const isSelected = activePatientId === p.id;
                 return (
                   <div
@@ -578,7 +581,7 @@ export default function Profile({ onNavigate }) {
                     </div>
                   </div>
                 );
-              })}
+              }))}
             </div>
 
             {/* Bottom Register Bar */}
@@ -947,525 +950,141 @@ export default function Profile({ onNavigate }) {
               </div>
 
               {/* Dynamic Live EHR Records from Firestore / Triage */}
-              {currentPatientRecords.map(record => (
-                <div key={record.id} style={{
+              {currentPatientRecords.length === 0 ? (
+                <div style={{
                   backgroundColor: '#FFFFFF',
                   borderRadius: '16px',
-                  border: '1.5px solid #3E7B84',
-                  padding: '20px',
-                  marginBottom: '16px',
-                  boxShadow: '0 2px 10px rgba(62, 123, 132, 0.08)'
+                  border: '1px solid #EBE5DF',
+                  padding: '48px 24px',
+                  textAlign: 'center',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
-                    <div style={{
-                      width: '38px',
-                      height: '38px',
-                      borderRadius: '50%',
-                      backgroundColor: 'rgba(62, 123, 132, 0.12)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#3E7B84',
-                      flexShrink: 0
-                    }}>
-                      <FileCheck size={18} />
-                    </div>
-
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '4px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                          <span style={{ fontSize: '11px', color: '#8C827A', fontFamily: 'monospace' }}>
-                            {(record.date || new Date().toISOString().split('T')[0]).toUpperCase()} • LIVE EHR VAULT
-                          </span>
-                          <span style={{
-                            fontSize: '9.5px',
-                            fontWeight: 700,
-                            backgroundColor: 'rgba(16, 185, 129, 0.12)',
-                            color: '#047857',
-                            padding: '2px 6px',
-                            borderRadius: '4px'
-                          }}>
-                            {record.serviceType || 'CLINICAL TRIAGE'}
-                          </span>
-                        </div>
-                        <span style={{ fontSize: '11.5px', color: '#675C58' }}>
-                          Patient: <strong>{record.petName || currentPatient.name}</strong>
-                        </span>
-                      </div>
-
-                      <h4 style={{ fontSize: '15.5px', fontWeight: 800, color: '#160F0C', margin: '0 0 6px 0' }}>
-                        {record.diagnosis || 'Clinical Medical Consultation'}
-                      </h4>
-
-                      <p style={{ fontSize: '12.5px', color: '#675C58', lineHeight: 1.5, margin: '0 0 14px 0' }}>
-                        {record.prescription ? `Prescription & Protocol: ${record.prescription}` : 'Longitudinal electronic health record synchronized with sovereign patient vault.'}
-                      </p>
-
-                      <div style={{
-                        display: 'flex',
-                        flexWrap: 'wrap',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        gap: '10px',
-                        paddingTop: '10px',
-                        borderTop: '1px solid #F5EFEB',
-                        fontSize: '11.5px'
-                      }}>
-                        <span style={{ color: '#707973' }}>
-                          Weight: <strong>{record.weight || currentPatient.weight}</strong> • Total Ledger: <strong>৳{record.cost || '0'}</strong>
-                        </span>
-                        <button
-                          onClick={() => {
-                            if (deleteMedicalRecord) deleteMedicalRecord(record.id);
-                            showToast('Clinical record archived from vault', 'info');
-                          }}
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            color: '#EF4444',
-                            fontSize: '11px',
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                            padding: 0
-                          }}
-                        >
-                          Archive Record ✕
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-
-              {/* Entry 1: Follow-up Wellness Consultation */}
-              <div style={{
-                backgroundColor: '#FFFFFF',
-                borderRadius: '16px',
-                border: '1px solid #EBE5DF',
-                padding: '20px',
-                marginBottom: '16px',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
                   <div style={{
-                    width: '38px',
-                    height: '38px',
+                    width: '52px',
+                    height: '52px',
                     borderRadius: '50%',
                     backgroundColor: 'rgba(62, 123, 132, 0.1)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     color: '#3E7B84',
-                    flexShrink: 0
+                    margin: '0 auto 16px'
                   }}>
-                    <Calendar size={18} />
+                    <FileText size={24} />
                   </div>
-
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '4px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: '11px', color: '#8C827A', fontFamily: 'monospace' }}>
-                          OCT 24, 2026 • 10:30 AM
-                        </span>
-                        <span style={{
-                          fontSize: '9.5px',
-                          fontWeight: 700,
-                          backgroundColor: 'rgba(62, 123, 132, 0.12)',
-                          color: '#3E7B84',
-                          padding: '2px 6px',
-                          borderRadius: '4px'
-                        }}>
-                          SCHEDULED & CONFIRMED
-                        </span>
-                      </div>
-                      <span style={{ fontSize: '11.5px', color: '#675C58' }}>
-                        Attending: <strong>Dr. Evelyn Vance, MRCVS</strong>
-                      </span>
-                    </div>
-
-                    <h4 style={{ fontSize: '15.5px', fontWeight: 800, color: '#160F0C', margin: '0 0 6px 0' }}>
-                      Follow-up Wellness Consultation & Stool Culture
-                    </h4>
-
-                    <p style={{ fontSize: '12.5px', color: '#675C58', lineHeight: 1.5, margin: '0 0 14px 0' }}>
-                      Quarterly companion gastrointestinal assessment, review of post-prophylaxis recovery metrics, and broad-spectrum fecal parasitology culture screening. Telehealth pre-intake questionnaire completed by guardian.
-                    </p>
-
-                    {/* Bottom Action Bar */}
-                    <div style={{
-                      display: 'flex',
-                      flexWrap: 'wrap',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: '10px',
-                      paddingTop: '10px',
-                      borderTop: '1px solid #F5EFEB'
-                    }}>
-                      <span style={{ fontSize: '11.5px', color: '#3E7B84', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <Video size={13} /> Telehealth link will activate 15 minutes before session
-                      </span>
-
-                      <div style={{ display: 'flex', gap: '8px' }}>
-                        <button
-                          onClick={() => setShowRescheduleModal(true)}
-                          style={{
-                            padding: '5px 12px',
-                            borderRadius: '9999px',
-                            backgroundColor: '#FFFFFF',
-                            border: '1px solid #D6CEC7',
-                            fontSize: '11.5px',
-                            fontWeight: 600,
-                            color: '#160F0C',
-                            cursor: 'pointer'
-                          }}
-                        >
-                          Reschedule
-                        </button>
-                        <button
-                          onClick={() => setShowSymptomsModal(true)}
-                          style={{
-                            padding: '5px 12px',
-                            borderRadius: '9999px',
-                            backgroundColor: '#3E7B84',
-                            border: 'none',
-                            fontSize: '11.5px',
-                            fontWeight: 600,
-                            color: '#FFFFFF',
-                            cursor: 'pointer'
-                          }}
-                        >
-                          Add Symptoms / Photos
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+                  <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#160F0C', margin: '0 0 8px 0' }}>
+                    No Clinical Ledger Records Found
+                  </h3>
+                  <p style={{ fontSize: '13px', color: '#675C58', maxWidth: '440px', margin: '0 auto 20px', lineHeight: 1.5 }}>
+                    No clinical consultations, diagnostic panels, or lab reports recorded for {currentPatient?.name || 'this companion'} yet.
+                  </p>
+                  <button
+                    onClick={() => handleRoute('ai')}
+                    style={{
+                      padding: '10px 22px',
+                      borderRadius: '9999px',
+                      backgroundColor: '#160F0C',
+                      color: '#FFFFFF',
+                      fontSize: '13px',
+                      fontWeight: 700,
+                      border: 'none',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Start Clinical Triage
+                  </button>
                 </div>
-              </div>
-
-              {/* Entry 2: Comprehensive Serum Biochemistry Panel */}
-              <div style={{
-                backgroundColor: '#FFFFFF',
-                borderRadius: '16px',
-                border: '1px solid #EBE5DF',
-                padding: '20px',
-                marginBottom: '16px',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
-                  <div style={{
-                    width: '38px',
-                    height: '38px',
-                    borderRadius: '50%',
-                    backgroundColor: 'rgba(62, 123, 132, 0.1)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#3E7B84',
-                    flexShrink: 0
-                  }}>
-                    <Activity size={18} />
-                  </div>
-
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '4px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: '11px', color: '#8C827A', fontFamily: 'monospace' }}>
-                          OCT 12, 2026 • 02:15 PM
-                        </span>
-                        <span style={{
-                          fontSize: '9.5px',
-                          fontWeight: 700,
-                          backgroundColor: '#EBE5DF',
-                          color: '#675C58',
-                          padding: '2px 6px',
-                          borderRadius: '4px'
-                        }}>
-                          CENTRAL LAB PATHOLOGY
-                        </span>
-                      </div>
-                      <span style={{ fontSize: '11.5px', color: '#675C58' }}>
-                        Pathologist: <strong>Dr. Arman K.</strong>
-                      </span>
-                    </div>
-
-                    <h4 style={{ fontSize: '15.5px', fontWeight: 800, color: '#160F0C', margin: '0 0 6px 0' }}>
-                      Comprehensive Serum Biochemistry Panel (14-Point)
-                    </h4>
-
-                    <p style={{ fontSize: '12.5px', color: '#675C58', lineHeight: 1.5, margin: '0 0 12px 0' }}>
-                      Quantitative assay evaluating renal function (BUN: 18 mg/dL, Creatinine: 1.1 mg/dL), hepatic profiles (ALT: 42 U/L, ALP: 78 U/L), electrolytes, and total protein. All 14 biomarkers within canine normal thresholds.
-                    </p>
-
-                    {/* 4 Biomarkers Grid */}
-                    <div style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(4, 1fr)',
-                      gap: '8px',
-                      backgroundColor: '#FAF7F5',
-                      padding: '10px 12px',
-                      borderRadius: '10px',
-                      border: '1px solid #EFE9E4',
-                      marginBottom: '12px'
-                    }}>
-                      <div>
-                        <div style={{ fontSize: '9px', color: '#8C827A', textTransform: 'uppercase' }}>ALT (HEPATIC)</div>
-                        <div style={{ fontSize: '13px', fontWeight: 800, color: '#160F0C' }}>
-                          42 <span style={{ fontSize: '10px', color: '#047857', fontWeight: 700 }}>Optimal</span>
-                        </div>
-                      </div>
-                      <div>
-                        <div style={{ fontSize: '9px', color: '#8C827A', textTransform: 'uppercase' }}>CREATININE</div>
-                        <div style={{ fontSize: '13px', fontWeight: 800, color: '#160F0C' }}>
-                          1.1 <span style={{ fontSize: '10px', color: '#047857', fontWeight: 700 }}>Optimal</span>
-                        </div>
-                      </div>
-                      <div>
-                        <div style={{ fontSize: '9px', color: '#8C827A', textTransform: 'uppercase' }}>BLOOD GLUCOSE</div>
-                        <div style={{ fontSize: '13px', fontWeight: 800, color: '#160F0C' }}>
-                          92 <span style={{ fontSize: '10px', color: '#675C58' }}>mg/dL</span>
-                        </div>
-                      </div>
-                      <div>
-                        <div style={{ fontSize: '9px', color: '#8C827A', textTransform: 'uppercase' }}>TOTAL PROTEIN</div>
-                        <div style={{ fontSize: '13px', fontWeight: 800, color: '#160F0C' }}>
-                          6.4 <span style={{ fontSize: '10px', color: '#675C58' }}>g/dL</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* PDF Attachment Box */}
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      backgroundColor: '#FFFFFF',
-                      padding: '8px 12px',
-                      borderRadius: '8px',
-                      border: '1px solid #EBE5DF'
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <FileText size={16} color="#3E7B84" />
-                        <div>
-                          <div style={{ fontSize: '11.5px', fontWeight: 700, color: '#160F0C', fontFamily: 'monospace' }}>
-                            LAB-BIOCHEM-20261012-MILO.PDF
-                          </div>
-                          <div style={{ fontSize: '10px', color: '#8C827A' }}>
-                            Digital cryptographic signature verified • 2.4 MB
-                          </div>
-                        </div>
-                      </div>
-
-                      <button
-                        onClick={() => setShowLabPdfModal(true)}
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          background: 'none',
-                          border: 'none',
-                          fontSize: '11.5px',
-                          fontWeight: 700,
-                          color: '#3E7B84',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        ⬇ View PDF
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Entry 3: Preventative Formulary Dispatched & Delivered */}
-              <div style={{
-                backgroundColor: '#FFFFFF',
-                borderRadius: '16px',
-                border: '1px solid #EBE5DF',
-                padding: '20px',
-                marginBottom: '16px',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
-                  <div style={{
-                    width: '38px',
-                    height: '38px',
-                    borderRadius: '50%',
-                    backgroundColor: 'rgba(62, 123, 132, 0.1)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#3E7B84',
-                    flexShrink: 0
-                  }}>
-                    <Layers size={18} />
-                  </div>
-
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '4px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: '11px', color: '#8C827A', fontFamily: 'monospace' }}>
-                          OCT 04, 2026 • 11:18 AM
-                        </span>
-                        <span style={{
-                          fontSize: '9.5px',
-                          fontWeight: 700,
-                          backgroundColor: '#EBE5DF',
-                          color: '#675C58',
-                          padding: '2px 6px',
-                          borderRadius: '4px'
-                        }}>
-                          COLD-CHAIN AUTO-FORMULARY
-                        </span>
-                      </div>
-                      <span style={{ fontSize: '11.5px', color: '#3E7B84', fontWeight: 600 }}>
-                        ● DELIVERED TO BANANI RESIDENCE
-                      </span>
-                    </div>
-
-                    <h4 style={{ fontSize: '15.5px', fontWeight: 800, color: '#160F0C', margin: '0 0 6px 0' }}>
-                      Preventative Formulary Dispatched & Delivered
-                    </h4>
-
-                    <div style={{ fontSize: '12px', color: '#675C58', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <div>• NexGard Spectra (15.1 - 30kg) - 3 Chews Monthly Regimen</div>
-                      <div>• Purina Pro Plan Veterinary Diets FortiFlora Canine Probiotic</div>
-                    </div>
-
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      fontSize: '11px',
-                      color: '#8C827A',
-                      marginTop: '10px',
-                      paddingTop: '8px',
-                      borderTop: '1px solid #F5EFEB'
-                    }}>
-                      <span>Rx Approved: Dr. Vance</span>
-                      <span>Batch: FFP-9022</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Entry 4: Ultrasonic Dental Prophylaxis & Polish */}
-              <div style={{
-                backgroundColor: '#FFFFFF',
-                borderRadius: '16px',
-                border: '1px solid #EBE5DF',
-                padding: '20px',
-                marginBottom: '16px',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
-                  <div style={{
-                    width: '38px',
-                    height: '38px',
-                    borderRadius: '50%',
-                    backgroundColor: 'rgba(62, 123, 132, 0.1)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#3E7B84',
-                    flexShrink: 0
-                  }}>
-                    <ShieldCheck size={18} />
-                  </div>
-
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '4px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: '11px', color: '#8C827A', fontFamily: 'monospace' }}>
-                          AUG 12, 2026 • 09:00 AM
-                        </span>
-                        <span style={{
-                          fontSize: '9.5px',
-                          fontWeight: 700,
-                          backgroundColor: '#EBE5DF',
-                          color: '#675C58',
-                          padding: '2px 6px',
-                          borderRadius: '4px'
-                        }}>
-                          SURGICAL THEATRE
-                        </span>
-                      </div>
-                      <span style={{ fontSize: '11.5px', color: '#675C58' }}>
-                        Surgeon: <strong>Dr. Tariq H., MRCVS</strong>
-                      </span>
-                    </div>
-
-                    <h4 style={{ fontSize: '15.5px', fontWeight: 800, color: '#160F0C', margin: '0 0 6px 0' }}>
-                      Ultrasonic Dental Prophylaxis & Polish
-                    </h4>
-
-                    <p style={{ fontSize: '12.5px', color: '#675C58', lineHeight: 1.5, margin: '0 0 12px 0' }}>
-                      Supragingival and subgingival ultrasonic scaling under isoflurane general anesthesia. Full-mouth dental radiographs revealed no periodontal bone loss or root resorption. Gingival sulcus depths normal (&lt;2mm).
-                    </p>
-
-                    {/* Radiograph DICOM Link */}
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      backgroundColor: '#FFFFFF',
-                      padding: '8px 12px',
-                      borderRadius: '8px',
-                      border: '1px solid #EBE5DF'
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <ImageIcon size={16} color="#3E7B84" />
-                        <div>
-                          <div style={{ fontSize: '11.5px', fontWeight: 700, color: '#160F0C', fontFamily: 'monospace' }}>
-                            DENTAL-XRAY-SERIES-10P.DICOM
-                          </div>
-                          <div style={{ fontSize: '10px', color: '#8C827A' }}>
-                            High-res oral radiology series • 18.2 MB
-                          </div>
-                        </div>
-                      </div>
-
-                      <button
-                        onClick={() => setShowXRayModal(true)}
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          background: 'none',
-                          border: 'none',
-                          fontSize: '11.5px',
-                          fontWeight: 700,
-                          color: '#3E7B84',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        👁 Examine Series
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Load Earlier Records Button */}
-              <div style={{ textAlign: 'center', marginTop: '16px' }}>
-                <button
-                  onClick={() => showToast('All historical archives (2024-2025) are fully synchronized and available in permanent cloud vault.', 'info')}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '10px 20px',
-                    borderRadius: '9999px',
+              ) : (
+                currentPatientRecords.map(record => (
+                  <div key={record.id} style={{
                     backgroundColor: '#FFFFFF',
-                    border: '1px solid #D6CEC7',
-                    fontSize: '12px',
-                    fontWeight: 600,
-                    color: '#675C58',
-                    cursor: 'pointer'
-                  }}
-                >
-                  <RefreshCw size={13} /> Load Earlier Archived Clinical Records (2024 - 2025)
-                </button>
-              </div>
+                    borderRadius: '16px',
+                    border: '1.5px solid #3E7B84',
+                    padding: '20px',
+                    marginBottom: '16px',
+                    boxShadow: '0 2px 10px rgba(62, 123, 132, 0.08)'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
+                      <div style={{
+                        width: '38px',
+                        height: '38px',
+                        borderRadius: '50%',
+                        backgroundColor: 'rgba(62, 123, 132, 0.12)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#3E7B84',
+                        flexShrink: 0
+                      }}>
+                        <FileCheck size={18} />
+                      </div>
+
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '4px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                            <span style={{ fontSize: '11px', color: '#8C827A', fontFamily: 'monospace' }}>
+                              {(record.date || new Date().toISOString().split('T')[0]).toUpperCase()} • LIVE EHR VAULT
+                            </span>
+                            <span style={{
+                              fontSize: '9.5px',
+                              fontWeight: 700,
+                              backgroundColor: 'rgba(16, 185, 129, 0.12)',
+                              color: '#047857',
+                              padding: '2px 6px',
+                              borderRadius: '4px'
+                            }}>
+                              {record.serviceType || 'CLINICAL TRIAGE'}
+                            </span>
+                          </div>
+                          <span style={{ fontSize: '11.5px', color: '#675C58' }}>
+                            Patient: <strong>{record.petName || currentPatient?.name || 'Companion'}</strong>
+                          </span>
+                        </div>
+
+                        <h4 style={{ fontSize: '15.5px', fontWeight: 800, color: '#160F0C', margin: '0 0 6px 0' }}>
+                          {record.diagnosis || 'Clinical Medical Consultation'}
+                        </h4>
+
+                        <p style={{ fontSize: '12.5px', color: '#675C58', lineHeight: 1.5, margin: '0 0 14px 0' }}>
+                          {record.prescription ? `Prescription & Protocol: ${record.prescription}` : 'Longitudinal electronic health record synchronized with sovereign patient vault.'}
+                        </p>
+
+                        <div style={{
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: '10px',
+                          paddingTop: '10px',
+                          borderTop: '1px solid #F5EFEB',
+                          fontSize: '11.5px'
+                        }}>
+                          <span style={{ color: '#707973' }}>
+                            Weight: <strong>{record.weight || currentPatient?.weight || 'N/A'}</strong> • Total Ledger: <strong>৳{record.cost || '0'}</strong>
+                          </span>
+                          <button
+                            onClick={() => {
+                              if (deleteMedicalRecord) deleteMedicalRecord(record.id);
+                              showToast('Clinical record archived from vault', 'info');
+                            }}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              color: '#EF4444',
+                              fontSize: '11px',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              padding: 0
+                            }}
+                          >
+                            Archive Record ✕
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
 
             </div>
 
@@ -2275,7 +1894,7 @@ export default function Profile({ onNavigate }) {
               Oral Radiology Series (DICOM Viewer)
             </h3>
             <p style={{ fontSize: '12px', color: '#9CA3AF', margin: '0 0 16px 0' }}>
-              Full-mouth digital radiograph series for Milo • Surgeon: Dr. Tariq H., MRCVS
+              Full-mouth digital radiograph series for {currentPatient?.name || 'Companion'} • Surgeon: Dr. Tariq H., MRCVS
             </p>
 
             <div style={{
@@ -2341,7 +1960,7 @@ export default function Profile({ onNavigate }) {
             </button>
 
             <h3 style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 6px 0', color: '#160F0C' }}>
-              LAB-BIOCHEM-20261012-MILO.PDF
+              LAB-BIOCHEM-{(currentPatient?.name || 'PATIENT').toUpperCase()}.PDF
             </h3>
             <div style={{ fontSize: '12px', color: '#707973', marginBottom: '16px' }}>
               Central Lab Pathology • Dr. Arman K.
@@ -2483,10 +2102,10 @@ export default function Profile({ onNavigate }) {
             </button>
 
             <h3 style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 6px 0', color: '#160F0C' }}>
-              Maya Halo™ V3 Settings
+              {devices[0]?.name || 'GPS Smart Collar'} Settings
             </h3>
             <div style={{ fontSize: '12px', color: '#707973', marginBottom: '16px' }}>
-              Serial: #HL-88210 • Firmware: v3.4.1
+              Serial: #{devices[0]?.serialNumber || 'PM-TRK-7821'} • Firmware: {devices[0]?.firmwareVersion || 'v2.4.1'}
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>

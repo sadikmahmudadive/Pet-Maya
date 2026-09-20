@@ -143,8 +143,9 @@ export default function Specialists({ onNavigate }) {
   const [selectedDate, setSelectedDate] = useState('today'); // 'today' | 'tomorrow' | 'wed' | 'thu'
   const [selectedSlot, setSelectedSlot] = useState('16:30 - 16:55');
 
-  // Companion Patient selection (Milo vs Cleo)
-  const [selectedCompanionId, setSelectedCompanionId] = useState('milo');
+  // Companion Patient selection
+  const [selectedCompanionId, setSelectedCompanionId] = useState(() => pets[0]?.id || pets[0]?.petID || '');
+  const selectedCompanion = (pets || []).find(p => (p.id || p.petID) === selectedCompanionId) || pets[0];
 
   // AI Triage Scan Link Checkbox
   const [linkAiScan, setLinkAiScan] = useState(true);
@@ -179,7 +180,7 @@ export default function Specialists({ onNavigate }) {
         id: `appt_${Date.now()}`,
         vetId: activeClinician.id,
         vetName: activeClinician.name,
-        petName: selectedCompanionId === 'milo' ? 'Milo' : 'Cleo',
+        petName: selectedCompanion?.name || 'Companion',
         date: selectedDate === 'today' ? '2026-02-24' : '2026-02-25',
         time: selectedSlot,
         type: consultMode === 'telehealth' ? 'Video Telehealth' : 'In-Clinic Physical',
@@ -903,69 +904,51 @@ export default function Specialists({ onNavigate }) {
               {/* Companion Patients Row */}
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+                gridTemplateColumns: (pets || []).length > 1 ? 'repeat(2, minmax(0, 1fr))' : '1fr',
                 gap: '10px',
                 marginBottom: '12px'
               }}>
-                {/* Milo */}
-                <div
-                  onClick={() => setSelectedCompanionId('milo')}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '10px',
-                    padding: '8px 12px',
-                    borderRadius: '16px',
-                    backgroundColor: selectedCompanionId === 'milo' ? '#EFEFEA' : '#FAF7F5',
-                    border: selectedCompanionId === 'milo' ? '1px solid #DFE8E5' : '1px solid transparent',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease'
-                  }}
-                >
-                  <img
-                    src="https://images.unsplash.com/photo-1552053831-71594a27632d?w=100&auto=format&fit=crop&q=80"
-                    alt="Milo"
-                    style={{ width: '30px', height: '30px', borderRadius: '50%', objectFit: 'cover' }}
-                  />
-                  <div>
-                    <div style={{ fontSize: '12px', fontWeight: 700, color: '#160F0C' }}>
-                      Milo
-                    </div>
-                    <div style={{ fontSize: '10.5px', color: '#707973' }}>
-                      Retriever • 4 yrs
-                    </div>
+                {(pets || []).length === 0 ? (
+                  <div style={{ padding: '8px 12px', fontSize: '12px', color: '#8C827A' }}>
+                    No companions registered. <button type="button" onClick={() => openModal ? openModal('addPet') : null} style={{ background: 'none', border: 'none', color: '#0D9488', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}>Add Companion</button>
                   </div>
-                </div>
-
-                {/* Cleo */}
-                <div
-                  onClick={() => setSelectedCompanionId('cleo')}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '10px',
-                    padding: '8px 12px',
-                    borderRadius: '16px',
-                    backgroundColor: selectedCompanionId === 'cleo' ? '#EFEFEA' : '#FAF7F5',
-                    border: selectedCompanionId === 'cleo' ? '1px solid #DFE8E5' : '1px solid transparent',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease'
-                  }}
-                >
-                  <img
-                    src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=100&auto=format&fit=crop&q=80"
-                    alt="Cleo"
-                    style={{ width: '30px', height: '30px', borderRadius: '50%', objectFit: 'cover' }}
-                  />
-                  <div>
-                    <div style={{ fontSize: '12px', fontWeight: 700, color: '#160F0C' }}>
-                      Cleo
-                    </div>
-                    <div style={{ fontSize: '10.5px', color: '#707973' }}>
-                      Shorthair • 2 yrs
-                    </div>
-                  </div>
-                </div>
+                ) : (
+                  (pets || []).map((p, idx) => {
+                    const pId = p.id || p.petID || `pet-${idx}`;
+                    const isSelected = selectedCompanionId === pId || (!selectedCompanionId && idx === 0);
+                    return (
+                      <div
+                        key={pId}
+                        onClick={() => setSelectedCompanionId(pId)}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                          padding: '8px 12px',
+                          borderRadius: '16px',
+                          backgroundColor: isSelected ? '#EFEFEA' : '#FAF7F5',
+                          border: isSelected ? '1px solid #DFE8E5' : '1px solid transparent',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        <img
+                          src={p.photo || p.image || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=100&auto=format&fit=crop&q=80'}
+                          alt={p.name}
+                          style={{ width: '30px', height: '30px', borderRadius: '50%', objectFit: 'cover' }}
+                        />
+                        <div>
+                          <div style={{ fontSize: '12px', fontWeight: 700, color: '#160F0C' }}>
+                            {p.name}
+                          </div>
+                          <div style={{ fontSize: '10.5px', color: '#707973' }}>
+                            {p.breed || p.species || 'Companion'}{p.age ? ` • ${p.age}${String(p.age).includes('yr') ? '' : ' yrs'}` : ''}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
               </div>
 
               {/* Linked AI Triage Scan Integration Box */}

@@ -27,49 +27,6 @@ import {
   FileCheck
 } from 'lucide-react';
 
-const DEFAULT_DISPENSARY_ITEMS = [
-  {
-    id: 'disp-nexgard-purple',
-    name: 'NexGard Spectra® Chewables',
-    specBadge: '15.1 - 30.0 kg (Purple)',
-    badgeType: 'purple',
-    subtitle: '3 Chews • Quarterly Dispense   Exp: Nov 2026',
-    vaultTemp: 'Calibrated 4.2°C Vault',
-    patient: 'Milo (Canine • 28.4kg)',
-    clinicianApproval: 'Dr. Vance Approved',
-    price: 1568,
-    qty: 1,
-    image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&auto=format&fit=crop&q=80',
-    rxType: 'Rx Only'
-  },
-  {
-    id: 'disp-royal-canin-gastro',
-    name: 'Royal Canin Gastrointestinal Low Fat',
-    specBadge: 'Dry Canine 4.0 kg',
-    badgeType: 'gray',
-    subtitle: 'Veterinary Prescription Formulary   Exp: Aug 2026   Batch: #RC-99021',
-    patient: 'Milo (Canine • 28.4kg)',
-    clinicianApproval: 'Daily Gastro Plan',
-    price: 3450,
-    qty: 1,
-    image: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=600&auto=format&fit=crop&q=80',
-    rxType: 'Clinical Diet'
-  },
-  {
-    id: 'disp-nobivac-rabies',
-    name: 'Nobivac® Rabies Biologic 1-Dose',
-    specBadge: 'Active Hermetic Cold Pod',
-    badgeType: 'mint',
-    subtitle: 'Vaccine Vial with Micro-Datalogger   Exp: Mar 2027   Requires Cold Handoff',
-    patient: 'Milo (Canine • 28.4kg)',
-    clinicianApproval: 'Booster Scheduled',
-    price: 850,
-    qty: 1,
-    image: 'https://images.unsplash.com/photo-1584017911766-d451b3d0e843?w=600&auto=format&fit=crop&q=80',
-    rxType: '2°C - 8°C Rx'
-  }
-];
-
 export default function CartPage({ onNavigate }) {
   const { 
     cart = [], 
@@ -80,9 +37,15 @@ export default function CartPage({ onNavigate }) {
     appliedCoupon, 
     applyCoupon, 
     openModal, 
-    showToast 
+    showToast,
+    pets = []
   } = useApp();
   const { currentUser } = useAuth();
+
+  const activePet = pets[0];
+  const defaultPatientLabel = activePet 
+    ? `${activePet.name} (${activePet.species || activePet.breed || 'Companion'}${activePet.weight ? ' • ' + activePet.weight + 'kg' : ''})` 
+    : 'Companion Patient';
 
   // Normalize cart items with clinical styling fallbacks
   const items = (cart && cart.length > 0) ? cart.map(item => ({
@@ -92,7 +55,7 @@ export default function CartPage({ onNavigate }) {
     badgeType: item.badgeType || (item.category === 'cold_chain' ? 'mint' : (item.isRx ? 'purple' : 'gray')),
     subtitle: item.subtitle || `${item.brand || 'Pet Maya Clinical'} • Verified Batch`,
     vaultTemp: item.vaultTemp || (item.category === 'cold_chain' || item.isRx ? 'Calibrated 4.2°C Vault' : null),
-    patient: item.patient || 'Milo (Canine • 28.4kg)',
+    patient: item.patient || defaultPatientLabel,
     clinicianApproval: item.clinicianApproval || 'Dr. Vance Approved',
     price: Number(item.price) || 500,
     qty: Number(item.qty || item.quantity) || 1,
@@ -104,7 +67,7 @@ export default function CartPage({ onNavigate }) {
   const [shippingMethod, setShippingMethod] = useState('standard');
 
   // Coupon / Token state
-  const [couponInput, setCouponInput] = useState(appliedCoupon?.code || 'PETMAYA10');
+  const [couponInput, setCouponInput] = useState(appliedCoupon?.code || '');
 
   // Protocol Modal state
   const [showProtocolModal, setShowProtocolModal] = useState(false);
@@ -121,12 +84,9 @@ export default function CartPage({ onNavigate }) {
     showToast('Prescription formulation removed from bag', 'info');
   };
 
-  // Restore defaults if all cleared
-  const handleRestoreDefaults = () => {
-    DEFAULT_DISPENSARY_ITEMS.forEach(item => {
-      addToCart(item, item.qty || 1);
-    });
-    showToast('Dispensary bag restored to active Milo prescriptions', 'success');
+  const handleBrowseDispensary = () => {
+    if (onNavigate) onNavigate('shop');
+    else window.location.hash = 'shop';
   };
 
   // Calculations
@@ -385,7 +345,7 @@ export default function CartPage({ onNavigate }) {
                     No active prescriptions or wellness items currently staged for dispatch.
                   </p>
                   <button
-                    onClick={handleRestoreDefaults}
+                    onClick={handleBrowseDispensary}
                     style={{
                       padding: '10px 20px',
                       backgroundColor: '#160F0C',
@@ -397,7 +357,7 @@ export default function CartPage({ onNavigate }) {
                       cursor: 'pointer'
                     }}
                   >
-                    Restore Milo's Prescriptions
+                    Browse Clinical Dispensary
                   </button>
                 </div>
               ) : (
@@ -719,7 +679,7 @@ export default function CartPage({ onNavigate }) {
                   margin: 0,
                   lineHeight: 1.55
                 }}>
-                  These items are linked to <strong>Milo (#985141002938411)</strong>. Upon courier handoff, dose administration schedules, anti-parasitic calendar reminders, and vaccine batch records will automatically synchronize with Milo's lifelong veterinary health vault.
+                  These items are linked to <strong>{activePet?.name || 'Your Companion'} ({activePet?.microchip ? '#' + activePet.microchip : 'Active Profile'})</strong>. Upon courier handoff, dose administration schedules, anti-parasitic calendar reminders, and vaccine batch records will automatically synchronize with {activePet?.name || 'your companion'}'s lifelong veterinary health vault.
                 </p>
               </div>
             </div>
@@ -1484,7 +1444,7 @@ export default function CartPage({ onNavigate }) {
               <ul style={{ margin: 0, paddingLeft: '20px', lineHeight: 1.6 }}>
                 <li>Continuous RFID & BLE thermal data-logger inside package.</li>
                 <li>Digital temperature seal verified upon doorstep handoff.</li>
-                <li>Instant sync to Milo's digital medical passport records.</li>
+                <li>Instant sync to {activePet?.name || 'companion'}'s digital medical passport records.</li>
               </ul>
             </div>
 
@@ -1580,7 +1540,7 @@ export default function CartPage({ onNavigate }) {
             </div>
 
             <p style={{ fontSize: '13.5px', color: '#4B5563', lineHeight: 1.6, marginBottom: '16px' }}>
-              Have questions regarding formulation dosage, dietary transitions, or cold-chain delivery schedules for Milo?
+              Have questions regarding formulation dosage, dietary transitions, or cold-chain delivery schedules for {activePet?.name || 'your companion'}?
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>

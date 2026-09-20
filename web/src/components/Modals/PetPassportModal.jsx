@@ -54,9 +54,9 @@ Gender: ${pet.gender || 'Male'} | Age: ${pet.age || '2 Yrs'} | Weight: ${pet.wei
 Microchip Transponder ID: ${microchipId}
 Rabies Vaccination Tag: ${rabiesTagId}
 Immunization Status: CERTIFIED UP-TO-DATE (Rabies, DHPP, Bordetella)
-Owner / Guardian: ${currentUser?.name || 'Pet Parent'}
-Emergency Contact: ${currentUser?.phone || '+8801835120307'}
-Registered Address: ${currentUser?.address || 'Mirpur, Dhaka, Bangladesh'}
+Owner / Guardian: ${currentUser?.name || currentUser?.displayName || 'Pet Parent'}
+Emergency Contact: ${currentUser?.phone || currentUser?.phoneNumber || 'Contact On File'}
+Registered Address: ${currentUser?.address || 'Dhaka, Bangladesh'}
 Verification Registry: PetMaya Central Health Ledger (AES-256 Verified)
 ======================================================`;
 
@@ -280,7 +280,7 @@ Verification Registry: PetMaya Central Health Ledger (AES-256 Verified)
               <div style={{ textAlign: 'right' }}>
                 <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Hotline:</span>
                 <strong style={{ fontSize: '12.5px', display: 'block', color: 'var(--primary)' }}>
-                  {currentUser?.phone || '+8801835120307'}
+                  {currentUser?.phone || currentUser?.phoneNumber || 'On File'}
                 </strong>
               </div>
             </div>

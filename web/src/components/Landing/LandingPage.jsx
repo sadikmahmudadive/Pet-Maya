@@ -3,10 +3,16 @@ import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 
 export default function LandingPage({ onNavigate }) {
-  const { showToast, addToCart } = useApp();
+  const { showToast, addToCart, pets = [] } = useApp();
   const { currentUser, loginAsGuest } = useAuth();
 
-  // Dynamic telemetry pulse states for Milo
+  const displayPet = pets[0] || null;
+  const companionName = displayPet?.name || 'Companion';
+  const companionBreed = displayPet ? `${displayPet.breed || 'Companion'} · ${displayPet.age || '3y'}` : 'Golden Retriever · 3y';
+  const companionInitial = (companionName || 'C').charAt(0).toUpperCase();
+  const companionChip = displayPet?.microchip || 'ISO 11784 Verified';
+
+  // Dynamic telemetry pulse states
   const [vitalsState, setVitalsState] = useState('Vitals Optimal (68 bpm)');
   const [addedItems, setAddedItems] = useState({});
 
@@ -329,7 +335,7 @@ export default function LandingPage({ onNavigate }) {
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
 
-              {/* Floating Status Badge Milo */}
+              {/* Floating Status Badge Companion */}
               <div style={{
                 position: 'absolute',
                 bottom: '20px',
@@ -359,11 +365,11 @@ export default function LandingPage({ onNavigate }) {
                     fontSize: '16px',
                     color: '#160F0C'
                   }}>
-                    M
+                    {companionInitial}
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontWeight: 600, fontSize: '15px', color: '#160F0C' }}>Milo</span>
+                      <span style={{ fontWeight: 600, fontSize: '15px', color: '#160F0C' }}>{companionName}</span>
                       <span style={{
                         padding: '2px 8px',
                         borderRadius: '9999px',
@@ -375,7 +381,7 @@ export default function LandingPage({ onNavigate }) {
                         fontWeight: 600,
                         border: '1px solid rgba(222, 217, 214, 0.5)'
                       }}>
-                        Golden Retriever · 3y
+                        {companionBreed}
                       </span>
                     </div>
                     <p style={{ margin: '2px 0 0', fontSize: '12.5px', color: '#675C58' }}>
@@ -648,11 +654,11 @@ export default function LandingPage({ onNavigate }) {
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '14px', borderBottom: '1px solid rgba(222, 217, 214, 0.4)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#F8F3EF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, color: '#160F0C' }}>
-                      M
+                      {companionInitial}
                     </div>
                     <div>
-                      <h4 style={{ fontSize: '16px', fontWeight: 600, color: '#160F0C', margin: 0 }}>Milo · Case #PM-8924</h4>
-                      <p style={{ fontSize: '12px', color: '#675C58', margin: '2px 0 0' }}>Evaluated 4 minutes ago · Golden Retriever (28.4 kg)</p>
+                      <h4 style={{ fontSize: '16px', fontWeight: 600, color: '#160F0C', margin: 0 }}>{companionName} · Case #PM-8924</h4>
+                      <p style={{ fontSize: '12px', color: '#675C58', margin: '2px 0 0' }}>Evaluated 4 minutes ago · {companionBreed}</p>
                     </div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 10px', borderRadius: '9999px', backgroundColor: '#F8F3EF', border: '1px solid rgba(222, 217, 214, 0.5)' }}>
@@ -793,14 +799,14 @@ export default function LandingPage({ onNavigate }) {
                 <div style={{ width: '100%', height: '180px', borderRadius: '12px', overflow: 'hidden', backgroundColor: '#EFEFEA' }}>
                   <img
                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuCs0_jT2c5SFLFxzgBTifOfd9_jM01PN4UidNRUZGMYDIIu7C3vYlf_kj4y6YP07nUrUmOdXfVbIjWTJQGNJ5gjd4fpBQHD-ZgBGnBj6HxT0vnxiWBf0yXY5Ll5aaog8l9VWcPCDLzANE25bHKFvHhGunCu_XMWlnUgqmR0vaswxMN1rAtcvCuwOFaZzD9F-6J6ihovbWJ4zZXIbKoKmL3YjVKvvNBoVrn8hXSEyztal4aInHkPDmB3"
-                    alt="Milo of Kensington"
+                    alt={companionName}
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   />
                 </div>
 
                 <div>
-                  <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#160F0C', margin: '0 0 2px' }}>Milo of Kensington</h3>
-                  <p style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#675C58', margin: 0 }}>CHIP: 981020002847192</p>
+                  <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#160F0C', margin: '0 0 2px' }}>{companionName} of Kensington</h3>
+                  <p style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#675C58', margin: 0 }}>CHIP: {companionChip}</p>
                 </div>
 
                 <div style={{

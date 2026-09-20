@@ -49,21 +49,21 @@ export default function PetGPSPage({ onNavigate }) {
 
   const activeDevice = devices[0] || {
     id: 'halo-01',
-    name: 'Maya Halo™ V3 (Titanium Edition)',
-    collarId: 'HL-8821',
-    batteryLevel: 89,
+    name: 'Maya Halo™ Collar',
+    collarId: 'HALO-BLE',
+    batteryLevel: 92,
     signalStrength: 98,
-    lat: 23.7937,
-    lng: 90.4066,
+    lat: userLiveLocation?.lat || 23.7937,
+    lng: userLiveLocation?.lng || 90.4066,
     isOnline: true
   };
 
   const activePet = pets[0] || {
-    name: 'Milo',
-    breed: 'Golden Retriever',
-    weight: '28.4',
+    name: 'Companion',
+    breed: 'Companion',
+    weight: 'N/A',
     photo: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=120&auto=format&fit=crop&q=80',
-    device: 'Maya Halo™ Collar #HL-8821'
+    device: activeDevice.name
   };
 
   // Map Mode State
@@ -79,7 +79,7 @@ export default function PetGPSPage({ onNavigate }) {
     if (triggerRingDevice) {
       await triggerRingDevice(activeDevice.id || 'halo-01');
     }
-    showToast(`🔊 85dB Acoustic Recovery Chime Emitted on Collar #${activeDevice.collarId || 'HL-8821'}`, 'info');
+    showToast(`🔊 85dB Acoustic Recovery Chime Emitted on Collar #${activeDevice.collarId || activeDevice.id || 'HALO'}`, 'info');
 
     // Web Audio API chirp
     try {
@@ -350,7 +350,7 @@ export default function PetGPSPage({ onNavigate }) {
                 <line x1="10%" y1="10%" x2="80%" y2="86%" stroke="rgba(195, 182, 172, 0.2)" strokeWidth="0.8" />
                 <line x1="10%" y1="86%" x2="80%" y2="10%" stroke="rgba(195, 182, 172, 0.2)" strokeWidth="0.8" />
 
-                {/* Breadcrumb Trajectory Path from Home Hub to Milo */}
+                {/* Breadcrumb Trajectory Path from Home Hub to Companion */}
                 <path
                   d="M 330 350 Q 380 320 460 260 T 540 180"
                   fill="none"
@@ -434,7 +434,7 @@ export default function PetGPSPage({ onNavigate }) {
                 </span>
               </div>
 
-              {/* Milo Live Animated Marker */}
+              {/* Companion Live Animated Marker */}
               <div style={{
                 position: 'absolute',
                 left: '56%',
@@ -479,7 +479,7 @@ export default function PetGPSPage({ onNavigate }) {
                   }} />
                 </div>
 
-                {/* Milo Floating Live Speed Pill */}
+                {/* Companion Floating Live Speed Pill */}
                 <div style={{
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -496,7 +496,7 @@ export default function PetGPSPage({ onNavigate }) {
                   whiteSpace: 'nowrap'
                 }}>
                   <span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#10B981' }}></span>
-                  <span>Milo • 1.1 km/h</span>
+                  <span>{activePet.name} • 1.1 km/h</span>
                 </div>
               </div>
 
@@ -530,7 +530,7 @@ export default function PetGPSPage({ onNavigate }) {
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span style={{ fontSize: '13px', fontWeight: 800, color: '#160F0C' }}>
-                      {activePet.name || 'Milo'}
+                      {activePet.name}
                     </span>
                     <span style={{
                       backgroundColor: '#E6F4F1',
@@ -545,7 +545,7 @@ export default function PetGPSPage({ onNavigate }) {
                     </span>
                   </div>
                   <div style={{ fontSize: '10.5px', color: '#707973', fontFamily: 'var(--font-mono, monospace)' }}>
-                    {activePet.breed || 'Golden Retriever'} • {activePet.weight ? `${activePet.weight} kg` : '28.4 kg'} • Collar #{activeDevice.collarId || 'HL-8821'}
+                    {activePet.breed || 'Companion'}{activePet.weight ? ` • ${activePet.weight} kg` : ''} • Collar #{activeDevice.collarId || activeDevice.id || 'HALO'}
                   </div>
                 </div>
               </div>
@@ -606,7 +606,7 @@ export default function PetGPSPage({ onNavigate }) {
                   padding: '3px'
                 }}>
                   <button
-                    onClick={() => showToast('Recentered on Milo GNSS Fix', 'info')}
+                    onClick={() => showToast(`Recentered on ${activePet.name} GNSS Fix`, 'info')}
                     style={{
                       background: 'none',
                       border: 'none',
@@ -923,7 +923,7 @@ export default function PetGPSPage({ onNavigate }) {
               <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '8px' }}>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
                   <span style={{ fontSize: '28px', fontWeight: 800, color: '#160F0C', letterSpacing: '-0.02em' }}>
-                    89%
+                    {activeDevice.batteryLevel ?? 92}%
                   </span>
                   <span style={{ fontSize: '12px', color: '#707973' }}>remaining</span>
                 </div>
@@ -942,7 +942,7 @@ export default function PetGPSPage({ onNavigate }) {
                 marginBottom: '16px'
               }}>
                 <div style={{
-                  width: '89%',
+                  width: `${activeDevice.batteryLevel ?? 92}%`,
                   height: '100%',
                   backgroundColor: '#0D9488',
                   borderRadius: '9999px'

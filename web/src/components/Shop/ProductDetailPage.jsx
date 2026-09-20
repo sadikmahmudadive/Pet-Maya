@@ -24,7 +24,13 @@ import {
 } from 'lucide-react';
 
 export default function ProductDetailPage({ productId, onBack, onNavigate }) {
-  const { products, addToCart, openModal, showToast } = useApp();
+  const { products, addToCart, openModal, showToast, pets = [] } = useApp();
+  const activePet = pets[0] || {
+    name: 'Companion',
+    breed: 'Companion',
+    weight: '25.0',
+    microchip: 'UNREGISTERED'
+  };
 
   // Active Gallery Image
   const [activeImageIdx, setActiveImageIdx] = useState(0);
@@ -580,7 +586,7 @@ export default function ProductDetailPage({ productId, onBack, onNavigate }) {
               }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <Lock size={12} color="#0D9488" />
-                  Attested to Microchip #981020002847192 • Vault Locked
+                  Attested to Microchip #{activePet.microchip || 'UNREGISTERED'} • Vault Locked
                 </span>
                 <span style={{ fontWeight: 700, cursor: 'pointer' }}>
                   Verified Hash ↗
@@ -796,7 +802,7 @@ export default function ProductDetailPage({ productId, onBack, onNavigate }) {
                 </div>
                 <div>
                   <div style={{ fontSize: '12px', fontWeight: 700, color: '#160F0C' }}>
-                    PATIENT: Milo <span style={{ fontWeight: 400, color: '#675C58' }}>(Golden Retriever • 28.4 kg)</span>
+                    PATIENT: {activePet.name} <span style={{ fontWeight: 400, color: '#675C58' }}>({activePet.breed || 'Companion'}{activePet.weight ? ` • ${activePet.weight} kg` : ''})</span>
                   </div>
                   <div style={{ fontSize: '11px', color: '#0D9488', fontFamily: 'var(--font-mono, monospace)' }}>
                     Recommended dosage auto-calculated: Medium-Large Dog (15.1 - 30.0kg)
@@ -896,7 +902,7 @@ export default function ProductDetailPage({ productId, onBack, onNavigate }) {
                           borderRadius: '4px',
                           letterSpacing: '0.04em'
                         }}>
-                          RECOMMENDED FOR MILO
+                          RECOMMENDED FOR {activePet.name.toUpperCase()}
                         </div>
                       )}
 
@@ -1189,7 +1195,7 @@ export default function ProductDetailPage({ productId, onBack, onNavigate }) {
                 Automatic Triage & Prescription Validation
               </h3>
               <p style={{ fontSize: '12.5px', color: '#576560', margin: 0, lineHeight: 1.5 }}>
-                Prescription verified via Milo's linked Sovereign Health Vault. No paper prescription upload required if your companion has had an active clinical consult within the last 12 months.
+                Prescription verified via {activePet.name}'s linked Sovereign Health Vault. No paper prescription upload required if your companion has had an active clinical consult within the last 12 months.
               </p>
             </div>
           </div>
@@ -1722,9 +1728,9 @@ export default function ProductDetailPage({ productId, onBack, onNavigate }) {
           }}>
             {[
               {
-                patient: 'Milo (Golden Retriever, 3.4 yrs)',
+                patient: 'Archie (Golden Retriever, 3.4 yrs)',
                 title: 'Zero Tick Incidents in 2 Years',
-                text: 'Living near the woodlands, ticks were a constant nightmare until Dr. Vance switched Milo to NexGard Spectra. One chewable on the 1st of every month. No stomach upset, completely eliminated all flea and tick worries.',
+                text: 'Living near the woodlands, ticks were a constant nightmare until Dr. Vance switched Archie to NexGard Spectra. One chewable on the 1st of every month. No stomach upset, completely eliminated all flea and tick worries.',
                 guardian: 'Jonathan K.',
                 sync: 'Verified Health Vault Sync'
               },

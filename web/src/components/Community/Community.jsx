@@ -56,9 +56,12 @@ export default function Community({ onNavigate }) {
     addPostComment, 
     resolveAmberAlert, 
     uploadImageFile, 
-    pets = [] 
+    pets = [],
+    devices = []
   } = useApp ? useApp() : { showToast: () => {}, openModal: () => {}, cart: [] };
   const { currentUser } = useAuth ? useAuth() : { currentUser: null };
+
+  const primaryPetName = pets[0]?.name || 'Companion';
 
   // Category filter state
   const [activeCategory, setActiveCategory] = useState('all'); // 'all', 'recovery', 'nutrition', 'social'
@@ -67,22 +70,17 @@ export default function Community({ onNavigate }) {
   // Post composer state
   const [postContent, setPostContent] = useState('');
   const [postImageUrl, setPostImageUrl] = useState('');
-  const [taggedPetName, setTaggedPetName] = useState(pets[0]?.name || 'Milo');
+  const [taggedPetName, setTaggedPetName] = useState(pets[0]?.name || '');
   const [showAmberAlert, setShowAmberAlert] = useState(true);
   const [showReportSightingModal, setShowReportSightingModal] = useState(false);
   const [showContactGuardianModal, setShowContactGuardianModal] = useState(false);
   const [showAmberTriggerModal, setShowAmberTriggerModal] = useState(false);
   const [sightingLocation, setSightingLocation] = useState('');
-
-  // Post interactive reactions
-  const [post1Liked, setPost1Liked] = useState(false);
-  const [post1LikeCount, setPost1LikeCount] = useState(84);
-  const [post1Saved, setPost1Saved] = useState(false);
-
-  const [post2Liked, setPost2Liked] = useState(false);
-  const [post2LikeCount, setPost2LikeCount] = useState(42);
-  const [post2Saved, setPost2Saved] = useState(false);
   const [questionInput, setQuestionInput] = useState('');
+
+  const activeAmberAlert = useMemo(() => {
+    return (communityPosts || []).find(p => (p.isAmberAlert || p.category === 'amber') && !p.isResolved);
+  }, [communityPosts]);
 
   // Event RSVP state
   const [eventRsvpd, setEventRsvpd] = useState(false);
@@ -120,8 +118,8 @@ export default function Community({ onNavigate }) {
           content: postContent.trim(),
           postType: activeCategory === 'all' ? 'recovery' : activeCategory,
           imageUrl: postImageUrl || '',
-          petName: taggedPetName || 'Milo',
-          userName: currentUser?.name || 'Rehan S.',
+          petName: taggedPetName || primaryPetName,
+          userName: currentUser?.name || currentUser?.displayName || 'Pet Maya Guardian',
           userPhoto: currentUser?.photoUrl || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80'
         });
       }
@@ -205,22 +203,22 @@ export default function Community({ onNavigate }) {
                 }}>
                   <img
                     src={currentUser?.photoUrl || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80'}
-                    alt="Rehan Chowdhury"
+                    alt={currentUser?.name || currentUser?.displayName || 'Guardian'}
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   />
                 </div>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <span style={{ fontSize: '14.5px', fontWeight: 800, color: '#160F0C' }}>
-                      {currentUser?.name || 'Rehan Chowdhury'}
+                      {currentUser?.name || currentUser?.displayName || 'Guardian Member'}
                     </span>
                     <CheckCircle2 size={14} color="#047857" />
                   </div>
                   <div style={{ fontSize: '11px', color: '#707973' }}>
-                    Banani Pod #02
+                    {currentUser?.address || 'Dhaka Metropolitan Mesh'}
                   </div>
                   <div style={{ fontSize: '10.5px', color: '#3E7B84', fontWeight: 600, marginTop: '2px' }}>
-                    🐾 2 Registered Pets (Milo & Cleo)
+                    🐾 {pets.length} Registered Companion{pets.length === 1 ? '' : 's'}{pets.length > 0 ? ` (${pets.map(p => p.name).join(' & ')})` : ''}
                   </div>
                 </div>
               </div>
@@ -420,7 +418,7 @@ export default function Community({ onNavigate }) {
             </div>
 
             {/* Active Amber Alert Banner */}
-            {showAmberAlert && (
+            {showAmberAlert && activeAmberAlert && (
               <div style={{
                 backgroundColor: '#FFFFFF',
                 borderRadius: '18px',
@@ -447,7 +445,7 @@ export default function Community({ onNavigate }) {
                     }}>
                       <AlertTriangle size={11} /> ACTIVE AMBER ALERT
                     </span>
-                    <span style={{ fontSize: '11px', color: '#8C827A' }}>• Missing &lt; 30m ago</span>
+                    <span style={{ fontSize: '11px', color: '#8C827A' }}>• {activeAmberAlert.reportedTime || 'Active Broadcast'}</span>
                   </div>
 
                   <button
@@ -461,48 +459,54 @@ export default function Community({ onNavigate }) {
 
                 {/* Body Row: Photo + Info */}
                 <div style={{ display: 'flex', gap: '14px', alignItems: 'center', marginBottom: '14px' }}>
-                  <div style={{ position: 'relative', width: '70px', height: '70px', borderRadius: '12px', overflow: 'hidden', flexShrink: 0 }}>
-                    <img
-                      src="https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?auto=format&fit=crop&w=160&q=80"
-                      alt="Missing Beagle Copper"
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    />
-                    <span style={{
-                      position: 'absolute',
-                      bottom: '2px',
-                      left: '2px',
-                      backgroundColor: 'rgba(220, 38, 38, 0.9)',
-                      color: '#FFFFFF',
-                      fontSize: '8px',
-                      fontWeight: 800,
-                      padding: '1px 4px',
-                      borderRadius: '3px'
-                    }}>
-                      COPPER
-                    </span>
-                  </div>
+                  {activeAmberAlert.imageUrl && (
+                    <div style={{ position: 'relative', width: '70px', height: '70px', borderRadius: '12px', overflow: 'hidden', flexShrink: 0 }}>
+                      <img
+                        src={activeAmberAlert.imageUrl}
+                        alt={`Missing ${activeAmberAlert.petName || 'Companion'}`}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                      <span style={{
+                        position: 'absolute',
+                        bottom: '2px',
+                        left: '2px',
+                        backgroundColor: 'rgba(220, 38, 38, 0.9)',
+                        color: '#FFFFFF',
+                        fontSize: '8px',
+                        fontWeight: 800,
+                        padding: '1px 4px',
+                        borderRadius: '3px'
+                      }}>
+                        {(activeAmberAlert.petName || 'COMPANION').toUpperCase()}
+                      </span>
+                    </div>
+                  )}
 
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: '15px', fontWeight: 800, color: '#160F0C' }}>Missing: Copper</span>
-                      <span style={{ fontSize: '11.5px', color: '#707973' }}>Beagle, 2.5 yrs (Male)</span>
-                      <span style={{
-                        fontSize: '10px',
-                        fontWeight: 700,
-                        backgroundColor: '#FEF3C7',
-                        color: '#B45309',
-                        padding: '2px 6px',
-                        borderRadius: '4px'
-                      }}>
-                        ৳ 5,000 Reward
-                      </span>
+                      <span style={{ fontSize: '15px', fontWeight: 800, color: '#160F0C' }}>Missing: {activeAmberAlert.petName || 'Companion'}</span>
+                      {activeAmberAlert.breed && <span style={{ fontSize: '11.5px', color: '#707973' }}>{activeAmberAlert.breed}</span>}
+                      {activeAmberAlert.reward && (
+                        <span style={{
+                          fontSize: '10px',
+                          fontWeight: 700,
+                          backgroundColor: '#FEF3C7',
+                          color: '#B45309',
+                          padding: '2px 6px',
+                          borderRadius: '4px'
+                        }}>
+                          {activeAmberAlert.reward}
+                        </span>
+                      )}
                     </div>
 
-                    <div style={{ fontSize: '11.5px', color: '#675C58', marginTop: '3px' }}>
-                      📍 <strong>Last seen:</strong> Gulshan Lake Park, Dhaka (near Road 11 bridge)
-                    </div>
+                    {activeAmberAlert.location && (
+                      <div style={{ fontSize: '11.5px', color: '#675C58', marginTop: '3px' }}>
+                        📍 <strong>Last seen:</strong> {activeAmberAlert.location}
+                      </div>
+                    )}
                     <div style={{ fontSize: '10.5px', color: '#8C827A', fontFamily: 'monospace', marginTop: '2px' }}>
-                      BLE Tag: <strong>PM-BLE-4109</strong> • Microchip: #985141009927341
+                      {activeAmberAlert.tagId ? `BLE Tag: ${activeAmberAlert.tagId}` : ''} {activeAmberAlert.microchip ? `• Microchip: #${activeAmberAlert.microchip}` : ''}
                     </div>
                   </div>
                 </div>
@@ -545,8 +549,15 @@ export default function Community({ onNavigate }) {
                   </button>
 
                   <button
-                    onClick={() => {
-                      showToast('🎉 Copper marked as safely reunited with guardian!', 'success');
+                    onClick={async () => {
+                      if (resolveAmberAlert && activeAmberAlert.id) {
+                        try {
+                          await resolveAmberAlert(activeAmberAlert.id);
+                        } catch (e) {
+                          console.error(e);
+                        }
+                      }
+                      showToast(`🎉 ${activeAmberAlert.petName || 'Companion'} marked as safely reunited!`, 'success');
                       setShowAmberAlert(false);
                     }}
                     style={{
@@ -649,8 +660,10 @@ export default function Community({ onNavigate }) {
                     type="button"
                     onClick={() => {
                       const names = (pets || []).map(p => p.name).filter(Boolean);
-                      if (!names.includes('Milo')) names.push('Milo');
-                      if (!names.includes('Cleo')) names.push('Cleo');
+                      if (names.length === 0) {
+                        showToast('No companions registered yet', 'info');
+                        return;
+                      }
                       const currentIdx = names.indexOf(taggedPetName);
                       const nextName = names[(currentIdx + 1) % names.length];
                       setTaggedPetName(nextName);
@@ -821,428 +834,21 @@ export default function Community({ onNavigate }) {
               );
             })}
 
-            {/* ── POST 1: Milo's 8-Week Post-TPLO Rehabilitation ── */}
-            {(activeCategory === 'all' || activeCategory === 'recovery') && (
+            {/* Empty state when no dynamic community posts exist */}
+            {(!communityPosts || communityPosts.length === 0) && (
               <div style={{
                 backgroundColor: '#FFFFFF',
                 borderRadius: '18px',
-                border: '1px solid #EBE5DF',
-                padding: '22px',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
+                border: '1px dashed #D6CEC7',
+                padding: '48px 24px',
+                textAlign: 'center',
+                marginBottom: '20px'
               }}>
-                {/* Author Header */}
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '12px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ width: '40px', height: '40px', borderRadius: '50%', overflow: 'hidden' }}>
-                      <img
-                        src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80"
-                        alt="Tanzim R."
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      />
-                    </div>
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ fontSize: '14px', fontWeight: 800, color: '#160F0C' }}>Tanzim R.</span>
-                        <span style={{
-                          fontSize: '9px',
-                          fontWeight: 700,
-                          backgroundColor: 'rgba(62,123,132,0.12)',
-                          color: '#3E7B84',
-                          padding: '1px 6px',
-                          borderRadius: '4px'
-                        }}>
-                          VERIFIED GUARDIAN
-                        </span>
-                      </div>
-                      <div style={{ fontSize: '11px', color: '#707973' }}>
-                        Parent to Milo (Golden Retriever, 4 yrs) • 3 hours ago
-                      </div>
-                    </div>
-                  </div>
-
-                  <span style={{
-                    fontSize: '10px',
-                    fontWeight: 700,
-                    backgroundColor: '#FAF7F5',
-                    color: '#675C58',
-                    padding: '3px 8px',
-                    borderRadius: '9999px',
-                    border: '1px solid #EFE9E4'
-                  }}>
-                    Health & Recovery
-                  </span>
-                </div>
-
-                {/* Title & Body */}
-                <h3 style={{
-                  fontFamily: 'var(--font-heading, "Playfair Display", Georgia, serif)',
-                  fontSize: '18px',
-                  fontWeight: 800,
-                  color: '#160F0C',
-                  margin: '0 0 8px 0',
-                  lineHeight: 1.3
-                }}>
-                  Milo's 8-Week Post-TPLO Rehabilitation & Cold-Chain Recovery
-                </h3>
-
-                <p style={{ fontSize: '13px', color: '#675C58', lineHeight: 1.55, margin: '0 0 16px 0' }}>
-                  We reached week 8 post-tibial plateau leveling osteotomy! From week 2 crate confinement to 20-minute daily underwater treadmill hydrotherapy at Pet Maya's Banani suite, his passive range of motion is back to 92%. We strictly sustained the botanical Boswellia + cold-chain Omega regimen prescribed by the clinical team.
+                <div style={{ fontSize: '36px', marginBottom: '12px' }}>🌿</div>
+                <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#160F0C', margin: '0 0 6px 0' }}>Community Mesh Feed is Quiet</h3>
+                <p style={{ fontSize: '13px', color: '#675C58', maxWidth: '420px', margin: '0 auto 16px auto', lineHeight: 1.5 }}>
+                  Be the first guardian in Dhaka to share a clinical recovery milestone, nutritional routine, or neighborhood alert.
                 </p>
-
-                {/* 2-Column Media & Clinical Biometrics */}
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1.1fr 1fr',
-                  gap: '14px',
-                  backgroundColor: '#FAF7F5',
-                  borderRadius: '14px',
-                  padding: '12px',
-                  border: '1px solid #EFE9E4',
-                  marginBottom: '16px'
-                }}>
-                  {/* Photo with Overlay */}
-                  <div style={{ position: 'relative', borderRadius: '10px', overflow: 'hidden', height: '160px' }}>
-                    <img
-                      src="https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=400&q=80"
-                      alt="Milo Hydro Pacing"
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    />
-                    <span style={{
-                      position: 'absolute',
-                      bottom: '8px',
-                      left: '8px',
-                      backgroundColor: 'rgba(22, 15, 12, 0.85)',
-                      color: '#FFFFFF',
-                      fontSize: '9.5px',
-                      fontWeight: 700,
-                      padding: '3px 8px',
-                      borderRadius: '4px'
-                    }}>
-                      Hydro Pacing: Wk 8 Cleared
-                    </span>
-                  </div>
-
-                  {/* Clinical Biometrics Stats */}
-                  <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                        <span style={{ fontSize: '10px', fontWeight: 800, color: '#160F0C', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-                          CLINICAL BIOMETRICS
-                        </span>
-                        <span style={{ fontSize: '9.5px', color: '#047857', fontWeight: 700 }}>
-                          ✔ Verified Log
-                        </span>
-                      </div>
-
-                      {/* Bar 1 */}
-                      <div style={{ marginBottom: '8px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10.5px', marginBottom: '2px' }}>
-                          <span style={{ color: '#675C58' }}>Stifle Gait Resolution</span>
-                          <strong style={{ color: '#3E7B84' }}>92%</strong>
-                        </div>
-                        <div style={{ width: '100%', height: '5px', backgroundColor: '#EBE5DF', borderRadius: '3px', overflow: 'hidden' }}>
-                          <div style={{ width: '92%', height: '100%', backgroundColor: '#3E7B84' }} />
-                        </div>
-                      </div>
-
-                      {/* Bar 2 */}
-                      <div style={{ marginBottom: '8px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10.5px', marginBottom: '2px' }}>
-                          <span style={{ color: '#675C58' }}>Hindlimb Symmetrical Loading</span>
-                          <strong style={{ color: '#3E7B84' }}>88%</strong>
-                        </div>
-                        <div style={{ width: '100%', height: '5px', backgroundColor: '#EBE5DF', borderRadius: '3px', overflow: 'hidden' }}>
-                          <div style={{ width: '88%', height: '100%', backgroundColor: '#3E7B84' }} />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Attending Vet Clinician Note */}
-                    <div style={{
-                      backgroundColor: '#FFFFFF',
-                      borderRadius: '8px',
-                      padding: '8px',
-                      border: '1px solid #EBE5DF',
-                      fontSize: '10.5px',
-                      color: '#4B5563'
-                    }}>
-                      <div style={{ fontWeight: 700, color: '#3E7B84', marginBottom: '2px' }}>
-                        🩺 Attending Vet Clinician Note
-                      </div>
-                      "Stifle effusion completely quiescent. Cleared for gradual off-leash lawn walking next fortnight." — <em>Dr. Nazmul Huda (Orthopedic Surgery)</em>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Reaction & Action Bar */}
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  paddingTop: '10px',
-                  borderTop: '1px solid #F5EFEB',
-                  fontSize: '12px',
-                  color: '#675C58',
-                  marginBottom: '14px'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                    <button
-                      onClick={() => {
-                        setPost1Liked(prev => !prev);
-                        setPost1LikeCount(c => post1Liked ? c - 1 : c + 1);
-                      }}
-                      style={{ background: 'none', border: 'none', color: post1Liked ? '#EF4444' : '#675C58', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontWeight: 600 }}
-                    >
-                      <Heart size={15} fill={post1Liked ? '#EF4444' : 'none'} color={post1Liked ? '#EF4444' : '#675C58'} /> {post1LikeCount}
-                    </button>
-
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      🐾 23
-                    </span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      🍃 15
-                    </span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <MessageCircle size={14} /> 19 comments
-                    </span>
-                  </div>
-
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <button
-                      onClick={() => {
-                        setPost1Saved(prev => !prev);
-                        showToast(post1Saved ? 'Removed from bookmarks' : 'Saved to bookmarks', 'info');
-                      }}
-                      style={{ background: 'none', border: 'none', color: post1Saved ? '#3E7B84' : '#8C827A', cursor: 'pointer' }}
-                    >
-                      <Bookmark size={15} fill={post1Saved ? '#3E7B84' : 'none'} />
-                    </button>
-                    <button
-                      onClick={() => showToast('Moment link copied to clipboard', 'info')}
-                      style={{ background: 'none', border: 'none', color: '#8C827A', cursor: 'pointer' }}
-                    >
-                      <Share2 size={15} />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Verified Clinician Comment Box */}
-                <div style={{
-                  backgroundColor: '#FAF7F5',
-                  borderRadius: '12px',
-                  padding: '12px 14px',
-                  border: '1px solid #EFE9E4',
-                  display: 'flex',
-                  gap: '10px'
-                }}>
-                  <div style={{
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '50%',
-                    backgroundColor: '#3E7B84',
-                    color: '#FFFFFF',
-                    fontSize: '11px',
-                    fontWeight: 800,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0
-                  }}>
-                    NH
-                  </div>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
-                      <span style={{ fontSize: '12px', fontWeight: 800, color: '#160F0C' }}>Dr. Nazmul Huda, AO VET</span>
-                      <span style={{ fontSize: '10px', color: '#8C827A' }}>2h ago</span>
-                    </div>
-                    <p style={{ fontSize: '12px', color: '#4B5563', margin: 0, lineHeight: 1.4 }}>
-                      "Please sustain the cold pack application for 10 mins post-underwater pacing sessions through day 65."
-                    </p>
-                  </div>
-                </div>
-
-              </div>
-            )}
-
-            {/* ── POST 2: Transitioning Bella to GI Low Fat Steamed Puree ── */}
-            {(activeCategory === 'all' || activeCategory === 'nutrition') && (
-              <div style={{
-                backgroundColor: '#FFFFFF',
-                borderRadius: '18px',
-                border: '1px solid #EBE5DF',
-                padding: '22px',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
-              }}>
-                {/* Author Header */}
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '12px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ width: '40px', height: '40px', borderRadius: '50%', overflow: 'hidden' }}>
-                      <img
-                        src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=120&q=80"
-                        alt="Sarah Ahmed"
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      />
-                    </div>
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ fontSize: '14px', fontWeight: 800, color: '#160F0C' }}>Sarah Ahmed</span>
-                        <span style={{
-                          fontSize: '9px',
-                          fontWeight: 700,
-                          backgroundColor: 'rgba(62,123,132,0.12)',
-                          color: '#3E7B84',
-                          padding: '1px 6px',
-                          borderRadius: '4px'
-                        }}>
-                          VERIFIED GUARDIAN
-                        </span>
-                      </div>
-                      <div style={{ fontSize: '11px', color: '#707973' }}>
-                        Parent to Bella (Persian Cat, 3 yrs) • 6 hours ago
-                      </div>
-                    </div>
-                  </div>
-
-                  <span style={{
-                    fontSize: '10px',
-                    fontWeight: 700,
-                    backgroundColor: '#FAF7F5',
-                    color: '#675C58',
-                    padding: '3px 8px',
-                    borderRadius: '9999px',
-                    border: '1px solid #EFE9E4'
-                  }}>
-                    Nutrition & GI
-                  </span>
-                </div>
-
-                {/* Title & Body */}
-                <h3 style={{
-                  fontFamily: 'var(--font-heading, "Playfair Display", Georgia, serif)',
-                  fontSize: '18px',
-                  fontWeight: 800,
-                  color: '#160F0C',
-                  margin: '0 0 8px 0',
-                  lineHeight: 1.3
-                }}>
-                  Transitioning Bella from Commercial Kibble to GI Low Fat Steamed Puree
-                </h3>
-
-                <p style={{ fontSize: '13px', color: '#675C58', lineHeight: 1.55, margin: '0 0 16px 0' }}>
-                  For any fellow Persian parents wrestling with recurring IBD flare-ups: here is our 14-day stool consistency scorecard following the Pet Maya GI formulation combined with pumpkin-pectin botanical pastes. Noticeable drop in vomiting episodes within 72 hours.
-                </p>
-
-                {/* Purina Bristol-V Stool Scale Improvement Scorecard */}
-                <div style={{
-                  backgroundColor: '#FAF7F5',
-                  borderRadius: '14px',
-                  padding: '14px',
-                  border: '1px solid #EFE9E4',
-                  marginBottom: '16px'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-                    <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#160F0C', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-                      PURINA BRISTOL-V STOOL SCALE IMPROVEMENT
-                    </span>
-                    <span style={{
-                      fontSize: '9.5px',
-                      fontWeight: 700,
-                      backgroundColor: 'rgba(16,185,129,0.12)',
-                      color: '#047857',
-                      padding: '2px 6px',
-                      borderRadius: '4px'
-                    }}>
-                      Target: Grade 2 (Optimal)
-                    </span>
-                  </div>
-
-                  {/* 7 Stool Scale Score Chips */}
-                  <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(7, 1fr)',
-                    gap: '6px',
-                    textAlign: 'center'
-                  }}>
-                    {[
-                      { day: 'D1', val: '6', label: 'Loose', color: '#DC2626', bg: '#FEE2E2' },
-                      { day: 'D3', val: '5', label: 'Soft', color: '#D97706', bg: '#FEF3C7' },
-                      { day: 'D6', val: '4', label: 'Mixed', color: '#6B7280', bg: '#F3F4F6' },
-                      { day: 'D7', val: '3', label: 'Formed', color: '#6B7280', bg: '#F3F4F6' },
-                      { day: 'D9', val: '3', label: 'Formed', color: '#6B7280', bg: '#F3F4F6' },
-                      { day: 'D11', val: '2', label: 'Ideal', color: '#047857', bg: 'rgba(16,185,129,0.15)', active: true },
-                      { day: 'D14', val: '2', label: 'Stable', color: '#047857', bg: 'rgba(16,185,129,0.15)', active: true }
-                    ].map(chip => (
-                      <div
-                        key={chip.day}
-                        style={{
-                          backgroundColor: chip.bg,
-                          padding: '6px 4px',
-                          borderRadius: '8px',
-                          border: chip.active ? '1.5px solid #10B981' : '1px solid #E5E7EB'
-                        }}
-                      >
-                        <div style={{ fontSize: '9px', color: '#8C827A', fontWeight: 600 }}>{chip.day}</div>
-                        <div style={{ fontSize: '13px', fontWeight: 800, color: chip.color }}>{chip.val}</div>
-                        <div style={{ fontSize: '8.5px', color: chip.color, fontWeight: 700 }}>{chip.label}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Reaction & Action Bar with Clinical Question Form */}
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  paddingTop: '10px',
-                  borderTop: '1px solid #F5EFEB',
-                  fontSize: '12px',
-                  color: '#675C58',
-                  gap: '12px'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
-                    <button
-                      onClick={() => {
-                        setPost2Liked(prev => !prev);
-                        setPost2LikeCount(c => post2Liked ? c - 1 : c + 1);
-                      }}
-                      style={{ background: 'none', border: 'none', color: post2Liked ? '#EF4444' : '#675C58', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontWeight: 600 }}
-                    >
-                      <Heart size={15} fill={post2Liked ? '#EF4444' : 'none'} color={post2Liked ? '#EF4444' : '#675C58'} /> {post2LikeCount}
-                    </button>
-                    <span>💡 18 helpful</span>
-                    <span>11 responses</span>
-                  </div>
-
-                  <form onSubmit={handleAddQuestion} style={{ display: 'flex', flex: 1, maxWidth: '280px' }}>
-                    <input
-                      type="text"
-                      value={questionInput}
-                      onChange={(e) => setQuestionInput(e.target.value)}
-                      placeholder="Add clinical question..."
-                      style={{
-                        width: '100%',
-                        padding: '6px 12px',
-                        borderRadius: '9999px',
-                        border: '1px solid #D6CEC7',
-                        fontSize: '11px',
-                        outline: 'none',
-                        backgroundColor: '#FAF7F5'
-                      }}
-                    />
-                  </form>
-
-                  <button
-                    onClick={() => {
-                      setPost2Saved(prev => !prev);
-                      showToast(post2Saved ? 'Removed from bookmarks' : 'Saved to bookmarks', 'info');
-                    }}
-                    style={{ background: 'none', border: 'none', color: post2Saved ? '#3E7B84' : '#8C827A', cursor: 'pointer' }}
-                  >
-                    <Bookmark size={15} fill={post2Saved ? '#3E7B84' : 'none'} />
-                  </button>
-                </div>
-
               </div>
             )}
 
@@ -1333,7 +939,7 @@ export default function Community({ onNavigate }) {
                   <button
                     onClick={() => {
                       setEventRsvpd(prev => !prev);
-                      showToast(eventRsvpd ? "RSVP cancelled for Milo's spot" : "🎉 Milo's spot reserved for Lake Park West Stride!", 'success');
+                      showToast(eventRsvpd ? `RSVP cancelled for ${primaryPetName}'s spot` : `🎉 ${primaryPetName}'s spot reserved for Lake Park West Stride!`, 'success');
                     }}
                     style={{
                       padding: '10px 18px',
@@ -1349,7 +955,7 @@ export default function Community({ onNavigate }) {
                       gap: '6px'
                     }}
                   >
-                    {eventRsvpd ? '✓ Milo Confirmed' : "🖤 RSVP Milo's Spot"}
+                    {eventRsvpd ? `✓ ${primaryPetName} Confirmed` : `🖤 RSVP ${primaryPetName}'s Spot`}
                   </button>
                 </div>
 
@@ -1423,7 +1029,7 @@ export default function Community({ onNavigate }) {
                 {[
                   { initials: 'EV', name: 'Dr. Evelyn Vance, MRCVS', role: 'Head of Internal Med (Cambridge)' },
                   { initials: 'NH', name: 'Dr. Nazmul Huda, AO VET', role: 'Orthopedic & Trauma Specialist' },
-                  { initials: 'AK', name: 'Dr. Arman K. Rahman', role: "PharmD • Milo's Nutritionist" }
+                  { initials: 'AK', name: 'Dr. Arman K. Rahman', role: "PharmD • Clinical Nutritionist" }
                 ].map(clinician => (
                   <div
                     key={clinician.name}
@@ -1782,10 +1388,10 @@ export default function Community({ onNavigate }) {
               <AlertTriangle size={24} color="#DC2626" />
               <div>
                 <h3 style={{ fontSize: '18px', fontWeight: 800, margin: 0, color: '#160F0C' }}>
-                  Report Sighting for Copper
+                  Report Sighting for {activeAmberAlert?.petName || 'Missing Companion'}
                 </h3>
                 <div style={{ fontSize: '11.5px', color: '#707973' }}>
-                  BLE Tag: PM-BLE-4109 • Microchip: #985141009927341
+                  {activeAmberAlert?.tagId ? `BLE Tag: ${activeAmberAlert.tagId}` : 'BLE Broadcast Active'} {activeAmberAlert?.microchip ? `• Microchip: #${activeAmberAlert.microchip}` : ''}
                 </div>
               </div>
             </div>
@@ -1799,7 +1405,7 @@ export default function Community({ onNavigate }) {
                 style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #D6CEC7', fontSize: '12.5px', boxSizing: 'border-box' }}
               />
               <textarea
-                placeholder="Condition observed (e.g. running towards bridge, wearing red collar)..."
+                placeholder="Condition observed (e.g. running towards bridge, wearing collar)..."
                 rows={3}
                 style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #D6CEC7', fontSize: '12.5px', boxSizing: 'border-box' }}
               />
@@ -1808,7 +1414,7 @@ export default function Community({ onNavigate }) {
             <div style={{ display: 'flex', gap: '10px' }}>
               <button
                 onClick={() => {
-                  showToast('🚨 Sighting dispatched to Copper\'s guardian with high-priority push!', 'success');
+                  showToast(`🚨 Sighting dispatched to ${activeAmberAlert?.petName || 'companion'}'s guardian with high-priority push!`, 'success');
                   setShowReportSightingModal(false);
                   setSightingLocation('');
                 }}
@@ -1856,17 +1462,17 @@ export default function Community({ onNavigate }) {
             </button>
 
             <h3 style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 6px 0', color: '#160F0C' }}>
-              Contact Copper's Guardian
+              Contact {activeAmberAlert?.petName || 'Companion'}'s Guardian
             </h3>
             <div style={{ fontSize: '12px', color: '#707973', marginBottom: '16px' }}>
-              Direct encrypted cellular link • Gulshan Zone
+              Direct encrypted cellular link • {activeAmberAlert?.location || 'Local Zone'}
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '18px' }}>
               <a
-                href="tel:01711223344"
+                href={`tel:${activeAmberAlert?.phone || activeAmberAlert?.contactPhone || '01700000000'}`}
                 onClick={() => {
-                  showToast('Connecting to Copper\'s guardian...', 'info');
+                  showToast(`Connecting to ${activeAmberAlert?.petName || 'companion'}'s guardian...`, 'info');
                   setShowContactGuardianModal(false);
                 }}
                 style={{
@@ -1883,7 +1489,7 @@ export default function Community({ onNavigate }) {
                   textDecoration: 'none'
                 }}
               >
-                <Phone size={14} /> Call Guardian (+880 1711-223344)
+                <Phone size={14} /> Call Guardian ({activeAmberAlert?.phone || activeAmberAlert?.contactPhone || '+880 1700-000000'})
               </a>
               <button
                 onClick={() => {
@@ -1938,13 +1544,13 @@ export default function Community({ onNavigate }) {
               Test Pet Amber Protocol
             </h3>
             <p style={{ fontSize: '12px', color: '#707973', margin: '0 0 16px 0' }}>
-              Simulates a geofence breach broadcast for Milo to all 1,240 active neighborhood mesh nodes.
+              Simulates a geofence breach broadcast for {primaryPetName} to all local active neighborhood mesh nodes.
             </p>
 
             <div style={{ backgroundColor: '#FAF7F5', padding: '14px', borderRadius: '12px', border: '1px solid #EFE9E4', fontSize: '12px', color: '#675C58', marginBottom: '18px' }}>
-              <div><strong>Target Companion:</strong> Milo (Golden Retriever)</div>
-              <div><strong>Collar:</strong> Maya Halo™ V3 (#HL-88210)</div>
-              <div><strong>Broadcast Radius:</strong> 3.5 km (Banani + Gulshan + Baridhara)</div>
+              <div><strong>Target Companion:</strong> {primaryPetName} {pets[0]?.breed ? `(${pets[0].breed})` : ''}</div>
+              <div><strong>Collar:</strong> {devices[0]?.name || 'Maya Halo™ Collar'} ({devices[0]?.id || devices[0]?.serial || '#HL-ACTIVE'})</div>
+              <div><strong>Broadcast Radius:</strong> 3.5 km (Active Neighborhood Mesh)</div>
             </div>
 
             <div style={{ display: 'flex', gap: '10px' }}>

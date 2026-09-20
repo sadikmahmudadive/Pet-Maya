@@ -53,6 +53,20 @@ export default function Dashboard({ onNavigate }) {
   } = useApp();
   const { currentUser } = useAuth();
 
+  const activePet = pets[0] || {
+    name: 'Companion',
+    breed: 'Companion',
+    weight: '15.0',
+    age: '3 yrs',
+    photo: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=300&auto=format&fit=crop&q=80',
+    microchip: 'UNREGISTERED'
+  };
+  const activeDevice = devices[0] || {
+    collarId: 'HALO-BLE',
+    batteryLevel: 92
+  };
+  const guardianDisplayName = currentUser?.name || currentUser?.displayName || '';
+
   const handleRoute = (path) => {
     if (onNavigate) onNavigate(path);
     else if (setActiveTab) setActiveTab(path);
@@ -61,7 +75,7 @@ export default function Dashboard({ onNavigate }) {
 
   // Sound Tone Simulation
   const handleSoundTone = () => {
-    showToast('🔊 Acoustic Chime Emitted on Collar #HL-8821', 'info');
+    showToast(`🔊 Acoustic Chime Emitted on Collar #${activeDevice.collarId || activeDevice.id || 'HALO'}`, 'info');
     try {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       if (AudioCtx) {
@@ -133,7 +147,7 @@ export default function Dashboard({ onNavigate }) {
               margin: '0 0 6px 0',
               letterSpacing: '-0.02em'
             }}>
-              Good morning, Tanzim.
+              Good morning{guardianDisplayName ? `, ${guardianDisplayName}` : ''}.
             </h1>
 
             <p style={{
@@ -143,7 +157,7 @@ export default function Dashboard({ onNavigate }) {
               lineHeight: 1.5,
               maxWidth: '620px'
             }}>
-              Milo's clinical vitals and preventative schedule are fully in sync. Zero acute anomalies detected in the last 72 hours.
+              {activePet.name}'s clinical vitals and preventative schedule are fully in sync. Zero acute anomalies detected in the last 72 hours.
             </p>
           </div>
 
@@ -176,7 +190,7 @@ export default function Dashboard({ onNavigate }) {
         </div>
 
         {/* ════════════════════════════════════════════════════════════════
-            2. ACTIVE COMPANION BANNER (MILO)
+            2. ACTIVE COMPANION BANNER
             ════════════════════════════════════════════════════════════════ */}
         <div style={{
           backgroundColor: '#FFFFFF',
@@ -195,8 +209,8 @@ export default function Dashboard({ onNavigate }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <div style={{ position: 'relative' }}>
               <img
-                src="https://images.unsplash.com/photo-1552053831-71594a27632d?w=160&auto=format&fit=crop&q=80"
-                alt="Milo"
+                src={activePet.photo || activePet.image || "https://images.unsplash.com/photo-1552053831-71594a27632d?w=160&auto=format&fit=crop&q=80"}
+                alt={activePet.name}
                 style={{
                   width: '56px',
                   height: '56px',
@@ -226,7 +240,7 @@ export default function Dashboard({ onNavigate }) {
                   color: '#160F0C',
                   margin: 0
                 }}>
-                  Milo
+                  {activePet.name}
                 </h2>
                 <span style={{
                   backgroundColor: '#FAF7F5',
@@ -238,7 +252,7 @@ export default function Dashboard({ onNavigate }) {
                   padding: '2px 8px',
                   borderRadius: '9999px'
                 }}>
-                  Golden Retriever
+                  {activePet.breed || activePet.species || 'Companion'}
                 </span>
                 <span style={{
                   backgroundColor: '#FAF7F5',
@@ -250,7 +264,7 @@ export default function Dashboard({ onNavigate }) {
                   padding: '2px 8px',
                   borderRadius: '9999px'
                 }}>
-                  Male • Neutered
+                  Verified Companion
                 </span>
               </div>
 
@@ -262,14 +276,17 @@ export default function Dashboard({ onNavigate }) {
                 gap: '8px',
                 flexWrap: 'wrap'
               }}>
-                <span>28.4 kg (Ideal)</span>
+                <span>{activePet.weight ? `${activePet.weight} kg (Ideal)` : 'Weight Recorded'}</span>
                 <span>•</span>
-                <span>3 yrs 2 mos</span>
+                <span>{activePet.age || 'Adult'}</span>
                 <span>•</span>
                 <button
                   onClick={() => {
-                    navigator.clipboard.writeText('9851410802930411');
-                    showToast('Microchip #9851410802930411 copied to clipboard', 'success');
+                    const chip = activePet.microchip || 'UNREGISTERED';
+                    if (chip !== 'UNREGISTERED') {
+                      navigator.clipboard.writeText(chip);
+                      showToast(`Microchip #${chip} copied to clipboard`, 'success');
+                    }
                   }}
                   style={{
                     background: 'none',
@@ -284,7 +301,7 @@ export default function Dashboard({ onNavigate }) {
                     gap: '4px'
                   }}
                 >
-                  <span>● Microchip: #9851410802930411</span>
+                  <span>● Microchip: #{activePet.microchip || 'UNREGISTERED'}</span>
                 </button>
               </div>
             </div>
@@ -321,7 +338,7 @@ export default function Dashboard({ onNavigate }) {
             </div>
 
             <button
-              onClick={() => showToast('Switched to Milo active telemetry profile', 'info')}
+              onClick={() => showToast(`Switched to ${activePet.name} active telemetry profile`, 'info')}
               style={{
                 width: '36px',
                 height: '36px',
@@ -1084,7 +1101,7 @@ export default function Dashboard({ onNavigate }) {
                   fontFamily: 'var(--font-mono, monospace)',
                   fontWeight: 700
                 }}>
-                  ● Milo • Indoors
+                  ● {activePet.name} • Indoors
                 </div>
               </div>
 
@@ -1096,7 +1113,7 @@ export default function Dashboard({ onNavigate }) {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: '#707973' }}>Hardware Battery:</span>
-                  <span style={{ fontWeight: 700, color: '#0D9488' }}>🔋 89% (6.5 days)</span>
+                  <span style={{ fontWeight: 700, color: '#0D9488' }}>🔋 {activeDevice.batteryLevel ?? 92}% (6.5 days)</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: '#707973' }}>Cellular Uplink:</span>
@@ -1153,7 +1170,7 @@ export default function Dashboard({ onNavigate }) {
               </div>
 
               <p style={{ fontSize: '11.5px', lineHeight: 1.55, color: '#52625D', margin: '0 0 10px 0' }}>
-                High ambient pollen counts logged in your precinct this week. Inspect Milo's interdigital paws and outer pinnae following morning walks.
+                High ambient pollen counts logged in your precinct this week. Inspect {activePet.name}'s interdigital paws and outer pinnae following morning walks.
               </p>
 
               <a
@@ -1217,7 +1234,7 @@ export default function Dashboard({ onNavigate }) {
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <button
-                onClick={() => showToast('Exported Milo Certified EHR Dossier (PDF)', 'success')}
+                onClick={() => showToast(`Exported ${activePet.name} Certified EHR Dossier (PDF)`, 'success')}
                 style={{
                   backgroundColor: '#FAF7F5',
                   border: '1px solid #D6CDC5',
@@ -1265,7 +1282,7 @@ export default function Dashboard({ onNavigate }) {
                 badge: 'Tier 1 Screening',
                 desc: 'Upper right canine mild calculus index: Grade 1. No immediate periodontal inflammation. Continue weekly enzymatic brush paste.',
                 timestamp: 'Yesterday, 4:15 PM',
-                attestation: 'Verified by Milo Triage Engine',
+                attestation: 'Verified by Maya AI Triage Engine',
                 icon: Smile
               },
               {

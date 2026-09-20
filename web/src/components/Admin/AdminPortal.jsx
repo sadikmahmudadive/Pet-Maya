@@ -220,13 +220,7 @@ export default function AdminPortal() {
   const [selectedOrderDetails, setSelectedOrderDetails] = useState(null);
 
   // ─── USERS VERIFICATION & MANAGEMENT STATE ───
-  const [usersList, setUsersList] = useState([
-    { id: 'u1', name: 'Sadik Mahmud', email: 'sadik@petmaya.app', role: 'Super Admin', isVerified: true, verificationStatus: 'VERIFIED', accountStatus: 'ACTIVE', phone: '+880 1711-000000', petsCount: 2, joinedDate: '2026-01-10', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150' },
-    { id: 'u2', name: 'Dr. Sarah Jenkins', email: 'dr.jenkins@vetclinic.com', role: 'Veterinarian', isVerified: true, verificationStatus: 'VERIFIED', accountStatus: 'ACTIVE', phone: '+880 1822-111111', petsCount: 1, joinedDate: '2026-02-14', avatar: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150' },
-    { id: 'u3', name: 'Elena Vance', email: 'elena@gmail.com', role: 'Pet Owner', isVerified: false, verificationStatus: 'PENDING', accountStatus: 'ACTIVE', phone: '+880 1933-222222', petsCount: 3, joinedDate: '2026-08-15', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150' },
-    { id: 'u4', name: 'Pawfect Grooming Hub', email: 'contact@pawfect.bd', role: 'Shelter & Spa', isVerified: true, verificationStatus: 'VERIFIED', accountStatus: 'ACTIVE', phone: '+880 1644-333333', petsCount: 0, joinedDate: '2026-03-20', avatar: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=150' },
-    { id: 'u5', name: 'Tanvir Hossain', email: 'tanvir.petcare@yahoo.com', role: 'Pet Owner', isVerified: false, verificationStatus: 'PENDING', accountStatus: 'ACTIVE', phone: '+880 1555-444444', petsCount: 1, joinedDate: '2026-08-22', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150' }
-  ]);
+  const [usersList, setUsersList] = useState([]);
   const [userSearch, setUserSearch] = useState('');
   const [userRoleFilter, setUserRoleFilter] = useState('ALL'); // 'ALL', 'Pet Owner', 'Veterinarian', 'Admin', 'Shelter & Spa'
   const [userStatusFilter, setUserStatusFilter] = useState('ALL'); // 'ALL', 'VERIFIED', 'PENDING', 'SUSPENDED'
@@ -258,7 +252,7 @@ export default function AdminPortal() {
               isVerified: data.isVerified === true || data.verificationStatus === 'VERIFIED',
               verificationStatus: data.verificationStatus || (data.isVerified ? 'VERIFIED' : 'PENDING'),
               accountStatus: data.accountStatus || 'ACTIVE',
-              phone: data.phone || data.phoneNumber || '+880 1700-000000',
+              phone: data.phone || data.phoneNumber || '',
               address: data.address || 'Dhaka, Bangladesh',
               points: data.points ?? 25,
               referralCode: data.referralCode || `PM-${d.id.slice(0, 5).toUpperCase()}`,
@@ -269,9 +263,12 @@ export default function AdminPortal() {
             };
           });
           setUsersList(fetched);
+        } else {
+          setUsersList([]);
         }
       }, (err) => {
         console.warn('Users listener warning:', err);
+        setUsersList([]);
       });
       return () => unsub();
     } catch (e) {
