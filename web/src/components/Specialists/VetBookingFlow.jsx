@@ -42,7 +42,7 @@ export default function VetBookingFlow({ initialVet, onComplete, onCancel }) {
   const [consultationMode, setConsultationMode] = useState('In-Clinic Consultation');
 
   // Step 2 State: Date & Time & Pet
-  const [selectedPet, setSelectedPet] = useState(pets[0]?.name || 'Max');
+  const [selectedPet, setSelectedPet] = useState(pets[0]?.name || 'Companion');
   const [selectedDate, setSelectedDate] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() + 1);
@@ -530,25 +530,31 @@ export default function VetBookingFlow({ initialVet, onComplete, onCancel }) {
                 Select Patient Pet
               </label>
               <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                {pets.map((p) => (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => setSelectedPet(p.name)}
-                    style={{
-                      padding: '10px 18px',
-                      borderRadius: '12px',
-                      border: selectedPet === p.name ? '2px solid #2ECC9B' : '1px solid var(--border)',
-                      backgroundColor: selectedPet === p.name ? 'rgba(46, 204, 155, 0.09)' : 'var(--surface)',
-                      color: selectedPet === p.name ? '#158763' : 'var(--foreground)',
-                      fontWeight: 600,
-                      fontSize: '13.5px',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    🐾 {p.name} ({p.breed || 'Dog'})
-                  </button>
-                ))}
+                {pets && pets.length > 0 ? (
+                  pets.map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => setSelectedPet(p.name)}
+                      style={{
+                        padding: '10px 18px',
+                        borderRadius: '12px',
+                        border: selectedPet === p.name ? '2px solid #2ECC9B' : '1px solid var(--border)',
+                        backgroundColor: selectedPet === p.name ? 'rgba(46, 204, 155, 0.09)' : 'var(--surface)',
+                        color: selectedPet === p.name ? '#158763' : 'var(--foreground)',
+                        fontWeight: 600,
+                        fontSize: '13.5px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      🐾 {p.name} ({p.breed || 'Dog'})
+                    </button>
+                  ))
+                ) : (
+                  <div style={{ padding: '12px 16px', backgroundColor: 'var(--surface)', borderRadius: '12px', border: '1px dashed var(--border)', fontSize: '13px', color: 'var(--text-secondary)' }}>
+                    No companion registered yet. Consultation will be scheduled for your companion patient.
+                  </div>
+                )}
               </div>
             </div>
 

@@ -3,7 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 
 export default function LandingPage({ onNavigate }) {
-  const { showToast, addToCart, pets = [] } = useApp();
+  const { showToast, addToCart, pets = [], vets = [] } = useApp();
   const { currentUser, loginAsGuest } = useAuth();
 
   const displayPet = pets[0] || null;
@@ -103,45 +103,23 @@ export default function LandingPage({ onNavigate }) {
     }
   ];
 
-  // Faculty specialists matching exact Stitch specification
-  const clinicalFaculty = [
-    {
-      id: 'vet1',
-      name: 'Dr. Sarah Jenkins',
-      title: 'BVM&S, MRCVS · Small Animal Internal Medicine',
-      bio: 'Specializing in chronic renal pathology, feline longevity protocols, and microbiome stabilization.',
-      price: '৳500',
-      status: 'On Duty Now',
-      statusType: 'pulse',
-      rating: '4.98',
-      reviews: '340+ consults',
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB_EBxEWwm0PmUwbCrPwYgD3SRV4KNUmkFkUdyUqF8Gw4r87SVmFFhGYTf2JtDSSjRpwAZTkNJo12DqsuqU41MiJGEcjIt4144IMCy4v2smytrZu6dtx3bgkSJOtLCW6Y-hsDstAZRGCIPzWwFExr8JPCqVKI1hyIeeXlzODM83gfORG0KfplYn5ReE3W3ul9BOZoX8xGqWUB92uYd_FLWNFlfIjtjNANWjBI2SqHF-B7bq7Q-v5pZX'
-    },
-    {
-      id: 'vet2',
-      name: 'Dr. Nazmul Hoda',
-      title: 'DVM, MS (Surgery), PhD · Orthopedics & Trauma',
-      bio: '22 years clinical leadership in canine CCL repair, hip dysplasia triage, and regenerative post-op rehab.',
-      price: '৳500',
-      status: 'Available in 20m',
-      statusType: 'beacon',
-      rating: '4.99',
-      reviews: '610+ consults',
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBOiVSgR5xqx0wvB4JoCg0RowBoAK-Mkv-jwHmdh_ylJlTG57ES5ZmvLpxiEkj4lqOAdeDecV9xJDfBogYLzTu3A5YQ3vswYyjjsqkrqMPDGUNfH3zG-KCBhrLZaTMtvNw8pgeOitSN48RpEF47XHV04jVVm539VS6c5VIjWBXwq2P3C4Q0ijOblOWrjsB0FFRepEKzsKo1Ep1JlLyl1WqZOHmD2DHgOQms6QSwXMA40j0GKxJcbc6F'
-    },
-    {
-      id: 'vet3',
-      name: 'Dr. Ananya Roy',
-      title: 'DVM, Dip. ECVD · Clinical Dermatology & Allergies',
-      bio: 'Targeted cytological diagnostics for tropical atopic dermatitis, ear canal care, and allergen immunotherapy.',
-      price: '৳500',
-      status: 'Today at 16:30',
-      statusType: 'static',
-      rating: '4.96',
-      reviews: '280+ consults',
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD-Bv2wqoDb7QPMqXHqASOH_Id5I5T8ssyg0z9XhUJw2d3DEXWJnGOpMA70D2d41tP4lNX4AH99It1aDqteGz3CoMFwMOqRkN3B2CpmPOPClatcIm6zcnhtIJrYrig8VvNR85wI5y2BWMzA5og9FCybuTcpQiZ2v0x1aCy8pCwU15R2QLmzxcLBtz9rE-PWaZW-_tdla2DkqN_vAYy5y4IpUE7xWTx7l-XO3MUs0_VUr0ZkWeLetek-'
-    }
-  ];
+  // Faculty specialists — derived from live Firestore vets collection (capped at 3 for homepage)
+  const clinicalFaculty = vets.slice(0, 3).map((v) => ({
+    id: v.id,
+    name: v.name,
+    title: v.qualification || v.tag || '',
+    bio: v.bio || '',
+    price: v.price ? `৳${v.price}` : '৳500',
+    status: v.availability || 'Available',
+    statusType: (v.availability || '').toLowerCase().includes('now') || (v.availability || '').toLowerCase().includes('duty')
+      ? 'pulse'
+      : (v.availability || '').toLowerCase().includes('min') || (v.availability || '').toLowerCase().includes('soon')
+        ? 'beacon'
+        : 'static',
+    rating: v.rating ? String(v.rating) : '5.0',
+    reviews: v.reviewsCount ? `${v.reviewsCount}+ consults` : '—',
+    image: v.photo || ''
+  }));
 
   // Editorial journal dispatches matching exact Stitch specification
   const journalArticles = [
@@ -719,7 +697,7 @@ export default function LandingPage({ onNavigate }) {
                 <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '12px', paddingTop: '4px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12.5px', color: '#675C58' }}>
                     <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#45848D' }}>verified</span>
-                    <span>Reviewed by On-Duty Triage Clinician Dr. Sarah Jenkins</span>
+                    <span>Reviewed by On-Duty Triage Clinician {vets[0]?.name || 'On-Duty Clinician'}</span>
                   </div>
                   <button
                     onClick={() => handleRoute('vets')}
@@ -933,7 +911,29 @@ export default function LandingPage({ onNavigate }) {
             gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
             gap: '24px'
           }}>
-            {clinicalFaculty.map((vet) => (
+            {clinicalFaculty.length === 0
+              ? [0, 1, 2].map((i) => (
+                  <div
+                    key={i}
+                    style={{
+                      backgroundColor: '#FFFFFF',
+                      borderRadius: '16px',
+                      padding: '18px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '12px',
+                      boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
+                      border: '1px solid rgba(222, 217, 214, 0.4)'
+                    }}
+                  >
+                    <div style={{ width: '100%', height: '240px', borderRadius: '12px', backgroundColor: '#EFEFEA', animation: 'pulse 1.5s ease-in-out infinite' }} />
+                    <div style={{ height: '16px', width: '70%', borderRadius: '8px', backgroundColor: '#EFEFEA', animation: 'pulse 1.5s ease-in-out infinite' }} />
+                    <div style={{ height: '12px', width: '90%', borderRadius: '6px', backgroundColor: '#EFEFEA', animation: 'pulse 1.5s ease-in-out infinite' }} />
+                    <div style={{ height: '12px', width: '60%', borderRadius: '6px', backgroundColor: '#EFEFEA', animation: 'pulse 1.5s ease-in-out infinite' }} />
+                  </div>
+                ))
+              : clinicalFaculty.map((vet) => (
+
               <div
                 key={vet.id}
                 className="interactive-card"

@@ -8,12 +8,12 @@ export default function OrderTrackerModal() {
   const { closeModal, modalData } = useApp();
 
   const order = modalData || {
-    id: 'PM-ORD-8941',
-    date: '2026-08-24',
+    id: 'PM-ORD-LIVE',
+    date: new Date().toISOString().split('T')[0],
     status: 'In Preparation',
-    address: 'House 14, Road 7, Banani, Dhaka',
-    total: 64.99,
-    items: [{ id: 'p1', name: 'Royal Canin Golden Retriever Adult', price: 64.99, qty: 1 }]
+    address: 'Banani, Dhaka',
+    total: 0,
+    items: []
   };
 
   const currentStepIdx = Math.max(0, STEPS.indexOf(order.status || 'Placed'));
