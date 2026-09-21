@@ -12,7 +12,6 @@ export default function MyAppointmentsModal() {
     appointments = [], 
     removeAppointment, 
     completeAppointment,
-    pets = []
     pets = [],
     vets = []
   } = useApp();

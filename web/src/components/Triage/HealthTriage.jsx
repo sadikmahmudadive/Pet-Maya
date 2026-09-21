@@ -160,7 +160,6 @@ const TRANSPARENCY_FAQS = [
 ];
 
 export default function HealthTriage({ onNavigate }) {
-  const { pets = [], openModal, addToCart, showToast, addMedicalRecord, setActiveTab } = useApp();
   const { pets = [], vets = [], openModal, addToCart, showToast, addMedicalRecord, setActiveTab } = useApp();
   const { currentUser } = useAuth();
 
@@ -2162,8 +2161,6 @@ export default function HealthTriage({ onNavigate }) {
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <img
-                          src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=100&auto=format&fit=crop&q=80"
-                          alt="Dr. Sarah Jenkins"
                           src={vets[0]?.photo || vets[0]?.image || "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=100&auto=format&fit=crop&q=80"}
                           alt={vets[0]?.name || "On-Call Clinician"}
                           style={{

@@ -142,18 +142,15 @@ export default function PetTracker() {
   // Telemetry & Settings
   const [is3D, setIs3D] = useState(true);
   const [mapStyle, setMapStyle] = useState('dark'); // 'dark', 'satellite', 'terrain'
-  const [isSafeZone, setIsSafeZone] = useState(false);
   const [isSafeZone, setIsSafeZone] = useState(assignedDevice?.isSafeZone ?? false);
   const [isLostMode, setIsLostMode] = useState(false);
   const [isAutoWalking, setIsAutoWalking] = useState(false);
   const [showBreadcrumbs, setShowBreadcrumbs] = useState(true);
-  const [batteryLevel, setBatteryLevel] = useState(88);
   const [batteryLevel, setBatteryLevel] = useState(assignedDevice?.batteryLevel ?? 88);
   const [currentActivity, setCurrentActivity] = useState('Resting in Backyard');
   const [speed, setSpeed] = useState(2.4);
   const [steps, setSteps] = useState(4820);
   const [calories, setCalories] = useState(285);
-  const [lastSync, setLastSync] = useState('2m ago');
   const [lastSync, setLastSync] = useState(assignedDevice?.lastSync || 'Just now');
   const [accuracy, setAccuracy] = useState('98%');
   const [geofenceRadius, setGeofenceRadius] = useState(250);
@@ -161,8 +158,6 @@ export default function PetTracker() {
   const [isPlayingSound, setIsPlayingSound] = useState(false);
   const [googleMapsLoaded, setGoogleMapsLoaded] = useState(false);
 
-  // Lat/Lng Coordinates (Synced with user's live device location)
-  const [petLatLng, setPetLatLng] = useState({ lat: 23.8103, lng: 90.4125 });
   // Lat/Lng Coordinates (Synced with user's live device location or assigned tracker)
   const initialLat = assignedDevice?.latitude || userLiveLocation?.latitude || 23.8103;
   const initialLng = assignedDevice?.longitude || userLiveLocation?.longitude || 90.4125;
@@ -185,9 +180,6 @@ export default function PetTracker() {
   }, [assignedDevice]);
 
   const [breadcrumbs, setBreadcrumbs] = useState([
-    { lat: 23.8095, lng: 90.4110 },
-    { lat: 23.8099, lng: 90.4118 },
-    { lat: 23.8103, lng: 90.4125 }
     { lat: initialLat - 0.0008, lng: initialLng - 0.0015 },
     { lat: initialLat - 0.0004, lng: initialLng - 0.0007 },
     { lat: initialLat, lng: initialLng }
