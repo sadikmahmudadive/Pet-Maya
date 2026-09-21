@@ -34,7 +34,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { AppleReveal } from '../Animations/AppleReveal';
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyAhmOHCWgWf7exFnjQ1nns8cDjPZvKRTto";
+const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
 
 // Google Maps Custom Apple Dark/OLED Style
 const googleMapsDarkTheme = [
@@ -125,30 +125,36 @@ export default function PetTracker() {
   } = useApp();
   
   // Tracked Pet Selection
-  const [selectedPetId, setSelectedPetId] = useState(pets[0]?.id || 'piku_01');
-  const activePet = pets.find(p => p.id === selectedPetId) || pets[0] || {
-    id: 'piku_01',
-    name: 'Piku',
-    breed: 'Dove / Ringneck',
-    photo: 'assets/images/Pet_2.jpg'
-  };
+  const [selectedPetId, setSelectedPetId] = useState(pets[0]?.id || pets[0]?.petID || '');
+  const fallbackPet = pets[0] ? {
+    id: pets[0].id || pets[0].petID,
+    name: pets[0].name || 'Companion',
+    breed: pets[0].breed || pets[0].species || 'Pet',
+    photo: pets[0].photo || pets[0].image || ''
+  } : { id: '', name: 'No Pet Registered', breed: '', photo: '' };
+  const activePet = pets.find(p => p.id === selectedPetId || p.petID === selectedPetId) || fallbackPet;
 
   // Right Deck Tab Navigation: 'activity', 'geofence', 'hardware'
   const [activeDeckTab, setActiveDeckTab] = useState('activity');
+
+  const assignedDevice = devices?.find(d => d.petId === selectedPetId) || devices?.[0] || null;
 
   // Telemetry & Settings
   const [is3D, setIs3D] = useState(true);
   const [mapStyle, setMapStyle] = useState('dark'); // 'dark', 'satellite', 'terrain'
   const [isSafeZone, setIsSafeZone] = useState(false);
+  const [isSafeZone, setIsSafeZone] = useState(assignedDevice?.isSafeZone ?? false);
   const [isLostMode, setIsLostMode] = useState(false);
   const [isAutoWalking, setIsAutoWalking] = useState(false);
   const [showBreadcrumbs, setShowBreadcrumbs] = useState(true);
   const [batteryLevel, setBatteryLevel] = useState(88);
+  const [batteryLevel, setBatteryLevel] = useState(assignedDevice?.batteryLevel ?? 88);
   const [currentActivity, setCurrentActivity] = useState('Resting in Backyard');
   const [speed, setSpeed] = useState(2.4);
   const [steps, setSteps] = useState(4820);
   const [calories, setCalories] = useState(285);
   const [lastSync, setLastSync] = useState('2m ago');
+  const [lastSync, setLastSync] = useState(assignedDevice?.lastSync || 'Just now');
   const [accuracy, setAccuracy] = useState('98%');
   const [geofenceRadius, setGeofenceRadius] = useState(250);
   const [showStylePicker, setShowStylePicker] = useState(false);
@@ -157,6 +163,10 @@ export default function PetTracker() {
 
   // Lat/Lng Coordinates (Synced with user's live device location)
   const [petLatLng, setPetLatLng] = useState({ lat: 23.8103, lng: 90.4125 });
+  // Lat/Lng Coordinates (Synced with user's live device location or assigned tracker)
+  const initialLat = assignedDevice?.latitude || userLiveLocation?.latitude || 23.8103;
+  const initialLng = assignedDevice?.longitude || userLiveLocation?.longitude || 90.4125;
+  const [petLatLng, setPetLatLng] = useState({ lat: initialLat, lng: initialLng });
   const [userLatLng, setUserLatLng] = useState(userLiveLocation || { lat: 23.8120, lng: 90.4150 });
 
   useEffect(() => {
@@ -164,10 +174,23 @@ export default function PetTracker() {
       setUserLatLng(userLiveLocation);
     }
   }, [userLiveLocation]);
+
+  useEffect(() => {
+    if (assignedDevice?.batteryLevel !== undefined) {
+      setBatteryLevel(assignedDevice.batteryLevel);
+    }
+    if (assignedDevice?.lastSync) {
+      setLastSync(assignedDevice.lastSync);
+    }
+  }, [assignedDevice]);
+
   const [breadcrumbs, setBreadcrumbs] = useState([
     { lat: 23.8095, lng: 90.4110 },
     { lat: 23.8099, lng: 90.4118 },
     { lat: 23.8103, lng: 90.4125 }
+    { lat: initialLat - 0.0008, lng: initialLng - 0.0015 },
+    { lat: initialLat - 0.0004, lng: initialLng - 0.0007 },
+    { lat: initialLat, lng: initialLng }
   ]);
 
   const mapContainerRef = useRef(null);

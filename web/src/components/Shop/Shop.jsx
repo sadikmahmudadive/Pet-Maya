@@ -23,6 +23,9 @@ import ProductDetailPage from './ProductDetailPage';
 // ── Category Filter Definitions Matching Reference ───────────────────────────
 const FILTER_CHIPS = [
   { id: 'all', label: 'All Formulations (24)', filter: null },
+// ── Category Filter Definitions ───────────────────────────────────────────────
+const BASE_FILTER_CHIPS = [
+  { id: 'all', label: 'All Formulations', filter: null },
   { id: 'canine_rx', label: 'Canine Rx', filter: 'canine_rx' },
   { id: 'feline_care', label: 'Feline Care', filter: 'feline_care' },
   { id: 'cold_chain', label: '❄️ Cold-Chain Biologics', filter: 'cold_chain' },
@@ -32,7 +35,13 @@ const FILTER_CHIPS = [
 
 export default function Shop({ onNavigate }) {
   const { products, addToCart, removeFromCart, cart, openModal } = useApp();
+  const { products = [], addToCart, removeFromCart, cart, openModal } = useApp();
   const { currentUser } = useAuth();
+
+  const filterChips = useMemo(() => [
+    { id: 'all', label: `All Formulations${products?.length ? ` (${products.length})` : ''}`, filter: null },
+    ...BASE_FILTER_CHIPS.slice(1)
+  ], [products]);
 
   // Search & Filter State
   const [selectedFilter, setSelectedFilter] = useState('all');
@@ -42,21 +51,6 @@ export default function Shop({ onNavigate }) {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [protocolModalOpen, setProtocolModalOpen] = useState(false);
 
-  // Auto-populate reference cart if completely empty on first visit
-  useEffect(() => {
-    try {
-      const hasInit = localStorage.getItem('pm_shop_sample_initialized');
-      if (!hasInit && (!cart || cart.length === 0) && products && products.length >= 4) {
-        const p1 = products.find(p => p.id === 'p1') || products[0];
-        const p4 = products.find(p => p.id === 'p4') || products[3];
-        if (p1 && p4) {
-          addToCart(p1, 1);
-          addToCart(p4, 1);
-          localStorage.setItem('pm_shop_sample_initialized', 'true');
-        }
-      }
-    } catch (_) {}
-  }, [products]);
 
   // Handle Quick Add with visual feedback
   const handleQuickAdd = (product, e) => {
@@ -267,6 +261,7 @@ export default function Shop({ onNavigate }) {
             flexWrap: 'wrap'
           }}>
             {FILTER_CHIPS.map(chip => {
+            {filterChips.map(chip => {
               const isActive = selectedFilter === chip.id;
               return (
                 <button

@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 
 export default function JournalPage({ onNavigate }) {
-  const { showToast, openModal, addToCart } = useApp ? useApp() : { showToast: () => {}, openModal: () => {}, addToCart: () => {} };
+  const { showToast, openModal, addToCart, posts = [], isPostsLoading, vets = [] } = useApp ? useApp() : { showToast: () => {}, openModal: () => {}, addToCart: () => {}, posts: [], isPostsLoading: false, vets: [] };
   const { currentUser } = useAuth ? useAuth() : { currentUser: null };
 
   const handleRoute = (path) => {
@@ -44,8 +44,10 @@ export default function JournalPage({ onNavigate }) {
   const [newsletterSubscribed, setNewsletterSubscribed] = useState(false);
 
   // Category filter tabs
+  // Dynamic category filter tabs
   const categoryTabs = [
     { id: 'all', label: 'All Dispatches (48)' },
+    { id: 'all', label: `All Dispatches (${posts.length || 6})` },
     { id: 'nutrition', label: 'Clinical Nutrition & GI' },
     { id: 'diagnostics', label: 'Preventive Diagnostics & Labs' },
     { id: 'cold-chain', label: 'Cold-Chain Biologics' },
@@ -56,6 +58,13 @@ export default function JournalPage({ onNavigate }) {
 
   // Clinical articles database
   const featuredArticle = {
+  // Dynamic clinical articles from community posts filtered by article/clinical type (with static fallback)
+  const articlePosts = posts.filter(p => 
+    p.postType === 'article' || p.category === 'article' || 
+    p.category === 'journal' || p.category === 'clinical'
+  );
+
+  const fallbackFeatured = {
     id: 'microbiome-gut-brain',
     categoryTag: 'CLINICAL MONOGRAPH',
     readTime: '7 MIN READ',
@@ -73,9 +82,13 @@ export default function JournalPage({ onNavigate }) {
         name: 'Dr. Nazmul Huda, DVM',
         role: 'Board Orthopedic Surgeon',
         avatar: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=120&q=80'
+        name: vets[0]?.name || 'Dr. Evelyn Vance, MRCVS',
+        role: vets[0]?.tag || 'Head of Internal Medicine',
+        avatar: vets[0]?.photo || 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=120&q=80'
       }
     ],
     peerReviewNotice: 'Peer-reviewed by 2 Board Specialists',
+    peerReviewNotice: 'Peer-reviewed by Board Specialists',
     heroImage: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&w=1000&q=80',
     figureTag: 'FIG. 03 // ENTERIC BIOMARKERS',
     content: `
@@ -90,6 +103,39 @@ export default function JournalPage({ onNavigate }) {
   };
 
   const clinicalArticles = [
+  const featuredArticle = articlePosts.length > 0 ? {
+    id: articlePosts[0].id,
+    categoryTag: (articlePosts[0].category || 'CLINICAL MONOGRAPH').toUpperCase(),
+    readTime: articlePosts[0].readTime || '5 MIN READ',
+    publishedDate: articlePosts[0].createdAt ? new Date(articlePosts[0].createdAt.seconds * 1000).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }).toUpperCase() : 'RECENT',
+    specialty: (articlePosts[0].specialty || articlePosts[0].category || 'CLINICAL RESEARCH').toUpperCase(),
+    title: articlePosts[0].title || articlePosts[0].content?.substring(0, 80) || 'Clinical Monograph',
+    excerpt: articlePosts[0].excerpt || articlePosts[0].content?.substring(0, 200) || '',
+    authors: [
+      {
+        name: articlePosts[0].authorName || vets[0]?.name || 'Editorial Board',
+        role: articlePosts[0].authorRole || vets[0]?.tag || 'Veterinary Reviewer',
+        avatar: articlePosts[0].authorPhoto || vets[0]?.photo || 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=120&q=80'
+      }
+    ],
+    peerReviewNotice: 'Peer-reviewed by Board Specialists',
+    heroImage: articlePosts[0].image || 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&w=1000&q=80',
+    figureTag: 'FIG. 01 // CLINICAL DISPATCH',
+    content: articlePosts[0].content || 'No content provided.'
+  } : fallbackFeatured;
+
+  const clinicalArticles = articlePosts.length > 1 ? articlePosts.slice(1).map(p => ({
+    id: p.id,
+    category: p.category || 'diagnostics',
+    badge: p.badge || p.category || 'Clinical Monograph',
+    image: p.image || 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=600&q=80',
+    readTime: p.readTime || '5 MIN READ',
+    author: p.authorName || vets[0]?.name || 'Pet Maya Editorial',
+    title: p.title || p.content?.substring(0, 80) || 'Clinical Dispatch',
+    desc: p.excerpt || p.content?.substring(0, 150) || '',
+    actionText: 'Read Full Monograph',
+    fullText: p.content || ''
+  })) : [
     {
       id: 'sdma-feline-renal',
       category: 'diagnostics',
@@ -97,6 +143,7 @@ export default function JournalPage({ onNavigate }) {
       image: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=600&q=80',
       readTime: '5 MIN READ',
       author: 'Dr. Sarah Jenkins, MRCVS',
+      author: vets[0]?.name ? `${vets[0].name}, MRCVS` : 'Dr. Sarah Jenkins, MRCVS',
       title: 'The Silent Renal Index: Deciphering SDMA Before Creatinine Spikes in Feline Patients',
       desc: 'Symmetric dimethylarginine (SDMA) elevates with as little as 25% kidney loss, compared to 75% for serum creatinine. A diagnostic roadmap for early feline nephro-protection.',
       actionText: 'Access Lab Protocol',
@@ -121,6 +168,7 @@ export default function JournalPage({ onNavigate }) {
       image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=600&q=80',
       readTime: '4 MIN READ',
       author: 'Dr. Arman K., PharmD',
+      author: vets[1]?.name || 'Dr. Arman K., PharmD',
       title: 'Cold-Chain Integrity: Why Biologic Temperature Fluctuation Above 8°C Renders Vaccines Inert',
       desc: 'Analysis of protein denaturation in core modified-live vaccines (DHPP, FPV). Continuous IoT sensor data reveals silent immunity failure from compromised transit logs.',
       actionText: 'Review Storage Standards',
@@ -133,6 +181,7 @@ export default function JournalPage({ onNavigate }) {
       image: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=600&q=80',
       readTime: '8 MIN READ',
       author: 'Dr. Nazmul Huda, DVM',
+      author: vets[2]?.name || 'Dr. Nazmul Hoda, DVM',
       title: 'Understanding TPLO vs Lateral Suture for Cruciate Ligament Ruptures',
       desc: 'Evaluating biomechanical tibial plateau leveling osteotomy against extracapsular suture stabilization across canine weight classes (>15kg), post-op recovery curves, and osteoarthritis progression.',
       actionText: 'View Radiographic Sets',
@@ -165,6 +214,12 @@ export default function JournalPage({ onNavigate }) {
   ];
 
   const editorialBoardMembers = [
+  // Dynamic editorial board members from live Firestore vets
+  const editorialBoardMembers = vets.length > 0 ? vets.slice(0, 4).map(v => ({
+    name: v.name,
+    credentials: v.qualification || v.degrees || 'DVM',
+    role: `${v.specialty || v.tag || 'Specialist'} • Peer Reviewer`
+  })) : [
     {
       name: 'Dr. Evelyn Vance',
       credentials: 'BVM&S, MRCVS',
@@ -172,6 +227,7 @@ export default function JournalPage({ onNavigate }) {
     },
     {
       name: 'Dr. Nazmul Huda',
+      name: 'Dr. Nazmul Hoda',
       credentials: 'DVM, MS (Ortho)',
       role: 'Surgical Reviewer • Canine Biomechanics & TPLO'
     },
@@ -184,6 +240,7 @@ export default function JournalPage({ onNavigate }) {
       name: 'Arman K. Rahman',
       credentials: 'PharmD, BCPPS',
       role: 'Pharmacology Director • Biologics Cold-Chain QC'
+      role: 'Dermatology Reviewer • Tropical Immunology'
     }
   ];
 

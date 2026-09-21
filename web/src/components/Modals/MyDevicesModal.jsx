@@ -174,6 +174,9 @@ export default function MyDevicesModal() {
               <div style={{ background: 'var(--surface-alt)', padding: '12px 14px', borderRadius: '14px', textAlign: 'center' }}>
                 <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 700 }}>Safe Perimeter</span>
                 <strong style={{ fontSize: '18px', display: 'block', marginTop: '4px', color: 'var(--primary)' }}>100% OK</strong>
+                <strong style={{ fontSize: '18px', display: 'block', marginTop: '4px', color: 'var(--primary)' }}>
+                  {devices.length > 0 ? `${Math.round((devices.filter(d => d.isSafeZone !== false).length / devices.length) * 100)}% OK` : '100% OK'}
+                </strong>
               </div>
               <div style={{ background: 'var(--surface-alt)', padding: '12px 14px', borderRadius: '14px', textAlign: 'center' }}>
                 <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 700 }}>Avg Battery</span>

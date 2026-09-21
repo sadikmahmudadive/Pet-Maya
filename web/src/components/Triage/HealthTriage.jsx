@@ -161,6 +161,7 @@ const TRANSPARENCY_FAQS = [
 
 export default function HealthTriage({ onNavigate }) {
   const { pets = [], openModal, addToCart, showToast, addMedicalRecord, setActiveTab } = useApp();
+  const { pets = [], vets = [], openModal, addToCart, showToast, addMedicalRecord, setActiveTab } = useApp();
   const { currentUser } = useAuth();
 
   // Mode Switcher: 'protocol' (AAHA 3-Step Protocol) or 'scanner' (AI Vision Biomarker Scanner)
@@ -2163,6 +2164,8 @@ export default function HealthTriage({ onNavigate }) {
                         <img
                           src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=100&auto=format&fit=crop&q=80"
                           alt="Dr. Sarah Jenkins"
+                          src={vets[0]?.photo || vets[0]?.image || "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=100&auto=format&fit=crop&q=80"}
+                          alt={vets[0]?.name || "On-Call Clinician"}
                           style={{
                             width: '36px',
                             height: '36px',
@@ -2173,9 +2176,11 @@ export default function HealthTriage({ onNavigate }) {
                         <div>
                           <div style={{ fontSize: '13px', fontWeight: 700, color: '#160F0C' }}>
                             Dr. Sarah Jenkins, MRCVS
+                            {vets[0]?.name || 'Dr. Sarah Jenkins, MRCVS'}
                           </div>
                           <div style={{ fontSize: '11px', color: '#707973' }}>
                             Internal Medicine Faculty • On Call Now
+                            {vets[0]?.tag || vets[0]?.qualification || 'Internal Medicine Faculty'} • On Call Now
                           </div>
                         </div>
                       </div>
@@ -2184,6 +2189,7 @@ export default function HealthTriage({ onNavigate }) {
 
                     <p style={{ fontSize: '11.5px', color: '#5C524E', lineHeight: 1.45, margin: '0 0 14px 0' }}>
                       Want immediate human reassurance? Dr. Jenkins can inspect oral gums and posture in a 10-minute encrypted video consult.
+                      Want immediate human reassurance? {vets[0]?.name || 'Our on-duty clinician'} can inspect symptoms and posture in a 10-minute encrypted video consult.
                     </p>
 
                     <button

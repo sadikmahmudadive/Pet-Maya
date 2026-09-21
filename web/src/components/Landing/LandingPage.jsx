@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 
 export default function LandingPage({ onNavigate }) {
   const { showToast, addToCart, pets = [], vets = [] } = useApp();
+  const { showToast, addToCart, pets = [], vets = [], products = [], isProductsLoading, posts = [], isPostsLoading } = useApp();
   const { currentUser, loginAsGuest } = useAuth();
 
   const displayPet = pets[0] || null;
@@ -102,6 +103,17 @@ export default function LandingPage({ onNavigate }) {
       image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAtnwsm_JiwhU3Ov-f5bQDXY-4k8fGBLuVf7PSzSjR4M3p6D32krDyyQplZFL0O3qGzaXhazXOi84U-lYKxymoS2pLtaszYPb5w-tlmgWY0FE432Btn5Dl7qVgXk7bkuem38s2Ow4xx35YI_VHtZd4fNB1YPq2HjNyiORfxzRLPHiWO6wEl9WrucZHItG-glHVv0jKeJ165nrNmdQrnN1XJ_pkpAiaKPaezgoIcAUk0SCcf6P2AoR0A'
     }
   ];
+  // Dynamic 4-item prescription formulary from Firestore products collection
+  const formularyItems = products.slice(0, 4).map((p) => ({
+    id: p.id,
+    name: p.name || 'Veterinary Formulation',
+    badge: p.isRx ? 'Schedule Rx' : (p.badge || p.category || 'Clinical'),
+    category: p.category || p.subtitle || 'Formulation',
+    desc: p.description || p.shortDescription || '',
+    price: typeof p.price === 'number' ? p.price : (parseInt(p.price) || 0),
+    unit: p.unit || p.size || '1 Unit',
+    image: p.image || p.photo || ''
+  }));
 
   // Faculty specialists — derived from live Firestore vets collection (capped at 3 for homepage)
   const clinicalFaculty = vets.slice(0, 3).map((v) => ({
@@ -148,6 +160,18 @@ export default function LandingPage({ onNavigate }) {
       image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuABej4DKT3CNZP08PvnGuZsc2OVsxvU908vK53QW1DBABH9iSs2PWZQ85G8NgfeWoOxkCDPWZtzLJCxAdWvAyMYDAphOaO4aNM9NXL3rnDHg2UK2LWDiGkXIpUQMpkobFPlBhHdQnCO4YVMLhwiwjBjyGaGEE_L8CJc-142i_kCr8iU9maJiRN6vhHMrOsyCsDG7hZnMa80yl9KTdUd7Uu3a4C3kVFXiFygPxAwun2WW5-6LxMUm1Hr'
     }
   ];
+  // Editorial journal dispatches derived from live community posts (or filtered for article type)
+  const journalArticles = posts
+    .filter((p) => p.postType === 'article' || p.category === 'article' || p.category === 'journal' || !p.postType)
+    .slice(0, 3)
+    .map((p) => ({
+      id: p.id,
+      category: p.category || p.postType || 'Clinical Dispatch',
+      readTime: p.readTime || '5 Min Read',
+      title: p.title || p.content?.substring(0, 70) || 'Clinical Dispatch',
+      excerpt: p.excerpt || p.content?.substring(0, 130) || '',
+      image: p.image || p.authorPhoto || ''
+    }));
 
   return (
     <div style={{ backgroundColor: '#FDF8F5', color: '#160F0C', minHeight: '100vh' }}>
@@ -1310,8 +1334,12 @@ export default function LandingPage({ onNavigate }) {
                 boxShadow: '0 8px 30px rgba(0,0,0,0.08)',
                 border: '1px solid rgba(222, 217, 214, 0.5)',
                 maxWidth: '340px',
-                width: '100%'
+                width: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px'
               }}>
+                {/* Phone Mockup Image */}
                 <div style={{ width: '100%', borderRadius: '16px', overflow: 'hidden', backgroundColor: '#EFEFEA' }}>
                   <img
                     src="https://lh3.googleusercontent.com/aida/AEtjO1WKw2bYnnDWFbk2fwYuWS9sZ0H1HltnfG_gQ08t9GxtbfTIgD8WQcJ3pLnBfwNtHPgmgJFrTBCTM_C91zrVnUzm-i92YVUx43DgmRJHT1oNAvOG0-pQbrgSdfGnFsdd6qAz8NVCvejjTh7UajiRyC3yw-Ym9ShzG74JI9wIiqZpyA5nvMgW3qaIerUKqqvvb-vGEoCN3HVc4GnrLosMDD749wAY1ox-965FcSojF8IG_rD0Gf3v3chJtr8"
@@ -1320,28 +1348,36 @@ export default function LandingPage({ onNavigate }) {
                   />
                 </div>
 
-                {/* Floating QR Code Badge */}
+                {/* QR Badge — inline below the image, fully visible */}
                 <div style={{
-                  position: 'absolute',
-                  bottom: '20px',
-                  left: '-16px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                  backdropFilter: 'blur(10px)',
-                  WebkitBackdropFilter: 'blur(10px)',
-                  padding: '10px 14px',
-                  borderRadius: '14px',
-                  boxShadow: '0 8px 24px rgba(22, 15, 12, 0.12)',
-                  border: '1px solid rgba(222, 217, 214, 0.6)',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '10px'
+                  gap: '12px',
+                  backgroundColor: '#FAF7F5',
+                  borderRadius: '14px',
+                  padding: '12px 14px',
+                  border: '1px solid rgba(222, 217, 214, 0.6)'
                 }}>
-                  <div style={{ width: '38px', height: '38px', borderRadius: '8px', backgroundColor: '#EFEFEA', border: '1px solid rgba(222, 217, 214, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: '24px', color: '#160F0C' }}>qr_code_2</span>
+                  <div style={{
+                    width: '42px',
+                    height: '42px',
+                    borderRadius: '10px',
+                    backgroundColor: '#FFFFFF',
+                    border: '1px solid rgba(222, 217, 214, 0.8)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0
+                  }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '26px', color: '#160F0C' }}>qr_code_2</span>
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', textTransform: 'uppercase', color: '#45848D', fontWeight: 700 }}>Scan to Install</span>
-                    <span style={{ fontSize: '11px', fontWeight: 600, color: '#160F0C' }}>iOS &amp; Android Ready</span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', textTransform: 'uppercase', color: '#45848D', fontWeight: 700, letterSpacing: '0.06em' }}>Scan to Install</span>
+                    <span style={{ fontSize: '12px', fontWeight: 600, color: '#160F0C' }}>iOS &amp; Android Ready</span>
+                  </div>
+                  <div style={{ marginLeft: 'auto', fontSize: '11px', color: '#8C827A', textAlign: 'right', lineHeight: 1.4 }}>
+                    <div>Point camera</div>
+                    <div>at QR code</div>
                   </div>
                 </div>
               </div>

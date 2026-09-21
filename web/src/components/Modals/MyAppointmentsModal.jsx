@@ -13,6 +13,8 @@ export default function MyAppointmentsModal() {
     removeAppointment, 
     completeAppointment,
     pets = []
+    pets = [],
+    vets = []
   } = useApp();
 
   const [activeFilter, setActiveFilter] = useState('upcoming'); // 'upcoming', 'completed', 'all'
@@ -296,9 +298,11 @@ export default function MyAppointmentsModal() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-muted)', marginBottom: '8px' }}>
                     <Stethoscope size={14} style={{ color: 'var(--primary)', flexShrink: 0 }} />
                     <span style={{ fontWeight: 700, color: 'var(--text-main)' }}>{apt.doctor || 'Dr. Specialist'}</span>
+                    <span style={{ fontWeight: 700, color: 'var(--text-main)' }}>{apt.doctor || apt.vetName || vets.find(v => v.id === apt.vetId)?.name || 'Specialist Clinician'}</span>
                     <span>•</span>
                     <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {apt.clinic || 'Pet Maya Health Center'}
+                      {apt.clinic || vets.find(v => v.id === apt.vetId)?.clinic || 'Pet Maya Health Center'}
                     </span>
                   </div>
 

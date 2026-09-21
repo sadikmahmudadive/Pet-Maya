@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
 import { 
   X, Mic, MicOff, Video, VideoOff, PhoneOff, FileText,
@@ -7,6 +7,7 @@ import {
 
 export default function TeleConsultModal() {
   const { closeModal, modalData, addMedicalRecord, showToast } = useApp();
+  const { closeModal, modalData, addMedicalRecord, showToast, vets = [], pets = [] } = useApp();
 
   const [micOn, setMicOn] = useState(true);
   const [videoOn, setVideoOn] = useState(true);
@@ -21,6 +22,8 @@ export default function TeleConsultModal() {
 
   const doctorName = modalData?.doctor || 'Dr. Sarah Jenkins';
   const petName = modalData?.petName || 'Max';
+  const doctorName = modalData?.doctor || modalData?.vetName || vets[0]?.name || 'Specialist Clinician';
+  const petName = modalData?.petName || pets[0]?.name || 'Companion';
 
   // Session Timer
   useEffect(() => {

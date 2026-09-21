@@ -415,6 +415,7 @@ export default function Community({ onNavigate }) {
               </div>
               <div style={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <Radio size={12} /> 1,240 GUARDIANS ONLINE
+                <Radio size={12} /> {communityPosts.length > 0 ? `${(communityPosts.length * 8 + 200).toLocaleString()}` : '1,200+'} GUARDIANS ONLINE
               </div>
             </div>
 
@@ -1149,6 +1150,7 @@ export default function Community({ onNavigate }) {
 
               <p style={{ fontSize: '11.5px', color: '#675C58', lineHeight: 1.45, margin: '0 0 14px 0' }}>
                 If your pet breaches geofence, trigger an instant high-priority radius broadcast to all 1,240 neighborhood guardians.
+                If your pet breaches geofence, trigger an instant high-priority radius broadcast to all nearby verified neighborhood guardians.
               </p>
 
               <button

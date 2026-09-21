@@ -27,6 +27,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 // ── Specialty Filter Categories ──────────────────────────────────────────────
 const SPECIALTY_CATEGORIES = [
+// ── Specialty Filter Categories fallback ─────────────────────────────────────
+const STATIC_SPECIALTY_CATEGORIES = [
   { id: 'all',       label: 'All Specialties' },
   { id: 'ortho',     label: 'Orthopedics & Soft Tissue' },
   { id: 'internal',  label: 'Internal Medicine & Oncology' },
@@ -124,31 +126,99 @@ const FACULTY_CLINICIANS = [
     ]
   }
 ];
+// ── Helper: generate rolling 4-day date options from today ───────────────────
+function getRollingDates() {
+  const now = new Date();
+  const days = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return Array.from({ length: 4 }, (_, i) => {
+    const d = new Date(now);
+    d.setDate(now.getDate() + i);
+    return {
+      id: i === 0 ? 'today' : i === 1 ? 'tomorrow' : days[d.getDay()].toLowerCase() + i,
+      day: i === 0 ? 'TODAY' : i === 1 ? 'TOMORROW' : days[d.getDay()],
+      date: `${months[d.getMonth()]} ${d.getDate()}`,
+      isoDate: d.toISOString().split('T')[0]
+    };
+  });
+}
 
 export default function Specialists({ onNavigate }) {
   const { pets = [], openModal, showToast, addAppointment } = useApp();
+  const { pets = [], openModal, showToast, addAppointment, vets = [], isVetsLoading, medicalRecords = [] } = useApp();
   const { currentUser } = useAuth();
 
   // Mode: 'telehealth' (HD Video Teleconsultation) | 'clinic' (In-Clinic Physical Visit)
+  // Mode: 'telehealth' | 'clinic'
   const [consultMode, setConsultMode] = useState('telehealth');
 
   // Specialty category filter
+  // Specialty category filter — derived dynamically from vets
   const [selectedSpecialty, setSelectedSpecialty] = useState('all');
 
   // Selected Clinician for Reservation (default: Dr. Nazmul Hoda matching reference UI)
   const [selectedClinicianId, setSelectedClinicianId] = useState('dr_nazmul');
   const activeClinician = FACULTY_CLINICIANS.find(c => c.id === selectedClinicianId) || FACULTY_CLINICIANS[1];
+  // Dynamic specialty categories from vets collection
+  const specialtyCategories = useMemo(() => {
+    const dynamicSpecialties = [...new Set(
+      vets.map(v => v.specialty || v.specialtyId).filter(Boolean)
+    )];
+    const base = [{ id: 'all', label: `All Specialties${vets.length ? ` (${vets.length})` : ''}` }];
+    if (dynamicSpecialties.length > 0) {
+      return [...base, ...dynamicSpecialties.map(s => ({ id: s, label: s }))];
+    }
+    return STATIC_SPECIALTY_CATEGORIES;
+  }, [vets]);
+
+  // Map vets from Firestore to card-compatible shape
+  const mappedVets = useMemo(() => vets.map((v, idx) => ({
+    id: v.id,
+    name: v.name || 'Veterinary Specialist',
+    degrees: v.qualification || v.degrees || 'DVM',
+    role: v.tag || v.specialty || v.role || 'Veterinary Specialist',
+    specialtyId: v.specialty || v.specialtyId || 'internal',
+    rating: typeof v.rating === 'number' ? v.rating : 4.9,
+    reviewsCount: v.reviewsCount || 0,
+    availability: v.availability || 'AVAILABLE TODAY',
+    availabilityType: (v.availability || '').toLowerCase().includes('emergency') ? 'emergency' : 'normal',
+    price: typeof v.price === 'number' ? v.price : (parseInt(v.price) || 500),
+    unit: '/ 25 min',
+    priceLabel: 'TELEHEALTH STANDARD',
+    bio: v.bio || v.description || 'Board-certified veterinary specialist with extensive clinical experience.',
+    image: v.photo || v.image || '',
+    badgeType: idx === 0 ? 'video' : (v.specialty || '').toLowerCase().includes('emergency') ? 'emergency' : 'stethoscope',
+    slots: v.slots || [
+      { id: `${v.id}_s1`, time: '10:00 - 10:25' },
+      { id: `${v.id}_s2`, time: '14:00 - 14:25' },
+      { id: `${v.id}_s3`, time: '16:30 - 16:55' },
+    ]
+  })), [vets]);
+
+  // Rolling 4-day date options
+  const rollingDates = useMemo(() => getRollingDates(), []);
+
+  // Selected Clinician (default to first from Firestore)
+  const [selectedClinicianId, setSelectedClinicianId] = useState(null);
+  const activeClinician = mappedVets.find(c => c.id === selectedClinicianId) || mappedVets[0] || null;
 
   // Schedule Dates
   const [selectedDate, setSelectedDate] = useState('today'); // 'today' | 'tomorrow' | 'wed' | 'thu'
   const [selectedSlot, setSelectedSlot] = useState('16:30 - 16:55');
+  const [selectedDate, setSelectedDate] = useState('today');
+  const [selectedSlot, setSelectedSlot] = useState(null);
 
   // Companion Patient selection
   const [selectedCompanionId, setSelectedCompanionId] = useState(() => pets[0]?.id || pets[0]?.petID || '');
   const selectedCompanion = (pets || []).find(p => (p.id || p.petID) === selectedCompanionId) || pets[0];
 
   // AI Triage Scan Link Checkbox
+  // AI Triage Scan Link — link to most recent triage record for selected pet
   const [linkAiScan, setLinkAiScan] = useState(true);
+  const latestTriageScan = useMemo(() => {
+    const petId = selectedCompanion?.id || selectedCompanion?.petID;
+    return medicalRecords.find(r => r.petId === petId && (r.type === 'triage' || r.category === 'triage'));
+  }, [medicalRecords, selectedCompanion]);
 
   // Symptoms description
   const [symptomNotes, setSymptomNotes] = useState('');
@@ -161,6 +231,9 @@ export default function Specialists({ onNavigate }) {
     if (selectedSpecialty === 'all') return FACULTY_CLINICIANS;
     return FACULTY_CLINICIANS.filter(c => c.specialtyId === selectedSpecialty);
   }, [selectedSpecialty]);
+    if (selectedSpecialty === 'all') return mappedVets;
+    return mappedVets.filter(c => c.specialtyId === selectedSpecialty || (c.role || '').toLowerCase().includes(selectedSpecialty));
+  }, [mappedVets, selectedSpecialty]);
 
   // Handle Selection of Clinician
   const handleSelectClinician = (clinician) => {
@@ -173,19 +246,27 @@ export default function Specialists({ onNavigate }) {
 
   // Handle Final Booking Confirmation
   const handleConfirmConsultation = () => {
+    if (!activeClinician) { showToast('Please select a clinician first', 'error'); return; }
     setIsSubmitting(true);
     setTimeout(() => {
       setIsSubmitting(false);
+      const chosenDate = rollingDates.find(d => d.id === selectedDate);
       const newAppt = {
         id: `appt_${Date.now()}`,
         vetId: activeClinician.id,
         vetName: activeClinician.name,
+        doctor: activeClinician.name,
+        clinic: activeClinician.clinic || 'Pet Maya Clinical Center',
+        petId: selectedCompanion?.id || selectedCompanion?.petID,
         petName: selectedCompanion?.name || 'Companion',
         date: selectedDate === 'today' ? '2026-02-24' : '2026-02-25',
         time: selectedSlot,
+        date: chosenDate?.isoDate || new Date().toISOString().split('T')[0],
+        time: selectedSlot || '10:00 AM',
         type: consultMode === 'telehealth' ? 'Video Telehealth' : 'In-Clinic Physical',
         status: 'confirmed',
         fee: activeClinician.price,
+        linkedTriageScan: linkAiScan ? latestTriageScan?.id : null,
         notes: symptomNotes || 'Routine clinical assessment.'
       };
 
@@ -199,6 +280,7 @@ export default function Specialists({ onNavigate }) {
       }
     }, 600);
   };
+
 
   return (
     <div style={{
@@ -334,6 +416,7 @@ export default function Specialists({ onNavigate }) {
           flexWrap: 'wrap'
         }}>
           {SPECIALTY_CATEGORIES.map(category => {
+          {specialtyCategories.map(category => {
             const isSelected = selectedSpecialty === category.id;
             return (
               <button
@@ -376,6 +459,20 @@ export default function Specialists({ onNavigate }) {
              ══════════════════════════════════════════════════════════════ */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
+            {/* Loading skeleton when vets are loading */}
+            {isVetsLoading && [1, 2, 3].map(i => (
+              <div key={i} style={{ backgroundColor: '#FFFFFF', borderRadius: '24px', border: '1px solid #EAE5E1', padding: '24px', height: '160px', animation: 'pulse 1.5s ease-in-out infinite', opacity: 0.6 }} />
+            ))}
+
+            {/* Empty state when no vets in DB */}
+            {!isVetsLoading && filteredClinicians.length === 0 && (
+              <div style={{ backgroundColor: '#FFFFFF', borderRadius: '24px', border: '1px solid #EAE5E1', padding: '40px 24px', textAlign: 'center' }}>
+                <Stethoscope size={32} color="#DFE8E5" style={{ marginBottom: '12px' }} />
+                <div style={{ fontSize: '15px', fontWeight: 600, color: '#160F0C', marginBottom: '6px' }}>No clinicians available</div>
+                <div style={{ fontSize: '12px', color: '#8C827A' }}>Check back soon — our registry is being updated.</div>
+              </div>
+            )}
+
             {filteredClinicians.map((doctor) => {
               const isSelected = doctor.id === selectedClinicianId;
               const isEmergency = doctor.availabilityType === 'emergency';
@@ -415,6 +512,35 @@ export default function Specialists({ onNavigate }) {
                           border: '2px solid #F5F1EE'
                         }}
                       />
+                      {doctor.image ? (
+                        <img
+                          src={doctor.image}
+                          alt={doctor.name}
+                          style={{
+                            width: '100px',
+                            height: '100px',
+                            borderRadius: '50%',
+                            objectFit: 'cover',
+                            border: '2px solid #F5F1EE'
+                          }}
+                          onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                        />
+                      ) : null}
+                      <div style={{
+                        width: '100px',
+                        height: '100px',
+                        borderRadius: '50%',
+                        backgroundColor: '#EDF5F3',
+                        border: '2px solid #C4DCD6',
+                        display: doctor.image ? 'none' : 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '28px',
+                        fontWeight: 700,
+                        color: '#346B73'
+                      }}>
+                        {(doctor.name || 'V').charAt(0)}
+                      </div>
                       {/* Floating Badge Icon */}
                       <div style={{
                         position: 'absolute',
@@ -816,6 +942,7 @@ export default function Specialists({ onNavigate }) {
                   { id: 'wed',      day: 'WED',      date: 'Feb 26' },
                   { id: 'thu',      day: 'THU',      date: 'Feb 27' }
                 ].map(item => {
+                {rollingDates.map(item => {
                   const isSelected = selectedDate === item.id;
                   return (
                     <button
@@ -974,9 +1101,15 @@ export default function Specialists({ onNavigate }) {
                   <div>
                     <div style={{ fontSize: '11.5px', fontWeight: 700, color: '#160F0C' }}>
                       Link Maya AI Triage Scan #4092
+                      {latestTriageScan
+                        ? `Link Maya AI Triage Scan #${latestTriageScan.id?.slice(-4) || '—'}`
+                        : 'No recent triage scan found'}
                     </div>
                     <div style={{ fontSize: '10px', color: '#707973' }}>
                       Gait anomaly analysis • Timestamp 09:12 Today
+                      {latestTriageScan
+                        ? `${latestTriageScan.diagnosis || latestTriageScan.type || 'Clinical assessment'} • ${latestTriageScan.date || 'Recent'}`
+                        : 'Complete a triage session to link it here'}
                     </div>
                   </div>
                 </div>
