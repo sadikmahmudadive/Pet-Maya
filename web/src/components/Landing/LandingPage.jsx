@@ -80,6 +80,26 @@ export default function LandingPage({ onNavigate }) {
       price: 3450,
       unit: '4.0 kg bag',
       image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB9U3FvzjziZczps6X5sPuuKuOX40qPLobWacnfI85tXLCZynTpweICAvn1dLwFc9T5lqog-bfsF38U9Dym32m7PzER89u92kYfrWQZMXJVhsSwuSAYglUNVMBtRSS_UPDx21dAcpP859PySdRyKwRCayRXp0_C6n0msFfQiMHQ4NavEuLEEtANuQeqX6v63iNpa9j2pOz8oP7OznX_dJp2msH0v7vP4bj-QRFW8ZLuf_lel-VHhL0L'
+    },
+    {
+      id: 'p3',
+      name: 'Nobivac Rabies 1-Dose',
+      badge: 'Cold-Chain Biologic',
+      category: 'Inactivated Immunization',
+      desc: 'Insulated temp-logged delivery with certified clinical batch serial.',
+      price: 850,
+      unit: 'Single Vial + Ice Core',
+      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCl5hQZ6ayu5ehyl5fSHlkzD2Mfci7ba4G5q4HZbE6yHowWAuV0pLdSTsGsvDQSjSQG1X76gwnYLJk3Ojlx7jPKLE5GOWy31Z0bYwwMHrwhqCQiPqGjU2WORBhZB_7wXYga5YQgph5DnjXRDVrhapnWE-Ko5xCvXt0UX9m0N7qFFiQzIG-VWAEZKH33hGIJZ_PDZPYWVyv-hXWuwXNcldIw0YakHmMrkSdcx9tUP3i87_EOQM-qKbsU'
+    },
+    {
+      id: 'p4',
+      name: 'Synoquin EFA Joint Care',
+      badge: 'Joint Therapy',
+      category: 'High Purity Glucosamine + Dexahan',
+      desc: 'Clinically proven chondroprotective support for senior & active mobility.',
+      price: 2100,
+      unit: '30 Chewable Tabs',
+      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAtnwsm_JiwhU3Ov-f5bQDXY-4k8fGBLuVf7PSzSjR4M3p6D32krDyyQplZFL0O3qGzaXhazXOi84U-lYKxymoS2pLtaszYPb5w-tlmgWY0FE432Btn5Dl7qVgXk7bkuem38s2Ow4xx35YI_VHtZd4fNB1YPq2HjNyiORfxzRLPHiWO6wEl9WrucZHItG-glHVv0jKeJ165nrNmdQrnN1XJ_pkpAiaKPaezgoIcAUk0SCcf6P2AoR0A'
     }
   ];
 
@@ -112,18 +132,39 @@ export default function LandingPage({ onNavigate }) {
     image: v.photo || ''
   }));
 
-  // Editorial journal dispatches derived from live community posts (or filtered for article type)
-  const journalArticles = posts
-    .filter((p) => p.postType === 'article' || p.category === 'article' || p.category === 'journal' || !p.postType)
-    .slice(0, 3)
-    .map((p) => ({
-      id: p.id,
-      category: p.category || p.postType || 'Clinical Dispatch',
-      readTime: p.readTime || '5 Min Read',
-      title: p.title || p.content?.substring(0, 70) || 'Clinical Dispatch',
-      excerpt: p.excerpt || p.content?.substring(0, 130) || '',
-      image: p.image || p.authorPhoto || ''
-    }));
+  // Editorial journal dispatches derived from live community posts (or filtered for article type with fallback)
+  const fallbackJournalArticles = [
+    {
+      id: 'art1',
+      category: 'Clinical Nutrition',
+      readTime: '6 Min Read',
+      title: 'Beyond Kibble: Microbiome Diversification in Senior Canines',
+      excerpt: 'A veterinary look at short-chain fatty acids, enterocyte vitality, and the scientific calibration of gut biodiversity.',
+      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBCTG161_-30cq7pyoNxdxZsTFRXq_3S3CEpk1schZ0tM6ubQAQiW-3SscP-g7brCTyemZmh0SUMqQPeYA3B3PheTWt7SE0_VNZ7OeTb4Fj30IpTuopvmuTlhHPWSHzvykO0qmdx0YuP34HuMAqAgYGLPLljQT31C1W0OGqLLG_Ix_dR-Jnmp5KgJ6W99YgI32Ueg05cGk2f-XYLE2m38XFQCgPFLox6ngWVPGAFMSN0PsWwFRBTJPG'
+    },
+    {
+      id: 'art2',
+      category: 'Preventive Biomarkers',
+      readTime: '4 Min Read',
+      title: 'The Silent Renal Index: Deciphering SDMA Before Creatinine Spikes',
+      excerpt: 'How contemporary symmetric dimethylarginine screening detects kidney dysfunction up to 17 months earlier than conventional tests.',
+      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuApSEASDFKwzPeG9HuGX4dTl68IVTage1i_V6SCTa3xjwbqCO-36_BQaD7KRP508Lih3lb8iDBGoRmqkvDFyuCkRpi2RebI_IqHn4tdO05kMnVBvWvPiqglBEhhf3j1xYfSKVwZFstVUyV6qRlkg2QlXMnbR4DnXqIpytXPKwJSnlKM1Hvz-bCMJ0j58yi1PBFG9Wi-QxRsTDSzCsr0w94zxUAFH6CtnLOQJHl-Qbce7OXQUh5_mrt4'
+    }
+  ];
+
+  const journalArticles = posts.length > 0
+    ? posts
+        .filter((p) => p.postType === 'article' || p.category === 'article' || p.category === 'journal' || !p.postType)
+        .slice(0, 3)
+        .map((p) => ({
+          id: p.id,
+          category: p.category || p.postType || 'Clinical Dispatch',
+          readTime: p.readTime || '5 Min Read',
+          title: p.title || p.content?.substring(0, 70) || 'Clinical Dispatch',
+          excerpt: p.excerpt || p.content?.substring(0, 130) || '',
+          image: p.image || p.authorPhoto || ''
+        }))
+    : fallbackJournalArticles;
 
   return (
     <div style={{ backgroundColor: '#FDF8F5', color: '#160F0C', minHeight: '100vh' }}>

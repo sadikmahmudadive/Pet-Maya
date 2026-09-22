@@ -199,6 +199,7 @@ export default function JournalPage({ onNavigate }) {
   ];
 
   // Dynamic editorial board members from live Firestore vets
+  // Dynamic editorial board members from live Firestore vets
   const editorialBoardMembers = vets.length > 0 ? vets.slice(0, 4).map(v => ({
     name: v.name,
     credentials: v.qualification || v.degrees || 'DVM',

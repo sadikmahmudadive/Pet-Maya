@@ -33,7 +33,7 @@ export default function VetBookingFlow({ initialVet, onComplete, onCancel }) {
     name: 'Dr. Sarah Jenkins',
     qualification: 'DVM, MRCVS • Small Animal Surgery',
     rating: 4.9,
-    reviewsCount: 0,
+    reviewsCount: 68,
     price: '৳500 / session',
     clinic: 'Pet Maya Clinical Center',
     photo: ''
