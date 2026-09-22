@@ -2769,6 +2769,31 @@ html, body {
   }
 }
 
+/* Admin Left Deck Mobile & Tablet Sliding Animation */
+@media (max-width: 1024px) {
+  .admin-page-layout {
+    flex-direction: column !important;
+  }
+  .mobile-deck-toggle-bar {
+    display: flex !important;
+  }
+  .admin-left-deck {
+    position: fixed !important;
+    top: 60px !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    height: calc(100vh - 60px) !important;
+    width: 280px !important;
+    transform: translateX(-100%) !important;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    border-radius: 0 24px 24px 0 !important;
+    z-index: 9999 !important;
+  }
+  .admin-left-deck.open {
+    transform: translateX(0) !important;
+  }
+}
+
 /* Tablet & Mobile Global Responsiveness Enhancements */
 @media (max-width: 1024px) {
   .shop-main-layout,

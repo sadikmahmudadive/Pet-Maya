@@ -172,6 +172,7 @@ export default function AdminPortal() {
 
   // Active Admin Sub-Tab: 'shop', 'orders', 'users', 'services', 'blogs', 'overview', 'broadcasts'
   const [adminTab, setAdminTab] = useState('shop');
+  const [isLeftDeckOpen, setIsLeftDeckOpen] = useState(false);
 
   // ─── SHOP & INVENTORY STATE ───
   const [productSearch, setProductSearch] = useState('');
@@ -904,92 +905,183 @@ export default function AdminPortal() {
     );
   }
 
+  const navDeckItems = [
+    { id: 'shop', label: 'Inventory Command', icon: ShoppingBag, count: products.length },
+    { id: 'orders', label: 'Orders & Dispatch', icon: Package, count: inPrepOrdersCount > 0 ? inPrepOrdersCount : ordersList.length, highlight: inPrepOrdersCount > 0 },
+    { id: 'users', label: 'Users & KYC Directory', icon: Users, count: pendingUsersCount > 0 ? pendingUsersCount : usersList.length, highlight: pendingUsersCount > 0 },
+    { id: 'services', label: 'Clinics & Specialists', icon: Stethoscope, count: pendingServicesCount > 0 ? pendingServicesCount : vets.length, highlight: pendingServicesCount > 0 },
+    { id: 'blogs', label: 'Article Moderation', icon: BookOpen, count: pendingBlogs.length, highlight: pendingBlogs.length > 0 },
+    { id: 'overview', label: 'Telemetry & Metrics', icon: Activity },
+    { id: 'broadcasts', label: 'Broadcasts & Banner', icon: Radio, highlight: bannerConfig?.isActive }
+  ];
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '28px', width: '100%', paddingBottom: '60px' }}>
+    <div className="admin-page-layout" style={{ display: 'flex', gap: '24px', width: '100%', paddingBottom: '60px', position: 'relative' }}>
       
-      {/* ── HEADER BANNER ── */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+      {/* ── MOBILE / TABLET LEFT DECK TOGGLE BAR ── */}
+      <div className="mobile-deck-toggle-bar" style={{
+        display: 'none',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        width: '100%',
+        backgroundColor: 'var(--surface-alt)',
+        padding: '12px 16px',
+        borderRadius: '16px',
+        border: '1px solid var(--border)',
+        marginBottom: '16px'
+      }}>
+        <button
+          onClick={() => setIsLeftDeckOpen(!isLeftDeckOpen)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: 'none',
+            border: 'none',
+            color: 'var(--text-main)',
+            fontSize: '14px',
+            fontWeight: 700,
+            cursor: 'pointer'
+          }}
+        >
+          <Boxes size={20} color="var(--primary)" />
+          <span>Core Admin Deck</span>
+          <ChevronDown size={16} style={{ transform: isLeftDeckOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+        </button>
+
+        <span className="badge badge-green" style={{ fontSize: '10px' }}>
+          ROOT ACTIVE
+        </span>
+      </div>
+
+      {/* ── LEFT SLIDING DECK SIDEBAR ── */}
+      <aside
+        className={`admin-left-deck ${isLeftDeckOpen ? 'open' : ''}`}
+        style={{
+          width: '280px',
+          flexShrink: 0,
+          backgroundColor: 'var(--surface-alt)',
+          border: '1px solid var(--border)',
+          borderRadius: '24px',
+          padding: '20px 16px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          position: 'sticky',
+          top: '80px',
+          height: 'calc(100vh - 100px)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.04)',
+          zIndex: 90
+        }}
+      >
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span className="badge badge-green" style={{ textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-              Super Admin Session Active
-            </span>
-            <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>• Root Command Center</span>
+          {/* Deck Header */}
+          <div style={{ padding: '0 8px 16px 8px', borderBottom: '1px solid var(--border-subtle)', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+              <span className="badge badge-green" style={{ fontSize: '9px', letterSpacing: '0.08em' }}>
+                SUPER ADMIN
+              </span>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>• ROOT COMMAND</span>
+            </div>
+            <h2 style={{ fontSize: '18px', fontWeight: 800, letterSpacing: '-0.02em', margin: 0 }}>
+              Control Console
+            </h2>
           </div>
-          <h1 style={{ fontSize: '28px', fontWeight: 700, letterSpacing: '-0.02em', margin: '4px 0 0' }}>
-            Platform Control &amp; Store Management
-          </h1>
+
+          {/* Navigation Items */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            {navDeckItems.map((item) => {
+              const IconComp = item.icon;
+              const isActive = adminTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    setAdminTab(item.id);
+                    setIsLeftDeckOpen(false);
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    width: '100%',
+                    padding: '12px 14px',
+                    borderRadius: '14px',
+                    border: isActive ? '1px solid var(--primary)' : '1px solid transparent',
+                    backgroundColor: isActive ? 'var(--primary-light)' : 'transparent',
+                    color: isActive ? 'var(--primary)' : 'var(--text-main)',
+                    fontWeight: isActive ? 700 : 500,
+                    fontSize: '13.5px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    textAlign: 'left'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <IconComp size={18} color={isActive ? 'var(--primary)' : 'var(--text-muted)'} />
+                    <span>{item.label}</span>
+                  </div>
+
+                  {item.count !== undefined && item.count > 0 && (
+                    <span style={{
+                      backgroundColor: item.highlight ? '#EF4444' : (isActive ? 'var(--primary)' : 'var(--surface)'),
+                      color: item.highlight || isActive ? '#FFFFFF' : 'var(--text-muted)',
+                      fontSize: '10px',
+                      fontWeight: 800,
+                      padding: '2px 8px',
+                      borderRadius: '9999px',
+                      boxShadow: item.highlight ? '0 0 10px rgba(239,68,68,0.4)' : 'none'
+                    }}>
+                      {item.count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
-        <button 
-          className="btn-ghost" 
-          style={{ color: '#EF4444' }}
-          onClick={() => setIsAdminAuthenticated(false)}
-        >
-          <LogOut size={15} />
-          <span>Exit Admin</span>
-        </button>
-      </div>
+        {/* Bottom Profile & Exit Area */}
+        <div style={{ paddingTop: '16px', borderTop: '1px solid var(--border-subtle)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px', padding: '0 6px' }}>
+            <UserAvatar user={currentUser || { name: 'Super Admin' }} size={36} />
+            <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+              <span style={{ fontSize: '13px', fontWeight: 700, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                {currentUser?.name || 'Super Admin'}
+              </span>
+              <span style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>
+                {currentUser?.email || 'root@petmaya.app'}
+              </span>
+            </div>
+          </div>
 
-      {/* ── TOP SEGMENTED NAVIGATION ── */}
-      <div style={{ 
-        display: 'flex', 
-        gap: '6px', 
-        background: 'var(--surface-alt)', 
-        padding: '6px', 
-        borderRadius: '16px', 
-        overflowX: 'auto',
-        border: '1px solid var(--border)' 
-      }}>
-        {[
-          { id: 'shop', label: 'Inventory Command', icon: ShoppingBag, count: products.length },
-          { id: 'orders', label: 'Orders & Dispatch', icon: Package, count: inPrepOrdersCount > 0 ? inPrepOrdersCount : ordersList.length, highlight: inPrepOrdersCount > 0 },
-          { id: 'users', label: 'Users & KYC', icon: Users, count: pendingUsersCount > 0 ? pendingUsersCount : usersList.length, highlight: pendingUsersCount > 0 },
-          { id: 'services', label: 'Clinics & Services', icon: Stethoscope, count: pendingServicesCount > 0 ? pendingServicesCount : vets.length, highlight: pendingServicesCount > 0 },
-          { id: 'blogs', label: 'Article Moderation', icon: BookOpen, count: pendingBlogs.length, highlight: pendingBlogs.length > 0 },
-          { id: 'overview', label: 'Telemetry & Stats', icon: Activity },
-          { id: 'broadcasts', label: 'Broadcasts & Banner', icon: Radio },
-        ].map((tab) => {
-          const isActive = adminTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setAdminTab(tab.id)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '9px 18px',
-                borderRadius: '12px',
-                border: 'none',
-                background: isActive ? 'var(--primary)' : 'transparent',
-                color: isActive ? '#FFFFFF' : 'var(--text-main)',
-                fontSize: '13.5px',
-                fontWeight: isActive ? 700 : 500,
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-                transition: 'all 0.18s ease',
-                fontFamily: 'inherit'
-              }}
-            >
-              <tab.icon size={15} />
-              <span>{tab.label}</span>
-              {typeof tab.count === 'number' && (
-                <span style={{
-                  fontSize: '11px',
-                  fontWeight: 800,
-                  padding: '2px 7px',
-                  borderRadius: '999px',
-                  background: isActive ? 'rgba(255,255,255,0.25)' : (tab.highlight ? '#F59E0B' : 'var(--border)'),
-                  color: isActive ? '#FFFFFF' : (tab.highlight ? '#FFFFFF' : 'var(--text-muted)')
-                }}>
-                  {tab.count}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
+          <button
+            onClick={() => setIsAdminAuthenticated(false)}
+            style={{
+              width: '100%',
+              padding: '10px 14px',
+              borderRadius: '12px',
+              border: '1px solid rgba(239, 68, 68, 0.2)',
+              backgroundColor: 'rgba(239, 68, 68, 0.08)',
+              color: '#EF4444',
+              fontSize: '12.5px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            <LogOut size={15} />
+            <span>Exit Admin Command</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* ── MAIN WORKSPACE STAGE ── */}
+      <main style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
       {/* ══════════════════════════════════════════════════════
           TAB 1: 🛍️ SHOP & INVENTORY MANAGEMENT
@@ -2357,6 +2449,7 @@ export default function AdminPortal() {
           </div>
         </div>
       )}
+      </main>
 
       {/* ══════════════════════════════════════════════════════
           MODAL 1: NEW CATALOG ENTRY (Product SKU)
