@@ -56,8 +56,6 @@ export default function JournalPage({ onNavigate }) {
     { id: 'travel', label: 'Travel & Global Export' }
   ];
 
-  // Clinical articles database
-  const featuredArticle = {
   // Dynamic clinical articles from community posts filtered by article/clinical type (with static fallback)
   const articlePosts = posts.filter(p => 
     p.postType === 'article' || p.category === 'article' || 

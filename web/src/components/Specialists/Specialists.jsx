@@ -25,8 +25,6 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// ── Specialty Filter Categories ──────────────────────────────────────────────
-const SPECIALTY_CATEGORIES = [
 // ── Specialty Filter Categories fallback ─────────────────────────────────────
 const STATIC_SPECIALTY_CATEGORIES = [
   { id: 'all',       label: 'All Specialties' },

@@ -3,7 +3,6 @@ import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 
 export default function LandingPage({ onNavigate }) {
-  const { showToast, addToCart, pets = [], vets = [] } = useApp();
   const { showToast, addToCart, pets = [], vets = [], products = [], isProductsLoading, posts = [], isPostsLoading } = useApp();
   const { currentUser, loginAsGuest } = useAuth();
 
@@ -60,8 +59,6 @@ export default function LandingPage({ onNavigate }) {
     }, 2000);
   };
 
-  // Curated 4-item prescription formulary matching exact Stitch specification
-  const formularyItems = [
   // Dynamic 4-item prescription formulary from Firestore products collection (with fallback)
   const fallbackFormulary = [
     {
@@ -72,7 +69,6 @@ export default function LandingPage({ onNavigate }) {
       desc: 'Monthly oral prophylaxis against heartworm, ticks, fleas, and mites.',
       price: 1650,
       unit: '3-month blister',
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAyyaRDTb2W0SyWzpotHdYAApqW2ydxhtGyeEKl6loLi_sYPbDWkdK5abfVRN9IKB4VURTDfr4KM87oTm4tTleP5tpUVnjtMaFBhPdmHM5VsoerwkyzFt0iGGLkM92fmTpK6cSKeAtoffqDf8pMSx5UIR2kr0CXLUKEcWxhdQNDi6xwl6s-upiyklCSkWtQom61laln9mF-vojFZAeX8erkCObUVa0YkuH810Jx9alUj5Y2EBk1q8y5'
       image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=600&q=80'
     },
     {
@@ -83,7 +79,6 @@ export default function LandingPage({ onNavigate }) {
       desc: 'Formulated with highly digestible proteins, prebiotics, and EPA/DHA.',
       price: 3450,
       unit: '4.0 kg bag',
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB9U3FvzjziZczps6X5sPuuKuOX40qPLobWacnfI85tXLCZynTpweICAvn1dLwFc9T5lqog-bfsF38U9Dym32m7PzER89u92kYfrWQZMXJVhsSwuSAYglUNVMBtRSS_UPDx21dAcpP859PySdRyKwRCayRXp0_C6n0msFfQiMHQ4NavEuLEEtANuQeqX6v63iNpa9j2pOz8oP7OznX_dJp2msH0v7vP4bj-QRFW8ZLuf_lel-VHhL0L'
       image: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&w=600&q=80'
     },
     {
@@ -94,7 +89,6 @@ export default function LandingPage({ onNavigate }) {
       desc: 'Insulated temp-logged delivery with certified clinical batch serial.',
       price: 850,
       unit: 'Single Vial + Ice Core',
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCl5hQZ6ayu5ehyl5fSHlkzD2Mfci7ba4G5q4HZbE6yHowWAuV0pLdSTsGsvDQSjSQG1X76gwnYLJk3Ojlx7jPKLE5GOWy31Z0bYwwMHrwhqCQiPqGjU2WORBhZB_7wXYga5YQgph5DnjXRDVrhapnWE-Ko5xCvXt0UX9m0N7qFFiQzIG-VWAEZKH33hGIJZ_PDZPYWVyv-hXWuwXNcldIw0YakHmMrkSdcx9tUP3i87_EOQM-qKbsU'
       image: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=600&q=80'
     },
     {
@@ -105,7 +99,6 @@ export default function LandingPage({ onNavigate }) {
       desc: 'Clinically proven chondroprotective support for senior & active mobility.',
       price: 2100,
       unit: '30 Chewable Tabs',
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAtnwsm_JiwhU3Ov-f5bQDXY-4k8fGBLuVf7PSzSjR4M3p6D32krDyyQplZFL0O3qGzaXhazXOi84U-lYKxymoS2pLtaszYPb5w-tlmgWY0FE432Btn5Dl7qVgXk7bkuem38s2Ow4xx35YI_VHtZd4fNB1YPq2HjNyiORfxzRLPHiWO6wEl9WrucZHItG-glHVv0jKeJ165nrNmdQrnN1XJ_pkpAiaKPaezgoIcAUk0SCcf6P2AoR0A'
       image: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=600&q=80'
     }
   ];
