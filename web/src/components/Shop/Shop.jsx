@@ -20,6 +20,9 @@ import {
 } from 'lucide-react';
 import ProductDetailPage from './ProductDetailPage';
 
+// ── Category Filter Definitions Matching Reference ───────────────────────────
+const FILTER_CHIPS = [
+  { id: 'all', label: 'All Formulations (24)', filter: null },
 // ── Category Filter Definitions ───────────────────────────────────────────────
 const BASE_FILTER_CHIPS = [
   { id: 'all', label: 'All Formulations', filter: null },
@@ -31,6 +34,7 @@ const BASE_FILTER_CHIPS = [
 ];
 
 export default function Shop({ onNavigate }) {
+  const { products, addToCart, removeFromCart, cart, openModal } = useApp();
   const { products = [], addToCart, removeFromCart, cart, openModal } = useApp();
   const { currentUser } = useAuth();
 
@@ -256,6 +260,7 @@ export default function Shop({ onNavigate }) {
             gap: '8px',
             flexWrap: 'wrap'
           }}>
+            {FILTER_CHIPS.map(chip => {
             {filterChips.map(chip => {
               const isActive = selectedFilter === chip.id;
               return (

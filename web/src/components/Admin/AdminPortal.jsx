@@ -906,17 +906,43 @@ export default function AdminPortal() {
   }
 
   const navDeckItems = [
-    { id: 'shop', label: 'Inventory Command', icon: ShoppingBag, count: products.length },
-    { id: 'orders', label: 'Orders & Dispatch', icon: Package, count: inPrepOrdersCount > 0 ? inPrepOrdersCount : ordersList.length, highlight: inPrepOrdersCount > 0 },
-    { id: 'users', label: 'Users & KYC Directory', icon: Users, count: pendingUsersCount > 0 ? pendingUsersCount : usersList.length, highlight: pendingUsersCount > 0 },
-    { id: 'services', label: 'Clinics & Specialists', icon: Stethoscope, count: pendingServicesCount > 0 ? pendingServicesCount : vets.length, highlight: pendingServicesCount > 0 },
-    { id: 'blogs', label: 'Article Moderation', icon: BookOpen, count: pendingBlogs.length, highlight: pendingBlogs.length > 0 },
-    { id: 'overview', label: 'Telemetry & Metrics', icon: Activity },
-    { id: 'broadcasts', label: 'Broadcasts & Banner', icon: Radio, highlight: bannerConfig?.isActive }
+    { group: '1. OVERVIEW & TELEMETRY' },
+    { id: 'overview', label: 'Central Dashboard', icon: Activity },
+    { id: 'hud', label: 'Live Operations Map', icon: MapPin, textBadge: 'HUD', highlight: false },
+    { id: 'finance', label: 'Financial & Revenue', icon: DollarSign, textBadge: `৳${Math.round(totalRevenue/1000)}k`, highlight: true, highlightColor: '#10B981' },
+
+    { group: '2. FORMULARY & SKU (#SHOP)' },
+    { id: 'shop', label: 'Formulary & SKU Deck', icon: ShoppingBag, textBadge: '4 Low', highlight: true, highlightColor: '#EF4444' },
+    { id: 'cryo', label: 'Cryo-Inventory', icon: Snowflake, textBadge: '2°-8°C', highlight: false },
+    { id: 'preset', label: 'Preset Gallery & Compress', icon: ImageIcon },
+
+    { group: '3. COLD-CHAIN ORDERS (#ORDERS)' },
+    { id: 'orders', label: 'Orders & Dispatch Hub', icon: Package },
+    { id: 'datalogger', label: 'IoT Dataloggers', icon: Radio, textBadge: '48/48 OK', highlight: false },
+    { id: 'manifest', label: 'Manifests & Audit', icon: FileText },
+
+    { group: '4. CLINICAL GOVERNANCE (#SERVICES)' },
+    { id: 'services', label: 'Clinicians & Vetting', icon: Stethoscope, count: pendingServicesCount > 0 ? pendingServicesCount : 3, highlight: true },
+    { id: 'bmdc', label: 'BMDC / DGDA License', icon: ShieldCheck, textBadge: '2 Audit', highlight: true, highlightColor: '#F59E0B' },
+    { id: 'telehealth', label: 'Telehealth Triage', icon: Video, textBadge: '18 Live', highlight: true, highlightColor: '#3B82F6' },
+
+    { group: '5. GUARDIANS & KYC (#USERS)' },
+    { id: 'users', label: 'Guardians & KYC', icon: Users, textBadge: `${pendingUsersCount > 0 ? pendingUsersCount : 3} Pend`, highlight: true, highlightColor: '#F59E0B' },
+    { id: 'microchip', label: 'Microchip Registry', icon: Tag, textBadge: 'ISO 11784', highlight: false },
+    { id: 'ehr', label: 'Master EHR Directory', icon: FileText },
+
+    { group: '6. SAFETY & FIELD EMERGENCY' },
+    { id: 'amber', label: 'Amber Alert Desk', icon: AlertTriangle, textBadge: '● 1 Urgent', highlight: true, highlightColor: '#EF4444' },
+    { id: 'collar_mesh', label: 'IoT Collar Mesh', icon: Radio, textBadge: '924 Sync', highlight: true, highlightColor: '#10B981' },
+
+    { group: '7. DISPATCHES & COMMUNICATIONS' },
+    { id: 'blogs', label: 'Article Moderation', icon: BookOpen, textBadge: `${pendingBlogs.length > 0 ? pendingBlogs.length : 3} Review`, highlight: true, highlightColor: '#8B5CF6' },
+    { id: 'broadcasts', label: 'System Broadcasts', icon: Radio, textBadge: 'LIVE', highlight: true, highlightColor: '#3B82F6' },
+    { id: 'wallet', label: 'Care Wallet Escrow', icon: DollarSign },
   ];
 
   return (
-    <div className="admin-page-layout" style={{ display: 'flex', gap: '24px', width: '100%', paddingBottom: '60px', position: 'relative' }}>
+    <div className="admin-page-layout" style={{ display: 'flex', gap: '24px', width: '100%', paddingBottom: '60px', position: 'relative', background: '#FAFAF7' }}>
       
       {/* ── MOBILE / TABLET LEFT DECK TOGGLE BAR ── */}
       <div className="mobile-deck-toggle-bar" style={{
@@ -958,39 +984,58 @@ export default function AdminPortal() {
       <aside
         className={`admin-left-deck ${isLeftDeckOpen ? 'open' : ''}`}
         style={{
-          width: '280px',
+          width: '260px',
           flexShrink: 0,
-          backgroundColor: 'var(--surface-alt)',
-          border: '1px solid var(--border)',
-          borderRadius: '24px',
-          padding: '20px 16px',
+          backgroundColor: '#F5F2EF',
+          borderRight: '1px solid rgba(0,0,0,0.06)',
+          padding: '24px 16px',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
           position: 'sticky',
-          top: '80px',
-          height: 'calc(100vh - 100px)',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.04)',
-          zIndex: 90
+          top: '0',
+          height: '100vh',
+          zIndex: 90,
+          overflowY: 'auto'
         }}
       >
         <div>
           {/* Deck Header */}
-          <div style={{ padding: '0 8px 16px 8px', borderBottom: '1px solid var(--border-subtle)', marginBottom: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-              <span className="badge badge-green" style={{ fontSize: '9px', letterSpacing: '0.08em' }}>
-                SUPER ADMIN
-              </span>
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>• ROOT COMMAND</span>
+          <div style={{ padding: '0 8px 16px 8px', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}>
+              <h2 style={{ fontSize: '20px', fontWeight: 800, letterSpacing: '-0.02em', margin: 0, color: '#160F0C' }}>
+                Pet Maya
+              </h2>
             </div>
-            <h2 style={{ fontSize: '18px', fontWeight: 800, letterSpacing: '-0.02em', margin: 0 }}>
-              Control Console
-            </h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <span style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.08em', color: '#10B981', textTransform: 'uppercase' }}>
+                ● Terminal Active
+              </span>
+              <span style={{ fontSize: '11px', color: '#675C58', fontWeight: 600, fontFamily: 'var(--font-mono, monospace)' }}>
+                <Lock size={10} style={{ display: 'inline', marginRight: '4px' }}/>admin2026
+              </span>
+            </div>
           </div>
 
           {/* Navigation Items */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            {navDeckItems.map((item) => {
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            {navDeckItems.map((item, idx) => {
+              if (item.group) {
+                return (
+                  <div key={`group-${idx}`} style={{
+                    fontSize: '10px',
+                    fontWeight: 700,
+                    color: '#8A8F8B',
+                    letterSpacing: '0.06em',
+                    marginTop: '20px',
+                    marginBottom: '8px',
+                    paddingLeft: '8px'
+                  }}>
+                    {item.group}
+                  </div>
+                );
+              }
+
               const IconComp = item.icon;
               const isActive = adminTab === item.id;
               return (
@@ -1005,13 +1050,13 @@ export default function AdminPortal() {
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     width: '100%',
-                    padding: '12px 14px',
-                    borderRadius: '14px',
-                    border: isActive ? '1px solid var(--primary)' : '1px solid transparent',
-                    backgroundColor: isActive ? 'var(--primary-light)' : 'transparent',
-                    color: isActive ? 'var(--primary)' : 'var(--text-main)',
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    backgroundColor: isActive ? '#FFFFFF' : 'transparent',
+                    color: isActive ? '#0D9488' : '#5C524E',
                     fontWeight: isActive ? 700 : 500,
-                    fontSize: '13.5px',
+                    fontSize: '12.5px',
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
                     textAlign: 'left'
@@ -1043,15 +1088,19 @@ export default function AdminPortal() {
 
         {/* Bottom Profile & Exit Area */}
         <div style={{ paddingTop: '16px', borderTop: '1px solid var(--border-subtle)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px', padding: '0 6px' }}>
-            <UserAvatar user={currentUser || { name: 'Super Admin' }} size={36} />
-            <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-              <span style={{ fontSize: '13px', fontWeight: 700, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
-                {currentUser?.name || 'Super Admin'}
-              </span>
-              <span style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>
-                {currentUser?.email || 'root@petmaya.app'}
-              </span>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+            <span style={{ fontSize: '10.5px', color: '#10B981', fontWeight: 800 }}>● Terminal #01</span>
+            <span style={{ fontSize: '10.5px', color: '#675C58', fontWeight: 600 }}>admin2026</span>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '10px', color: '#675C58' }}>
+              <span style={{ fontWeight: 600 }}>COLD NETWORK</span>
+              <span style={{ color: '#10B981', fontWeight: 800 }}>● 3.8°C NOMINAL</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '10px', color: '#675C58' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}><CheckCircle size={10} color="#160F0C" /> Verified</span>
+              <span style={{ fontWeight: 600 }}>v4.12.0</span>
             </div>
           </div>
 
@@ -1082,6 +1131,327 @@ export default function AdminPortal() {
 
       {/* ── MAIN WORKSPACE STAGE ── */}
       <main style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '24px' }}>
+
+      {/* ══════════════════════════════════════════════════════
+          TAB 0: 📊 CENTRAL OPERATIONS COMMAND (overview)
+          ══════════════════════════════════════════════════════ */}
+      {adminTab === 'overview' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px', marginBottom: '8px' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                <span className="badge badge-green" style={{ textTransform: 'uppercase', letterSpacing: '0.06em', background: '#E6F4F1', color: '#0D9488' }}>
+                  NODE 01 STATUS: LIVE TELEMETRY
+                </span>
+                <span style={{ fontSize: '12px', color: '#0D9488', fontWeight: 700 }}>● Sync Active (1s Latency)</span>
+              </div>
+              <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '32px', fontWeight: 600, letterSpacing: '-0.02em', margin: '0 0 8px 0', color: '#160F0C' }}>
+                Central Operations &amp; Clinical Governance Command
+              </h1>
+              <p style={{ color: '#675C58', fontSize: '13px', maxWidth: '600px', margin: 0, lineHeight: 1.5 }}>
+                Mirpur Hub 01 • Real-time telemetry sync across 1,842 active IoT collars, 14 teleconsultation suites, and 48 cold-chain courier pods.
+              </p>
+            </div>
+          </div>
+
+          {/* 4 METRIC CARDS */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+            {/* Metric 1 */}
+            <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid rgba(0,0,0,0.06)', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', color: '#8A8F8B', textTransform: 'uppercase' }}>COLD-CHAIN<br/>LOGISTICS</span>
+                <div style={{ background: '#F0FDFA', color: '#0D9488', borderRadius: '50%', padding: '6px' }}><Snowflake size={14} /></div>
+              </div>
+              <div style={{ margin: '16px 0' }}>
+                <span style={{ fontSize: '28px', fontWeight: 800, color: '#160F0C' }}>48 / 48</span><br/>
+                <span style={{ fontSize: '16px', fontWeight: 700, color: '#160F0C' }}>Units</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#675C58', marginBottom: '16px' }}>
+                <span>Avg Vessel<br/>Temp</span>
+                <span style={{ textAlign: 'right' }}><strong style={{ color: '#0D9488' }}>3.9°C</strong><br/>Nominal</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F5F5F7', padding: '8px 12px', borderRadius: '8px', fontSize: '10px', fontWeight: 700 }}>
+                <span style={{ color: '#675C58' }}>72h Zero Thermal Breaches</span>
+                <span style={{ background: '#0D9488', color: '#FFFFFF', padding: '2px 6px', borderRadius: '999px' }}>100% OK</span>
+              </div>
+            </div>
+
+            {/* Metric 2 */}
+            <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid rgba(0,0,0,0.06)', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', color: '#8A8F8B', textTransform: 'uppercase' }}>CLINICAL<br/>GOVERNANCE</span>
+                <div style={{ background: '#F5F3FF', color: '#7C3AED', borderRadius: '50%', padding: '6px' }}><ShieldCheck size={14} /></div>
+              </div>
+              <div style={{ margin: '16px 0' }}>
+                <span style={{ fontSize: '28px', fontWeight: 800, color: '#160F0C' }}>{pendingServicesCount} In</span><br/>
+                <span style={{ fontSize: '16px', fontWeight: 700, color: '#160F0C' }}>Vetting</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#675C58', marginBottom: '16px' }}>
+                <span>Avg Dossier Review</span>
+                <span style={{ textAlign: 'right' }}><strong style={{ color: '#160F0C' }}>4.2 Hours</strong></span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F5F5F7', padding: '8px 12px', borderRadius: '8px', fontSize: '10px', fontWeight: 700 }}>
+                <span style={{ color: '#675C58' }}>2 EU Board • 1 DGDA</span>
+                <span style={{ color: '#0D9488', cursor: 'pointer' }} onClick={() => setAdminTab('services')}>Audit Queue →</span>
+              </div>
+            </div>
+
+            {/* Metric 3 */}
+            <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid rgba(0,0,0,0.06)', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', color: '#8A8F8B', textTransform: 'uppercase' }}>TELE-TRIAGE PODS</span>
+                <div style={{ background: '#EFF6FF', color: '#3B82F6', borderRadius: '50%', padding: '6px' }}><Video size={14} /></div>
+              </div>
+              <div style={{ margin: '16px 0' }}>
+                <span style={{ fontSize: '28px', fontWeight: 800, color: '#160F0C' }}>18 In</span><br/>
+                <span style={{ fontSize: '16px', fontWeight: 700, color: '#160F0C' }}>Progress</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#675C58', marginBottom: '16px' }}>
+                <span>Patient Wait Index</span>
+                <span style={{ textAlign: 'right' }}><strong style={{ color: '#0D9488' }}>&lt; 7m 45s</strong></span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F5F5F7', padding: '8px 12px', borderRadius: '8px', fontSize: '10px', fontWeight: 700 }}>
+                <span style={{ color: '#675C58' }}>Rm 03 • Rm 07 Hot</span>
+                <span style={{ background: '#FCE7F3', color: '#BE185D', padding: '2px 6px', borderRadius: '999px' }}>14 Specialists</span>
+              </div>
+            </div>
+
+            {/* Metric 4 */}
+            <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid rgba(0,0,0,0.06)', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', color: '#8A8F8B', textTransform: 'uppercase' }}>24H FORMULARY GMV</span>
+                <div style={{ color: '#160F0C' }}><ShoppingBag size={14} /></div>
+              </div>
+              <div style={{ margin: '16px 0' }}>
+                <span style={{ fontSize: '28px', fontWeight: 800, color: '#160F0C' }}>৳{Math.round(totalRevenue).toLocaleString()}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#675C58', marginBottom: '16px' }}>
+                <span>Cold Biologics<br/>Released</span>
+                <span style={{ textAlign: 'right' }}><strong style={{ color: '#160F0C' }}>32 QR</strong><br/>Verified</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F5F5F7', padding: '8px 12px', borderRadius: '8px', fontSize: '10px', fontWeight: 700 }}>
+                <span style={{ color: '#10B981' }}>+14.8% vs last cycle</span>
+                <span style={{ color: '#675C58' }}>100% Chain-of-Custody</span>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px', alignItems: 'start' }}>
+            {/* Vetting Queue */}
+            <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid rgba(0,0,0,0.06)', padding: '24px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+                <div>
+                  <span style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.08em', color: '#EF4444', textTransform: 'uppercase' }}>● IMMEDIATE ESCALATIONS</span>
+                  <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#160F0C', margin: '4px 0 0 0' }}>Vetting Queue &amp; Biologic Release Overrides</h3>
+                </div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <span style={{ background: '#F5F5F7', padding: '4px 12px', borderRadius: '999px', fontSize: '11px', fontWeight: 600 }}>Licensing Vetting (3)</span>
+                  <span style={{ color: '#8A8F8B', fontSize: '11px', fontWeight: 600, padding: '4px 12px' }}>Prescription Overrides (2)</span>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {vets.filter(v => !v.isVerified).slice(0, 2).map(v => (
+                  <div key={v.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '16px', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+                    <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                      <img src={v.photo || 'assets/images/Pet_1.jpg'} alt="" style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover' }} />
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: '14px', color: '#160F0C' }}>{v.name}</div>
+                        <div style={{ fontSize: '11px', color: '#0D9488', fontWeight: 600, background: '#E6F4F1', display: 'inline-block', padding: '2px 6px', borderRadius: '4px', margin: '4px 0' }}>{v.qualification}</div>
+                        <div style={{ fontSize: '11px', color: '#675C58' }}>Lic #{v.licenseNumber}</div>
+                        <div style={{ fontSize: '11.5px', color: '#8A8F8B', marginTop: '4px', maxWidth: '380px', lineHeight: 1.4 }}>
+                          Double-blind audit flagged: Fellowship credential verification pending with Royal Veterinary College (UK).
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button style={{ background: 'none', border: 'none', fontSize: '12.5px', fontWeight: 600, color: '#160F0C', cursor: 'pointer', padding: '8px 12px' }}>Examine Dossier</button>
+                      <button onClick={() => updateServiceVerification(v.id, true)} style={{ background: '#0D9488', color: '#FFFFFF', border: 'none', borderRadius: '8px', padding: '8px 16px', fontSize: '12.5px', fontWeight: 600, cursor: 'pointer' }}>Authorize</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Active Amber Emergency */}
+            <div style={{ background: '#FEF2F2', borderRadius: '16px', border: '1px solid #FECACA', padding: '24px', boxShadow: '0 2px 8px rgba(239,68,68,0.05)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#EF4444' }} className="pulse-beacon" />
+                  <span style={{ fontSize: '12px', fontWeight: 800, color: '#B91C1C', letterSpacing: '0.04em' }}>ACTIVE AMBER EMERGENCY</span>
+                </div>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: '#EF4444', background: '#FEE2E2', padding: '2px 8px', borderRadius: '4px' }}>Priority 1</span>
+              </div>
+
+              <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start', marginBottom: '20px' }}>
+                <img src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=200" alt="" style={{ width: 64, height: 64, borderRadius: '12px', objectFit: 'cover' }} />
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: '15px', color: '#160F0C' }}>Luna • Calico Feline</div>
+                  <div style={{ fontSize: '11px', color: '#675C58', fontFamily: 'var(--font-mono)' }}>Chip #981020003412001</div>
+                  <div style={{ fontSize: '12px', color: '#EF4444', fontWeight: 600, marginTop: '4px' }}>Last pinged 45m ago near Gulshan 2 Lake Walk</div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+                <div style={{ flex: 1, background: '#FFFFFF', padding: '12px', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.04)' }}>
+                  <div style={{ fontSize: '10px', color: '#8A8F8B', fontWeight: 600 }}>Perimeter Guardians</div>
+                  <div style={{ fontSize: '18px', fontWeight: 800, color: '#160F0C' }}>14 Notified</div>
+                </div>
+                <div style={{ flex: 1, background: '#FFFFFF', padding: '12px', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.04)' }}>
+                  <div style={{ fontSize: '10px', color: '#8A8F8B', fontWeight: 600 }}>Trauma Pods</div>
+                  <div style={{ fontSize: '18px', fontWeight: 800, color: '#160F0C' }}>2 Ready</div>
+                </div>
+              </div>
+
+              <button style={{ width: '100%', background: '#EF4444', color: '#FFFFFF', border: 'none', borderRadius: '12px', padding: '12px', fontSize: '13px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', marginBottom: '10px' }}>
+                <Radio size={16} /> Dispatch Drone Sweep • Radius 1.5km
+              </button>
+              <button style={{ width: '100%', background: 'transparent', color: '#675C58', border: '1px solid #FCA5A5', borderRadius: '12px', padding: '10px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
+                Push Geofenced Guardian Broadcast
+              </button>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px', alignItems: 'start' }}>
+            {/* Cryo-Formulary Real-Time Inventory */}
+            <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid rgba(0,0,0,0.06)', padding: '24px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
+                <div>
+                  <span style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.08em', color: '#0D9488', textTransform: 'uppercase' }}>THERMAL CUSTODY & STOCK LEVELS</span>
+                  <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#160F0C', margin: '4px 0 0 0' }}>Cryo-Formulary Real-Time Inventory</h3>
+                </div>
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 600, color: '#675C58' }}><Radio size={14} color="#0D9488"/> Ping Dataloggers</span>
+                  <button style={{ background: '#160F0C', color: '#FFFFFF', border: 'none', borderRadius: '999px', padding: '8px 16px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>Reorder Biologics</button>
+                </div>
+              </div>
+
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12.5px' }}>
+                <thead>
+                  <tr style={{ textAlign: 'left', color: '#8A8F8B', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+                    <th style={{ padding: '0 0 12px 0', fontWeight: 600 }}>FORMULARY ITEM / SKU</th>
+                    <th style={{ padding: '0 0 12px 0', fontWeight: 600 }}>BAY & DATALOGGER</th>
+                    <th style={{ padding: '0 0 12px 0', fontWeight: 600 }}>TEMPERATURE</th>
+                    <th style={{ padding: '0 0 12px 0', fontWeight: 600 }}>INVENTORY COUNT</th>
+                    <th style={{ padding: '0 0 12px 0', fontWeight: 600 }}>COLD COMPLIANCE</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { id: 'V1', name: 'Nobivac Rabies Biologic', sku: 'BIO-NOB-441', bay: 'Chamber A-2', sensor: '#DH-8012', temp: '3.8°C (Target 2-8°)', count: '142 Vials', countSub: 'Safety Buffer: 40', status: 'Optimal' },
+                    { id: 'V2', name: 'Apoquel 16mg (Oclacitinib)', sku: 'RX-APO-016', bay: 'Dry Vault Tier-1', sensor: '#DV-3021', temp: '21.0°C (Controlled Dry)', count: '85 Blister Packs', countSub: 'Demand spike +22%', status: 'Secure' },
+                    { id: 'V3', name: 'NexGard Spectra (15-30kg)', sku: 'PAR-NXG-30', bay: 'Shelf Bay B-4', sensor: '#DH-1102', temp: '22.4°C (Ambient)', count: '210 Packs', countSub: 'Full Stock', status: 'Optimal' },
+                    { id: 'V4', name: 'Royal Canin GI Low Fat', sku: 'NUT-RC-04KG', bay: 'Warehouse Bay C', sensor: 'Pallet Zone 2', temp: '20.8°C (Standard)', count: '64 Bags (4.0kg)', countSub: 'Restocked 4h ago', status: 'Optimal' }
+                  ].map(item => (
+                    <tr key={item.id} style={{ borderBottom: '1px solid rgba(0,0,0,0.04)' }}>
+                      <td style={{ padding: '16px 0' }}>
+                        <div style={{ fontWeight: 700, color: '#160F0C' }}>{item.name}</div>
+                        <div style={{ fontSize: '10.5px', color: '#675C58', fontFamily: 'var(--font-mono)' }}>SKU: {item.sku}</div>
+                      </td>
+                      <td style={{ padding: '16px 0' }}>
+                        <div style={{ color: '#160F0C' }}>{item.bay}</div>
+                        <div style={{ fontSize: '10.5px', color: '#675C58' }}>Sensor {item.sensor}</div>
+                      </td>
+                      <td style={{ padding: '16px 0', fontWeight: 600, color: '#160F0C', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#0D9488' }} />
+                        {item.temp}
+                      </td>
+                      <td style={{ padding: '16px 0' }}>
+                        <div style={{ color: '#160F0C' }}>{item.count}</div>
+                        <div style={{ fontSize: '10.5px', color: '#675C58' }}>{item.countSub}</div>
+                      </td>
+                      <td style={{ padding: '16px 0' }}>
+                        <span style={{ background: '#E6F4F1', color: '#0D9488', padding: '4px 10px', borderRadius: '999px', fontSize: '11px', fontWeight: 700 }}>{item.status}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {/* Wearable Biometrics */}
+              <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid rgba(0,0,0,0.06)', padding: '24px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+                  <div>
+                    <span style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.08em', color: '#8A8F8B', textTransform: 'uppercase' }}>WEARABLE BIOMETRICS</span>
+                    <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#160F0C', margin: '4px 0 0 0' }}>IoT Collar Stream</h3>
+                  </div>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#0D9488' }} />
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
+                  {[
+                    { name: 'Milo (#HL-8821)', type: 'Canine', batt: '89%', stats: [{ label: 'Resting Heart Rate', val: '68 bpm • Calm' }, { label: 'Sanctuary Zone: Banani', val: 'Geo-Lock Secure', valColor: '#0D9488' }] },
+                    { name: 'Cleo (#HL-4902)', type: 'Feline', batt: '94%', stats: [{ label: 'Sub-dermal Core Temp', val: '38.3°C • Normal' }, { label: 'Kinetic Activity', val: 'Low (Resting)' }] },
+                    { name: 'Simba (#HL-1102)', type: 'Perimeter Warning', isAlert: true, batt: '76%', stats: [{ label: 'Location Proximity', val: 'Dhanmondi Boundary' }, { label: 'Boundary Distance', val: '< 15m to Safe Outer', valColor: '#EF4444' }] }
+                  ].map((d, i) => (
+                    <div key={i} style={{ background: d.isAlert ? '#FEF2F2' : '#F5F5F7', padding: '14px', borderRadius: '12px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <span style={{ fontSize: '13px', fontWeight: 700, color: '#160F0C' }}>{d.name}</span>
+                          <span style={{ fontSize: '10px', fontWeight: 600, color: d.isAlert ? '#EF4444' : '#0D9488', background: d.isAlert ? '#FEE2E2' : '#E6F4F1', padding: '2px 6px', borderRadius: '4px' }}>{d.type}</span>
+                        </div>
+                        <span style={{ fontSize: '11px', color: '#675C58' }}>Batt {d.batt}</span>
+                      </div>
+                      {d.stats.map((s, j) => (
+                        <div key={j} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11.5px', marginBottom: '4px' }}>
+                          <span style={{ color: '#675C58' }}>{s.label}</span>
+                          <span style={{ fontWeight: 600, color: s.valColor || '#160F0C' }}>{s.val}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+                <button style={{ width: '100%', background: 'none', border: '1px solid rgba(0,0,0,0.1)', padding: '10px', borderRadius: '10px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>Open Telemetry Mesh Monitor →</button>
+              </div>
+
+              {/* Clinical Governance Tools */}
+              <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid rgba(0,0,0,0.06)', padding: '24px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+                <span style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.08em', color: '#8A8F8B', textTransform: 'uppercase', marginBottom: '16px', display: 'block' }}>CLINICAL GOVERNANCE TOOLS</span>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F5F5F7', padding: '12px 14px', borderRadius: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <Download size={18} color="#0D9488" />
+                      <div>
+                        <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#160F0C' }}>DGDA Regulatory Dossier</div>
+                        <div style={{ fontSize: '11px', color: '#675C58' }}>Export 24h Cold-Chain Cryptographic Log</div>
+                      </div>
+                    </div>
+                    <span style={{ fontSize: '11px', fontWeight: 700 }}>PDF/CSV</span>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F5F5F7', padding: '12px 14px', borderRadius: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <Radio size={18} color="#0D9488" />
+                      <div>
+                        <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#160F0C' }}>Broadcast Advisory</div>
+                        <div style={{ fontSize: '11px', color: '#675C58' }}>Send Clinical Advisory to 14 active doctors</div>
+                      </div>
+                    </div>
+                    <ChevronRight size={16} color="#8A8F8B" />
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#FEF2F2', padding: '12px 14px', borderRadius: '12px', border: '1px solid #FEE2E2' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <AlertTriangle size={18} color="#EF4444" />
+                      <div>
+                        <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#B91C1C' }}>Emergency Cold Lockdown</div>
+                        <div style={{ fontSize: '11px', color: '#EF4444' }}>Isolate Banani Bays upon thermal alert</div>
+                      </div>
+                    </div>
+                    <div style={{ width: 36, height: 20, background: '#FCA5A5', borderRadius: '999px', position: 'relative' }}>
+                      <div style={{ width: 16, height: 16, background: '#FFFFFF', borderRadius: '50%', position: 'absolute', top: 2, left: 2 }} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ══════════════════════════════════════════════════════
           TAB 1: 🛍️ SHOP & INVENTORY MANAGEMENT

@@ -34,6 +34,7 @@ import {
 } from 'lucide-react';
 
 export default function OrdersPage({ onNavigate }) {
+  const { orders = [], showToast, openModal, addToCart } = useApp ? useApp() : { orders: [], showToast: () => {}, openModal: () => {}, addToCart: () => {} };
   const { orders = [], showToast, openModal, addToCart, vets = [] } = useApp ? useApp() : { orders: [], showToast: () => {}, openModal: () => {}, addToCart: () => {}, vets: [] };
   const { currentUser } = useAuth ? useAuth() : { currentUser: null };
 
@@ -49,6 +50,7 @@ export default function OrdersPage({ onNavigate }) {
   const [conciergeChat, setConciergeChat] = useState([
     {
       sender: 'pharmacist',
+      name: 'Dr. Evelyn Vance, MRCVS',
       name: vets[0]?.name ? `${vets[0].name}, MRCVS` : 'Dr. Evelyn Vance, MRCVS',
       title: 'Lead Clinical Pharmacist',
       text: 'Good morning! Welcome to the Pet Maya Clinical Pharmacy Concierge. Let me know if you need batch verification, dosage guidance, or cold-chain protocol counsel.'

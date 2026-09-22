@@ -56,6 +56,8 @@ export default function Dashboard({ onNavigate }) {
 
   const guardianDisplayName = currentUser?.name || currentUser?.displayName || 'Pet Guardian';
   const activePet = pets[0] || {
+    name: 'Companion',
+    breed: 'Companion',
     id: 'placeholder',
     name: 'Maya',
     breed: 'Golden Retriever',
@@ -68,6 +70,7 @@ export default function Dashboard({ onNavigate }) {
     collarId: 'HALO-BLE',
     batteryLevel: 92
   };
+  const guardianDisplayName = currentUser?.name || currentUser?.displayName || '';
   const nextAppt = appointments.find(a => a.status === 'confirmed' || a.status === 'upcoming') || appointments[0] || null;
 
   const handleRoute = (path) => {
@@ -500,10 +503,12 @@ export default function Dashboard({ onNavigate }) {
             ════════════════════════════════════════════════════════════════ */}
         <div style={{
           display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
           gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
           gap: '24px',
           alignItems: 'flex-start',
           marginBottom: '40px'
+        }}>
         }} className="dashboard-main-grid">
           
           {/* ─────────────────────────────────────────────────────────────
@@ -816,6 +821,20 @@ export default function Dashboard({ onNavigate }) {
             </div>
 
             {/* Confirmed Appointment Card */}
+            <div style={{
+              backgroundColor: '#FFFFFF',
+              border: '1px solid #EBE4DF',
+              borderRadius: '20px',
+              padding: '22px',
+              marginBottom: '16px',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.02)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                <span style={{
+                  backgroundColor: '#E6F4F1',
+                  color: '#0D9488',
+                  fontSize: '9.5px',
+                  fontFamily: 'var(--font-mono, monospace)',
             {nextAppt ? (
               <div style={{
                 backgroundColor: '#FFFFFF',
@@ -846,15 +865,35 @@ export default function Dashboard({ onNavigate }) {
                   fontFamily: 'var(--font-serif, "Playfair Display", Georgia, serif)',
                   fontSize: '17px',
                   fontWeight: 700,
+                  padding: '2px 8px',
+                  borderRadius: '4px'
                   color: '#160F0C',
                   margin: '0 0 2px 0'
                 }}>
+                  CONFIRMED VISIT
+                </span>
+                <span style={{ fontSize: '10.5px', fontFamily: 'var(--font-mono, monospace)', color: '#707973' }}>
+                  In 3 Days
+                </span>
+              </div>
                   {nextAppt.doctor || nextAppt.vetName || 'Specialist Clinician'}
                 </h4>
                 <div style={{ fontSize: '11.5px', color: '#675C58', marginBottom: '14px' }}>
                   {nextAppt.notes || nextAppt.type || 'Veterinary Consultation'}
                 </div>
 
+              <h4 style={{
+                fontFamily: 'var(--font-serif, "Playfair Display", Georgia, serif)',
+                fontSize: '17px',
+                fontWeight: 700,
+                color: '#160F0C',
+                margin: '0 0 2px 0'
+              }}>
+                Dr. Evelyn Vance, DVM
+              </h4>
+              <div style={{ fontSize: '11.5px', color: '#675C58', marginBottom: '14px' }}>
+                Canine Parasitology Follow-up & Stool Culture
+              </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '16px', fontSize: '11.5px', color: '#160F0C' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Clock size={13} color="#0D9488" />
@@ -866,6 +905,10 @@ export default function Dashboard({ onNavigate }) {
                   </div>
                 </div>
 
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '16px', fontSize: '11.5px', color: '#160F0C' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Clock size={13} color="#0D9488" />
+                  <span>Thursday, Oct 24 • 11:30 AM</span>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <button
                     onClick={() => showToast('Check-in documents and digital intake questionnaire prepared', 'success')}
@@ -899,7 +942,13 @@ export default function Dashboard({ onNavigate }) {
                     Reschedule
                   </button>
                 </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <MapPin size={13} color="#0D9488" />
+                  <span>Pet Maya Clinical Center, Banani 11, Dhaka</span>
+                </div>
               </div>
+
+              <div style={{ display: 'flex', gap: '8px' }}>
             ) : (
               <div style={{
                 backgroundColor: '#FFFFFF',
@@ -913,21 +962,41 @@ export default function Dashboard({ onNavigate }) {
                 <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#160F0C', marginBottom: '4px' }}>No Upcoming Consultations</div>
                 <div style={{ fontSize: '11.5px', color: '#8C827A', marginBottom: '14px' }}>Schedule a clinical video consult or in-person visit.</div>
                 <button
+                  onClick={() => showToast('Check-in documents and digital intake questionnaire prepared', 'success')}
                   onClick={() => handleRoute('specialists')}
                   style={{
+                    flex: 1,
                     backgroundColor: '#160F0C',
                     color: '#FFFFFF',
                     border: 'none',
                     borderRadius: '9999px',
+                    padding: '9px 14px',
                     padding: '8px 18px',
                     fontSize: '11.5px',
                     fontWeight: 700,
                     cursor: 'pointer'
                   }}
                 >
+                  Prepare Check-In
                   Book Specialist
                 </button>
+                <button
+                  onClick={() => handleRoute('specialists')}
+                  style={{
+                    backgroundColor: '#FFFFFF',
+                    border: '1px solid #D6CDC5',
+                    borderRadius: '9999px',
+                    padding: '9px 14px',
+                    fontSize: '11.5px',
+                    fontWeight: 600,
+                    color: '#160F0C',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Reschedule
+                </button>
               </div>
+            </div>
             )}
 
             {/* Active Pharmacy Formulary Section */}
@@ -997,6 +1066,8 @@ export default function Dashboard({ onNavigate }) {
                       }}>
                         {rec.type === 'vaccine' ? <Syringe size={16} color="#0D9488" /> : <Pill size={16} color="#0D9488" />}
                       </div>
+                      <div style={{ fontSize: '10px', color: '#707973' }}>
+                        Chewable 15-30kg • 1 Tab
                       <div>
                         <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#160F0C' }}>
                           {rec.title || rec.name || 'Prescription Medication'}
@@ -1006,7 +1077,27 @@ export default function Dashboard({ onNavigate }) {
                         </div>
                       </div>
                     </div>
+                  </div>
 
+                  <div style={{ textAlign: 'right' }}>
+                    <span style={{
+                      backgroundColor: '#FEF3C7',
+                      color: '#92400E',
+                      fontSize: '9px',
+                      fontFamily: 'var(--font-mono, monospace)',
+                      fontWeight: 700,
+                      padding: '2px 6px',
+                      borderRadius: '4px',
+                      display: 'inline-block',
+                      marginBottom: '2px'
+                    }}>
+                      Due in 4 days
+                    </span>
+                    <div
+                      onClick={() => handleRoute('product')}
+                      style={{ fontSize: '9.5px', color: '#0D9488', fontWeight: 600, cursor: 'pointer' }}
+                    >
+                      + Visit Cold-Chain Auto
                     <div style={{ textAlign: 'right' }}>
                       <span style={{
                         backgroundColor: '#FEF3C7',
@@ -1023,12 +1114,51 @@ export default function Dashboard({ onNavigate }) {
                       </span>
                     </div>
                   </div>
+                </div>
                 ))}
 
+                {/* Item 2: DHPPi */}
+                <div style={{
+                  backgroundColor: '#FAF7F5',
+                  border: '1px solid #EAE3DC',
+                  borderRadius: '14px',
+                  padding: '12px 14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '8px',
+                      backgroundColor: '#E6F4F1',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <Syringe size={16} color="#0D9488" />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#160F0C' }}>
+                        DHPPi & Rabies Core
+                      </div>
+                      <div style={{ fontSize: '10px', color: '#707973' }}>
+                        Certified Valid through May 2026
+                      </div>
+                    </div>
                 {medicalRecords.filter(r => r.type === 'prescription' || r.type === 'vaccine' || r.type === 'medication').length === 0 && (
                   <div style={{ padding: '12px', textAlign: 'center', color: '#8C827A', fontSize: '11.5px' }}>
                     No active prescriptions in EHR. Visit the dispensary to browse formulations.
                   </div>
+
+                  <div style={{ textAlign: 'right' }}>
+                    <CheckCircle2 size={16} color="#0D9488" style={{ margin: '0 0 2px auto', display: 'block' }} />
+                    <div style={{ fontSize: '9px', fontFamily: 'var(--font-mono, monospace)', color: '#707973' }}>
+                      Next Booster: Nov 2026 (in 47 mos)
+                    </div>
+                  </div>
+                </div>
                 )}
               </div>
             </div>
@@ -1294,11 +1424,48 @@ export default function Dashboard({ onNavigate }) {
             </div>
           </div>
 
+          {/* 4 Timeline Event Cards */}
           {/* Timeline Event Cards from Medical Records */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '20px' }}>
+            {[
+              {
+                title: 'AI Dental Plaque & Gingiva Vision Scan',
+                badge: 'Tier 1 Screening',
+                desc: 'Upper right canine mild calculus index: Grade 1. No immediate periodontal inflammation. Continue weekly enzymatic brush paste.',
+                timestamp: 'Yesterday, 4:15 PM',
+                attestation: 'Verified by Maya AI Triage Engine',
+                icon: Smile
+              },
+              {
+                title: 'Comprehensive Serum Biochemistry & Electrolyte Panel',
+                badge: 'All Normal (14)',
+                desc: 'BUN, Creatinine, ALT, ALP, and Blood Glucose verified within optimal canine homeostatic thresholds.',
+                timestamp: 'Oct 12, 2025',
+                attestation: 'Maya Central Pathology Lab',
+                icon: FlaskConical
+              },
+              {
+                title: 'Care Shop Auto-Formulary Dispatched',
+                badge: 'Track #DH-9810-04',
+                desc: 'Quarterly replenishment: Purina Pro Plan NeuroCare (14kg) + Nordic Naturals Omega-3 Wild Anchovy Oil.',
+                timestamp: 'Oct 04, 2025',
+                attestation: 'Delivered to Banani Residence',
+                icon: Truck
+              },
+              {
+                title: 'Routine Weight Check-in: 28.4 kg',
+                badge: 'Body Condition Score: 5/9',
+                desc: 'Logged via Pet Maya Connected Scale mat. Zero muscular atrophy or adipose variance.',
+                timestamp: 'Sep 28, 2025',
+                attestation: 'Home Smart Mat Sync',
+                icon: Scale
+              }
+            ].map((event, i) => {
+              const EventIcon = event.icon;
             {medicalRecords.slice(0, 4).map((record, i) => {
               return (
                 <div
+                  key={i}
                   key={record.id || i}
                   style={{
                     backgroundColor: '#FAF7F5',
@@ -1324,12 +1491,14 @@ export default function Dashboard({ onNavigate }) {
                       flexShrink: 0,
                       marginTop: '2px'
                     }}>
+                      <EventIcon size={18} color="#0D9488" />
                       <Activity size={18} color="#0D9488" />
                     </div>
 
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
                         <span style={{ fontSize: '13px', fontWeight: 700, color: '#160F0C' }}>
+                          {event.title}
                           {record.title || record.type || 'Clinical Record'}
                         </span>
                         <span style={{
@@ -1341,11 +1510,13 @@ export default function Dashboard({ onNavigate }) {
                           padding: '2px 6px',
                           borderRadius: '4px'
                         }}>
+                          {event.badge}
                           {record.badge || record.category || 'Vault Record'}
                         </span>
                       </div>
 
                       <p style={{ fontSize: '12px', lineHeight: 1.5, color: '#675C58', margin: 0 }}>
+                        {event.desc}
                         {record.notes || record.desc || record.diagnosis || 'Recorded in Pet Maya Health Vault.'}
                       </p>
                     </div>
@@ -1353,9 +1524,11 @@ export default function Dashboard({ onNavigate }) {
 
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ fontSize: '11px', fontWeight: 700, color: '#160F0C' }}>
+                      {event.timestamp}
                       {record.date || record.timestamp || 'Recorded'}
                     </div>
                     <div style={{ fontSize: '10px', fontFamily: 'var(--font-mono, monospace)', color: '#707973' }}>
+                      {event.attestation}
                       {record.attestation || record.vetName || 'EHR Verified'}
                     </div>
                   </div>
@@ -1386,15 +1559,28 @@ export default function Dashboard({ onNavigate }) {
                 fontFamily: 'var(--font-mono, monospace)'
               }}
             >
+              View all 42 historical records in Vault ↗
               View all {medicalRecords.length} historical records in Vault
             </button>
           </div>
         </div>
+
       </div>
     </div>
   </div>
   </div>
   </div>
   </div>
+  );
+}
+
+// Stethoscope Helper Component
+function StethoscopeIcon({ size = 16, color = "#346B73" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3" />
+      <path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4" />
+      <circle cx="20" cy="10" r="2" />
+    </svg>
   );
 }

@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 
 export default function TeleConsultModal() {
+  const { closeModal, modalData, addMedicalRecord, showToast } = useApp();
   const { closeModal, modalData, addMedicalRecord, showToast, vets = [], pets = [] } = useApp();
 
   const [micOn, setMicOn] = useState(true);
@@ -19,6 +20,8 @@ export default function TeleConsultModal() {
   const localVideoRef = useRef(null);
   const streamRef = useRef(null);
 
+  const doctorName = modalData?.doctor || 'Dr. Sarah Jenkins';
+  const petName = modalData?.petName || 'Max';
   const doctorName = modalData?.doctor || modalData?.vetName || vets[0]?.name || 'Specialist Clinician';
   const petName = modalData?.petName || pets[0]?.name || 'Companion';
 

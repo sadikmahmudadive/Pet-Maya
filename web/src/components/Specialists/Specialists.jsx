@@ -25,6 +25,8 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+// ── Specialty Filter Categories ──────────────────────────────────────────────
+const SPECIALTY_CATEGORIES = [
 // ── Specialty Filter Categories fallback ─────────────────────────────────────
 const STATIC_SPECIALTY_CATEGORIES = [
   { id: 'all',       label: 'All Specialties' },
@@ -142,15 +144,19 @@ function getRollingDates() {
 }
 
 export default function Specialists({ onNavigate }) {
+  const { pets = [], openModal, showToast, addAppointment } = useApp();
   const { pets = [], openModal, showToast, addAppointment, vets = [], isVetsLoading, medicalRecords = [] } = useApp();
   const { currentUser } = useAuth();
 
+  // Mode: 'telehealth' (HD Video Teleconsultation) | 'clinic' (In-Clinic Physical Visit)
   // Mode: 'telehealth' | 'clinic'
   const [consultMode, setConsultMode] = useState('telehealth');
 
+  // Specialty category filter
   // Specialty category filter — derived dynamically from vets
   const [selectedSpecialty, setSelectedSpecialty] = useState('all');
 
+  // Selected Clinician for Reservation (default: Dr. Nazmul Hoda matching reference UI)
   // Dynamic specialty categories from vets collection
   const specialtyCategories = useMemo(() => {
     const dynamicSpecialties = [...new Set(
@@ -192,9 +198,11 @@ export default function Specialists({ onNavigate }) {
 
   // Selected Clinician (default to first from Firestore or static)
   const [selectedClinicianId, setSelectedClinicianId] = useState('dr_nazmul');
+  const activeClinician = FACULTY_CLINICIANS.find(c => c.id === selectedClinicianId) || FACULTY_CLINICIANS[1];
   const activeClinician = mappedVets.find(c => c.id === selectedClinicianId) || mappedVets[0] || FACULTY_CLINICIANS[0];
 
   // Schedule Dates
+  const [selectedDate, setSelectedDate] = useState('today'); // 'today' | 'tomorrow' | 'wed' | 'thu'
   const [selectedDate, setSelectedDate] = useState('today');
   const [selectedSlot, setSelectedSlot] = useState('16:30 - 16:55');
 
@@ -202,6 +210,7 @@ export default function Specialists({ onNavigate }) {
   const [selectedCompanionId, setSelectedCompanionId] = useState(() => pets[0]?.id || pets[0]?.petID || '');
   const selectedCompanion = (pets || []).find(p => (p.id || p.petID) === selectedCompanionId) || pets[0];
 
+  // AI Triage Scan Link Checkbox
   // AI Triage Scan Link — link to most recent triage record for selected pet
   const [linkAiScan, setLinkAiScan] = useState(true);
   const latestTriageScan = useMemo(() => {
@@ -217,6 +226,9 @@ export default function Specialists({ onNavigate }) {
 
   // Filtered Clinicians
   const filteredClinicians = useMemo(() => {
+    if (selectedSpecialty === 'all') return FACULTY_CLINICIANS;
+    return FACULTY_CLINICIANS.filter(c => c.specialtyId === selectedSpecialty);
+  }, [selectedSpecialty]);
     if (selectedSpecialty === 'all') return mappedVets.length > 0 ? mappedVets : FACULTY_CLINICIANS;
     return (mappedVets.length > 0 ? mappedVets : FACULTY_CLINICIANS).filter(c => c.specialtyId === selectedSpecialty || (c.role || '').toLowerCase().includes(selectedSpecialty));
   }, [mappedVets, selectedSpecialty]);
@@ -245,6 +257,8 @@ export default function Specialists({ onNavigate }) {
         clinic: activeClinician.clinic || 'Pet Maya Clinical Center',
         petId: selectedCompanion?.id || selectedCompanion?.petID,
         petName: selectedCompanion?.name || 'Companion',
+        date: selectedDate === 'today' ? '2026-02-24' : '2026-02-25',
+        time: selectedSlot,
         date: selectedDate === 'today' ? new Date().toISOString().split('T')[0] : '2026-02-25',
         time: selectedSlot || '10:00 AM',
         type: consultMode === 'telehealth' ? 'Video Telehealth' : 'In-Clinic Physical',
@@ -399,6 +413,7 @@ export default function Specialists({ onNavigate }) {
           gap: '10px',
           flexWrap: 'wrap'
         }}>
+          {SPECIALTY_CATEGORIES.map(category => {
           {specialtyCategories.map(category => {
             const isSelected = selectedSpecialty === category.id;
             return (
@@ -919,6 +934,12 @@ export default function Specialists({ onNavigate }) {
                 gap: '6px',
                 marginBottom: '10px'
               }}>
+                {[
+                  { id: 'today',    day: 'TODAY',    date: 'Feb 24' },
+                  { id: 'tomorrow', day: 'TOMORROW', date: 'Feb 25' },
+                  { id: 'wed',      day: 'WED',      date: 'Feb 26' },
+                  { id: 'thu',      day: 'THU',      date: 'Feb 27' }
+                ].map(item => {
                 {rollingDates.map(item => {
                   const isSelected = selectedDate === item.id;
                   return (
