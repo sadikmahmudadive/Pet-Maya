@@ -500,11 +500,11 @@ export default function Dashboard({ onNavigate }) {
             ════════════════════════════════════════════════════════════════ */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
           gap: '24px',
           alignItems: 'flex-start',
           marginBottom: '40px'
-        }}>
+        }} className="dashboard-main-grid">
           
           {/* ─────────────────────────────────────────────────────────────
               COLUMN 1 (LEFT): BIOMETRIC COMPOSITE - REAL-TIME VITALS

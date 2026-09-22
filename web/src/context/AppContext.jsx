@@ -665,23 +665,9 @@ export function AppProvider({ children }) {
             };
           });
           setProducts(fetchedProducts);
-
-          // Merge with canonical INITIAL_PRODUCTS (24 clinical formulations)
-          const productMap = new Map();
-          INITIAL_PRODUCTS.forEach(p => productMap.set(p.id, p));
-          fetchedProducts.forEach(fp => {
-            if (productMap.has(fp.id)) {
-              productMap.set(fp.id, { ...productMap.get(fp.id), ...fp });
-            } else {
-              productMap.set(fp.id, fp);
-            }
-          });
-          const mergedProducts = Array.from(productMap.values());
-          setProducts(mergedProducts);
           setIsProductsLoading(false);
           try {
             localStorage.setItem('pm_cached_products', JSON.stringify(fetchedProducts));
-            localStorage.setItem('pm_cached_products', JSON.stringify(mergedProducts));
           } catch (_) {}
         } else {
           setProducts(INITIAL_PRODUCTS);

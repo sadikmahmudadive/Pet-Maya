@@ -119,7 +119,7 @@ export const INITIAL_PRODUCTS = [
     isRx: true,
     ctaText: '+ Quick Add',
     stock: 28,
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAyyaRDTb2W0SyWzpotHdYAApqW2ydxhtGyeEKl6loLi_sYPbDWkdK5abfVRN9IKB4VURTDfr4KM87oTm4tTleP5tpUVnjtMaFBhPdmHM5VsoerwkyzFt0iGGLkM92fmTpK6cSKeAtoffqDf8pMSx5UIR2kr0CXLUKEcWxhdQNDi6xwl6s-upiyklCSkWtQom61laln9mF-vojFZAeX8erkCObUVa0YkuH810Jx9alUj5Y2EBk1q8y5'
+    image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&auto=format&fit=crop&q=80'
   },
   {
     id: 'p2',
@@ -136,7 +136,7 @@ export const INITIAL_PRODUCTS = [
     isRx: false,
     ctaText: '+ Quick Add',
     stock: 15,
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB9U3FvzjziZczps6X5sPuuKuOX40qPLobWacnfI85tXLCZynTpweICAvn1dLwFc9T5lqog-bfsF38U9Dym32m7PzER89u92kYfrWQZMXJVhsSwuSAYglUNVMBtRSS_UPDx21dAcpP859PySdRyKwRCayRXp0_C6n0msFfQiMHQ4NavEuLEEtANuQeqX6v63iNpa9j2pOz8oP7OznX_dJp2msH0v7vP4bj-QRFW8ZLuf_lel-VHhL0L'
+    image: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=600&auto=format&fit=crop&q=80'
   },
   {
     id: 'p3',
@@ -155,7 +155,7 @@ export const INITIAL_PRODUCTS = [
     isRx: true,
     ctaText: '❄️ Reserve Rx',
     stock: 45,
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCl5hQZ6ayu5ehyl5fSHlkzD2Mfci7ba4G5q4HZbE6yHowWAuV0pLdSTsGsvDQSjSQG1X76gwnYLJk3Ojlx7jPKLE5GOWy31Z0bYwwMHrwhqCQiPqGjU2WORBhZB_7wXYga5YQgph5DnjXRDVrhapnWE-Ko5xCvXt0UX9m0N7qFFiQzIG-VWAEZKH33hGIJZ_PDZPYWVyv-hXWuwXNcldIw0YakHmMrkSdcx9tUP3i87_EOQM-qKbsU'
+    image: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=600&auto=format&fit=crop&q=80'
   },
   {
     id: 'p4',
@@ -172,7 +172,7 @@ export const INITIAL_PRODUCTS = [
     isRx: false,
     ctaText: '+ Quick Add',
     stock: 22,
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAtnwsm_JiwhU3Ov-f5bQDXY-4k8fGBLuVf7PSzSjR4M3p6D32krDyyQplZFL0O3qGzaXhazXOi84U-lYKxymoS2pLtaszYPb5w-tlmgWY0FE432Btn5Dl7qVgXk7bkuem38s2Ow4xx35YI_VHtZd4fNB1YPq2HjNyiORfxzRLPHiWO6wEl9WrucZHItG-glHVv0jKeJ165nrNmdQrnN1XJ_pkpAiaKPaezgoIcAUk0SCcf6P2AoR0A'
+    image: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=600&auto=format&fit=crop&q=80'
   },
   {
     id: 'p5',

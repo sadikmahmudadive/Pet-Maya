@@ -2756,10 +2756,76 @@ html, body {
   .cart-grid-layout,
   .checkout-grid-layout,
   .petgps-main-layout,
-  .shop-coldchain-grid {
+  .shop-coldchain-grid,
+  .specialists-main-layout,
+  .shop-main-layout,
+  .journal-main-layout,
+  .passport-main-layout,
+  .triage-main-layout {
     grid-template-columns: 1fr !important;
   }
   section[style*="grid-template-columns: 1.18fr 1fr"] {
     grid-template-columns: 1fr !important;
+  }
+}
+
+/* Tablet & Mobile Global Responsiveness Enhancements */
+@media (max-width: 1024px) {
+  .shop-main-layout,
+  .specialists-main-layout,
+  .journal-main-layout,
+  .passport-main-layout,
+  .triage-main-layout,
+  .dashboard-main-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .shop-products-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .shop-products-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .modal-dialog,
+  .modal-content-wrap {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    padding: 16px !important;
+    margin: 8px auto !important;
+  }
+
+  /* Responsive Padding & Spacing for Small Screens */
+  section, .editorial-section {
+    padding-top: 32px !important;
+    padding-bottom: 32px !important;
+  }
+
+  .editorial-container,
+  .editorial-container-narrow {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  h1, .hero-headline {
+    font-size: 26px !important;
+  }
+  h2, .section-headline {
+    font-size: 20px !important;
+  }
+
+  .apple-cta-group {
+    flex-direction: column !important;
+    width: 100% !important;
+  }
+
+  .apple-cta-group > * {
+    width: 100% !important;
+    justify-content: center !important;
   }
 }

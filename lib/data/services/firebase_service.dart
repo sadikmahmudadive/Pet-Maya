@@ -317,6 +317,28 @@ class FirebaseService {
     }
   }
 
+  /// Stream live products catalog from Firestore
+  Stream<List<ProductModel>> streamProducts() {
+    return _firestore
+        .collection('products')
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => ProductModel.fromMap(doc.data(), doc.id))
+            .toList());
+  }
+
+  /// Save or update a product in Firestore
+  Future<void> saveProduct(ProductModel product) async {
+    try {
+      await _firestore
+          .collection('products')
+          .doc(product.id)
+          .set(product.toMap(), SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('[FirebaseService] saveProduct error: $e');
+    }
+  }
+
   /// Purge all user data from Firestore
   Future<void> deleteUserData(String userId) async {
     // 1. Delete user profile

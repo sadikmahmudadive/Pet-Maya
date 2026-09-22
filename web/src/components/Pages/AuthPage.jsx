@@ -404,8 +404,9 @@ export default function AuthPage({ initialMode = 'signin', onNavigate }) {
                 backgroundColor: '#ECE7E4'
               }}>
                 <img
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0Prr7aYyo07rpD9iLCkKftywJ8lHGRxqtqSyAKiZBW4fjCxSJ0UmDyzawYAXXFZ53Pp3udPPTBip_gvNSTpX-f7VshOPY0V3K3xjWbAGKRX-ciPi3sVSBYsUVqOnLjf6PdIqn-wSW86S28bv2rYEv0ytffB8OJEM7XcIKMXrr88EPZ7Y2ya-QmTe3d89axfxHr9Cw7roIWkbFMiMziIuZlQkNoBJYeHFQEs3muapmOKx9kjDqOI0H"
+                  src="https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=1000&q=80"
                   alt="A serene golden retriever resting on a sunlit rug"
+                  onError={(e) => { e.target.src = 'assets/images/Pet_1.jpg'; }}
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 />
                 <div style={{

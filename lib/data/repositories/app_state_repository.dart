@@ -114,6 +114,7 @@ class AppStateRepository extends ChangeNotifier {
   // ─── Managed Stream Subscriptions (Prevents Memory & Listener Leaks) ───
   StreamSubscription? _petsSub;
   StreamSubscription? _vetsSub;
+  StreamSubscription? _productsSub;
   StreamSubscription? _eventsSub;
   StreamSubscription? _serviceRecordsSub;
   StreamSubscription? _ordersSub;
@@ -131,6 +132,8 @@ class AppStateRepository extends ChangeNotifier {
     _petsSub = null;
     _vetsSub?.cancel();
     _vetsSub = null;
+    _productsSub?.cancel();
+    _productsSub = null;
     _eventsSub?.cancel();
     _eventsSub = null;
     _serviceRecordsSub?.cancel();
@@ -503,6 +506,7 @@ class AppStateRepository extends ChangeNotifier {
       _currentUser = user;
 
       // Always reload products in parallel
+      if (_productsSub == null) _listenToProducts();
       await _loadProducts();
 
       // Only establish listeners if not already active to prevent socket churn
@@ -573,6 +577,19 @@ class AppStateRepository extends ChangeNotifier {
       onError: (e) =>
           debugPrint('[AppStateRepository] _listenToPets error: $e'),
     );
+  }
+
+  void _listenToProducts() {
+    _productsSub?.cancel();
+    _productsSub = _firebase.streamProducts().listen((fetched) {
+      if (fetched.isNotEmpty) {
+        _products
+          ..clear()
+          ..addAll(fetched);
+        _localCache.saveProducts(_products);
+        _debouncedNotify();
+      }
+    });
   }
 
   void _listenToVets() {

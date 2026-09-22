@@ -69,7 +69,7 @@ export default function LandingPage({ onNavigate }) {
       desc: 'Monthly oral prophylaxis against heartworm, ticks, fleas, and mites.',
       price: 1650,
       unit: '3-month blister',
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAyyaRDTb2W0SyWzpotHdYAApqW2ydxhtGyeEKl6loLi_sYPbDWkdK5abfVRN9IKB4VURTDfr4KM87oTm4tTleP5tpUVnjtMaFBhPdmHM5VsoerwkyzFt0iGGLkM92fmTpK6cSKeAtoffqDf8pMSx5UIR2kr0CXLUKEcWxhdQNDi6xwl6s-upiyklCSkWtQom61laln9mF-vojFZAeX8erkCObUVa0YkuH810Jx9alUj5Y2EBk1q8y5'
+      image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=600&q=80'
     },
     {
       id: 'p2',
@@ -79,7 +79,7 @@ export default function LandingPage({ onNavigate }) {
       desc: 'Formulated with highly digestible proteins, prebiotics, and EPA/DHA.',
       price: 3450,
       unit: '4.0 kg bag',
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB9U3FvzjziZczps6X5sPuuKuOX40qPLobWacnfI85tXLCZynTpweICAvn1dLwFc9T5lqog-bfsF38U9Dym32m7PzER89u92kYfrWQZMXJVhsSwuSAYglUNVMBtRSS_UPDx21dAcpP859PySdRyKwRCayRXp0_C6n0msFfQiMHQ4NavEuLEEtANuQeqX6v63iNpa9j2pOz8oP7OznX_dJp2msH0v7vP4bj-QRFW8ZLuf_lel-VHhL0L'
+      image: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&w=600&q=80'
     },
     {
       id: 'p3',
@@ -89,7 +89,7 @@ export default function LandingPage({ onNavigate }) {
       desc: 'Insulated temp-logged delivery with certified clinical batch serial.',
       price: 850,
       unit: 'Single Vial + Ice Core',
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCl5hQZ6ayu5ehyl5fSHlkzD2Mfci7ba4G5q4HZbE6yHowWAuV0pLdSTsGsvDQSjSQG1X76gwnYLJk3Ojlx7jPKLE5GOWy31Z0bYwwMHrwhqCQiPqGjU2WORBhZB_7wXYga5YQgph5DnjXRDVrhapnWE-Ko5xCvXt0UX9m0N7qFFiQzIG-VWAEZKH33hGIJZ_PDZPYWVyv-hXWuwXNcldIw0YakHmMrkSdcx9tUP3i87_EOQM-qKbsU'
+      image: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=600&q=80'
     },
     {
       id: 'p4',
@@ -99,7 +99,7 @@ export default function LandingPage({ onNavigate }) {
       desc: 'Clinically proven chondroprotective support for senior & active mobility.',
       price: 2100,
       unit: '30 Chewable Tabs',
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAtnwsm_JiwhU3Ov-f5bQDXY-4k8fGBLuVf7PSzSjR4M3p6D32krDyyQplZFL0O3qGzaXhazXOi84U-lYKxymoS2pLtaszYPb5w-tlmgWY0FE432Btn5Dl7qVgXk7bkuem38s2Ow4xx35YI_VHtZd4fNB1YPq2HjNyiORfxzRLPHiWO6wEl9WrucZHItG-glHVv0jKeJ165nrNmdQrnN1XJ_pkpAiaKPaezgoIcAUk0SCcf6P2AoR0A'
+      image: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=600&q=80'
     }
   ];
 
@@ -140,7 +140,7 @@ export default function LandingPage({ onNavigate }) {
       readTime: '6 Min Read',
       title: 'Beyond Kibble: Microbiome Diversification in Senior Canines',
       excerpt: 'A veterinary look at short-chain fatty acids, enterocyte vitality, and the scientific calibration of gut biodiversity.',
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBCTG161_-30cq7pyoNxdxZsTFRXq_3S3CEpk1schZ0tM6ubQAQiW-3SscP-g7brCTyemZmh0SUMqQPeYA3B3PheTWt7SE0_VNZ7OeTb4Fj30IpTuopvmuTlhHPWSHzvykO0qmdx0YuP34HuMAqAgYGLPLljQT31C1W0OGqLLG_Ix_dR-Jnmp5KgJ6W99YgI32Ueg05cGk2f-XYLE2m38XFQCgPFLox6ngWVPGAFMSN0PsWwFRBTJPG'
+      image: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=600&q=80'
     },
     {
       id: 'art2',
@@ -148,7 +148,7 @@ export default function LandingPage({ onNavigate }) {
       readTime: '4 Min Read',
       title: 'The Silent Renal Index: Deciphering SDMA Before Creatinine Spikes',
       excerpt: 'How contemporary symmetric dimethylarginine screening detects kidney dysfunction up to 17 months earlier than conventional tests.',
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuApSEASDFKwzPeG9HuGX4dTl68IVTage1i_V6SCTa3xjwbqCO-36_BQaD7KRP508Lih3lb8iDBGoRmqkvDFyuCkRpi2RebI_IqHn4tdO05kMnVBvWvPiqglBEhhf3j1xYfSKVwZFstVUyV6qRlkg2QlXMnbR4DnXqIpytXPKwJSnlKM1Hvz-bCMJ0j58yi1PBFG9Wi-QxRsTDSzCsr0w94zxUAFH6CtnLOQJHl-Qbce7OXQUh5_mrt4'
+      image: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=600&q=80'
     }
   ];
 
@@ -325,8 +325,9 @@ export default function LandingPage({ onNavigate }) {
               backgroundColor: '#EFEFEA'
             }}>
               <img
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYFuFEX44Uc7Gl_EA6UI3koMPA0GHbxpHv4uzyM-NhstFZK80Pgmd7J58cf-P_2X-1ZsTz1eVi0kOTT5XmwndUrWwYHcugyuWCWLbIYQ-vuWYF0qP4FMOEHaYgv2kjZ_3jX6cjuNDbO8tIELKoyqXSABoXLFts6j1g8mJN4orPxG5BbUFmw0n8-KLnCDA48kN-mQYwq5XZ2boybhW9mFHvTUh2GNNArsLn4ZYjFefhMkSIM5Y2VWG6"
+                src="https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=1200&q=80"
                 alt="A tranquil golden retriever resting peacefully beside sunlit minimalist window"
+                onError={(e) => { e.target.src = 'assets/images/Pet_1.jpg'; }}
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
 
@@ -793,8 +794,9 @@ export default function LandingPage({ onNavigate }) {
 
                 <div style={{ width: '100%', height: '180px', borderRadius: '12px', overflow: 'hidden', backgroundColor: '#EFEFEA' }}>
                   <img
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuCs0_jT2c5SFLFxzgBTifOfd9_jM01PN4UidNRUZGMYDIIu7C3vYlf_kj4y6YP07nUrUmOdXfVbIjWTJQGNJ5gjd4fpBQHD-ZgBGnBj6HxT0vnxiWBf0yXY5Ll5aaog8l9VWcPCDLzANE25bHKFvHhGunCu_XMWlnUgqmR0vaswxMN1rAtcvCuwOFaZzD9F-6J6ihovbWJ4zZXIbKoKmL3YjVKvvNBoVrn8hXSEyztal4aInHkPDmB3"
+                    src="https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=600&q=80"
                     alt={companionName}
+                    onError={(e) => { e.target.src = 'assets/images/Pet_2.jpg'; }}
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   />
                 </div>
@@ -1335,9 +1337,10 @@ export default function LandingPage({ onNavigate }) {
                 {/* Phone Mockup Image */}
                 <div style={{ width: '100%', borderRadius: '16px', overflow: 'hidden', backgroundColor: '#EFEFEA' }}>
                   <img
-                    src="https://lh3.googleusercontent.com/aida/AEtjO1WKw2bYnnDWFbk2fwYuWS9sZ0H1HltnfG_gQ08t9GxtbfTIgD8WQcJ3pLnBfwNtHPgmgJFrTBCTM_C91zrVnUzm-i92YVUx43DgmRJHT1oNAvOG0-pQbrgSdfGnFsdd6qAz8NVCvejjTh7UajiRyC3yw-Ym9ShzG74JI9wIiqZpyA5nvMgW3qaIerUKqqvvb-vGEoCN3HVc4GnrLosMDD749wAY1ox-965FcSojF8IG_rD0Gf3v3chJtr8"
+                    src="https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&w=800&q=80"
                     alt="Pet Maya mobile app preview"
-                    style={{ width: '100%', height: 'auto', display: 'block' }}
+                    onError={(e) => { e.target.src = 'assets/images/Pet_1.jpg'; }}
+                    style={{ width: '100%', height: '220px', objectFit: 'cover', display: 'block' }}
                   />
                 </div>
 
