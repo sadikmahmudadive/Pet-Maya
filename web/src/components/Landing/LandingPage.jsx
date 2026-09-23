@@ -103,16 +103,22 @@ export default function LandingPage({ onNavigate }) {
     }
   ];
 
-  const formularyItems = products.length > 0 ? products.slice(0, 4).map((p) => ({
-    id: p.id,
-    name: p.name || 'Veterinary Formulation',
-    badge: p.isRx ? 'Schedule Rx' : (p.badge || p.category || 'Clinical'),
-    category: p.category || p.subtitle || 'Formulation',
-    desc: p.description || p.shortDescription || '',
-    price: typeof p.price === 'number' ? p.price : (parseInt(p.price) || 0),
-    unit: p.unit || p.size || '1 Unit',
-    image: p.image || p.photo || ''
-  })) : fallbackFormulary;
+  const formularyItems = products.length > 0 ? products.slice(0, 4).map((p) => {
+    const rawDesc = p.shortDescription || p.description || 'Veterinary-grade formulation.';
+    const cleanDesc = rawDesc.replace(/\s+/g, ' ').trim();
+    const shortDesc = cleanDesc.length > 85 ? cleanDesc.slice(0, 82) + '…' : cleanDesc;
+
+    return {
+      id: p.id,
+      name: p.name || 'Veterinary Formulation',
+      badge: p.isRx ? 'Schedule Rx' : (p.badge || p.category || 'Clinical'),
+      category: p.category || p.brand || 'Formulation',
+      desc: shortDesc,
+      price: typeof p.price === 'number' ? p.price : (parseInt(p.price) || 0),
+      unit: p.unit || p.size || '1 Unit',
+      image: p.image || p.photo || 'assets/images/Pet_1.jpg'
+    };
+  }) : fallbackFormulary;
 
   // Faculty specialists — derived from live Firestore vets collection (capped at 3 for homepage)
   const clinicalFaculty = vets.slice(0, 3).map((v) => ({
@@ -456,30 +462,33 @@ export default function LandingPage({ onNavigate }) {
               <div
                 key={item.id}
                 className="interactive-card"
+                onClick={() => onNavigate ? onNavigate(`shop-product/${item.id}`) : (window.location.hash = `shop-product/${item.id}`)}
                 style={{
-                  backgroundColor: '#FFFFFF',
+                  backgroundColor: 'var(--surface)',
                   borderRadius: '16px',
                   padding: '18px',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
-                  boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
-                  border: '1px solid rgba(222, 217, 214, 0.4)'
+                  boxShadow: 'var(--shadow-sm)',
+                  border: '1px solid var(--border)',
+                  cursor: 'pointer'
                 }}
               >
                 <div>
                   <div style={{
                     position: 'relative',
                     width: '100%',
-                    height: '220px',
+                    height: '200px',
                     borderRadius: '12px',
                     overflow: 'hidden',
-                    backgroundColor: '#F8F3EF',
+                    backgroundColor: 'var(--surface-alt)',
                     marginBottom: '14px'
                   }}>
                     <img
                       src={item.image}
                       alt={item.name}
+                      onError={(e) => { e.target.src = 'assets/images/Pet_1.jpg'; }}
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
                     <span style={{
@@ -502,13 +511,34 @@ export default function LandingPage({ onNavigate }) {
                     </span>
                   </div>
 
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10.5px', textTransform: 'uppercase', color: '#675C58', fontWeight: 600, letterSpacing: '0.04em' }}>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10.5px', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.04em' }}>
                     {item.category}
                   </span>
-                  <h3 style={{ fontSize: '17px', fontWeight: 600, color: '#160F0C', margin: '4px 0 6px' }}>
+                  <h3 style={{
+                    fontSize: '16px',
+                    fontWeight: 600,
+                    color: 'var(--text-main)',
+                    margin: '4px 0 6px',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 1,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}>
                     {item.name}
                   </h3>
-                  <p style={{ fontSize: '13px', color: '#675C58', margin: 0, lineHeight: 1.5 }}>
+                  <p style={{
+                    fontSize: '13px',
+                    color: 'var(--text-secondary)',
+                    margin: 0,
+                    lineHeight: 1.45,
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    height: '38px'
+                  }}>
                     {item.desc}
                   </p>
                 </div>
@@ -516,25 +546,28 @@ export default function LandingPage({ onNavigate }) {
                 <div style={{
                   paddingTop: '16px',
                   marginTop: '16px',
-                  borderTop: '1px solid rgba(222, 217, 214, 0.4)',
+                  borderTop: '1px solid var(--border)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between'
                 }}>
                   <div>
-                    <span style={{ fontSize: '18px', fontWeight: 700, color: '#160F0C' }}>৳{item.price.toLocaleString()}</span>
-                    <span style={{ fontSize: '11px', color: '#675C58', display: 'block' }}>{item.unit}</span>
+                    <span style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-main)' }}>৳{item.price.toLocaleString()}</span>
+                    <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block' }}>{item.unit}</span>
                   </div>
                   <button
-                    onClick={() => handleQuickAdd(item)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleQuickAdd(item);
+                    }}
                     className="btn-elevate"
                     style={{
                       padding: '8px 16px',
                       borderRadius: '9999px',
-                      backgroundColor: addedItems[item.id] ? '#45848D' : '#160F0C',
-                      color: '#FFFFFF',
+                      backgroundColor: addedItems[item.id] ? 'var(--primary)' : 'var(--text-main)',
+                      color: addedItems[item.id] ? '#FFFFFF' : 'var(--bg)',
                       fontSize: '12.5px',
-                      fontWeight: 500,
+                      fontWeight: 600,
                       border: 'none',
                       cursor: 'pointer',
                       display: 'flex',
