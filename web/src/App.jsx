@@ -299,7 +299,6 @@ function MainContent() {
 
   if (isAdminSubdomain) {
     return (
-      <div className="app-container" style={{ padding: '24px 16px' }}>
       <div style={{ minHeight: '100vh', width: '100%', backgroundColor: 'var(--bg)', color: 'var(--text-main)' }}>
         <AdminPortal />
         <ModalRoot />
