@@ -65,6 +65,9 @@ import {
   Video,
   Download,
   ChevronRight
+  ChevronRight,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -165,6 +168,9 @@ export default function AdminPortal() {
     updateGlobalBanner, 
     openModal, 
     showToast 
+    showToast,
+    theme,
+    toggleTheme
   } = useApp();
   const { currentUser } = useAuth();
 
@@ -947,6 +953,7 @@ export default function AdminPortal() {
 
   return (
     <div className="admin-page-layout" style={{ display: 'flex', gap: '24px', width: '100%', paddingBottom: '60px', position: 'relative', background: '#FAFAF7' }}>
+    <div className="admin-page-layout" style={{ display: 'flex', gap: '24px', width: '100%', minHeight: '100vh', paddingBottom: '60px', position: 'relative', backgroundColor: 'var(--bg)', color: 'var(--text-main)' }}>
       
       {/* ── MOBILE / TABLET LEFT DECK TOGGLE BAR ── */}
       <div className="mobile-deck-toggle-bar" style={{
@@ -992,6 +999,8 @@ export default function AdminPortal() {
           flexShrink: 0,
           backgroundColor: '#F5F2EF',
           borderRight: '1px solid rgba(0,0,0,0.06)',
+          backgroundColor: 'var(--surface)',
+          borderRight: '1px solid var(--border)',
           padding: '24px 16px',
           display: 'flex',
           flexDirection: 'column',
@@ -1008,14 +1017,18 @@ export default function AdminPortal() {
           <div style={{ padding: '0 8px 16px 8px', marginBottom: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}>
               <h2 style={{ fontSize: '20px', fontWeight: 800, letterSpacing: '-0.02em', margin: 0, color: '#160F0C' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+              <h2 style={{ fontSize: '20px', fontWeight: 800, letterSpacing: '-0.02em', margin: 0, color: 'var(--text-main)' }}>
                 Pet Maya
               </h2>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
               <span style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.08em', color: '#10B981', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--primary)', textTransform: 'uppercase' }}>
                 ● Terminal Active
               </span>
               <span style={{ fontSize: '11px', color: '#675C58', fontWeight: 600, fontFamily: 'var(--font-mono, monospace)' }}>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, fontFamily: 'var(--font-mono, monospace)' }}>
                 <Lock size={10} style={{ display: 'inline', marginRight: '4px' }}/>admin2026
               </span>
             </div>
@@ -1030,6 +1043,7 @@ export default function AdminPortal() {
                     fontSize: '10px',
                     fontWeight: 700,
                     color: '#8A8F8B',
+                    color: 'var(--text-muted)',
                     letterSpacing: '0.06em',
                     marginTop: '20px',
                     marginBottom: '8px',
@@ -1059,6 +1073,9 @@ export default function AdminPortal() {
                     border: 'none',
                     backgroundColor: isActive ? '#FFFFFF' : 'transparent',
                     color: isActive ? '#0D9488' : '#5C524E',
+                    border: isActive ? '1px solid var(--primary-tint)' : '1px solid transparent',
+                    backgroundColor: isActive ? 'var(--surface-alt)' : 'transparent',
+                    color: isActive ? 'var(--primary)' : 'var(--text-secondary)',
                     fontWeight: isActive ? 700 : 500,
                     fontSize: '12.5px',
                     cursor: 'pointer',
@@ -1074,6 +1091,7 @@ export default function AdminPortal() {
                   {item.count !== undefined && item.count > 0 && (
                     <span style={{
                       backgroundColor: item.highlight ? '#EF4444' : (isActive ? 'var(--primary)' : 'var(--surface)'),
+                      backgroundColor: item.highlight ? '#EF4444' : (isActive ? 'var(--primary)' : 'var(--surface-alt)'),
                       color: item.highlight || isActive ? '#FFFFFF' : 'var(--text-muted)',
                       fontSize: '10px',
                       fontWeight: 800,
@@ -1092,18 +1110,52 @@ export default function AdminPortal() {
 
         {/* Bottom Profile & Exit Area */}
         <div style={{ paddingTop: '16px', borderTop: '1px solid var(--border-subtle)' }}>
+        <div style={{ paddingTop: '16px', borderTop: '1px solid var(--border)' }}>
+          {/* Theme Switcher Toggle */}
+          <button
+            onClick={toggleTheme}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              width: '100%',
+              padding: '8px 12px',
+              borderRadius: '8px',
+              border: '1px solid var(--border)',
+              backgroundColor: 'var(--surface-alt)',
+              color: 'var(--text-main)',
+              fontSize: '12px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              marginBottom: '14px',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {theme === 'dark' ? <Moon size={14} color="var(--primary)" /> : <Sun size={14} color="#F59E0B" />}
+              <span>{theme === 'dark' ? 'Dark Mode' : 'Light Mode'}</span>
+            </div>
+            <span style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Switch</span>
+          </button>
+
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
             <span style={{ fontSize: '10.5px', color: '#10B981', fontWeight: 800 }}>● Terminal #01</span>
             <span style={{ fontSize: '10.5px', color: '#675C58', fontWeight: 600 }}>admin2026</span>
+            <span style={{ fontSize: '10.5px', color: 'var(--primary)', fontWeight: 800 }}>● Terminal #01</span>
+            <span style={{ fontSize: '10.5px', color: 'var(--text-muted)', fontWeight: 600 }}>admin2026</span>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '10px', color: '#675C58' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '10px', color: 'var(--text-muted)' }}>
               <span style={{ fontWeight: 600 }}>COLD NETWORK</span>
               <span style={{ color: '#10B981', fontWeight: 800 }}>● 3.8°C NOMINAL</span>
+              <span style={{ color: 'var(--primary)', fontWeight: 800 }}>● 3.8°C NOMINAL</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '10px', color: '#675C58' }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}><CheckCircle size={10} color="#160F0C" /> Verified</span>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '10px', color: 'var(--text-muted)' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}><CheckCircle size={10} color="var(--primary)" /> Verified</span>
               <span style={{ fontWeight: 600 }}>v4.12.0</span>
             </div>
           </div>

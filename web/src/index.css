@@ -2854,3 +2854,86 @@ html, body {
     justify-content: center !important;
   }
 }
+
+/* ═════════════════════════════════════════════════════════════════
+   ADMIN PORTAL — DARK & LIGHT THEME COMPLETE HARMONIZATION
+   ═════════════════════════════════════════════════════════════════ */
+.admin-page-layout {
+  background-color: var(--bg);
+  color: var(--text-main);
+  min-height: 100vh;
+}
+
+.admin-left-deck {
+  background-color: var(--surface);
+  border-right: 1px solid var(--border);
+  color: var(--text-main);
+}
+
+[data-theme="dark"] .admin-page-layout {
+  background-color: #021E20 !important;
+  color: #FFFFFF !important;
+}
+
+[data-theme="dark"] .admin-left-deck {
+  background-color: #061B1D !important;
+  border-right: 1px solid rgba(26, 182, 128, 0.18) !important;
+  color: #FFFFFF !important;
+}
+
+[data-theme="dark"] .admin-left-deck button {
+  color: #9DB4B0;
+}
+
+[data-theme="dark"] .admin-left-deck button:hover {
+  background-color: #0B2826 !important;
+  color: #FFFFFF !important;
+}
+
+[data-theme="dark"] .admin-left-deck button[style*="backgroundColor: var(--surface-alt)"],
+[data-theme="dark"] .admin-left-deck button[style*="background-color: var(--surface-alt)"] {
+  background-color: #0E302E !important;
+  color: #2ECC9B !important;
+  border-color: rgba(46, 204, 155, 0.3) !important;
+}
+
+[data-theme="dark"] .admin-page-layout .apple-solid-card {
+  background-color: #0B2826 !important;
+  border-color: rgba(26, 182, 128, 0.22) !important;
+  color: #FFFFFF !important;
+}
+
+[data-theme="dark"] .admin-page-layout table {
+  color: #FFFFFF !important;
+}
+
+[data-theme="dark"] .admin-page-layout tr {
+  border-color: rgba(26, 182, 128, 0.15) !important;
+}
+
+[data-theme="dark"] .admin-page-layout th {
+  background-color: #061B1D !important;
+  color: #8EA6A2 !important;
+  border-color: rgba(26, 182, 128, 0.18) !important;
+}
+
+[data-theme="dark"] .admin-page-layout td {
+  border-color: rgba(26, 182, 128, 0.12) !important;
+  color: #E2E8F0 !important;
+}
+
+[data-theme="dark"] .admin-page-layout select,
+[data-theme="dark"] .admin-page-layout input[type="text"],
+[data-theme="dark"] .admin-page-layout input[type="number"],
+[data-theme="dark"] .admin-page-layout input[type="password"],
+[data-theme="dark"] .admin-page-layout textarea {
+  background-color: #07211F !important;
+  border: 1px solid rgba(26, 182, 128, 0.28) !important;
+  color: #FFFFFF !important;
+}
+
+[data-theme="dark"] .admin-page-layout option {
+  background-color: #0B2826 !important;
+  color: #FFFFFF !important;
+}
+
