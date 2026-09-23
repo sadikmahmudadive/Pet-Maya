@@ -56,8 +56,6 @@ export default function Dashboard({ onNavigate }) {
 
   const guardianDisplayName = currentUser?.name || currentUser?.displayName || 'Pet Guardian';
   const activePet = pets[0] || {
-    name: 'Companion',
-    breed: 'Companion',
     id: 'placeholder',
     name: 'Maya',
     breed: 'Golden Retriever',
@@ -80,7 +78,6 @@ export default function Dashboard({ onNavigate }) {
 
   // Sound Tone Simulation
   const handleSoundTone = () => {
-    showToast(`🔊 Acoustic Chime Emitted on Collar #${activeDevice.collarId || activeDevice.id || 'HALO'}`, 'info');
     showToast(`🔊 Acoustic Chime Emitted on Collar #${activeDevice?.collarId || activeDevice?.id || 'HALO'}`, 'info');
     try {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -502,12 +499,10 @@ export default function Dashboard({ onNavigate }) {
             ════════════════════════════════════════════════════════════════ */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
           gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
           gap: '24px',
           alignItems: 'flex-start',
           marginBottom: '40px'
-        }}>
         }} className="dashboard-main-grid">
           
           {/* ─────────────────────────────────────────────────────────────

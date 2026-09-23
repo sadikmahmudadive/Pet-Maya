@@ -333,7 +333,6 @@ export default function LandingPage({ onNavigate }) {
               backgroundColor: '#EFEFEA'
             }}>
               <img
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYFuFEX44Uc7Gl_EA6UI3koMPA0GHbxpHv4uzyM-NhstFZK80Pgmd7J58cf-P_2X-1ZsTz1eVi0kOTT5XmwndUrWwYHcugyuWCWLbIYQ-vuWYF0qP4FMOEHaYgv2kjZ_3jX6cjuNDbO8tIELKoyqXSABoXLFts6j1g8mJN4orPxG5BbUFmw0n8-KLnCDA48kN-mQYwq5XZ2boybhW9mFHvTUh2GNNArsLn4ZYjFefhMkSIM5Y2VWG6"
                 src="https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=1200&q=80"
                 alt="A tranquil golden retriever resting peacefully beside sunlit minimalist window"
                 onError={(e) => { e.target.src = 'assets/images/Pet_1.jpg'; }}
@@ -803,7 +802,6 @@ export default function LandingPage({ onNavigate }) {
 
                 <div style={{ width: '100%', height: '180px', borderRadius: '12px', overflow: 'hidden', backgroundColor: '#EFEFEA' }}>
                   <img
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuCs0_jT2c5SFLFxzgBTifOfd9_jM01PN4UidNRUZGMYDIIu7C3vYlf_kj4y6YP07nUrUmOdXfVbIjWTJQGNJ5gjd4fpBQHD-ZgBGnBj6HxT0vnxiWBf0yXY5Ll5aaog8l9VWcPCDLzANE25bHKFvHhGunCu_XMWlnUgqmR0vaswxMN1rAtcvCuwOFaZzD9F-6J6ihovbWJ4zZXIbKoKmL3YjVKvvNBoVrn8hXSEyztal4aInHkPDmB3"
                     src="https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=600&q=80"
                     alt={companionName}
                     onError={(e) => { e.target.src = 'assets/images/Pet_2.jpg'; }}
@@ -1347,10 +1345,8 @@ export default function LandingPage({ onNavigate }) {
                 {/* Phone Mockup Image */}
                 <div style={{ width: '100%', borderRadius: '16px', overflow: 'hidden', backgroundColor: '#EFEFEA' }}>
                   <img
-                    src="https://lh3.googleusercontent.com/aida/AEtjO1WKw2bYnnDWFbk2fwYuWS9sZ0H1HltnfG_gQ08t9GxtbfTIgD8WQcJ3pLnBfwNtHPgmgJFrTBCTM_C91zrVnUzm-i92YVUx43DgmRJHT1oNAvOG0-pQbrgSdfGnFsdd6qAz8NVCvejjTh7UajiRyC3yw-Ym9ShzG74JI9wIiqZpyA5nvMgW3qaIerUKqqvvb-vGEoCN3HVc4GnrLosMDD749wAY1ox-965FcSojF8IG_rD0Gf3v3chJtr8"
                     src="https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&w=800&q=80"
                     alt="Pet Maya mobile app preview"
-                    style={{ width: '100%', height: 'auto', display: 'block' }}
                     onError={(e) => { e.target.src = 'assets/images/Pet_1.jpg'; }}
                     style={{ width: '100%', height: '220px', objectFit: 'cover', display: 'block' }}
                   />
