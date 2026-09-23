@@ -29,7 +29,8 @@ import {
   Cpu,
   Wifi,
   Play,
-  Pause
+  Pause,
+  Settings
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AppleReveal } from '../Animations/AppleReveal';

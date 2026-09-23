@@ -60,7 +60,11 @@ import {
   Phone,
   Mail,
   UserPlus,
-  Hospital
+  Hospital,
+  Snowflake,
+  Video,
+  Download,
+  ChevronRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 

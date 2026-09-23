@@ -1076,7 +1076,7 @@ export default function CartPage({ onNavigate }) {
                     Apply
                   </button>
                 </div>
-                {couponApplied && (
+                {appliedCoupon && (
                   <div style={{
                     fontSize: '11.5px',
                     fontWeight: 600,
