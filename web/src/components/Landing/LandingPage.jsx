@@ -132,8 +132,6 @@ export default function LandingPage({ onNavigate }) {
     image: v.photo || ''
   }));
 
-  // Editorial journal dispatches matching exact Stitch specification
-  const journalArticles = [
   // Editorial journal dispatches derived from live community posts (or filtered for article type with fallback)
   const fallbackJournalArticles = [
     {
@@ -142,7 +140,6 @@ export default function LandingPage({ onNavigate }) {
       readTime: '6 Min Read',
       title: 'Beyond Kibble: Microbiome Diversification in Senior Canines',
       excerpt: 'A veterinary look at short-chain fatty acids, enterocyte vitality, and the scientific calibration of gut biodiversity.',
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBCTG161_-30cq7pyoNxdxZsTFRXq_3S3CEpk1schZ0tM6ubQAQiW-3SscP-g7brCTyemZmh0SUMqQPeYA3B3PheTWt7SE0_VNZ7OeTb4Fj30IpTuopvmuTlhHPWSHzvykO0qmdx0YuP34HuMAqAgYGLPLljQT31C1W0OGqLLG_Ix_dR-Jnmp5KgJ6W99YgI32Ueg05cGk2f-XYLE2m38XFQCgPFLox6ngWVPGAFMSN0PsWwFRBTJPG'
       image: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=600&q=80'
     },
     {
@@ -159,7 +156,6 @@ export default function LandingPage({ onNavigate }) {
       readTime: '8 Min Read',
       title: 'Navigating UK, EU & UAE Pet Export: A Step-by-Step Biosecurity Protocol',
       excerpt: 'FAVN titre windows, USDA/DEFRA endorsements, tapeworm timing, and avoiding traumatic port quarantine holdovers.',
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuABej4DKT3CNZP08PvnGuZsc2OVsxvU908vK53QW1DBABH9iSs2PWZQ85G8NgfeWoOxkCDPWZtzLJCxAdWvAyMYDAphOaO4aNM9NXL3rnDHg2UK2LWDiGkXIpUQMpkobFPlBhHdQnCO4YVMLhwiwjBjyGaGEE_L8CJc-142i_kCr8iU9maJiRN6vhHMrOsyCsDG7hZnMa80yl9KTdUd7Uu3a4C3kVFXiFygPxAwun2WW5-6LxMUm1Hr'
       image: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=600&q=80'
     }
   ];

@@ -35,8 +35,6 @@ export default function VetBookingFlow({ initialVet, onComplete, onCancel }) {
     rating: 4.9,
     reviewsCount: 68,
     price: '৳500 / session',
-    clinic: 'Greenwood Animal Hospital',
-    photo: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&auto=format&fit=crop&q=80'
     clinic: 'Pet Maya Clinical Center',
     photo: ''
   });
@@ -69,19 +67,15 @@ export default function VetBookingFlow({ initialVet, onComplete, onCancel }) {
     };
   });
 
-  const morningSlots = ['09:30 AM', '10:30 AM', '11:45 AM'];
-  const afternoonSlots = ['02:30 PM', '04:15 PM', '06:00 PM'];
   const morningSlots = selectedVet?.morningSlots || ['09:30 AM', '10:30 AM', '11:45 AM'];
   const afternoonSlots = selectedVet?.afternoonSlots || ['02:30 PM', '04:15 PM', '06:00 PM'];
 
-  // Specialties
   // Dynamic Specialties from vets
   const specialties = [
     { id: 'all', label: 'All Specialties' },
     { id: 'surgery', label: 'Surgery' },
     { id: 'dermatology', label: 'Dermatology' },
     { id: 'cardiology', label: 'Cardiology' },
-    { id: 'nutrition', label: 'Nutrition' }
     { id: 'nutrition', label: 'Nutrition' },
     ...Array.from(new Set((vets || []).map(v => v.specialty || v.tag).filter(Boolean))).map(s => ({ id: s.toLowerCase(), label: s }))
   ];
@@ -95,7 +89,6 @@ export default function VetBookingFlow({ initialVet, onComplete, onCancel }) {
   }) : [selectedVet];
 
   const handleConfirmAppointment = () => {
-    const newId = 'PM-APT-' + Math.floor(100000 + Math.random() * 900000);
     const newId = `appt_${Date.now()}`;
     setBookingId(newId);
 
@@ -104,7 +97,6 @@ export default function VetBookingFlow({ initialVet, onComplete, onCancel }) {
       title: `${consultationMode.includes('Video') ? 'Video Tele-Consult' : 'Clinical Visit'} with ${selectedVet.name}`,
       doctor: selectedVet.name,
       doctorPhoto: selectedVet.photo,
-      clinic: selectedVet.clinic,
       clinic: selectedVet.clinic || 'Pet Maya Health Center',
       petName: selectedPet,
       date: selectedDate,
