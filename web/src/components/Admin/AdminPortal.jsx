@@ -1,26 +1,26 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
-import { 
-  db, 
-  collection, 
-  onSnapshot, 
-  query, 
-  orderBy, 
-  doc, 
-  setDoc, 
-  updateDoc, 
+import {
+  db,
+  collection,
+  onSnapshot,
+  query,
+  orderBy,
+  doc,
+  setDoc,
+  updateDoc,
   deleteDoc,
   addDoc
 } from '../../config/firebase';
-import { 
-  ShieldCheck, 
-  Send, 
-  Edit, 
-  CheckCircle2, 
-  XCircle, 
-  DollarSign, 
-  Users, 
+import {
+  ShieldCheck,
+  Send,
+  Edit,
+  CheckCircle2,
+  XCircle,
+  DollarSign,
+  Users,
   Radio,
   Lock,
   LogOut,
@@ -159,24 +159,24 @@ function UserAvatar({ user, size = 40 }) {
 }
 
 export default function AdminPortal() {
-  const { 
-    vets, 
+  const {
+    vets,
     addService,
     updateService,
     deleteService,
     updateServiceVerification,
-    products, 
-    addProduct, 
-    updateProduct, 
-    deleteProduct, 
-    orders: contextOrders, 
-    updateOrderStatus, 
-    deleteOrder, 
+    products,
+    addProduct,
+    updateProduct,
+    deleteProduct,
+    orders: contextOrders,
+    updateOrderStatus,
+    deleteOrder,
     updateUserRole,
     updateUserVerification,
     updateUserAccountStatus,
-    globalBanner, 
-    updateGlobalBanner, 
+    globalBanner,
+    updateGlobalBanner,
     showToast,
     theme,
     toggleTheme
@@ -956,8 +956,8 @@ export default function AdminPortal() {
   if (!isAdminAuthenticated) {
     return (
       <div style={{ minHeight: '85vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
-        <div 
-          className="apple-solid-card" 
+        <div
+          className="apple-solid-card"
           style={{ width: '100%', maxWidth: '460px', padding: '44px 32px', textAlign: 'center', backdropFilter: 'blur(20px)', border: '1px solid var(--border)' }}
         >
           <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(239, 68, 68, 0.12)', color: '#EF4444', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 18px' }}>
@@ -972,10 +972,10 @@ export default function AdminPortal() {
           </p>
 
           <form onSubmit={handleAdminLogin} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            <input 
-              type="password" 
-              className="input-clean" 
-              placeholder="Admin Passkey (e.g. admin2026)" 
+            <input
+              type="password"
+              className="input-clean"
+              placeholder="Admin Passkey (e.g. admin2026)"
               value={adminKey}
               onChange={(e) => setAdminKey(e.target.value)}
               style={{ textAlign: 'center', letterSpacing: '0.2em', fontSize: '15px' }}
@@ -998,7 +998,7 @@ export default function AdminPortal() {
     { group: '1. OVERVIEW & TELEMETRY' },
     { id: 'overview', label: 'Central Dashboard', icon: Activity },
     { id: 'hud', label: 'Live Operations Map', icon: MapPin, textBadge: 'HUD', highlight: false },
-    { id: 'finance', label: 'Financial & Revenue', icon: DollarSign, textBadge: `৳${Math.round(totalRevenue/1000)}k`, highlight: true, highlightColor: '#10B981' },
+    { id: 'finance', label: 'Financial & Revenue', icon: DollarSign, textBadge: `৳${Math.round(totalRevenue / 1000)}k`, highlight: true, highlightColor: '#10B981' },
 
     { group: '2. FORMULARY & SKU (#SHOP)' },
     { id: 'shop', label: 'Formulary & SKU Deck', icon: ShoppingBag, textBadge: `${products.length} SKUs`, highlight: false },
@@ -1024,7 +1024,7 @@ export default function AdminPortal() {
 
   return (
     <div className="admin-page-layout" style={{ display: 'flex', gap: '24px', width: '100%', minHeight: '100vh', padding: '16px 24px 60px', position: 'relative', backgroundColor: 'var(--bg)', color: 'var(--text-main)' }}>
-      
+
       {/* ── MOBILE / TABLET LEFT DECK TOGGLE BAR ── */}
       <div className="mobile-deck-toggle-bar" style={{
         display: 'none',
@@ -1130,12 +1130,12 @@ export default function AdminPortal() {
                     setAdminTab(item.id);
                     setIsLeftDeckOpen(false);
                     const targetId = item.id === 'overview' ? 'section-overview' :
-                                     (item.id === 'shop' || item.id === 'cryo' || item.id === 'preset') ? 'section-shop' :
-                                     (item.id === 'orders' || item.id === 'datalogger') ? 'section-orders' :
-                                     (item.id === 'users' || item.id === 'amber') ? 'section-users' :
-                                     (item.id === 'services' || item.id === 'telehealth') ? 'section-services' :
-                                     item.id === 'blogs' ? 'section-blogs' :
-                                     item.id === 'broadcasts' ? 'section-broadcasts' : 'section-overview';
+                      (item.id === 'shop' || item.id === 'cryo' || item.id === 'preset') ? 'section-shop' :
+                        (item.id === 'orders' || item.id === 'datalogger') ? 'section-orders' :
+                          (item.id === 'users' || item.id === 'amber') ? 'section-users' :
+                            (item.id === 'services' || item.id === 'telehealth') ? 'section-services' :
+                              item.id === 'blogs' ? 'section-blogs' :
+                                item.id === 'broadcasts' ? 'section-broadcasts' : 'section-overview';
                     setTimeout(() => {
                       const el = document.getElementById(targetId);
                       if (el) {
@@ -1256,7 +1256,7 @@ export default function AdminPortal() {
             ══════════════════════════════════════════════════════ */}
         {adminTab === 'overview' && (
           <div id="section-overview" style={{ display: 'flex', flexDirection: 'column', gap: '20px', scrollMarginTop: '24px' }}>
-            
+
             {/* Top Command Header Bar */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
               <div>
@@ -1278,10 +1278,10 @@ export default function AdminPortal() {
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <button 
+                <button
                   onClick={handlePingMesh}
                   disabled={isPingingMesh}
-                  className="apple-btn-blue" 
+                  className="apple-btn-blue"
                   style={{ padding: '9px 18px', fontSize: '12.5px', background: 'var(--primary)' }}
                 >
                   <RefreshCw size={14} className={isPingingMesh ? 'spin-anim' : ''} />
@@ -1293,7 +1293,7 @@ export default function AdminPortal() {
                     AD
                   </div>
                   <div>
-                    <div style={{ fontSize: '11.5px', fontWeight: 700, color: 'var(--text-main)', lineHeight: 1.1 }}>Dr. Admin</div>
+                    <div style={{ fontSize: '11.5px', fontWeight: 700, color: 'var(--text-main)', lineHeight: 1.1 }}>Admin</div>
                     <div style={{ fontSize: '9.5px', color: 'var(--text-muted)' }}>Central Command</div>
                   </div>
                 </div>
@@ -1302,7 +1302,7 @@ export default function AdminPortal() {
 
             {/* 4 TOP METRIC CARDS WITH INTERACTIVE CHARTS & PROGRESS BARS */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
-              
+
               {/* Card 1: Cold-Chain Compliance with Segmented Pod Meter */}
               <div className="apple-solid-card" style={{ padding: '20px', textAlign: 'left', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                 <div>
@@ -1323,14 +1323,14 @@ export default function AdminPortal() {
                     </div>
                     <div style={{ display: 'flex', gap: '3px', height: '8px' }}>
                       {[...Array(12)].map((_, i) => (
-                        <div 
-                          key={i} 
-                          style={{ 
-                            flex: 1, 
-                            borderRadius: '4px', 
+                        <div
+                          key={i}
+                          style={{
+                            flex: 1,
+                            borderRadius: '4px',
                             background: 'linear-gradient(180deg, #10B981 0%, #0D9488 100%)',
                             boxShadow: '0 0 4px rgba(16, 185, 129, 0.4)'
-                          }} 
+                          }}
                         />
                       ))}
                     </div>
@@ -1374,14 +1374,14 @@ export default function AdminPortal() {
                         { day: 'S', h: 85 }
                       ].map((bar, i) => (
                         <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', width: '10%' }}>
-                          <div 
-                            style={{ 
-                              width: '100%', 
-                              height: `${(bar.h / 100) * 20}px`, 
-                              borderRadius: '3px 3px 0 0', 
+                          <div
+                            style={{
+                              width: '100%',
+                              height: `${(bar.h / 100) * 20}px`,
+                              borderRadius: '3px 3px 0 0',
                               background: bar.active ? '#10B981' : 'rgba(16, 185, 129, 0.35)',
                               boxShadow: bar.active ? '0 0 6px rgba(16, 185, 129, 0.6)' : 'none'
-                            }} 
+                            }}
                           />
                         </div>
                       ))}
@@ -1414,12 +1414,12 @@ export default function AdminPortal() {
                       <span style={{ color: '#8B5CF6' }}>{Math.round((verifiedServicesCount / (vets.length || 1)) * 100)}% Verified</span>
                     </div>
                     <div style={{ height: '8px', width: '100%', backgroundColor: 'var(--surface-alt)', borderRadius: '9999px', overflow: 'hidden', display: 'flex' }}>
-                      <div 
-                        style={{ 
-                          width: `${Math.round((verifiedServicesCount / (vets.length || 1)) * 100)}%`, 
-                          background: 'linear-gradient(90deg, #8B5CF6, #A855F7)', 
-                          borderRadius: '9999px 0 0 9999px' 
-                        }} 
+                      <div
+                        style={{
+                          width: `${Math.round((verifiedServicesCount / (vets.length || 1)) * 100)}%`,
+                          background: 'linear-gradient(90deg, #8B5CF6, #A855F7)',
+                          borderRadius: '9999px 0 0 9999px'
+                        }}
                       />
                       {pendingServicesCount > 0 && (
                         <div style={{ width: `${Math.round((pendingServicesCount / (vets.length || 1)) * 100)}%`, background: '#F59E0B' }} />
@@ -1463,16 +1463,16 @@ export default function AdminPortal() {
                           <stop offset="100%" stopColor="#3B82F6" stopOpacity="0.0" />
                         </linearGradient>
                       </defs>
-                      <path 
-                        d="M 0 20 Q 20 18, 35 14 T 65 10 T 100 4 L 100 24 L 0 24 Z" 
-                        fill="url(#kycGrad)" 
+                      <path
+                        d="M 0 20 Q 20 18, 35 14 T 65 10 T 100 4 L 100 24 L 0 24 Z"
+                        fill="url(#kycGrad)"
                       />
-                      <path 
-                        d="M 0 20 Q 20 18, 35 14 T 65 10 T 100 4" 
-                        fill="none" 
-                        stroke="#3B82F6" 
-                        strokeWidth="2.5" 
-                        strokeLinecap="round" 
+                      <path
+                        d="M 0 20 Q 20 18, 35 14 T 65 10 T 100 4"
+                        fill="none"
+                        stroke="#3B82F6"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
                       />
                       <circle cx="100" cy="4" r="3" fill="#3B82F6" />
                     </svg>
@@ -1489,10 +1489,10 @@ export default function AdminPortal() {
 
             {/* ── TWO-COLUMN MAIN CONTENT GRID (MATCHING UI REFERENCE) ── */}
             <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: '20px', alignItems: 'start' }}>
-              
+
               {/* ═══ LEFT COLUMN (Vetting Queue & Cryo Formulary Table) ═══ */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                
+
                 {/* 1. Clinical Vetting Queue */}
                 <div className="apple-solid-card" style={{ padding: '24px', textAlign: 'left', border: '1px solid var(--border)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
@@ -1513,11 +1513,11 @@ export default function AdminPortal() {
                     {vets.filter(v => !v.isVerified).slice(0, 3).map(v => (
                       <div key={v.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 14px', background: 'var(--surface-alt)', borderRadius: '12px', border: '1px solid var(--border)' }}>
                         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                          <img 
-                            src={v.photo || 'assets/images/Pet_1.jpg'} 
-                            alt="" 
-                            style={{ width: 42, height: 42, borderRadius: '50%', objectFit: 'cover', border: '1.5px solid var(--border)' }} 
-                            onError={(e) => { e.currentTarget.src = 'assets/images/Pet_1.jpg'; }} 
+                          <img
+                            src={v.photo || 'assets/images/Pet_1.jpg'}
+                            alt=""
+                            style={{ width: 42, height: 42, borderRadius: '50%', objectFit: 'cover', border: '1.5px solid var(--border)' }}
+                            onError={(e) => { e.currentTarget.src = 'assets/images/Pet_1.jpg'; }}
                           />
                           <div>
                             <div style={{ fontWeight: 700, fontSize: '13.5px', color: 'var(--text-main)' }}>{v.name}</div>
@@ -1525,18 +1525,18 @@ export default function AdminPortal() {
                           </div>
                         </div>
                         <div style={{ display: 'flex', gap: '8px' }}>
-                          <button 
+                          <button
                             onClick={() => {
                               setSelectedOrderDetails(null);
                               setAdminTab('services');
                             }}
-                            className="btn-ghost" 
+                            className="btn-ghost"
                             style={{ fontSize: '11.5px', padding: '6px 12px' }}
                           >
                             Review
                           </button>
-                          <button 
-                            onClick={() => updateServiceVerification(v.id, true)} 
+                          <button
+                            onClick={() => updateServiceVerification(v.id, true)}
                             style={{ background: 'var(--primary)', color: '#FFFFFF', border: 'none', borderRadius: '8px', padding: '6px 14px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}
                           >
                             Authorize
@@ -1566,9 +1566,9 @@ export default function AdminPortal() {
                     </div>
 
                     <div style={{ display: 'flex', gap: '6px' }}>
-                      <button 
-                        onClick={() => setAdminTab('shop')} 
-                        className="apple-btn-blue" 
+                      <button
+                        onClick={() => setAdminTab('shop')}
+                        className="apple-btn-blue"
                         style={{ padding: '6px 14px', fontSize: '12px', background: 'var(--primary)' }}
                       >
                         + Manage SKUs
@@ -1600,10 +1600,10 @@ export default function AdminPortal() {
                             <tr key={p.id} style={{ borderBottom: '1px solid var(--border)' }}>
                               <td style={{ padding: '12px 8px' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                  <img 
-                                    src={p.image || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=120&auto=format&fit=crop&q=80'} 
-                                    alt="" 
-                                    style={{ width: 34, height: 34, borderRadius: '8px', objectFit: 'cover', border: '1px solid var(--border)' }} 
+                                  <img
+                                    src={p.image || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=120&auto=format&fit=crop&q=80'}
+                                    alt=""
+                                    style={{ width: 34, height: 34, borderRadius: '8px', objectFit: 'cover', border: '1px solid var(--border)' }}
                                   />
                                   <div>
                                     <div style={{ fontWeight: 700, color: 'var(--text-main)' }}>{p.name}</div>
@@ -1640,9 +1640,9 @@ export default function AdminPortal() {
                                 ৳{p.price}
                               </td>
                               <td style={{ padding: '12px 8px', textAlign: 'right' }}>
-                                <button 
+                                <button
                                   onClick={() => handleOpenEditProduct(p)}
-                                  className="btn-ghost" 
+                                  className="btn-ghost"
                                   style={{ padding: '4px 10px', fontSize: '11.5px' }}
                                 >
                                   Edit
@@ -1660,13 +1660,13 @@ export default function AdminPortal() {
 
               {/* ═══ RIGHT COLUMN (Amber Alert Desk & IoT Pod Telemetry) ═══ */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                
+
                 {/* 1. Amber Alert Urgent Desk */}
-                <div 
-                  className="apple-solid-card" 
-                  style={{ 
-                    padding: '22px', 
-                    textAlign: 'left', 
+                <div
+                  className="apple-solid-card"
+                  style={{
+                    padding: '22px',
+                    textAlign: 'left',
                     border: '1px solid rgba(239, 68, 68, 0.3)',
                     background: 'linear-gradient(135deg, var(--surface) 0%, rgba(239, 68, 68, 0.06) 100%)'
                   }}
@@ -1681,10 +1681,10 @@ export default function AdminPortal() {
                   </div>
 
                   <div style={{ display: 'flex', gap: '14px', alignItems: 'center', marginBottom: '14px' }}>
-                    <img 
-                      src="https://images.unsplash.com/photo-1552053831-71594a27632d?w=200&auto=format&fit=crop&q=80" 
-                      alt="Missing Pet" 
-                      style={{ width: 64, height: 64, borderRadius: '14px', objectFit: 'cover', border: '2px solid #EF4444' }} 
+                    <img
+                      src="https://images.unsplash.com/photo-1552053831-71594a27632d?w=200&auto=format&fit=crop&q=80"
+                      alt="Missing Pet"
+                      style={{ width: 64, height: 64, borderRadius: '14px', objectFit: 'cover', border: '2px solid #EF4444' }}
                     />
                     <div>
                       <div style={{ fontWeight: 800, fontSize: '15px', color: 'var(--text-main)' }}>Milo (Beagle, 2.5 yrs)</div>
@@ -1706,7 +1706,7 @@ export default function AdminPortal() {
                     </div>
                   </div>
 
-                  <button 
+                  <button
                     onClick={handleTriggerAmberBroadcast}
                     disabled={isAmberBroadcasting}
                     style={{
@@ -1782,29 +1782,29 @@ export default function AdminPortal() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', background: 'var(--surface-alt)', borderRadius: '10px' }}>
                       <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-main)' }}>IoT Mesh Auto-Sync (5s)</span>
-                      <input 
-                        type="checkbox" 
-                        checked={autoTelemetrySync} 
-                        onChange={(e) => setAutoTelemetrySync(e.target.checked)} 
-                        style={{ accentColor: 'var(--primary)', cursor: 'pointer', width: 16, height: 16 }} 
+                      <input
+                        type="checkbox"
+                        checked={autoTelemetrySync}
+                        onChange={(e) => setAutoTelemetrySync(e.target.checked)}
+                        style={{ accentColor: 'var(--primary)', cursor: 'pointer', width: 16, height: 16 }}
                       />
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', background: 'var(--surface-alt)', borderRadius: '10px' }}>
                       <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-main)' }}>Cold-Chain Siren Relay</span>
-                      <input 
-                        type="checkbox" 
-                        checked={coldChainAlarm} 
-                        onChange={(e) => setColdChainAlarm(e.target.checked)} 
-                        style={{ accentColor: '#10B981', cursor: 'pointer', width: 16, height: 16 }} 
+                      <input
+                        type="checkbox"
+                        checked={coldChainAlarm}
+                        onChange={(e) => setColdChainAlarm(e.target.checked)}
+                        style={{ accentColor: '#10B981', cursor: 'pointer', width: 16, height: 16 }}
                       />
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', background: 'var(--surface-alt)', borderRadius: '10px' }}>
                       <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-main)' }}>Emergency SMS Dispatch</span>
-                      <input 
-                        type="checkbox" 
-                        checked={autoSmsRelay} 
-                        onChange={(e) => setAutoSmsRelay(e.target.checked)} 
-                        style={{ accentColor: 'var(--primary)', cursor: 'pointer', width: 16, height: 16 }} 
+                      <input
+                        type="checkbox"
+                        checked={autoSmsRelay}
+                        onChange={(e) => setAutoSmsRelay(e.target.checked)}
+                        style={{ accentColor: 'var(--primary)', cursor: 'pointer', width: 16, height: 16 }}
                       />
                     </div>
                   </div>
@@ -1822,13 +1822,13 @@ export default function AdminPortal() {
             ══════════════════════════════════════════════════════ */}
         {(adminTab === 'overview' || adminTab === 'shop' || adminTab === 'cryo' || adminTab === 'preset') && (
           <div id="section-shop" style={{ display: 'flex', flexDirection: 'column', gap: '20px', scrollMarginTop: '24px' }}>
-            
+
             {/* Shop Metrics */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
-              <div 
-                className="apple-solid-card" 
-                style={{ 
-                  padding: '20px 22px', 
+              <div
+                className="apple-solid-card"
+                style={{
+                  padding: '20px 22px',
                   textAlign: 'left',
                   border: '1px solid rgba(16, 185, 129, 0.25)',
                   background: 'linear-gradient(135deg, var(--surface) 0%, rgba(16, 185, 129, 0.08) 100%)'
@@ -2030,16 +2030,16 @@ export default function AdminPortal() {
 
                           <td style={{ padding: '14px 10px', textAlign: 'right' }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '6px' }}>
-                              <button 
-                                className="icon-btn" 
+                              <button
+                                className="icon-btn"
                                 style={{ width: 32, height: 32, color: 'var(--primary)' }}
                                 onClick={() => handleOpenEditProduct(p)}
                                 title="Edit Product"
                               >
                                 <Edit size={14} />
                               </button>
-                              <button 
-                                className="icon-btn" 
+                              <button
+                                className="icon-btn"
                                 style={{ width: 32, height: 32, color: '#EF4444' }}
                                 onClick={() => handleDeleteProduct(p.id, p.name)}
                                 title="Delete Product"
@@ -2063,7 +2063,7 @@ export default function AdminPortal() {
             ══════════════════════════════════════════════════════ */}
         {(adminTab === 'overview' || adminTab === 'orders' || adminTab === 'datalogger') && (
           <div id="section-orders" style={{ display: 'flex', flexDirection: 'column', gap: '20px', scrollMarginTop: '24px' }}>
-            
+
             {/* Orders Metrics */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
               <div className="apple-solid-card" style={{ padding: '18px 20px', textAlign: 'left', border: '1px solid var(--border)' }}>
@@ -2353,7 +2353,7 @@ export default function AdminPortal() {
                       return (
                         <tr key={u.id} style={{ borderBottom: '1px solid var(--border)' }}>
                           <td style={{ padding: '14px 10px' }}>
-                            <div 
+                            <div
                               style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
                               onClick={() => setSelectedUserDetails(u)}
                             >
@@ -2513,7 +2513,7 @@ export default function AdminPortal() {
                     'linear-gradient(135deg, #374151 0%, #1F2937 100%)'
                   ];
                   return (
-                    <div 
+                    <div
                       key={docItem.id || idx}
                       style={{
                         background: 'var(--surface-alt)',
@@ -2700,16 +2700,16 @@ export default function AdminPortal() {
 
                           <td style={{ padding: '14px 10px', textAlign: 'right' }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '6px' }}>
-                              <button 
-                                className="icon-btn" 
+                              <button
+                                className="icon-btn"
                                 style={{ width: 32, height: 32, color: 'var(--primary)' }}
                                 onClick={() => handleOpenEditService(v)}
                                 title="Edit Service"
                               >
                                 <Edit size={14} />
                               </button>
-                              <button 
-                                className="icon-btn" 
+                              <button
+                                className="icon-btn"
                                 style={{ width: 32, height: 32, color: '#EF4444' }}
                                 onClick={() => handleDeleteService(v.id, v.name)}
                                 title="Remove Service"
@@ -2938,7 +2938,7 @@ export default function AdminPortal() {
             ══════════════════════════════════════════════════════ */}
         {(adminTab === 'overview' || adminTab === 'broadcasts') && (
           <div id="section-broadcasts" style={{ display: 'flex', flexDirection: 'column', gap: '20px', scrollMarginTop: '24px' }}>
-            
+
             {/* Global Banner Card */}
             <div className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '24px', border: '1px solid var(--border)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
@@ -2956,9 +2956,9 @@ export default function AdminPortal() {
                 </div>
 
                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: 700 }}>
-                  <input 
-                    type="checkbox" 
-                    checked={bannerConfig.isActive} 
+                  <input
+                    type="checkbox"
+                    checked={bannerConfig.isActive}
                     onChange={(e) => setBannerConfig(prev => ({ ...prev, isActive: e.target.checked }))}
                     style={{ width: '18px', height: '18px', accentColor: 'var(--primary)' }}
                   />
@@ -2967,14 +2967,14 @@ export default function AdminPortal() {
               </div>
 
               {/* Visual Banner Preview Pill (Matches Reference UI) */}
-              <div style={{ 
-                background: bannerConfig.bgColor || '#0F4C44', 
-                color: bannerConfig.textColor || '#FFFFFF', 
-                borderRadius: '14px', 
-                padding: '14px 20px', 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center', 
+              <div style={{
+                background: bannerConfig.bgColor || '#0F4C44',
+                color: bannerConfig.textColor || '#FFFFFF',
+                borderRadius: '14px',
+                padding: '14px 20px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
                 marginBottom: '20px',
                 boxShadow: '0 4px 14px rgba(0,0,0,0.12)'
               }}>
@@ -3003,9 +3003,9 @@ export default function AdminPortal() {
               <form onSubmit={handleUpdateBanner} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div>
                   <label className="label-mini" style={{ marginBottom: '6px', display: 'block' }}>Promotional Headline / Text Prompt *</label>
-                  <input 
-                    type="text" 
-                    className="input-clean" 
+                  <input
+                    type="text"
+                    className="input-clean"
                     placeholder="e.g. WINTER CLINICAL PROTOCOL • COMPLIMENTARY VETERINARY TELEHEALTH TRIAGE..."
                     value={bannerConfig.text}
                     onChange={(e) => setBannerConfig(prev => ({ ...prev, text: e.target.value }))}
@@ -3041,8 +3041,8 @@ export default function AdminPortal() {
                   </div>
 
                   <div style={{ display: 'flex', gap: '8px' }}>
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       onClick={() => setBannerConfig({
                         isActive: true,
                         text: 'WINTER CLINICAL PROTOCOL • COMPLIMENTARY VETERINARY TELEHEALTH TRIAGE WITH EVERY BESPOKE WELLNESS PLAN.',
@@ -3050,8 +3050,8 @@ export default function AdminPortal() {
                         textColor: '#FFFFFF',
                         linkText: 'Learn More',
                         linkUrl: '#'
-                      })} 
-                      className="btn-ghost" 
+                      })}
+                      className="btn-ghost"
                       style={{ padding: '8px 16px', fontSize: '12px' }}
                     >
                       Reset to Standard
@@ -3077,15 +3077,15 @@ export default function AdminPortal() {
 
               <form onSubmit={handleBroadcast} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '12px' }}>
-                  <input 
-                    type="text" 
-                    className="input-clean" 
+                  <input
+                    type="text"
+                    className="input-clean"
                     placeholder="Broadcast Title (e.g. Parasite Season Advisory, Vaccination Drive)..."
                     value={broadcastTitle}
                     onChange={(e) => setBroadcastTitle(e.target.value)}
                   />
-                  <select 
-                    className="input-clean" 
+                  <select
+                    className="input-clean"
                     style={{ width: 'auto', fontWeight: 600 }}
                     value={broadcastTarget}
                     onChange={(e) => setBroadcastTarget(e.target.value)}
@@ -3096,9 +3096,9 @@ export default function AdminPortal() {
                   </select>
                 </div>
 
-                <textarea 
-                  className="input-clean" 
-                  rows={2} 
+                <textarea
+                  className="input-clean"
+                  rows={2}
                   placeholder="Enter broadcast message content..."
                   value={broadcastMsg}
                   onChange={(e) => setBroadcastMsg(e.target.value)}
@@ -3147,10 +3147,10 @@ export default function AdminPortal() {
               </div>
 
               {/* Simulated Visual Radar Stream */}
-              <div style={{ 
-                background: 'linear-gradient(180deg, #091512 0%, #0F231E 100%)', 
-                borderRadius: '16px', 
-                padding: '24px', 
+              <div style={{
+                background: 'linear-gradient(180deg, #091512 0%, #0F231E 100%)',
+                borderRadius: '16px',
+                padding: '24px',
                 color: '#FFFFFF',
                 position: 'relative',
                 overflow: 'hidden',
@@ -3226,9 +3226,9 @@ export default function AdminPortal() {
             <div className="apple-solid-card" style={{ padding: '24px', textAlign: 'left', border: '1px solid var(--border)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                 <h3 style={{ fontSize: '18px', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>Transaction Escrow Ledger</h3>
-                <button 
-                  onClick={() => showToast('📥 Financial settlement statement generated as CSV!', 'success')} 
-                  className="btn-ghost" 
+                <button
+                  onClick={() => showToast('📥 Financial settlement statement generated as CSV!', 'success')}
+                  className="btn-ghost"
                   style={{ fontSize: '12.5px', display: 'flex', alignItems: 'center', gap: '6px' }}
                 >
                   <Download size={14} /> Export Settlement Audit
@@ -3302,13 +3302,13 @@ export default function AdminPortal() {
               </div>
 
               <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                <button 
+                <button
                   onClick={() => showToast('🚨 Emergency Geofenced Push broadcast dispatched to 14 guardians around Gulshan 2!', 'success')}
                   style={{ background: '#EF4444', color: '#FFFFFF', border: 'none', borderRadius: '10px', padding: '10px 18px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
                 >
                   <Radio size={14} /> Dispatch Geofenced Guardian Alert
                 </button>
-                <button 
+                <button
                   onClick={() => showToast('✅ Emergency Amber Alert successfully marked as RESOLVED.', 'success')}
                   className="btn-ghost"
                   style={{ padding: '10px 18px', fontSize: '13px' }}
@@ -3327,7 +3327,7 @@ export default function AdminPortal() {
           ══════════════════════════════════════════════════════ */}
       <AnimatePresence>
         {isAddProductModalOpen && (
-          <div 
+          <div
             style={{
               position: 'fixed',
               inset: 0,
@@ -3584,7 +3584,7 @@ export default function AdminPortal() {
           ══════════════════════════════════════════════════════ */}
       <AnimatePresence>
         {isAddServiceModalOpen && (
-          <div 
+          <div
             style={{
               position: 'fixed',
               inset: 0,
@@ -3737,7 +3737,7 @@ export default function AdminPortal() {
           ══════════════════════════════════════════════════════ */}
       <AnimatePresence>
         {isAddUserModalOpen && (
-          <div 
+          <div
             style={{
               position: 'fixed',
               inset: 0,
@@ -3839,7 +3839,7 @@ export default function AdminPortal() {
           ══════════════════════════════════════════════════════ */}
       <AnimatePresence>
         {selectedUserDetails && (
-          <div 
+          <div
             style={{
               position: 'fixed',
               inset: 0,
@@ -3931,7 +3931,7 @@ export default function AdminPortal() {
           ══════════════════════════════════════════════════════ */}
       <AnimatePresence>
         {selectedOrderDetails && (
-          <div 
+          <div
             style={{
               position: 'fixed',
               inset: 0,
