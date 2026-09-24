@@ -294,7 +294,7 @@ export default function PetGPSPage({ onNavigate }) {
           gap: '24px',
           alignItems: 'flex-start',
           marginBottom: '36px'
-        }}>
+        }} className="petgps-main-layout">
           
           {/* ─────────────────────────────────────────────────────────────
               LEFT COLUMN: RADAR MAP CANVAS & PHYSICAL COLLAR CONTROLS

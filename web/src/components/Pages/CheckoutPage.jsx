@@ -866,7 +866,7 @@ export default function CheckoutPage({ onNavigate }) {
                 gridTemplateColumns: 'repeat(4, 1fr)',
                 gap: '10px',
                 marginBottom: '20px'
-              }}>
+              }} className="checkout-payment-methods-grid">
                 {/* 1. Card Payment */}
                 <div
                   onClick={() => setPaymentMethod('card')}

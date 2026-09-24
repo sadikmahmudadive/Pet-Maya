@@ -459,7 +459,7 @@ export default function OrdersPage({ onNavigate }) {
                 gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))',
                 gap: '24px',
                 marginBottom: '24px'
-              }}>
+              }} className="orders-telemetry-grid">
 
                 {/* LEFT SUB-CARD: Core Thermal Matrix */}
                 <div style={{
@@ -1035,7 +1035,7 @@ export default function OrdersPage({ onNavigate }) {
               gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))',
               gap: '28px',
               marginBottom: '48px'
-            }}>
+            }} className="orders-manifest-grid">
 
               {/* LEFT COLUMN: Patient Header + Prescription Manifest */}
               <div>

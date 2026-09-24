@@ -1157,7 +1157,7 @@ export default function HealthTriage({ onNavigate }) {
                         display: 'grid',
                         gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
                         gap: '10px'
-                      }}>
+                      }} className="triage-durations-grid">
                         {[
                           { id: 'under2h', label: 'Under 2h' },
                           { id: '4-8h', label: '4 - 8h' },
@@ -1220,7 +1220,7 @@ export default function HealthTriage({ onNavigate }) {
                         display: 'grid',
                         gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
                         gap: '8px'
-                      }}>
+                      }} className="triage-crt-grid">
                         {[
                           { id: 'brisk', time: 'Brisk (< 2 seconds)', label: 'Healthy hydration', isAlert: false },
                           { id: 'delayed', time: 'Delayed (2-3 seconds)', label: 'Mild dehydration', isAlert: false },

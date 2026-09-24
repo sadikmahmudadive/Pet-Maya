@@ -299,7 +299,7 @@ export default function JournalPage({ onNavigate }) {
           gridTemplateColumns: '1.18fr 1fr',
           boxShadow: '0 4px 24px rgba(22, 15, 12, 0.04)',
           marginBottom: '36px'
-        }}>
+        }} className="journal-hero-grid">
           {/* Left Column: Monograph Content */}
           <div style={{
             padding: '40px 44px',
@@ -677,7 +677,7 @@ export default function JournalPage({ onNavigate }) {
           gridTemplateColumns: 'repeat(3, 1fr)',
           gap: '24px',
           marginBottom: '48px'
-        }}>
+        }} className="journal-articles-grid">
           {filteredArticles.map(art => {
             const isSaved = !!savedArticles[art.id];
             return (
@@ -1013,7 +1013,7 @@ export default function JournalPage({ onNavigate }) {
             display: 'grid',
             gridTemplateColumns: 'repeat(4, 1fr)',
             gap: '16px'
-          }}>
+          }} className="journal-board-grid">
             {editorialBoardMembers.map((member, idx) => (
               <div
                 key={idx}

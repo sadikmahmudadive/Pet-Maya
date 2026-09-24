@@ -2689,7 +2689,7 @@ html, body {
     line-height: 1.25 !important;
   }
   .modal-dialog, .modal-content-wrap {
-    width: 94vw !important;
+    width: min(94vw, 560px) !important;
     max-width: 94vw !important;
     padding: 20px 16px !important;
     margin: 12px auto !important;
@@ -2701,7 +2701,18 @@ html, body {
   .cart-grid-layout,
   .checkout-grid-layout,
   .petgps-main-layout,
-  .shop-coldchain-grid {
+  .shop-coldchain-grid,
+  .shop-main-layout,
+  .specialists-main-layout,
+  .specialists-main-grid,
+  .journal-main-layout,
+  .journal-hero-grid,
+  .passport-main-layout,
+  .vault-passport-grid,
+  .orders-telemetry-grid,
+  .orders-manifest-grid,
+  .product-stage-grid,
+  .product-pharm-grid {
     grid-template-columns: 1fr !important;
     gap: 20px !important;
   }
@@ -2758,11 +2769,26 @@ html, body {
   .petgps-main-layout,
   .shop-coldchain-grid,
   .specialists-main-layout,
+  .specialists-main-grid,
   .shop-main-layout,
   .journal-main-layout,
+  .journal-hero-grid,
   .passport-main-layout,
+  .vault-passport-grid,
   .triage-main-layout {
     grid-template-columns: 1fr !important;
+  }
+  .cart-grid-layout > div:last-child,
+  .checkout-grid-layout > div:last-child,
+  .specialists-main-grid > div:last-child,
+  .vault-passport-grid > div:last-child {
+    position: static !important;
+  }
+  .journal-articles-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  .journal-board-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
   section[style*="grid-template-columns: 1.18fr 1fr"] {
     grid-template-columns: 1fr !important;
@@ -2798,8 +2824,11 @@ html, body {
 @media (max-width: 1024px) {
   .shop-main-layout,
   .specialists-main-layout,
+  .specialists-main-grid,
   .journal-main-layout,
+  .journal-hero-grid,
   .passport-main-layout,
+  .vault-passport-grid,
   .triage-main-layout,
   .dashboard-main-grid {
     grid-template-columns: 1fr !important;
@@ -2811,8 +2840,16 @@ html, body {
 }
 
 @media (max-width: 768px) {
-  .shop-products-grid {
+  .shop-products-grid,
+  .orders-telemetry-grid,
+  .orders-manifest-grid,
+  .product-stage-grid,
+  .product-pharm-grid {
     grid-template-columns: 1fr !important;
+  }
+
+  .checkout-payment-methods-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
   }
 
   .modal-dialog,
@@ -2825,23 +2862,78 @@ html, body {
 
   /* Responsive Padding & Spacing for Small Screens */
   section, .editorial-section {
-    padding-top: 32px !important;
-    padding-bottom: 32px !important;
+    padding-top: 24px !important;
+    padding-bottom: 24px !important;
   }
 
   .editorial-container,
   .editorial-container-narrow {
-    padding-left: 16px !important;
-    padding-right: 16px !important;
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .cart-item-card {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 14px !important;
+    padding: 14px !important;
+  }
+
+  .cart-item-actions {
+    width: 100% !important;
+    justify-content: space-between !important;
+  }
+
+  .passport-inner-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .journal-articles-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .journal-board-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .triage-durations-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .triage-crt-grid {
+    grid-template-columns: 1fr !important;
   }
 }
 
 @media (max-width: 480px) {
   h1, .hero-headline {
-    font-size: 26px !important;
+    font-size: clamp(22px, 6.5vw, 28px) !important;
+    line-height: 1.2 !important;
   }
   h2, .section-headline {
-    font-size: 20px !important;
+    font-size: clamp(18px, 5.2vw, 22px) !important;
+    line-height: 1.25 !important;
+  }
+
+  .global-top-promotional-banner {
+    font-size: 8.5px !important;
+    letter-spacing: 0.06em !important;
+    padding: 5px 8px !important;
+    line-height: 1.3 !important;
+  }
+
+  .checkout-payment-methods-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .triage-tiles-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .triage-durations-grid {
+    grid-template-columns: 1fr !important;
   }
 
   .apple-cta-group {

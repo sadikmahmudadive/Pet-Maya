@@ -319,7 +319,7 @@ export default function ProductDetailPage({ productId, onBack, onNavigate }) {
           gap: 'clamp(32px, 4.5vw, 64px)',
           alignItems: 'flex-start',
           marginBottom: '48px'
-        }}>
+        }} className="product-stage-grid">
           
           {/* ─────────────────────────────────────────────────────────────
               LEFT COLUMN: PRODUCT STAGING & SUPPLY CHAIN ASSURANCE
@@ -1318,7 +1318,7 @@ export default function ProductDetailPage({ productId, onBack, onNavigate }) {
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
             gap: '24px'
-          }}>
+          }} className="product-pharm-grid">
             
             {/* Left Card: Dual Parasite Targeted Strategy */}
             <div style={{

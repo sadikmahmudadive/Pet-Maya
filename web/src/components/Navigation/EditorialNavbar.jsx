@@ -435,6 +435,40 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
             );
           })}
 
+          {/* Dedicated Guardian Profile link for mobile */}
+          {(() => {
+            const isProfileActive = currentRoute === 'profile' || currentRoute === 'account' || currentRoute === 'guardian-profile';
+            return (
+              <a
+                href="#profile"
+                onClick={(e) => handleNavClick('profile', e)}
+                style={{
+                  fontSize: '14.5px',
+                  fontWeight: isProfileActive ? 700 : 500,
+                  color: isProfileActive ? (isDark ? '#1AB680' : '#160F0C') : (isDark ? '#9DB4B0' : '#55605C'),
+                  backgroundColor: isProfileActive ? (isDark ? 'rgba(26, 182, 128, 0.12)' : 'rgba(22, 15, 12, 0.05)') : 'transparent',
+                  borderRadius: '8px',
+                  textDecoration: 'none',
+                  padding: '10px 12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                <span>Guardian Profile &amp; Account</span>
+                {isProfileActive && (
+                  <span style={{
+                    width: '6px',
+                    height: '6px',
+                    borderRadius: '50%',
+                    backgroundColor: isDark ? '#1AB680' : '#160F0C'
+                  }} />
+                )}
+              </a>
+            );
+          })()}
+
           <div style={{ 
             paddingTop: '14px', 
             borderTop: isDark ? '1px solid rgba(26, 182, 128, 0.2)' : '1px solid rgba(222, 217, 214, 0.5)', 
@@ -504,7 +538,16 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
       )}
 
       <style>{`
-        @media (max-width: 900px) {
+        @media (max-width: 1140px) {
+          .editorial-book-consult-btn {
+            display: none !important;
+          }
+          .editorial-desktop-nav a {
+            padding: 5px 10px !important;
+            font-size: 12.5px !important;
+          }
+        }
+        @media (max-width: 992px) {
           .editorial-desktop-nav {
             display: none !important;
           }
@@ -518,6 +561,10 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
         @media (max-width: 600px) {
           .editorial-nav-search-btn {
             display: none !important;
+          }
+          .editorial-mobile-toggle {
+            width: 32px !important;
+            height: 32px !important;
           }
         }
       `}</style>

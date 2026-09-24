@@ -365,6 +365,7 @@ export default function CartPage({ onNavigate }) {
                   {items.map((item) => (
                     <div
                       key={item.id}
+                      className="cart-item-card"
                       style={{
                         backgroundColor: '#FFFFFF',
                         border: '1px solid #EAE4DE',
@@ -525,12 +526,15 @@ export default function CartPage({ onNavigate }) {
                       </div>
 
                       {/* Right Area: Price + Quantity Stepper + Trash */}
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '20px',
-                        flexShrink: 0
-                      }}>
+                      <div
+                        className="cart-item-actions"
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '20px',
+                          flexShrink: 0
+                        }}
+                      >
                         {/* Price */}
                         <div style={{
                           fontSize: '18px',
