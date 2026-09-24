@@ -405,6 +405,8 @@ function MainContent() {
         return <Reminders key="vaccines" />;
       case 'profile':
         return <Profile key="profile" />;
+      case 'admin':
+        return <AdminPortal key="admin" />;
       default:
         return <LandingPage onNavigate={handleNavigate} key="landing-default" />;
     }

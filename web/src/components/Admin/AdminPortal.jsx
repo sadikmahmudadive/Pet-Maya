@@ -10,7 +10,8 @@ import {
   doc, 
   setDoc, 
   updateDoc, 
-  deleteDoc 
+  deleteDoc,
+  addDoc
 } from '../../config/firebase';
 import { 
   ShieldCheck, 
@@ -66,7 +67,11 @@ import {
   Download,
   ChevronRight,
   Sun,
-  Moon
+  Moon,
+  BatteryCharging,
+  Zap,
+  Filter,
+  ArrowUpRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -86,12 +91,12 @@ function UserAvatar({ user, size = 40 }) {
 
   const getUserGradient = (idOrName) => {
     const gradients = [
+      'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
       'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)',
       'linear-gradient(135deg, #10B981 0%, #047857 100%)',
       'linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%)',
       'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
-      'linear-gradient(135deg, #EC4899 0%, #BE185D 100%)',
-      'linear-gradient(135deg, #06B6D4 0%, #0E7490 100%)'
+      'linear-gradient(135deg, #EC4899 0%, #BE185D 100%)'
     ];
     let hash = 0;
     const key = idOrName || 'petmaya';
@@ -113,8 +118,8 @@ function UserAvatar({ user, size = 40 }) {
           height: `${size}px`,
           borderRadius: '50%',
           objectFit: 'cover',
-          border: '1.5px solid rgba(255,255,255,0.15)',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+          border: '1.5px solid var(--border)',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
           flexShrink: 0
         }}
       />
@@ -136,7 +141,7 @@ function UserAvatar({ user, size = 40 }) {
         fontSize: `${Math.round(size * 0.38)}px`,
         letterSpacing: '0.04em',
         border: '1.5px solid rgba(255,255,255,0.2)',
-        boxShadow: '0 2px 10px rgba(0,0,0,0.25)',
+        boxShadow: '0 2px 10px rgba(0,0,0,0.15)',
         flexShrink: 0,
         textTransform: 'uppercase'
       }}
@@ -165,7 +170,6 @@ export default function AdminPortal() {
     updateUserAccountStatus,
     globalBanner, 
     updateGlobalBanner, 
-    openModal, 
     showToast,
     theme,
     toggleTheme
@@ -178,14 +182,14 @@ export default function AdminPortal() {
   const [adminKey, setAdminKey] = useState('');
   const [authError, setAuthError] = useState('');
 
-  // Active Admin Sub-Tab: 'shop', 'orders', 'users', 'services', 'blogs', 'overview', 'broadcasts'
-  const [adminTab, setAdminTab] = useState('shop');
+  // Active Admin Sub-Tab
+  const [adminTab, setAdminTab] = useState('overview');
   const [isLeftDeckOpen, setIsLeftDeckOpen] = useState(false);
 
   // ─── SHOP & INVENTORY STATE ───
   const [productSearch, setProductSearch] = useState('');
   const [productCatFilter, setProductCatFilter] = useState('ALL');
-  const [productStockFilter, setProductStockFilter] = useState('ALL'); // 'ALL', 'IN_STOCK', 'OUT_OF_STOCK', 'RX_ONLY'
+  const [productStockFilter, setProductStockFilter] = useState('ALL'); // 'ALL', 'IN_STOCK', 'OUT_OF_STOCK', 'RX_ONLY', 'CRYO'
   const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [isSubmittingProduct, setIsSubmittingProduct] = useState(false);
@@ -215,11 +219,11 @@ export default function AdminPortal() {
   ];
 
   const CATEGORIES = [
-    { id: 'food', label: 'Food' },
-    { id: 'toys', label: 'Toys' },
-    { id: 'health', label: 'Health' },
-    { id: 'gear', label: 'Gear' },
-    { id: 'grooming', label: 'Grooming' }
+    { id: 'food', label: 'Food & Nutrition' },
+    { id: 'toys', label: 'Toys & Play' },
+    { id: 'health', label: 'Health & Pharma' },
+    { id: 'gear', label: 'Gear & Tech' },
+    { id: 'grooming', label: 'Grooming & Spa' }
   ];
 
   // ─── ORDER MANAGEMENT STATE ───
@@ -231,8 +235,8 @@ export default function AdminPortal() {
   // ─── USERS VERIFICATION & MANAGEMENT STATE ───
   const [usersList, setUsersList] = useState([]);
   const [userSearch, setUserSearch] = useState('');
-  const [userRoleFilter, setUserRoleFilter] = useState('ALL'); // 'ALL', 'Pet Owner', 'Veterinarian', 'Admin', 'Shelter & Spa'
-  const [userStatusFilter, setUserStatusFilter] = useState('ALL'); // 'ALL', 'VERIFIED', 'PENDING', 'SUSPENDED'
+  const [userRoleFilter, setUserRoleFilter] = useState('ALL');
+  const [userStatusFilter, setUserStatusFilter] = useState('ALL');
   const [selectedUserDetails, setSelectedUserDetails] = useState(null);
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
   const [userFormData, setUserFormData] = useState({
@@ -277,7 +281,6 @@ export default function AdminPortal() {
         }
       }, (err) => {
         console.warn('Users listener warning:', err);
-        setUsersList([]);
       });
       return () => unsub();
     } catch (e) {
@@ -287,8 +290,8 @@ export default function AdminPortal() {
 
   // ─── SERVICES & CLINIC MANAGEMENT STATE ───
   const [serviceSearch, setServiceSearch] = useState('');
-  const [serviceCatFilter, setServiceCatFilter] = useState('ALL'); // 'ALL', 'Veterinarian', 'Grooming Spa', 'Boarding Resort', 'Diagnostic Lab'
-  const [serviceVerifFilter, setServiceVerifFilter] = useState('ALL'); // 'ALL', 'VERIFIED', 'PENDING'
+  const [serviceCatFilter, setServiceCatFilter] = useState('ALL');
+  const [serviceVerifFilter, setServiceVerifFilter] = useState('ALL');
   const [isAddServiceModalOpen, setIsAddServiceModalOpen] = useState(false);
   const [editingService, setEditingService] = useState(null);
   const [serviceFormData, setServiceFormData] = useState({
@@ -334,17 +337,35 @@ export default function AdminPortal() {
   const [broadcastMsg, setBroadcastMsg] = useState('');
   const [broadcastTarget, setBroadcastTarget] = useState('all');
   const [broadcasts, setBroadcasts] = useState([
-    { id: 'b1', title: '🌧️ Monsoon Parasite Advisory', message: 'Flea and tick activity surges during wet season. Ensure Simparica/Nexgard preventative dosage.', date: '2026-08-24', target: 'All Users' }
+    { id: 'b1', title: '🌧️ Monsoon Parasite Advisory', message: 'Flea and tick activity surges during wet season. Ensure Simparica/Nexgard preventative dosage.', date: '2026-09-24', target: 'All Users' }
   ]);
 
   const [bannerConfig, setBannerConfig] = useState({
-    isActive: globalBanner?.isActive || false,
-    text: globalBanner?.text || '',
+    isActive: globalBanner?.isActive ?? true,
+    text: globalBanner?.text || 'WINTER CLINICAL PROTOCOL • COMPLIMENTARY VETERINARY TELEHEALTH TRIAGE WITH EVERY BESPOKE WELLNESS PLAN.',
     linkText: globalBanner?.linkText || '',
-    linkUrl: globalBanner?.linkUrl || '',
-    bgColor: globalBanner?.bgColor || '#f5f5f7',
-    textColor: globalBanner?.textColor || '#1d1d1f'
+    linkUrl: globalBanner?.linkUrl || '#',
+    bgColor: globalBanner?.bgColor || '#F8F3EF',
+    textColor: globalBanner?.textColor || '#707973'
   });
+
+  // Real-time Firestore sync for Broadcasts
+  useEffect(() => {
+    try {
+      const bRef = collection(db, 'broadcasts');
+      const q = query(bRef, orderBy('timestamp', 'desc'));
+      const unsub = onSnapshot(q, (snap) => {
+        if (!snap.empty) {
+          setBroadcasts(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        }
+      }, (err) => {
+        console.warn('Broadcasts listener note:', err);
+      });
+      return () => unsub();
+    } catch (e) {
+      console.warn('Broadcasts setup note:', e);
+    }
+  }, []);
 
   // ─── BLOG MODERATION STATE ───
   const [blogs, setBlogs] = useState([]);
@@ -354,7 +375,7 @@ export default function AdminPortal() {
 
   useEffect(() => {
     if (globalBanner) {
-      setBannerConfig(globalBanner);
+      setBannerConfig(prev => ({ ...prev, ...globalBanner }));
     }
   }, [globalBanner]);
 
@@ -371,6 +392,28 @@ export default function AdminPortal() {
       console.warn('Admin blogs setup error:', e);
     }
   }, []);
+
+  // ─── SIMULATED IOT COLLAR & RADAR HUD STATE ───
+  const [iotNodes, setIotNodes] = useState([
+    { id: 'COLLAR-01', petName: 'Piku', guardian: 'Sadik Mahmud', breed: 'Samoyed', heartRate: 74, temp: '38.4°C', battery: 92, lat: 23.8103, lng: 90.4125, status: 'NOMINAL', zone: 'Safe Zone (Banani)' },
+    { id: 'COLLAR-02', petName: 'Luna', guardian: 'Nafisa Rahman', breed: 'Calico Cat', heartRate: 110, temp: '39.1°C', battery: 68, lat: 23.7937, lng: 90.4066, status: 'PERIMETER_ALERT', zone: 'Gulshan 2 Lake Outer' },
+    { id: 'COLLAR-03', petName: 'Simba', guardian: 'Tanvir Hossain', breed: 'Golden Retriever', heartRate: 82, temp: '38.6°C', battery: 85, lat: 23.7465, lng: 90.3760, status: 'NOMINAL', zone: 'Dhanmondi Safe Hub' },
+    { id: 'COLLAR-04', petName: 'Milo', guardian: 'Anika Bushra', breed: 'French Bulldog', heartRate: 78, temp: '38.2°C', battery: 96, lat: 23.8759, lng: 90.3795, status: 'NOMINAL', zone: 'Uttara Sector 4 Sanctuary' }
+  ]);
+  const [isPingingMesh, setIsPingingMesh] = useState(false);
+
+  const handlePingMesh = () => {
+    setIsPingingMesh(true);
+    setTimeout(() => {
+      setIotNodes(prev => prev.map(n => ({
+        ...n,
+        heartRate: Math.floor(70 + Math.random() * 25),
+        battery: Math.max(10, n.battery - (Math.random() > 0.8 ? 1 : 0))
+      })));
+      setIsPingingMesh(false);
+      showToast('📡 1,842 IoT Collars & BLE Beacons pinged successfully across Dhaka mesh!', 'success');
+    }, 900);
+  };
 
   const handleAdminLogin = (e) => {
     e.preventDefault();
@@ -447,7 +490,7 @@ export default function AdminPortal() {
         ctx.drawImage(img, 0, 0, width, height);
         const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
         setProductFormData(prev => ({ ...prev, image: compressedDataUrl }));
-        showToast('📸 Photo loaded and optimized into gallery', 'success');
+        showToast('📸 Photo loaded & optimized into gallery', 'success');
       };
       img.src = uploadEvent.target.result;
     };
@@ -556,7 +599,7 @@ export default function AdminPortal() {
     setUsersList(prev => [newUser, ...prev]);
     try {
       await setDoc(doc(db, 'users', newUser.id), newUser, { merge: true });
-      showToast(`👤 User "${newUser.name}" profile registered and verified!`, 'success');
+      showToast(`👤 User "${newUser.name}" profile registered!`, 'success');
     } catch (err) {
       console.warn('Error saving user to Firestore:', err);
       showToast(`👤 User "${newUser.name}" saved!`, 'success');
@@ -664,27 +707,34 @@ export default function AdminPortal() {
   };
 
   // ─── BROADCAST ACTIONS ───
-  const handleBroadcast = (e) => {
+  const handleBroadcast = async (e) => {
     e.preventDefault();
     if (!broadcastTitle.trim() || !broadcastMsg.trim()) return;
 
     const item = {
-      id: 'b_' + Date.now(),
       title: broadcastTitle.trim(),
       message: broadcastMsg.trim(),
       date: new Date().toISOString().split('T')[0],
+      timestamp: Date.now(),
       target: broadcastTarget === 'all' ? 'All Users' : (broadcastTarget === 'vets' ? 'Veterinarians' : 'Pet Owners')
     };
 
     setBroadcasts(prev => [item, ...prev]);
+    try {
+      await addDoc(collection(db, 'broadcasts'), item);
+      showToast('📢 Platform broadcast notification sent to all active users!', 'success');
+    } catch (err) {
+      console.warn('Broadcast save warning:', err);
+      showToast('📢 Platform broadcast notification sent!', 'success');
+    }
+
     setBroadcastTitle('');
     setBroadcastMsg('');
-    showToast('📢 Platform broadcast notification sent to all active users!', 'success');
   };
 
-  const handleUpdateBanner = (e) => {
+  const handleUpdateBanner = async (e) => {
     e.preventDefault();
-    updateGlobalBanner(bannerConfig);
+    await updateGlobalBanner(bannerConfig);
   };
 
   // ─── BLOG MODERATION ACTIONS ───
@@ -741,6 +791,7 @@ export default function AdminPortal() {
     if (productStockFilter === 'IN_STOCK' && p.inStock === false) return false;
     if (productStockFilter === 'OUT_OF_STOCK' && p.inStock !== false) return false;
     if (productStockFilter === 'RX_ONLY' && !p.isRx) return false;
+    if (productStockFilter === 'CRYO' && !((p.name || '').toLowerCase().includes('rabies') || (p.name || '').toLowerCase().includes('vaccine') || (p.name || '').toLowerCase().includes('biologic') || p.isRx)) return false;
 
     if (!productSearch) return true;
     const q = productSearch.toLowerCase();
@@ -858,13 +909,13 @@ export default function AdminPortal() {
   const getOrderStatusBadge = (status) => {
     const s = (status || '').toLowerCase();
     if (s.includes('deliver') || s.includes('complete')) {
-      return <span className="badge badge-green" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><CheckCircle2 size={11} /> Delivered</span>;
+      return <span className="badge badge-green" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(16, 185, 129, 0.15)', color: '#10B981' }}><CheckCircle2 size={11} /> Delivered</span>;
     }
     if (s.includes('ship') || s.includes('transit')) {
       return <span className="badge badge-purple" style={{ background: 'rgba(147, 51, 234, 0.15)', color: '#A855F7', display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Truck size={11} /> In Transit / Shipped</span>;
     }
     if (s.includes('prep') || s.includes('placed') || s.includes('pending')) {
-      return <span className="badge badge-blue" style={{ background: 'rgba(0, 113, 227, 0.15)', color: '#0071E3', display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Package size={11} /> In Preparation</span>;
+      return <span className="badge badge-blue" style={{ background: 'rgba(13, 148, 136, 0.15)', color: '#0D9488', display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Package size={11} /> In Preparation</span>;
     }
     if (s.includes('cancel') || s.includes('refund')) {
       return <span className="badge badge-red" style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#EF4444', display: 'inline-flex', alignItems: 'center', gap: '4px' }}><XCircle size={11} /> Cancelled</span>;
@@ -875,20 +926,20 @@ export default function AdminPortal() {
   // ─── LOGIN GUARD ───
   if (!isAdminAuthenticated) {
     return (
-      <div style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+      <div style={{ minHeight: '85vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
         <div 
           className="apple-solid-card" 
-          style={{ width: '100%', maxWidth: '480px', padding: '40px 32px', textAlign: 'center' }}
+          style={{ width: '100%', maxWidth: '460px', padding: '44px 32px', textAlign: 'center', backdropFilter: 'blur(20px)', border: '1px solid var(--border)' }}
         >
-          <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'rgba(239, 68, 68, 0.14)', color: '#EF4444', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-            <Lock size={26} />
+          <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(239, 68, 68, 0.12)', color: '#EF4444', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 18px' }}>
+            <Lock size={28} />
           </div>
-          <span className="apple-card-eyebrow" style={{ color: '#EF4444' }}>Restricted Area</span>
-          <h1 style={{ fontSize: '24px', fontWeight: 700, letterSpacing: '-0.02em', margin: '4px 0 8px' }}>
-            Super Admin Terminal
+          <span style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '0.12em', color: '#EF4444', textTransform: 'uppercase' }}>Restricted Super Terminal</span>
+          <h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.02em', margin: '6px 0 10px', color: 'var(--text-main)' }}>
+            Super Admin Authentication
           </h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: '13.5px', marginBottom: '24px' }}>
-            Enter your administrative cryptographic credentials to unlock user profiles, medical licensing verification, inventory controls, and platform telemetry.
+          <p style={{ color: 'var(--text-muted)', fontSize: '13.5px', marginBottom: '24px', lineHeight: 1.5 }}>
+            Enter your root administrative cryptographic key to access user verification, medical licensing controls, store catalog, and IoT mesh telemetry.
           </p>
 
           <form onSubmit={handleAdminLogin} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -898,12 +949,12 @@ export default function AdminPortal() {
               placeholder="Admin Passkey (e.g. admin2026)" 
               value={adminKey}
               onChange={(e) => setAdminKey(e.target.value)}
-              style={{ textAlign: 'center', letterSpacing: '0.2em' }}
+              style={{ textAlign: 'center', letterSpacing: '0.2em', fontSize: '15px' }}
             />
             {authError && (
               <span style={{ color: '#EF4444', fontSize: '12.5px', fontWeight: 600 }}>{authError}</span>
             )}
-            <button type="submit" className="apple-btn-blue" style={{ width: '100%', padding: '12px', justifyContent: 'center' }}>
+            <button type="submit" className="apple-btn-blue" style={{ width: '100%', padding: '12px', justifyContent: 'center', background: 'var(--primary)' }}>
               <ShieldCheck size={16} />
               <span>Authenticate Root Access</span>
             </button>
@@ -913,6 +964,7 @@ export default function AdminPortal() {
     );
   }
 
+  // Navigation Items with organized functional groups
   const navDeckItems = [
     { group: '1. OVERVIEW & TELEMETRY' },
     { id: 'overview', label: 'Central Dashboard', icon: Activity },
@@ -920,37 +972,29 @@ export default function AdminPortal() {
     { id: 'finance', label: 'Financial & Revenue', icon: DollarSign, textBadge: `৳${Math.round(totalRevenue/1000)}k`, highlight: true, highlightColor: '#10B981' },
 
     { group: '2. FORMULARY & SKU (#SHOP)' },
-    { id: 'shop', label: 'Formulary & SKU Deck', icon: ShoppingBag, textBadge: '4 Low', highlight: true, highlightColor: '#EF4444' },
+    { id: 'shop', label: 'Formulary & SKU Deck', icon: ShoppingBag, textBadge: `${products.length} SKUs`, highlight: false },
     { id: 'cryo', label: 'Cryo-Inventory', icon: Snowflake, textBadge: '2°-8°C', highlight: false },
     { id: 'preset', label: 'Preset Gallery & Compress', icon: ImageIcon },
 
     { group: '3. COLD-CHAIN ORDERS (#ORDERS)' },
-    { id: 'orders', label: 'Orders & Dispatch Hub', icon: Package },
+    { id: 'orders', label: 'Orders & Dispatch Hub', icon: Package, textBadge: `${inPrepOrdersCount} Pending`, highlight: inPrepOrdersCount > 0, highlightColor: '#0D9488' },
     { id: 'datalogger', label: 'IoT Dataloggers', icon: Radio, textBadge: '48/48 OK', highlight: false },
-    { id: 'manifest', label: 'Manifests & Audit', icon: FileText },
 
     { group: '4. CLINICAL GOVERNANCE (#SERVICES)' },
-    { id: 'services', label: 'Clinicians & Vetting', icon: Stethoscope, count: pendingServicesCount > 0 ? pendingServicesCount : 3, highlight: true },
-    { id: 'bmdc', label: 'BMDC / DGDA License', icon: ShieldCheck, textBadge: '2 Audit', highlight: true, highlightColor: '#F59E0B' },
+    { id: 'services', label: 'Clinicians & Vetting', icon: Stethoscope, count: pendingServicesCount, highlight: pendingServicesCount > 0 },
     { id: 'telehealth', label: 'Telehealth Triage', icon: Video, textBadge: '18 Live', highlight: true, highlightColor: '#3B82F6' },
 
     { group: '5. GUARDIANS & KYC (#USERS)' },
-    { id: 'users', label: 'Guardians & KYC', icon: Users, textBadge: `${pendingUsersCount > 0 ? pendingUsersCount : 3} Pend`, highlight: true, highlightColor: '#F59E0B' },
-    { id: 'microchip', label: 'Microchip Registry', icon: Tag, textBadge: 'ISO 11784', highlight: false },
-    { id: 'ehr', label: 'Master EHR Directory', icon: FileText },
-
-    { group: '6. SAFETY & FIELD EMERGENCY' },
+    { id: 'users', label: 'Guardians & KYC', icon: Users, textBadge: `${pendingUsersCount} Pend`, highlight: pendingUsersCount > 0, highlightColor: '#F59E0B' },
     { id: 'amber', label: 'Amber Alert Desk', icon: AlertTriangle, textBadge: '● 1 Urgent', highlight: true, highlightColor: '#EF4444' },
-    { id: 'collar_mesh', label: 'IoT Collar Mesh', icon: Radio, textBadge: '924 Sync', highlight: true, highlightColor: '#10B981' },
 
-    { group: '7. DISPATCHES & COMMUNICATIONS' },
-    { id: 'blogs', label: 'Article Moderation', icon: BookOpen, textBadge: `${pendingBlogs.length > 0 ? pendingBlogs.length : 3} Review`, highlight: true, highlightColor: '#8B5CF6' },
+    { group: '6. DISPATCHES & COMMUNICATIONS' },
+    { id: 'blogs', label: 'Article Moderation', icon: BookOpen, textBadge: `${pendingBlogs.length} Review`, highlight: pendingBlogs.length > 0, highlightColor: '#8B5CF6' },
     { id: 'broadcasts', label: 'System Broadcasts', icon: Radio, textBadge: 'LIVE', highlight: true, highlightColor: '#3B82F6' },
-    { id: 'wallet', label: 'Care Wallet Escrow', icon: DollarSign },
   ];
 
   return (
-    <div className="admin-page-layout" style={{ display: 'flex', gap: '24px', width: '100%', minHeight: '100vh', paddingBottom: '60px', position: 'relative', backgroundColor: 'var(--bg)', color: 'var(--text-main)' }}>
+    <div className="admin-page-layout" style={{ display: 'flex', gap: '24px', width: '100%', minHeight: '100vh', padding: '16px 24px 60px', position: 'relative', backgroundColor: 'var(--bg)', color: 'var(--text-main)' }}>
       
       {/* ── MOBILE / TABLET LEFT DECK TOGGLE BAR ── */}
       <div className="mobile-deck-toggle-bar" style={{
@@ -992,52 +1036,56 @@ export default function AdminPortal() {
       <aside
         className={`admin-left-deck ${isLeftDeckOpen ? 'open' : ''}`}
         style={{
-          width: '260px',
+          width: '270px',
           flexShrink: 0,
           backgroundColor: 'var(--surface)',
-          borderRight: '1px solid var(--border)',
+          borderRadius: '24px',
+          border: '1px solid var(--border)',
           padding: '24px 16px',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
           position: 'sticky',
-          top: '0',
-          height: '100vh',
+          top: '20px',
+          height: 'calc(100vh - 40px)',
           zIndex: 90,
-          overflowY: 'auto'
+          overflowY: 'auto',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.03)'
         }}
       >
         <div>
           {/* Deck Header */}
-          <div style={{ padding: '0 8px 16px 8px', marginBottom: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-              <h2 style={{ fontSize: '20px', fontWeight: 800, letterSpacing: '-0.02em', margin: 0, color: 'var(--text-main)' }}>
-                Pet Maya
+          <div style={{ padding: '0 8px 16px 8px', marginBottom: '12px', borderBottom: '1px solid var(--border)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+              <div style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--primary)' }} />
+              <h2 style={{ fontSize: '18px', fontWeight: 800, letterSpacing: '-0.02em', margin: 0, color: 'var(--text-main)' }}>
+                Pet Maya Admin
               </h2>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <span style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--primary)', textTransform: 'uppercase' }}>
-                ● Terminal Active
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--primary)', textTransform: 'uppercase' }}>
+                ● Root Session Active
               </span>
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, fontFamily: 'var(--font-mono, monospace)' }}>
-                <Lock size={10} style={{ display: 'inline', marginRight: '4px' }}/>admin2026
+              <span style={{ fontSize: '10.5px', color: 'var(--text-muted)', fontFamily: 'monospace' }}>
+                v4.12
               </span>
             </div>
           </div>
 
           {/* Navigation Items */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
             {navDeckItems.map((item, idx) => {
               if (item.group) {
                 return (
                   <div key={`group-${idx}`} style={{
-                    fontSize: '10px',
-                    fontWeight: 700,
+                    fontSize: '9.5px',
+                    fontWeight: 800,
                     color: 'var(--text-muted)',
-                    letterSpacing: '0.06em',
-                    marginTop: '20px',
-                    marginBottom: '8px',
-                    paddingLeft: '8px'
+                    letterSpacing: '0.08em',
+                    marginTop: '16px',
+                    marginBottom: '6px',
+                    paddingLeft: '10px',
+                    textTransform: 'uppercase'
                   }}>
                     {item.group}
                   </div>
@@ -1058,34 +1106,46 @@ export default function AdminPortal() {
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     width: '100%',
-                    padding: '8px 12px',
-                    borderRadius: '8px',
-                    border: isActive ? '1px solid var(--primary-tint)' : '1px solid transparent',
-                    backgroundColor: isActive ? 'var(--surface-alt)' : 'transparent',
-                    color: isActive ? 'var(--primary)' : 'var(--text-secondary)',
+                    padding: '9px 12px',
+                    borderRadius: '12px',
+                    border: isActive ? '1px solid var(--primary)' : '1px solid transparent',
+                    backgroundColor: isActive ? 'var(--primary-light)' : 'transparent',
+                    color: isActive ? 'var(--primary)' : 'var(--text-main)',
                     fontWeight: isActive ? 700 : 500,
-                    fontSize: '12.5px',
+                    fontSize: '13px',
                     cursor: 'pointer',
-                    transition: 'all 0.2s ease',
+                    transition: 'all 0.18s ease',
                     textAlign: 'left'
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <IconComp size={18} color={isActive ? 'var(--primary)' : 'var(--text-muted)'} />
+                    <IconComp size={17} color={isActive ? 'var(--primary)' : 'var(--text-muted)'} />
                     <span>{item.label}</span>
                   </div>
 
                   {item.count !== undefined && item.count > 0 && (
                     <span style={{
-                      backgroundColor: item.highlight ? '#EF4444' : (isActive ? 'var(--primary)' : 'var(--surface-alt)'),
-                      color: item.highlight || isActive ? '#FFFFFF' : 'var(--text-muted)',
+                      backgroundColor: item.highlight ? '#EF4444' : 'var(--primary)',
+                      color: '#FFFFFF',
                       fontSize: '10px',
                       fontWeight: 800,
                       padding: '2px 8px',
-                      borderRadius: '9999px',
-                      boxShadow: item.highlight ? '0 0 10px rgba(239,68,68,0.4)' : 'none'
+                      borderRadius: '9999px'
                     }}>
                       {item.count}
+                    </span>
+                  )}
+
+                  {item.textBadge && (
+                    <span style={{
+                      fontSize: '10px',
+                      fontWeight: 700,
+                      padding: '2px 6px',
+                      borderRadius: '6px',
+                      background: item.highlightColor ? `${item.highlightColor}20` : 'var(--surface-alt)',
+                      color: item.highlightColor || 'var(--text-muted)'
+                    }}>
+                      {item.textBadge}
                     </span>
                   )}
                 </button>
@@ -1095,7 +1155,7 @@ export default function AdminPortal() {
         </div>
 
         {/* Bottom Profile & Exit Area */}
-        <div style={{ paddingTop: '16px', borderTop: '1px solid var(--border)' }}>
+        <div style={{ paddingTop: '16px', borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {/* Theme Switcher Toggle */}
           <button
             onClick={toggleTheme}
@@ -1105,39 +1165,21 @@ export default function AdminPortal() {
               justifyContent: 'space-between',
               width: '100%',
               padding: '8px 12px',
-              borderRadius: '8px',
+              borderRadius: '10px',
               border: '1px solid var(--border)',
               backgroundColor: 'var(--surface-alt)',
               color: 'var(--text-main)',
               fontSize: '12px',
               fontWeight: 600,
-              cursor: 'pointer',
-              marginBottom: '14px',
-              transition: 'all 0.2s ease'
+              cursor: 'pointer'
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               {theme === 'dark' ? <Moon size={14} color="var(--primary)" /> : <Sun size={14} color="#F59E0B" />}
               <span>{theme === 'dark' ? 'Dark Mode' : 'Light Mode'}</span>
             </div>
-            <span style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Switch</span>
+            <span style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Switch</span>
           </button>
-
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-            <span style={{ fontSize: '10.5px', color: 'var(--primary)', fontWeight: 800 }}>● Terminal #01</span>
-            <span style={{ fontSize: '10.5px', color: 'var(--text-muted)', fontWeight: 600 }}>admin2026</span>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '12px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '10px', color: 'var(--text-muted)' }}>
-              <span style={{ fontWeight: 600 }}>COLD NETWORK</span>
-              <span style={{ color: 'var(--primary)', fontWeight: 800 }}>● 3.8°C NOMINAL</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '10px', color: 'var(--text-muted)' }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}><CheckCircle size={10} color="var(--primary)" /> Verified</span>
-              <span style={{ fontWeight: 600 }}>v4.12.0</span>
-            </div>
-          </div>
 
           <button
             onClick={() => setIsAdminAuthenticated(false)}
@@ -1154,8 +1196,7 @@ export default function AdminPortal() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '6px',
-              transition: 'all 0.2s ease'
+              gap: '6px'
             }}
           >
             <LogOut size={15} />
@@ -1164,497 +1205,334 @@ export default function AdminPortal() {
         </div>
       </aside>
 
-
       {/* ── MAIN WORKSPACE STAGE ── */}
-      <main style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      <main style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
-      {/* ══════════════════════════════════════════════════════
-          TAB 0: 📊 CENTRAL OPERATIONS COMMAND (overview)
-          ══════════════════════════════════════════════════════ */}
-      {adminTab === 'overview' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        {/* ══════════════════════════════════════════════════════
+            TAB 0: 📊 CENTRAL OPERATIONS COMMAND (overview)
+            ══════════════════════════════════════════════════════ */}
+        {adminTab === 'overview' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                  <span className="badge badge-green" style={{ textTransform: 'uppercase', letterSpacing: '0.06em', background: 'var(--primary-light)', color: 'var(--primary)' }}>
+                    CENTRAL COMMAND NODE 01
+                  </span>
+                  <span style={{ fontSize: '12px', color: 'var(--primary)', fontWeight: 700 }}>● Live Telemetry Synced</span>
+                </div>
+                <h1 style={{ fontSize: '28px', fontWeight: 800, letterSpacing: '-0.02em', margin: '0 0 6px 0', color: 'var(--text-main)' }}>
+                  Platform Operations &amp; Clinical Governance
+                </h1>
+                <p style={{ color: 'var(--text-muted)', fontSize: '13.5px', maxWidth: '640px', margin: 0 }}>
+                  Mirpur Central Hub • Real-time telemetry sync across 1,842 IoT collars, 14 clinical suites, 48 cold-chain courier pods, and {products.length} registered SKUs.
+                </p>
+              </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px', marginBottom: '8px' }}>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                <span className="badge badge-green" style={{ textTransform: 'uppercase', letterSpacing: '0.06em', background: '#E6F4F1', color: '#0D9488' }}>
-                  NODE 01 STATUS: LIVE TELEMETRY
-                </span>
-                <span style={{ fontSize: '12px', color: '#0D9488', fontWeight: 700 }}>● Sync Active (1s Latency)</span>
-              </div>
-              <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '32px', fontWeight: 600, letterSpacing: '-0.02em', margin: '0 0 8px 0', color: '#160F0C' }}>
-                Central Operations &amp; Clinical Governance Command
-              </h1>
-              <p style={{ color: '#675C58', fontSize: '13px', maxWidth: '600px', margin: 0, lineHeight: 1.5 }}>
-                Mirpur Hub 01 • Real-time telemetry sync across 1,842 active IoT collars, 14 teleconsultation suites, and 48 cold-chain courier pods.
-              </p>
-            </div>
-          </div>
-
-          {/* 4 METRIC CARDS */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
-            {/* Metric 1 */}
-            <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid rgba(0,0,0,0.06)', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', color: '#8A8F8B', textTransform: 'uppercase' }}>COLD-CHAIN<br/>LOGISTICS</span>
-                <div style={{ background: '#F0FDFA', color: '#0D9488', borderRadius: '50%', padding: '6px' }}><Snowflake size={14} /></div>
-              </div>
-              <div style={{ margin: '16px 0' }}>
-                <span style={{ fontSize: '28px', fontWeight: 800, color: '#160F0C' }}>48 / 48</span><br/>
-                <span style={{ fontSize: '16px', fontWeight: 700, color: '#160F0C' }}>Units</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#675C58', marginBottom: '16px' }}>
-                <span>Avg Vessel<br/>Temp</span>
-                <span style={{ textAlign: 'right' }}><strong style={{ color: '#0D9488' }}>3.9°C</strong><br/>Nominal</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F5F5F7', padding: '8px 12px', borderRadius: '8px', fontSize: '10px', fontWeight: 700 }}>
-                <span style={{ color: '#675C58' }}>72h Zero Thermal Breaches</span>
-                <span style={{ background: '#0D9488', color: '#FFFFFF', padding: '2px 6px', borderRadius: '999px' }}>100% OK</span>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button 
+                  onClick={handlePingMesh}
+                  disabled={isPingingMesh}
+                  className="apple-btn-blue" 
+                  style={{ padding: '8px 16px', fontSize: '12.5px', background: 'var(--primary)' }}
+                >
+                  <RefreshCw size={14} className={isPingingMesh ? 'spin-anim' : ''} />
+                  <span>{isPingingMesh ? 'Syncing...' : 'Ping Telemetry Mesh'}</span>
+                </button>
               </div>
             </div>
 
-            {/* Metric 2 */}
-            <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid rgba(0,0,0,0.06)', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', color: '#8A8F8B', textTransform: 'uppercase' }}>CLINICAL<br/>GOVERNANCE</span>
-                <div style={{ background: '#F5F3FF', color: '#7C3AED', borderRadius: '50%', padding: '6px' }}><ShieldCheck size={14} /></div>
+            {/* 4 TOP METRIC CARDS */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+              <div className="apple-solid-card" style={{ padding: '20px', textAlign: 'left', border: '1px solid var(--border)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>COLD-CHAIN COMPLIANCE</span>
+                  <div style={{ background: 'var(--primary-light)', color: 'var(--primary)', borderRadius: '50%', padding: '6px' }}><Snowflake size={15} /></div>
+                </div>
+                <div style={{ margin: '14px 0' }}>
+                  <span style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-main)' }}>48 / 48</span>
+                  <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-muted)', display: 'block' }}>Units Active in Field</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface-alt)', padding: '8px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: 700 }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Avg Vessel Temp: 3.9°C</span>
+                  <span style={{ color: '#10B981' }}>100% Zero Breaches</span>
+                </div>
               </div>
-              <div style={{ margin: '16px 0' }}>
-                <span style={{ fontSize: '28px', fontWeight: 800, color: '#160F0C' }}>{pendingServicesCount} In</span><br/>
-                <span style={{ fontSize: '16px', fontWeight: 700, color: '#160F0C' }}>Vetting</span>
+
+              <div className="apple-solid-card" style={{ padding: '20px', textAlign: 'left', border: '1px solid var(--border)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>GROSS REVENUE</span>
+                  <div style={{ background: 'rgba(16, 185, 129, 0.12)', color: '#10B981', borderRadius: '50%', padding: '6px' }}><DollarSign size={15} /></div>
+                </div>
+                <div style={{ margin: '14px 0' }}>
+                  <span style={{ fontSize: '28px', fontWeight: 800, color: '#10B981' }}>৳{Math.round(totalRevenue).toLocaleString()}</span>
+                  <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-muted)', display: 'block' }}>{ordersList.length} Total Orders</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface-alt)', padding: '8px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: 700 }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Store Stock Valuation</span>
+                  <span style={{ color: 'var(--primary)' }}>৳{Math.round(totalValuation).toLocaleString()}</span>
+                </div>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#675C58', marginBottom: '16px' }}>
-                <span>Avg Dossier Review</span>
-                <span style={{ textAlign: 'right' }}><strong style={{ color: '#160F0C' }}>4.2 Hours</strong></span>
+
+              <div className="apple-solid-card" style={{ padding: '20px', textAlign: 'left', border: '1px solid var(--border)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>CLINICAL GOVERNANCE</span>
+                  <div style={{ background: 'rgba(139, 92, 246, 0.12)', color: '#8B5CF6', borderRadius: '50%', padding: '6px' }}><Stethoscope size={15} /></div>
+                </div>
+                <div style={{ margin: '14px 0' }}>
+                  <span style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-main)' }}>{verifiedServicesCount} / {vets.length}</span>
+                  <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-muted)', display: 'block' }}>Verified Doctors</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface-alt)', padding: '8px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: 700 }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Pending Audit</span>
+                  <span style={{ color: pendingServicesCount > 0 ? '#F59E0B' : '#10B981', cursor: 'pointer' }} onClick={() => setAdminTab('services')}>
+                    {pendingServicesCount} Dossiers →
+                  </span>
+                </div>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F5F5F7', padding: '8px 12px', borderRadius: '8px', fontSize: '10px', fontWeight: 700 }}>
-                <span style={{ color: '#675C58' }}>2 EU Board • 1 DGDA</span>
-                <span style={{ color: '#0D9488', cursor: 'pointer' }} onClick={() => setAdminTab('services')}>Audit Queue →</span>
+
+              <div className="apple-solid-card" style={{ padding: '20px', textAlign: 'left', border: '1px solid var(--border)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>GUARDIANS &amp; KYC</span>
+                  <div style={{ background: 'rgba(59, 130, 246, 0.12)', color: '#3B82F6', borderRadius: '50%', padding: '6px' }}><Users size={15} /></div>
+                </div>
+                <div style={{ margin: '14px 0' }}>
+                  <span style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-main)' }}>{usersList.length}</span>
+                  <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-muted)', display: 'block' }}>Platform Accounts</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface-alt)', padding: '8px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: 700 }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Verified Profiles</span>
+                  <span style={{ color: '#10B981' }}>{verifiedUsersCount} Verified</span>
+                </div>
               </div>
             </div>
 
-            {/* Metric 3 */}
-            <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid rgba(0,0,0,0.06)', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', color: '#8A8F8B', textTransform: 'uppercase' }}>TELE-TRIAGE PODS</span>
-                <div style={{ background: '#EFF6FF', color: '#3B82F6', borderRadius: '50%', padding: '6px' }}><Video size={14} /></div>
-              </div>
-              <div style={{ margin: '16px 0' }}>
-                <span style={{ fontSize: '28px', fontWeight: 800, color: '#160F0C' }}>18 In</span><br/>
-                <span style={{ fontSize: '16px', fontWeight: 700, color: '#160F0C' }}>Progress</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#675C58', marginBottom: '16px' }}>
-                <span>Patient Wait Index</span>
-                <span style={{ textAlign: 'right' }}><strong style={{ color: '#0D9488' }}>&lt; 7m 45s</strong></span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F5F5F7', padding: '8px 12px', borderRadius: '8px', fontSize: '10px', fontWeight: 700 }}>
-                <span style={{ color: '#675C58' }}>Rm 03 • Rm 07 Hot</span>
-                <span style={{ background: '#FCE7F3', color: '#BE185D', padding: '2px 6px', borderRadius: '999px' }}>14 Specialists</span>
-              </div>
-            </div>
-
-            {/* Metric 4 */}
-            <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid rgba(0,0,0,0.06)', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', color: '#8A8F8B', textTransform: 'uppercase' }}>24H FORMULARY GMV</span>
-                <div style={{ color: '#160F0C' }}><ShoppingBag size={14} /></div>
-              </div>
-              <div style={{ margin: '16px 0' }}>
-                <span style={{ fontSize: '28px', fontWeight: 800, color: '#160F0C' }}>৳{Math.round(totalRevenue).toLocaleString()}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#675C58', marginBottom: '16px' }}>
-                <span>Cold Biologics<br/>Released</span>
-                <span style={{ textAlign: 'right' }}><strong style={{ color: '#160F0C' }}>32 QR</strong><br/>Verified</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F5F5F7', padding: '8px 12px', borderRadius: '8px', fontSize: '10px', fontWeight: 700 }}>
-                <span style={{ color: '#10B981' }}>+14.8% vs last cycle</span>
-                <span style={{ color: '#675C58' }}>100% Chain-of-Custody</span>
-              </div>
-            </div>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px', alignItems: 'start' }}>
-            {/* Vetting Queue */}
-            <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid rgba(0,0,0,0.06)', padding: '24px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
-                <div>
-                  <span style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.08em', color: '#EF4444', textTransform: 'uppercase' }}>● IMMEDIATE ESCALATIONS</span>
-                  <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#160F0C', margin: '4px 0 0 0' }}>Vetting Queue &amp; Biologic Release Overrides</h3>
-                </div>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <span style={{ background: '#F5F5F7', padding: '4px 12px', borderRadius: '999px', fontSize: '11px', fontWeight: 600 }}>Licensing Vetting (3)</span>
-                  <span style={{ color: '#8A8F8B', fontSize: '11px', fontWeight: 600, padding: '4px 12px' }}>Prescription Overrides (2)</span>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {vets.filter(v => !v.isVerified).slice(0, 2).map(v => (
-                  <div key={v.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '16px', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-                    <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                      <img src={v.photo || 'assets/images/Pet_1.jpg'} alt="" style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover' }} />
-                      <div>
-                        <div style={{ fontWeight: 700, fontSize: '14px', color: '#160F0C' }}>{v.name}</div>
-                        <div style={{ fontSize: '11px', color: '#0D9488', fontWeight: 600, background: '#E6F4F1', display: 'inline-block', padding: '2px 6px', borderRadius: '4px', margin: '4px 0' }}>{v.qualification}</div>
-                        <div style={{ fontSize: '11px', color: '#675C58' }}>Lic #{v.licenseNumber}</div>
-                        <div style={{ fontSize: '11.5px', color: '#8A8F8B', marginTop: '4px', maxWidth: '380px', lineHeight: 1.4 }}>
-                          Double-blind audit flagged: Fellowship credential verification pending with Royal Veterinary College (UK).
-                        </div>
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <button style={{ background: 'none', border: 'none', fontSize: '12.5px', fontWeight: 600, color: '#160F0C', cursor: 'pointer', padding: '8px 12px' }}>Examine Dossier</button>
-                      <button onClick={() => updateServiceVerification(v.id, true)} style={{ background: '#0D9488', color: '#FFFFFF', border: 'none', borderRadius: '8px', padding: '8px 16px', fontSize: '12.5px', fontWeight: 600, cursor: 'pointer' }}>Authorize</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Active Amber Emergency */}
-            <div style={{ background: '#FEF2F2', borderRadius: '16px', border: '1px solid #FECACA', padding: '24px', boxShadow: '0 2px 8px rgba(239,68,68,0.05)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#EF4444' }} className="pulse-beacon" />
-                  <span style={{ fontSize: '12px', fontWeight: 800, color: '#B91C1C', letterSpacing: '0.04em' }}>ACTIVE AMBER EMERGENCY</span>
-                </div>
-                <span style={{ fontSize: '11px', fontWeight: 700, color: '#EF4444', background: '#FEE2E2', padding: '2px 8px', borderRadius: '4px' }}>Priority 1</span>
-              </div>
-
-              <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start', marginBottom: '20px' }}>
-                <img src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=200" alt="" style={{ width: 64, height: 64, borderRadius: '12px', objectFit: 'cover' }} />
-                <div>
-                  <div style={{ fontWeight: 800, fontSize: '15px', color: '#160F0C' }}>Luna • Calico Feline</div>
-                  <div style={{ fontSize: '11px', color: '#675C58', fontFamily: 'var(--font-mono)' }}>Chip #981020003412001</div>
-                  <div style={{ fontSize: '12px', color: '#EF4444', fontWeight: 600, marginTop: '4px' }}>Last pinged 45m ago near Gulshan 2 Lake Walk</div>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
-                <div style={{ flex: 1, background: '#FFFFFF', padding: '12px', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.04)' }}>
-                  <div style={{ fontSize: '10px', color: '#8A8F8B', fontWeight: 600 }}>Perimeter Guardians</div>
-                  <div style={{ fontSize: '18px', fontWeight: 800, color: '#160F0C' }}>14 Notified</div>
-                </div>
-                <div style={{ flex: 1, background: '#FFFFFF', padding: '12px', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.04)' }}>
-                  <div style={{ fontSize: '10px', color: '#8A8F8B', fontWeight: 600 }}>Trauma Pods</div>
-                  <div style={{ fontSize: '18px', fontWeight: 800, color: '#160F0C' }}>2 Ready</div>
-                </div>
-              </div>
-
-              <button style={{ width: '100%', background: '#EF4444', color: '#FFFFFF', border: 'none', borderRadius: '12px', padding: '12px', fontSize: '13px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', marginBottom: '10px' }}>
-                <Radio size={16} /> Dispatch Drone Sweep • Radius 1.5km
-              </button>
-              <button style={{ width: '100%', background: 'transparent', color: '#675C58', border: '1px solid #FCA5A5', borderRadius: '12px', padding: '10px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
-                Push Geofenced Guardian Broadcast
-              </button>
-            </div>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px', alignItems: 'start' }}>
-            {/* Cryo-Formulary Real-Time Inventory */}
-            <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid rgba(0,0,0,0.06)', padding: '24px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
-                <div>
-                  <span style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.08em', color: '#0D9488', textTransform: 'uppercase' }}>THERMAL CUSTODY & STOCK LEVELS</span>
-                  <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#160F0C', margin: '4px 0 0 0' }}>Cryo-Formulary Real-Time Inventory</h3>
-                </div>
-                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 600, color: '#675C58' }}><Radio size={14} color="#0D9488"/> Ping Dataloggers</span>
-                  <button style={{ background: '#160F0C', color: '#FFFFFF', border: 'none', borderRadius: '999px', padding: '8px 16px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>Reorder Biologics</button>
-                </div>
-              </div>
-
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12.5px' }}>
-                <thead>
-                  <tr style={{ textAlign: 'left', color: '#8A8F8B', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-                    <th style={{ padding: '0 0 12px 0', fontWeight: 600 }}>FORMULARY ITEM / SKU</th>
-                    <th style={{ padding: '0 0 12px 0', fontWeight: 600 }}>BAY & DATALOGGER</th>
-                    <th style={{ padding: '0 0 12px 0', fontWeight: 600 }}>TEMPERATURE</th>
-                    <th style={{ padding: '0 0 12px 0', fontWeight: 600 }}>INVENTORY COUNT</th>
-                    <th style={{ padding: '0 0 12px 0', fontWeight: 600 }}>COLD COMPLIANCE</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {[
-                    { id: 'V1', name: 'Nobivac Rabies Biologic', sku: 'BIO-NOB-441', bay: 'Chamber A-2', sensor: '#DH-8012', temp: '3.8°C (Target 2-8°)', count: '142 Vials', countSub: 'Safety Buffer: 40', status: 'Optimal' },
-                    { id: 'V2', name: 'Apoquel 16mg (Oclacitinib)', sku: 'RX-APO-016', bay: 'Dry Vault Tier-1', sensor: '#DV-3021', temp: '21.0°C (Controlled Dry)', count: '85 Blister Packs', countSub: 'Demand spike +22%', status: 'Secure' },
-                    { id: 'V3', name: 'NexGard Spectra (15-30kg)', sku: 'PAR-NXG-30', bay: 'Shelf Bay B-4', sensor: '#DH-1102', temp: '22.4°C (Ambient)', count: '210 Packs', countSub: 'Full Stock', status: 'Optimal' },
-                    { id: 'V4', name: 'Royal Canin GI Low Fat', sku: 'NUT-RC-04KG', bay: 'Warehouse Bay C', sensor: 'Pallet Zone 2', temp: '20.8°C (Standard)', count: '64 Bags (4.0kg)', countSub: 'Restocked 4h ago', status: 'Optimal' }
-                  ].map(item => (
-                    <tr key={item.id} style={{ borderBottom: '1px solid rgba(0,0,0,0.04)' }}>
-                      <td style={{ padding: '16px 0' }}>
-                        <div style={{ fontWeight: 700, color: '#160F0C' }}>{item.name}</div>
-                        <div style={{ fontSize: '10.5px', color: '#675C58', fontFamily: 'var(--font-mono)' }}>SKU: {item.sku}</div>
-                      </td>
-                      <td style={{ padding: '16px 0' }}>
-                        <div style={{ color: '#160F0C' }}>{item.bay}</div>
-                        <div style={{ fontSize: '10.5px', color: '#675C58' }}>Sensor {item.sensor}</div>
-                      </td>
-                      <td style={{ padding: '16px 0', fontWeight: 600, color: '#160F0C', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#0D9488' }} />
-                        {item.temp}
-                      </td>
-                      <td style={{ padding: '16px 0' }}>
-                        <div style={{ color: '#160F0C' }}>{item.count}</div>
-                        <div style={{ fontSize: '10.5px', color: '#675C58' }}>{item.countSub}</div>
-                      </td>
-                      <td style={{ padding: '16px 0' }}>
-                        <span style={{ background: '#E6F4F1', color: '#0D9488', padding: '4px 10px', borderRadius: '999px', fontSize: '11px', fontWeight: 700 }}>{item.status}</span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              {/* Wearable Biometrics */}
-              <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid rgba(0,0,0,0.06)', padding: '24px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+            {/* Quick Action Hub & Vetting Queue */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '20px' }}>
+              <div className="apple-solid-card" style={{ padding: '24px', textAlign: 'left', border: '1px solid var(--border)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                   <div>
-                    <span style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.08em', color: '#8A8F8B', textTransform: 'uppercase' }}>WEARABLE BIOMETRICS</span>
-                    <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#160F0C', margin: '4px 0 0 0' }}>IoT Collar Stream</h3>
+                    <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em', color: 'var(--primary)', textTransform: 'uppercase' }}>● CLINICAL VETTING QUEUE</span>
+                    <h3 style={{ fontSize: '17px', fontWeight: 800, color: 'var(--text-main)', margin: '2px 0 0 0' }}>Pending Medical Licenses</h3>
                   </div>
-                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#0D9488' }} />
+                  <button onClick={() => setAdminTab('services')} className="btn-ghost" style={{ fontSize: '12px' }}>View All →</button>
                 </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
-                  {[
-                    { name: 'Milo (#HL-8821)', type: 'Canine', batt: '89%', stats: [{ label: 'Resting Heart Rate', val: '68 bpm • Calm' }, { label: 'Sanctuary Zone: Banani', val: 'Geo-Lock Secure', valColor: '#0D9488' }] },
-                    { name: 'Cleo (#HL-4902)', type: 'Feline', batt: '94%', stats: [{ label: 'Sub-dermal Core Temp', val: '38.3°C • Normal' }, { label: 'Kinetic Activity', val: 'Low (Resting)' }] },
-                    { name: 'Simba (#HL-1102)', type: 'Perimeter Warning', isAlert: true, batt: '76%', stats: [{ label: 'Location Proximity', val: 'Dhanmondi Boundary' }, { label: 'Boundary Distance', val: '< 15m to Safe Outer', valColor: '#EF4444' }] }
-                  ].map((d, i) => (
-                    <div key={i} style={{ background: d.isAlert ? '#FEF2F2' : '#F5F5F7', padding: '14px', borderRadius: '12px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                          <span style={{ fontSize: '13px', fontWeight: 700, color: '#160F0C' }}>{d.name}</span>
-                          <span style={{ fontSize: '10px', fontWeight: 600, color: d.isAlert ? '#EF4444' : '#0D9488', background: d.isAlert ? '#FEE2E2' : '#E6F4F1', padding: '2px 6px', borderRadius: '4px' }}>{d.type}</span>
-                        </div>
-                        <span style={{ fontSize: '11px', color: '#675C58' }}>Batt {d.batt}</span>
-                      </div>
-                      {d.stats.map((s, j) => (
-                        <div key={j} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11.5px', marginBottom: '4px' }}>
-                          <span style={{ color: '#675C58' }}>{s.label}</span>
-                          <span style={{ fontWeight: 600, color: s.valColor || '#160F0C' }}>{s.val}</span>
-                        </div>
-                      ))}
-                    </div>
-                  ))}
-                </div>
-                <button style={{ width: '100%', background: 'none', border: '1px solid rgba(0,0,0,0.1)', padding: '10px', borderRadius: '10px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>Open Telemetry Mesh Monitor →</button>
-              </div>
-
-              {/* Clinical Governance Tools */}
-              <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid rgba(0,0,0,0.06)', padding: '24px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
-                <span style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.08em', color: '#8A8F8B', textTransform: 'uppercase', marginBottom: '16px', display: 'block' }}>CLINICAL GOVERNANCE TOOLS</span>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F5F5F7', padding: '12px 14px', borderRadius: '12px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <Download size={18} color="#0D9488" />
-                      <div>
-                        <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#160F0C' }}>DGDA Regulatory Dossier</div>
-                        <div style={{ fontSize: '11px', color: '#675C58' }}>Export 24h Cold-Chain Cryptographic Log</div>
+                  {vets.filter(v => !v.isVerified).slice(0, 3).map(v => (
+                    <div key={v.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: 'var(--surface-alt)', borderRadius: '12px' }}>
+                      <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                        <img src={v.photo || 'assets/images/Pet_1.jpg'} alt="" style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover' }} onError={(e) => { e.currentTarget.src = 'assets/images/Pet_1.jpg'; }} />
+                        <div>
+                          <div style={{ fontWeight: 700, fontSize: '13.5px', color: 'var(--text-main)' }}>{v.name}</div>
+                          <div style={{ fontSize: '11.5px', color: 'var(--primary)', fontWeight: 600 }}>{v.clinic} • Lic #{v.licenseNumber}</div>
+                        </div>
                       </div>
+                      <button onClick={() => updateServiceVerification(v.id, true)} style={{ background: 'var(--primary)', color: '#FFFFFF', border: 'none', borderRadius: '8px', padding: '6px 14px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
+                        Authorize
+                      </button>
                     </div>
-                    <span style={{ fontSize: '11px', fontWeight: 700 }}>PDF/CSV</span>
-                  </div>
+                  ))}
+                  {vets.filter(v => !v.isVerified).length === 0 && (
+                    <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--text-muted)', fontSize: '13px' }}>
+                      <CheckCircle2 size={28} color="#10B981" style={{ margin: '0 auto 6px' }} />
+                      <span>All clinician credentials and BMDC licenses are fully verified!</span>
+                    </div>
+                  )}
+                </div>
+              </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F5F5F7', padding: '12px 14px', borderRadius: '12px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <Radio size={18} color="#0D9488" />
-                      <div>
-                        <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#160F0C' }}>Broadcast Advisory</div>
-                        <div style={{ fontSize: '11px', color: '#675C58' }}>Send Clinical Advisory to 14 active doctors</div>
-                      </div>
-                    </div>
-                    <ChevronRight size={16} color="#8A8F8B" />
-                  </div>
+              {/* Quick Operation Jump */}
+              <div className="apple-solid-card" style={{ padding: '24px', textAlign: 'left', border: '1px solid var(--border)' }}>
+                <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>ADMINISTRATIVE SHORTCUTS</span>
+                <h3 style={{ fontSize: '17px', fontWeight: 800, color: 'var(--text-main)', margin: '2px 0 16px 0' }}>Rapid Management Hub</h3>
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#FEF2F2', padding: '12px 14px', borderRadius: '12px', border: '1px solid #FEE2E2' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <AlertTriangle size={18} color="#EF4444" />
-                      <div>
-                        <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#B91C1C' }}>Emergency Cold Lockdown</div>
-                        <div style={{ fontSize: '11px', color: '#EF4444' }}>Isolate Banani Bays upon thermal alert</div>
-                      </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <button onClick={() => setAdminTab('shop')} className="btn-ghost" style={{ justifyContent: 'space-between', padding: '12px 16px', background: 'var(--surface-alt)', borderRadius: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <ShoppingBag size={16} color="var(--primary)" />
+                      <span style={{ fontWeight: 600 }}>Formulary Inventory ({products.length} SKUs)</span>
                     </div>
-                    <div style={{ width: 36, height: 20, background: '#FCA5A5', borderRadius: '999px', position: 'relative' }}>
-                      <div style={{ width: 16, height: 16, background: '#FFFFFF', borderRadius: '50%', position: 'absolute', top: 2, left: 2 }} />
+                    <ArrowUpRight size={16} />
+                  </button>
+
+                  <button onClick={() => setAdminTab('orders')} className="btn-ghost" style={{ justifyContent: 'space-between', padding: '12px 16px', background: 'var(--surface-alt)', borderRadius: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <Package size={16} color="#0D9488" />
+                      <span style={{ fontWeight: 600 }}>Cold-Chain Orders ({inPrepOrdersCount} Pending)</span>
                     </div>
-                  </div>
+                    <ArrowUpRight size={16} />
+                  </button>
+
+                  <button onClick={() => setAdminTab('users')} className="btn-ghost" style={{ justifyContent: 'space-between', padding: '12px 16px', background: 'var(--surface-alt)', borderRadius: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <Users size={16} color="#3B82F6" />
+                      <span style={{ fontWeight: 600 }}>Guardians &amp; KYC Verification</span>
+                    </div>
+                    <ArrowUpRight size={16} />
+                  </button>
+
+                  <button onClick={() => setAdminTab('broadcasts')} className="btn-ghost" style={{ justifyContent: 'space-between', padding: '12px 16px', background: 'var(--surface-alt)', borderRadius: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <Radio size={16} color="#8B5CF6" />
+                      <span style={{ fontWeight: 600 }}>Push Broadcast &amp; Global Banner</span>
+                    </div>
+                    <ArrowUpRight size={16} />
+                  </button>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* ══════════════════════════════════════════════════════
-          TAB 1: 🛍️ SHOP & INVENTORY MANAGEMENT
-          ══════════════════════════════════════════════════════ */}
-      {adminTab === 'shop' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          
-          {/* Shop Metrics (Including Valuation Card) */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '14px' }}>
+        {/* ══════════════════════════════════════════════════════
+            TAB 1: 🛍️ SHOP & INVENTORY MANAGEMENT (shop, cryo, preset)
+            ══════════════════════════════════════════════════════ */}
+        {(adminTab === 'shop' || adminTab === 'cryo' || adminTab === 'preset') && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             
-            {/* 💎 VALUATION CARD (Matches Image 1) */}
-            <div 
-              className="apple-solid-card" 
-              style={{ 
-                padding: '20px 22px', 
-                textAlign: 'left',
-                border: '1px solid rgba(16, 185, 129, 0.25)',
-                background: 'linear-gradient(135deg, var(--surface-alt) 0%, rgba(16, 185, 129, 0.06) 100%)',
-                boxShadow: '0 4px 20px rgba(16, 185, 129, 0.08)'
-              }}
-            >
-              <span style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '0.12em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                VALUATION
-              </span>
-              <strong style={{ fontSize: '30px', fontWeight: 800, marginTop: '4px', color: '#10B981', letterSpacing: '-0.02em', display: 'block' }}>
-                ৳{Math.round(totalValuation).toLocaleString()}
-              </strong>
-              <span style={{ fontSize: '12px', color: '#10B981', marginTop: '4px', display: 'block' }}>
-                Total Warehouse Stock Value
-              </span>
-            </div>
-
-            <div className="apple-solid-card" style={{ padding: '20px 22px', textAlign: 'left' }}>
-              <span className="label-mini">Total Catalog SKUs</span>
-              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px' }}>{products.length} Products</strong>
-              <span style={{ fontSize: '12px', color: 'var(--primary)', marginTop: '4px' }}>Active in Store Feed</span>
-            </div>
-
-            <div className="apple-solid-card" style={{ padding: '20px 22px', textAlign: 'left' }}>
-              <span className="label-mini">In Stock Units</span>
-              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px', color: '#10B981' }}>{products.filter(p => p.inStock !== false).length}</strong>
-              <span style={{ fontSize: '12px', color: '#10B981', marginTop: '4px' }}>Available for 1-Click Buy</span>
-            </div>
-
-            <div className="apple-solid-card" style={{ padding: '20px 22px', textAlign: 'left' }}>
-              <span className="label-mini">Out of Stock Alerts</span>
-              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px', color: products.filter(p => p.inStock === false).length > 0 ? '#EF4444' : 'var(--text-muted)' }}>
-                {products.filter(p => p.inStock === false).length} SKUs
-              </strong>
-              <span style={{ fontSize: '12px', color: products.filter(p => p.inStock === false).length > 0 ? '#EF4444' : '#10B981', marginTop: '4px' }}>
-                {products.filter(p => p.inStock === false).length > 0 ? 'Requires Restock Supply' : 'All Stock Healthy'}
-              </span>
-            </div>
-
-            <div className="apple-solid-card" style={{ padding: '20px 22px', textAlign: 'left' }}>
-              <span className="label-mini">Prescription Medications</span>
-              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px', color: '#8B5CF6' }}>{products.filter(p => p.isRx).length} Rx SKUs</strong>
-              <span style={{ fontSize: '12px', color: '#8B5CF6', marginTop: '4px' }}>Requires Clinical Verification</span>
-            </div>
-          </div>
-
-          {/* Catalog Controls Header */}
-          <div className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '18px' }}>
-              <div>
-                <h3 style={{ fontSize: '18px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
-                  <ShoppingBag size={18} color="var(--primary)" />
-                  <span>Inventory Command &amp; Catalog Management</span>
-                </h3>
-                <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-                  Manage catalog entries, brand specifications, list prices (৳), live stock quantities, and clinical prescription flags.
+            {/* Shop Metrics */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
+              <div 
+                className="apple-solid-card" 
+                style={{ 
+                  padding: '20px 22px', 
+                  textAlign: 'left',
+                  border: '1px solid rgba(16, 185, 129, 0.25)',
+                  background: 'linear-gradient(135deg, var(--surface) 0%, rgba(16, 185, 129, 0.08) 100%)'
+                }}
+              >
+                <span style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '0.12em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                  WAREHOUSE VALUATION
+                </span>
+                <strong style={{ fontSize: '28px', fontWeight: 800, marginTop: '4px', color: '#10B981', display: 'block' }}>
+                  ৳{Math.round(totalValuation).toLocaleString()}
+                </strong>
+                <span style={{ fontSize: '12px', color: '#10B981', marginTop: '4px', display: 'block' }}>
+                  {products.length} Registered Products
                 </span>
               </div>
 
-              <button
-                className="apple-btn-blue"
-                onClick={handleOpenAddProduct}
-                style={{ padding: '9px 20px', fontSize: '13px', background: '#10B981' }}
-              >
-                <Plus size={15} />
-                <span>ADD SKU</span>
-              </button>
+              <div className="apple-solid-card" style={{ padding: '20px 22px', textAlign: 'left', border: '1px solid var(--border)' }}>
+                <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>In-Stock Active</span>
+                <strong style={{ fontSize: '26px', fontWeight: 800, marginTop: '4px', color: '#10B981', display: 'block' }}>
+                  {products.filter(p => p.inStock !== false).length}
+                </strong>
+                <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Available in store</span>
+              </div>
+
+              <div className="apple-solid-card" style={{ padding: '20px 22px', textAlign: 'left', border: '1px solid var(--border)' }}>
+                <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Cryo &amp; Rx Biologics</span>
+                <strong style={{ fontSize: '26px', fontWeight: 800, marginTop: '4px', color: '#8B5CF6', display: 'block' }}>
+                  {products.filter(p => p.isRx).length} Rx
+                </strong>
+                <span style={{ fontSize: '12px', color: '#8B5CF6' }}>2°-8°C Temperature Controlled</span>
+              </div>
+
+              <div className="apple-solid-card" style={{ padding: '20px 22px', textAlign: 'left', border: '1px solid var(--border)' }}>
+                <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Out of Stock Alerts</span>
+                <strong style={{ fontSize: '26px', fontWeight: 800, marginTop: '4px', color: products.filter(p => p.inStock === false).length > 0 ? '#EF4444' : '#10B981', display: 'block' }}>
+                  {products.filter(p => p.inStock === false).length} SKUs
+                </strong>
+                <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Restock required</span>
+              </div>
             </div>
 
-            {/* Filters & Search */}
-            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '18px' }}>
-              <div style={{ flex: 1, minWidth: '240px', position: 'relative' }}>
-                <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                <input
-                  type="text"
+            {/* Catalog Controls Header */}
+            <div className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '24px', border: '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '18px' }}>
+                <div>
+                  <h3 style={{ fontSize: '18px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px', margin: 0, color: 'var(--text-main)' }}>
+                    <ShoppingBag size={18} color="var(--primary)" />
+                    <span>Formulary &amp; SKU Catalog Command</span>
+                  </h3>
+                  <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                    Manage pricing (৳), inventory counts, prescription controls, cold-chain temperature tags, and product images.
+                  </span>
+                </div>
+
+                <button
+                  className="apple-btn-blue"
+                  onClick={handleOpenAddProduct}
+                  style={{ padding: '9px 20px', fontSize: '13px', background: 'var(--primary)' }}
+                >
+                  <Plus size={15} />
+                  <span>ADD NEW SKU</span>
+                </button>
+              </div>
+
+              {/* Filters & Search */}
+              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '18px' }}>
+                <div style={{ flex: 1, minWidth: '240px', position: 'relative' }}>
+                  <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                  <input
+                    type="text"
+                    className="input-clean"
+                    placeholder="Search products by title, brand, or category..."
+                    value={productSearch}
+                    onChange={(e) => setProductSearch(e.target.value)}
+                    style={{ paddingLeft: '38px' }}
+                  />
+                </div>
+
+                <div style={{ display: 'flex', gap: '6px', background: 'var(--surface-alt)', padding: '4px', borderRadius: '12px', overflowX: 'auto' }}>
+                  {[
+                    { id: 'ALL', label: 'All' },
+                    { id: 'food', label: 'Food' },
+                    { id: 'toys', label: 'Toys' },
+                    { id: 'health', label: 'Health/Rx' },
+                    { id: 'gear', label: 'Gear' },
+                    { id: 'grooming', label: 'Grooming' }
+                  ].map((c) => (
+                    <button
+                      key={c.id}
+                      onClick={() => setProductCatFilter(c.id)}
+                      style={{
+                        border: 'none',
+                        padding: '6px 12px',
+                        borderRadius: '8px',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        background: productCatFilter === c.id ? 'var(--primary)' : 'transparent',
+                        color: productCatFilter === c.id ? '#FFFFFF' : 'var(--text-muted)'
+                      }}
+                    >
+                      {c.label}
+                    </button>
+                  ))}
+                </div>
+
+                <select
                   className="input-clean"
-                  placeholder="Search by product name, brand, description, or category..."
-                  value={productSearch}
-                  onChange={(e) => setProductSearch(e.target.value)}
-                  style={{ paddingLeft: '38px' }}
-                />
+                  style={{ width: 'auto', fontSize: '13px', fontWeight: 600 }}
+                  value={productStockFilter}
+                  onChange={(e) => setProductStockFilter(e.target.value)}
+                >
+                  <option value="ALL">All Stock Statuses</option>
+                  <option value="IN_STOCK">In-Stock Only</option>
+                  <option value="OUT_OF_STOCK">Out of Stock</option>
+                  <option value="RX_ONLY">Prescription Rx Only</option>
+                  <option value="CRYO">Cryo-Biologics (2°-8°C)</option>
+                </select>
               </div>
 
-              <div style={{ display: 'flex', gap: '6px', background: 'var(--surface-alt)', padding: '3px', borderRadius: '10px', overflowX: 'auto' }}>
-                {[
-                  { id: 'ALL', label: 'All' },
-                  { id: 'food', label: 'Food' },
-                  { id: 'toys', label: 'Toys' },
-                  { id: 'health', label: 'Health' },
-                  { id: 'gear', label: 'Gear' },
-                  { id: 'grooming', label: 'Grooming' }
-                ].map((c) => (
-                  <button
-                    key={c.id}
-                    onClick={() => setProductCatFilter(c.id)}
-                    style={{
-                      border: 'none',
-                      padding: '6px 14px',
-                      borderRadius: '8px',
-                      fontSize: '12px',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      background: productCatFilter === c.id ? 'var(--primary)' : 'transparent',
-                      color: productCatFilter === c.id ? '#FFFFFF' : 'var(--text-muted)',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    {c.label}
-                  </button>
-                ))}
-              </div>
-
-              <select
-                className="input-clean"
-                style={{ width: 'auto', fontSize: '13px', fontWeight: 600 }}
-                value={productStockFilter}
-                onChange={(e) => setProductStockFilter(e.target.value)}
-              >
-                <option value="ALL">All Stock Statuses</option>
-                <option value="IN_STOCK">In Stock Only</option>
-                <option value="OUT_OF_STOCK">Out of Stock Only</option>
-                <option value="RX_ONLY">Prescription Rx Only</option>
-              </select>
-            </div>
-
-            {/* Products Table */}
-            {filteredProducts.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '40px 16px', color: 'var(--text-muted)' }}>
-                <Boxes size={36} style={{ opacity: 0.4, marginBottom: '8px' }} />
-                <p style={{ margin: 0, fontWeight: 600 }}>No products matched your search or filters.</p>
-              </div>
-            ) : (
+              {/* Product Table */}
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13.5px' }}>
                   <thead>
                     <tr style={{ textAlign: 'left', color: 'var(--text-muted)', borderBottom: '1px solid var(--border)' }}>
-                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>Product &amp; Brand</th>
-                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>Category</th>
-                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>List Price (৳)</th>
-                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>Current Stock</th>
-                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>SKU Valuation</th>
-                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>Status</th>
+                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>Product Item</th>
+                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>Category &amp; Brand</th>
+                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>Price (৳ BDT)</th>
+                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>Stock Qty</th>
+                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>Availability</th>
                       <th style={{ padding: '12px 10px', fontWeight: 600, textAlign: 'right' }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredProducts.map((p) => {
-                      const inStock = p.inStock !== false;
-                      const stockCount = typeof p.stockCount === 'number' ? p.stockCount : 50;
-                      const price = typeof p.price === 'number' ? p.price : (parseFloat(p.price) || 0);
-                      const itemValuation = price * stockCount;
-
+                      const inStock = p.inStock !== false && (p.stockCount ?? 50) > 0;
                       return (
                         <tr key={p.id} style={{ borderBottom: '1px solid var(--border)' }}>
                           <td style={{ padding: '14px 10px' }}>
@@ -1662,46 +1540,32 @@ export default function AdminPortal() {
                               <img
                                 src={p.image || p.imageUrl || PRESET_IMAGES[0].url}
                                 alt={p.name}
-                                style={{ width: '48px', height: '48px', borderRadius: '10px', objectFit: 'cover', background: 'var(--surface-alt)' }}
+                                style={{ width: '44px', height: '44px', borderRadius: '10px', objectFit: 'cover' }}
                                 onError={(e) => { e.currentTarget.src = PRESET_IMAGES[0].url; }}
                               />
                               <div>
-                                <strong style={{ fontSize: '14px', color: 'var(--text-main)', display: 'block' }}>
-                                  {p.name}
-                                </strong>
-                                <span style={{ fontSize: '11.5px', color: 'var(--primary)', fontWeight: 600 }}>
-                                  {p.brand || 'Pet Maya'} {p.isRx && '• Rx'}
+                                <strong style={{ fontSize: '14px', color: 'var(--text-main)', display: 'block' }}>{p.name}</strong>
+                                <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>
+                                  {p.isRx ? <span style={{ color: '#8B5CF6', fontWeight: 700 }}>● Rx Required • </span> : ''}
+                                  SKU: {p.id}
                                 </span>
                               </div>
                             </div>
                           </td>
 
                           <td style={{ padding: '14px 10px' }}>
-                            <span style={{
-                              fontSize: '11px',
-                              fontWeight: 700,
-                              textTransform: 'uppercase',
-                              padding: '3px 8px',
-                              borderRadius: '6px',
-                              background: 'var(--surface-alt)',
-                              color: 'var(--text-main)'
-                            }}>
+                            <span style={{ fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '6px', background: 'var(--surface-alt)', textTransform: 'uppercase', display: 'inline-block', marginBottom: '2px' }}>
                               {p.category || 'Supplies'}
                             </span>
+                            <span style={{ fontSize: '11.5px', color: 'var(--text-muted)', display: 'block' }}>{p.brand || 'Pet Maya'}</span>
                           </td>
 
                           <td style={{ padding: '14px 10px', fontWeight: 700, color: 'var(--text-main)' }}>
-                            ৳{price.toFixed(2)}
+                            ৳{Number(p.price || 0).toFixed(2)}
                           </td>
 
-                          <td style={{ padding: '14px 10px', fontWeight: 600 }}>
-                            <span style={{ color: stockCount <= 5 ? '#EF4444' : 'var(--text-main)' }}>
-                              {stockCount} units
-                            </span>
-                          </td>
-
-                          <td style={{ padding: '14px 10px', fontWeight: 700, color: '#10B981' }}>
-                            ৳{Math.round(itemValuation).toLocaleString()}
+                          <td style={{ padding: '14px 10px' }}>
+                            <span style={{ fontWeight: 600 }}>{p.stockCount ?? 50}</span> units
                           </td>
 
                           <td style={{ padding: '14px 10px' }}>
@@ -1720,26 +1584,24 @@ export default function AdminPortal() {
                                 alignItems: 'center',
                                 gap: '4px'
                               }}
-                              title="Click to toggle in/out of stock"
                             >
-                              {inStock ? <CheckCircle2 size={12} /> : <AlertCircle size={12} />}
+                              {inStock ? <CheckCircle2 size={12} /> : <XCircle size={12} />}
                               <span>{inStock ? 'In Stock' : 'Out of Stock'}</span>
                             </button>
                           </td>
 
                           <td style={{ padding: '14px 10px', textAlign: 'right' }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '6px' }}>
-                              <button
-                                className="icon-btn"
-                                style={{ width: 32, height: 32, color: 'var(--apple-blue)' }}
+                              <button 
+                                className="icon-btn" 
+                                style={{ width: 32, height: 32, color: 'var(--primary)' }}
                                 onClick={() => handleOpenEditProduct(p)}
-                                title="Edit Product Entry"
+                                title="Edit Product"
                               >
                                 <Edit size={14} />
                               </button>
-
-                              <button
-                                className="icon-btn"
+                              <button 
+                                className="icon-btn" 
                                 style={{ width: 32, height: 32, color: '#EF4444' }}
                                 onClick={() => handleDeleteProduct(p.id, p.name)}
                                 title="Delete Product"
@@ -1754,159 +1616,126 @@ export default function AdminPortal() {
                   </tbody>
                 </table>
               </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ══════════════════════════════════════════════════════
-          TAB 2: 📦 ORDER MANAGEMENT & DISPATCH
-          ══════════════════════════════════════════════════════ */}
-      {adminTab === 'orders' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
-            <div className="apple-solid-card" style={{ padding: '18px 20px', textAlign: 'left' }}>
-              <span className="label-mini">Total Platform Revenue</span>
-              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px', color: '#10B981' }}>
-                ৳{totalRevenue.toFixed(2)}
-              </strong>
-              <span style={{ fontSize: '12px', color: '#10B981', marginTop: '4px' }}>Processed Orders</span>
-            </div>
-
-            <div className="apple-solid-card" style={{ padding: '18px 20px', textAlign: 'left' }}>
-              <span className="label-mini">In Preparation / Pending</span>
-              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px', color: inPrepOrdersCount > 0 ? '#0071E3' : 'var(--text-main)' }}>
-                {inPrepOrdersCount} Orders
-              </strong>
-              <span style={{ fontSize: '12px', color: inPrepOrdersCount > 0 ? '#0071E3' : 'var(--text-muted)', marginTop: '4px' }}>
-                {inPrepOrdersCount > 0 ? 'Requires Fulfillment' : 'Queue Cleared'}
-              </span>
-            </div>
-
-            <div className="apple-solid-card" style={{ padding: '18px 20px', textAlign: 'left' }}>
-              <span className="label-mini">In Transit / Shipped</span>
-              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px', color: '#A855F7' }}>
-                {ordersList.filter(o => (o.status || '').toLowerCase().includes('ship')).length} Orders
-              </strong>
-              <span style={{ fontSize: '12px', color: '#A855F7', marginTop: '4px' }}>Live Courier Tracking</span>
-            </div>
-
-            <div className="apple-solid-card" style={{ padding: '18px 20px', textAlign: 'left' }}>
-              <span className="label-mini">Delivered / Completed</span>
-              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px' }}>
-                {ordersList.filter(o => (o.status || '').toLowerCase().includes('deliver')).length}
-              </strong>
-              <span style={{ fontSize: '12px', color: '#10B981', marginTop: '4px' }}>Successfully Delivered</span>
             </div>
           </div>
+        )}
 
-          <div className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '18px' }}>
-              <div>
-                <h3 style={{ fontSize: '18px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
-                  <Package size={18} color="var(--primary)" />
-                  <span>Customer Order Fulfillment Pipeline</span>
-                </h3>
-                <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-                  Review real-time purchases, update tracking dispatch status, and inspect delivery destinations.
-                </span>
+        {/* ══════════════════════════════════════════════════════
+            TAB 2: 📦 ORDERS & DISPATCH HUB (orders, datalogger)
+            ══════════════════════════════════════════════════════ */}
+        {(adminTab === 'orders' || adminTab === 'datalogger') && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            
+            {/* Orders Metrics */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
+              <div className="apple-solid-card" style={{ padding: '18px 20px', textAlign: 'left', border: '1px solid var(--border)' }}>
+                <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Total Customer Orders</span>
+                <strong style={{ fontSize: '26px', fontWeight: 800, marginTop: '4px', display: 'block' }}>{ordersList.length} Orders</strong>
+                <span style={{ fontSize: '12px', color: 'var(--primary)' }}>Real-time sync</span>
+              </div>
+
+              <div className="apple-solid-card" style={{ padding: '18px 20px', textAlign: 'left', border: '1px solid var(--border)' }}>
+                <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>In Preparation</span>
+                <strong style={{ fontSize: '26px', fontWeight: 800, marginTop: '4px', color: '#0D9488', display: 'block' }}>
+                  {inPrepOrdersCount}
+                </strong>
+                <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Cold-chain pack pending</span>
+              </div>
+
+              <div className="apple-solid-card" style={{ padding: '18px 20px', textAlign: 'left', border: '1px solid var(--border)' }}>
+                <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>In Transit / Shipped</span>
+                <strong style={{ fontSize: '26px', fontWeight: 800, marginTop: '4px', color: '#8B5CF6', display: 'block' }}>
+                  {ordersList.filter(o => (o.status || '').toLowerCase().includes('ship')).length}
+                </strong>
+                <span style={{ fontSize: '12px', color: '#8B5CF6' }}>Courier pods moving</span>
+              </div>
+
+              <div className="apple-solid-card" style={{ padding: '18px 20px', textAlign: 'left', border: '1px solid var(--border)' }}>
+                <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Delivered Successfully</span>
+                <strong style={{ fontSize: '26px', fontWeight: 800, marginTop: '4px', color: '#10B981', display: 'block' }}>
+                  {ordersList.filter(o => (o.status || '').toLowerCase().includes('deliver')).length}
+                </strong>
+                <span style={{ fontSize: '12px', color: '#10B981' }}>Customer confirmed</span>
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '18px' }}>
-              <div style={{ flex: 1, minWidth: '240px', position: 'relative' }}>
+            {/* Orders Table Card */}
+            <div className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '24px', border: '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '18px' }}>
+                <div>
+                  <h3 style={{ fontSize: '18px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px', margin: 0, color: 'var(--text-main)' }}>
+                    <Package size={18} color="var(--primary)" />
+                    <span>Cold-Chain Orders &amp; Dispatch Logistics</span>
+                  </h3>
+                  <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                    Track live deliveries, update fulfillment statuses, and inspect cryptographic cold-chain manifests.
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <select
+                    className="input-clean"
+                    style={{ width: 'auto', fontSize: '13px', fontWeight: 600 }}
+                    value={orderStatusFilter}
+                    onChange={(e) => setOrderStatusFilter(e.target.value)}
+                  >
+                    <option value="ALL">All Statuses</option>
+                    <option value="IN_PREP">In Preparation</option>
+                    <option value="SHIPPED">Shipped / In Transit</option>
+                    <option value="DELIVERED">Delivered</option>
+                    <option value="CANCELLED">Cancelled</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Search Bar */}
+              <div style={{ position: 'relative', marginBottom: '18px' }}>
                 <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                 <input
                   type="text"
                   className="input-clean"
-                  placeholder="Search orders by ID, address, or item names..."
+                  placeholder="Search orders by Order ID, delivery address, or product..."
                   value={orderSearch}
                   onChange={(e) => setOrderSearch(e.target.value)}
                   style={{ paddingLeft: '38px' }}
                 />
               </div>
 
-              <div style={{ display: 'flex', gap: '6px', background: 'var(--surface-alt)', padding: '3px', borderRadius: '10px', overflowX: 'auto' }}>
-                {[
-                  { id: 'ALL', label: `All (${ordersList.length})` },
-                  { id: 'IN_PREP', label: `In Prep (${inPrepOrdersCount})` },
-                  { id: 'SHIPPED', label: `Shipped (${ordersList.filter(o => (o.status || '').toLowerCase().includes('ship')).length})` },
-                  { id: 'DELIVERED', label: `Delivered (${ordersList.filter(o => (o.status || '').toLowerCase().includes('deliver')).length})` },
-                  { id: 'CANCELLED', label: 'Cancelled' }
-                ].map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setOrderStatusFilter(tab.id)}
-                    style={{
-                      border: 'none',
-                      padding: '6px 12px',
-                      borderRadius: '8px',
-                      fontSize: '12px',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      background: orderStatusFilter === tab.id ? 'var(--primary)' : 'transparent',
-                      color: orderStatusFilter === tab.id ? '#FFFFFF' : 'var(--text-muted)',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {filteredOrders.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '40px 16px', color: 'var(--text-muted)' }}>
-                <Package size={36} style={{ opacity: 0.4, marginBottom: '8px' }} />
-                <p style={{ margin: 0, fontWeight: 600 }}>No customer orders match the current filter.</p>
-              </div>
-            ) : (
+              {/* Table */}
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13.5px' }}>
                   <thead>
                     <tr style={{ textAlign: 'left', color: 'var(--text-muted)', borderBottom: '1px solid var(--border)' }}>
-                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>Order ID &amp; Date</th>
-                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>Items Summary</th>
-                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>Delivery Destination</th>
-                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>Total</th>
-                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>Status</th>
-                      <th style={{ padding: '12px 10px', fontWeight: 600, textAlign: 'right' }}>Quick Actions</th>
+                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>Order ID / Items</th>
+                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>Destination Address</th>
+                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>Total (৳ BDT)</th>
+                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>Fulfillment Status</th>
+                      <th style={{ padding: '12px 10px', fontWeight: 600, textAlign: 'right' }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredOrders.map((ord) => {
-                      const orderId = ord.id || ord.orderId || 'PM-ORD';
-                      const itemsCount = (ord.items || []).reduce((sum, i) => sum + (i.qty || 1), 0);
-                      const status = (ord.status || 'Order Placed');
+                      const orderId = ord.id || ord.orderId || 'ORD-UNKNOWN';
+                      const itemsCount = ord.items?.length || 1;
+                      const status = ord.status || 'In Preparation';
                       const sLower = status.toLowerCase();
 
                       return (
                         <tr key={orderId} style={{ borderBottom: '1px solid var(--border)' }}>
                           <td style={{ padding: '14px 10px' }}>
-                            <strong style={{ fontSize: '13.5px', color: 'var(--primary)', display: 'block', fontFamily: 'monospace' }}>
-                              {orderId}
-                            </strong>
-                            <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>
-                              {ord.date || 'Today'}
-                            </span>
-                          </td>
-
-                          <td style={{ padding: '14px 10px' }}>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                              <strong style={{ fontSize: '13.5px', color: 'var(--text-main)' }}>
-                                {(ord.items && ord.items[0]?.name) || 'Pet Care Supplies'}
-                                {ord.items && ord.items.length > 1 ? ` +${ord.items.length - 1} more` : ''}
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                              <strong style={{ fontSize: '13.5px', color: 'var(--text-main)', fontFamily: 'monospace' }}>
+                                {orderId}
                               </strong>
-                              <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>
-                                {itemsCount} {itemsCount === 1 ? 'item' : 'items'} total
+                              <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                                {itemsCount} {itemsCount === 1 ? 'item' : 'items'} • {ord.date || 'Today'}
                               </span>
                             </div>
                           </td>
 
                           <td style={{ padding: '14px 10px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12.5px', color: 'var(--text-main)', maxWidth: '240px' }}>
-                              <MapPin size={13} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12.5px', color: 'var(--text-main)', maxWidth: '240px' }}>
+                              <MapPin size={13} style={{ color: 'var(--primary)', flexShrink: 0 }} />
                               <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                 {ord.deliveryAddress || ord.address || 'Dhaka, Bangladesh'}
                               </span>
@@ -1926,7 +1755,7 @@ export default function AdminPortal() {
                               {(sLower.includes('prep') || sLower.includes('placed') || sLower.includes('pending')) && (
                                 <button
                                   className="apple-btn-blue"
-                                  style={{ padding: '4px 10px', fontSize: '11.5px', background: '#A855F7' }}
+                                  style={{ padding: '5px 12px', fontSize: '11.5px', background: '#8B5CF6' }}
                                   onClick={() => handleUpdateStatus(orderId, 'Shipped')}
                                 >
                                   <Truck size={12} />
@@ -1937,7 +1766,7 @@ export default function AdminPortal() {
                               {sLower.includes('ship') && (
                                 <button
                                   className="apple-btn-blue"
-                                  style={{ padding: '4px 10px', fontSize: '11.5px', background: '#10B981' }}
+                                  style={{ padding: '5px 12px', fontSize: '11.5px', background: '#10B981' }}
                                   onClick={() => handleUpdateStatus(orderId, 'Delivered')}
                                 >
                                   <CheckCircle size={12} />
@@ -1947,7 +1776,7 @@ export default function AdminPortal() {
 
                               <button
                                 className="btn-ghost"
-                                style={{ padding: '4px 10px', fontSize: '12px' }}
+                                style={{ padding: '5px 10px', fontSize: '12px' }}
                                 onClick={() => setSelectedOrderDetails(ord)}
                               >
                                 <Eye size={13} />
@@ -1956,7 +1785,7 @@ export default function AdminPortal() {
 
                               <button
                                 className="icon-btn"
-                                style={{ width: 28, height: 28, color: '#EF4444' }}
+                                style={{ width: 30, height: 30, color: '#EF4444' }}
                                 onClick={() => handleDeleteOrder(orderId)}
                               >
                                 <Trash2 size={13} />
@@ -1969,131 +1798,106 @@ export default function AdminPortal() {
                   </tbody>
                 </table>
               </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ══════════════════════════════════════════════════════
-          TAB 3: 👥 USERS VERIFICATION & ROLE MANAGEMENT
-          ══════════════════════════════════════════════════════ */}
-      {adminTab === 'users' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          
-          {/* User Metrics */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
-            <div className="apple-solid-card" style={{ padding: '18px 20px', textAlign: 'left' }}>
-              <span className="label-mini">Total Platform Users</span>
-              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px' }}>{usersList.length} Accounts</strong>
-              <span style={{ fontSize: '12px', color: 'var(--primary)', marginTop: '4px' }}>Active Community</span>
-            </div>
-
-            <div className="apple-solid-card" style={{ padding: '18px 20px', textAlign: 'left' }}>
-              <span className="label-mini">Verified KYC Profiles</span>
-              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px', color: '#10B981' }}>{verifiedUsersCount}</strong>
-              <span style={{ fontSize: '12px', color: '#10B981', marginTop: '4px' }}>ID &amp; Contact Verified</span>
-            </div>
-
-            <div className="apple-solid-card" style={{ padding: '18px 20px', textAlign: 'left' }}>
-              <span className="label-mini">Pending Verification</span>
-              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px', color: pendingUsersCount > 0 ? '#F59E0B' : 'var(--text-muted)' }}>
-                {pendingUsersCount} Users
-              </strong>
-              <span style={{ fontSize: '12px', color: pendingUsersCount > 0 ? '#F59E0B' : '#10B981', marginTop: '4px' }}>
-                {pendingUsersCount > 0 ? 'Requires Profile KYC Review' : 'All Profiles Clear'}
-              </span>
-            </div>
-
-            <div className="apple-solid-card" style={{ padding: '18px 20px', textAlign: 'left' }}>
-              <span className="label-mini">Clinicians &amp; Admins</span>
-              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px', color: '#8B5CF6' }}>
-                {usersList.filter(u => u.role === 'Veterinarian' || u.role === 'Super Admin' || u.role === 'Admin').length} Staff
-              </strong>
-              <span style={{ fontSize: '12px', color: '#8B5CF6', marginTop: '4px' }}>Elevated System Roles</span>
             </div>
           </div>
+        )}
 
-          {/* Users Table Card */}
-          <div className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '18px' }}>
-              <div>
-                <h3 style={{ fontSize: '18px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
-                  <Users size={18} color="var(--primary)" />
-                  <span>User Account &amp; KYC Verification Command</span>
-                </h3>
-                <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-                  Verify user identities, promote roles to Veterinarians or Administrators, and moderate platform accounts.
-                </span>
+        {/* ══════════════════════════════════════════════════════
+            TAB 3: 👥 USERS VERIFICATION & GUARDIANS (users)
+            ══════════════════════════════════════════════════════ */}
+        {adminTab === 'users' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
+              <div className="apple-solid-card" style={{ padding: '18px 20px', textAlign: 'left', border: '1px solid var(--border)' }}>
+                <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Total Registered Users</span>
+                <strong style={{ fontSize: '26px', fontWeight: 800, marginTop: '4px', display: 'block' }}>{usersList.length}</strong>
+                <span style={{ fontSize: '12px', color: 'var(--primary)' }}>Active Guardian Network</span>
               </div>
 
-              <button
-                className="apple-btn-blue"
-                onClick={() => setIsAddUserModalOpen(true)}
-                style={{ padding: '9px 18px', fontSize: '13px', background: 'var(--primary)' }}
-              >
-                <UserPlus size={15} />
-                <span>Add / Invite User</span>
-              </button>
+              <div className="apple-solid-card" style={{ padding: '18px 20px', textAlign: 'left', border: '1px solid var(--border)' }}>
+                <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Verified KYC Profiles</span>
+                <strong style={{ fontSize: '26px', fontWeight: 800, marginTop: '4px', color: '#10B981', display: 'block' }}>{verifiedUsersCount}</strong>
+                <span style={{ fontSize: '12px', color: '#10B981' }}>ID &amp; Contact Verified</span>
+              </div>
+
+              <div className="apple-solid-card" style={{ padding: '18px 20px', textAlign: 'left', border: '1px solid var(--border)' }}>
+                <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Pending Review</span>
+                <strong style={{ fontSize: '26px', fontWeight: 800, marginTop: '4px', color: pendingUsersCount > 0 ? '#F59E0B' : '#10B981', display: 'block' }}>
+                  {pendingUsersCount}
+                </strong>
+                <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Requires review</span>
+              </div>
             </div>
 
-            {/* Filters & Search */}
-            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '18px' }}>
-              <div style={{ flex: 1, minWidth: '240px', position: 'relative' }}>
-                <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                <input
-                  type="text"
+            <div className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '24px', border: '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '18px' }}>
+                <div>
+                  <h3 style={{ fontSize: '18px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px', margin: 0, color: 'var(--text-main)' }}>
+                    <Users size={18} color="var(--primary)" />
+                    <span>Guardians &amp; User Account Governance</span>
+                  </h3>
+                  <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                    Verify user identities, promote roles to Veterinarians or Administrators, and moderate platform accounts.
+                  </span>
+                </div>
+
+                <button
+                  className="apple-btn-blue"
+                  onClick={() => setIsAddUserModalOpen(true)}
+                  style={{ padding: '9px 18px', fontSize: '13px', background: 'var(--primary)' }}
+                >
+                  <UserPlus size={15} />
+                  <span>Register / Invite User</span>
+                </button>
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '18px' }}>
+                <div style={{ flex: 1, minWidth: '240px', position: 'relative' }}>
+                  <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                  <input
+                    type="text"
+                    className="input-clean"
+                    placeholder="Search users by name, email, phone, or UID..."
+                    value={userSearch}
+                    onChange={(e) => setUserSearch(e.target.value)}
+                    style={{ paddingLeft: '38px' }}
+                  />
+                </div>
+
+                <select
                   className="input-clean"
-                  placeholder="Search users by name, email, phone, or UID..."
-                  value={userSearch}
-                  onChange={(e) => setUserSearch(e.target.value)}
-                  style={{ paddingLeft: '38px' }}
-                />
+                  style={{ width: 'auto', fontSize: '13px', fontWeight: 600 }}
+                  value={userRoleFilter}
+                  onChange={(e) => setUserRoleFilter(e.target.value)}
+                >
+                  <option value="ALL">All Roles</option>
+                  <option value="Pet Owner">Pet Owners</option>
+                  <option value="Veterinarian">Veterinarians</option>
+                  <option value="Super Admin">Super Admins</option>
+                </select>
+
+                <select
+                  className="input-clean"
+                  style={{ width: 'auto', fontSize: '13px', fontWeight: 600 }}
+                  value={userStatusFilter}
+                  onChange={(e) => setUserStatusFilter(e.target.value)}
+                >
+                  <option value="ALL">All KYC Statuses</option>
+                  <option value="VERIFIED">Verified KYC Only</option>
+                  <option value="PENDING">Pending KYC Only</option>
+                  <option value="SUSPENDED">Suspended Accounts</option>
+                </select>
               </div>
 
-              {/* Role Filter */}
-              <select
-                className="input-clean"
-                style={{ width: 'auto', fontSize: '13px', fontWeight: 600 }}
-                value={userRoleFilter}
-                onChange={(e) => setUserRoleFilter(e.target.value)}
-              >
-                <option value="ALL">All Roles</option>
-                <option value="Pet Owner">Pet Owners</option>
-                <option value="Veterinarian">Veterinarians</option>
-                <option value="Shelter & Spa">Shelters &amp; Spas</option>
-                <option value="Super Admin">Super Admins</option>
-              </select>
-
-              {/* Verification Status Filter */}
-              <select
-                className="input-clean"
-                style={{ width: 'auto', fontSize: '13px', fontWeight: 600 }}
-                value={userStatusFilter}
-                onChange={(e) => setUserStatusFilter(e.target.value)}
-              >
-                <option value="ALL">All KYC Statuses</option>
-                <option value="VERIFIED">Verified KYC Only</option>
-                <option value="PENDING">Pending KYC Only</option>
-                <option value="SUSPENDED">Suspended Accounts</option>
-              </select>
-            </div>
-
-            {/* Users Table */}
-            {filteredUsers.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '40px 16px', color: 'var(--text-muted)' }}>
-                <Users size={36} style={{ opacity: 0.4, marginBottom: '8px' }} />
-                <p style={{ margin: 0, fontWeight: 600 }}>No users match the selected filters.</p>
-              </div>
-            ) : (
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13.5px' }}>
                   <thead>
                     <tr style={{ textAlign: 'left', color: 'var(--text-muted)', borderBottom: '1px solid var(--border)' }}>
                       <th style={{ padding: '12px 10px', fontWeight: 600 }}>User Profile</th>
-                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>System Role</th>
-                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>KYC Verification</th>
-                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>Status</th>
-                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>Registered Pets</th>
+                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>Role</th>
+                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>KYC Status</th>
+                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>State</th>
+                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>Pets</th>
                       <th style={{ padding: '12px 10px', fontWeight: 600, textAlign: 'right' }}>Actions</th>
                     </tr>
                   </thead>
@@ -2104,26 +1908,19 @@ export default function AdminPortal() {
 
                       return (
                         <tr key={u.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                          {/* User Profile */}
                           <td style={{ padding: '14px 10px' }}>
                             <div 
                               style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
                               onClick={() => setSelectedUserDetails(u)}
-                              title="Click to view full user profile & KYC dossier"
                             >
                               <UserAvatar user={u} size={42} />
                               <div>
-                                <strong style={{ fontSize: '14px', color: 'var(--text-main)', display: 'block' }}>
-                                  {u.name}
-                                </strong>
-                                <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                                  {u.email} {u.phone ? `• ${u.phone}` : ''}
-                                </span>
+                                <strong style={{ fontSize: '14px', color: 'var(--text-main)', display: 'block' }}>{u.name}</strong>
+                                <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{u.email}</span>
                               </div>
                             </div>
                           </td>
 
-                          {/* Role with in-place switcher */}
                           <td style={{ padding: '14px 10px' }}>
                             <select
                               className="input-clean"
@@ -2133,12 +1930,10 @@ export default function AdminPortal() {
                             >
                               <option value="Pet Owner">Pet Owner</option>
                               <option value="Veterinarian">Veterinarian</option>
-                              <option value="Shelter & Spa">Shelter &amp; Spa</option>
                               <option value="Super Admin">Super Admin</option>
                             </select>
                           </td>
 
-                          {/* KYC Verification Badge & Toggle */}
                           <td style={{ padding: '14px 10px' }}>
                             <button
                               onClick={() => handleToggleUserVerification(u)}
@@ -2155,14 +1950,12 @@ export default function AdminPortal() {
                                 alignItems: 'center',
                                 gap: '4px'
                               }}
-                              title="Click to toggle KYC verification status"
                             >
                               {isVerified ? <BadgeCheck size={13} /> : <AlertCircle size={13} />}
-                              <span>{isVerified ? 'KYC Verified' : 'Pending KYC'}</span>
+                              <span>{isVerified ? 'KYC Verified' : 'Pending Review'}</span>
                             </button>
                           </td>
 
-                          {/* Account Status */}
                           <td style={{ padding: '14px 10px' }}>
                             <span style={{
                               fontSize: '11.5px',
@@ -2176,19 +1969,16 @@ export default function AdminPortal() {
                             </span>
                           </td>
 
-                          {/* Pets Count */}
                           <td style={{ padding: '14px 10px', fontWeight: 600 }}>
                             {u.petsCount || 1} Registered
                           </td>
 
-                          {/* Actions */}
                           <td style={{ padding: '14px 10px', textAlign: 'right' }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '6px' }}>
                               <button
                                 className="btn-ghost"
-                                style={{ padding: '4px 10px', fontSize: '12px' }}
+                                style={{ padding: '5px 10px', fontSize: '12px' }}
                                 onClick={() => setSelectedUserDetails(u)}
-                                title="Inspect user profile"
                               >
                                 <Eye size={13} />
                                 <span>Inspect</span>
@@ -2196,7 +1986,7 @@ export default function AdminPortal() {
 
                               <button
                                 className="icon-btn"
-                                style={{ width: 28, height: 28, color: isSuspended ? '#10B981' : '#EF4444' }}
+                                style={{ width: 30, height: 30, color: isSuspended ? '#10B981' : '#EF4444' }}
                                 onClick={() => handleToggleUserStatus(u)}
                                 title={isSuspended ? 'Reactivate User' : 'Suspend User'}
                               >
@@ -2210,119 +2000,97 @@ export default function AdminPortal() {
                   </tbody>
                 </table>
               </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ══════════════════════════════════════════════════════
-          TAB 4: 🩺 SERVICES & CLINIC LICENSING MANAGEMENT
-          ══════════════════════════════════════════════════════ */}
-      {adminTab === 'services' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          
-          {/* Services Metrics */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
-            <div className="apple-solid-card" style={{ padding: '18px 20px', textAlign: 'left' }}>
-              <span className="label-mini">Specialist Providers</span>
-              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px' }}>{vets.length} Facilities</strong>
-              <span style={{ fontSize: '12px', color: 'var(--primary)', marginTop: '4px' }}>Active in Booking Network</span>
-            </div>
-
-            <div className="apple-solid-card" style={{ padding: '18px 20px', textAlign: 'left' }}>
-              <span className="label-mini">Verified Medical Licenses</span>
-              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px', color: '#10B981' }}>{verifiedServicesCount}</strong>
-              <span style={{ fontSize: '12px', color: '#10B981', marginTop: '4px' }}>100% Board Certified</span>
-            </div>
-
-            <div className="apple-solid-card" style={{ padding: '18px 20px', textAlign: 'left' }}>
-              <span className="label-mini">Pending License Reviews</span>
-              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px', color: pendingServicesCount > 0 ? '#F59E0B' : 'var(--text-muted)' }}>
-                {pendingServicesCount} Providers
-              </strong>
-              <span style={{ fontSize: '12px', color: pendingServicesCount > 0 ? '#F59E0B' : '#10B981', marginTop: '4px' }}>
-                {pendingServicesCount > 0 ? 'Requires Document Audit' : 'All Credentials Verified'}
-              </span>
-            </div>
-
-            <div className="apple-solid-card" style={{ padding: '18px 20px', textAlign: 'left' }}>
-              <span className="label-mini">24/7 Emergency Facilities</span>
-              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px', color: '#EF4444' }}>
-                {vets.filter(v => v.isEmergencyOnCall || v.tag?.includes('Hospital') || v.tag?.includes('Emergency')).length || 2} Active
-              </strong>
-              <span style={{ fontSize: '12px', color: '#EF4444', marginTop: '4px' }}>Instant Triage Callout</span>
             </div>
           </div>
+        )}
 
-          {/* Services Directory Table Card */}
-          <div className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '18px' }}>
-              <div>
-                <h3 style={{ fontSize: '18px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
-                  <Stethoscope size={18} color="var(--primary)" />
-                  <span>Clinical Licensing &amp; Service Provider Management</span>
-                </h3>
-                <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-                  Audit doctor credentials, verify BMDC medical registrations, set consultation slot fees (৳), and manage clinic listings.
-                </span>
+        {/* ══════════════════════════════════════════════════════
+            TAB 4: 🩺 CLINICAL SERVICES & LICENSING (services, telehealth)
+            ══════════════════════════════════════════════════════ */}
+        {(adminTab === 'services' || adminTab === 'telehealth') && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
+              <div className="apple-solid-card" style={{ padding: '18px 20px', textAlign: 'left', border: '1px solid var(--border)' }}>
+                <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Specialist Providers</span>
+                <strong style={{ fontSize: '26px', fontWeight: 800, marginTop: '4px', display: 'block' }}>{vets.length} Facilities</strong>
+                <span style={{ fontSize: '12px', color: 'var(--primary)' }}>Active in Network</span>
               </div>
 
-              <button
-                className="apple-btn-blue"
-                onClick={handleOpenAddService}
-                style={{ padding: '9px 18px', fontSize: '13px' }}
-              >
-                <Plus size={15} />
-                <span>Add Service Provider</span>
-              </button>
+              <div className="apple-solid-card" style={{ padding: '18px 20px', textAlign: 'left', border: '1px solid var(--border)' }}>
+                <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Verified Medical Licenses</span>
+                <strong style={{ fontSize: '26px', fontWeight: 800, marginTop: '4px', color: '#10B981', display: 'block' }}>{verifiedServicesCount}</strong>
+                <span style={{ fontSize: '12px', color: '#10B981' }}>BMDC Verified</span>
+              </div>
+
+              <div className="apple-solid-card" style={{ padding: '18px 20px', textAlign: 'left', border: '1px solid var(--border)' }}>
+                <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Pending Review</span>
+                <strong style={{ fontSize: '26px', fontWeight: 800, marginTop: '4px', color: pendingServicesCount > 0 ? '#F59E0B' : '#10B981', display: 'block' }}>
+                  {pendingServicesCount}
+                </strong>
+                <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Audit required</span>
+              </div>
             </div>
 
-            {/* Filters & Search */}
-            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '18px' }}>
-              <div style={{ flex: 1, minWidth: '240px', position: 'relative' }}>
-                <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                <input
-                  type="text"
+            <div className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '24px', border: '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '18px' }}>
+                <div>
+                  <h3 style={{ fontSize: '18px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px', margin: 0, color: 'var(--text-main)' }}>
+                    <Stethoscope size={18} color="var(--primary)" />
+                    <span>Specialist Directory &amp; Medical Licensing</span>
+                  </h3>
+                  <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                    Audit doctor credentials, verify BMDC registrations, and manage consultation slot fees.
+                  </span>
+                </div>
+
+                <button
+                  className="apple-btn-blue"
+                  onClick={handleOpenAddService}
+                  style={{ padding: '9px 18px', fontSize: '13px', background: 'var(--primary)' }}
+                >
+                  <Plus size={15} />
+                  <span>Add Specialist / Clinic</span>
+                </button>
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '18px' }}>
+                <div style={{ flex: 1, minWidth: '240px', position: 'relative' }}>
+                  <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                  <input
+                    type="text"
+                    className="input-clean"
+                    placeholder="Search by doctor, clinic, license number, or qualification..."
+                    value={serviceSearch}
+                    onChange={(e) => setServiceSearch(e.target.value)}
+                    style={{ paddingLeft: '38px' }}
+                  />
+                </div>
+
+                <select
                   className="input-clean"
-                  placeholder="Search by doctor, clinic, license number, or specialization..."
-                  value={serviceSearch}
-                  onChange={(e) => setServiceSearch(e.target.value)}
-                  style={{ paddingLeft: '38px' }}
-                />
+                  style={{ width: 'auto', fontSize: '13px', fontWeight: 600 }}
+                  value={serviceCatFilter}
+                  onChange={(e) => setServiceCatFilter(e.target.value)}
+                >
+                  <option value="ALL">All Categories</option>
+                  <option value="vet">Veterinary Clinics</option>
+                  <option value="grooming">Grooming Spas</option>
+                  <option value="boarding">Boarding Resorts</option>
+                  <option value="lab">Diagnostic Labs</option>
+                </select>
+
+                <select
+                  className="input-clean"
+                  style={{ width: 'auto', fontSize: '13px', fontWeight: 600 }}
+                  value={serviceVerifFilter}
+                  onChange={(e) => setServiceVerifFilter(e.target.value)}
+                >
+                  <option value="ALL">All License Statuses</option>
+                  <option value="VERIFIED">Verified Licenses Only</option>
+                  <option value="PENDING">Pending Audit Only</option>
+                </select>
               </div>
 
-              <select
-                className="input-clean"
-                style={{ width: 'auto', fontSize: '13px', fontWeight: 600 }}
-                value={serviceCatFilter}
-                onChange={(e) => setServiceCatFilter(e.target.value)}
-              >
-                <option value="ALL">All Service Categories</option>
-                <option value="vet">Veterinary Clinics</option>
-                <option value="grooming">Grooming Spas</option>
-                <option value="boarding">Luxury Boarding &amp; Hotels</option>
-                <option value="lab">Diagnostic Labs</option>
-              </select>
-
-              <select
-                className="input-clean"
-                style={{ width: 'auto', fontSize: '13px', fontWeight: 600 }}
-                value={serviceVerifFilter}
-                onChange={(e) => setServiceVerifFilter(e.target.value)}
-              >
-                <option value="ALL">All License Statuses</option>
-                <option value="VERIFIED">Verified Licenses Only</option>
-                <option value="PENDING">Pending Verification</option>
-              </select>
-            </div>
-
-            {/* Services Table */}
-            {filteredServices.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '40px 16px', color: 'var(--text-muted)' }}>
-                <Hospital size={36} style={{ opacity: 0.4, marginBottom: '8px' }} />
-                <p style={{ margin: 0, fontWeight: 600 }}>No clinical services match your filter.</p>
-              </div>
-            ) : (
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13.5px' }}>
                   <thead>
@@ -2341,7 +2109,6 @@ export default function AdminPortal() {
 
                       return (
                         <tr key={v.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                          {/* Doctor / Facility */}
                           <td style={{ padding: '14px 10px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                               <img
@@ -2357,7 +2124,6 @@ export default function AdminPortal() {
                             </div>
                           </td>
 
-                          {/* Category & License */}
                           <td style={{ padding: '14px 10px' }}>
                             <span style={{ fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '6px', background: 'var(--surface-alt)', textTransform: 'uppercase', display: 'inline-block', marginBottom: '2px' }}>
                               {v.tag || 'Veterinarian'}
@@ -2367,17 +2133,14 @@ export default function AdminPortal() {
                             </span>
                           </td>
 
-                          {/* Specialization */}
-                          <td style={{ padding: '14px 10px', color: 'var(--text-main)', fontSize: '13px', maxWidth: '240px' }}>
+                          <td style={{ padding: '14px 10px', color: 'var(--text-main)', fontSize: '13px' }}>
                             {v.qualification}
                           </td>
 
-                          {/* Slot Fee */}
                           <td style={{ padding: '14px 10px', fontWeight: 700, color: 'var(--text-main)' }}>
                             {v.price ? (v.price.startsWith('৳') ? v.price : `৳${v.price}`) : '৳400/visit'}
                           </td>
 
-                          {/* License Verification Badge & Toggle */}
                           <td style={{ padding: '14px 10px' }}>
                             <button
                               onClick={() => handleToggleServiceLicense(v)}
@@ -2394,25 +2157,22 @@ export default function AdminPortal() {
                                 alignItems: 'center',
                                 gap: '4px'
                               }}
-                              title="Click to toggle medical license verification"
                             >
                               {isVerified ? <CheckCircle2 size={12} /> : <AlertCircle size={12} />}
-                              <span>{isVerified ? 'Verified License' : 'Pending Audit'}</span>
+                              <span>{isVerified ? 'Verified' : 'Pending'}</span>
                             </button>
                           </td>
 
-                          {/* Actions */}
                           <td style={{ padding: '14px 10px', textAlign: 'right' }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '6px' }}>
                               <button 
                                 className="icon-btn" 
-                                style={{ width: 32, height: 32, color: 'var(--apple-blue)' }}
+                                style={{ width: 32, height: 32, color: 'var(--primary)' }}
                                 onClick={() => handleOpenEditService(v)}
                                 title="Edit Service"
                               >
                                 <Edit size={14} />
                               </button>
-
                               <button 
                                 className="icon-btn" 
                                 style={{ width: 32, height: 32, color: '#EF4444' }}
@@ -2429,436 +2189,504 @@ export default function AdminPortal() {
                   </tbody>
                 </table>
               </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ══════════════════════════════════════════════════════
-          TAB 5: 📝 ARTICLE & COMMUNITY BLOG MODERATION
-          ══════════════════════════════════════════════════════ */}
-      {adminTab === 'blogs' && (
-        <div className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '28px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '20px' }}>
-            <div>
-              <h3 style={{ fontSize: '18px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
-                <BookOpen size={18} color="var(--primary)" />
-                <span>Community Blog &amp; Article Moderation</span>
-              </h3>
-              <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-                Approve user-submitted articles so they appear live across the web and mobile app feeds.
-              </span>
-            </div>
-
-            <div style={{ display: 'flex', gap: '8px', background: 'var(--surface-alt)', padding: '4px', borderRadius: '12px' }}>
-              <button
-                onClick={() => setBlogFilter('ALL')}
-                style={{
-                  border: 'none',
-                  padding: '6px 14px',
-                  borderRadius: '8px',
-                  fontSize: '12.5px',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  background: blogFilter === 'ALL' ? 'var(--primary)' : 'transparent',
-                  color: blogFilter === 'ALL' ? '#FFFFFF' : 'var(--text-muted)'
-                }}
-              >
-                All ({blogs.length})
-              </button>
-              <button
-                onClick={() => setBlogFilter('PENDING')}
-                style={{
-                  border: 'none',
-                  padding: '6px 14px',
-                  borderRadius: '8px',
-                  fontSize: '12.5px',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  background: blogFilter === 'PENDING' ? '#F59E0B' : 'transparent',
-                  color: blogFilter === 'PENDING' ? '#FFFFFF' : (pendingBlogs.length > 0 ? '#F59E0B' : 'var(--text-muted)')
-                }}
-              >
-                Pending Review ({pendingBlogs.length})
-              </button>
-              <button
-                onClick={() => setBlogFilter('APPROVED')}
-                style={{
-                  border: 'none',
-                  padding: '6px 14px',
-                  borderRadius: '8px',
-                  fontSize: '12.5px',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  background: blogFilter === 'APPROVED' ? '#10B981' : 'transparent',
-                  color: blogFilter === 'APPROVED' ? '#FFFFFF' : 'var(--text-muted)'
-                }}
-              >
-                Approved &amp; Live ({approvedBlogs.length})
-              </button>
             </div>
           </div>
+        )}
 
-          <div style={{ position: 'relative', marginBottom: '16px' }}>
-            <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-            <input
-              type="text"
-              className="input-clean"
-              placeholder="Search articles by title, author, or category..."
-              value={blogSearch}
-              onChange={(e) => setBlogSearch(e.target.value)}
-              style={{ paddingLeft: '38px' }}
-            />
-          </div>
+        {/* ══════════════════════════════════════════════════════
+            TAB 5: 📝 BLOG & CONTENT MODERATION (blogs)
+            ══════════════════════════════════════════════════════ */}
+        {adminTab === 'blogs' && (
+          <div className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '24px', border: '1px solid var(--border)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '20px' }}>
+              <div>
+                <h3 style={{ fontSize: '18px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px', margin: 0, color: 'var(--text-main)' }}>
+                  <BookOpen size={18} color="var(--primary)" />
+                  <span>Community Blog &amp; Article Moderation</span>
+                </h3>
+                <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                  Approve user-submitted articles so they appear live across the web and mobile app feeds.
+                </span>
+              </div>
 
-          {filteredBlogs.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '32px 16px', color: 'var(--text-muted)' }}>
-              <FileText size={32} style={{ opacity: 0.4, marginBottom: '8px' }} />
-              <p style={{ margin: 0, fontWeight: 600 }}>No articles match the selected filter.</p>
+              <div style={{ display: 'flex', gap: '8px', background: 'var(--surface-alt)', padding: '4px', borderRadius: '12px' }}>
+                <button
+                  onClick={() => setBlogFilter('ALL')}
+                  style={{
+                    border: 'none',
+                    padding: '6px 14px',
+                    borderRadius: '8px',
+                    fontSize: '12.5px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    background: blogFilter === 'ALL' ? 'var(--primary)' : 'transparent',
+                    color: blogFilter === 'ALL' ? '#FFFFFF' : 'var(--text-muted)'
+                  }}
+                >
+                  All ({blogs.length})
+                </button>
+                <button
+                  onClick={() => setBlogFilter('PENDING')}
+                  style={{
+                    border: 'none',
+                    padding: '6px 14px',
+                    borderRadius: '8px',
+                    fontSize: '12.5px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    background: blogFilter === 'PENDING' ? '#F59E0B' : 'transparent',
+                    color: blogFilter === 'PENDING' ? '#FFFFFF' : 'var(--text-muted)'
+                  }}
+                >
+                  Pending ({pendingBlogs.length})
+                </button>
+                <button
+                  onClick={() => setBlogFilter('APPROVED')}
+                  style={{
+                    border: 'none',
+                    padding: '6px 14px',
+                    borderRadius: '8px',
+                    fontSize: '12.5px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    background: blogFilter === 'APPROVED' ? '#10B981' : 'transparent',
+                    color: blogFilter === 'APPROVED' ? '#FFFFFF' : 'var(--text-muted)'
+                  }}
+                >
+                  Approved ({approvedBlogs.length})
+                </button>
+              </div>
             </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {filteredBlogs.map((article) => {
-                const isApproved = article.isApproved === true || article.status === 'APPROVED';
-                const isRejected = article.status === 'REJECTED';
-                const isExpanded = expandedBlogId === article.id;
 
-                return (
-                  <div
-                    key={article.id}
-                    style={{
-                      background: 'var(--surface-alt)',
-                      borderRadius: '16px',
-                      border: '1px solid var(--border)',
-                      padding: '16px 20px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '12px'
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
-                      <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                        <img
-                          src={article.imageUrl || 'https://images.unsplash.com/photo-1548191265-cc70d3d45ba1?w=800'}
-                          alt={article.title}
-                          style={{ width: '64px', height: '64px', borderRadius: '12px', objectFit: 'cover' }}
-                          onError={(e) => {
-                            e.currentTarget.src = 'https://images.unsplash.com/photo-1548191265-cc70d3d45ba1?w=800';
-                          }}
-                        />
-                        <div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                            <span
-                              style={{
-                                fontSize: '10px',
-                                fontWeight: 800,
-                                textTransform: 'uppercase',
-                                padding: '2px 8px',
-                                borderRadius: '6px',
-                                background: 'rgba(16, 185, 129, 0.12)',
-                                color: '#10B981'
-                              }}
-                            >
-                              {article.category || 'HEALTH'}
-                            </span>
+            <div style={{ position: 'relative', marginBottom: '16px' }}>
+              <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+              <input
+                type="text"
+                className="input-clean"
+                placeholder="Search articles by title, author, or category..."
+                value={blogSearch}
+                onChange={(e) => setBlogSearch(e.target.value)}
+                style={{ paddingLeft: '38px' }}
+              />
+            </div>
 
-                            <span
-                              style={{
-                                fontSize: '10px',
-                                fontWeight: 800,
-                                textTransform: 'uppercase',
-                                padding: '2px 8px',
-                                borderRadius: '6px',
-                                background: isApproved 
-                                  ? 'rgba(16, 185, 129, 0.15)' 
-                                  : (isRejected ? 'rgba(239, 68, 68, 0.15)' : 'rgba(245, 158, 11, 0.15)'),
-                                color: isApproved ? '#10B981' : (isRejected ? '#EF4444' : '#F59E0B')
-                              }}
-                            >
-                              {isApproved ? '● LIVE ON FEED' : (isRejected ? '● REJECTED' : '⏳ PENDING REVIEW')}
+            {filteredBlogs.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '36px 16px', color: 'var(--text-muted)' }}>
+                <FileText size={32} style={{ opacity: 0.4, marginBottom: '8px' }} />
+                <p style={{ margin: 0, fontWeight: 600 }}>No articles match the selected filter.</p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {filteredBlogs.map((article) => {
+                  const isApproved = article.isApproved === true || article.status === 'APPROVED';
+                  const isRejected = article.status === 'REJECTED';
+                  const isExpanded = expandedBlogId === article.id;
+
+                  return (
+                    <div
+                      key={article.id}
+                      style={{
+                        background: 'var(--surface-alt)',
+                        borderRadius: '16px',
+                        border: '1px solid var(--border)',
+                        padding: '16px 20px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '12px'
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
+                        <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                          <img
+                            src={article.imageUrl || 'https://images.unsplash.com/photo-1548191265-cc70d3d45ba1?w=800'}
+                            alt={article.title}
+                            style={{ width: '64px', height: '64px', borderRadius: '12px', objectFit: 'cover' }}
+                            onError={(e) => {
+                              e.currentTarget.src = 'https://images.unsplash.com/photo-1548191265-cc70d3d45ba1?w=800';
+                            }}
+                          />
+                          <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                              <span style={{ fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', padding: '2px 8px', borderRadius: '6px', background: 'var(--primary-light)', color: 'var(--primary)' }}>
+                                {article.category || 'HEALTH'}
+                              </span>
+                              <span style={{ fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', padding: '2px 8px', borderRadius: '6px', background: isApproved ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)', color: isApproved ? '#10B981' : '#F59E0B' }}>
+                                {isApproved ? '● LIVE ON FEED' : '⏳ PENDING REVIEW'}
+                              </span>
+                            </div>
+
+                            <strong style={{ fontSize: '15px', display: 'block', color: 'var(--text-main)' }}>
+                              {article.title}
+                            </strong>
+                            <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                              By {article.authorName || 'Pet Maya Author'} • {formatBlogDate(article.timestamp)}
                             </span>
                           </div>
+                        </div>
 
-                          <strong style={{ fontSize: '16px', display: 'block', color: 'var(--text-main)' }}>
-                            {article.title}
-                          </strong>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          {!isApproved && (
+                            <button
+                              className="apple-btn-blue"
+                              style={{ padding: '6px 14px', fontSize: '12px', background: '#10B981' }}
+                              onClick={() => handleApproveBlog(article.id, article.title)}
+                            >
+                              <Check size={14} />
+                              <span>Approve &amp; Publish</span>
+                            </button>
+                          )}
 
-                          <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                            By {article.authorName || 'Pet Maya User'} • {formatBlogDate(article.timestamp)} • {article.readTimeMinutes || 5} min read
-                          </span>
+                          {isApproved && (
+                            <button
+                              className="btn-ghost"
+                              style={{ padding: '6px 12px', fontSize: '12px', color: '#F59E0B' }}
+                              onClick={() => handleRejectBlog(article.id, article.title)}
+                            >
+                              <X size={14} />
+                              <span>Unpublish</span>
+                            </button>
+                          )}
+
+                          <button
+                            className="btn-ghost"
+                            style={{ padding: '6px 12px', fontSize: '12px' }}
+                            onClick={() => setExpandedBlogId(isExpanded ? null : article.id)}
+                          >
+                            {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                            <span>{isExpanded ? 'Hide' : 'Read'}</span>
+                          </button>
+
+                          <button
+                            className="icon-btn"
+                            style={{ width: 32, height: 32, color: '#EF4444' }}
+                            onClick={() => handleDeleteBlog(article.id, article.title)}
+                          >
+                            <Trash2 size={14} />
+                          </button>
                         </div>
                       </div>
 
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        {!isApproved && (
-                          <button
-                            className="apple-btn-blue"
-                            style={{ padding: '6px 14px', fontSize: '12px', background: '#10B981' }}
-                            onClick={() => handleApproveBlog(article.id, article.title)}
-                          >
-                            <Check size={14} />
-                            <span>Approve &amp; Publish</span>
-                          </button>
-                        )}
-
-                        {isApproved && (
-                          <button
-                            className="btn-ghost"
-                            style={{ padding: '6px 12px', fontSize: '12px', color: '#F59E0B' }}
-                            onClick={() => handleRejectBlog(article.id, article.title)}
-                          >
-                            <X size={14} />
-                            <span>Unpublish</span>
-                          </button>
-                        )}
-
-                        <button
-                          className="btn-ghost"
-                          style={{ padding: '6px 12px', fontSize: '12px' }}
-                          onClick={() => setExpandedBlogId(isExpanded ? null : article.id)}
-                        >
-                          {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                          <span>{isExpanded ? 'Hide' : 'Read'}</span>
-                        </button>
-
-                        <button
-                          className="icon-btn"
-                          style={{ width: 32, height: 32, color: '#EF4444' }}
-                          onClick={() => handleDeleteBlog(article.id, article.title)}
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
+                      {isExpanded && (
+                        <div style={{ marginTop: '8px', padding: '14px 18px', background: 'var(--surface)', borderRadius: '12px', fontSize: '13.5px', lineHeight: 1.6, color: 'var(--text-main)', maxHeight: '300px', overflowY: 'auto' }}>
+                          <p style={{ margin: 0, whiteSpace: 'pre-line' }}>{article.content}</p>
+                        </div>
+                      )}
                     </div>
-
-                    {isExpanded && (
-                      <div
-                        style={{
-                          marginTop: '8px',
-                          padding: '14px 18px',
-                          background: 'var(--bg)',
-                          borderRadius: '12px',
-                          fontSize: '13.5px',
-                          lineHeight: 1.6,
-                          color: 'var(--text-main)',
-                          maxHeight: '300px',
-                          overflowY: 'auto'
-                        }}
-                      >
-                        <p style={{ margin: 0, whiteSpace: 'pre-line' }}>{article.content}</p>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ══════════════════════════════════════════════════════
-          TAB 6: 📊 TELEMETRY & OVERVIEW
-          ══════════════════════════════════════════════════════ */}
-      {adminTab === 'overview' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
-            <div className="apple-solid-card" style={{ padding: '20px', textAlign: 'left', alignItems: 'flex-start' }}>
-              <span className="label-mini">Total Shop Valuation</span>
-              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px', color: '#10B981' }}>
-                ৳{Math.round(totalValuation).toLocaleString()}
-              </strong>
-              <span style={{ fontSize: '12px', color: '#10B981', marginTop: '4px' }}>Based on current SKU inventory</span>
-            </div>
-
-            <div className="apple-solid-card" style={{ padding: '20px', textAlign: 'left', alignItems: 'flex-start' }}>
-              <span className="label-mini">Gross Processed Revenue</span>
-              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px', color: '#10B981' }}>
-                ৳{totalRevenue.toFixed(2)}
-              </strong>
-              <span style={{ fontSize: '12px', color: '#10B981', marginTop: '4px' }}>Across {ordersList.length} Customer Orders</span>
-            </div>
-
-            <div className="apple-solid-card" style={{ padding: '20px', textAlign: 'left', alignItems: 'flex-start' }}>
-              <span className="label-mini">Total Registered Users</span>
-              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px' }}>{usersList.length} Users</strong>
-              <span style={{ fontSize: '12px', color: '#3B82F6', marginTop: '4px' }}>{verifiedUsersCount} KYC Verified</span>
-            </div>
-
-            <div className="apple-solid-card" style={{ padding: '20px', textAlign: 'left', alignItems: 'flex-start' }}>
-              <span className="label-mini">Verified Clinicians</span>
-              <strong style={{ fontSize: '26px', fontWeight: 700, marginTop: '4px' }}>{verifiedServicesCount} Active</strong>
-              <span style={{ fontSize: '12px', color: '#10B981', marginTop: '4px' }}>100% License Verified</span>
-            </div>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px' }}>
-            <div className="apple-solid-card" style={{ padding: '24px', textAlign: 'left' }}>
-              <h4 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 12px' }}>Quick Control Hub</h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <button className="apple-btn-blue" onClick={() => setAdminTab('users')} style={{ justifyContent: 'space-between' }}>
-                  <span>Manage Users &amp; KYC Verification ({pendingUsersCount})</span>
-                  <ChevronDown size={14} style={{ transform: 'rotate(-90deg)' }} />
-                </button>
-                <button className="btn-ghost" onClick={() => setAdminTab('services')} style={{ justifyContent: 'space-between' }}>
-                  <span>Verify Clinic &amp; Medical Licenses ({pendingServicesCount})</span>
-                  <ChevronDown size={14} style={{ transform: 'rotate(-90deg)' }} />
-                </button>
-                <button className="btn-ghost" onClick={() => setAdminTab('shop')} style={{ justifyContent: 'space-between' }}>
-                  <span>Manage Shop &amp; Inventory</span>
-                  <ChevronDown size={14} style={{ transform: 'rotate(-90deg)' }} />
-                </button>
+                  );
+                })}
               </div>
-            </div>
-
-            <div className="apple-solid-card" style={{ padding: '24px', textAlign: 'left' }}>
-              <h4 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 12px' }}>Platform Health Status</h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--text-muted)' }}>Firebase Real-time Store Database</span>
-                  <span className="badge badge-green">Operational</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--text-muted)' }}>GPS Collar Telemetry Service</span>
-                  <span className="badge badge-green">Connected</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--text-muted)' }}>AI Health Vision Neural Triage</span>
-                  <span className="badge badge-green">Active (Gemini 2.5)</span>
-                </div>
-              </div>
-            </div>
+            )}
           </div>
-        </div>
-      )}
+        )}
 
-      {/* ══════════════════════════════════════════════════════
-          TAB 7: 📢 BROADCASTS & GLOBAL BANNER
-          ══════════════════════════════════════════════════════ */}
-      {adminTab === 'broadcasts' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          
-          <div className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '28px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h3 style={{ fontSize: '18px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
-                <AlertTriangle size={18} color="var(--primary)" />
-                <span>Global Top Promotional Banner</span>
+        {/* ══════════════════════════════════════════════════════
+            TAB 6: 📢 SYSTEM BROADCASTS & GLOBAL BANNER (broadcasts)
+            ══════════════════════════════════════════════════════ */}
+        {adminTab === 'broadcasts' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            
+            {/* Global Banner Card */}
+            <div className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '24px', border: '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
+                <div>
+                  <h3 style={{ fontSize: '18px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px', margin: 0, color: 'var(--text-main)' }}>
+                    <AlertTriangle size={18} color="var(--primary)" />
+                    <span>Global Top Promotional Banner</span>
+                  </h3>
+                  <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                    Controls the prominent announcement banner displayed across the top header of all website pages.
+                  </span>
+                </div>
+
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: 700 }}>
+                  <input 
+                    type="checkbox" 
+                    checked={bannerConfig.isActive} 
+                    onChange={(e) => setBannerConfig(prev => ({ ...prev, isActive: e.target.checked }))}
+                    style={{ width: '18px', height: '18px', accentColor: 'var(--primary)' }}
+                  />
+                  {bannerConfig.isActive ? <span style={{ color: '#10B981' }}>Active Live</span> : <span style={{ color: 'var(--text-muted)' }}>Hidden</span>}
+                </label>
+              </div>
+
+              <form onSubmit={handleUpdateBanner} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div>
+                  <label className="label-mini">Promotional Text *</label>
+                  <input 
+                    type="text" 
+                    className="input-clean" 
+                    placeholder="e.g. WINTER CLINICAL PROTOCOL • COMPLIMENTARY VETERINARY TELEHEALTH TRIAGE..."
+                    value={bannerConfig.text}
+                    onChange={(e) => setBannerConfig(prev => ({ ...prev, text: e.target.value }))}
+                  />
+                </div>
+
+                <button type="submit" className="apple-btn-blue" style={{ alignSelf: 'flex-start', padding: '9px 22px', background: 'var(--primary)' }}>
+                  <CheckCircle2 size={14} />
+                  <span>Save &amp; Broadcast Banner Live</span>
+                </button>
+              </form>
+            </div>
+
+            {/* Instant Push Messenger Card */}
+            <div className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '24px', border: '1px solid var(--border)' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: 800, marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-main)' }}>
+                <Radio size={18} color="var(--primary)" />
+                <span>System Push Broadcast Messenger</span>
               </h3>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>
-                <input 
-                  type="checkbox" 
-                  checked={bannerConfig.isActive} 
-                  onChange={(e) => setBannerConfig(prev => ({ ...prev, isActive: e.target.checked }))}
-                  style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                />
-                {bannerConfig.isActive ? <span style={{ color: '#10B981' }}>Active</span> : <span style={{ color: 'var(--text-muted)' }}>Hidden</span>}
-              </label>
-            </div>
+              <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '16px' }}>
+                Dispatch instant push alerts across web browsers and native mobile applications.
+              </p>
 
-            <form onSubmit={handleUpdateBanner} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div>
-                <label className="label-mini">Promotional Text</label>
-                <input 
-                  type="text" 
-                  className="input-clean" 
-                  placeholder="e.g. Shop online and get specialist help, free delivery..."
-                  value={bannerConfig.text}
-                  onChange={(e) => setBannerConfig(prev => ({ ...prev, text: e.target.value }))}
-                />
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
-                <div>
-                  <label className="label-mini">Link Text</label>
+              <form onSubmit={handleBroadcast} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '12px' }}>
                   <input 
                     type="text" 
                     className="input-clean" 
-                    placeholder="e.g. store's services"
-                    value={bannerConfig.linkText}
-                    onChange={(e) => setBannerConfig(prev => ({ ...prev, linkText: e.target.value }))}
+                    placeholder="Broadcast Title (e.g. Parasite Season Advisory, Vaccination Drive)..."
+                    value={broadcastTitle}
+                    onChange={(e) => setBroadcastTitle(e.target.value)}
                   />
-                </div>
-                <div>
-                  <label className="label-mini">Link URL</label>
-                  <input 
-                    type="text" 
+                  <select 
                     className="input-clean" 
-                    placeholder="e.g. /shop or https://..."
-                    value={bannerConfig.linkUrl}
-                    onChange={(e) => setBannerConfig(prev => ({ ...prev, linkUrl: e.target.value }))}
-                  />
+                    style={{ width: 'auto', fontWeight: 600 }}
+                    value={broadcastTarget}
+                    onChange={(e) => setBroadcastTarget(e.target.value)}
+                  >
+                    <option value="all">Broadcast to All Users</option>
+                    <option value="owners">Pet Owners Only</option>
+                    <option value="vets">Clinicians Only</option>
+                  </select>
                 </div>
-              </div>
 
-              <button type="submit" className="apple-btn-blue" style={{ alignSelf: 'flex-start', padding: '9px 22px' }}>
-                <CheckCircle2 size={14} />
-                <span>Save Banner Configuration</span>
-              </button>
-            </form>
-          </div>
-
-          <div className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '28px' }}>
-            <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Radio size={18} color="var(--primary)" />
-              <span>System Broadcast Push Messenger</span>
-            </h3>
-
-            <form onSubmit={handleBroadcast} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '12px' }}>
-                <input 
-                  type="text" 
+                <textarea 
                   className="input-clean" 
-                  placeholder="Notification Title (e.g. Weather Alert, Vaccination Drive)..."
-                  value={broadcastTitle}
-                  onChange={(e) => setBroadcastTitle(e.target.value)}
+                  rows={2} 
+                  placeholder="Enter broadcast message content..."
+                  value={broadcastMsg}
+                  onChange={(e) => setBroadcastMsg(e.target.value)}
+                  style={{ resize: 'vertical' }}
                 />
-                <select 
-                  className="input-clean" 
-                  style={{ width: 'auto', fontWeight: 600 }}
-                  value={broadcastTarget}
-                  onChange={(e) => setBroadcastTarget(e.target.value)}
-                >
-                  <option value="all">Broadcast to All Users</option>
-                  <option value="owners">Pet Owners Only</option>
-                  <option value="vets">Clinicians Only</option>
-                </select>
-              </div>
 
-              <textarea 
-                className="input-clean" 
-                rows={2} 
-                placeholder="Broadcast announcement content sent to mobile & web clients..."
-                value={broadcastMsg}
-                onChange={(e) => setBroadcastMsg(e.target.value)}
-                style={{ resize: 'vertical' }}
-              />
+                <button type="submit" className="apple-btn-blue" style={{ alignSelf: 'flex-start', padding: '9px 22px', background: 'var(--primary)' }}>
+                  <Send size={14} />
+                  <span>Send Broadcast Now</span>
+                </button>
+              </form>
 
-              <button type="submit" className="apple-btn-blue" style={{ alignSelf: 'flex-start', padding: '9px 22px' }}>
-                <Send size={14} />
-                <span>Send Live Broadcast</span>
-              </button>
-            </form>
-
-            <div style={{ marginTop: '20px' }}>
-              <span className="label-mini">Recent Broadcast Log</span>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '6px' }}>
-                {broadcasts.map(b => (
-                  <div key={b.id} style={{ background: 'var(--surface-alt)', padding: '12px 16px', borderRadius: 'var(--radius-sm)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <strong style={{ fontSize: '14px' }}>{b.title}</strong>
-                      <span className="badge badge-green">{b.target} • {b.date}</span>
+              <div style={{ marginTop: '24px' }}>
+                <span className="label-mini">Recent Broadcast Log ({broadcasts.length})</span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
+                  {broadcasts.map(b => (
+                    <div key={b.id || b.timestamp} style={{ background: 'var(--surface-alt)', padding: '12px 16px', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <strong style={{ fontSize: '14px', color: 'var(--text-main)' }}>{b.title}</strong>
+                        <span className="badge badge-green" style={{ background: 'var(--primary-light)', color: 'var(--primary)' }}>{b.target} • {b.date || 'Recent'}</span>
+                      </div>
+                      <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '4px', margin: 0 }}>{b.message}</p>
                     </div>
-                    <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', marginTop: '4px', margin: 0 }}>{b.message}</p>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {/* ══════════════════════════════════════════════════════
+            TAB 7: 🗺️ LIVE OPERATIONS HUD & COLLAR MESH (hud)
+            ══════════════════════════════════════════════════════ */}
+        {adminTab === 'hud' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div className="apple-solid-card" style={{ padding: '24px', textAlign: 'left', border: '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
+                <div>
+                  <span style={{ fontSize: '10px', fontWeight: 800, color: 'var(--primary)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>● LIVE GPS SATELLITE MESH</span>
+                  <h3 style={{ fontSize: '18px', fontWeight: 800, margin: '2px 0 0 0', color: 'var(--text-main)' }}>Real-Time Geofence &amp; Collar Telemetry</h3>
+                </div>
+                <button onClick={handlePingMesh} disabled={isPingingMesh} className="apple-btn-blue" style={{ background: 'var(--primary)', padding: '8px 16px', fontSize: '12.5px' }}>
+                  <Radio size={14} className={isPingingMesh ? 'pulse-beacon' : ''} />
+                  <span>Sync 1,842 Collar Nodes</span>
+                </button>
+              </div>
+
+              {/* Simulated Visual Radar Stream */}
+              <div style={{ 
+                background: 'linear-gradient(180deg, #091512 0%, #0F231E 100%)', 
+                borderRadius: '16px', 
+                padding: '24px', 
+                color: '#FFFFFF',
+                position: 'relative',
+                overflow: 'hidden',
+                minHeight: '260px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 2 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#10B981' }} className="pulse-beacon" />
+                    <span style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em' }}>DHAKA SANCTUARY MESH • 4 NODES INSPECTED</span>
+                  </div>
+                  <span style={{ fontSize: '11px', color: '#10B981', fontFamily: 'monospace' }}>LATENCY: 12ms</span>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', zIndex: 2, margin: '20px 0' }}>
+                  {iotNodes.map(node => (
+                    <div key={node.id} style={{ background: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(10px)', padding: '12px 14px', borderRadius: '12px', border: node.status === 'PERIMETER_ALERT' ? '1px solid #EF4444' : '1px solid rgba(255,255,255,0.1)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                        <span style={{ fontWeight: 800, fontSize: '13px', color: node.status === 'PERIMETER_ALERT' ? '#EF4444' : '#FFFFFF' }}>{node.petName} ({node.breed})</span>
+                        <span style={{ fontSize: '10px', background: node.status === 'PERIMETER_ALERT' ? '#EF4444' : '#10B981', color: '#FFFFFF', padding: '2px 6px', borderRadius: '4px', fontWeight: 800 }}>{node.battery}%</span>
+                      </div>
+                      <div style={{ fontSize: '11px', color: '#A3A8A4' }}>Guardian: {node.guardian}</div>
+                      <div style={{ fontSize: '11px', color: '#10B981', marginTop: '2px' }}>Heart Rate: {node.heartRate} bpm • Temp {node.temp}</div>
+                      <div style={{ fontSize: '10.5px', color: node.status === 'PERIMETER_ALERT' ? '#EF4444' : '#A3A8A4', marginTop: '4px' }}>Zone: {node.zone}</div>
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', color: '#A3A8A4', zIndex: 2 }}>
+                  <span>ISO 11784 RFID Microchips • Sub-dermal sync enabled</span>
+                  <button onClick={() => setAdminTab('amber')} style={{ background: '#EF4444', color: '#FFF', border: 'none', borderRadius: '6px', padding: '4px 10px', fontSize: '10px', fontWeight: 800, cursor: 'pointer' }}>
+                    View Active Amber Alerts →
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════════════════
+            TAB 8: 💰 FINANCIAL & ESCROW TERMINAL (finance)
+            ══════════════════════════════════════════════════════ */}
+        {adminTab === 'finance' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+              <div className="apple-solid-card" style={{ padding: '20px', textAlign: 'left', border: '1px solid var(--border)' }}>
+                <span className="label-mini">Gross Settled Revenue</span>
+                <strong style={{ fontSize: '30px', fontWeight: 800, marginTop: '4px', color: '#10B981', display: 'block' }}>
+                  ৳{Math.round(totalRevenue).toLocaleString()}
+                </strong>
+                <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>From {ordersList.length} completed transactions</span>
+              </div>
+
+              <div className="apple-solid-card" style={{ padding: '20px', textAlign: 'left', border: '1px solid var(--border)' }}>
+                <span className="label-mini">Cold-Chain Escrow Vault</span>
+                <strong style={{ fontSize: '30px', fontWeight: 800, marginTop: '4px', color: 'var(--primary)', display: 'block' }}>
+                  ৳{Math.round(totalRevenue * 0.18).toLocaleString()}
+                </strong>
+                <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Locked until thermal delivery receipt</span>
+              </div>
+
+              <div className="apple-solid-card" style={{ padding: '20px', textAlign: 'left', border: '1px solid var(--border)' }}>
+                <span className="label-mini">Clinical Payout Ledger</span>
+                <strong style={{ fontSize: '30px', fontWeight: 800, marginTop: '4px', color: '#8B5CF6', display: 'block' }}>
+                  ৳{Math.round(verifiedServicesCount * 12400).toLocaleString()}
+                </strong>
+                <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Disbursed to {verifiedServicesCount} verified doctors</span>
+              </div>
+            </div>
+
+            <div className="apple-solid-card" style={{ padding: '24px', textAlign: 'left', border: '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <h3 style={{ fontSize: '18px', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>Transaction Escrow Ledger</h3>
+                <button 
+                  onClick={() => showToast('📥 Financial settlement statement generated as CSV!', 'success')} 
+                  className="btn-ghost" 
+                  style={{ fontSize: '12.5px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <Download size={14} /> Export Settlement Audit
+                </button>
+              </div>
+
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                  <thead>
+                    <tr style={{ textAlign: 'left', color: 'var(--text-muted)', borderBottom: '1px solid var(--border)' }}>
+                      <th style={{ padding: '10px', fontWeight: 600 }}>Reference</th>
+                      <th style={{ padding: '10px', fontWeight: 600 }}>Type</th>
+                      <th style={{ padding: '10px', fontWeight: 600 }}>Amount</th>
+                      <th style={{ padding: '10px', fontWeight: 600 }}>Escrow Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {ordersList.slice(0, 8).map((o, idx) => (
+                      <tr key={idx} style={{ borderBottom: '1px solid var(--border)' }}>
+                        <td style={{ padding: '12px 10px', fontFamily: 'monospace' }}>{o.id || o.orderId || `TX-${1000 + idx}`}</td>
+                        <td style={{ padding: '12px 10px' }}>E-Commerce Cold-Chain Order</td>
+                        <td style={{ padding: '12px 10px', fontWeight: 700, color: '#10B981' }}>৳{Number(o.total || 0).toFixed(2)}</td>
+                        <td style={{ padding: '12px 10px' }}>
+                          <span style={{ background: 'rgba(16, 185, 129, 0.12)', color: '#10B981', padding: '2px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 700 }}>
+                            Settled
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════════════════
+            TAB 9: 🚨 AMBER ALERT FIELD EMERGENCY DESK (amber)
+            ══════════════════════════════════════════════════════ */}
+        {adminTab === 'amber' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div className="apple-solid-card" style={{ padding: '24px', textAlign: 'left', border: '1px solid #FECACA', background: 'rgba(239, 68, 68, 0.04)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#EF4444' }} className="pulse-beacon" />
+                  <h3 style={{ fontSize: '18px', fontWeight: 800, margin: 0, color: '#B91C1C' }}>ACTIVE EMERGENCY AMBER RESCUE DESK</h3>
+                </div>
+                <span style={{ background: '#FEE2E2', color: '#EF4444', padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 800 }}>
+                  PRIORITY 1 ESCALATION
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', gap: '18px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '20px' }}>
+                <img src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=200" alt="" style={{ width: 72, height: 72, borderRadius: '16px', objectFit: 'cover' }} />
+                <div>
+                  <h4 style={{ margin: '0 0 4px 0', fontSize: '16px', fontWeight: 800, color: 'var(--text-main)' }}>Luna • Calico Feline (ISO Chip #981020003412001)</h4>
+                  <div style={{ fontSize: '12.5px', color: '#EF4444', fontWeight: 600 }}>Last pinged 45m ago near Gulshan 2 Lake Walk</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>Guardian: Nafisa Rahman • Emergency Contact: +880 1711-000000</div>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '16px' }}>
+                <div style={{ background: 'var(--surface)', padding: '14px', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Perimeter Guardians Notified</div>
+                  <strong style={{ fontSize: '20px', color: 'var(--text-main)' }}>14 Active</strong>
+                </div>
+                <div style={{ background: 'var(--surface)', padding: '14px', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Search Perimeter Radius</div>
+                  <strong style={{ fontSize: '20px', color: '#EF4444' }}>1.5 km Geofence</strong>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                <button 
+                  onClick={() => showToast('🚨 Emergency Geofenced Push broadcast dispatched to 14 guardians around Gulshan 2!', 'success')}
+                  style={{ background: '#EF4444', color: '#FFFFFF', border: 'none', borderRadius: '10px', padding: '10px 18px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <Radio size={14} /> Dispatch Geofenced Guardian Alert
+                </button>
+                <button 
+                  onClick={() => showToast('✅ Emergency Amber Alert successfully marked as RESOLVED.', 'success')}
+                  className="btn-ghost"
+                  style={{ padding: '10px 18px', fontSize: '13px' }}
+                >
+                  Mark Case as Rescued
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
       </main>
 
       {/* ══════════════════════════════════════════════════════
-          MODAL 1: NEW CATALOG ENTRY (Product SKU)
+          MODAL 1: ADD / EDIT PRODUCT SKU
           ══════════════════════════════════════════════════════ */}
       <AnimatePresence>
         {isAddProductModalOpen && (
@@ -2867,9 +2695,8 @@ export default function AdminPortal() {
               position: 'fixed',
               inset: 0,
               zIndex: 10000,
-              background: 'rgba(0,0,0,0.75)',
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
+              background: 'rgba(0,0,0,0.7)',
+              backdropFilter: 'blur(16px)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -2881,41 +2708,34 @@ export default function AdminPortal() {
               initial={{ opacity: 0, scale: 0.96, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.96, y: 15 }}
-              transition={{ duration: 0.22, ease: [0.25, 1, 0.5, 1] }}
+              transition={{ duration: 0.2 }}
               style={{
                 width: '100%',
-                maxWidth: '480px',
-                background: '#0D0D0E',
-                color: '#FFFFFF',
+                maxWidth: '500px',
+                background: 'var(--surface)',
+                color: 'var(--text-main)',
                 borderRadius: '24px',
-                border: '1px solid rgba(255, 255, 255, 0.12)',
-                boxShadow: '0 30px 90px rgba(0,0,0,0.95)',
-                padding: '24px 24px 28px',
+                border: '1px solid var(--border)',
+                boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+                padding: '28px',
                 textAlign: 'left',
-                maxHeight: '92vh',
+                maxHeight: '90vh',
                 overflowY: 'auto'
               }}
               onClick={(e) => e.stopPropagation()}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <h2 style={{ fontSize: '17px', fontWeight: 800, letterSpacing: '0.04em', margin: 0, textTransform: 'uppercase', color: '#FFFFFF' }}>
-                  {editingProduct ? 'EDIT CATALOG ENTRY' : 'NEW CATALOG ENTRY'}
+                <h2 style={{ fontSize: '18px', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>
+                  {editingProduct ? 'EDIT FORMULARY SKU' : 'NEW FORMULARY SKU'}
                 </h2>
-                <button 
-                  className="icon-btn" 
-                  style={{ color: '#8E8E93' }} 
-                  onClick={() => setIsAddProductModalOpen(false)}
-                >
-                  <X size={20} />
+                <button className="icon-btn" onClick={() => setIsAddProductModalOpen(false)}>
+                  <X size={18} />
                 </button>
               </div>
 
-              <form onSubmit={handleSaveProduct} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <form onSubmit={handleSaveProduct} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <div>
-                  <label style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', color: '#8E8E93', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>
-                    PRODUCT GALLERY
-                  </label>
-                  
+                  <label className="label-mini">PRODUCT GALLERY &amp; IMAGE</label>
                   <input
                     type="file"
                     ref={fileInputRef}
@@ -2924,56 +2744,46 @@ export default function AdminPortal() {
                     style={{ display: 'none' }}
                   />
 
-                  <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginTop: '6px' }}>
                     <div
                       onClick={() => fileInputRef.current?.click()}
                       style={{
-                        width: '78px',
-                        height: '78px',
-                        borderRadius: '16px',
-                        border: '2px dashed rgba(16, 185, 129, 0.6)',
-                        background: productFormData.image ? `url("${productFormData.image}") center/cover no-repeat` : 'rgba(16, 185, 129, 0.06)',
+                        width: '72px',
+                        height: '72px',
+                        borderRadius: '14px',
+                        border: '2px dashed var(--primary)',
+                        background: productFormData.image ? `url("${productFormData.image}") center/cover no-repeat` : 'var(--surface-alt)',
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
                         justifyContent: 'center',
                         cursor: 'pointer',
-                        flexShrink: 0,
-                        position: 'relative',
-                        overflow: 'hidden'
+                        flexShrink: 0
                       }}
-                      title="Click to upload image file"
+                      title="Upload photo"
                     >
                       {!productFormData.image && (
                         <>
-                          <Upload size={22} color="#10B981" />
-                          <span style={{ fontSize: '10px', fontWeight: 800, color: '#10B981', marginTop: '3px' }}>ADD</span>
+                          <Upload size={18} color="var(--primary)" />
+                          <span style={{ fontSize: '9px', fontWeight: 800, color: 'var(--primary)', marginTop: '2px' }}>UPLOAD</span>
                         </>
-                      )}
-                      {productFormData.image && (
-                        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0, transition: 'opacity 0.2s' }}
-                          onMouseEnter={(e) => e.currentTarget.style.opacity = 1}
-                          onMouseLeave={(e) => e.currentTarget.style.opacity = 0}
-                        >
-                          <Upload size={16} color="#FFF" />
-                        </div>
                       )}
                     </div>
 
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <span style={{ fontSize: '11px', color: '#8E8E93', display: 'block', marginBottom: '6px' }}>Or pick preset / enter URL:</span>
-                      <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px' }}>
+                      <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Preset Images:</span>
+                      <div style={{ display: 'flex', gap: '4px', overflowX: 'auto', paddingBottom: '4px' }}>
                         {PRESET_IMAGES.map((preset, idx) => (
                           <button
                             type="button"
                             key={idx}
                             onClick={() => setProductFormData(prev => ({ ...prev, image: preset.url }))}
                             style={{
-                              border: productFormData.image === preset.url ? '1.5px solid #10B981' : '1px solid rgba(255,255,255,0.1)',
-                              background: '#1A1A1D',
-                              color: '#FFFFFF',
-                              padding: '4px 8px',
-                              borderRadius: '8px',
+                              border: productFormData.image === preset.url ? '1.5px solid var(--primary)' : '1px solid var(--border)',
+                              background: 'var(--surface-alt)',
+                              color: 'var(--text-main)',
+                              padding: '3px 8px',
+                              borderRadius: '6px',
                               fontSize: '11px',
                               cursor: 'pointer',
                               whiteSpace: 'nowrap'
@@ -2988,50 +2798,26 @@ export default function AdminPortal() {
                 </div>
 
                 <div>
-                  <label style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', color: '#8E8E93', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
-                    PRODUCT NAME
-                  </label>
+                  <label className="label-mini">PRODUCT TITLE *</label>
                   <input
                     type="text"
                     required
-                    style={{
-                      width: '100%',
-                      padding: '12px 14px',
-                      borderRadius: '12px',
-                      background: '#161618',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      color: '#FFFFFF',
-                      fontSize: '14px',
-                      outline: 'none',
-                      fontFamily: 'inherit'
-                    }}
+                    className="input-clean"
                     placeholder="Enter product title..."
                     value={productFormData.name}
                     onChange={(e) => setProductFormData(prev => ({ ...prev, name: e.target.value }))}
                   />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                   <div>
-                    <label style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', color: '#8E8E93', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
-                      LIST PRICE (৳)
-                    </label>
+                    <label className="label-mini">PRICE (৳ BDT) *</label>
                     <input
                       type="number"
                       step="0.01"
                       min="1"
                       required
-                      style={{
-                        width: '100%',
-                        padding: '12px 14px',
-                        borderRadius: '12px',
-                        background: '#161618',
-                        border: '1px solid rgba(255,255,255,0.1)',
-                        color: '#FFFFFF',
-                        fontSize: '14px',
-                        outline: 'none',
-                        fontFamily: 'inherit'
-                      }}
+                      className="input-clean"
                       placeholder="e.g. 1250"
                       value={productFormData.price}
                       onChange={(e) => setProductFormData(prev => ({ ...prev, price: e.target.value }))}
@@ -3039,24 +2825,12 @@ export default function AdminPortal() {
                   </div>
 
                   <div>
-                    <label style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', color: '#8E8E93', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
-                      CURRENT STOCK
-                    </label>
+                    <label className="label-mini">INVENTORY STOCK *</label>
                     <input
                       type="number"
                       min="0"
                       required
-                      style={{
-                        width: '100%',
-                        padding: '12px 14px',
-                        borderRadius: '12px',
-                        background: '#161618',
-                        border: '1px solid rgba(255,255,255,0.1)',
-                        color: '#FFFFFF',
-                        fontSize: '14px',
-                        outline: 'none',
-                        fontFamily: 'inherit'
-                      }}
+                      className="input-clean"
                       placeholder="e.g. 100"
                       value={productFormData.stockCount}
                       onChange={(e) => setProductFormData(prev => ({ ...prev, stockCount: e.target.value }))}
@@ -3064,105 +2838,62 @@ export default function AdminPortal() {
                   </div>
                 </div>
 
-                <div>
-                  <label style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', color: '#8E8E93', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
-                    BRAND / MANUFACTURER
-                  </label>
-                  <input
-                    type="text"
-                    style={{
-                      width: '100%',
-                      padding: '12px 14px',
-                      borderRadius: '12px',
-                      background: '#161618',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      color: '#FFFFFF',
-                      fontSize: '14px',
-                      outline: 'none',
-                      fontFamily: 'inherit'
-                    }}
-                    placeholder="e.g. Royal Canin, Zoetis, Pet Maya"
-                    value={productFormData.brand}
-                    onChange={(e) => setProductFormData(prev => ({ ...prev, brand: e.target.value }))}
-                  />
-                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div>
+                    <label className="label-mini">BRAND *</label>
+                    <input
+                      type="text"
+                      className="input-clean"
+                      placeholder="e.g. Royal Canin"
+                      value={productFormData.brand}
+                      onChange={(e) => setProductFormData(prev => ({ ...prev, brand: e.target.value }))}
+                    />
+                  </div>
 
-                <div>
-                  <label style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', color: '#8E8E93', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>
-                    CATEGORY
-                  </label>
-                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                    {CATEGORIES.map((cat) => {
-                      const isSelected = productFormData.category === cat.id;
-                      return (
-                        <button
-                          type="button"
-                          key={cat.id}
-                          onClick={() => setProductFormData(prev => ({ ...prev, category: cat.id }))}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            padding: '8px 16px',
-                            borderRadius: '10px',
-                            border: isSelected ? '1px solid #10B981' : '1px solid rgba(255, 255, 255, 0.2)',
-                            background: isSelected ? '#10B981' : 'transparent',
-                            color: isSelected ? '#FFFFFF' : '#D1D1D6',
-                            fontSize: '13px',
-                            fontWeight: isSelected ? 700 : 500,
-                            cursor: 'pointer',
-                            transition: 'all 0.15s ease'
-                          }}
-                        >
-                          {isSelected && <Check size={14} strokeWidth={3} />}
-                          <span>{cat.label}</span>
-                        </button>
-                      );
-                    })}
+                  <div>
+                    <label className="label-mini">CATEGORY *</label>
+                    <select
+                      className="input-clean"
+                      value={productFormData.category}
+                      onChange={(e) => setProductFormData(prev => ({ ...prev, category: e.target.value }))}
+                    >
+                      <option value="food">Food &amp; Nutrition</option>
+                      <option value="toys">Toys &amp; Play</option>
+                      <option value="health">Health &amp; Pharma</option>
+                      <option value="gear">Gear &amp; Tech</option>
+                      <option value="grooming">Grooming &amp; Spa</option>
+                    </select>
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '2px' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: '10px', background: '#161618', border: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer', fontSize: '12.5px', color: '#D1D1D6' }}>
-                    <span>In Stock Active</span>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: '10px', background: 'var(--surface-alt)', border: '1px solid var(--border)', cursor: 'pointer', fontSize: '12.5px' }}>
+                    <span>In-Stock Active</span>
                     <input
                       type="checkbox"
                       checked={productFormData.inStock}
                       onChange={(e) => setProductFormData(prev => ({ ...prev, inStock: e.target.checked }))}
-                      style={{ width: 16, height: 16, accentColor: '#10B981' }}
+                      style={{ accentColor: 'var(--primary)' }}
                     />
                   </label>
 
-                  <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: '10px', background: '#161618', border: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer', fontSize: '12.5px', color: '#8B5CF6' }}>
-                    <span>Rx Prescription</span>
+                  <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: '10px', background: 'var(--surface-alt)', border: '1px solid var(--border)', cursor: 'pointer', fontSize: '12.5px' }}>
+                    <span style={{ color: '#8B5CF6', fontWeight: 600 }}>Rx Prescription</span>
                     <input
                       type="checkbox"
                       checked={productFormData.isRx}
                       onChange={(e) => setProductFormData(prev => ({ ...prev, isRx: e.target.checked }))}
-                      style={{ width: 16, height: 16, accentColor: '#8B5CF6' }}
+                      style={{ accentColor: '#8B5CF6' }}
                     />
                   </label>
                 </div>
 
                 <div>
-                  <label style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', color: '#8E8E93', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
-                    MARKETING DESCRIPTION
-                  </label>
+                  <label className="label-mini">DESCRIPTION</label>
                   <textarea
-                    rows={3}
-                    style={{
-                      width: '100%',
-                      padding: '12px 14px',
-                      borderRadius: '12px',
-                      background: '#161618',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      color: '#FFFFFF',
-                      fontSize: '13.5px',
-                      outline: 'none',
-                      fontFamily: 'inherit',
-                      resize: 'vertical'
-                    }}
-                    placeholder="Enter full marketing copy, dietary benefits, specifications..."
+                    rows={2}
+                    className="input-clean"
+                    placeholder="Enter product description, clinical formulation..."
                     value={productFormData.description}
                     onChange={(e) => setProductFormData(prev => ({ ...prev, description: e.target.value }))}
                   />
@@ -3173,23 +2904,18 @@ export default function AdminPortal() {
                   disabled={isSubmittingProduct}
                   style={{
                     width: '100%',
-                    padding: '14px',
-                    borderRadius: '14px',
+                    padding: '12px',
+                    borderRadius: '12px',
                     border: 'none',
-                    background: isSubmittingProduct ? '#059669' : '#10B981',
+                    background: 'var(--primary)',
                     color: '#FFFFFF',
-                    fontSize: '15px',
+                    fontSize: '14px',
                     fontWeight: 800,
-                    letterSpacing: '0.04em',
-                    textTransform: 'uppercase',
                     cursor: isSubmittingProduct ? 'wait' : 'pointer',
-                    marginTop: '8px',
-                    boxShadow: '0 4px 20px rgba(16, 185, 129, 0.4)',
-                    transition: 'all 0.18s ease',
-                    opacity: isSubmittingProduct ? 0.8 : 1
+                    marginTop: '6px'
                   }}
                 >
-                  {isSubmittingProduct ? 'SAVING SKU...' : (editingProduct ? 'UPDATE SKU' : 'FINALIZE SKU')}
+                  {isSubmittingProduct ? 'Saving SKU...' : (editingProduct ? 'Update SKU' : 'Publish SKU to Catalog')}
                 </button>
               </form>
             </motion.div>
@@ -3198,7 +2924,7 @@ export default function AdminPortal() {
       </AnimatePresence>
 
       {/* ══════════════════════════════════════════════════════
-          MODAL 2: ADD / EDIT SERVICE PROVIDER
+          MODAL 2: ADD / EDIT SPECIALIST CLINICIAN
           ══════════════════════════════════════════════════════ */}
       <AnimatePresence>
         {isAddServiceModalOpen && (
@@ -3209,7 +2935,6 @@ export default function AdminPortal() {
               zIndex: 10000,
               background: 'rgba(0,0,0,0.7)',
               backdropFilter: 'blur(16px)',
-              WebkitBackdropFilter: 'blur(16px)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -3221,14 +2946,13 @@ export default function AdminPortal() {
               initial={{ opacity: 0, scale: 0.95, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
-              transition={{ duration: 0.22, ease: [0.25, 1, 0.5, 1] }}
+              transition={{ duration: 0.2 }}
               style={{
                 width: '100%',
-                maxWidth: '540px',
-                background: 'var(--surface-solid)',
+                maxWidth: '500px',
+                background: 'var(--surface)',
                 borderRadius: '24px',
                 border: '1px solid var(--border)',
-                boxShadow: 'var(--shadow-xl)',
                 padding: '28px',
                 textAlign: 'left',
                 maxHeight: '90vh',
@@ -3237,12 +2961,9 @@ export default function AdminPortal() {
               onClick={(e) => e.stopPropagation()}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <div>
-                  <span className="apple-card-eyebrow" style={{ color: 'var(--primary)' }}>Specialist Network</span>
-                  <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '2px 0 0' }}>
-                    {editingService ? 'Edit Service Provider' : 'Add Clinical Service Provider'}
-                  </h2>
-                </div>
+                <h2 style={{ fontSize: '18px', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>
+                  {editingService ? 'Edit Service Provider' : 'Add Clinical Specialist'}
+                </h2>
                 <button className="icon-btn" onClick={() => setIsAddServiceModalOpen(false)}>
                   <X size={18} />
                 </button>
@@ -3255,31 +2976,29 @@ export default function AdminPortal() {
                     type="text"
                     required
                     className="input-clean"
-                    placeholder="e.g. Dr. Emily Vance / Pawfect Spa"
+                    placeholder="e.g. Dr. Emily Vance"
                     value={serviceFormData.name}
                     onChange={(e) => setServiceFormData(prev => ({ ...prev, name: e.target.value }))}
                   />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                   <div>
-                    <label className="label-mini">Service Category *</label>
+                    <label className="label-mini">Category *</label>
                     <select
                       className="input-clean"
                       value={serviceFormData.tag}
                       onChange={(e) => setServiceFormData(prev => ({ ...prev, tag: e.target.value }))}
-                      style={{ fontWeight: 600 }}
                     >
                       <option value="Veterinarian">Veterinarian</option>
                       <option value="Grooming Spa">Grooming Spa</option>
                       <option value="Boarding Resort">Boarding Resort</option>
                       <option value="Diagnostic Lab">Diagnostic Lab</option>
-                      <option value="Pet Hospital">Pet Hospital / ER</option>
                     </select>
                   </div>
 
                   <div>
-                    <label className="label-mini">Medical License Number *</label>
+                    <label className="label-mini">BMDC License Number *</label>
                     <input
                       type="text"
                       required
@@ -3291,13 +3010,13 @@ export default function AdminPortal() {
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                   <div>
-                    <label className="label-mini">Clinic / Hospital Name</label>
+                    <label className="label-mini">Clinic / Hospital</label>
                     <input
                       type="text"
                       className="input-clean"
-                      placeholder="e.g. City Vets & Diagnostics"
+                      placeholder="e.g. Pet Maya Care Center"
                       value={serviceFormData.clinic}
                       onChange={(e) => setServiceFormData(prev => ({ ...prev, clinic: e.target.value }))}
                     />
@@ -3317,82 +3036,40 @@ export default function AdminPortal() {
                 </div>
 
                 <div>
-                  <label className="label-mini">Qualifications &amp; Specialization</label>
+                  <label className="label-mini">Specialization &amp; Degrees</label>
                   <input
                     type="text"
                     className="input-clean"
-                    placeholder="e.g. DVM • Internal Medicine & Cardiology"
+                    placeholder="e.g. DVM, MRCVS • Small Animal Medicine"
                     value={serviceFormData.qualification}
                     onChange={(e) => setServiceFormData(prev => ({ ...prev, qualification: e.target.value }))}
                   />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                  <div>
-                    <label className="label-mini">Operating Schedule</label>
-                    <input
-                      type="text"
-                      className="input-clean"
-                      placeholder="e.g. Mon - Fri • 9am - 6pm"
-                      value={serviceFormData.availability}
-                      onChange={(e) => setServiceFormData(prev => ({ ...prev, availability: e.target.value }))}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="label-mini">Distance Label</label>
-                    <input
-                      type="text"
-                      className="input-clean"
-                      placeholder="e.g. 1.2 km away"
-                      value={serviceFormData.distance}
-                      onChange={(e) => setServiceFormData(prev => ({ ...prev, distance: e.target.value }))}
-                    />
-                  </div>
-                </div>
-
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: '12px', background: 'var(--surface-alt)', border: '1px solid var(--border)', cursor: 'pointer', fontSize: '13px' }}>
-                    <span style={{ fontWeight: 600, color: '#10B981' }}>Medical License Verified</span>
+                  <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: '10px', background: 'var(--surface-alt)', border: '1px solid var(--border)', cursor: 'pointer', fontSize: '12.5px' }}>
+                    <span style={{ fontWeight: 600, color: '#10B981' }}>License Verified</span>
                     <input
                       type="checkbox"
                       checked={serviceFormData.isVerified}
                       onChange={(e) => setServiceFormData(prev => ({ ...prev, isVerified: e.target.checked }))}
-                      style={{ width: 16, height: 16 }}
                     />
                   </label>
 
-                  <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: '12px', background: 'var(--surface-alt)', border: '1px solid var(--border)', cursor: 'pointer', fontSize: '13px' }}>
-                    <span style={{ fontWeight: 600, color: '#EF4444' }}>24/7 Emergency On-Call</span>
+                  <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: '10px', background: 'var(--surface-alt)', border: '1px solid var(--border)', cursor: 'pointer', fontSize: '12.5px' }}>
+                    <span style={{ fontWeight: 600, color: '#EF4444' }}>24/7 Emergency</span>
                     <input
                       type="checkbox"
                       checked={serviceFormData.isEmergencyOnCall}
                       onChange={(e) => setServiceFormData(prev => ({ ...prev, isEmergencyOnCall: e.target.checked }))}
-                      style={{ width: 16, height: 16 }}
                     />
                   </label>
                 </div>
 
-                <div>
-                  <label className="label-mini">Clinical Bio &amp; Specialty Notes</label>
-                  <textarea
-                    rows={2}
-                    className="input-clean"
-                    placeholder="Expertise in surgery, echocardiography, dental scaling..."
-                    value={serviceFormData.bio}
-                    onChange={(e) => setServiceFormData(prev => ({ ...prev, bio: e.target.value }))}
-                  />
-                </div>
-
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
-                  <button type="button" className="btn-ghost" onClick={() => setIsAddServiceModalOpen(false)}>
-                    Cancel
-                  </button>
-                  <button type="submit" className="apple-btn-blue" style={{ padding: '9px 22px' }}>
-                    <CheckCircle2 size={15} />
-                    <span>{editingService ? 'Save Service Updates' : 'Publish Service Listing'}</span>
-                  </button>
-                </div>
+                <button type="submit" className="apple-btn-blue" style={{ width: '100%', padding: '12px', background: 'var(--primary)', justifyContent: 'center' }}>
+                  <CheckCircle2 size={15} />
+                  <span>{editingService ? 'Save Service Updates' : 'Publish Service Listing'}</span>
+                </button>
               </form>
             </motion.div>
           </div>
@@ -3411,7 +3088,6 @@ export default function AdminPortal() {
               zIndex: 10000,
               background: 'rgba(0,0,0,0.7)',
               backdropFilter: 'blur(16px)',
-              WebkitBackdropFilter: 'blur(16px)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -3423,24 +3099,19 @@ export default function AdminPortal() {
               initial={{ opacity: 0, scale: 0.95, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
-              transition={{ duration: 0.22, ease: [0.25, 1, 0.5, 1] }}
               style={{
                 width: '100%',
-                maxWidth: '480px',
-                background: 'var(--surface-solid)',
+                maxWidth: '460px',
+                background: 'var(--surface)',
                 borderRadius: '24px',
                 border: '1px solid var(--border)',
-                boxShadow: 'var(--shadow-xl)',
                 padding: '28px',
                 textAlign: 'left'
               }}
               onClick={(e) => e.stopPropagation()}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <div>
-                  <span className="apple-card-eyebrow" style={{ color: 'var(--primary)' }}>User Provisioning</span>
-                  <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '2px 0 0' }}>Register / Invite User</h2>
-                </div>
+                <h2 style={{ fontSize: '18px', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>Register / Invite User</h2>
                 <button className="icon-btn" onClick={() => setIsAddUserModalOpen(false)}>
                   <X size={18} />
                 </button>
@@ -3471,24 +3142,22 @@ export default function AdminPortal() {
                   />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                   <div>
-                    <label className="label-mini">System Role *</label>
+                    <label className="label-mini">Role *</label>
                     <select
                       className="input-clean"
                       value={userFormData.role}
                       onChange={(e) => setUserFormData(prev => ({ ...prev, role: e.target.value }))}
-                      style={{ fontWeight: 600 }}
                     >
                       <option value="Pet Owner">Pet Owner</option>
                       <option value="Veterinarian">Veterinarian</option>
-                      <option value="Shelter & Spa">Shelter &amp; Spa</option>
                       <option value="Super Admin">Super Admin</option>
                     </select>
                   </div>
 
                   <div>
-                    <label className="label-mini">Phone Number</label>
+                    <label className="label-mini">Phone</label>
                     <input
                       type="text"
                       className="input-clean"
@@ -3499,25 +3168,10 @@ export default function AdminPortal() {
                   </div>
                 </div>
 
-                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: '12px', background: 'var(--surface-alt)', border: '1px solid var(--border)', cursor: 'pointer', fontSize: '13px', marginTop: '4px' }}>
-                  <span style={{ fontWeight: 600, color: '#10B981' }}>Mark KYC Profile as Verified</span>
-                  <input
-                    type="checkbox"
-                    checked={userFormData.isVerified}
-                    onChange={(e) => setUserFormData(prev => ({ ...prev, isVerified: e.target.checked }))}
-                    style={{ width: 16, height: 16 }}
-                  />
-                </label>
-
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '12px' }}>
-                  <button type="button" className="btn-ghost" onClick={() => setIsAddUserModalOpen(false)}>
-                    Cancel
-                  </button>
-                  <button type="submit" className="apple-btn-blue" style={{ padding: '9px 22px' }}>
-                    <CheckCircle2 size={15} />
-                    <span>Create User Account</span>
-                  </button>
-                </div>
+                <button type="submit" className="apple-btn-blue" style={{ width: '100%', padding: '12px', background: 'var(--primary)', justifyContent: 'center' }}>
+                  <CheckCircle2 size={15} />
+                  <span>Create User Account</span>
+                </button>
               </form>
             </motion.div>
           </div>
@@ -3536,7 +3190,6 @@ export default function AdminPortal() {
               zIndex: 10000,
               background: 'rgba(0,0,0,0.7)',
               backdropFilter: 'blur(16px)',
-              WebkitBackdropFilter: 'blur(16px)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -3548,120 +3201,52 @@ export default function AdminPortal() {
               initial={{ opacity: 0, scale: 0.95, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
-              transition={{ duration: 0.22, ease: [0.25, 1, 0.5, 1] }}
               style={{
                 width: '100%',
-                maxWidth: '520px',
-                background: 'var(--surface-solid)',
+                maxWidth: '480px',
+                background: 'var(--surface)',
                 borderRadius: '24px',
                 border: '1px solid var(--border)',
-                boxShadow: 'var(--shadow-xl)',
                 padding: '28px',
                 textAlign: 'left'
               }}
               onClick={(e) => e.stopPropagation()}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <div>
-                  <span className="apple-card-eyebrow" style={{ color: 'var(--primary)' }}>User Dossier</span>
-                  <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '2px 0 0' }}>Profile &amp; Verification</h2>
-                </div>
+                <h2 style={{ fontSize: '18px', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>User Dossier &amp; KYC</h2>
                 <button className="icon-btn" onClick={() => setSelectedUserDetails(null)}>
                   <X size={18} />
                 </button>
               </div>
 
-              {/* User Profile Header */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', background: 'var(--surface-alt)', padding: '16px', borderRadius: '16px', marginBottom: '18px' }}>
-                <UserAvatar user={selectedUserDetails} size={64} />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                    <strong style={{ fontSize: '18px', color: 'var(--text-main)' }}>{selectedUserDetails.name}</strong>
-                    {selectedUserDetails.isVerified && <BadgeCheck size={18} color="#10B981" />}
-                  </div>
-                  <span style={{ fontSize: '13px', color: 'var(--text-muted)', display: 'block', wordBreak: 'break-all' }}>
-                    {selectedUserDetails.email}
-                  </span>
-                  <span style={{ fontSize: '11.5px', color: 'var(--primary)', fontWeight: 700, fontFamily: 'monospace', display: 'block', marginTop: '2px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px', background: 'var(--surface-alt)', padding: '14px', borderRadius: '16px', marginBottom: '16px' }}>
+                <UserAvatar user={selectedUserDetails} size={54} />
+                <div>
+                  <strong style={{ fontSize: '16px', color: 'var(--text-main)', display: 'block' }}>{selectedUserDetails.name}</strong>
+                  <span style={{ fontSize: '12.5px', color: 'var(--text-muted)' }}>{selectedUserDetails.email}</span>
+                  <span style={{ fontSize: '11px', color: 'var(--primary)', fontFamily: 'monospace', display: 'block', marginTop: '2px' }}>
                     UID: {selectedUserDetails.id}
                   </span>
                 </div>
               </div>
 
-              {/* Status and Role Badges */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px', fontSize: '13px' }}>
-                <div style={{ background: 'var(--surface-alt)', padding: '12px 14px', borderRadius: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '14px' }}>
+                <div style={{ background: 'var(--surface-alt)', padding: '10px 12px', borderRadius: '10px' }}>
                   <span className="label-mini">KYC Status</span>
-                  <strong style={{ display: 'block', color: selectedUserDetails.isVerified ? '#10B981' : '#F59E0B', marginTop: '2px', fontSize: '13px' }}>
+                  <strong style={{ display: 'block', color: selectedUserDetails.isVerified ? '#10B981' : '#F59E0B', fontSize: '12.5px' }}>
                     {selectedUserDetails.isVerified ? 'VERIFIED PROFILE' : 'PENDING REVIEW'}
                   </strong>
                 </div>
 
-                <div style={{ background: 'var(--surface-alt)', padding: '12px 14px', borderRadius: '12px' }}>
+                <div style={{ background: 'var(--surface-alt)', padding: '10px 12px', borderRadius: '10px' }}>
                   <span className="label-mini">Account State</span>
-                  <strong style={{ display: 'block', color: selectedUserDetails.accountStatus === 'SUSPENDED' ? '#EF4444' : '#10B981', marginTop: '2px', fontSize: '13px' }}>
+                  <strong style={{ display: 'block', color: selectedUserDetails.accountStatus === 'SUSPENDED' ? '#EF4444' : '#10B981', fontSize: '12.5px' }}>
                     {selectedUserDetails.accountStatus === 'SUSPENDED' ? 'SUSPENDED' : 'ACTIVE'}
                   </strong>
                 </div>
               </div>
 
-              {/* Comprehensive User Profile Fields */}
-              <div style={{ background: 'var(--surface-alt)', padding: '14px 16px', borderRadius: '16px', marginBottom: '18px', display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Phone size={13} /> Phone:
-                  </span>
-                  <strong style={{ color: 'var(--text-main)' }}>{selectedUserDetails.phone || 'Not Provided'}</strong>
-                </div>
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <MapPin size={13} /> Address:
-                  </span>
-                  <strong style={{ color: 'var(--text-main)', textAlign: 'right', maxWidth: '60%' }}>{selectedUserDetails.address || 'Dhaka, Bangladesh'}</strong>
-                </div>
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Award size={13} /> Pet Maya Points:
-                  </span>
-                  <strong style={{ color: '#F59E0B' }}>{selectedUserDetails.points ?? 25} pts</strong>
-                </div>
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Tag size={13} /> Referral Code:
-                  </span>
-                  <strong style={{ fontFamily: 'monospace', color: 'var(--primary)' }}>{selectedUserDetails.referralCode || 'N/A'}</strong>
-                </div>
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Building2 size={13} /> Change Role:
-                  </span>
-                  <select
-                    className="input-clean"
-                    style={{ padding: '4px 10px', fontSize: '12px', fontWeight: 700, width: 'auto' }}
-                    value={selectedUserDetails.role || 'Pet Owner'}
-                    onChange={(e) => handleChangeUserRole(selectedUserDetails.id, e.target.value)}
-                  >
-                    <option value="Pet Owner">Pet Owner</option>
-                    <option value="Veterinarian">Veterinarian</option>
-                    <option value="Shelter & Spa">Shelter &amp; Spa</option>
-                    <option value="Super Admin">Super Admin</option>
-                  </select>
-                </div>
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Calendar size={13} /> Member Since:
-                  </span>
-                  <span>{selectedUserDetails.joinedDate || '2026-08-01'}</span>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '8px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
                 <button
                   className="apple-btn-blue"
                   style={{ width: '100%', justifyContent: 'center', background: selectedUserDetails.isVerified ? '#F59E0B' : '#10B981' }}
@@ -3677,7 +3262,7 @@ export default function AdminPortal() {
                   onClick={() => handleToggleUserStatus(selectedUserDetails)}
                 >
                   {selectedUserDetails.accountStatus === 'SUSPENDED' ? <UserCheck size={15} /> : <UserX size={15} />}
-                  <span>{selectedUserDetails.accountStatus === 'SUSPENDED' ? 'Reactivate User Access' : 'Suspend User Account'}</span>
+                  <span>{selectedUserDetails.accountStatus === 'SUSPENDED' ? 'Reactivate User' : 'Suspend User'}</span>
                 </button>
               </div>
             </motion.div>
@@ -3686,7 +3271,7 @@ export default function AdminPortal() {
       </AnimatePresence>
 
       {/* ══════════════════════════════════════════════════════
-          MODAL 5: INSPECT CUSTOMER ORDER DETAILS
+          MODAL 5: INSPECT DISPATCH MANIFEST (ORDER DETAILS)
           ══════════════════════════════════════════════════════ */}
       <AnimatePresence>
         {selectedOrderDetails && (
@@ -3695,9 +3280,8 @@ export default function AdminPortal() {
               position: 'fixed',
               inset: 0,
               zIndex: 10000,
-              background: 'rgba(0,0,0,0.65)',
+              background: 'rgba(0,0,0,0.7)',
               backdropFilter: 'blur(16px)',
-              WebkitBackdropFilter: 'blur(16px)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -3709,14 +3293,12 @@ export default function AdminPortal() {
               initial={{ opacity: 0, scale: 0.95, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
-              transition={{ duration: 0.22, ease: [0.25, 1, 0.5, 1] }}
               style={{
                 width: '100%',
-                maxWidth: '580px',
-                background: 'var(--surface-solid)',
+                maxWidth: '540px',
+                background: 'var(--surface)',
                 borderRadius: '24px',
                 border: '1px solid var(--border)',
-                boxShadow: 'var(--shadow-xl)',
                 padding: '28px',
                 textAlign: 'left',
                 maxHeight: '90vh',
@@ -3724,10 +3306,10 @@ export default function AdminPortal() {
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
                 <div>
                   <span className="apple-card-eyebrow" style={{ color: 'var(--primary)' }}>Dispatch Manifest</span>
-                  <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '2px 0 0', fontFamily: 'monospace' }}>
+                  <h2 style={{ fontSize: '18px', fontWeight: 800, margin: '2px 0 0', fontFamily: 'monospace' }}>
                     {selectedOrderDetails.id || selectedOrderDetails.orderId}
                   </h2>
                 </div>
@@ -3736,83 +3318,59 @@ export default function AdminPortal() {
                 </button>
               </div>
 
-              <div style={{ background: 'var(--surface-alt)', padding: '16px', borderRadius: '16px', marginBottom: '18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ background: 'var(--surface-alt)', padding: '14px', borderRadius: '14px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <span className="label-mini">Current Order Status</span>
-                  <div style={{ marginTop: '4px' }}>
-                    {getOrderStatusBadge(selectedOrderDetails.status)}
-                  </div>
+                  <span className="label-mini">Status</span>
+                  <div style={{ marginTop: '2px' }}>{getOrderStatusBadge(selectedOrderDetails.status)}</div>
                 </div>
 
-                <div>
-                  <span className="label-mini">Change Status</span>
-                  <select
-                    className="input-clean"
-                    style={{ padding: '6px 12px', fontSize: '12.5px', fontWeight: 600, marginTop: '2px' }}
-                    value={selectedOrderDetails.status || 'In Preparation'}
-                    onChange={(e) => handleUpdateStatus(selectedOrderDetails.id || selectedOrderDetails.orderId, e.target.value)}
-                  >
-                    <option value="Order Placed">Order Placed</option>
-                    <option value="In Preparation">In Preparation</option>
-                    <option value="Shipped">Shipped / In Transit</option>
-                    <option value="Delivered">Delivered</option>
-                    <option value="Cancelled">Cancelled</option>
-                  </select>
-                </div>
+                <select
+                  className="input-clean"
+                  style={{ padding: '6px 10px', fontSize: '12.5px', fontWeight: 600, width: 'auto' }}
+                  value={selectedOrderDetails.status || 'In Preparation'}
+                  onChange={(e) => handleUpdateStatus(selectedOrderDetails.id || selectedOrderDetails.orderId, e.target.value)}
+                >
+                  <option value="In Preparation">In Preparation</option>
+                  <option value="Shipped">Shipped / In Transit</option>
+                  <option value="Delivered">Delivered</option>
+                  <option value="Cancelled">Cancelled</option>
+                </select>
               </div>
 
-              <div style={{ marginBottom: '18px' }}>
-                <span className="label-mini">Shipping &amp; Delivery Destination</span>
-                <div style={{ background: 'var(--surface-alt)', padding: '12px 16px', borderRadius: '12px', marginTop: '6px', fontSize: '13.5px', color: 'var(--text-main)' }}>
+              <div style={{ marginBottom: '16px' }}>
+                <span className="label-mini">Delivery Destination</span>
+                <div style={{ background: 'var(--surface-alt)', padding: '12px', borderRadius: '12px', marginTop: '4px', fontSize: '13px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}>
-                    <MapPin size={15} color="var(--primary)" />
-                    <span>{selectedOrderDetails.deliveryAddress || selectedOrderDetails.address || 'Standard Delivery Address'}</span>
+                    <MapPin size={14} color="var(--primary)" />
+                    <span>{selectedOrderDetails.deliveryAddress || selectedOrderDetails.address || 'Dhaka, Bangladesh'}</span>
                   </div>
-                  <span style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>
-                    Customer UID: {selectedOrderDetails.userId || 'Guest Client'} • Date: {selectedOrderDetails.date || 'Today'}
+                  <span style={{ fontSize: '11.5px', color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>
+                    Client: {selectedOrderDetails.userId || 'Guest Client'} • Date: {selectedOrderDetails.date || 'Today'}
                   </span>
                 </div>
               </div>
 
-              <div style={{ marginBottom: '18px' }}>
-                <span className="label-mini">Purchased Items ({selectedOrderDetails.items?.length || 0})</span>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '6px' }}>
+              <div style={{ marginBottom: '16px' }}>
+                <span className="label-mini">Items Ordered ({selectedOrderDetails.items?.length || 0})</span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '4px' }}>
                   {(selectedOrderDetails.items || []).map((item, idx) => (
-                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface-alt)', padding: '10px 14px', borderRadius: '10px' }}>
+                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface-alt)', padding: '10px 12px', borderRadius: '10px', fontSize: '13px' }}>
                       <div>
-                        <strong style={{ fontSize: '13.5px', color: 'var(--text-main)', display: 'block' }}>{item.name}</strong>
-                        <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Qty: {item.qty || 1} × ৳{Number(item.price || 0).toFixed(2)}</span>
+                        <strong>{item.name}</strong>
+                        <span style={{ fontSize: '11.5px', color: 'var(--text-muted)', display: 'block' }}>Qty: {item.qty || 1} × ৳{Number(item.price || 0).toFixed(2)}</span>
                       </div>
-                      <strong style={{ fontSize: '14px', color: 'var(--text-main)' }}>
-                        ৳{((item.qty || 1) * (item.price || 0)).toFixed(2)}
-                      </strong>
+                      <strong>৳{((item.qty || 1) * (item.price || 0)).toFixed(2)}</strong>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div style={{ borderTop: '1px solid var(--border)', paddingTop: '14px', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '13px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)' }}>
-                  <span>Subtotal:</span>
-                  <span>৳{Number(selectedOrderDetails.subtotal || selectedOrderDetails.total || 0).toFixed(2)}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)' }}>
-                  <span>Shipping:</span>
-                  <span>৳{Number(selectedOrderDetails.shipping || 0).toFixed(2)}</span>
-                </div>
-                {selectedOrderDetails.discount > 0 && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', color: '#10B981' }}>
-                    <span>Discount Applied:</span>
-                    <span>-৳{Number(selectedOrderDetails.discount).toFixed(2)}</span>
-                  </div>
-                )}
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '16px', fontWeight: 700, color: 'var(--text-main)', marginTop: '6px', borderTop: '1px solid var(--border)', paddingTop: '8px' }}>
-                  <span>Total Amount Paid:</span>
-                  <span style={{ color: 'var(--primary)' }}>৳{Number(selectedOrderDetails.total || 0).toFixed(2)}</span>
-                </div>
+              <div style={{ borderTop: '1px solid var(--border)', paddingTop: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '14px', fontWeight: 700 }}>Total Paid:</span>
+                <span style={{ fontSize: '18px', fontWeight: 800, color: 'var(--primary)' }}>৳{Number(selectedOrderDetails.total || 0).toFixed(2)}</span>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '24px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px' }}>
                 <button
                   className="btn-destructive"
                   style={{ fontSize: '12px', padding: '6px 14px' }}
@@ -3825,7 +3383,7 @@ export default function AdminPortal() {
                 <button
                   className="apple-btn-blue"
                   onClick={() => setSelectedOrderDetails(null)}
-                  style={{ padding: '8px 20px', fontSize: '13px' }}
+                  style={{ padding: '8px 20px', fontSize: '13px', background: 'var(--primary)' }}
                 >
                   <span>Close Window</span>
                 </button>
