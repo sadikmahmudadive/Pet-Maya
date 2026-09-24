@@ -36,7 +36,7 @@ export default function AuthPage({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const totalCartCount = (cart || []).reduce((sum, item) => sum + (item.quantity || 1), 0);
+  const totalCartCount = (cart || []).reduce((sum, item) => sum + (Number(item.qty || item.quantity) || 1), 0);
 
   const handleRoute = (path) => {
     if (onNavigate) {
@@ -257,23 +257,25 @@ export default function AuthPage({
               }}
             >
               <ShoppingBag size={16} />
-              <span style={{
-                position: 'absolute',
-                top: '-3px',
-                right: '-3px',
-                width: '18px',
-                height: '18px',
-                borderRadius: '50%',
-                backgroundColor: '#191C1B',
-                color: '#FFFFFF',
-                fontSize: '10px',
-                fontWeight: 700,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                {totalCartCount || 2}
-              </span>
+              {totalCartCount > 0 && (
+                <span style={{
+                  position: 'absolute',
+                  top: '-3px',
+                  right: '-3px',
+                  width: '18px',
+                  height: '18px',
+                  borderRadius: '50%',
+                  backgroundColor: '#191C1B',
+                  color: '#FFFFFF',
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  {totalCartCount}
+                </span>
+              )}
             </button>
 
             {/* Elevated Black "BOOK CONSULT" Pill */}

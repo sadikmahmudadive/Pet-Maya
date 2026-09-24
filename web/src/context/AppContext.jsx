@@ -340,10 +340,20 @@ export function AppProvider({ children }) {
 
   // E-Commerce Cart
   const [cart, setCart] = useState(() => {
-    const saved = localStorage.getItem('pm_cart');
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const saved = localStorage.getItem('pm_cart');
+      return saved ? JSON.parse(saved) : [];
+    } catch (_) {
+      return [];
+    }
   });
   const [appliedCoupon, setAppliedCoupon] = useState(null);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('pm_cart', JSON.stringify(cart));
+    } catch (_) {}
+  }, [cart]);
 
   // Orders
   const [orders, setOrders] = useState([]);
@@ -1597,20 +1607,23 @@ export function AppProvider({ children }) {
 
   // E-Commerce Cart Actions
   const addToCart = (product, quantity = 1) => {
+    const numQty = Number(quantity || product.qty || product.quantity) || 1;
     setCart(prev => {
       const existing = prev.find(item => item.id === product.id);
       if (existing) {
-        return prev.map(item => item.id === product.id ? { ...item, qty: item.qty + quantity } : item);
+        const curQty = Number(existing.qty || existing.quantity) || 1;
+        return prev.map(item => item.id === product.id ? { ...item, qty: curQty + numQty } : item);
       }
-      return [...prev, { ...product, qty: quantity }];
+      return [...prev, { ...product, qty: numQty }];
     });
-    showToast(`Added "${product.name}" to bag!`, 'success');
+    showToast(`Added "${product.name || 'item'}" to dispensary bag!`, 'success');
   };
 
   const updateCartQty = (productId, delta) => {
     setCart(prev => prev.map(item => {
       if (item.id === productId) {
-        const newQty = item.qty + delta;
+        const curQty = Number(item.qty || item.quantity) || 1;
+        const newQty = curQty + delta;
         return newQty > 0 ? { ...item, qty: newQty } : null;
       }
       return item;
@@ -1975,8 +1988,8 @@ export function AppProvider({ children }) {
     }
   };
 
-  const cartCount = cart.reduce((acc, item) => acc + item.qty, 0);
-  const cartTotal = cart.reduce((acc, item) => acc + item.price * item.qty, 0);
+  const cartCount = (cart || []).reduce((acc, item) => acc + (Number(item.qty || item.quantity) || 1), 0);
+  const cartTotal = (cart || []).reduce((acc, item) => acc + ((Number(item.price) || 0) * (Number(item.qty || item.quantity) || 1)), 0);
 
   return (
     <AppContext.Provider value={{

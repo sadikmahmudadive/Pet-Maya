@@ -181,7 +181,7 @@ export default function Profile({ onNavigate, initialTab = 'settings' }) {
     }
   };
 
-  const totalCartCount = (cart || []).reduce((sum, item) => sum + (item.quantity || 1), 0);
+  const totalCartCount = (cart || []).reduce((sum, item) => sum + (Number(item.qty || item.quantity) || 1), 0);
 
   const handleRoute = (path) => {
     if (onNavigate) onNavigate(path);

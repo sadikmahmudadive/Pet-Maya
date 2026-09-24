@@ -42,7 +42,7 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
     { label: 'Dashboard', path: 'dashboard' },
   ];
 
-  const totalCartCount = (cart || []).reduce((sum, item) => sum + (item.quantity || 1), 0);
+  const totalCartCount = (cart || []).reduce((sum, item) => sum + (Number(item.qty || item.quantity) || 1), 0);
 
   return (
     <header style={{
@@ -233,25 +233,27 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
             }}
           >
             <ShoppingBag size={17} />
-            <span style={{
-              position: 'absolute',
-              top: '-4px',
-              right: '-4px',
-              backgroundColor: isDark ? '#1AB680' : '#160F0C',
-              color: isDark ? '#021E20' : '#FFFFFF',
-              border: isDark ? '2px solid #021E20' : '2px solid #FAF7F5',
-              fontSize: '10px',
-              fontWeight: 800,
-              width: '18px',
-              height: '18px',
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              lineHeight: 1
-            }}>
-              {totalCartCount > 0 ? totalCartCount : 3}
-            </span>
+            {totalCartCount > 0 && (
+              <span style={{
+                position: 'absolute',
+                top: '-4px',
+                right: '-4px',
+                backgroundColor: isDark ? '#1AB680' : '#160F0C',
+                color: isDark ? '#021E20' : '#FFFFFF',
+                border: isDark ? '2px solid #021E20' : '2px solid #FAF7F5',
+                fontSize: '10px',
+                fontWeight: 800,
+                width: '18px',
+                height: '18px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                lineHeight: 1
+              }}>
+                {totalCartCount}
+              </span>
+            )}
           </button>
 
           {/* Elevated "BOOK CONSULT" Button */}
