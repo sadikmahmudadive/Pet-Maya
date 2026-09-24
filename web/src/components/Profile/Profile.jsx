@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import EditorialNavbar from '../Navigation/EditorialNavbar';
@@ -39,10 +39,17 @@ import {
   HelpCircle,
   Eye,
   Lock,
-  ShoppingBag
+  ShoppingBag,
+  User,
+  UserCheck,
+  Bell,
+  Key,
+  LogOut,
+  ArrowRight,
+  Shield
 } from 'lucide-react';
 
-export default function Profile({ onNavigate }) {
+export default function Profile({ onNavigate, initialTab = 'settings' }) {
   const { 
     showToast, 
     openModal, 
@@ -57,13 +64,19 @@ export default function Profile({ onNavigate }) {
     deleteMedicalRecord,
     uploadImageFile 
   } = useApp ? useApp() : { showToast: () => {}, openModal: () => {}, cart: [] };
-  const { currentUser, updateUserProfile } = useAuth ? useAuth() : { currentUser: null, updateUserProfile: () => {} };
+  const { currentUser, updateUserProfile, logout, resetPassword } = useAuth ? useAuth() : { currentUser: null, updateUserProfile: () => {}, logout: () => {}, resetPassword: () => {} };
 
   // Active Patient Selector
   const [activePatientId, setActivePatientId] = useState('');
 
-  // Navigation Tabs State
-  const [activeNavTab, setActiveNavTab] = useState('ehr-vault'); // 'ehr-vault', 'prescriptions', 'hardware', 'consultations', 'billing', 'settings'
+  // Navigation Tabs State: Defaults to 'settings' (Guardian Profile)
+  const [activeNavTab, setActiveNavTab] = useState(initialTab || 'settings');
+
+  useEffect(() => {
+    if (initialTab) {
+      setActiveNavTab(initialTab);
+    }
+  }, [initialTab]);
 
   // Filter Category for Clinical Ledger
   const [ledgerFilter, setLedgerFilter] = useState('all'); // 'all', 'consult', 'lab', 'formulary', 'surgery'
@@ -93,10 +106,78 @@ export default function Profile({ onNavigate }) {
   // Newsletter subscription
   const [footerEmail, setFooterEmail] = useState('');
 
-  // Guardian Bio Form State
-  const [guardianName, setGuardianName] = useState(currentUser?.displayName || currentUser?.name || 'Guardian');
+  // Guardian Bio & Settings Form State
+  const [guardianName, setGuardianName] = useState(currentUser?.displayName || currentUser?.name || 'Care Guardian');
   const [guardianEmail, setGuardianEmail] = useState(currentUser?.email || '');
-  const [guardianAddress, setGuardianAddress] = useState(currentUser?.address || 'Dhaka, Bangladesh');
+  const [guardianPhone, setGuardianPhone] = useState(currentUser?.phone || '+880 1712-345678');
+  const [guardianAddress, setGuardianAddress] = useState(currentUser?.address || 'Banani, Dhaka, Bangladesh');
+  const [emergencyContact, setEmergencyContact] = useState('Adnan Mahmud (+880 1819-998877)');
+  const [preferredClinic, setPreferredClinic] = useState('Pet Maya Central Banani Triage Node');
+  const [guardianPhoto, setGuardianPhoto] = useState(currentUser?.photoUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80');
+
+  // Real-time synchronization when currentUser changes
+  useEffect(() => {
+    if (currentUser) {
+      if (currentUser.name || currentUser.displayName) setGuardianName(currentUser.name || currentUser.displayName);
+      if (currentUser.email) setGuardianEmail(currentUser.email);
+      if (currentUser.phone) setGuardianPhone(currentUser.phone);
+      if (currentUser.address) setGuardianAddress(currentUser.address);
+      if (currentUser.photoUrl) setGuardianPhoto(currentUser.photoUrl);
+    }
+  }, [currentUser]);
+
+  // Alert preferences
+  const [notifyVitals, setNotifyVitals] = useState(true);
+  const [notifyGeofence, setNotifyGeofence] = useState(true);
+  const [notifyDigest, setNotifyDigest] = useState(true);
+  const [notifyDispensary, setNotifyDispensary] = useState(true);
+
+  // Guardian profile saving
+  const handleSaveGuardianProfile = async (e) => {
+    if (e) e.preventDefault();
+    try {
+      if (updateUserProfile) {
+        await updateUserProfile({
+          name: guardianName,
+          email: guardianEmail,
+          phone: guardianPhone,
+          address: guardianAddress,
+          photoUrl: guardianPhoto
+        });
+      }
+      showToast('Guardian Profile successfully synchronized!', 'success');
+      setShowEditBioModal(false);
+    } catch (err) {
+      showToast('Failed to save profile: ' + (err.message || 'Error'), 'error');
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!guardianEmail) {
+      showToast('Please enter an email address for password reset.', 'error');
+      return;
+    }
+    try {
+      if (resetPassword) {
+        await resetPassword(guardianEmail);
+        showToast('Password reset link dispatched to ' + guardianEmail, 'success');
+      } else {
+        showToast('Password reset instructions sent to ' + guardianEmail, 'info');
+      }
+    } catch (err) {
+      showToast('Error sending reset email: ' + (err.message || 'Unknown error'), 'error');
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      if (logout) await logout();
+      showToast('Signed out of Guardian Portal', 'info');
+      handleRoute('landing');
+    } catch (err) {
+      showToast('Error signing out', 'error');
+    }
+  };
 
   const totalCartCount = (cart || []).reduce((sum, item) => sum + (item.quantity || 1), 0);
 
@@ -332,9 +413,22 @@ export default function Profile({ onNavigate }) {
                     justifyContent: 'center',
                     fontSize: '16px',
                     fontWeight: 800,
-                    color: '#675C58'
+                    color: '#675C58',
+                    overflow: 'hidden',
+                    border: '1.5px solid #3E7B84'
                   }}>
-                    {(guardianName || 'U').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'U'}
+                    {guardianPhoto ? (
+                      <img
+                        src={guardianPhoto}
+                        alt={guardianName}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                        }}
+                      />
+                    ) : (
+                      (guardianName || 'U').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'U'
+                    )}
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -390,7 +484,9 @@ export default function Profile({ onNavigate }) {
                 ● {patientList.length} DEPENDENT{patientList.length === 1 ? '' : 'S'} ACTIVE
               </span>
               <button
-                onClick={() => setShowEditBioModal(true)}
+                onClick={() => {
+                  setActiveNavTab('settings');
+                }}
                 style={{
                   background: 'none',
                   border: 'none',
@@ -628,12 +724,12 @@ export default function Profile({ onNavigate }) {
           borderBottom: '1px solid #EBE5DF'
         }}>
           {[
+            { id: 'settings', label: 'Guardian Profile & Account', icon: UserCheck },
             { id: 'ehr-vault', label: 'Medical EHR Vault', icon: FileText },
-            { id: 'prescriptions', label: 'Active Prescriptions & Subscriptions', icon: Layers },
-            { id: 'hardware', label: 'Hardware Devices & Collars', icon: Radio },
             { id: 'consultations', label: 'Consultation History', icon: Calendar },
             { id: 'billing', label: 'Billing & Membership', icon: CreditCard },
-            { id: 'settings', label: 'Account Settings', icon: Settings }
+            { id: 'prescriptions', label: 'Active Prescriptions', icon: Layers },
+            { id: 'hardware', label: 'Hardware Devices & Collars', icon: Radio }
           ].map(tab => {
             const Icon = tab.icon;
             const isActive = activeNavTab === tab.id;
@@ -642,8 +738,6 @@ export default function Profile({ onNavigate }) {
                 key={tab.id}
                 onClick={() => {
                   setActiveNavTab(tab.id);
-                  if (tab.id === 'prescriptions') handleRoute('orders');
-                  if (tab.id === 'hardware') handleRoute('pet-gps');
                 }}
                 style={{
                   display: 'inline-flex',
@@ -680,6 +774,531 @@ export default function Profile({ onNavigate }) {
               LEFT COLUMN: Longitudinal Health Records & Biometrics
               ════════════════════════════════════════════════════════════════ */}
           <div>
+
+            {/* ════════════════════════════════════════════════════════════════
+                TAB 1: GUARDIAN PROFILE & ACCOUNT SETTINGS
+                ════════════════════════════════════════════════════════════════ */}
+            {activeNavTab === 'settings' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                
+                {/* 1. Guardian Master Profile Details */}
+                <div style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: '20px',
+                  border: '1px solid #EBE5DF',
+                  padding: '28px',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
+                }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid #F5EFEB' }}>
+                    <div>
+                      <div style={{ fontSize: '10.5px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#3E7B84', marginBottom: '4px' }}>
+                        GUARDIAN REPOSITORY • SOVEREIGN NODE
+                      </div>
+                      <h2 style={{
+                        fontFamily: 'var(--font-heading, "Playfair Display", Georgia, serif)',
+                        fontSize: '26px',
+                        fontWeight: 800,
+                        color: '#160F0C',
+                        margin: 0
+                      }}>
+                        Guardian Profile & Account Credentials
+                      </h2>
+                      <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#675C58' }}>
+                        Manage your verified identity, emergency clinical proxy, residence details, and biometric dispatch nodes.
+                      </p>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        fontSize: '11.5px',
+                        fontWeight: 700,
+                        color: '#047857',
+                        backgroundColor: 'rgba(4, 120, 87, 0.1)',
+                        padding: '5px 12px',
+                        borderRadius: '9999px'
+                      }}>
+                        <ShieldCheck size={14} /> AAHA / BVC Verified Guardian
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Avatar Section & Live Preview */}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '20px',
+                    padding: '16px 20px',
+                    backgroundColor: '#FAF7F5',
+                    borderRadius: '16px',
+                    border: '1px solid #EFE9E4',
+                    marginBottom: '24px'
+                  }}>
+                    <div style={{
+                      width: '72px',
+                      height: '72px',
+                      borderRadius: '50%',
+                      overflow: 'hidden',
+                      backgroundColor: '#EBE5DF',
+                      border: '2.5px solid #3E7B84',
+                      flexShrink: 0
+                    }}>
+                      <img
+                        src={guardianPhoto}
+                        alt={guardianName}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80';
+                        }}
+                      />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: '15px', fontWeight: 800, color: '#160F0C', marginBottom: '2px' }}>
+                        {guardianName || 'Care Guardian'}
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#707973', marginBottom: '8px' }}>
+                        {guardianEmail || 'No email specified'} • Member ID: PM-ACC-4410
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <input
+                          type="text"
+                          value={guardianPhoto}
+                          onChange={(e) => setGuardianPhoto(e.target.value)}
+                          placeholder="Paste image URL..."
+                          style={{
+                            flex: 1,
+                            maxWidth: '360px',
+                            padding: '7px 12px',
+                            borderRadius: '8px',
+                            border: '1px solid #D6CEC7',
+                            fontSize: '11.5px',
+                            backgroundColor: '#FFFFFF'
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => showToast('Avatar preview updated!', 'info')}
+                          style={{
+                            padding: '7px 14px',
+                            borderRadius: '8px',
+                            backgroundColor: '#160F0C',
+                            color: '#FFFFFF',
+                            border: 'none',
+                            fontSize: '11.5px',
+                            fontWeight: 600,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          Update Photo
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Main Profile Form */}
+                  <form onSubmit={handleSaveGuardianProfile}>
+                    <div style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+                      gap: '18px',
+                      marginBottom: '24px'
+                    }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, color: '#160F0C', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                          Full Legal Name
+                        </label>
+                        <input
+                          type="text"
+                          value={guardianName}
+                          onChange={(e) => setGuardianName(e.target.value)}
+                          required
+                          style={{
+                            width: '100%',
+                            padding: '11px 14px',
+                            borderRadius: '10px',
+                            border: '1px solid #D6CEC7',
+                            fontSize: '13.5px',
+                            color: '#160F0C',
+                            backgroundColor: '#FFFFFF',
+                            boxSizing: 'border-box'
+                          }}
+                        />
+                      </div>
+
+                      <div>
+                        <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, color: '#160F0C', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                          Primary Email Address
+                        </label>
+                        <input
+                          type="email"
+                          value={guardianEmail}
+                          onChange={(e) => setGuardianEmail(e.target.value)}
+                          required
+                          style={{
+                            width: '100%',
+                            padding: '11px 14px',
+                            borderRadius: '10px',
+                            border: '1px solid #D6CEC7',
+                            fontSize: '13.5px',
+                            color: '#160F0C',
+                            backgroundColor: '#FFFFFF',
+                            boxSizing: 'border-box'
+                          }}
+                        />
+                      </div>
+
+                      <div>
+                        <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, color: '#160F0C', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                          Contact Phone (WhatsApp Clinical Dispatch)
+                        </label>
+                        <input
+                          type="tel"
+                          value={guardianPhone}
+                          onChange={(e) => setGuardianPhone(e.target.value)}
+                          placeholder="+880 1712-345678"
+                          style={{
+                            width: '100%',
+                            padding: '11px 14px',
+                            borderRadius: '10px',
+                            border: '1px solid #D6CEC7',
+                            fontSize: '13.5px',
+                            color: '#160F0C',
+                            backgroundColor: '#FFFFFF',
+                            boxSizing: 'border-box'
+                          }}
+                        />
+                      </div>
+
+                      <div>
+                        <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, color: '#160F0C', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                          Emergency Trauma Contact / Proxy
+                        </label>
+                        <input
+                          type="text"
+                          value={emergencyContact}
+                          onChange={(e) => setEmergencyContact(e.target.value)}
+                          placeholder="Adnan Mahmud (+880 1819-998877)"
+                          style={{
+                            width: '100%',
+                            padding: '11px 14px',
+                            borderRadius: '10px',
+                            border: '1px solid #D6CEC7',
+                            fontSize: '13.5px',
+                            color: '#160F0C',
+                            backgroundColor: '#FFFFFF',
+                            boxSizing: 'border-box'
+                          }}
+                        />
+                      </div>
+
+                      <div style={{ gridColumn: '1 / -1' }}>
+                        <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, color: '#160F0C', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                          Home Sanctuary / Residential Address (For Cold-Chain Dispensary Delivery)
+                        </label>
+                        <input
+                          type="text"
+                          value={guardianAddress}
+                          onChange={(e) => setGuardianAddress(e.target.value)}
+                          placeholder="House 42, Road 11, Block D, Banani, Dhaka-1213"
+                          style={{
+                            width: '100%',
+                            padding: '11px 14px',
+                            borderRadius: '10px',
+                            border: '1px solid #D6CEC7',
+                            fontSize: '13.5px',
+                            color: '#160F0C',
+                            backgroundColor: '#FFFFFF',
+                            boxSizing: 'border-box'
+                          }}
+                        />
+                      </div>
+
+                      <div>
+                        <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, color: '#160F0C', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                          Designated Primary Care Hospital
+                        </label>
+                        <select
+                          value={preferredClinic}
+                          onChange={(e) => setPreferredClinic(e.target.value)}
+                          style={{
+                            width: '100%',
+                            padding: '11px 14px',
+                            borderRadius: '10px',
+                            border: '1px solid #D6CEC7',
+                            fontSize: '13.5px',
+                            color: '#160F0C',
+                            backgroundColor: '#FFFFFF',
+                            boxSizing: 'border-box'
+                          }}
+                        >
+                          <option value="Pet Maya Central Banani Triage Node">Pet Maya Central Banani Triage Node</option>
+                          <option value="Gulshan 2 24/7 Emergency Hospital">Gulshan 2 24/7 Emergency Hospital</option>
+                          <option value="Dhanmondi Veterinary Care Center">Dhanmondi Veterinary Care Center</option>
+                          <option value="Uttara Specialty Surgery Hub">Uttara Specialty Surgery Hub</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, color: '#160F0C', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                          Communication Language & Node
+                        </label>
+                        <select
+                          defaultValue="en"
+                          style={{
+                            width: '100%',
+                            padding: '11px 14px',
+                            borderRadius: '10px',
+                            border: '1px solid #D6CEC7',
+                            fontSize: '13.5px',
+                            color: '#160F0C',
+                            backgroundColor: '#FFFFFF',
+                            boxSizing: 'border-box'
+                          }}
+                        >
+                          <option value="en">English (Clinical UK Standards)</option>
+                          <option value="bn">বাংলা (Bengali Regional Protocol)</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '12px', paddingTop: '16px', borderTop: '1px solid #F5EFEB' }}>
+                      <button
+                        type="submit"
+                        style={{
+                          padding: '12px 28px',
+                          borderRadius: '9999px',
+                          backgroundColor: '#160F0C',
+                          color: '#FFFFFF',
+                          border: 'none',
+                          fontSize: '13.5px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          boxShadow: '0 2px 8px rgba(22, 15, 12, 0.15)'
+                        }}
+                      >
+                        <Check size={16} /> Save Guardian Profile Changes
+                      </button>
+                    </div>
+                  </form>
+                </div>
+
+                {/* 2. Notification & Telemetry Dispatch Node Card */}
+                <div style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: '20px',
+                  border: '1px solid #EBE5DF',
+                  padding: '26px',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
+                    <Bell size={18} color="#3E7B84" />
+                    <h3 style={{ fontSize: '17px', fontWeight: 800, color: '#160F0C', margin: 0 }}>
+                      Clinical Alerts & Continuous Telemetry Dispatch
+                    </h3>
+                  </div>
+                  <p style={{ fontSize: '12.5px', color: '#675C58', margin: '0 0 20px 0' }}>
+                    Configure real-time automated triggers delivered directly to your emergency contact devices.
+                  </p>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    {[
+                      {
+                        title: 'Critical Biometric Anomalies (Heart Rate / Temperature Spikes)',
+                        desc: 'Immediate SMS & Push alert if resting HR > 120 BPM or body temperature exceeds 39.5°C.',
+                        checked: notifyVitals,
+                        toggle: () => setNotifyVitals(!notifyVitals)
+                      },
+                      {
+                        title: 'Maya Halo™ GPS Sanctuary Boundary Breaches',
+                        desc: 'Instant audio alarm and mobile notification if companion exits Banani Sanctuary boundary.',
+                        checked: notifyGeofence,
+                        toggle: () => setNotifyGeofence(!notifyGeofence)
+                      },
+                      {
+                        title: 'Cold-Chain Dispensary Prescription Refill Reminders',
+                        desc: 'WhatsApp reminder 3 days before monthly medication or prescription diet depletes.',
+                        checked: notifyDispensary,
+                        toggle: () => setNotifyDispensary(!notifyDispensary)
+                      },
+                      {
+                        title: 'Weekly AAHA-Compliant Health Index & Longevity Digest',
+                        desc: 'Comprehensive biometric summary email dispatched every Sunday morning.',
+                        checked: notifyDigest,
+                        toggle: () => setNotifyDigest(!notifyDigest)
+                      }
+                    ].map((pref, i) => (
+                      <div
+                        key={i}
+                        onClick={pref.toggle}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          justifyContent: 'space-between',
+                          gap: '14px',
+                          padding: '14px 18px',
+                          backgroundColor: pref.checked ? 'rgba(62, 123, 132, 0.05)' : '#FAF7F5',
+                          borderRadius: '12px',
+                          border: pref.checked ? '1px solid rgba(62, 123, 132, 0.25)' : '1px solid #EFE9E4',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: '13px', fontWeight: 700, color: '#160F0C', marginBottom: '2px' }}>
+                            {pref.title}
+                          </div>
+                          <div style={{ fontSize: '11.5px', color: '#707973' }}>
+                            {pref.desc}
+                          </div>
+                        </div>
+                        <div style={{
+                          width: '20px',
+                          height: '20px',
+                          borderRadius: '6px',
+                          backgroundColor: pref.checked ? '#3E7B84' : '#EBE5DF',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                          marginTop: '2px',
+                          transition: 'all 0.15s ease'
+                        }}>
+                          {pref.checked && <Check size={14} color="#FFFFFF" />}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 3. Account Security, Sovereign Node & Sign Out */}
+                <div style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: '20px',
+                  border: '1px solid #EBE5DF',
+                  padding: '26px',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
+                    <Lock size={18} color="#3E7B84" />
+                    <h3 style={{ fontSize: '17px', fontWeight: 800, color: '#160F0C', margin: 0 }}>
+                      Security, Authentication & Sovereign Sessions
+                    </h3>
+                  </div>
+
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                    gap: '16px',
+                    marginBottom: '20px'
+                  }}>
+                    <div style={{ padding: '16px', backgroundColor: '#FAF7F5', borderRadius: '12px', border: '1px solid #EFE9E4' }}>
+                      <div style={{ fontSize: '11px', fontWeight: 700, color: '#8C827A', textTransform: 'uppercase', marginBottom: '4px' }}>
+                        AUTHENTICATION NODE
+                      </div>
+                      <div style={{ fontSize: '13px', fontWeight: 700, color: '#160F0C', marginBottom: '8px' }}>
+                        Firebase Sovereign Protected Session
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleResetPassword}
+                        style={{
+                          padding: '7px 14px',
+                          borderRadius: '9999px',
+                          backgroundColor: '#FFFFFF',
+                          border: '1px solid #D6CEC7',
+                          fontSize: '11.5px',
+                          fontWeight: 600,
+                          color: '#160F0C',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Request Password Reset Link
+                      </button>
+                    </div>
+
+                    <div style={{ padding: '16px', backgroundColor: '#FAF7F5', borderRadius: '12px', border: '1px solid #EFE9E4' }}>
+                      <div style={{ fontSize: '11px', fontWeight: 700, color: '#8C827A', textTransform: 'uppercase', marginBottom: '4px' }}>
+                        TWO-FACTOR SECURITY
+                      </div>
+                      <div style={{ fontSize: '13px', fontWeight: 700, color: '#047857', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+                        <ShieldCheck size={15} /> Active (AAHA Triage Verified)
+                      </div>
+                      <div style={{ fontSize: '11.5px', color: '#707973' }}>
+                        Direct cryptographic pairing with Maya Halo™ collars.
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Danger Zone / Sign Out */}
+                  <div style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '14px',
+                    paddingTop: '16px',
+                    borderTop: '1px solid #F5EFEB'
+                  }}>
+                    <div style={{ fontSize: '12px', color: '#707973' }}>
+                      Connected Node: <strong>Banani Central Repository</strong> • Sovereign APM-4410
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowPdfDossierModal(true);
+                        }}
+                        style={{
+                          padding: '9px 18px',
+                          borderRadius: '9999px',
+                          backgroundColor: '#FAF7F5',
+                          border: '1px solid #D6CEC7',
+                          fontSize: '12px',
+                          fontWeight: 600,
+                          color: '#160F0C',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Export Complete Dossier (PDF)
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleSignOut}
+                        style={{
+                          padding: '9px 18px',
+                          borderRadius: '9999px',
+                          backgroundColor: '#FEE2E2',
+                          border: '1px solid #FCA5A5',
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          color: '#DC2626',
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px'
+                        }}
+                      >
+                        <LogOut size={13} /> Sign Out of Portal
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            )}
+
+            {/* ════════════════════════════════════════════════════════════════
+                TAB 2: MEDICAL EHR VAULT (LONGITUDINAL RECORDS & BIOMETRICS)
+                ════════════════════════════════════════════════════════════════ */}
+            {activeNavTab === 'ehr-vault' && (
+              <div>
 
             {/* Longitudinal Vitals & Telemetry Trend Card */}
             <div style={{
@@ -1087,6 +1706,658 @@ export default function Profile({ onNavigate }) {
               )}
 
             </div>
+              </div>
+            )}
+
+            {/* ════════════════════════════════════════════════════════════════
+                TAB 3: VETERINARY CONSULTATIONS HISTORY
+                ════════════════════════════════════════════════════════════════ */}
+            {activeNavTab === 'consultations' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                <div style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: '20px',
+                  border: '1px solid #EBE5DF',
+                  padding: '28px',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
+                }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', marginBottom: '20px', paddingBottom: '16px', borderBottom: '1px solid #F5EFEB' }}>
+                    <div>
+                      <div style={{ fontSize: '10.5px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#3E7B84', marginBottom: '4px' }}>
+                        CLINICAL SESSIONS • TELEHEALTH ARCHIVE
+                      </div>
+                      <h2 style={{
+                        fontFamily: 'var(--font-heading, "Playfair Display", Georgia, serif)',
+                        fontSize: '26px',
+                        fontWeight: 800,
+                        color: '#160F0C',
+                        margin: 0
+                      }}>
+                        Veterinary Consultations & Telehealth History
+                      </h2>
+                      <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#675C58' }}>
+                        Synchronized video transcripts, diagnostic follow-ups, and specialist clinical recommendations.
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={() => handleRoute('specialists')}
+                      style={{
+                        padding: '10px 20px',
+                        borderRadius: '9999px',
+                        backgroundColor: '#160F0C',
+                        color: '#FFFFFF',
+                        border: 'none',
+                        fontSize: '12.5px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}
+                    >
+                      <Plus size={14} /> Book Specialist Consult
+                    </button>
+                  </div>
+
+                  {/* Upcoming Consultation Alert Card */}
+                  <div style={{
+                    backgroundColor: '#FAF7F5',
+                    borderRadius: '16px',
+                    border: '1.5px solid #3E7B84',
+                    padding: '20px',
+                    marginBottom: '24px'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                      <span style={{
+                        fontSize: '10px',
+                        fontWeight: 800,
+                        letterSpacing: '0.08em',
+                        textTransform: 'uppercase',
+                        color: '#3E7B84',
+                        backgroundColor: 'rgba(62, 123, 132, 0.12)',
+                        padding: '3px 8px',
+                        borderRadius: '4px'
+                      }}>
+                        UPCOMING TELEHEALTH SESSION
+                      </span>
+                      <span style={{ fontSize: '12px', fontWeight: 700, color: '#047857', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Clock size={13} /> Tomorrow • 4:30 PM (BDT)
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                        <div style={{ width: '48px', height: '48px', borderRadius: '50%', overflow: 'hidden', backgroundColor: '#EBE5DF' }}>
+                          <img
+                            src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=120&q=80"
+                            alt="Dr. Farhana Ahmed"
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                        </div>
+                        <div>
+                          <div style={{ fontSize: '15px', fontWeight: 800, color: '#160F0C' }}>
+                            Dr. Farhana Ahmed, BVSc, MS
+                          </div>
+                          <div style={{ fontSize: '12px', color: '#707973' }}>
+                            Chief Veterinary Clinician • Avian & Exotic Medicine Specialist
+                          </div>
+                          <div style={{ fontSize: '11.5px', color: '#3E7B84', fontWeight: 600, marginTop: '2px' }}>
+                            Patient: <strong>{currentPatient.name}</strong> • Routine Molting & Biometric Audit
+                          </div>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <button
+                          onClick={() => showToast('Launching encrypted Video Telehealth Room...', 'info')}
+                          style={{
+                            padding: '10px 18px',
+                            borderRadius: '9999px',
+                            backgroundColor: '#3E7B84',
+                            color: '#FFFFFF',
+                            border: 'none',
+                            fontSize: '12.5px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px'
+                          }}
+                        >
+                          <Video size={14} /> Join Telehealth Room
+                        </button>
+                        <button
+                          onClick={() => setShowRescheduleModal(true)}
+                          style={{
+                            padding: '10px 16px',
+                            borderRadius: '9999px',
+                            backgroundColor: '#FFFFFF',
+                            border: '1px solid #D6CEC7',
+                            color: '#160F0C',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          Reschedule
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Historical Consultations Ledger */}
+                  <div style={{ fontSize: '13px', fontWeight: 800, color: '#160F0C', marginBottom: '14px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                    Completed Clinical Consultations History
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {[
+                      {
+                        doctor: 'Dr. Tanvir Hossain, DVM, MS (Surgery)',
+                        role: 'Orthopedic & Soft Tissue Specialist',
+                        date: 'October 12, 2026',
+                        patient: 'Miko',
+                        reason: 'Post-Trauma Gait Evaluation & Left Hindlimb Biometrics',
+                        findings: 'Complete reduction of tarsal inflammation. Weight bearing symmetrical. Prescribed Meloxicam course successfully completed.',
+                        status: 'Report Finalized'
+                      },
+                      {
+                        doctor: 'Dr. Farhana Ahmed, BVSc, MS',
+                        role: 'Chief Veterinary Clinician',
+                        date: 'September 24, 2026',
+                        patient: 'Piku',
+                        reason: 'Seasonal Plumage Assessment & Baseline Biometrics',
+                        findings: 'Respiratory acoustic clear, heart rate telemetry 72 BPM within optimal avian envelope.',
+                        status: 'Report Finalized'
+                      }
+                    ].map((item, idx) => (
+                      <div
+                        key={idx}
+                        style={{
+                          padding: '18px',
+                          borderRadius: '14px',
+                          backgroundColor: '#FAF7F5',
+                          border: '1px solid #EFE9E4'
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', marginBottom: '8px' }}>
+                          <div>
+                            <div style={{ fontSize: '14px', fontWeight: 800, color: '#160F0C' }}>
+                              {item.doctor}
+                            </div>
+                            <div style={{ fontSize: '11.5px', color: '#707973' }}>
+                              {item.role} • {item.date} • Patient: <strong>{item.patient}</strong>
+                            </div>
+                          </div>
+                          <span style={{
+                            fontSize: '10.5px',
+                            fontWeight: 700,
+                            color: '#047857',
+                            backgroundColor: 'rgba(4, 120, 87, 0.1)',
+                            padding: '3px 8px',
+                            borderRadius: '4px'
+                          }}>
+                            {item.status} ✓
+                          </span>
+                        </div>
+                        <div style={{ fontSize: '12px', color: '#160F0C', marginBottom: '4px' }}>
+                          <strong>Reason:</strong> {item.reason}
+                        </div>
+                        <div style={{ fontSize: '11.5px', color: '#675C58', lineHeight: 1.45, marginBottom: '12px' }}>
+                          <strong>Clinical Summary:</strong> {item.findings}
+                        </div>
+                        <button
+                          onClick={() => showToast('Dispatched Clinical Consultation Summary PDF to download queue', 'success')}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            background: 'none',
+                            border: 'none',
+                            color: '#3E7B84',
+                            fontSize: '11.5px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            padding: 0
+                          }}
+                        >
+                          <Download size={13} /> Download Certified Consultation Summary (PDF)
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+
+                </div>
+              </div>
+            )}
+
+            {/* ════════════════════════════════════════════════════════════════
+                TAB 4: BILLING & CARE MEMBERSHIP
+                ════════════════════════════════════════════════════════════════ */}
+            {activeNavTab === 'billing' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                <div style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: '20px',
+                  border: '1px solid #EBE5DF',
+                  padding: '28px',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
+                }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', marginBottom: '20px', paddingBottom: '16px', borderBottom: '1px solid #F5EFEB' }}>
+                    <div>
+                      <div style={{ fontSize: '10.5px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#3E7B84', marginBottom: '4px' }}>
+                        CARE MEMBERSHIP & SOVEREIGN BILLING
+                      </div>
+                      <h2 style={{
+                        fontFamily: 'var(--font-heading, "Playfair Display", Georgia, serif)',
+                        fontSize: '26px',
+                        fontWeight: 800,
+                        color: '#160F0C',
+                        margin: 0
+                      }}>
+                        Pet Maya Pro Care Plan & Invoices
+                      </h2>
+                      <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#675C58' }}>
+                        Active subscription privileges, payment method on file, and download-ready VAT receipts.
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={() => setShowManageSubModal(true)}
+                      style={{
+                        padding: '10px 20px',
+                        borderRadius: '9999px',
+                        backgroundColor: '#160F0C',
+                        color: '#FFFFFF',
+                        border: 'none',
+                        fontSize: '12.5px',
+                        fontWeight: 700,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Manage Plan & Add-ons
+                    </button>
+                  </div>
+
+                  {/* Plan Overview Card */}
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                    gap: '18px',
+                    padding: '22px',
+                    backgroundColor: '#FAF7F5',
+                    borderRadius: '16px',
+                    border: '1px solid #EFE9E4',
+                    marginBottom: '26px'
+                  }}>
+                    <div>
+                      <div style={{ fontSize: '10.5px', fontWeight: 700, color: '#3E7B84', textTransform: 'uppercase', marginBottom: '4px' }}>
+                        CURRENT CARE TIER
+                      </div>
+                      <div style={{ fontSize: '20px', fontWeight: 800, color: '#160F0C' }}>
+                        Pet Maya Pro Tier
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#707973', marginTop: '2px' }}>
+                        ৳499 BDT / billed monthly
+                      </div>
+                      <div style={{ fontSize: '11.5px', color: '#047857', fontWeight: 700, marginTop: '8px' }}>
+                        ● Next automatic renewal: November 18, 2026
+                      </div>
+                    </div>
+
+                    <div>
+                      <div style={{ fontSize: '10.5px', fontWeight: 700, color: '#8C827A', textTransform: 'uppercase', marginBottom: '4px' }}>
+                        PRIMARY PAYMENT CARD
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '15px', fontWeight: 700, color: '#160F0C' }}>
+                        <CreditCard size={18} color="#3E7B84" /> Visa •••• 4818
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#707973', marginTop: '2px' }}>
+                        Expires 09/2028 • Default Payment Method
+                      </div>
+                      <button
+                        onClick={() => showToast('Opening secure PCI-DSS gateway for card update...', 'info')}
+                        style={{
+                          marginTop: '8px',
+                          background: 'none',
+                          border: 'none',
+                          color: '#3E7B84',
+                          fontWeight: 700,
+                          fontSize: '11.5px',
+                          cursor: 'pointer',
+                          padding: 0
+                        }}
+                      >
+                        Update Payment Method ➔
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Included Pro Features */}
+                  <div style={{ marginBottom: '26px' }}>
+                    <div style={{ fontSize: '12.5px', fontWeight: 800, textTransform: 'uppercase', color: '#160F0C', marginBottom: '12px', letterSpacing: '0.05em' }}>
+                      Included Pro Care Benefits Active:
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '10px' }}>
+                      {[
+                        'Unlimited 24/7 AI Vision Symptom Triage',
+                        '2 Free Veterinary Telehealth Consults/mo',
+                        'Zero-Fee Cold-Chain Dispensary Delivery',
+                        'Continuous Cloud Hardware Telemetry (Maya Halo™)'
+                      ].map((feat, idx) => (
+                        <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#160F0C' }}>
+                          <CheckCircle2 size={15} color="#047857" style={{ flexShrink: 0 }} />
+                          <span>{feat}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Billing Invoices Ledger Table */}
+                  <div style={{ fontSize: '12.5px', fontWeight: 800, textTransform: 'uppercase', color: '#160F0C', marginBottom: '12px', letterSpacing: '0.05em' }}>
+                    Past Billing Invoices & Receipts:
+                  </div>
+
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12.5px' }}>
+                      <thead>
+                        <tr style={{ borderBottom: '1px solid #EBE5DF', color: '#8C827A', textAlign: 'left', fontSize: '10.5px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                          <th style={{ padding: '10px 12px' }}>Invoice ID</th>
+                          <th style={{ padding: '10px 12px' }}>Billing Date</th>
+                          <th style={{ padding: '10px 12px' }}>Description</th>
+                          <th style={{ padding: '10px 12px' }}>Amount</th>
+                          <th style={{ padding: '10px 12px' }}>Status</th>
+                          <th style={{ padding: '10px 12px', textAlign: 'right' }}>Receipt</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {[
+                          { id: 'PM-INV-2026-1001', date: 'October 18, 2026', desc: 'Pet Maya Pro Monthly Membership', amount: '৳499', status: 'Paid' },
+                          { id: 'PM-INV-2026-0901', date: 'September 18, 2026', desc: 'Pet Maya Pro Monthly Membership', amount: '৳499', status: 'Paid' },
+                          { id: 'PM-INV-2026-0801', date: 'August 18, 2026', desc: 'Pet Maya Pro Monthly Membership', amount: '৳499', status: 'Paid' }
+                        ].map(inv => (
+                          <tr key={inv.id} style={{ borderBottom: '1px solid #F5EFEB' }}>
+                            <td style={{ padding: '12px', fontFamily: 'monospace', fontWeight: 600, color: '#160F0C' }}>{inv.id}</td>
+                            <td style={{ padding: '12px', color: '#675C58' }}>{inv.date}</td>
+                            <td style={{ padding: '12px', color: '#160F0C', fontWeight: 500 }}>{inv.desc}</td>
+                            <td style={{ padding: '12px', fontWeight: 700, color: '#160F0C' }}>{inv.amount}</td>
+                            <td style={{ padding: '12px' }}>
+                              <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#047857', backgroundColor: 'rgba(4, 120, 87, 0.1)', padding: '2px 8px', borderRadius: '4px' }}>
+                                {inv.status} ✓
+                              </span>
+                            </td>
+                            <td style={{ padding: '12px', textAlign: 'right' }}>
+                              <button
+                                onClick={() => showToast(`Receipt ${inv.id} downloaded successfully`, 'success')}
+                                style={{
+                                  background: 'none',
+                                  border: 'none',
+                                  color: '#3E7B84',
+                                  fontWeight: 700,
+                                  cursor: 'pointer',
+                                  fontSize: '11.5px',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px'
+                                }}
+                              >
+                                <Download size={13} /> PDF
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                </div>
+              </div>
+            )}
+
+            {/* ════════════════════════════════════════════════════════════════
+                TAB 5: ACTIVE PRESCRIPTIONS & DISPENSARY FORMULARY
+                ════════════════════════════════════════════════════════════════ */}
+            {activeNavTab === 'prescriptions' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                <div style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: '20px',
+                  border: '1px solid #EBE5DF',
+                  padding: '28px',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
+                }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', marginBottom: '20px', paddingBottom: '16px', borderBottom: '1px solid #F5EFEB' }}>
+                    <div>
+                      <div style={{ fontSize: '10.5px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#3E7B84', marginBottom: '4px' }}>
+                        ACTIVE DISPENSARY FORMULARY
+                      </div>
+                      <h2 style={{
+                        fontFamily: 'var(--font-heading, "Playfair Display", Georgia, serif)',
+                        fontSize: '26px',
+                        fontWeight: 800,
+                        color: '#160F0C',
+                        margin: 0
+                      }}>
+                        Active Prescriptions & Cold-Chain Formulary
+                      </h2>
+                      <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#675C58' }}>
+                        Veterinary certified medication dosages, automated cold-chain delivery schedules, and refill tracking.
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={() => handleRoute('orders')}
+                      style={{
+                        padding: '10px 20px',
+                        borderRadius: '9999px',
+                        backgroundColor: '#160F0C',
+                        color: '#FFFFFF',
+                        border: 'none',
+                        fontSize: '12.5px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}
+                    >
+                      <Layers size={14} /> Open Dispensary Orders ➔
+                    </button>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    {[
+                      {
+                        name: 'Meloxicam Oral Suspension 1.5mg/ml',
+                        forPet: 'Miko (Domestic Shorthair)',
+                        prescribedBy: 'Dr. Tanvir Hossain',
+                        dosage: '0.1ml once daily administered with wet food',
+                        refill: 'Active Monthly Auto-Refill',
+                        daysLeft: '28 Days Remaining in Sanctuary Dispensary',
+                        coldChain: '+2°C to +8°C Verified'
+                      },
+                      {
+                        name: 'Avian Feather Plume Pro Electrolyte Formula',
+                        forPet: 'Piku (Ring-necked Dove)',
+                        prescribedBy: 'Dr. Farhana Ahmed',
+                        dosage: '2 drops per 50ml fresh water daily during molting',
+                        refill: 'Auto-Refill On Demand',
+                        daysLeft: '14 Days Supply Active',
+                        coldChain: 'Ambient Cold-Shield Packaged'
+                      }
+                    ].map((item, idx) => (
+                      <div
+                        key={idx}
+                        style={{
+                          padding: '20px',
+                          borderRadius: '16px',
+                          backgroundColor: '#FAF7F5',
+                          border: '1px solid #EFE9E4'
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', marginBottom: '8px' }}>
+                          <div>
+                            <div style={{ fontSize: '15px', fontWeight: 800, color: '#160F0C' }}>
+                              {item.name}
+                            </div>
+                            <div style={{ fontSize: '12px', color: '#3E7B84', fontWeight: 600 }}>
+                              Patient: {item.forPet} • Prescribing Clinician: {item.prescribedBy}
+                            </div>
+                          </div>
+                          <span style={{
+                            fontSize: '10.5px',
+                            fontWeight: 700,
+                            color: '#047857',
+                            backgroundColor: 'rgba(4, 120, 87, 0.1)',
+                            padding: '3px 8px',
+                            borderRadius: '4px'
+                          }}>
+                            {item.refill} ✓
+                          </span>
+                        </div>
+                        <div style={{ fontSize: '12.5px', color: '#160F0C', marginBottom: '6px' }}>
+                          <strong>Dosage Protocol:</strong> {item.dosage}
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', fontSize: '11.5px', color: '#707973', paddingTop: '10px', borderTop: '1px solid #F0EAE4' }}>
+                          <span>● {item.daysLeft}</span>
+                          <span style={{ color: '#3E7B84', fontWeight: 600 }}>Cold-Chain Spec: {item.coldChain}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                </div>
+              </div>
+            )}
+
+            {/* ════════════════════════════════════════════════════════════════
+                TAB 6: HARDWARE DEVICES & MAYA HALO™ COLLARS
+                ════════════════════════════════════════════════════════════════ */}
+            {activeNavTab === 'hardware' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                <div style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: '20px',
+                  border: '1px solid #EBE5DF',
+                  padding: '28px',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
+                }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', marginBottom: '20px', paddingBottom: '16px', borderBottom: '1px solid #F5EFEB' }}>
+                    <div>
+                      <div style={{ fontSize: '10.5px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#3E7B84', marginBottom: '4px' }}>
+                        HARDWARE TELEMETRY & BEACON NODES
+                      </div>
+                      <h2 style={{
+                        fontFamily: 'var(--font-heading, "Playfair Display", Georgia, serif)',
+                        fontSize: '26px',
+                        fontWeight: 800,
+                        color: '#160F0C',
+                        margin: 0
+                      }}>
+                        Maya Halo™ Smart Collars & Hardware Diagnostics
+                      </h2>
+                      <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#675C58' }}>
+                        Live bio-telemetry collars, continuous GPS geofence radar, and battery telemetry.
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={() => handleRoute('pet-gps')}
+                      style={{
+                        padding: '10px 20px',
+                        borderRadius: '9999px',
+                        backgroundColor: '#160F0C',
+                        color: '#FFFFFF',
+                        border: 'none',
+                        fontSize: '12.5px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}
+                    >
+                      <Radio size={14} /> Open Live GPS Radar ➔
+                    </button>
+                  </div>
+
+                  {/* Device Status Card */}
+                  <div style={{
+                    padding: '22px',
+                    borderRadius: '16px',
+                    backgroundColor: '#FAF7F5',
+                    border: '1px solid #EFE9E4',
+                    marginBottom: '20px'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <Radio size={20} color="#3E7B84" />
+                        <div>
+                          <div style={{ fontSize: '16px', fontWeight: 800, color: '#160F0C' }}>
+                            Maya Halo™ V3 Smart Collar
+                          </div>
+                          <div style={{ fontSize: '12px', color: '#707973' }}>
+                            Hardware UID: MH3-8890-DHAKA • Paired with <strong>{currentPatient.name}</strong>
+                          </div>
+                        </div>
+                      </div>
+                      <span style={{
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        color: '#047857',
+                        backgroundColor: 'rgba(4, 120, 87, 0.1)',
+                        padding: '4px 10px',
+                        borderRadius: '9999px'
+                      }}>
+                        ● ONLINE • STREAMING BIO-TELEMETRY
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', marginBottom: '16px' }}>
+                      <div style={{ backgroundColor: '#FFFFFF', padding: '12px', borderRadius: '10px', border: '1px solid #EBE5DF' }}>
+                        <div style={{ fontSize: '10px', color: '#8C827A', textTransform: 'uppercase' }}>BATTERY HEALTH</div>
+                        <div style={{ fontSize: '16px', fontWeight: 800, color: '#160F0C' }}>89% (Est. 12 Days)</div>
+                        <div style={{ width: '100%', height: '5px', backgroundColor: '#FAF7F5', borderRadius: '3px', marginTop: '6px' }}>
+                          <div style={{ width: '89%', height: '100%', backgroundColor: '#10B981', borderRadius: '3px' }} />
+                        </div>
+                      </div>
+
+                      <div style={{ backgroundColor: '#FFFFFF', padding: '12px', borderRadius: '10px', border: '1px solid #EBE5DF' }}>
+                        <div style={{ fontSize: '10px', color: '#8C827A', textTransform: 'uppercase' }}>FIRMWARE VERSION</div>
+                        <div style={{ fontSize: '16px', fontWeight: 800, color: '#160F0C' }}>v3.4.1 Production</div>
+                        <div style={{ fontSize: '11px', color: '#047857', fontWeight: 600, marginTop: '2px' }}>Up to date ✓</div>
+                      </div>
+
+                      <div style={{ backgroundColor: '#FFFFFF', padding: '12px', borderRadius: '10px', border: '1px solid #EBE5DF' }}>
+                        <div style={{ fontSize: '10px', color: '#8C827A', textTransform: 'uppercase' }}>SANCTUARY GEOFENCE</div>
+                        <div style={{ fontSize: '16px', fontWeight: 800, color: '#3E7B84' }}>Home Sanctuary Active</div>
+                        <div style={{ fontSize: '11px', color: '#707973', marginTop: '2px' }}>Banani Radius ±1.2m</div>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '10px' }}>
+                      <button
+                        onClick={() => setShowCollarSettingsModal(true)}
+                        style={{
+                          padding: '9px 18px',
+                          borderRadius: '9999px',
+                          backgroundColor: '#FFFFFF',
+                          border: '1px solid #D6CEC7',
+                          color: '#160F0C',
+                          fontSize: '12px',
+                          fontWeight: 600,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Configure Collar Calibration & Safe Zones
+                      </button>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            )}
 
           </div>
 

@@ -112,7 +112,7 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
               (link.path === 'shop' && (currentRoute === '/shop' || currentRoute === 'shop')) ||
               (link.path === 'ai' && (currentRoute === 'ai' || currentRoute === '/ai' || currentRoute === 'ai-pet-care' || currentRoute === '/ai-pet-care' || currentRoute === 'wellness' || currentRoute === '/wellness')) ||
               (link.path === 'specialists' && (currentRoute === 'specialists' || currentRoute === '/specialists' || currentRoute === 'vets' || currentRoute === '/vets' || currentRoute === 'for-veterinarians' || currentRoute === '/for-veterinarians')) ||
-              (link.path === 'digital-pet-passport' && (currentRoute === 'digital-pet-passport' || currentRoute === '/digital-pet-passport' || currentRoute === 'health-vault' || currentRoute === '/health-vault' || currentRoute === 'profile' || currentRoute === '/profile')) ||
+              (link.path === 'digital-pet-passport' && (currentRoute === 'digital-pet-passport' || currentRoute === '/digital-pet-passport' || currentRoute === 'health-vault' || currentRoute === '/health-vault')) ||
               ((link.path === 'journal' || link.path === 'blog') && (currentRoute === 'blog' || currentRoute === '/blog' || currentRoute === 'journal' || currentRoute === '/journal' || currentRoute === 'gazette' || currentRoute === '/gazette' || currentRoute === 'pet-health' || currentRoute === 'pet-care')) ||
               (link.path === 'pet-gps' && (currentRoute === 'pet-gps' || currentRoute === '/pet-gps' || currentRoute === 'tracker' || currentRoute === '/tracker' || currentRoute === 'gps' || currentRoute === '/gps' || currentRoute === 'radar' || currentRoute === '/radar')) ||
               (link.path === 'community' && (currentRoute === 'community' || currentRoute === '/community' || currentRoute === 'social' || currentRoute === '/social' || currentRoute === 'circle' || currentRoute === '/circle')) ||
@@ -281,28 +281,37 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
           </button>
 
           {/* Profile / Portal Access Button */}
-          <button
-            onClick={() => {
-              handleNavClick('profile');
-            }}
-            aria-label="Account profile"
-            title={currentUser ? (currentUser.name || 'Profile') : 'Guardian Profile & Health Vault'}
-            className="btn-elevate"
-            style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: '50%',
-              backgroundColor: isDark ? '#0B2826' : '#EBE5DF',
-              border: isDark ? '1.5px solid rgba(26, 182, 128, 0.4)' : '1px solid rgba(222, 217, 214, 0.9)',
-              cursor: 'pointer',
-              overflow: 'hidden',
-              padding: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0
-            }}
-          >
+          {(() => {
+            const isProfileActive = currentRoute === 'profile' || currentRoute === '/profile' || currentRoute === 'account' || currentRoute === 'guardian-profile';
+            return (
+              <button
+                onClick={() => {
+                  handleNavClick('profile');
+                }}
+                aria-label="Account profile"
+                title={currentUser ? (currentUser.name || 'Guardian Profile') : 'Guardian Profile & Account'}
+                className="btn-elevate"
+                style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '50%',
+                  backgroundColor: isDark ? '#0B2826' : '#EBE5DF',
+                  border: isProfileActive
+                    ? (isDark ? '2px solid #1AB680' : '2px solid #160F0C')
+                    : (isDark ? '1.5px solid rgba(26, 182, 128, 0.4)' : '1px solid rgba(222, 217, 214, 0.9)'),
+                  boxShadow: isProfileActive
+                    ? (isDark ? '0 0 0 3px rgba(26, 182, 128, 0.4)' : '0 0 0 3px rgba(22, 15, 12, 0.25)')
+                    : 'none',
+                  cursor: 'pointer',
+                  overflow: 'hidden',
+                  padding: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  transition: 'all 0.2s ease'
+                }}
+              >
             <img
               src={currentUser?.photoUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80'}
               alt="Guardian Profile"
@@ -312,7 +321,9 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
                 e.target.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80';
               }}
             />
-          </button>
+              </button>
+            );
+          })()}
 
           {/* Mobile Menu Toggle Button */}
           <button

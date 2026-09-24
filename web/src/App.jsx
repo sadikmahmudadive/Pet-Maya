@@ -206,7 +206,8 @@ const VALID_EDITORIAL_ROUTES = [
   'login', 'signin', 'signup', 'auth', 'shop', 'ai', 'wellness', 'specialists', 'vets',
   'product', 'product-detail', 'pdp', 'tracker', 'gps', 'radar', 'dashboard', 'community',
   'cart', 'bag', 'dispensary', 'checkout', 'payment', 'settlement',
-  'orders', 'order', 'tracking', 'telemetry', 'order-tracking', 'dispensary-orders'
+  'orders', 'order', 'tracking', 'telemetry', 'order-tracking', 'dispensary-orders',
+  'profile', 'account', 'guardian-profile', 'health-vault-profile'
 ];
 
 const VALID_APP_ROUTES = [
@@ -499,7 +500,10 @@ function MainContent() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
           >
-            <Profile onNavigate={handleNavigate} />
+            <Profile 
+              onNavigate={handleNavigate} 
+              initialTab={activeTab === 'health-vault-profile' ? 'ehr-vault' : 'settings'} 
+            />
           </motion.div>
         </AnimatePresence>
         <ModalRoot />
