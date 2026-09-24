@@ -589,7 +589,7 @@ export default function Shop({ onNavigate }) {
                           WebkitBoxOrient: 'vertical',
                           overflow: 'hidden'
                         }}>
-                          {product.description}
+                          {product.shortDescription || product.description}
                         </p>
                       </div>
 

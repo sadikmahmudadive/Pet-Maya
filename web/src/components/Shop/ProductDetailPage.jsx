@@ -40,7 +40,9 @@ export default function ProductDetailPage({ productId, onBack, onNavigate }) {
   const prodBrand = matchedProduct?.brand || (isCustomProduct ? 'VETERINARY PHARMACY' : 'BOEHRINGER INGELHEIM');
   const prodBasePrice = typeof matchedProduct?.price === 'number' ? matchedProduct.price : (parseInt(matchedProduct?.price) || 1568);
   const prodImage = matchedProduct?.image || matchedProduct?.photo || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=900&auto=format&fit=crop&q=80';
-  const prodDescription = matchedProduct?.description || matchedProduct?.shortDescription || 'Veterinary-grade formulation verified under strict veterinarian oversight with temperature-controlled cold-chain dispatch.';
+  const prodShortDescription = matchedProduct?.shortDescription || (matchedProduct?.description ? (matchedProduct.description.length > 95 ? matchedProduct.description.slice(0, 92) + '…' : matchedProduct.description) : 'Veterinary-grade formulation verified under strict clinical standards.');
+  const prodLongDescription = matchedProduct?.longDescription || matchedProduct?.description || prodShortDescription;
+  const prodDescription = prodLongDescription;
   const prodBadge = matchedProduct?.badge || (matchedProduct?.isRx ? 'Schedule Rx' : 'Clinical Formulation');
   const prodRating = matchedProduct?.rating || '4.9';
   const prodReviews = matchedProduct?.ratingCount || matchedProduct?.reviewsCount || 148;
@@ -677,7 +679,7 @@ export default function ProductDetailPage({ productId, onBack, onNavigate }) {
               margin: '0 0 16px 0',
               maxWidth: '640px'
             }}>
-              {prodDescription}
+              {prodShortDescription}
             </p>
 
             {/* Rating & Prescription Badge Row */}
@@ -1251,6 +1253,55 @@ export default function ProductDetailPage({ productId, onBack, onNavigate }) {
             >
               View Digital Rx ↗
             </a>
+          </div>
+        </div>
+
+        {/* ════════════════════════════════════════════════════════════════
+            SECTION 2.5: EXTENDED CLINICAL MONOGRAPH & LONG DESCRIPTION
+            ════════════════════════════════════════════════════════════════ */}
+        <div style={{
+          backgroundColor: '#FFFFFF',
+          border: '1px solid #EBE4DF',
+          borderRadius: '24px',
+          padding: '32px',
+          marginBottom: '32px',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.02)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+            <FileText size={18} color="#0D9488" />
+            <span style={{
+              fontSize: '11px',
+              fontFamily: 'var(--font-mono, monospace)',
+              fontWeight: 700,
+              color: '#0D9488',
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase'
+            }}>
+              COMPREHENSIVE CLINICAL MONOGRAPH &amp; FORMULATION PROFILE
+            </span>
+          </div>
+
+          <h3 style={{
+            fontFamily: 'var(--font-serif, "Playfair Display", Georgia, serif)',
+            fontSize: '22px',
+            fontWeight: 600,
+            color: '#160F0C',
+            margin: '0 0 12px 0'
+          }}>
+            Detailed Formulation Indications &amp; Veterinary Protocol
+          </h3>
+
+          <div style={{
+            fontSize: '13.5px',
+            lineHeight: 1.75,
+            color: '#4B5563',
+            backgroundColor: '#FAF7F5',
+            padding: '20px 24px',
+            borderRadius: '16px',
+            border: '1px solid #EFE8E2',
+            whiteSpace: 'pre-line'
+          }}>
+            {prodLongDescription}
           </div>
         </div>
 

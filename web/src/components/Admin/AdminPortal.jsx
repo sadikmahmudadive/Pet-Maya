@@ -436,6 +436,8 @@ export default function AdminPortal() {
       price: '',
       stockCount: 50,
       image: PRESET_IMAGES[0].url,
+      shortDescription: '',
+      longDescription: '',
       description: '',
       isRx: false,
       inStock: true,
@@ -453,7 +455,9 @@ export default function AdminPortal() {
       price: product.price || '',
       stockCount: typeof product.stockCount === 'number' ? product.stockCount : 50,
       image: product.image || product.imageUrl || PRESET_IMAGES[0].url,
-      description: product.description || '',
+      shortDescription: product.shortDescription || (product.description ? (product.description.length > 85 ? product.description.slice(0, 82) + '…' : product.description) : ''),
+      longDescription: product.longDescription || product.description || '',
+      description: product.description || product.longDescription || product.shortDescription || '',
       isRx: !!product.isRx,
       inStock: product.inStock !== false,
       rating: product.rating || 4.8
@@ -510,6 +514,9 @@ export default function AdminPortal() {
 
     setIsSubmittingProduct(true);
     try {
+      const shortDesc = productFormData.shortDescription?.trim() || productFormData.description?.trim()?.slice(0, 85) || 'Veterinary-grade formulation.';
+      const longDesc = productFormData.longDescription?.trim() || productFormData.description?.trim() || shortDesc;
+
       const payload = {
         name: productFormData.name.trim(),
         brand: productFormData.brand.trim() || 'Pet Maya',
@@ -517,7 +524,9 @@ export default function AdminPortal() {
         price: parseFloat(productFormData.price) || 0,
         stockCount: typeof productFormData.stockCount === 'number' ? productFormData.stockCount : (parseInt(productFormData.stockCount, 10) || 50),
         image: productFormData.image || PRESET_IMAGES[0].url,
-        description: productFormData.description.trim() || 'Veterinary-grade pet care formulation.',
+        shortDescription: shortDesc,
+        longDescription: longDesc,
+        description: longDesc || shortDesc,
         isRx: !!productFormData.isRx,
         inStock: productFormData.inStock !== false && (parseInt(productFormData.stockCount, 10) || 0) > 0,
         rating: parseFloat(productFormData.rating) || 4.8,
@@ -1545,7 +1554,10 @@ export default function AdminPortal() {
                               />
                               <div>
                                 <strong style={{ fontSize: '14px', color: 'var(--text-main)', display: 'block' }}>{p.name}</strong>
-                                <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>
+                                <p style={{ fontSize: '11.5px', color: 'var(--text-secondary)', margin: '2px 0 3px 0', maxWidth: '320px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                  {p.shortDescription || p.description || 'Veterinary formulation'}
+                                </p>
+                                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                                   {p.isRx ? <span style={{ color: '#8B5CF6', fontWeight: 700 }}>● Rx Required • </span> : ''}
                                   SKU: {p.id}
                                 </span>
@@ -2889,13 +2901,32 @@ export default function AdminPortal() {
                 </div>
 
                 <div>
-                  <label className="label-mini">DESCRIPTION</label>
-                  <textarea
-                    rows={2}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                    <label className="label-mini" style={{ margin: 0 }}>SHORT DESCRIPTION (CARD SYNOPSIS) *</label>
+                    <span style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>Shown on catalog &amp; homepage cards</span>
+                  </div>
+                  <input
+                    type="text"
+                    required
                     className="input-clean"
-                    placeholder="Enter product description, clinical formulation..."
-                    value={productFormData.description}
-                    onChange={(e) => setProductFormData(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="e.g. Monthly oral chewable prophylaxis against heartworm & ticks."
+                    value={productFormData.shortDescription}
+                    onChange={(e) => setProductFormData(prev => ({ ...prev, shortDescription: e.target.value }))}
+                  />
+                </div>
+
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                    <label className="label-mini" style={{ margin: 0 }}>LONG DESCRIPTION (CLINICAL MONOGRAPH &amp; DOSAGE) *</label>
+                    <span style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>Shown on product detail page</span>
+                  </div>
+                  <textarea
+                    rows={4}
+                    required
+                    className="input-clean"
+                    placeholder="Enter complete indications, active molecules, administration dosage, storage temperature, dietary profile, and precautions..."
+                    value={productFormData.longDescription}
+                    onChange={(e) => setProductFormData(prev => ({ ...prev, longDescription: e.target.value, description: e.target.value }))}
                   />
                 </div>
 

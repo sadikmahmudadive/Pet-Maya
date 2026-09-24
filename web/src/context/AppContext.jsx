@@ -669,7 +669,9 @@ export function AppProvider({ children }) {
               rating: typeof data.rating === 'number' ? data.rating : 4.8,
               ratingCount: data.ratingCount || 50,
               image: data.imageUrl || data.image || 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=500&auto=format&fit=crop&q=80',
-              description: data.description || 'High quality pet care supply.',
+              shortDescription: data.shortDescription || data.shortDesc || (data.description ? (data.description.length > 85 ? data.description.slice(0, 82) + '…' : data.description) : 'Veterinary formulation summary.'),
+              longDescription: data.longDescription || data.description || 'Comprehensive clinical veterinary formulation verified under strict clinical standards.',
+              description: data.description || data.longDescription || data.shortDescription || 'High quality pet care supply.',
               isRx: data.isRx === true || data.isRx === 'true',
               inStock: data.inStock !== false && data.inStock !== 'false',
               stockCount: typeof data.stockCount === 'number' ? data.stockCount : (parseInt(data.stockCount, 10) || 50)
@@ -1783,7 +1785,8 @@ export function AppProvider({ children }) {
 
   // ─── ADMIN PRODUCT & INVENTORY MANAGEMENT ACTIONS ───
   const addProduct = async (productData) => {
-    const id = productData.id || 'p_' + Date.now();
+    const shortDesc = productData.shortDescription || productData.shortDesc || (productData.description ? (productData.description.length > 85 ? productData.description.slice(0, 82) + '…' : productData.description) : 'Veterinary formulation summary.');
+    const longDesc = productData.longDescription || productData.description || 'Comprehensive clinical veterinary formulation verified under strict clinical standards.';
     const newProduct = {
       id,
       name: productData.name || 'New Product',
@@ -1793,7 +1796,9 @@ export function AppProvider({ children }) {
       rating: typeof productData.rating === 'number' ? productData.rating : 4.8,
       ratingCount: productData.ratingCount || 1,
       image: productData.image || productData.imageUrl || 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=500&auto=format&fit=crop&q=80',
-      description: productData.description || 'Premium pet care item.',
+      shortDescription: shortDesc,
+      longDescription: longDesc,
+      description: productData.description || longDesc || shortDesc,
       isRx: !!productData.isRx,
       inStock: productData.inStock !== false,
       stockCount: typeof productData.stockCount === 'number' ? productData.stockCount : 50,
