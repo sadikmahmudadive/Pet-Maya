@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
+import UserAvatar from '../Common/UserAvatar';
 import {
   ArrowLeft,
   ShieldCheck,
@@ -270,18 +271,7 @@ export default function CheckoutPage({ onNavigate }) {
                 boxShadow: '0 1px 4px rgba(0,0,0,0.08)'
               }}
             >
-              <img
-                src={currentUser?.photoUrl || currentUser?.photoURL || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
-                alt={currentUser?.name || 'Guardian Profile'}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover'
-                }}
-                onError={(e) => {
-                  e.target.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80';
-                }}
-              />
+              <UserAvatar user={currentUser} size={32} />
             </div>
           </div>
         </div>

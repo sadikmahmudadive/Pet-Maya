@@ -3,6 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Camera, User, Phone, MapPin, Check, Sparkles } from 'lucide-react';
+import UserAvatar from '../Common/UserAvatar';
 
 export default function EditProfileModal() {
   const { closeModal, showToast } = useApp();
@@ -143,18 +144,16 @@ export default function EditProfileModal() {
             {/* Avatar Picker */}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '24px' }}>
               <div style={{ position: 'relative' }}>
-                <img
-                  src={photoUrl || currentUser?.photoUrl || 'assets/images/tail_wagging_logo.png'}
-                  alt={name}
-                  style={{
-                    width: 90,
-                    height: 90,
-                    borderRadius: '50%',
-                    objectFit: 'cover',
-                    border: '3px solid var(--primary)',
-                    boxShadow: '0 8px 20px rgba(0,0,0,0.15)'
-                  }}
-                />
+                <div style={{
+                  width: 90,
+                  height: 90,
+                  borderRadius: '50%',
+                  overflow: 'hidden',
+                  border: '3px solid var(--primary)',
+                  boxShadow: '0 8px 20px rgba(0,0,0,0.15)'
+                }}>
+                  <UserAvatar photoUrl={photoUrl || currentUser?.photoUrl} size={90} alt={name} />
+                </div>
                 <label
                   htmlFor="avatar-upload"
                   style={{

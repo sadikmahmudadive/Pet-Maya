@@ -3,6 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import EditorialNavbar from '../Navigation/EditorialNavbar';
 import AuthPage from '../Pages/AuthPage';
+import UserAvatar from '../Common/UserAvatar';
 import { generatePetMedicalPassport } from '../../services/pdfGenerator';
 import {
   ShieldCheck,
@@ -114,7 +115,7 @@ export default function Profile({ onNavigate, initialTab = 'settings' }) {
   const [guardianAddress, setGuardianAddress] = useState(currentUser?.address || 'Banani, Dhaka, Bangladesh');
   const [emergencyContact, setEmergencyContact] = useState('Adnan Mahmud (+880 1819-998877)');
   const [preferredClinic, setPreferredClinic] = useState('Pet Maya Central Banani Triage Node');
-  const [guardianPhoto, setGuardianPhoto] = useState(currentUser?.photoUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80');
+  const [guardianPhoto, setGuardianPhoto] = useState(currentUser?.photoUrl || '');
 
   // Real-time synchronization when currentUser changes
   useEffect(() => {
@@ -444,28 +445,11 @@ export default function Profile({ onNavigate, initialTab = 'settings' }) {
                     width: '48px',
                     height: '48px',
                     borderRadius: '50%',
-                    backgroundColor: '#EBE5DF',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '16px',
-                    fontWeight: 800,
-                    color: '#675C58',
                     overflow: 'hidden',
-                    border: '1.5px solid #3E7B84'
+                    border: '1.5px solid #3E7B84',
+                    flexShrink: 0
                   }}>
-                    {guardianPhoto ? (
-                      <img
-                        src={guardianPhoto}
-                        alt={guardianName}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        onError={(e) => {
-                          e.target.style.display = 'none';
-                        }}
-                      />
-                    ) : (
-                      (guardianName || 'U').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'U'
-                    )}
+                    <UserAvatar photoUrl={guardianPhoto} user={currentUser} size={48} />
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -878,19 +862,10 @@ export default function Profile({ onNavigate, initialTab = 'settings' }) {
                       height: '72px',
                       borderRadius: '50%',
                       overflow: 'hidden',
-                      backgroundColor: '#EBE5DF',
                       border: '2.5px solid #3E7B84',
                       flexShrink: 0
                     }}>
-                      <img
-                        src={guardianPhoto}
-                        alt={guardianName}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80';
-                        }}
-                      />
+                      <UserAvatar photoUrl={guardianPhoto} user={currentUser} size={72} />
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: '15px', fontWeight: 800, color: '#160F0C', marginBottom: '2px' }}>

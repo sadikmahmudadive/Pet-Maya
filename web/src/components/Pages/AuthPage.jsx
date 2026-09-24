@@ -13,6 +13,7 @@ import {
   PlayCircle 
 } from 'lucide-react';
 import GlobalBanner from '../GlobalBanner';
+import UserAvatar from '../Common/UserAvatar';
 
 export default function AuthPage({ 
   initialMode = 'signin', 
@@ -297,28 +298,7 @@ export default function AuthPage({
             </button>
 
             {/* Profile Avatar */}
-            <div style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: '50%',
-              backgroundColor: '#45848D',
-              color: '#FFFFFF',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 600,
-              fontSize: '14px'
-            }}>
-              {currentUser && currentUser.photoUrl ? (
-                <img
-                  src={currentUser.photoUrl}
-                  alt="Avatar"
-                  style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
-                />
-              ) : (
-                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>person</span>
-              )}
-            </div>
+            <UserAvatar user={currentUser} size={36} />
           </div>
         </div>
       </header>

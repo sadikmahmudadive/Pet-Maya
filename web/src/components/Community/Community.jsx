@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import EditorialNavbar from '../Navigation/EditorialNavbar';
+import UserAvatar from '../Common/UserAvatar';
 import {
   Heart,
   MessageCircle,
@@ -121,7 +122,7 @@ export default function Community({ onNavigate }) {
           imageUrl: postImageUrl || '',
           petName: taggedPetName || primaryPetName,
           userName: currentUser?.name || currentUser?.displayName || 'Pet Maya Guardian',
-          userPhoto: currentUser?.photoUrl || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80'
+          userPhoto: currentUser?.photoUrl || ''
         });
       }
       showToast('✨ Moment published to Dhaka Mesh Community!', 'success');
@@ -202,11 +203,7 @@ export default function Community({ onNavigate }) {
                   border: '2px solid #3E7B84',
                   flexShrink: 0
                 }}>
-                  <img
-                    src={currentUser?.photoUrl || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80'}
-                    alt={currentUser?.name || currentUser?.displayName || 'Guardian'}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  />
+                  <UserAvatar user={currentUser} size={46} />
                 </div>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -594,11 +591,7 @@ export default function Community({ onNavigate }) {
                   overflow: 'hidden',
                   flexShrink: 0
                 }}>
-                  <img
-                    src={currentUser?.photoUrl || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80'}
-                    alt="User Avatar"
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  />
+                  <UserAvatar user={currentUser} size={38} />
                 </div>
 
                 <textarea
@@ -762,11 +755,7 @@ export default function Community({ onNavigate }) {
                   {/* Author Header */}
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '12px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <img
-                        src={post.userPhoto || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80'}
-                        alt={post.userName || 'Member'}
-                        style={{ width: '42px', height: '42px', borderRadius: '50%', objectFit: 'cover' }}
-                      />
+                      <UserAvatar photoUrl={post.userPhoto} size={42} alt={post.userName || 'Member'} />
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <span style={{ fontSize: '14.5px', fontWeight: 800, color: '#160F0C' }}>{post.userName || 'Dhaka Guardian'}</span>

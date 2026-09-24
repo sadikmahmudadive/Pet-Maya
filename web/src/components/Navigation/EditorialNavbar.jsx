@@ -3,6 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { Search, ShoppingBag, Menu, X, Sun, Moon } from 'lucide-react';
 import GlobalBanner from '../GlobalBanner';
+import UserAvatar from '../Common/UserAvatar';
 
 export default function EditorialNavbar({ currentRoute, onNavigate }) {
   const { openModal, showToast, cart, theme, toggleTheme } = useApp();
@@ -312,15 +313,7 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
                   transition: 'all 0.2s ease'
                 }}
               >
-            <img
-              src={currentUser?.photoUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80'}
-              alt="Guardian Profile"
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80';
-              }}
-            />
+                <UserAvatar user={currentUser} size={36} />
               </button>
             );
           })()}
