@@ -71,7 +71,14 @@ import {
   BatteryCharging,
   Zap,
   Filter,
-  ArrowUpRight
+  ArrowUpRight,
+  BarChart3,
+  BarChart2,
+  Thermometer,
+  Wifi,
+  Signal,
+  Bell,
+  CheckSquare
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -401,6 +408,11 @@ export default function AdminPortal() {
     { id: 'COLLAR-04', petName: 'Milo', guardian: 'Anika Bushra', breed: 'French Bulldog', heartRate: 78, temp: '38.2°C', battery: 96, lat: 23.8759, lng: 90.3795, status: 'NOMINAL', zone: 'Uttara Sector 4 Sanctuary' }
   ]);
   const [isPingingMesh, setIsPingingMesh] = useState(false);
+  const [isAmberBroadcasting, setIsAmberBroadcasting] = useState(false);
+  const [autoTelemetrySync, setAutoTelemetrySync] = useState(true);
+  const [coldChainAlarm, setColdChainAlarm] = useState(true);
+  const [autoSmsRelay, setAutoSmsRelay] = useState(false);
+  const [dashboardFormularyTab, setDashboardFormularyTab] = useState('ALL');
 
   const handlePingMesh = () => {
     setIsPingingMesh(true);
@@ -413,6 +425,14 @@ export default function AdminPortal() {
       setIsPingingMesh(false);
       showToast('📡 1,842 IoT Collars & BLE Beacons pinged successfully across Dhaka mesh!', 'success');
     }, 900);
+  };
+
+  const handleTriggerAmberBroadcast = () => {
+    setIsAmberBroadcasting(true);
+    setTimeout(() => {
+      setIsAmberBroadcasting(false);
+      showToast('🚨 URGENT AMBER ALERT BROADCAST: Pushed to 1,842 nearby pet guardians & active IoT collars in 5km radius!', 'error');
+    }, 1100);
   };
 
   const handleAdminLogin = (e) => {
@@ -990,7 +1010,7 @@ export default function AdminPortal() {
     { id: 'datalogger', label: 'IoT Dataloggers', icon: Radio, textBadge: '48/48 OK', highlight: false },
 
     { group: '4. CLINICAL GOVERNANCE (#SERVICES)' },
-    { id: 'services', label: 'Clinicians & Vetting', icon: Stethoscope, count: pendingServicesCount, highlight: pendingServicesCount > 0 },
+    { id: 'services', label: 'Clinicians & Vetting', icon: Stethoscope, textBadge: `${pendingServicesCount} Dossiers`, highlight: pendingServicesCount > 0, highlightColor: '#F59E0B' },
     { id: 'telehealth', label: 'Telehealth Triage', icon: Video, textBadge: '18 Live', highlight: true, highlightColor: '#3B82F6' },
 
     { group: '5. GUARDIANS & KYC (#USERS)' },
@@ -1050,7 +1070,7 @@ export default function AdminPortal() {
           backgroundColor: 'var(--surface)',
           borderRadius: '24px',
           border: '1px solid var(--border)',
-          padding: '24px 16px',
+          padding: '22px 14px',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
@@ -1065,15 +1085,15 @@ export default function AdminPortal() {
         <div>
           {/* Deck Header */}
           <div style={{ padding: '0 8px 16px 8px', marginBottom: '12px', borderBottom: '1px solid var(--border)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-              <div style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--primary)' }} />
-              <h2 style={{ fontSize: '18px', fontWeight: 800, letterSpacing: '-0.02em', margin: 0, color: 'var(--text-main)' }}>
-                Pet Maya Admin
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+              <div style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--primary)', boxShadow: '0 0 10px var(--primary)' }} />
+              <h2 style={{ fontSize: '18px', fontWeight: 800, letterSpacing: '-0.02em', margin: 0, color: 'var(--text-main)', fontFamily: 'serif' }}>
+                Pet Maya
               </h2>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--primary)', textTransform: 'uppercase' }}>
-                ● Root Session Active
+              <span style={{ fontSize: '9.5px', fontWeight: 800, letterSpacing: '0.08em', color: 'var(--primary)', textTransform: 'uppercase' }}>
+                ● ROOT SESSION ACTIVE
               </span>
               <span style={{ fontSize: '10.5px', color: 'var(--text-muted)', fontFamily: 'monospace' }}>
                 v4.12
@@ -1091,7 +1111,7 @@ export default function AdminPortal() {
                     fontWeight: 800,
                     color: 'var(--text-muted)',
                     letterSpacing: '0.08em',
-                    marginTop: '16px',
+                    marginTop: idx === 0 ? '6px' : '16px',
                     marginBottom: '6px',
                     paddingLeft: '10px',
                     textTransform: 'uppercase'
@@ -1118,41 +1138,30 @@ export default function AdminPortal() {
                     padding: '9px 12px',
                     borderRadius: '12px',
                     border: isActive ? '1px solid var(--primary)' : '1px solid transparent',
-                    backgroundColor: isActive ? 'var(--primary-light)' : 'transparent',
-                    color: isActive ? 'var(--primary)' : 'var(--text-main)',
+                    backgroundColor: isActive ? 'var(--primary)' : 'transparent',
+                    color: isActive ? '#FFFFFF' : 'var(--text-main)',
                     fontWeight: isActive ? 700 : 500,
                     fontSize: '13px',
                     cursor: 'pointer',
                     transition: 'all 0.18s ease',
-                    textAlign: 'left'
+                    textAlign: 'left',
+                    boxShadow: isActive ? '0 4px 12px rgba(13, 148, 136, 0.25)' : 'none'
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <IconComp size={17} color={isActive ? 'var(--primary)' : 'var(--text-muted)'} />
+                    <IconComp size={16} color={isActive ? '#FFFFFF' : 'var(--text-muted)'} />
                     <span>{item.label}</span>
                   </div>
-
-                  {item.count !== undefined && item.count > 0 && (
-                    <span style={{
-                      backgroundColor: item.highlight ? '#EF4444' : 'var(--primary)',
-                      color: '#FFFFFF',
-                      fontSize: '10px',
-                      fontWeight: 800,
-                      padding: '2px 8px',
-                      borderRadius: '9999px'
-                    }}>
-                      {item.count}
-                    </span>
-                  )}
 
                   {item.textBadge && (
                     <span style={{
                       fontSize: '10px',
                       fontWeight: 700,
-                      padding: '2px 6px',
+                      padding: '2px 7px',
                       borderRadius: '6px',
-                      background: item.highlightColor ? `${item.highlightColor}20` : 'var(--surface-alt)',
-                      color: item.highlightColor || 'var(--text-muted)'
+                      background: isActive ? 'rgba(255, 255, 255, 0.2)' : (item.highlightColor ? `${item.highlightColor}20` : 'var(--surface-alt)'),
+                      color: isActive ? '#FFFFFF' : (item.highlightColor || 'var(--text-muted)'),
+                      border: isActive ? '1px solid rgba(255, 255, 255, 0.3)' : 'none'
                     }}>
                       {item.textBadge}
                     </span>
@@ -1165,6 +1174,18 @@ export default function AdminPortal() {
 
         {/* Bottom Profile & Exit Area */}
         <div style={{ paddingTop: '16px', borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {/* Node Status Indicator */}
+          <div style={{ padding: '8px 12px', background: 'var(--surface-alt)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#10B981', boxShadow: '0 0 6px #10B981' }} />
+              <div>
+                <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-main)' }}>Mirpur Central Node</div>
+                <div style={{ fontSize: '9.5px', color: 'var(--text-muted)' }}>Mesh Synced • 99.9%</div>
+              </div>
+            </div>
+            <Signal size={13} color="#10B981" />
+          </div>
+
           {/* Theme Switcher Toggle */}
           <button
             onClick={toggleTheme}
@@ -1222,76 +1243,178 @@ export default function AdminPortal() {
             ══════════════════════════════════════════════════════ */}
         {adminTab === 'overview' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            
+            {/* Top Command Header Bar */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                  <span className="badge badge-green" style={{ textTransform: 'uppercase', letterSpacing: '0.06em', background: 'var(--primary-light)', color: 'var(--primary)' }}>
+                  <span className="badge badge-green" style={{ textTransform: 'uppercase', letterSpacing: '0.06em', background: 'var(--primary-light)', color: 'var(--primary)', fontWeight: 800 }}>
                     CENTRAL COMMAND NODE 01
                   </span>
-                  <span style={{ fontSize: '12px', color: 'var(--primary)', fontWeight: 700 }}>● Live Telemetry Synced</span>
+                  <span style={{ fontSize: '12px', color: 'var(--primary)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--primary)', display: 'inline-block' }} />
+                    Live Telemetry Synced
+                  </span>
                 </div>
                 <h1 style={{ fontSize: '28px', fontWeight: 800, letterSpacing: '-0.02em', margin: '0 0 6px 0', color: 'var(--text-main)' }}>
                   Platform Operations &amp; Clinical Governance
                 </h1>
-                <p style={{ color: 'var(--text-muted)', fontSize: '13.5px', maxWidth: '640px', margin: 0 }}>
+                <p style={{ color: 'var(--text-muted)', fontSize: '13.5px', maxWidth: '680px', margin: 0 }}>
                   Mirpur Central Hub • Real-time telemetry sync across 1,842 IoT collars, 14 clinical suites, 48 cold-chain courier pods, and {products.length} registered SKUs.
                 </p>
               </div>
 
-              <div style={{ display: 'flex', gap: '10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <button 
                   onClick={handlePingMesh}
                   disabled={isPingingMesh}
                   className="apple-btn-blue" 
-                  style={{ padding: '8px 16px', fontSize: '12.5px', background: 'var(--primary)' }}
+                  style={{ padding: '9px 18px', fontSize: '12.5px', background: 'var(--primary)' }}
                 >
                   <RefreshCw size={14} className={isPingingMesh ? 'spin-anim' : ''} />
                   <span>{isPingingMesh ? 'Syncing...' : 'Ping Telemetry Mesh'}</span>
                 </button>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 12px', background: 'var(--surface-alt)', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                  <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--primary)', color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '11px' }}>
+                    AD
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '11.5px', fontWeight: 700, color: 'var(--text-main)', lineHeight: 1.1 }}>Dr. Admin</div>
+                    <div style={{ fontSize: '9.5px', color: 'var(--text-muted)' }}>Central Command</div>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* 4 TOP METRIC CARDS */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
-              <div className="apple-solid-card" style={{ padding: '20px', textAlign: 'left', border: '1px solid var(--border)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>COLD-CHAIN COMPLIANCE</span>
-                  <div style={{ background: 'var(--primary-light)', color: 'var(--primary)', borderRadius: '50%', padding: '6px' }}><Snowflake size={15} /></div>
+            {/* 4 TOP METRIC CARDS WITH INTERACTIVE CHARTS & PROGRESS BARS */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
+              
+              {/* Card 1: Cold-Chain Compliance with Segmented Pod Meter */}
+              <div className="apple-solid-card" style={{ padding: '20px', textAlign: 'left', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>COLD-CHAIN COMPLIANCE</span>
+                    <div style={{ background: 'var(--primary-light)', color: 'var(--primary)', borderRadius: '50%', padding: '6px' }}><Snowflake size={15} /></div>
+                  </div>
+                  <div style={{ margin: '12px 0 10px' }}>
+                    <span style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-main)' }}>48 / 48</span>
+                    <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)', display: 'block' }}>Units Active in Field</span>
+                  </div>
+
+                  {/* Visual Multi-Segment Pod Meter */}
+                  <div style={{ marginBottom: '14px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10.5px', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '5px' }}>
+                      <span>Active Thermal Pods</span>
+                      <span style={{ color: '#10B981' }}>100% Operational</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: '3px', height: '8px' }}>
+                      {[...Array(12)].map((_, i) => (
+                        <div 
+                          key={i} 
+                          style={{ 
+                            flex: 1, 
+                            borderRadius: '4px', 
+                            background: 'linear-gradient(180deg, #10B981 0%, #0D9488 100%)',
+                            boxShadow: '0 0 4px rgba(16, 185, 129, 0.4)'
+                          }} 
+                        />
+                      ))}
+                    </div>
+                  </div>
                 </div>
-                <div style={{ margin: '14px 0' }}>
-                  <span style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-main)' }}>48 / 48</span>
-                  <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-muted)', display: 'block' }}>Units Active in Field</span>
-                </div>
+
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface-alt)', padding: '8px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: 700 }}>
                   <span style={{ color: 'var(--text-muted)' }}>Avg Vessel Temp: 3.9°C</span>
                   <span style={{ color: '#10B981' }}>100% Zero Breaches</span>
                 </div>
               </div>
 
-              <div className="apple-solid-card" style={{ padding: '20px', textAlign: 'left', border: '1px solid var(--border)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>GROSS REVENUE</span>
-                  <div style={{ background: 'rgba(16, 185, 129, 0.12)', color: '#10B981', borderRadius: '50%', padding: '6px' }}><DollarSign size={15} /></div>
+              {/* Card 2: Gross Revenue with 7-Day SVG Bar Chart */}
+              <div className="apple-solid-card" style={{ padding: '20px', textAlign: 'left', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>GROSS REVENUE</span>
+                    <div style={{ background: 'rgba(16, 185, 129, 0.12)', color: '#10B981', borderRadius: '50%', padding: '6px' }}><DollarSign size={15} /></div>
+                  </div>
+                  <div style={{ margin: '12px 0 10px' }}>
+                    <span style={{ fontSize: '28px', fontWeight: 800, color: '#10B981' }}>৳{Math.round(totalRevenue).toLocaleString()}</span>
+                    <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)', display: 'block' }}>{ordersList.length} Total Orders</span>
+                  </div>
+
+                  {/* Visual 7-Day Mini Bar Chart */}
+                  <div style={{ marginBottom: '14px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10.5px', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '6px' }}>
+                      <span>7-Day Volume</span>
+                      <span style={{ color: '#10B981', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                        <TrendingUp size={11} /> +18.4%
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', height: '32px', padding: '0 4px', background: 'var(--surface-alt)', borderRadius: '6px', paddingTop: '4px' }}>
+                      {[
+                        { day: 'M', h: 40 },
+                        { day: 'T', h: 65 },
+                        { day: 'W', h: 50 },
+                        { day: 'T', h: 80 },
+                        { day: 'F', h: 95, active: true },
+                        { day: 'S', h: 70 },
+                        { day: 'S', h: 85 }
+                      ].map((bar, i) => (
+                        <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', width: '10%' }}>
+                          <div 
+                            style={{ 
+                              width: '100%', 
+                              height: `${(bar.h / 100) * 20}px`, 
+                              borderRadius: '3px 3px 0 0', 
+                              background: bar.active ? '#10B981' : 'rgba(16, 185, 129, 0.35)',
+                              boxShadow: bar.active ? '0 0 6px rgba(16, 185, 129, 0.6)' : 'none'
+                            }} 
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-                <div style={{ margin: '14px 0' }}>
-                  <span style={{ fontSize: '28px', fontWeight: 800, color: '#10B981' }}>৳{Math.round(totalRevenue).toLocaleString()}</span>
-                  <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-muted)', display: 'block' }}>{ordersList.length} Total Orders</span>
-                </div>
+
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface-alt)', padding: '8px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: 700 }}>
                   <span style={{ color: 'var(--text-muted)' }}>Store Stock Valuation</span>
                   <span style={{ color: 'var(--primary)' }}>৳{Math.round(totalValuation).toLocaleString()}</span>
                 </div>
               </div>
 
-              <div className="apple-solid-card" style={{ padding: '20px', textAlign: 'left', border: '1px solid var(--border)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>CLINICAL GOVERNANCE</span>
-                  <div style={{ background: 'rgba(139, 92, 246, 0.12)', color: '#8B5CF6', borderRadius: '50%', padding: '6px' }}><Stethoscope size={15} /></div>
+              {/* Card 3: Clinical Governance with Dual-Segment Progress Bar */}
+              <div className="apple-solid-card" style={{ padding: '20px', textAlign: 'left', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>CLINICAL GOVERNANCE</span>
+                    <div style={{ background: 'rgba(139, 92, 246, 0.12)', color: '#8B5CF6', borderRadius: '50%', padding: '6px' }}><Stethoscope size={15} /></div>
+                  </div>
+                  <div style={{ margin: '12px 0 10px' }}>
+                    <span style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-main)' }}>{verifiedServicesCount} / {vets.length}</span>
+                    <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)', display: 'block' }}>Verified Doctors</span>
+                  </div>
+
+                  {/* Visual Segmented Progress Bar */}
+                  <div style={{ marginBottom: '14px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10.5px', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '5px' }}>
+                      <span>Credential Status</span>
+                      <span style={{ color: '#8B5CF6' }}>{Math.round((verifiedServicesCount / (vets.length || 1)) * 100)}% Verified</span>
+                    </div>
+                    <div style={{ height: '8px', width: '100%', backgroundColor: 'var(--surface-alt)', borderRadius: '9999px', overflow: 'hidden', display: 'flex' }}>
+                      <div 
+                        style={{ 
+                          width: `${Math.round((verifiedServicesCount / (vets.length || 1)) * 100)}%`, 
+                          background: 'linear-gradient(90deg, #8B5CF6, #A855F7)', 
+                          borderRadius: '9999px 0 0 9999px' 
+                        }} 
+                      />
+                      {pendingServicesCount > 0 && (
+                        <div style={{ width: `${Math.round((pendingServicesCount / (vets.length || 1)) * 100)}%`, background: '#F59E0B' }} />
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <div style={{ margin: '14px 0' }}>
-                  <span style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-main)' }}>{verifiedServicesCount} / {vets.length}</span>
-                  <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-muted)', display: 'block' }}>Verified Doctors</span>
-                </div>
+
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface-alt)', padding: '8px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: 700 }}>
                   <span style={{ color: 'var(--text-muted)' }}>Pending Audit</span>
                   <span style={{ color: pendingServicesCount > 0 ? '#F59E0B' : '#10B981', cursor: 'pointer' }} onClick={() => setAdminTab('services')}>
@@ -1300,97 +1423,384 @@ export default function AdminPortal() {
                 </div>
               </div>
 
-              <div className="apple-solid-card" style={{ padding: '20px', textAlign: 'left', border: '1px solid var(--border)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>GUARDIANS &amp; KYC</span>
-                  <div style={{ background: 'rgba(59, 130, 246, 0.12)', color: '#3B82F6', borderRadius: '50%', padding: '6px' }}><Users size={15} /></div>
+              {/* Card 4: Guardians & KYC with Ascending SVG Sparkline */}
+              <div className="apple-solid-card" style={{ padding: '20px', textAlign: 'left', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>GUARDIANS &amp; KYC</span>
+                    <div style={{ background: 'rgba(59, 130, 246, 0.12)', color: '#3B82F6', borderRadius: '50%', padding: '6px' }}><Users size={15} /></div>
+                  </div>
+                  <div style={{ margin: '12px 0 10px' }}>
+                    <span style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-main)' }}>{usersList.length || 13}</span>
+                    <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)', display: 'block' }}>Platform Accounts</span>
+                  </div>
+
+                  {/* Visual SVG Sparkline Trend */}
+                  <div style={{ marginBottom: '14px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10.5px', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '4px' }}>
+                      <span>Growth Trajectory</span>
+                      <span style={{ color: '#3B82F6', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                        <TrendingUp size={11} /> +12.8% MoM
+                      </span>
+                    </div>
+                    <svg viewBox="0 0 100 24" style={{ width: '100%', height: '28px', overflow: 'visible' }}>
+                      <defs>
+                        <linearGradient id="kycGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                          <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.3" />
+                          <stop offset="100%" stopColor="#3B82F6" stopOpacity="0.0" />
+                        </linearGradient>
+                      </defs>
+                      <path 
+                        d="M 0 20 Q 20 18, 35 14 T 65 10 T 100 4 L 100 24 L 0 24 Z" 
+                        fill="url(#kycGrad)" 
+                      />
+                      <path 
+                        d="M 0 20 Q 20 18, 35 14 T 65 10 T 100 4" 
+                        fill="none" 
+                        stroke="#3B82F6" 
+                        strokeWidth="2.5" 
+                        strokeLinecap="round" 
+                      />
+                      <circle cx="100" cy="4" r="3" fill="#3B82F6" />
+                    </svg>
+                  </div>
                 </div>
-                <div style={{ margin: '14px 0' }}>
-                  <span style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-main)' }}>{usersList.length}</span>
-                  <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-muted)', display: 'block' }}>Platform Accounts</span>
-                </div>
+
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface-alt)', padding: '8px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: 700 }}>
                   <span style={{ color: 'var(--text-muted)' }}>Verified Profiles</span>
                   <span style={{ color: '#10B981' }}>{verifiedUsersCount} Verified</span>
                 </div>
               </div>
+
             </div>
 
-            {/* Quick Action Hub & Vetting Queue */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '20px' }}>
-              <div className="apple-solid-card" style={{ padding: '24px', textAlign: 'left', border: '1px solid var(--border)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                  <div>
-                    <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em', color: 'var(--primary)', textTransform: 'uppercase' }}>● CLINICAL VETTING QUEUE</span>
-                    <h3 style={{ fontSize: '17px', fontWeight: 800, color: 'var(--text-main)', margin: '2px 0 0 0' }}>Pending Medical Licenses</h3>
+            {/* ── TWO-COLUMN MAIN CONTENT GRID (MATCHING UI REFERENCE) ── */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: '20px', alignItems: 'start' }}>
+              
+              {/* ═══ LEFT COLUMN (Vetting Queue & Cryo Formulary Table) ═══ */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                
+                {/* 1. Clinical Vetting Queue */}
+                <div className="apple-solid-card" style={{ padding: '24px', textAlign: 'left', border: '1px solid var(--border)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <div>
+                      <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em', color: 'var(--primary)', textTransform: 'uppercase' }}>
+                        ● CLINICAL VETTING QUEUE
+                      </span>
+                      <h3 style={{ fontSize: '17px', fontWeight: 800, color: 'var(--text-main)', margin: '2px 0 0 0' }}>
+                        Pending Medical Licenses
+                      </h3>
+                    </div>
+                    <button onClick={() => setAdminTab('services')} className="btn-ghost" style={{ fontSize: '12px' }}>
+                      View All →
+                    </button>
                   </div>
-                  <button onClick={() => setAdminTab('services')} className="btn-ghost" style={{ fontSize: '12px' }}>View All →</button>
-                </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {vets.filter(v => !v.isVerified).slice(0, 3).map(v => (
-                    <div key={v.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: 'var(--surface-alt)', borderRadius: '12px' }}>
-                      <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                        <img src={v.photo || 'assets/images/Pet_1.jpg'} alt="" style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover' }} onError={(e) => { e.currentTarget.src = 'assets/images/Pet_1.jpg'; }} />
-                        <div>
-                          <div style={{ fontWeight: 700, fontSize: '13.5px', color: 'var(--text-main)' }}>{v.name}</div>
-                          <div style={{ fontSize: '11.5px', color: 'var(--primary)', fontWeight: 600 }}>{v.clinic} • Lic #{v.licenseNumber}</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {vets.filter(v => !v.isVerified).slice(0, 3).map(v => (
+                      <div key={v.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 14px', background: 'var(--surface-alt)', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                          <img 
+                            src={v.photo || 'assets/images/Pet_1.jpg'} 
+                            alt="" 
+                            style={{ width: 42, height: 42, borderRadius: '50%', objectFit: 'cover', border: '1.5px solid var(--border)' }} 
+                            onError={(e) => { e.currentTarget.src = 'assets/images/Pet_1.jpg'; }} 
+                          />
+                          <div>
+                            <div style={{ fontWeight: 700, fontSize: '13.5px', color: 'var(--text-main)' }}>{v.name}</div>
+                            <div style={{ fontSize: '11.5px', color: 'var(--primary)', fontWeight: 600 }}>{v.clinic} • Lic #{v.licenseNumber}</div>
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button 
+                            onClick={() => {
+                              setSelectedOrderDetails(null);
+                              setAdminTab('services');
+                            }}
+                            className="btn-ghost" 
+                            style={{ fontSize: '11.5px', padding: '6px 12px' }}
+                          >
+                            Review
+                          </button>
+                          <button 
+                            onClick={() => updateServiceVerification(v.id, true)} 
+                            style={{ background: 'var(--primary)', color: '#FFFFFF', border: 'none', borderRadius: '8px', padding: '6px 14px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}
+                          >
+                            Authorize
+                          </button>
                         </div>
                       </div>
-                      <button onClick={() => updateServiceVerification(v.id, true)} style={{ background: 'var(--primary)', color: '#FFFFFF', border: 'none', borderRadius: '8px', padding: '6px 14px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
-                        Authorize
+                    ))}
+                    {vets.filter(v => !v.isVerified).length === 0 && (
+                      <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--text-muted)', fontSize: '13px' }}>
+                        <CheckCircle2 size={28} color="#10B981" style={{ margin: '0 auto 6px' }} />
+                        <span>All clinician credentials and BMDC licenses are fully verified!</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* 2. Cryo Formulary Real-Time Inventory Table */}
+                <div className="apple-solid-card" style={{ padding: '24px', textAlign: 'left', border: '1px solid var(--border)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '16px' }}>
+                    <div>
+                      <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em', color: 'var(--primary)', textTransform: 'uppercase' }}>
+                        ● REFRIGERATED FORMULARY
+                      </span>
+                      <h3 style={{ fontSize: '17px', fontWeight: 800, color: 'var(--text-main)', margin: '2px 0 0 0' }}>
+                        Cryo Formulary Real-Time Inventory
+                      </h3>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <button 
+                        onClick={() => setAdminTab('shop')} 
+                        className="apple-btn-blue" 
+                        style={{ padding: '6px 14px', fontSize: '12px', background: 'var(--primary)' }}
+                      >
+                        + Manage SKUs
                       </button>
                     </div>
-                  ))}
-                  {vets.filter(v => !v.isVerified).length === 0 && (
-                    <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--text-muted)', fontSize: '13px' }}>
-                      <CheckCircle2 size={28} color="#10B981" style={{ margin: '0 auto 6px' }} />
-                      <span>All clinician credentials and BMDC licenses are fully verified!</span>
-                    </div>
-                  )}
+                  </div>
+
+                  {/* Table with Stock Level Progress Bars */}
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12.5px' }}>
+                      <thead>
+                        <tr style={{ borderBottom: '1px solid var(--border)', textAlign: 'left', color: 'var(--text-muted)', fontSize: '11px', textTransform: 'uppercase' }}>
+                          <th style={{ padding: '10px 8px' }}>Product &amp; Formula</th>
+                          <th style={{ padding: '10px 8px' }}>Category</th>
+                          <th style={{ padding: '10px 8px' }}>Target Temp</th>
+                          <th style={{ padding: '10px 8px' }}>Stock Level</th>
+                          <th style={{ padding: '10px 8px' }}>Unit Price</th>
+                          <th style={{ padding: '10px 8px', textAlign: 'right' }}>Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {products.slice(0, 5).map(p => {
+                          const stock = typeof p.stockCount === 'number' ? p.stockCount : 28;
+                          const stockPct = Math.min(100, Math.round((stock / 50) * 100));
+                          const stockColor = stock > 20 ? '#10B981' : (stock > 8 ? '#F59E0B' : '#EF4444');
+                          const isCold = (p.category || '').toLowerCase().includes('cold') || (p.name || '').toLowerCase().includes('vaccine') || (p.name || '').toLowerCase().includes('rabies');
+
+                          return (
+                            <tr key={p.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                              <td style={{ padding: '12px 8px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                  <img 
+                                    src={p.image || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=120&auto=format&fit=crop&q=80'} 
+                                    alt="" 
+                                    style={{ width: 34, height: 34, borderRadius: '8px', objectFit: 'cover', border: '1px solid var(--border)' }} 
+                                  />
+                                  <div>
+                                    <div style={{ fontWeight: 700, color: 'var(--text-main)' }}>{p.name}</div>
+                                    <div style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>{p.brand}</div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td style={{ padding: '12px 8px' }}>
+                                <span className="badge badge-gray" style={{ fontSize: '10px', textTransform: 'uppercase' }}>
+                                  {p.category || 'Rx Supply'}
+                                </span>
+                              </td>
+                              <td style={{ padding: '12px 8px' }}>
+                                {isCold ? (
+                                  <span style={{ color: 'var(--primary)', fontWeight: 700, fontSize: '11.5px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                    <Snowflake size={12} /> 2°C - 8°C
+                                  </span>
+                                ) : (
+                                  <span style={{ color: 'var(--text-muted)', fontSize: '11.5px' }}>
+                                    Ambient (22°C)
+                                  </span>
+                                )}
+                              </td>
+                              <td style={{ padding: '12px 8px', minWidth: '110px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10.5px', fontWeight: 700, marginBottom: '3px' }}>
+                                  <span style={{ color: stockColor }}>{stock} in stock</span>
+                                  <span style={{ color: 'var(--text-muted)' }}>{stockPct}%</span>
+                                </div>
+                                <div style={{ height: '5px', width: '100%', backgroundColor: 'var(--surface-alt)', borderRadius: '9999px', overflow: 'hidden' }}>
+                                  <div style={{ width: `${stockPct}%`, height: '100%', backgroundColor: stockColor, borderRadius: '9999px' }} />
+                                </div>
+                              </td>
+                              <td style={{ padding: '12px 8px', fontWeight: 800, color: 'var(--text-main)' }}>
+                                ৳{p.price}
+                              </td>
+                              <td style={{ padding: '12px 8px', textAlign: 'right' }}>
+                                <button 
+                                  onClick={() => handleOpenEditProduct(p)}
+                                  className="btn-ghost" 
+                                  style={{ padding: '4px 10px', fontSize: '11.5px' }}
+                                >
+                                  Edit
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
+
               </div>
 
-              {/* Quick Operation Jump */}
-              <div className="apple-solid-card" style={{ padding: '24px', textAlign: 'left', border: '1px solid var(--border)' }}>
-                <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>ADMINISTRATIVE SHORTCUTS</span>
-                <h3 style={{ fontSize: '17px', fontWeight: 800, color: 'var(--text-main)', margin: '2px 0 16px 0' }}>Rapid Management Hub</h3>
+              {/* ═══ RIGHT COLUMN (Amber Alert Desk & IoT Pod Telemetry) ═══ */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                
+                {/* 1. Amber Alert Urgent Desk */}
+                <div 
+                  className="apple-solid-card" 
+                  style={{ 
+                    padding: '22px', 
+                    textAlign: 'left', 
+                    border: '1px solid rgba(239, 68, 68, 0.3)',
+                    background: 'linear-gradient(135deg, var(--surface) 0%, rgba(239, 68, 68, 0.06) 100%)'
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                    <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em', color: '#EF4444', textTransform: 'uppercase' }}>
+                      ● ACTIVE AMBER RESCUE DESK
+                    </span>
+                    <span className="badge badge-red" style={{ fontSize: '10px', fontWeight: 800, animation: 'pulse 2s infinite' }}>
+                      URGENT (1 LIVE)
+                    </span>
+                  </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <button onClick={() => setAdminTab('shop')} className="btn-ghost" style={{ justifyContent: 'space-between', padding: '12px 16px', background: 'var(--surface-alt)', borderRadius: '12px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <ShoppingBag size={16} color="var(--primary)" />
-                      <span style={{ fontWeight: 600 }}>Formulary Inventory ({products.length} SKUs)</span>
+                  <div style={{ display: 'flex', gap: '14px', alignItems: 'center', marginBottom: '14px' }}>
+                    <img 
+                      src="https://images.unsplash.com/photo-1552053831-71594a27632d?w=200&auto=format&fit=crop&q=80" 
+                      alt="Missing Pet" 
+                      style={{ width: 64, height: 64, borderRadius: '14px', objectFit: 'cover', border: '2px solid #EF4444' }} 
+                    />
+                    <div>
+                      <div style={{ fontWeight: 800, fontSize: '15px', color: 'var(--text-main)' }}>Milo (Beagle, 2.5 yrs)</div>
+                      <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Microchip #BD-88910 • Mirpur Hub</div>
+                      <div style={{ fontSize: '11.5px', color: '#EF4444', fontWeight: 700, marginTop: '2px' }}>
+                        📍 Last seen: Dhanmondi Lake (45m ago)
+                      </div>
                     </div>
-                    <ArrowUpRight size={16} />
-                  </button>
+                  </div>
 
-                  <button onClick={() => setAdminTab('orders')} className="btn-ghost" style={{ justifyContent: 'space-between', padding: '12px 16px', background: 'var(--surface-alt)', borderRadius: '12px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <Package size={16} color="#0D9488" />
-                      <span style={{ fontWeight: 600 }}>Cold-Chain Orders ({inPrepOrdersCount} Pending)</span>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '14px' }}>
+                    <div style={{ background: 'var(--surface-alt)', padding: '8px 10px', borderRadius: '8px', textAlign: 'center' }}>
+                      <div style={{ fontSize: '16px', fontWeight: 800, color: '#EF4444' }}>14</div>
+                      <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Guardians Notified</div>
                     </div>
-                    <ArrowUpRight size={16} />
-                  </button>
+                    <div style={{ background: 'var(--surface-alt)', padding: '8px 10px', borderRadius: '8px', textAlign: 'center' }}>
+                      <div style={{ fontSize: '16px', fontWeight: 800, color: '#10B981' }}>5 Nearby</div>
+                      <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Searchers En Route</div>
+                    </div>
+                  </div>
 
-                  <button onClick={() => setAdminTab('users')} className="btn-ghost" style={{ justifyContent: 'space-between', padding: '12px 16px', background: 'var(--surface-alt)', borderRadius: '12px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <Users size={16} color="#3B82F6" />
-                      <span style={{ fontWeight: 600 }}>Guardians &amp; KYC Verification</span>
-                    </div>
-                    <ArrowUpRight size={16} />
-                  </button>
-
-                  <button onClick={() => setAdminTab('broadcasts')} className="btn-ghost" style={{ justifyContent: 'space-between', padding: '12px 16px', background: 'var(--surface-alt)', borderRadius: '12px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <Radio size={16} color="#8B5CF6" />
-                      <span style={{ fontWeight: 600 }}>Push Broadcast &amp; Global Banner</span>
-                    </div>
-                    <ArrowUpRight size={16} />
+                  <button 
+                    onClick={handleTriggerAmberBroadcast}
+                    disabled={isAmberBroadcasting}
+                    style={{
+                      width: '100%',
+                      padding: '11px',
+                      background: 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)',
+                      color: '#FFFFFF',
+                      border: 'none',
+                      borderRadius: '12px',
+                      fontWeight: 800,
+                      fontSize: '13px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      boxShadow: '0 4px 14px rgba(239, 68, 68, 0.4)'
+                    }}
+                  >
+                    <AlertTriangle size={16} />
+                    <span>{isAmberBroadcasting ? 'Broadcasting Urgent Signal...' : 'Broadcast Urgent Amber Push'}</span>
                   </button>
                 </div>
+
+                {/* 2. Cold-Chain Courier Pod IoT Telemetry */}
+                <div className="apple-solid-card" style={{ padding: '22px', textAlign: 'left', border: '1px solid var(--border)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                    <div>
+                      <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em', color: 'var(--primary)', textTransform: 'uppercase' }}>
+                        ● REFRIGERATED IOT MESH
+                      </span>
+                      <h4 style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-main)', margin: '2px 0 0 0' }}>
+                        Courier Pod Telemetry (48 Active)
+                      </h4>
+                    </div>
+                    <span className="badge badge-green" style={{ fontSize: '9.5px' }}>LIVE GPS</span>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {[
+                      { id: 'Pod #CC-101', route: 'Mirpur Central → Uttara Sec 3', temp: '3.4°C', batt: 94, status: 'En Route' },
+                      { id: 'Pod #CC-104', route: 'Dhanmondi Vault → Gulshan 2', temp: '4.1°C', batt: 88, status: 'In Transit' },
+                      { id: 'Pod #CC-108', route: 'Central Cryo Hub Storage', temp: '2.8°C', batt: 100, status: 'Docked' }
+                    ].map((pod, i) => (
+                      <div key={i} style={{ background: 'var(--surface-alt)', padding: '10px 12px', borderRadius: '10px', border: '1px solid var(--border)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                          <span style={{ fontWeight: 700, fontSize: '12.5px', color: 'var(--text-main)' }}>{pod.id}</span>
+                          <span className="badge badge-green" style={{ fontSize: '9.5px' }}>{pod.status}</span>
+                        </div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '6px' }}>{pod.route}</div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', fontWeight: 700 }}>
+                          <span style={{ color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <Thermometer size={12} /> {pod.temp}
+                          </span>
+                          <span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <BatteryCharging size={12} /> {pod.batt}% Battery
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 3. System Automation Relays */}
+                <div className="apple-solid-card" style={{ padding: '22px', textAlign: 'left', border: '1px solid var(--border)' }}>
+                  <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                    ● SYSTEM AUTOMATION CONTROLS
+                  </span>
+                  <h4 style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-main)', margin: '2px 0 14px 0' }}>
+                    Active Safety Relays
+                  </h4>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', background: 'var(--surface-alt)', borderRadius: '10px' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-main)' }}>IoT Mesh Auto-Sync (5s)</span>
+                      <input 
+                        type="checkbox" 
+                        checked={autoTelemetrySync} 
+                        onChange={(e) => setAutoTelemetrySync(e.target.checked)} 
+                        style={{ accentColor: 'var(--primary)', cursor: 'pointer', width: 16, height: 16 }} 
+                      />
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', background: 'var(--surface-alt)', borderRadius: '10px' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-main)' }}>Cold-Chain Siren Relay</span>
+                      <input 
+                        type="checkbox" 
+                        checked={coldChainAlarm} 
+                        onChange={(e) => setColdChainAlarm(e.target.checked)} 
+                        style={{ accentColor: '#10B981', cursor: 'pointer', width: 16, height: 16 }} 
+                      />
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', background: 'var(--surface-alt)', borderRadius: '10px' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-main)' }}>Emergency SMS Dispatch</span>
+                      <input 
+                        type="checkbox" 
+                        checked={autoSmsRelay} 
+                        onChange={(e) => setAutoSmsRelay(e.target.checked)} 
+                        style={{ accentColor: 'var(--primary)', cursor: 'pointer', width: 16, height: 16 }} 
+                      />
+                    </div>
+                  </div>
+                </div>
+
               </div>
+
             </div>
+
           </div>
         )}
 
