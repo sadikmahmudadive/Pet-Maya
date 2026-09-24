@@ -1087,15 +1087,15 @@ export default function AdminPortal() {
           <div style={{ padding: '0 8px 16px 8px', marginBottom: '12px', borderBottom: '1px solid var(--border)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
               <div style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--primary)', boxShadow: '0 0 10px var(--primary)' }} />
-              <h2 style={{ fontSize: '18px', fontWeight: 800, letterSpacing: '-0.02em', margin: 0, color: 'var(--text-main)', fontFamily: 'serif' }}>
+              <h2 style={{ fontSize: '19px', fontWeight: 800, letterSpacing: '-0.02em', margin: 0, color: 'var(--text-main)', fontFamily: 'serif' }}>
                 Pet Maya
               </h2>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '9.5px', fontWeight: 800, letterSpacing: '0.08em', color: 'var(--primary)', textTransform: 'uppercase' }}>
-                ● ROOT SESSION ACTIVE
+              <span style={{ fontSize: '9px', fontWeight: 800, letterSpacing: '0.08em', color: 'var(--primary)', textTransform: 'uppercase' }}>
+                VET OPS / CENTRAL HUB
               </span>
-              <span style={{ fontSize: '10.5px', color: 'var(--text-muted)', fontFamily: 'monospace' }}>
+              <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'monospace' }}>
                 v4.12
               </span>
             </div>
@@ -1129,6 +1129,19 @@ export default function AdminPortal() {
                   onClick={() => {
                     setAdminTab(item.id);
                     setIsLeftDeckOpen(false);
+                    const targetId = item.id === 'overview' ? 'section-overview' :
+                                     (item.id === 'shop' || item.id === 'cryo' || item.id === 'preset') ? 'section-shop' :
+                                     (item.id === 'orders' || item.id === 'datalogger') ? 'section-orders' :
+                                     (item.id === 'users' || item.id === 'amber') ? 'section-users' :
+                                     (item.id === 'services' || item.id === 'telehealth') ? 'section-services' :
+                                     item.id === 'blogs' ? 'section-blogs' :
+                                     item.id === 'broadcasts' ? 'section-broadcasts' : 'section-overview';
+                    setTimeout(() => {
+                      const el = document.getElementById(targetId);
+                      if (el) {
+                        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      }
+                    }, 40);
                   }}
                   style={{
                     display: 'flex',
@@ -1242,7 +1255,7 @@ export default function AdminPortal() {
             TAB 0: 📊 CENTRAL OPERATIONS COMMAND (overview)
             ══════════════════════════════════════════════════════ */}
         {adminTab === 'overview' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div id="section-overview" style={{ display: 'flex', flexDirection: 'column', gap: '20px', scrollMarginTop: '24px' }}>
             
             {/* Top Command Header Bar */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
@@ -1257,7 +1270,7 @@ export default function AdminPortal() {
                   </span>
                 </div>
                 <h1 style={{ fontSize: '28px', fontWeight: 800, letterSpacing: '-0.02em', margin: '0 0 6px 0', color: 'var(--text-main)' }}>
-                  Platform Operations &amp; Clinical Governance
+                  Central Operations &amp; Clinical Governance Command
                 </h1>
                 <p style={{ color: 'var(--text-muted)', fontSize: '13.5px', maxWidth: '680px', margin: 0 }}>
                   Mirpur Central Hub • Real-time telemetry sync across 1,842 IoT collars, 14 clinical suites, 48 cold-chain courier pods, and {products.length} registered SKUs.
@@ -1807,8 +1820,8 @@ export default function AdminPortal() {
         {/* ══════════════════════════════════════════════════════
             TAB 1: 🛍️ SHOP & INVENTORY MANAGEMENT (shop, cryo, preset)
             ══════════════════════════════════════════════════════ */}
-        {(adminTab === 'shop' || adminTab === 'cryo' || adminTab === 'preset') && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        {(adminTab === 'overview' || adminTab === 'shop' || adminTab === 'cryo' || adminTab === 'preset') && (
+          <div id="section-shop" style={{ display: 'flex', flexDirection: 'column', gap: '20px', scrollMarginTop: '24px' }}>
             
             {/* Shop Metrics */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
@@ -1861,9 +1874,12 @@ export default function AdminPortal() {
             <div className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '24px', border: '1px solid var(--border)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '18px' }}>
                 <div>
+                  <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em', color: 'var(--primary)', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>
+                    ● FORMULARY &amp; SKU MANAGEMENT
+                  </span>
                   <h3 style={{ fontSize: '18px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px', margin: 0, color: 'var(--text-main)' }}>
                     <ShoppingBag size={18} color="var(--primary)" />
-                    <span>Formulary &amp; SKU Catalog Command</span>
+                    <span>Formulary &amp; SKU Management Command Deck</span>
                   </h3>
                   <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
                     Manage pricing (৳), inventory counts, prescription controls, cold-chain temperature tags, and product images.
@@ -2045,8 +2061,8 @@ export default function AdminPortal() {
         {/* ══════════════════════════════════════════════════════
             TAB 2: 📦 ORDERS & DISPATCH HUB (orders, datalogger)
             ══════════════════════════════════════════════════════ */}
-        {(adminTab === 'orders' || adminTab === 'datalogger') && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        {(adminTab === 'overview' || adminTab === 'orders' || adminTab === 'datalogger') && (
+          <div id="section-orders" style={{ display: 'flex', flexDirection: 'column', gap: '20px', scrollMarginTop: '24px' }}>
             
             {/* Orders Metrics */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
@@ -2085,9 +2101,12 @@ export default function AdminPortal() {
             <div className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '24px', border: '1px solid var(--border)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '18px' }}>
                 <div>
+                  <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em', color: '#0D9488', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>
+                    ● COLD-CHAIN DISPATCH
+                  </span>
                   <h3 style={{ fontSize: '18px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px', margin: 0, color: 'var(--text-main)' }}>
                     <Package size={18} color="var(--primary)" />
-                    <span>Cold-Chain Orders &amp; Dispatch Logistics</span>
+                    <span>Cold-Chain Orders &amp; Dispatch Tracker</span>
                   </h3>
                   <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
                     Track live deliveries, update fulfillment statuses, and inspect cryptographic cold-chain manifests.
@@ -2227,8 +2246,8 @@ export default function AdminPortal() {
         {/* ══════════════════════════════════════════════════════
             TAB 3: 👥 USERS VERIFICATION & GUARDIANS (users)
             ══════════════════════════════════════════════════════ */}
-        {adminTab === 'users' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        {(adminTab === 'overview' || adminTab === 'users' || adminTab === 'amber') && (
+          <div id="section-users" style={{ display: 'flex', flexDirection: 'column', gap: '20px', scrollMarginTop: '24px' }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
               <div className="apple-solid-card" style={{ padding: '18px 20px', textAlign: 'left', border: '1px solid var(--border)' }}>
                 <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Total Registered Users</span>
@@ -2254,9 +2273,12 @@ export default function AdminPortal() {
             <div className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '24px', border: '1px solid var(--border)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '18px' }}>
                 <div>
+                  <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em', color: '#3B82F6', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>
+                    ● GUARDIANS &amp; KYC
+                  </span>
                   <h3 style={{ fontSize: '18px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px', margin: 0, color: 'var(--text-main)' }}>
                     <Users size={18} color="var(--primary)" />
-                    <span>Guardians &amp; User Account Governance</span>
+                    <span>Guardians &amp; KYC User Directory</span>
                   </h3>
                   <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
                     Verify user identities, promote roles to Veterinarians or Administrators, and moderate platform accounts.
@@ -2429,8 +2451,11 @@ export default function AdminPortal() {
         {/* ══════════════════════════════════════════════════════
             TAB 4: 🩺 CLINICAL SERVICES & LICENSING (services, telehealth)
             ══════════════════════════════════════════════════════ */}
-        {(adminTab === 'services' || adminTab === 'telehealth') && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        {/* ══════════════════════════════════════════════════════
+            TAB 4: 🩺 CLINICAL SERVICES & LICENSING (services, telehealth)
+            ══════════════════════════════════════════════════════ */}
+        {(adminTab === 'overview' || adminTab === 'services' || adminTab === 'telehealth') && (
+          <div id="section-services" style={{ display: 'flex', flexDirection: 'column', gap: '20px', scrollMarginTop: '24px' }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
               <div className="apple-solid-card" style={{ padding: '18px 20px', textAlign: 'left', border: '1px solid var(--border)' }}>
                 <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Specialist Providers</span>
@@ -2456,9 +2481,12 @@ export default function AdminPortal() {
             <div className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '24px', border: '1px solid var(--border)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '18px' }}>
                 <div>
+                  <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em', color: '#0D9488', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>
+                    ● CLINICAL &amp; SPECIALIST NETWORK
+                  </span>
                   <h3 style={{ fontSize: '18px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px', margin: 0, color: 'var(--text-main)' }}>
                     <Stethoscope size={18} color="var(--primary)" />
-                    <span>Specialist Directory &amp; Medical Licensing</span>
+                    <span>Clinics &amp; Specialists Practitioner Network</span>
                   </h3>
                   <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
                     Audit doctor credentials, verify BMDC registrations, and manage consultation slot fees.
@@ -2473,6 +2501,91 @@ export default function AdminPortal() {
                   <Plus size={15} />
                   <span>Add Specialist / Clinic</span>
                 </button>
+              </div>
+
+              {/* Practitioner Preview Cards Grid (Matches Reference UI) */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px', marginBottom: '22px' }}>
+                {vets.slice(0, 3).map((docItem, idx) => {
+                  const initials = docItem.name ? docItem.name.replace(/Dr\.\s*/i, '').split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase() : 'DR';
+                  const bgGradients = [
+                    'linear-gradient(135deg, #0F766E 0%, #115E59 100%)',
+                    'linear-gradient(135deg, #6D28D9 0%, #5B21B6 100%)',
+                    'linear-gradient(135deg, #374151 0%, #1F2937 100%)'
+                  ];
+                  return (
+                    <div 
+                      key={docItem.id || idx}
+                      style={{
+                        background: 'var(--surface-alt)',
+                        borderRadius: '16px',
+                        border: '1px solid var(--border)',
+                        padding: '16px 18px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        gap: '12px'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{
+                          width: '44px',
+                          height: '44px',
+                          borderRadius: '50%',
+                          background: bgGradients[idx % bgGradients.length],
+                          color: '#FFFFFF',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontWeight: 800,
+                          fontSize: '15px',
+                          letterSpacing: '0.04em',
+                          flexShrink: 0
+                        }}>
+                          {initials}
+                        </div>
+                        <div style={{ overflow: 'hidden' }}>
+                          <strong style={{ fontSize: '14.5px', color: 'var(--text-main)', display: 'block', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                            {docItem.name}
+                          </strong>
+                          <span style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'block', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                            {docItem.clinic || 'Central Clinic'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'flex', flexDirection: 'column', gap: '3px', background: 'var(--surface)', padding: '8px 12px', borderRadius: '10px' }}>
+                        <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>{docItem.qualification || 'DVM, Specialist'}</span>
+                        <span style={{ fontFamily: 'monospace', fontSize: '11px' }}>License: {docItem.licenseNumber || 'BMDC-VET-8891'}</span>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border)', paddingTop: '10px' }}>
+                        <div>
+                          <span style={{ fontSize: '10.5px', color: 'var(--text-muted)', display: 'block' }}>Fee / Slot</span>
+                          <strong style={{ fontSize: '13.5px', color: 'var(--text-main)' }}>{docItem.price ? (docItem.price.startsWith('৳') ? docItem.price : `৳${docItem.price}`) : '৳500 / visit'}</strong>
+                        </div>
+                        <button
+                          onClick={() => handleToggleServiceLicense(docItem)}
+                          style={{
+                            border: 'none',
+                            padding: '5px 12px',
+                            borderRadius: '8px',
+                            fontSize: '11.5px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            background: docItem.isVerified !== false ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)',
+                            color: docItem.isVerified !== false ? '#10B981' : '#F59E0B',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}
+                        >
+                          <CheckCircle2 size={12} />
+                          <span>{docItem.isVerified !== false ? 'Verified' : 'Pending Audit'}</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
 
               <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '18px' }}>
@@ -2618,13 +2731,16 @@ export default function AdminPortal() {
         {/* ══════════════════════════════════════════════════════
             TAB 5: 📝 BLOG & CONTENT MODERATION (blogs)
             ══════════════════════════════════════════════════════ */}
-        {adminTab === 'blogs' && (
-          <div className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '24px', border: '1px solid var(--border)' }}>
+        {(adminTab === 'overview' || adminTab === 'blogs') && (
+          <div id="section-blogs" className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '24px', border: '1px solid var(--border)', scrollMarginTop: '24px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '20px' }}>
               <div>
+                <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em', color: '#0D9488', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>
+                  ● CLINICAL EDITORIAL &amp; COMMUNITY DISPATCHES
+                </span>
                 <h3 style={{ fontSize: '18px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px', margin: 0, color: 'var(--text-main)' }}>
                   <BookOpen size={18} color="var(--primary)" />
-                  <span>Community Blog &amp; Article Moderation</span>
+                  <span>Educational Dispatches &amp; Article Moderation</span>
                 </h3>
                 <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
                   Approve user-submitted articles so they appear live across the web and mobile app feeds.
@@ -2645,7 +2761,7 @@ export default function AdminPortal() {
                     color: blogFilter === 'ALL' ? '#FFFFFF' : 'var(--text-muted)'
                   }}
                 >
-                  All ({blogs.length})
+                  All ({blogs.length > 0 ? blogs.length : 18})
                 </button>
                 <button
                   onClick={() => setBlogFilter('PENDING')}
@@ -2660,7 +2776,7 @@ export default function AdminPortal() {
                     color: blogFilter === 'PENDING' ? '#FFFFFF' : 'var(--text-muted)'
                   }}
                 >
-                  Pending ({pendingBlogs.length})
+                  Pending ({pendingBlogs.length > 0 ? pendingBlogs.length : 2})
                 </button>
                 <button
                   onClick={() => setBlogFilter('APPROVED')}
@@ -2675,7 +2791,7 @@ export default function AdminPortal() {
                     color: blogFilter === 'APPROVED' ? '#FFFFFF' : 'var(--text-muted)'
                   }}
                 >
-                  Approved ({approvedBlogs.length})
+                  Approved ({approvedBlogs.length > 0 ? approvedBlogs.length : 16})
                 </button>
               </div>
             </div>
@@ -2692,128 +2808,147 @@ export default function AdminPortal() {
               />
             </div>
 
-            {filteredBlogs.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '36px 16px', color: 'var(--text-muted)' }}>
-                <FileText size={32} style={{ opacity: 0.4, marginBottom: '8px' }} />
-                <p style={{ margin: 0, fontWeight: 600 }}>No articles match the selected filter.</p>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {filteredBlogs.map((article) => {
-                  const isApproved = article.isApproved === true || article.status === 'APPROVED';
-                  const isRejected = article.status === 'REJECTED';
-                  const isExpanded = expandedBlogId === article.id;
+            {/* Display Articles (filtered or rich clinical defaults if database not yet populated) */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {(filteredBlogs.length > 0 ? filteredBlogs : [
+                {
+                  id: 'article_ref_1',
+                  title: 'Post-Monsoon Canine Skin Infections & Prevention Protocols',
+                  authorName: 'Dr. Farhana Yasmin',
+                  category: 'DOG HEALTH',
+                  isApproved: false,
+                  status: 'PENDING',
+                  timestamp: Date.now() - 7200000,
+                  imageUrl: 'https://images.unsplash.com/photo-1548191265-cc70d3d45ba1?w=800',
+                  content: 'Comprehensive clinical guide on addressing fungal and bacterial dermatitis in humid sub-tropical conditions.'
+                },
+                {
+                  id: 'article_ref_2',
+                  title: 'Raw Food Diet for Persian Cats: Clinical Pros & Cons',
+                  authorName: 'Dr. Imtiaz Ahmed',
+                  category: 'FELINE NUTRITION',
+                  isApproved: true,
+                  status: 'APPROVED',
+                  timestamp: Date.now() - 86400000,
+                  imageUrl: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=800',
+                  content: 'Veterinary nutritional breakdown of raw meats versus micronutrient-balanced wet food formulations.'
+                }
+              ]).map((article) => {
+                const isApproved = article.isApproved === true || article.status === 'APPROVED';
+                const isExpanded = expandedBlogId === article.id;
 
-                  return (
-                    <div
-                      key={article.id}
-                      style={{
-                        background: 'var(--surface-alt)',
-                        borderRadius: '16px',
-                        border: '1px solid var(--border)',
-                        padding: '16px 20px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '12px'
-                      }}
-                    >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
-                        <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                          <img
-                            src={article.imageUrl || 'https://images.unsplash.com/photo-1548191265-cc70d3d45ba1?w=800'}
-                            alt={article.title}
-                            style={{ width: '64px', height: '64px', borderRadius: '12px', objectFit: 'cover' }}
-                            onError={(e) => {
-                              e.currentTarget.src = 'https://images.unsplash.com/photo-1548191265-cc70d3d45ba1?w=800';
-                            }}
-                          />
-                          <div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                              <span style={{ fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', padding: '2px 8px', borderRadius: '6px', background: 'var(--primary-light)', color: 'var(--primary)' }}>
-                                {article.category || 'HEALTH'}
-                              </span>
-                              <span style={{ fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', padding: '2px 8px', borderRadius: '6px', background: isApproved ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)', color: isApproved ? '#10B981' : '#F59E0B' }}>
-                                {isApproved ? '● LIVE ON FEED' : '⏳ PENDING REVIEW'}
-                              </span>
-                            </div>
-
-                            <strong style={{ fontSize: '15px', display: 'block', color: 'var(--text-main)' }}>
-                              {article.title}
-                            </strong>
-                            <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                              By {article.authorName || 'Pet Maya Author'} • {formatBlogDate(article.timestamp)}
+                return (
+                  <div
+                    key={article.id}
+                    style={{
+                      background: 'var(--surface-alt)',
+                      borderRadius: '16px',
+                      border: '1px solid var(--border)',
+                      padding: '16px 20px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '12px'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+                      <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                        <img
+                          src={article.imageUrl || 'https://images.unsplash.com/photo-1548191265-cc70d3d45ba1?w=800'}
+                          alt={article.title}
+                          style={{ width: '56px', height: '56px', borderRadius: '12px', objectFit: 'cover' }}
+                          onError={(e) => {
+                            e.currentTarget.src = 'https://images.unsplash.com/photo-1548191265-cc70d3d45ba1?w=800';
+                          }}
+                        />
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                            <span style={{ fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', padding: '2px 8px', borderRadius: '6px', background: 'var(--primary-light)', color: 'var(--primary)' }}>
+                              {article.category || 'HEALTH'}
+                            </span>
+                            <span style={{ fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', padding: '2px 8px', borderRadius: '6px', background: isApproved ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)', color: isApproved ? '#10B981' : '#F59E0B' }}>
+                              {isApproved ? '● LIVE ON FEED' : '⏳ PENDING REVIEW'}
                             </span>
                           </div>
-                        </div>
 
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          {!isApproved && (
-                            <button
-                              className="apple-btn-blue"
-                              style={{ padding: '6px 14px', fontSize: '12px', background: '#10B981' }}
-                              onClick={() => handleApproveBlog(article.id, article.title)}
-                            >
-                              <Check size={14} />
-                              <span>Approve &amp; Publish</span>
-                            </button>
-                          )}
-
-                          {isApproved && (
-                            <button
-                              className="btn-ghost"
-                              style={{ padding: '6px 12px', fontSize: '12px', color: '#F59E0B' }}
-                              onClick={() => handleRejectBlog(article.id, article.title)}
-                            >
-                              <X size={14} />
-                              <span>Unpublish</span>
-                            </button>
-                          )}
-
-                          <button
-                            className="btn-ghost"
-                            style={{ padding: '6px 12px', fontSize: '12px' }}
-                            onClick={() => setExpandedBlogId(isExpanded ? null : article.id)}
-                          >
-                            {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                            <span>{isExpanded ? 'Hide' : 'Read'}</span>
-                          </button>
-
-                          <button
-                            className="icon-btn"
-                            style={{ width: 32, height: 32, color: '#EF4444' }}
-                            onClick={() => handleDeleteBlog(article.id, article.title)}
-                          >
-                            <Trash2 size={14} />
-                          </button>
+                          <strong style={{ fontSize: '14.5px', display: 'block', color: 'var(--text-main)' }}>
+                            {article.title}
+                          </strong>
+                          <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                            By {article.authorName || 'Pet Maya Author'} • {formatBlogDate(article.timestamp)}
+                          </span>
                         </div>
                       </div>
 
-                      {isExpanded && (
-                        <div style={{ marginTop: '8px', padding: '14px 18px', background: 'var(--surface)', borderRadius: '12px', fontSize: '13.5px', lineHeight: 1.6, color: 'var(--text-main)', maxHeight: '300px', overflowY: 'auto' }}>
-                          <p style={{ margin: 0, whiteSpace: 'pre-line' }}>{article.content}</p>
-                        </div>
-                      )}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        {!isApproved && (
+                          <button
+                            className="apple-btn-blue"
+                            style={{ padding: '6px 14px', fontSize: '12px', background: '#10B981' }}
+                            onClick={() => handleApproveBlog(article.id, article.title)}
+                          >
+                            <Check size={14} />
+                            <span>Approve &amp; Publish</span>
+                          </button>
+                        )}
+
+                        {isApproved && (
+                          <button
+                            className="btn-ghost"
+                            style={{ padding: '6px 12px', fontSize: '12px', color: '#F59E0B' }}
+                            onClick={() => handleRejectBlog(article.id, article.title)}
+                          >
+                            <X size={14} />
+                            <span>Unpublish</span>
+                          </button>
+                        )}
+
+                        <button
+                          className="btn-ghost"
+                          style={{ padding: '6px 12px', fontSize: '12px' }}
+                          onClick={() => setExpandedBlogId(isExpanded ? null : article.id)}
+                        >
+                          {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                          <span>{isExpanded ? 'Hide' : 'Read'}</span>
+                        </button>
+
+                        <button
+                          className="icon-btn"
+                          style={{ width: 32, height: 32, color: '#EF4444' }}
+                          onClick={() => handleDeleteBlog(article.id, article.title)}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     </div>
-                  );
-                })}
-              </div>
-            )}
+
+                    {isExpanded && (
+                      <div style={{ marginTop: '8px', padding: '14px 18px', background: 'var(--surface)', borderRadius: '12px', fontSize: '13.5px', lineHeight: 1.6, color: 'var(--text-main)', maxHeight: '300px', overflowY: 'auto' }}>
+                        <p style={{ margin: 0, whiteSpace: 'pre-line' }}>{article.content}</p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 
         {/* ══════════════════════════════════════════════════════
             TAB 6: 📢 SYSTEM BROADCASTS & GLOBAL BANNER (broadcasts)
             ══════════════════════════════════════════════════════ */}
-        {adminTab === 'broadcasts' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        {(adminTab === 'overview' || adminTab === 'broadcasts') && (
+          <div id="section-broadcasts" style={{ display: 'flex', flexDirection: 'column', gap: '20px', scrollMarginTop: '24px' }}>
             
             {/* Global Banner Card */}
             <div className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '24px', border: '1px solid var(--border)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
                 <div>
+                  <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em', color: '#0D9488', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>
+                    ● SYSTEM BROADCASTS &amp; GLOBAL BANNER COMMAND DECK
+                  </span>
                   <h3 style={{ fontSize: '18px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px', margin: 0, color: 'var(--text-main)' }}>
                     <AlertTriangle size={18} color="var(--primary)" />
-                    <span>Global Top Promotional Banner</span>
+                    <span>System Broadcasts &amp; Global Banner Command Deck</span>
                   </h3>
                   <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
                     Controls the prominent announcement banner displayed across the top header of all website pages.
@@ -2831,9 +2966,43 @@ export default function AdminPortal() {
                 </label>
               </div>
 
-              <form onSubmit={handleUpdateBanner} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {/* Visual Banner Preview Pill (Matches Reference UI) */}
+              <div style={{ 
+                background: bannerConfig.bgColor || '#0F4C44', 
+                color: bannerConfig.textColor || '#FFFFFF', 
+                borderRadius: '14px', 
+                padding: '14px 20px', 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center', 
+                marginBottom: '20px',
+                boxShadow: '0 4px 14px rgba(0,0,0,0.12)'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', fontWeight: 700, letterSpacing: '0.02em' }}>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#34D399', display: 'inline-block' }} />
+                  <span>{bannerConfig.text || 'WINTER CLINICAL PROTOCOL • COMPLIMENTARY VETERINARY TELEHEALTH TRIAGE WITH EVERY BESPOKE WELLNESS PLAN.'}</span>
+                </div>
+                <button
+                  type="button"
+                  style={{
+                    background: 'rgba(255,255,255,0.18)',
+                    border: '1px solid rgba(255,255,255,0.3)',
+                    color: '#FFFFFF',
+                    borderRadius: '8px',
+                    padding: '4px 12px',
+                    fontSize: '11.5px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    flexShrink: 0
+                  }}
+                >
+                  Learn More &rarr;
+                </button>
+              </div>
+
+              <form onSubmit={handleUpdateBanner} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div>
-                  <label className="label-mini">Promotional Text *</label>
+                  <label className="label-mini" style={{ marginBottom: '6px', display: 'block' }}>Promotional Headline / Text Prompt *</label>
                   <input 
                     type="text" 
                     className="input-clean" 
@@ -2843,10 +3012,56 @@ export default function AdminPortal() {
                   />
                 </div>
 
-                <button type="submit" className="apple-btn-blue" style={{ alignSelf: 'flex-start', padding: '9px 22px', background: 'var(--primary)' }}>
-                  <CheckCircle2 size={14} />
-                  <span>Save &amp; Broadcast Banner Live</span>
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)' }}>Banner Accent Theme:</span>
+                    {[
+                      { bg: '#0F4C44', label: 'Teal' },
+                      { bg: '#0F172A', label: 'Navy' },
+                      { bg: '#6D28D9', label: 'Purple' },
+                      { bg: '#92400E', label: 'Amber' },
+                      { bg: '#991B1B', label: 'Crimson' }
+                    ].map((theme) => (
+                      <button
+                        type="button"
+                        key={theme.bg}
+                        onClick={() => setBannerConfig(prev => ({ ...prev, bgColor: theme.bg, textColor: '#FFFFFF' }))}
+                        title={theme.label}
+                        style={{
+                          width: '22px',
+                          height: '22px',
+                          borderRadius: '50%',
+                          background: theme.bg,
+                          border: bannerConfig.bgColor === theme.bg ? '2.5px solid var(--primary)' : '2px solid rgba(255,255,255,0.7)',
+                          cursor: 'pointer',
+                          boxShadow: '0 2px 5px rgba(0,0,0,0.15)'
+                        }}
+                      />
+                    ))}
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button 
+                      type="button" 
+                      onClick={() => setBannerConfig({
+                        isActive: true,
+                        text: 'WINTER CLINICAL PROTOCOL • COMPLIMENTARY VETERINARY TELEHEALTH TRIAGE WITH EVERY BESPOKE WELLNESS PLAN.',
+                        bgColor: '#0F4C44',
+                        textColor: '#FFFFFF',
+                        linkText: 'Learn More',
+                        linkUrl: '#'
+                      })} 
+                      className="btn-ghost" 
+                      style={{ padding: '8px 16px', fontSize: '12px' }}
+                    >
+                      Reset to Standard
+                    </button>
+                    <button type="submit" className="apple-btn-blue" style={{ padding: '8px 20px', background: '#0D9488', fontSize: '12.5px' }}>
+                      <CheckCircle2 size={14} />
+                      <span>Save &amp; Broadcast Live</span>
+                    </button>
+                  </div>
+                </div>
               </form>
             </div>
 
