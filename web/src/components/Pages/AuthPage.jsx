@@ -14,7 +14,12 @@ import {
 } from 'lucide-react';
 import GlobalBanner from '../GlobalBanner';
 
-export default function AuthPage({ initialMode = 'signin', onNavigate }) {
+export default function AuthPage({ 
+  initialMode = 'signin', 
+  onNavigate, 
+  redirectAfterLogin = 'dashboard',
+  onSuccess 
+}) {
   const { showToast, openModal, cart } = useApp();
   const { loginWithEmail, signupWithEmail, loginWithGoogle, loginAsGuest, currentUser } = useAuth();
 
@@ -49,11 +54,13 @@ export default function AuthPage({ initialMode = 'signin', onNavigate }) {
       if (mode === 'signin') {
         await loginWithEmail(email, password);
         showToast('Signed in to Health Vault', 'success');
-        handleRoute('dashboard');
+        if (onSuccess) onSuccess();
+        handleRoute(redirectAfterLogin || 'dashboard');
       } else {
         await signupWithEmail(name || 'Pet Guardian', email, password);
         showToast('Guardian registry created successfully! Welcome to Pet Maya.', 'success');
-        handleRoute('dashboard');
+        if (onSuccess) onSuccess();
+        handleRoute(redirectAfterLogin || 'dashboard');
       }
     } catch (err) {
       console.warn('Auth error:', err);
@@ -69,7 +76,8 @@ export default function AuthPage({ initialMode = 'signin', onNavigate }) {
       setLoading(true);
       await loginWithGoogle();
       showToast('Signed in via Google Sovereign Vault', 'success');
-      handleRoute('dashboard');
+      if (onSuccess) onSuccess();
+      handleRoute(redirectAfterLogin || 'dashboard');
     } catch (err) {
       console.warn('Google auth error:', err);
       setError('Google authentication could not be completed.');
@@ -86,7 +94,8 @@ export default function AuthPage({ initialMode = 'signin', onNavigate }) {
   const handleDemoAccess = () => {
     loginAsGuest('Pet Owner');
     showToast('Signed in as Guest Guardian', 'success');
-    handleRoute('dashboard');
+    if (onSuccess) onSuccess();
+    handleRoute(redirectAfterLogin || 'dashboard');
   };
 
   const handleForgotPassword = (e) => {

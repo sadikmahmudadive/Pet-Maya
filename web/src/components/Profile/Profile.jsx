@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import EditorialNavbar from '../Navigation/EditorialNavbar';
+import AuthPage from '../Pages/AuthPage';
 import { generatePetMedicalPassport } from '../../services/pdfGenerator';
 import {
   ShieldCheck,
@@ -64,7 +65,7 @@ export default function Profile({ onNavigate, initialTab = 'settings' }) {
     deleteMedicalRecord,
     uploadImageFile 
   } = useApp ? useApp() : { showToast: () => {}, openModal: () => {}, cart: [] };
-  const { currentUser, updateUserProfile, logout, resetPassword } = useAuth ? useAuth() : { currentUser: null, updateUserProfile: () => {}, logout: () => {}, resetPassword: () => {} };
+  const { currentUser, updateUserProfile, logout, resetPassword, loading: authLoading } = useAuth ? useAuth() : { currentUser: null, updateUserProfile: () => {}, logout: () => {}, resetPassword: () => {}, loading: false };
 
   // Active Patient Selector
   const [activePatientId, setActivePatientId] = useState('');
@@ -327,6 +328,42 @@ export default function Profile({ onNavigate, initialTab = 'settings' }) {
     showToast(`Official Certified Medical Passport for ${currentPatient.name} downloaded!`, 'success');
     setShowPdfDossierModal(false);
   };
+
+  // If authentication state is still resolving, show calm loading placeholder
+  if (authLoading) {
+    return (
+      <div style={{
+        backgroundColor: '#FAF7F5',
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column'
+      }}>
+        <EditorialNavbar currentRoute="profile" onNavigate={handleRoute} />
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+          <div style={{ textAlign: 'center' }}>
+            <div className="presence-dot" style={{ width: 14, height: 14, margin: '0 auto 14px' }} />
+            <div style={{ fontSize: '13.5px', fontWeight: 600, color: '#160F0C' }}>
+              Verifying Guardian Credentials…
+            </div>
+            <div style={{ fontSize: '11.5px', color: '#707973', marginTop: '4px' }}>
+              Accessing Sovereign Pet Health Vault
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // If the user is not in login state, show the login screen. After login, the profile page will show.
+  if (!currentUser) {
+    return (
+      <AuthPage
+        initialMode="signin"
+        onNavigate={handleRoute}
+        redirectAfterLogin="profile"
+      />
+    );
+  }
 
   return (
     <div style={{
