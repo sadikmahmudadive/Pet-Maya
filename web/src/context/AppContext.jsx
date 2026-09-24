@@ -204,15 +204,16 @@ const resolveInitialTab = () => {
   const rawHash = window.location.hash.replace(/^#\/?/, '');
   const hash = rawHash.toLowerCase();
   if (hash) {
-    if (hash.startsWith('shop-product/')) return 'shop';
+    if (hash.startsWith('shop-product/') || hash.startsWith('product/')) return rawHash;
     if (hash === 'book-vet') return 'book-vet';
     if (ROUTE_TABS['/' + hash]) return ROUTE_TABS['/' + hash];
     if (TAB_ROUTES[hash]) return hash;
   }
 
-  // 2. Check pathname (e.g. /digital-pet-passport, /features, /book-vet)
+  // 2. Check pathname (e.g. /digital-pet-passport, /features, /book-vet, /shop-product/p1)
+  const rawPath = window.location.pathname.replace(/^\//, '');
   const pathname = window.location.pathname.toLowerCase().replace(/\/$/, '') || '/';
-  if (pathname.startsWith('/shop-product/')) return 'shop';
+  if (pathname.startsWith('/shop-product/') || pathname.startsWith('/product/')) return rawPath;
   if (pathname !== '/' && ROUTE_TABS[pathname]) {
     return ROUTE_TABS[pathname];
   }

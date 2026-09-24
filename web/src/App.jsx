@@ -222,19 +222,19 @@ function MainContent() {
   // Synchronize route from URL pathname and hash
   const resolveCurrentRoute = useCallback(() => {
     // 1. Check hash first if present (e.g. #dashboard, #shop, #tracker, #shop-product/p1)
-    const rawHash = window.location.hash.replace('#', '');
+    const rawHash = window.location.hash.replace(/^#\/?/, '');
     const hash = rawHash.toLowerCase();
-    if (hash.startsWith('shop-product/')) {
-      return 'shop';
+    if (hash.startsWith('shop-product/') || hash.startsWith('product/')) {
+      return rawHash;
     }
     if (hash && (VALID_EDITORIAL_ROUTES.includes(hash) || VALID_APP_ROUTES.includes(hash))) {
       return hash;
     }
-    // 2. Check pathname (e.g. /digital-pet-passport, /features)
+    // 2. Check pathname (e.g. /digital-pet-passport, /features, /shop-product/p1)
     const rawPath = window.location.pathname.replace(/^\//, '');
     const path = rawPath.toLowerCase();
-    if (path.startsWith('shop-product/')) {
-      return 'shop';
+    if (path.startsWith('shop-product/') || path.startsWith('product/')) {
+      return rawPath;
     }
     if (path && (VALID_EDITORIAL_ROUTES.includes(path) || VALID_APP_ROUTES.includes(path))) {
       return path;
@@ -261,7 +261,14 @@ function MainContent() {
 
   // Dynamic SEO metadata update
   useEffect(() => {
-    const seo = TAB_SEO_MAP[activeTab] || TAB_SEO_MAP.landing;
+    let pageTitle = TAB_SEO_MAP[activeTab]?.title;
+    if (!pageTitle && (activeTab.startsWith('shop-product/') || activeTab.startsWith('product/'))) {
+      pageTitle = 'Prescription Formulation & Biologics | Pet Maya Clinical Care';
+    }
+    const seo = TAB_SEO_MAP[activeTab] || {
+      title: pageTitle || TAB_SEO_MAP.landing.title,
+      description: TAB_SEO_MAP.shop.description
+    };
     document.title = seo.title;
     
     let metaDesc = document.querySelector('meta[name="description"]');
@@ -279,8 +286,8 @@ function MainContent() {
 
     // Sync URL cleanly
     if (activeTab && activeTab !== 'landing') {
-      if (activeTab === 'shop' && window.location.hash.startsWith('#shop-product/')) {
-        // Keep active product hash
+      if (activeTab.startsWith('shop-product/') || activeTab.startsWith('product/')) {
+        window.history.replaceState(null, '', `/${activeTab}`);
       } else if (VALID_EDITORIAL_ROUTES.includes(activeTab)) {
         window.history.replaceState(null, '', `/${activeTab}`);
       } else {
@@ -316,10 +323,25 @@ function MainContent() {
   };
 
   // Determine whether current view is an editorial marketing page
-  const isEditorial = VALID_EDITORIAL_ROUTES.includes(activeTab) || activeTab === 'landing';
+  const isEditorial = VALID_EDITORIAL_ROUTES.includes(activeTab) || 
+                      activeTab === 'landing' || 
+                      activeTab.startsWith('shop-product/') || 
+                      activeTab.startsWith('product/');
 
   // Render current screen component
   const renderActiveScreen = () => {
+    if (activeTab.startsWith('shop-product/') || activeTab.startsWith('product/')) {
+      const prodId = activeTab.replace(/^shop-product\//, '').replace(/^product\//, '');
+      return (
+        <ProductDetailPage 
+          productId={prodId} 
+          onNavigate={handleNavigate} 
+          onBack={() => handleNavigate('shop')} 
+          key={`pdp-${prodId}`} 
+        />
+      );
+    }
+
     switch (activeTab) {
       // Editorial marketing & product pages
       case 'landing':

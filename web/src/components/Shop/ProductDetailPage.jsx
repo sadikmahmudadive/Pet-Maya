@@ -24,13 +24,26 @@ import {
 } from 'lucide-react';
 
 export default function ProductDetailPage({ productId, onBack, onNavigate }) {
-  const { products, addToCart, openModal, showToast, pets = [] } = useApp();
+  const { products = [], addToCart, openModal, showToast, pets = [] } = useApp();
   const activePet = pets[0] || {
     name: 'Companion',
     breed: 'Companion',
     weight: '25.0',
     microchip: 'UNREGISTERED'
   };
+
+  const matchedProduct = (products || []).find(p => p.id === productId || String(p.id) === String(productId)) || null;
+  const isCustomProduct = !!matchedProduct && matchedProduct.id !== 'p1' && !matchedProduct.name?.toLowerCase().includes('nexgard');
+
+  const prodName = matchedProduct?.name || 'NexGard Spectra® Chewables';
+  const prodCategory = matchedProduct?.category || 'Parasitology';
+  const prodBrand = matchedProduct?.brand || (isCustomProduct ? 'VETERINARY PHARMACY' : 'BOEHRINGER INGELHEIM');
+  const prodBasePrice = typeof matchedProduct?.price === 'number' ? matchedProduct.price : (parseInt(matchedProduct?.price) || 1568);
+  const prodImage = matchedProduct?.image || matchedProduct?.photo || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=900&auto=format&fit=crop&q=80';
+  const prodDescription = matchedProduct?.description || matchedProduct?.shortDescription || 'Veterinary-grade formulation verified under strict veterinarian oversight with temperature-controlled cold-chain dispatch.';
+  const prodBadge = matchedProduct?.badge || (matchedProduct?.isRx ? 'Schedule Rx' : 'Clinical Formulation');
+  const prodRating = matchedProduct?.rating || '4.9';
+  const prodReviews = matchedProduct?.ratingCount || matchedProduct?.reviewsCount || 148;
 
   // Active Gallery Image
   const [activeImageIdx, setActiveImageIdx] = useState(0);
@@ -42,25 +55,25 @@ export default function ProductDetailPage({ productId, onBack, onNavigate }) {
     {
       id: 'box',
       label: 'Primary Pack',
-      src: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=900&auto=format&fit=crop&q=80',
-      alt: 'NexGard Spectra Packaging Box on natural stone pedestal'
+      src: prodImage,
+      alt: prodName
     },
     {
       id: 'blister',
-      label: 'Blister Foil',
-      src: 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=900&auto=format&fit=crop&q=80',
-      alt: 'Pharmaceutical foil blister pack with chewables'
+      label: 'Clinical Pack',
+      src: matchedProduct?.extraImage1 || 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=900&auto=format&fit=crop&q=80',
+      alt: `${prodName} Foil Integrity`
     },
     {
       id: 'lab',
       label: 'GC-MS Assay',
-      src: 'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=900&auto=format&fit=crop&q=80',
+      src: matchedProduct?.extraImage2 || 'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=900&auto=format&fit=crop&q=80',
       alt: 'Analytical balance and HPLC chromatography in clinical lab'
     },
     {
       id: 'coldchain',
       label: 'Cold-Chain Log',
-      src: 'https://images.unsplash.com/photo-1584017911766-d451b3d0e843?w=900&auto=format&fit=crop&q=80',
+      src: matchedProduct?.extraImage3 || 'https://images.unsplash.com/photo-1584017911766-d451b3d0e843?w=900&auto=format&fit=crop&q=80',
       alt: 'Refrigerated cold-chain pharmaceutical insulated container'
     }
   ];
@@ -72,8 +85,8 @@ export default function ProductDetailPage({ productId, onBack, onNavigate }) {
       tier: 'Small Dog',
       range: '3.5 - 7.5 kg',
       molecules: 'Afoxolaner 18.75mg / Milbemycin 3.75mg',
-      basePrice: 1250,
-      origPrice: 1480,
+      basePrice: isCustomProduct ? Math.round(prodBasePrice * 0.85) : 1250,
+      origPrice: isCustomProduct ? Math.round(prodBasePrice * 1.05) : 1480,
       isRecommended: false
     },
     {
@@ -81,26 +94,26 @@ export default function ProductDetailPage({ productId, onBack, onNavigate }) {
       tier: 'Medium Dog',
       range: '7.5 - 15.0 kg',
       molecules: 'Afoxolaner 37.5mg / Milbemycin 7.5mg',
-      basePrice: 1390,
-      origPrice: 1650,
+      basePrice: isCustomProduct ? Math.round(prodBasePrice * 0.95) : 1390,
+      origPrice: isCustomProduct ? Math.round(prodBasePrice * 1.15) : 1650,
       isRecommended: false
     },
     {
       id: 'med-large',
-      tier: 'Medium-Large Dog',
+      tier: 'Standard / Recommended',
       range: '15.1 - 30.0 kg',
-      molecules: 'Afoxolaner 75.0mg / Milbemycin 15.0mg',
-      basePrice: 1568,
-      origPrice: 1850,
+      molecules: 'Clinical Potency Standard',
+      basePrice: isCustomProduct ? prodBasePrice : 1568,
+      origPrice: isCustomProduct ? Math.round(prodBasePrice * 1.2) : 1850,
       isRecommended: true
     },
     {
       id: 'large',
-      tier: 'Large Dog',
+      tier: 'Large Specimen',
       range: '30.1 - 60.0 kg',
-      molecules: 'Afoxolaner 150.0mg / Milbemycin 30.0mg',
-      basePrice: 1780,
-      origPrice: 2100,
+      molecules: 'Max Strength Bio-availability',
+      basePrice: isCustomProduct ? Math.round(prodBasePrice * 1.15) : 1780,
+      origPrice: isCustomProduct ? Math.round(prodBasePrice * 1.35) : 2100,
       isRecommended: false
     }
   ];
@@ -111,21 +124,21 @@ export default function ProductDetailPage({ productId, onBack, onNavigate }) {
   const supplyPacks = [
     {
       id: '1-month',
-      duration: '1-Month Dose',
+      duration: 'Standard Pack (1 Unit)',
       multiplier: 1,
-      savingsNote: 'Standard Single Dose'
+      savingsNote: 'Standard Single Fill'
     },
     {
       id: '3-month',
-      duration: '3-Month Supply',
+      duration: 'Course Protocol (3x Units)',
       multiplier: 2.85,
-      savingsNote: 'Save ৳236 • Seasonal Course'
+      savingsNote: 'Save 5% • Multi-Unit Reserve'
     },
     {
       id: '6-month',
-      duration: '6-Month Protocol',
+      duration: 'Season Reserve (6x Units)',
       multiplier: 5.4,
-      savingsNote: 'Save ৳948 • Semi-Annual Guard'
+      savingsNote: 'Save 10% • Clinical Supply'
     }
   ];
   const [selectedPackId, setSelectedPackId] = useState('1-month');
@@ -153,16 +166,18 @@ export default function ProductDetailPage({ productId, onBack, onNavigate }) {
   const handleAddToCart = () => {
     const finalPrice = calculatePrice();
     const itemToAdd = {
-      id: `nexgard-spectra-${selectedWeightId}-${selectedPackId}`,
-      name: `NexGard Spectra® Chewables (${activeWeight.range})`,
-      category: 'parasitology',
+      id: matchedProduct ? matchedProduct.id : `nexgard-spectra-${selectedWeightId}-${selectedPackId}`,
+      name: isCustomProduct ? prodName : `NexGard Spectra® Chewables (${activeWeight.range})`,
+      category: prodCategory,
+      brand: prodBrand,
       price: finalPrice,
       originalPrice: calculateOriginalPrice(),
-      image: galleryItems[0].src,
+      image: prodImage,
       selectedWeight: activeWeight.range,
       selectedPack: activePack.duration,
       mode: purchaseMode === 'refill' ? 'Auto-Refill (10% Off)' : 'Single Fill',
-      quantity: 1
+      quantity: 1,
+      qty: 1
     };
 
     addToCart(itemToAdd, 1);
@@ -618,7 +633,7 @@ export default function ProductDetailPage({ productId, onBack, onNavigate }) {
                 letterSpacing: '0.08em',
                 textTransform: 'uppercase'
               }}>
-                BOEHRINGER INGELHEIM • RX PARASITICIDE
+                {prodBrand} • {prodCategory}
               </span>
 
               <a
@@ -641,15 +656,14 @@ export default function ProductDetailPage({ productId, onBack, onNavigate }) {
             {/* Product Headline (Playfair Display) */}
             <h1 style={{
               fontFamily: 'var(--font-serif, "Playfair Display", Georgia, serif)',
-              fontSize: 'clamp(32px, 3.8vw, 42px)',
+              fontSize: 'clamp(28px, 3.8vw, 42px)',
               lineHeight: 1.15,
               fontWeight: 600,
               letterSpacing: '-0.02em',
               color: '#160F0C',
               margin: '0 0 12px 0'
             }}>
-              NexGard Spectra®<br />
-              <span style={{ fontStyle: 'italic', fontWeight: 400 }}>Chewables</span>
+              {prodName}
             </h1>
 
             {/* Scientific Indication Subtitle */}
@@ -663,7 +677,7 @@ export default function ProductDetailPage({ productId, onBack, onNavigate }) {
               margin: '0 0 16px 0',
               maxWidth: '640px'
             }}>
-              BROAD-SPECTRUM ORAL ENDECTOCIDE CHEWABLE TABLETS FOR DOGS. PREVENTS HEARTWORM DISEASE, KILLS TICKS, FLEAS, MITES, AND CONTROLS INTESTINAL NEMATODES.
+              {prodDescription}
             </p>
 
             {/* Rating & Prescription Badge Row */}
@@ -685,9 +699,9 @@ export default function ProductDetailPage({ productId, onBack, onNavigate }) {
                 <div style={{ display: 'flex', color: '#D97706' }}>
                   <Star size={14} fill="#D97706" color="#D97706" />
                 </div>
-                <span>4.9</span>
+                <span>{prodRating}</span>
                 <span style={{ color: '#707973', fontWeight: 400, fontSize: '12px' }}>
-                  (148 Clinical Reviews)
+                  ({prodReviews} Clinical Reviews)
                 </span>
               </div>
 
@@ -707,7 +721,7 @@ export default function ProductDetailPage({ productId, onBack, onNavigate }) {
                 letterSpacing: '0.04em'
               }}>
                 <Lock size={11} color="#9E3A1A" />
-                VETERINARY PRESCRIPTION REQUIRED
+                {prodBadge}
               </span>
             </div>
 

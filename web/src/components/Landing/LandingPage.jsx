@@ -462,7 +462,7 @@ export default function LandingPage({ onNavigate }) {
               <div
                 key={item.id}
                 className="interactive-card"
-                onClick={() => onNavigate ? onNavigate(`shop-product/${item.id}`) : (window.location.hash = `shop-product/${item.id}`)}
+                onClick={() => handleRoute(`shop-product/${item.id}`)}
                 style={{
                   backgroundColor: 'var(--surface)',
                   borderRadius: '16px',
