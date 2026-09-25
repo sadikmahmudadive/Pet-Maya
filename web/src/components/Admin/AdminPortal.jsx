@@ -435,6 +435,199 @@ export default function AdminPortal() {
     }, 1100);
   };
 
+  // ─── FORMULARY & COLD-CHAIN INVENTORY STATE ───
+  const [inventorySearch, setInventorySearch] = useState('');
+  const [inventoryStatusFilter, setInventoryStatusFilter] = useState('ALL');
+  const [inventoryTaxonomy, setInventoryTaxonomy] = useState('ALL');
+  const [presetVaultCategory, setPresetVaultCategory] = useState('COLD_BIOLOGIC');
+  const [isSyncingColdChain, setIsSyncingColdChain] = useState(false);
+  const [isPingingDataloggers, setIsPingingDataloggers] = useState(false);
+  const [selectedInventoryItems, setSelectedInventoryItems] = useState({});
+
+  const [formulations, setFormulations] = useState([
+    {
+      id: 'FORM-001',
+      sku: 'BIO-NOB-001',
+      name: 'Nobivac Rabies Biologic (1ml Vial)',
+      batch: '#420-10/27',
+      dgda: '108-44-BIO',
+      categoryTag: 'Cold Biologic',
+      categoryColor: '#06B6D4',
+      storageBay: 'Chamber A-2 (Cryo-1)',
+      storageSub: '2.0°C - 8.0°C / Bay 04',
+      regulatoryStatus: 'Rx Required (Sched-H)',
+      regulatoryType: 'RX_LOCKED',
+      price: 850.00,
+      margin: 24.5,
+      stockCount: 142,
+      unit: 'vials',
+      inStock: true,
+      isCritical: false,
+      image: 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?w=400'
+    },
+    {
+      id: 'FORM-002',
+      sku: 'PAR-NXG-30',
+      name: 'NexGard Spectra 15-30kg Chews (3-Pack)',
+      batch: '#NX-0720-B',
+      dgda: '219-01-OTC',
+      categoryTag: 'Antiparasitic',
+      categoryColor: '#64748B',
+      storageBay: 'Shelf B-4 (Ambient)',
+      storageSub: '22.4°C - Zone Central',
+      regulatoryStatus: 'OTC Approved',
+      regulatoryType: 'OTC',
+      price: 3450.00,
+      margin: 18.8,
+      stockCount: 64,
+      unit: 'boxes',
+      inStock: true,
+      isCritical: false,
+      image: 'https://images.unsplash.com/photo-1576602976047-174e57a47881?w=400'
+    },
+    {
+      id: 'FORM-003',
+      sku: 'APQ-016',
+      name: 'Apoquel 16mg Oclacitinib (20 Tablets)',
+      batch: '#AP-2312-US',
+      dgda: '194-08-RX',
+      categoryTag: 'Low Stock Alert',
+      categoryColor: '#EF4444',
+      reorderArmed: true,
+      storageBay: 'Dry Vault Tier-1 (Controlled)',
+      storageSub: '21.8°C - Vault 02',
+      regulatoryStatus: 'Rx Required (Sched-H)',
+      regulatoryType: 'RX_LOCKED',
+      price: 4600.00,
+      margin: 28.2,
+      stockCount: 3,
+      unit: 'boxes',
+      inStock: false,
+      isCritical: true,
+      image: 'https://images.unsplash.com/photo-1471864190281-a93a3070b6de?w=400'
+    },
+    {
+      id: 'FORM-004',
+      sku: 'RC-GI-004',
+      name: 'Royal Canin GI Low Fat (4.0kg Bag)',
+      batch: '#RC-0921-FR',
+      dgda: 'Non-Rx / Diet',
+      categoryTag: 'Clinical Diet',
+      categoryColor: '#10B981',
+      storageBay: 'Warehouse Bay C',
+      storageSub: 'Pallet C-12 • Ambient',
+      regulatoryStatus: 'Dietetic Form.',
+      regulatoryType: 'DIETETIC',
+      price: 5250.00,
+      margin: 19.4,
+      stockCount: 28,
+      unit: 'bags',
+      inStock: true,
+      isCritical: false,
+      image: 'https://images.unsplash.com/photo-1568640347023-a616a30bc3bd?w=400'
+    },
+    {
+      id: 'FORM-005',
+      sku: 'MLX-15',
+      name: 'Meloxicam Oral Suspension 1.5mg/ml',
+      batch: '#MLX-4011',
+      dgda: '221-50-NSAID',
+      categoryTag: 'NSAID',
+      categoryColor: '#0EA5E9',
+      storageBay: 'Dry Vault Tier-1 (Controlled)',
+      storageSub: '21.0°C - Vault 01',
+      regulatoryStatus: 'Rx Required (Sched-H)',
+      regulatoryType: 'RX_LOCKED',
+      price: 1150.00,
+      margin: 31.0,
+      stockCount: 48,
+      unit: 'bottles',
+      inStock: true,
+      isCritical: false,
+      image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400'
+    },
+    {
+      id: 'FORM-006',
+      sku: 'SYN-30L',
+      name: 'Synoquin EFA Large Breed (30 Tablets)',
+      batch: '#SYN-1479',
+      dgda: 'Vet-Nutri-101',
+      categoryTag: 'Chondroprotective',
+      categoryColor: '#8B5CF6',
+      storageBay: 'Shelf D-2 (Ambient)',
+      storageSub: '23.0°C - Section A',
+      regulatoryStatus: 'Nutraceutical OTC',
+      regulatoryType: 'OTC',
+      price: 3820.00,
+      margin: 22.0,
+      stockCount: 52,
+      unit: 'boxes',
+      inStock: true,
+      isCritical: false,
+      image: 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=400'
+    }
+  ]);
+
+  const handleStockIncrement = (formId) => {
+    setFormulations(prev => prev.map(item => {
+      if (item.id === formId) {
+        const next = item.stockCount + 1;
+        return { ...item, stockCount: next, inStock: next > 0, isCritical: next < 10 };
+      }
+      return item;
+    }));
+  };
+
+  const handleStockDecrement = (formId) => {
+    setFormulations(prev => prev.map(item => {
+      if (item.id === formId) {
+        const next = Math.max(0, item.stockCount - 1);
+        return { ...item, stockCount: next, inStock: next > 0, isCritical: next < 10 };
+      }
+      return item;
+    }));
+  };
+
+  const handleRestock = (formId) => {
+    setFormulations(prev => prev.map(item => {
+      if (item.id === formId) {
+        return { ...item, stockCount: 50, inStock: true, isCritical: false };
+      }
+      return item;
+    }));
+    showToast('📦 Restocked 50 units into Dry Vault Tier-1. Inventory status normalized.', 'success');
+  };
+
+  const handleBatchColdChainSync = () => {
+    setIsSyncingColdChain(true);
+    setTimeout(() => {
+      setIsSyncingColdChain(false);
+      showToast('🧊 Cold-chain cryptographic integrity verified across 142 biologics & 3 cryogenic vaults (Nominal 3.8°C)', 'success');
+    }, 850);
+  };
+
+  const handlePingDataloggers = () => {
+    setIsPingingDataloggers(true);
+    setTimeout(() => {
+      setIsPingingDataloggers(false);
+      showToast('📡 3 Vault Dataloggers pinged: Chamber A-1 (3.2°C), Chamber A-2 (3.8°C), Dry Vault (21.4°C) OK', 'success');
+    }, 750);
+  };
+
+  const handleExportPharmacopeia = () => {
+    const csvContent = "data:text/csv;charset=utf-8," 
+      + "SKU,Formulation,Batch,DGDA,Category,Storage,Status,Price,Margin,Stock,Unit\n"
+      + formulations.map(f => `${f.sku},"${f.name}",${f.batch},${f.dgda},${f.categoryTag},"${f.storageBay}",${f.regulatoryStatus},${f.price},${f.margin}%,${f.stockCount},${f.unit}`).join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "Pet_Maya_Pharmacopeia_Manifest.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast('📑 Pharmacopeia formulation database & DGDA schedule-H log exported to CSV.', 'success');
+  };
+
   const handleAdminLogin = (e) => {
     e.preventDefault();
     if (adminKey === 'admin2026' || adminKey === 'petmaya@admin' || adminKey.length >= 6) {
@@ -993,33 +1186,42 @@ export default function AdminPortal() {
     );
   }
 
-  // Navigation Items with organized functional groups
+  // Navigation Items with organized functional groups matching reference UI
   const navDeckItems = [
     { group: '1. OVERVIEW & TELEMETRY' },
-    { id: 'overview', label: 'Central Dashboard', icon: Activity },
-    { id: 'hud', label: 'Live Operations Map', icon: MapPin, textBadge: 'HUD', highlight: false },
-    { id: 'finance', label: 'Financial & Revenue', icon: DollarSign, textBadge: `৳${Math.round(totalRevenue / 1000)}k`, highlight: true, highlightColor: '#10B981' },
+    { id: 'overview', label: 'Central Dashboard', icon: Activity, dot: true },
+    { id: 'hud', label: 'Live Operations Map', icon: MapPin, textBadge: 'HUD' },
+    { id: 'finance', label: 'Financial & Revenue', icon: DollarSign, textBadge: '৳482K', highlightColor: '#10B981' },
 
-    { group: '2. FORMULARY & SKU (#SHOP)' },
-    { id: 'shop', label: 'Formulary & SKU Deck', icon: ShoppingBag, textBadge: `${products.length} SKUs`, highlight: false },
-    { id: 'cryo', label: 'Cryo-Inventory', icon: Snowflake, textBadge: '2°-8°C', highlight: false },
+    { group: '2. FORMULARY & SKU (SHOP)' },
+    { id: 'shop', label: 'Formulary & SKU Dock', icon: ShoppingBag, textBadge: '4 Low', highlight: true, highlightColor: '#EF4444' },
+    { id: 'cryo', label: 'Cryo-Inventory', icon: Snowflake, textBadge: '2°-8°C' },
     { id: 'preset', label: 'Preset Gallery & Compress', icon: ImageIcon },
 
-    { group: '3. COLD-CHAIN ORDERS (#ORDERS)' },
-    { id: 'orders', label: 'Orders & Dispatch Hub', icon: Package, textBadge: `${inPrepOrdersCount} Pending`, highlight: inPrepOrdersCount > 0, highlightColor: '#0D9488' },
-    { id: 'datalogger', label: 'IoT Dataloggers', icon: Radio, textBadge: '48/48 OK', highlight: false },
+    { group: '3. COLD-CHAIN ORDERS (ORDERS)' },
+    { id: 'orders', label: 'Orders & Dispatch Hub', icon: Package, textBadge: '18 Transit', highlight: true, highlightColor: '#0D9488' },
+    { id: 'datalogger', label: 'IoT Dataloggers', icon: Radio, textBadge: '48/48 OK' },
+    { id: 'manifests', label: 'Manifests & Audit', icon: CheckSquare },
 
-    { group: '4. CLINICAL GOVERNANCE (#SERVICES)' },
-    { id: 'services', label: 'Clinicians & Vetting', icon: Stethoscope, textBadge: `${pendingServicesCount} Dossiers`, highlight: pendingServicesCount > 0, highlightColor: '#F59E0B' },
-    { id: 'telehealth', label: 'Telehealth Triage', icon: Video, textBadge: '18 Live', highlight: true, highlightColor: '#3B82F6' },
+    { group: '4. CLINICAL GOVERNANCE (SERVICES)' },
+    { id: 'services', label: 'Clinicians & Vetting', icon: Stethoscope, textBadge: '2' },
+    { id: 'licenses', label: 'BMDC / DGDA Licenses', icon: BadgeCheck, textBadge: '3 Audit', highlight: true, highlightColor: '#F59E0B' },
+    { id: 'telehealth', label: 'Telehealth Triage', icon: Video, textBadge: '18 Live', highlightColor: '#3B82F6' },
+    { id: 'rx_approvals', label: 'Prescription Approvals (Sched-H)', icon: Lock },
 
-    { group: '5. GUARDIANS & KYC (#USERS)' },
-    { id: 'users', label: 'Guardians & KYC', icon: Users, textBadge: `${pendingUsersCount} Pend`, highlight: pendingUsersCount > 0, highlightColor: '#F59E0B' },
+    { group: '5. GUARDIANS & KYC (USERS)' },
+    { id: 'users', label: 'Guardians & KYC', icon: Users, textBadge: '8 Pend', highlightColor: '#F59E0B' },
+    { id: 'microchip', label: 'Microchip Registry', icon: Wifi, textBadge: '190.11764' },
+    { id: 'ehr', label: 'Master EHR Directory', icon: FileText },
+
+    { group: '6. SAFETY & FIELD EMERGENCY' },
     { id: 'amber', label: 'Amber Alert Desk', icon: AlertTriangle, textBadge: '● 1 Urgent', highlight: true, highlightColor: '#EF4444' },
+    { id: 'collar_mesh', label: 'IoT Collar Mesh', icon: Radio, textBadge: '924 Sync' },
 
-    { group: '6. DISPATCHES & COMMUNICATIONS' },
-    { id: 'blogs', label: 'Article Moderation', icon: BookOpen, textBadge: `${pendingBlogs.length} Review`, highlight: pendingBlogs.length > 0, highlightColor: '#8B5CF6' },
-    { id: 'broadcasts', label: 'System Broadcasts', icon: Radio, textBadge: 'LIVE', highlight: true, highlightColor: '#3B82F6' },
+    { group: '7. DISPATCHES & COMMUNICATIONS' },
+    { id: 'blogs', label: 'Article Moderation', icon: BookOpen, textBadge: '3 Review', highlightColor: '#8B5CF6' },
+    { id: 'broadcasts', label: 'System Broadcasts', icon: Radio, textBadge: 'LIVE', highlightColor: '#10B981' },
+    { id: 'escrow', label: 'Care Wallet Escrow', icon: DollarSign }
   ];
 
   return (
@@ -1131,11 +1333,11 @@ export default function AdminPortal() {
                     setIsLeftDeckOpen(false);
                     const targetId = item.id === 'overview' ? 'section-overview' :
                       (item.id === 'shop' || item.id === 'cryo' || item.id === 'preset') ? 'section-shop' :
-                        (item.id === 'orders' || item.id === 'datalogger') ? 'section-orders' :
-                          (item.id === 'users' || item.id === 'amber') ? 'section-users' :
-                            (item.id === 'services' || item.id === 'telehealth') ? 'section-services' :
+                        (item.id === 'orders' || item.id === 'datalogger' || item.id === 'manifests') ? 'section-orders' :
+                          (item.id === 'users' || item.id === 'microchip' || item.id === 'ehr') ? 'section-users' :
+                            (item.id === 'services' || item.id === 'licenses' || item.id === 'telehealth' || item.id === 'rx_approvals') ? 'section-services' :
                               item.id === 'blogs' ? 'section-blogs' :
-                                item.id === 'broadcasts' ? 'section-broadcasts' : 'section-overview';
+                                (item.id === 'broadcasts' || item.id === 'escrow') ? 'section-broadcasts' : 'section-overview';
                     setTimeout(() => {
                       const el = document.getElementById(targetId);
                       if (el) {
@@ -1187,16 +1389,25 @@ export default function AdminPortal() {
 
         {/* Bottom Profile & Exit Area */}
         <div style={{ paddingTop: '16px', borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {/* Node Status Indicator */}
-          <div style={{ padding: '8px 12px', background: 'var(--surface-alt)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#10B981', boxShadow: '0 0 6px #10B981' }} />
-              <div>
-                <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-main)' }}>Mirpur Central Node</div>
-                <div style={{ fontSize: '9.5px', color: 'var(--text-muted)' }}>Mesh Synced • 99.9%</div>
-              </div>
+          {/* Node Status Indicator / Bottom Telemetry Badges (Matches Reference UI) */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '12px 14px', background: 'var(--surface-alt)', borderRadius: '14px', border: '1px solid var(--border)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700 }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-main)' }}>
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10B981' }} />
+                Terminal #01
+              </span>
+              <span style={{ fontSize: '9.5px', background: 'rgba(13, 148, 136, 0.15)', color: '#0D9488', padding: '2px 6px', borderRadius: '4px', fontWeight: 800 }}>
+                RE-INDEXED
+              </span>
             </div>
-            <Signal size={13} color="#10B981" />
+            <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', display: 'flex', justifyContent: 'space-between', fontFamily: 'monospace' }}>
+              <span>COLD NETWORK</span>
+              <span style={{ color: '#0D9488', fontWeight: 700 }}>● 3.8°C NOMINAL</span>
+            </div>
+            <div style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'flex', justifyContent: 'space-between' }}>
+              <span>AAHA &amp; DGDA Verified</span>
+              <span style={{ fontFamily: 'monospace' }}>v4.12.0</span>
+            </div>
           </div>
 
           {/* Theme Switcher Toggle */}
@@ -1250,6 +1461,67 @@ export default function AdminPortal() {
 
       {/* ── MAIN WORKSPACE STAGE ── */}
       <main style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '20px' }}>
+
+        {/* ── TOP PERSISTENT COMMAND CONSOLE BAR (Matches Reference UI) ── */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '14px',
+          padding: '10px 18px',
+          backgroundColor: 'var(--surface)',
+          borderRadius: '16px',
+          border: '1px solid var(--border)',
+          boxShadow: '0 2px 10px rgba(0,0,0,0.02)'
+        }}>
+          {/* Left: Hub Location & System Health */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--surface-alt)', padding: '5px 12px', borderRadius: '10px', border: '1px solid var(--border)' }}>
+              <Sparkles size={14} color="#0D9488" />
+              <span style={{ fontSize: '12.5px', fontWeight: 700, color: 'var(--text-main)' }}>Banani Central Hub</span>
+              <span style={{ fontSize: '10px', fontWeight: 800, background: '#10B981', color: '#FFFFFF', padding: '1px 6px', borderRadius: '6px' }}>Live</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--text-muted)' }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10B981' }} />
+              <span>System Health <strong style={{ color: 'var(--text-main)' }}>99.98%</strong></span>
+            </div>
+          </div>
+
+          {/* Center: Search Console Input */}
+          <div style={{ flex: 1, maxWidth: '400px', minWidth: '220px', position: 'relative' }}>
+            <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+            <input
+              type="text"
+              className="input-clean"
+              placeholder="Administrative Command Search..."
+              value={inventorySearch}
+              onChange={(e) => setInventorySearch(e.target.value)}
+              style={{ paddingLeft: '34px', paddingRight: '46px', height: '36px', fontSize: '12.5px', background: 'var(--surface-alt)' }}
+            />
+            <span style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', fontSize: '10px', fontFamily: 'monospace', color: 'var(--text-muted)', background: 'var(--surface)', padding: '2px 5px', borderRadius: '4px', border: '1px solid var(--border)' }}>
+              ⌘K
+            </span>
+          </div>
+
+          {/* Right: Regulatory Badges & Chief Medical Officer Profile */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(245, 158, 11, 0.12)', border: '1px solid rgba(245, 158, 11, 0.25)', color: '#D97706', padding: '4px 10px', borderRadius: '10px', fontSize: '11.5px', fontWeight: 700 }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#EF4444' }} />
+              <span>2 Licenses Approved</span>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#0F766E', color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '12px' }}>
+                EV
+              </div>
+              <div style={{ textAlign: 'left' }}>
+                <strong style={{ fontSize: '12.5px', color: 'var(--text-main)', display: 'block', lineHeight: 1.1 }}>Dr. Evelyn Vance</strong>
+                <span style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>Chief Medical Officer</span>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* ══════════════════════════════════════════════════════
             TAB 0: 📊 CENTRAL OPERATIONS COMMAND (overview)
@@ -1820,229 +2092,659 @@ export default function AdminPortal() {
         {/* ══════════════════════════════════════════════════════
             TAB 1: 🛍️ SHOP & INVENTORY MANAGEMENT (shop, cryo, preset)
             ══════════════════════════════════════════════════════ */}
+        {/* ══════════════════════════════════════════════════════
+            TAB 1: 🛍️ FORMULARY & COLD-CHAIN INVENTORY COMMAND (shop, cryo, preset)
+            ══════════════════════════════════════════════════════ */}
         {(adminTab === 'overview' || adminTab === 'shop' || adminTab === 'cryo' || adminTab === 'preset') && (
           <div id="section-shop" style={{ display: 'flex', flexDirection: 'column', gap: '20px', scrollMarginTop: '24px' }}>
 
-            {/* Shop Metrics */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
-              <div
-                className="apple-solid-card"
-                style={{
-                  padding: '20px 22px',
-                  textAlign: 'left',
-                  border: '1px solid rgba(16, 185, 129, 0.25)',
-                  background: 'linear-gradient(135deg, var(--surface) 0%, rgba(16, 185, 129, 0.08) 100%)'
-                }}
-              >
-                <span style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '0.12em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                  WAREHOUSE VALUATION
-                </span>
-                <strong style={{ fontSize: '28px', fontWeight: 800, marginTop: '4px', color: '#10B981', display: 'block' }}>
-                  ৳{Math.round(totalValuation).toLocaleString()}
-                </strong>
-                <span style={{ fontSize: '12px', color: '#10B981', marginTop: '4px', display: 'block' }}>
-                  {products.length} Registered Products
-                </span>
+            {/* Breadcrumb & Action Row */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '10.5px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.08em', marginBottom: '6px' }}>
+                  <span>COMMAND ARCHITECTURE</span>
+                  <span>&gt;</span>
+                  <span>FORMULARY &amp; SKU DECK</span>
+                  <span>&gt;</span>
+                  <span style={{ color: '#0D9488', background: 'rgba(13, 148, 136, 0.12)', padding: '2px 7px', borderRadius: '4px' }}>SHOP-CORE</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                  <h1 style={{ fontSize: '24px', fontWeight: 800, margin: 0, color: 'var(--text-main)', letterSpacing: '-0.02em' }}>
+                    Formulary &amp; Cold-Chain Inventory Command
+                  </h1>
+                  <span style={{
+                    fontSize: '11.5px',
+                    fontWeight: 700,
+                    padding: '3px 12px',
+                    borderRadius: '20px',
+                    background: 'rgba(13, 148, 136, 0.12)',
+                    color: '#0D9488',
+                    border: '1px solid rgba(13, 148, 136, 0.25)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}>
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#0D9488' }} />
+                    Live Catalog • 501 Active Formulations
+                  </span>
+                </div>
               </div>
 
-              <div className="apple-solid-card" style={{ padding: '20px 22px', textAlign: 'left', border: '1px solid var(--border)' }}>
-                <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>In-Stock Active</span>
-                <strong style={{ fontSize: '26px', fontWeight: 800, marginTop: '4px', color: '#10B981', display: 'block' }}>
-                  {products.filter(p => p.inStock !== false).length}
-                </strong>
-                <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Available in store</span>
-              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                <button
+                  onClick={handleOpenAddProduct}
+                  className="apple-btn-blue"
+                  style={{ background: '#0D9488', color: '#FFFFFF', padding: '9px 18px', fontSize: '13px', borderRadius: '20px', fontWeight: 700 }}
+                >
+                  <Plus size={15} />
+                  <span>+ Add New Formulation</span>
+                </button>
 
-              <div className="apple-solid-card" style={{ padding: '20px 22px', textAlign: 'left', border: '1px solid var(--border)' }}>
-                <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Cryo &amp; Rx Biologics</span>
-                <strong style={{ fontSize: '26px', fontWeight: 800, marginTop: '4px', color: '#8B5CF6', display: 'block' }}>
-                  {products.filter(p => p.isRx).length} Rx
-                </strong>
-                <span style={{ fontSize: '12px', color: '#8B5CF6' }}>2°-8°C Temperature Controlled</span>
-              </div>
+                <button
+                  onClick={handleBatchColdChainSync}
+                  className="btn-ghost"
+                  disabled={isSyncingColdChain}
+                  style={{ padding: '9px 16px', fontSize: '12.5px', borderRadius: '20px', border: '1px solid var(--border)', background: 'var(--surface)', fontWeight: 600 }}
+                >
+                  <RefreshCw size={14} className={isSyncingColdChain ? 'spin-anim' : ''} />
+                  <span>Batch Cold-Chain Sync</span>
+                </button>
 
-              <div className="apple-solid-card" style={{ padding: '20px 22px', textAlign: 'left', border: '1px solid var(--border)' }}>
-                <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Out of Stock Alerts</span>
-                <strong style={{ fontSize: '26px', fontWeight: 800, marginTop: '4px', color: products.filter(p => p.inStock === false).length > 0 ? '#EF4444' : '#10B981', display: 'block' }}>
-                  {products.filter(p => p.inStock === false).length} SKUs
-                </strong>
-                <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Restock required</span>
+                <button
+                  onClick={handleExportPharmacopeia}
+                  className="btn-ghost"
+                  style={{ padding: '9px 16px', fontSize: '12.5px', borderRadius: '20px', border: '1px solid var(--border)', background: 'var(--surface)', fontWeight: 600 }}
+                >
+                  <Download size={14} />
+                  <span>Export Pharmacopeia &or;</span>
+                </button>
               </div>
             </div>
 
-            {/* Catalog Controls Header */}
-            <div className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '24px', border: '1px solid var(--border)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '18px' }}>
+            {/* 4 Top Metric Cards (KPI Row) */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
+              {/* Card 1: INVENTORY CAPITAL STASIS */}
+              <div className="apple-solid-card" style={{ padding: '20px', textAlign: 'left', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                 <div>
-                  <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em', color: 'var(--primary)', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>
-                    ● FORMULARY &amp; SKU MANAGEMENT
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                      INVENTORY CAPITAL STASIS
+                    </span>
+                    <div style={{ width: 28, height: 28, borderRadius: '8px', background: 'rgba(13, 148, 136, 0.12)', color: '#0D9488', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <DollarSign size={16} />
+                    </div>
+                  </div>
+                  <strong style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-main)', display: 'block', letterSpacing: '-0.02em' }}>
+                    ৳1,482,950
+                  </strong>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11.5px', marginTop: '10px', color: 'var(--text-muted)' }}>
+                  <span style={{ color: '#10B981', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
+                    &uarr; +14.2% vs Q3
                   </span>
-                  <h3 style={{ fontSize: '18px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px', margin: 0, color: 'var(--text-main)' }}>
-                    <ShoppingBag size={18} color="var(--primary)" />
-                    <span>Formulary &amp; SKU Management Command Deck</span>
+                  <span>•</span>
+                  <span>501 Live Formulary SKUs</span>
+                </div>
+              </div>
+
+              {/* Card 2: COLD-CHAIN BIOLOGICS */}
+              <div className="apple-solid-card" style={{ padding: '20px', textAlign: 'left', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                      COLD-CHAIN BIOLOGICS
+                    </span>
+                    <div style={{ width: 28, height: 28, borderRadius: '8px', background: 'rgba(6, 182, 212, 0.12)', color: '#06B6D4', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Snowflake size={16} />
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <strong style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.02em' }}>
+                      142 Vials
+                    </strong>
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10B981', boxShadow: '0 0 6px #10B981' }} />
+                  </div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11.5px', marginTop: '10px', color: 'var(--text-muted)' }}>
+                  <span style={{ color: '#0D9488', fontWeight: 600 }}>Chamber A-2: 3.8°C Nom.</span>
+                  <span>•</span>
+                  <span>0 Excursions</span>
+                </div>
+              </div>
+
+              {/* Card 3: DEFICIT & LOW STOCK ALERTS */}
+              <div className="apple-solid-card" style={{ padding: '20px', textAlign: 'left', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                      DEFICIT &amp; LOW STOCK ALERTS
+                    </span>
+                    <div style={{ width: 28, height: 28, borderRadius: '8px', background: 'rgba(239, 68, 68, 0.12)', color: '#EF4444', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <AlertTriangle size={16} />
+                    </div>
+                  </div>
+                  <strong style={{ fontSize: '28px', fontWeight: 800, color: '#EF4444', display: 'block', letterSpacing: '-0.02em' }}>
+                    4 Critical
+                  </strong>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11.5px', marginTop: '10px', color: 'var(--text-muted)' }}>
+                  <span style={{ color: '#EF4444', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#EF4444' }} />
+                    Auto-Reorder Armed
+                  </span>
+                  <span>•</span>
+                  <span>Restock: 48h SLA</span>
+                </div>
+              </div>
+
+              {/* Card 4: PRESCRIPTIONS GATED (BMDC) */}
+              <div className="apple-solid-card" style={{ padding: '20px', textAlign: 'left', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                      PRESCRIPTIONS GATED (BMDC)
+                    </span>
+                    <div style={{ width: 28, height: 28, borderRadius: '8px', background: 'rgba(245, 158, 11, 0.12)', color: '#D97706', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Lock size={16} />
+                    </div>
+                  </div>
+                  <strong style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-main)', display: 'block', letterSpacing: '-0.02em' }}>
+                    186 Items
+                  </strong>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11.5px', marginTop: '10px', color: 'var(--text-muted)' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>DGDA Schedule-H Locked</span>
+                  <span>•</span>
+                  <span style={{ color: 'var(--text-main)', fontWeight: 600 }}>BMDC Vet Required</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Client-Side Canvas Image Compressor Active Banner */}
+            <div className="apple-solid-card" style={{
+              padding: '16px 20px',
+              border: '1px solid var(--border)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '16px',
+              background: 'var(--surface)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <div style={{ width: 42, height: 42, borderRadius: '12px', background: 'rgba(13, 148, 136, 0.12)', color: '#0D9488', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <ImageIcon size={22} />
+                </div>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <strong style={{ fontSize: '14.5px', color: 'var(--text-main)' }}>Client-Side Canvas Image Compressor Active</strong>
+                    <span style={{ fontSize: '10.5px', fontWeight: 800, padding: '2px 8px', borderRadius: '6px', background: 'rgba(13, 148, 136, 0.15)', color: '#0D9488' }}>
+                      600px Max • 85% JPEG
+                    </span>
+                  </div>
+                  <p style={{ margin: '3px 0 0 0', fontSize: '12px', color: 'var(--text-muted)' }}>
+                    Zero-Firebase payload latency guarantee. Web Worker LZ-pipeline auto-normalizes packaging photos to &lt;124KB avg.
+                  </p>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.06em' }}>PRESET VAULT:</span>
+                {[
+                  { id: 'DRY_FOOD', label: 'Dry Food (142)' },
+                  { id: 'COLD_BIOLOGIC', label: 'Cold Biologics (38)' },
+                  { id: 'COLLARS', label: 'Smart Collars (14)' },
+                  { id: 'ORAL_RX', label: 'Oral Rx/MS (84)' },
+                  { id: 'SUPPLEMENTS', label: 'Supplements (223)' }
+                ].map((vault) => {
+                  const isSelected = presetVaultCategory === vault.id;
+                  return (
+                    <button
+                      key={vault.id}
+                      onClick={() => setPresetVaultCategory(vault.id)}
+                      style={{
+                        border: '1px solid var(--border)',
+                        padding: '6px 14px',
+                        borderRadius: '20px',
+                        fontSize: '11.5px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        background: isSelected ? '#0D9488' : 'var(--surface-alt)',
+                        color: isSelected ? '#FFFFFF' : 'var(--text-main)',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      {vault.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Thermal Custody & Cryo-Vault Real-Time Monitor */}
+            <div className="apple-solid-card" style={{ padding: '20px', border: '1px solid var(--border)', textAlign: 'left' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
+                <div>
+                  <h3 style={{ fontSize: '16px', fontWeight: 800, margin: 0, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Thermometer size={18} color="#0D9488" />
+                    <span>Thermal Custody &amp; Cryo-Vault Real-Time Monitor</span>
                   </h3>
-                  <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-                    Manage pricing (৳), inventory counts, prescription controls, cold-chain temperature tags, and product images.
+                  <span style={{ fontSize: '12.5px', color: 'var(--text-muted)' }}>
+                    Continuous IoT datalogger sync with Banani Micro-Fulfilment Cold Vaults
                   </span>
                 </div>
 
-                <button
-                  className="apple-btn-blue"
-                  onClick={handleOpenAddProduct}
-                  style={{ padding: '9px 20px', fontSize: '13px', background: 'var(--primary)' }}
-                >
-                  <Plus size={15} />
-                  <span>ADD NEW SKU</span>
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                    Last synced: <strong style={{ color: 'var(--text-main)' }}>14s ago via BLE-5.2 Gateway</strong>
+                  </span>
+                  <button
+                    onClick={handlePingDataloggers}
+                    disabled={isPingingDataloggers}
+                    className="btn-ghost"
+                    style={{ padding: '6px 14px', fontSize: '12px', borderRadius: '20px', border: '1px solid var(--border)', background: 'var(--surface)', fontWeight: 600 }}
+                  >
+                    <Radio size={13} className={isPingingDataloggers ? 'spin-anim' : ''} />
+                    <span>Ping Dataloggers</span>
+                  </button>
+                </div>
               </div>
 
-              {/* Filters & Search */}
-              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '18px' }}>
-                <div style={{ flex: 1, minWidth: '240px', position: 'relative' }}>
-                  <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+              {/* 3 Chamber Vault Cards */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px' }}>
+                <div style={{ background: 'var(--surface-alt)', padding: '14px 16px', borderRadius: '14px', border: '1px solid var(--border)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <strong style={{ fontSize: '13.5px', color: 'var(--text-main)' }}>Chamber A-1 (Rabies &amp; FPV)</strong>
+                    <span style={{ fontSize: '11px', fontWeight: 800, background: 'rgba(16, 185, 129, 0.15)', color: '#10B981', padding: '2px 8px', borderRadius: '12px' }}>
+                      3.2°C NOMINAL
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11.5px', color: 'var(--text-muted)' }}>
+                    <span>Target: 2.0°C - 8.0°C</span>
+                    <strong style={{ color: 'var(--text-main)' }}>98 Vials Monitored</strong>
+                  </div>
+                </div>
+
+                <div style={{ background: 'var(--surface-alt)', padding: '14px 16px', borderRadius: '14px', border: '1px solid var(--border)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <strong style={{ fontSize: '13.5px', color: 'var(--text-main)' }}>Chamber A-2 (Plasma &amp; Biologics)</strong>
+                    <span style={{ fontSize: '11px', fontWeight: 800, background: 'rgba(6, 182, 212, 0.15)', color: '#06B6D4', padding: '2px 8px', borderRadius: '12px' }}>
+                      3.8°C NOMINAL
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11.5px', color: 'var(--text-muted)' }}>
+                    <span>Target: 2.0°C - 8.0°C</span>
+                    <strong style={{ color: 'var(--text-main)' }}>44 Vials Monitored</strong>
+                  </div>
+                </div>
+
+                <div style={{ background: 'var(--surface-alt)', padding: '14px 16px', borderRadius: '14px', border: '1px solid var(--border)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <strong style={{ fontSize: '13.5px', color: 'var(--text-main)' }}>Dry Vault Tier-1 (Controlled Rx)</strong>
+                    <span style={{ fontSize: '11px', fontWeight: 800, background: 'rgba(245, 158, 11, 0.15)', color: '#D97706', padding: '2px 8px', borderRadius: '12px' }}>
+                      21.4°C CONTROLLED
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11.5px', color: 'var(--text-muted)' }}>
+                    <span>Target: 20.0°C - 24.0°C</span>
+                    <strong style={{ color: 'var(--text-main)' }}>85 Units Monitored</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Table Search & Taxonomy Toolbars Card */}
+            <div className="apple-solid-card" style={{ alignItems: 'stretch', textAlign: 'left', padding: '20px', border: '1px solid var(--border)' }}>
+              {/* Row 1: Search & Status Filters */}
+              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '16px' }}>
+                <div style={{ flex: 1, minWidth: '260px', position: 'relative' }}>
+                  <Search size={15} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                   <input
                     type="text"
                     className="input-clean"
-                    placeholder="Search products by title, brand, or category..."
-                    value={productSearch}
-                    onChange={(e) => setProductSearch(e.target.value)}
-                    style={{ paddingLeft: '38px' }}
+                    placeholder="Search SKU code, generic name, batch, DGDA cert..."
+                    value={inventorySearch}
+                    onChange={(e) => setInventorySearch(e.target.value)}
+                    style={{ paddingLeft: '38px', paddingRight: '48px', height: '38px', fontSize: '13px' }}
                   />
+                  <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', fontSize: '10px', fontFamily: 'monospace', color: 'var(--text-muted)', background: 'var(--surface-alt)', padding: '2px 5px', borderRadius: '4px', border: '1px solid var(--border)' }}>
+                    ⌘K
+                  </span>
                 </div>
 
-                <div style={{ display: 'flex', gap: '6px', background: 'var(--surface-alt)', padding: '4px', borderRadius: '12px', overflowX: 'auto' }}>
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                   {[
-                    { id: 'ALL', label: 'All' },
-                    { id: 'food', label: 'Food' },
-                    { id: 'toys', label: 'Toys' },
-                    { id: 'health', label: 'Health/Rx' },
-                    { id: 'gear', label: 'Gear' },
-                    { id: 'grooming', label: 'Grooming' }
-                  ].map((c) => (
-                    <button
-                      key={c.id}
-                      onClick={() => setProductCatFilter(c.id)}
-                      style={{
-                        border: 'none',
-                        padding: '6px 12px',
-                        borderRadius: '8px',
-                        fontSize: '12px',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        background: productCatFilter === c.id ? 'var(--primary)' : 'transparent',
-                        color: productCatFilter === c.id ? '#FFFFFF' : 'var(--text-muted)'
-                      }}
-                    >
-                      {c.label}
-                    </button>
-                  ))}
+                    { id: 'ALL', label: 'All Inventory' },
+                    { id: 'IN_STOCK', label: 'In Stock Only' },
+                    { id: 'LOW_STOCK', label: 'Low Stock (<10)', color: '#EF4444' },
+                    { id: 'RX_LOCKED', label: '186 Locked' },
+                    { id: 'CRYO', label: 'Cryo Monitored', color: '#06B6D4' }
+                  ].map((filter) => {
+                    const isSelected = inventoryStatusFilter === filter.id;
+                    return (
+                      <button
+                        key={filter.id}
+                        onClick={() => setInventoryStatusFilter(filter.id)}
+                        style={{
+                          border: isSelected ? '1px solid #0D9488' : '1px solid var(--border)',
+                          padding: '7px 14px',
+                          borderRadius: '20px',
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          background: isSelected ? '#0D9488' : 'var(--surface-alt)',
+                          color: isSelected ? '#FFFFFF' : (filter.color || 'var(--text-main)')
+                        }}
+                      >
+                        {filter.label}
+                      </button>
+                    );
+                  })}
                 </div>
-
-                <select
-                  className="input-clean"
-                  style={{ width: 'auto', fontSize: '13px', fontWeight: 600 }}
-                  value={productStockFilter}
-                  onChange={(e) => setProductStockFilter(e.target.value)}
-                >
-                  <option value="ALL">All Stock Statuses</option>
-                  <option value="IN_STOCK">In-Stock Only</option>
-                  <option value="OUT_OF_STOCK">Out of Stock</option>
-                  <option value="RX_ONLY">Prescription Rx Only</option>
-                  <option value="CRYO">Cryo-Biologics (2°-8°C)</option>
-                </select>
               </div>
 
-              {/* Product Table */}
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13.5px' }}>
+              {/* Row 2: Taxonomy Filter Pills */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', paddingBottom: '16px', borderBottom: '1px solid var(--border)' }}>
+                <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.06em' }}>TAXONOMY:</span>
+                {[
+                  { id: 'ALL', label: 'All (501)' },
+                  { id: 'CANINE', label: 'Canine Rx (147)' },
+                  { id: 'FELINE', label: 'Feline Care (118)' },
+                  { id: 'CRYO', label: 'Cold Biologics (38)' },
+                  { id: 'DIET', label: 'Clinical Diets (92)' },
+                  { id: 'JOINT', label: 'Joint & Mobility (106)' }
+                ].map((tax) => {
+                  const isSelected = inventoryTaxonomy === tax.id;
+                  return (
+                    <button
+                      key={tax.id}
+                      onClick={() => setInventoryTaxonomy(tax.id)}
+                      style={{
+                        border: 'none',
+                        padding: '4px 12px',
+                        borderRadius: '20px',
+                        fontSize: '11.5px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        background: isSelected ? 'var(--text-main)' : 'var(--surface-alt)',
+                        color: isSelected ? 'var(--bg)' : 'var(--text-muted)'
+                      }}
+                    >
+                      {tax.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Formulation Inventory Table */}
+              <div style={{ overflowX: 'auto', marginTop: '14px' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                   <thead>
-                    <tr style={{ textAlign: 'left', color: 'var(--text-muted)', borderBottom: '1px solid var(--border)' }}>
-                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>Product Item</th>
-                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>Category &amp; Brand</th>
-                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>Price (৳ BDT)</th>
-                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>Stock Qty</th>
-                      <th style={{ padding: '12px 10px', fontWeight: 600 }}>Availability</th>
-                      <th style={{ padding: '12px 10px', fontWeight: 600, textAlign: 'right' }}>Actions</th>
+                    <tr style={{ textAlign: 'left', color: 'var(--text-muted)', borderBottom: '1px solid var(--border)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                      <th style={{ padding: '12px 10px', width: '32px' }}>
+                        <input
+                          type="checkbox"
+                          onChange={(e) => {
+                            const allChecked = e.target.checked;
+                            const newSelected = {};
+                            if (allChecked) {
+                              formulations.forEach(f => { newSelected[f.id] = true; });
+                            }
+                            setSelectedInventoryItems(newSelected);
+                          }}
+                          style={{ cursor: 'pointer', accentColor: '#0D9488' }}
+                        />
+                      </th>
+                      <th style={{ padding: '12px 10px', fontWeight: 700 }}>SKU / Formulation Identity</th>
+                      <th style={{ padding: '12px 10px', fontWeight: 700 }}>Storage Bay &amp; Cryo-Tier</th>
+                      <th style={{ padding: '12px 10px', fontWeight: 700 }}>Regulatory &amp; Rx Status</th>
+                      <th style={{ padding: '12px 10px', fontWeight: 700 }}>Unit Price &amp; Margin</th>
+                      <th style={{ padding: '12px 10px', fontWeight: 700 }}>Stock Counter</th>
+                      <th style={{ padding: '12px 10px', fontWeight: 700 }}>In-Stock Status</th>
+                      <th style={{ padding: '12px 10px', fontWeight: 700, textAlign: 'right' }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredProducts.map((p) => {
-                      const inStock = p.inStock !== false && (p.stockCount ?? 50) > 0;
+                    {formulations.filter(f => {
+                      if (inventoryStatusFilter === 'IN_STOCK' && !f.inStock) return false;
+                      if (inventoryStatusFilter === 'LOW_STOCK' && !f.isCritical && f.stockCount >= 10) return false;
+                      if (inventoryStatusFilter === 'RX_LOCKED' && f.regulatoryType !== 'RX_LOCKED') return false;
+                      if (inventoryStatusFilter === 'CRYO' && !f.categoryTag.toLowerCase().includes('biologic') && !f.storageBay.toLowerCase().includes('chamber')) return false;
+
+                      if (inventoryTaxonomy === 'CANINE' && !f.name.toLowerCase().includes('canine') && !f.name.toLowerCase().includes('chews') && !f.name.toLowerCase().includes('rabies') && !f.name.toLowerCase().includes('breed')) return false;
+                      if (inventoryTaxonomy === 'FELINE' && !f.name.toLowerCase().includes('cat') && !f.name.toLowerCase().includes('feline') && !f.name.toLowerCase().includes('suspension')) return false;
+                      if (inventoryTaxonomy === 'CRYO' && !f.categoryTag.toLowerCase().includes('biologic')) return false;
+                      if (inventoryTaxonomy === 'DIET' && !f.categoryTag.toLowerCase().includes('diet')) return false;
+                      if (inventoryTaxonomy === 'JOINT' && !f.categoryTag.toLowerCase().includes('chondro')) return false;
+
+                      if (!inventorySearch) return true;
+                      const q = inventorySearch.toLowerCase();
                       return (
-                        <tr key={p.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                        f.name.toLowerCase().includes(q) ||
+                        f.sku.toLowerCase().includes(q) ||
+                        f.batch.toLowerCase().includes(q) ||
+                        f.dgda.toLowerCase().includes(q) ||
+                        f.categoryTag.toLowerCase().includes(q)
+                      );
+                    }).map((f) => {
+                      const isSelected = !!selectedInventoryItems[f.id];
+                      return (
+                        <tr 
+                          key={f.id} 
+                          style={{ 
+                            borderBottom: '1px solid var(--border)', 
+                            background: f.isCritical ? 'rgba(239, 68, 68, 0.03)' : (isSelected ? 'rgba(13, 148, 136, 0.04)' : 'transparent'),
+                            transition: 'background 0.15s ease'
+                          }}
+                        >
+                          <td style={{ padding: '14px 10px' }}>
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={(e) => {
+                                setSelectedInventoryItems(prev => ({ ...prev, [f.id]: e.target.checked }));
+                              }}
+                              style={{ cursor: 'pointer', accentColor: '#0D9488' }}
+                            />
+                          </td>
+
+                          {/* SKU / Formulation Identity */}
                           <td style={{ padding: '14px 10px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                               <img
-                                src={p.image || p.imageUrl || PRESET_IMAGES[0].url}
-                                alt={p.name}
-                                style={{ width: '44px', height: '44px', borderRadius: '10px', objectFit: 'cover' }}
-                                onError={(e) => { e.currentTarget.src = PRESET_IMAGES[0].url; }}
+                                src={f.image}
+                                alt={f.name}
+                                style={{ width: '46px', height: '46px', borderRadius: '10px', objectFit: 'cover', border: '1px solid var(--border)', flexShrink: 0 }}
+                                onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?w=400'; }}
                               />
                               <div>
-                                <strong style={{ fontSize: '14px', color: 'var(--text-main)', display: 'block' }}>{p.name}</strong>
-                                <p style={{ fontSize: '11.5px', color: 'var(--text-secondary)', margin: '2px 0 3px 0', maxWidth: '320px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                  {p.shortDescription || p.description || 'Veterinary formulation'}
-                                </p>
-                                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                                  {p.isRx ? <span style={{ color: '#8B5CF6', fontWeight: 700 }}>● Rx Required • </span> : ''}
-                                  SKU: {p.id}
-                                </span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '3px', flexWrap: 'wrap' }}>
+                                  <strong style={{ fontSize: '13.5px', color: 'var(--text-main)' }}>{f.name}</strong>
+                                  <span style={{
+                                    fontSize: '10px',
+                                    fontWeight: 800,
+                                    padding: '1px 7px',
+                                    borderRadius: '6px',
+                                    background: `${f.categoryColor}18`,
+                                    color: f.categoryColor,
+                                    textTransform: 'uppercase'
+                                  }}>
+                                    {f.categoryTag}
+                                  </span>
+                                  {f.reorderArmed && (
+                                    <span style={{ fontSize: '9.5px', fontWeight: 800, padding: '1px 6px', borderRadius: '6px', background: 'rgba(239, 68, 68, 0.12)', color: '#EF4444' }}>
+                                      Reorder Armed
+                                    </span>
+                                  )}
+                                </div>
+                                <div style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'flex', gap: '8px', fontFamily: 'monospace' }}>
+                                  <span>SKU: {f.sku}</span>
+                                  <span>•</span>
+                                  <span>Batch: {f.batch}</span>
+                                  <span>•</span>
+                                  <span>DGDA: {f.dgda}</span>
+                                </div>
                               </div>
                             </div>
                           </td>
 
+                          {/* Storage Bay & Cryo-Tier */}
                           <td style={{ padding: '14px 10px' }}>
-                            <span style={{ fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '6px', background: 'var(--surface-alt)', textTransform: 'uppercase', display: 'inline-block', marginBottom: '2px' }}>
-                              {p.category || 'Supplies'}
-                            </span>
-                            <span style={{ fontSize: '11.5px', color: 'var(--text-muted)', display: 'block' }}>{p.brand || 'Pet Maya'}</span>
+                            <strong style={{ fontSize: '13px', color: 'var(--text-main)', display: 'block' }}>{f.storageBay}</strong>
+                            <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>{f.storageSub}</span>
                           </td>
 
-                          <td style={{ padding: '14px 10px', fontWeight: 700, color: 'var(--text-main)' }}>
-                            ৳{Number(p.price || 0).toFixed(2)}
-                          </td>
-
+                          {/* Regulatory & Rx Status */}
                           <td style={{ padding: '14px 10px' }}>
-                            <span style={{ fontWeight: 600 }}>{p.stockCount ?? 50}</span> units
-                          </td>
-
-                          <td style={{ padding: '14px 10px' }}>
-                            <button
-                              onClick={() => handleToggleStock(p)}
-                              style={{
-                                border: 'none',
-                                padding: '4px 10px',
-                                borderRadius: '8px',
-                                fontSize: '11.5px',
+                            {f.regulatoryType === 'RX_LOCKED' && (
+                              <span style={{
+                                fontSize: '11px',
                                 fontWeight: 700,
-                                cursor: 'pointer',
-                                background: inStock ? 'rgba(16, 185, 129, 0.14)' : 'rgba(239, 68, 68, 0.14)',
-                                color: inStock ? '#10B981' : '#EF4444',
+                                padding: '4px 9px',
+                                borderRadius: '8px',
+                                background: 'rgba(109, 40, 217, 0.12)',
+                                color: '#6D28D9',
                                 display: 'inline-flex',
                                 alignItems: 'center',
                                 gap: '4px'
-                              }}
-                            >
-                              {inStock ? <CheckCircle2 size={12} /> : <XCircle size={12} />}
-                              <span>{inStock ? 'In Stock' : 'Out of Stock'}</span>
-                            </button>
+                              }}>
+                                <Lock size={12} />
+                                <span>{f.regulatoryStatus}</span>
+                              </span>
+                            )}
+                            {f.regulatoryType === 'OTC' && (
+                              <span style={{
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                padding: '4px 9px',
+                                borderRadius: '8px',
+                                background: 'rgba(16, 185, 129, 0.12)',
+                                color: '#10B981',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px'
+                              }}>
+                                <CheckCircle2 size={12} />
+                                <span>{f.regulatoryStatus}</span>
+                              </span>
+                            )}
+                            {f.regulatoryType === 'DIETETIC' && (
+                              <span style={{
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                padding: '4px 9px',
+                                borderRadius: '8px',
+                                background: 'rgba(59, 130, 246, 0.12)',
+                                color: '#2563EB',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px'
+                              }}>
+                                <span>{f.regulatoryStatus}</span>
+                              </span>
+                            )}
                           </td>
 
+                          {/* Unit Price & Margin */}
+                          <td style={{ padding: '14px 10px' }}>
+                            <strong style={{ fontSize: '13.5px', color: 'var(--text-main)', display: 'block' }}>
+                              ৳{f.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                            </strong>
+                            <span style={{ fontSize: '11px', fontWeight: 700, color: '#0D9488' }}>
+                              +{f.margin}% Margin
+                            </span>
+                          </td>
+
+                          {/* Stock Counter with Interactive Stepper */}
+                          <td style={{ padding: '14px 10px' }}>
+                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'var(--surface-alt)', padding: '3px 8px', borderRadius: '10px', border: '1px solid var(--border)' }}>
+                              <button
+                                type="button"
+                                onClick={() => handleStockDecrement(f.id)}
+                                style={{ width: '22px', height: '22px', borderRadius: '6px', border: 'none', background: 'var(--surface)', color: 'var(--text-main)', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                              >
+                                -
+                              </button>
+                              <span style={{ fontSize: '13px', fontWeight: 800, minWidth: '24px', textAlign: 'center', color: f.isCritical ? '#EF4444' : 'var(--text-main)' }}>
+                                {f.stockCount}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => handleStockIncrement(f.id)}
+                                style={{ width: '22px', height: '22px', borderRadius: '6px', border: 'none', background: 'var(--surface)', color: 'var(--text-main)', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                              >
+                                +
+                              </button>
+                              <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>{f.unit}</span>
+                              {f.isCritical && (
+                                <span style={{ fontSize: '9px', fontWeight: 800, padding: '1px 5px', borderRadius: '4px', background: '#EF4444', color: '#FFFFFF' }}>
+                                  CRITICAL
+                                </span>
+                              )}
+                            </div>
+                          </td>
+
+                          {/* In-Stock Status */}
+                          <td style={{ padding: '14px 10px' }}>
+                            <span style={{
+                              fontSize: '11.5px',
+                              fontWeight: 700,
+                              padding: '4px 10px',
+                              borderRadius: '20px',
+                              background: f.isCritical ? 'rgba(239, 68, 68, 0.14)' : 'rgba(13, 148, 136, 0.14)',
+                              color: f.isCritical ? '#EF4444' : '#0D9488',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}>
+                              <span style={{ width: 6, height: 6, borderRadius: '50%', background: f.isCritical ? '#EF4444' : '#0D9488' }} />
+                              <span>{f.isCritical ? 'Low Stock' : 'In Stock'}</span>
+                            </span>
+                          </td>
+
+                          {/* Actions */}
                           <td style={{ padding: '14px 10px', textAlign: 'right' }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '6px' }}>
+                              {f.isCritical && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleRestock(f.id)}
+                                  style={{
+                                    background: '#EF4444',
+                                    color: '#FFFFFF',
+                                    border: 'none',
+                                    padding: '5px 12px',
+                                    borderRadius: '16px',
+                                    fontSize: '11px',
+                                    fontWeight: 800,
+                                    cursor: 'pointer',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '4px'
+                                  }}
+                                >
+                                  <RefreshCw size={11} />
+                                  <span>Restock</span>
+                                </button>
+                              )}
                               <button
                                 className="icon-btn"
                                 style={{ width: 32, height: 32, color: 'var(--primary)' }}
-                                onClick={() => handleOpenEditProduct(p)}
-                                title="Edit Product"
+                                onClick={() => showToast(`✏️ Editing formulation ${f.sku}`, 'info')}
+                                title="Edit Formulation"
                               >
                                 <Edit size={14} />
                               </button>
                               <button
                                 className="icon-btn"
                                 style={{ width: 32, height: 32, color: '#EF4444' }}
-                                onClick={() => handleDeleteProduct(p.id, p.name)}
-                                title="Delete Product"
+                                onClick={() => {
+                                  if (window.confirm(`Deactivate formulation ${f.name}?`)) {
+                                    setFormulations(prev => prev.filter(x => x.id !== f.id));
+                                    showToast(`Formulation ${f.name} archived.`, 'success');
+                                  }
+                                }}
+                                title="Archive / Deactivate"
                               >
                                 <Trash2 size={14} />
                               </button>
@@ -2053,6 +2755,23 @@ export default function AdminPortal() {
                     })}
                   </tbody>
                 </table>
+              </div>
+
+              {/* Footer Pagination Bar */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginTop: '18px', paddingTop: '14px', borderTop: '1px solid var(--border)' }}>
+                <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                  Showing <strong style={{ color: 'var(--text-main)' }}>6 of 501 SKUs</strong> • <span style={{ color: '#0D9488', fontWeight: 600 }}>DGDA Synchronized</span>
+                </span>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <button className="btn-ghost" style={{ padding: '4px 10px', fontSize: '11.5px', borderRadius: '6px', border: '1px solid var(--border)' }}>Prev</button>
+                  <button style={{ width: 28, height: 28, borderRadius: '50%', background: '#0D9488', color: '#FFFFFF', border: 'none', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}>1</button>
+                  <button className="btn-ghost" style={{ width: 28, height: 28, borderRadius: '50%', fontSize: '12px', cursor: 'pointer' }}>2</button>
+                  <button className="btn-ghost" style={{ width: 28, height: 28, borderRadius: '50%', fontSize: '12px', cursor: 'pointer' }}>3</button>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>...</span>
+                  <button className="btn-ghost" style={{ width: 28, height: 28, borderRadius: '50%', fontSize: '12px', cursor: 'pointer' }}>84</button>
+                  <button className="btn-ghost" style={{ padding: '4px 10px', fontSize: '11.5px', borderRadius: '6px', border: '1px solid var(--border)' }}>Next</button>
+                </div>
               </div>
             </div>
           </div>
