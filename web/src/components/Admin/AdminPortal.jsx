@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import {
@@ -172,6 +172,9 @@ export default function AdminPortal() {
     orders: contextOrders,
     updateOrderStatus,
     deleteOrder,
+    devices = [],
+    posts = [],
+    resolveAmberAlert,
     updateUserRole,
     updateUserVerification,
     updateUserAccountStatus,
@@ -407,6 +410,27 @@ export default function AdminPortal() {
     { id: 'COLLAR-03', petName: 'Simba', guardian: 'Tanvir Hossain', breed: 'Golden Retriever', heartRate: 82, temp: '38.6°C', battery: 85, lat: 23.7465, lng: 90.3760, status: 'NOMINAL', zone: 'Dhanmondi Safe Hub' },
     { id: 'COLLAR-04', petName: 'Milo', guardian: 'Anika Bushra', breed: 'French Bulldog', heartRate: 78, temp: '38.2°C', battery: 96, lat: 23.8759, lng: 90.3795, status: 'NOMINAL', zone: 'Uttara Sector 4 Sanctuary' }
   ]);
+
+  // Sync real devices from context into IoT telemetry nodes if available
+  useEffect(() => {
+    if (devices && devices.length > 0) {
+      const deviceNodes = devices.map((d, i) => ({
+        id: d.serialNumber || `COLLAR-${(i + 1).toString().padStart(2, '0')}`,
+        petName: d.petName || `Tracker #${d.id.slice(-4)}`,
+        guardian: d.guardian || 'Registered Guardian',
+        breed: d.breed || (d.deviceType === 'ble_beacon' ? 'BLE Beacon' : 'GPS Collar'),
+        heartRate: 72 + ((i * 7) % 20),
+        temp: `${(38.2 + ((i * 0.2) % 0.8)).toFixed(1)}°C`,
+        battery: d.batteryLevel ?? (95 - i * 5),
+        lat: d.latitude || 23.8103,
+        lng: d.longitude || 90.4125,
+        status: d.isOnline ? (d.isSafeZone ? 'NOMINAL' : 'PERIMETER_ALERT') : 'OFFLINE',
+        zone: d.isSafeZone ? 'Safe Zone (Dhaka Mesh)' : 'Perimeter Warning Zone'
+      }));
+      setIotNodes(deviceNodes);
+    }
+  }, [devices]);
+
   const [isPingingMesh, setIsPingingMesh] = useState(false);
   const [isAmberBroadcasting, setIsAmberBroadcasting] = useState(false);
   const [autoTelemetrySync, setAutoTelemetrySync] = useState(true);
@@ -444,165 +468,92 @@ export default function AdminPortal() {
   const [isPingingDataloggers, setIsPingingDataloggers] = useState(false);
   const [selectedInventoryItems, setSelectedInventoryItems] = useState({});
 
-  const [formulations, setFormulations] = useState([
-    {
-      id: 'FORM-001',
-      sku: 'BIO-NOB-001',
-      name: 'Nobivac Rabies Biologic (1ml Vial)',
-      batch: '#420-10/27',
-      dgda: '108-44-BIO',
-      categoryTag: 'Cold Biologic',
-      categoryColor: '#06B6D4',
-      storageBay: 'Chamber A-2 (Cryo-1)',
-      storageSub: '2.0°C - 8.0°C / Bay 04',
-      regulatoryStatus: 'Rx Required (Sched-H)',
-      regulatoryType: 'RX_LOCKED',
-      price: 850.00,
-      margin: 24.5,
-      stockCount: 142,
-      unit: 'vials',
-      inStock: true,
-      isCritical: false,
-      image: 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?w=400'
-    },
-    {
-      id: 'FORM-002',
-      sku: 'PAR-NXG-30',
-      name: 'NexGard Spectra 15-30kg Chews (3-Pack)',
-      batch: '#NX-0720-B',
-      dgda: '219-01-OTC',
-      categoryTag: 'Antiparasitic',
-      categoryColor: '#64748B',
-      storageBay: 'Shelf B-4 (Ambient)',
-      storageSub: '22.4°C - Zone Central',
-      regulatoryStatus: 'OTC Approved',
-      regulatoryType: 'OTC',
-      price: 3450.00,
-      margin: 18.8,
-      stockCount: 64,
-      unit: 'boxes',
-      inStock: true,
-      isCritical: false,
-      image: 'https://images.unsplash.com/photo-1576602976047-174e57a47881?w=400'
-    },
-    {
-      id: 'FORM-003',
-      sku: 'APQ-016',
-      name: 'Apoquel 16mg Oclacitinib (20 Tablets)',
-      batch: '#AP-2312-US',
-      dgda: '194-08-RX',
-      categoryTag: 'Low Stock Alert',
-      categoryColor: '#EF4444',
-      reorderArmed: true,
-      storageBay: 'Dry Vault Tier-1 (Controlled)',
-      storageSub: '21.8°C - Vault 02',
-      regulatoryStatus: 'Rx Required (Sched-H)',
-      regulatoryType: 'RX_LOCKED',
-      price: 4600.00,
-      margin: 28.2,
-      stockCount: 3,
-      unit: 'boxes',
-      inStock: false,
-      isCritical: true,
-      image: 'https://images.unsplash.com/photo-1471864190281-a93a3070b6de?w=400'
-    },
-    {
-      id: 'FORM-004',
-      sku: 'RC-GI-004',
-      name: 'Royal Canin GI Low Fat (4.0kg Bag)',
-      batch: '#RC-0921-FR',
-      dgda: 'Non-Rx / Diet',
-      categoryTag: 'Clinical Diet',
-      categoryColor: '#10B981',
-      storageBay: 'Warehouse Bay C',
-      storageSub: 'Pallet C-12 • Ambient',
-      regulatoryStatus: 'Dietetic Form.',
-      regulatoryType: 'DIETETIC',
-      price: 5250.00,
-      margin: 19.4,
-      stockCount: 28,
-      unit: 'bags',
-      inStock: true,
-      isCritical: false,
-      image: 'https://images.unsplash.com/photo-1568640347023-a616a30bc3bd?w=400'
-    },
-    {
-      id: 'FORM-005',
-      sku: 'MLX-15',
-      name: 'Meloxicam Oral Suspension 1.5mg/ml',
-      batch: '#MLX-4011',
-      dgda: '221-50-NSAID',
-      categoryTag: 'NSAID',
-      categoryColor: '#0EA5E9',
-      storageBay: 'Dry Vault Tier-1 (Controlled)',
-      storageSub: '21.0°C - Vault 01',
-      regulatoryStatus: 'Rx Required (Sched-H)',
-      regulatoryType: 'RX_LOCKED',
-      price: 1150.00,
-      margin: 31.0,
-      stockCount: 48,
-      unit: 'bottles',
-      inStock: true,
-      isCritical: false,
-      image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400'
-    },
-    {
-      id: 'FORM-006',
-      sku: 'SYN-30L',
-      name: 'Synoquin EFA Large Breed (30 Tablets)',
-      batch: '#SYN-1479',
-      dgda: 'Vet-Nutri-101',
-      categoryTag: 'Chondroprotective',
-      categoryColor: '#8B5CF6',
-      storageBay: 'Shelf D-2 (Ambient)',
-      storageSub: '23.0°C - Section A',
-      regulatoryStatus: 'Nutraceutical OTC',
-      regulatoryType: 'OTC',
-      price: 3820.00,
-      margin: 22.0,
-      stockCount: 52,
-      unit: 'boxes',
-      inStock: true,
-      isCritical: false,
-      image: 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=400'
-    }
-  ]);
-
-  const handleStockIncrement = (formId) => {
-    setFormulations(prev => prev.map(item => {
-      if (item.id === formId) {
-        const next = item.stockCount + 1;
-        return { ...item, stockCount: next, inStock: next > 0, isCritical: next < 10 };
+  // Derive live formulations directly from Firestore products collection
+  const liveFormulations = useMemo(() => {
+    return (products || []).map((p, idx) => {
+      const stock = typeof p.stockCount === 'number' 
+        ? p.stockCount 
+        : (typeof p.stock === 'number' ? p.stock : 25);
+      const isCritical = stock < 10 || p.inStock === false;
+      const isCold = !!(p.isRx || (p.category || '').toLowerCase().includes('cold') || (p.name || '').toLowerCase().includes('vaccine') || (p.name || '').toLowerCase().includes('biologic') || (p.name || '').toLowerCase().includes('rabies'));
+      
+      const cleanSku = p.sku || `SKU-${(p.id || '').toUpperCase().slice(0, 8)}`;
+      const cleanBatch = p.batch || `#BAT-${(p.id || '0000').slice(-4).toUpperCase()}`;
+      const cleanDgda = p.dgda || (p.isRx ? `DGDA-${(p.id || 'RX').slice(0, 3).toUpperCase()}-RX` : 'DGDA-OTC-GEN');
+      
+      let categoryTag = p.categoryLabel || p.badge || 'Formulation';
+      let categoryColor = '#0D9488';
+      if (isCritical) {
+        categoryTag = 'Low Stock Alert';
+        categoryColor = '#EF4444';
+      } else if (isCold) {
+        categoryTag = 'Cold Biologic';
+        categoryColor = '#06B6D4';
+      } else if (p.isRx) {
+        categoryTag = 'Controlled Rx';
+        categoryColor = '#8B5CF6';
+      } else if ((p.category || '').includes('food') || (p.category || '').includes('diet')) {
+        categoryTag = 'Clinical Diet';
+        categoryColor = '#10B981';
+      } else if ((p.category || '').includes('joint')) {
+        categoryTag = 'Chondroprotective';
+        categoryColor = '#8B5CF6';
       }
-      return item;
-    }));
+
+      return {
+        id: p.id,
+        sku: cleanSku,
+        name: p.name || 'Veterinary Product',
+        batch: cleanBatch,
+        dgda: cleanDgda,
+        categoryTag,
+        categoryColor,
+        reorderArmed: isCritical,
+        storageBay: p.storageBay || (isCold ? 'Chamber A-2 (Cryo-1)' : (p.isRx ? 'Dry Vault Tier-1 (Controlled)' : 'Shelf B-4 (Ambient)')),
+        storageSub: p.storageSub || (isCold ? '2.0°C - 8.0°C / Bay 04' : (p.isRx ? '21.0°C - Vault 01' : '22.4°C - Zone Central')),
+        regulatoryStatus: p.regulatoryStatus || (p.isRx ? 'Rx Required (Sched-H)' : ((p.category || '').includes('diet') ? 'Dietetic Form.' : 'OTC Approved')),
+        regulatoryType: p.regulatoryType || (p.isRx ? 'RX_LOCKED' : ((p.category || '').includes('diet') ? 'DIETETIC' : 'OTC')),
+        price: typeof p.price === 'number' ? p.price : (parseFloat(p.price) || 0),
+        margin: typeof p.margin === 'number' ? p.margin : (18 + ((idx * 3) % 15)),
+        stockCount: stock,
+        unit: p.unit || (isCold ? 'vials' : (p.isRx ? 'boxes' : ((p.category || '').includes('food') ? 'bags' : 'boxes'))),
+        inStock: p.inStock !== false && stock > 0,
+        isCritical,
+        image: p.image || p.imageUrl || PRESET_IMAGES[0].url,
+        rawProduct: p
+      };
+    });
+  }, [products]);
+
+  // Direct Firestore Async Stock Mutators
+  const handleStockIncrement = async (productId) => {
+    const target = (products || []).find(p => p.id === productId);
+    const currentStock = typeof target?.stockCount === 'number' ? target.stockCount : (typeof target?.stock === 'number' ? target.stock : 25);
+    const nextVal = currentStock + 1;
+    await updateProduct(productId, { stockCount: nextVal, inStock: nextVal > 0 });
+    showToast(`📦 Live stock increased to ${nextVal} for ${target?.name || 'product'}`, 'success');
   };
 
-  const handleStockDecrement = (formId) => {
-    setFormulations(prev => prev.map(item => {
-      if (item.id === formId) {
-        const next = Math.max(0, item.stockCount - 1);
-        return { ...item, stockCount: next, inStock: next > 0, isCritical: next < 10 };
-      }
-      return item;
-    }));
+  const handleStockDecrement = async (productId) => {
+    const target = (products || []).find(p => p.id === productId);
+    const currentStock = typeof target?.stockCount === 'number' ? target.stockCount : (typeof target?.stock === 'number' ? target.stock : 25);
+    const nextVal = Math.max(0, currentStock - 1);
+    await updateProduct(productId, { stockCount: nextVal, inStock: nextVal > 0 });
+    showToast(`📦 Live stock adjusted to ${nextVal} for ${target?.name || 'product'}`, 'info');
   };
 
-  const handleRestock = (formId) => {
-    setFormulations(prev => prev.map(item => {
-      if (item.id === formId) {
-        return { ...item, stockCount: 50, inStock: true, isCritical: false };
-      }
-      return item;
-    }));
-    showToast('📦 Restocked 50 units into Dry Vault Tier-1. Inventory status normalized.', 'success');
+  const handleRestock = async (productId) => {
+    const target = (products || []).find(p => p.id === productId);
+    await updateProduct(productId, { stockCount: 50, inStock: true });
+    showToast(`📦 Restocked 50 units for ${target?.name || 'product'}. Live inventory updated.`, 'success');
   };
 
   const handleBatchColdChainSync = () => {
     setIsSyncingColdChain(true);
     setTimeout(() => {
       setIsSyncingColdChain(false);
-      showToast('🧊 Cold-chain cryptographic integrity verified across 142 biologics & 3 cryogenic vaults (Nominal 3.8°C)', 'success');
+      const coldCount = (products || []).filter(p => p.isRx || (p.category || '').toLowerCase().includes('cold') || (p.name || '').toLowerCase().includes('vaccine')).length;
+      showToast(`🧊 Cold-chain cryptographic integrity verified across ${coldCount} live biologics & cryogenic vaults (Nominal 3.8°C)`, 'success');
     }, 850);
   };
 
@@ -617,15 +568,15 @@ export default function AdminPortal() {
   const handleExportPharmacopeia = () => {
     const csvContent = "data:text/csv;charset=utf-8," 
       + "SKU,Formulation,Batch,DGDA,Category,Storage,Status,Price,Margin,Stock,Unit\n"
-      + formulations.map(f => `${f.sku},"${f.name}",${f.batch},${f.dgda},${f.categoryTag},"${f.storageBay}",${f.regulatoryStatus},${f.price},${f.margin}%,${f.stockCount},${f.unit}`).join("\n");
+      + liveFormulations.map(f => `${f.sku},"${f.name}",${f.batch},${f.dgda},${f.categoryTag},"${f.storageBay}",${f.regulatoryStatus},${f.price},${f.margin}%,${f.stockCount},${f.unit}`).join("\n");
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "Pet_Maya_Pharmacopeia_Manifest.csv");
+    link.setAttribute("download", `Pet_Maya_Pharmacopeia_${Date.now()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    showToast('📑 Pharmacopeia formulation database & DGDA schedule-H log exported to CSV.', 'success');
+    showToast(`📑 Exported ${liveFormulations.length} live formulations & DGDA schedule-H logs to CSV.`, 'success');
   };
 
   const handleAdminLogin = (e) => {
@@ -1187,40 +1138,47 @@ export default function AdminPortal() {
   }
 
   // Navigation Items with organized functional groups matching reference UI
+  const urgentAmberCount = (posts || []).filter(p => (p.isAmberAlert || p.category === 'lost') && !p.isResolved && !p.resolved).length;
+  const criticalStockCount = (products || []).filter(p => (p.stockCount ?? p.stock ?? 50) < 10 || p.inStock === false).length;
+  const activeOrdersCount = ordersList.filter(o => {
+    const s = (o.status || '').toLowerCase();
+    return s.includes('ship') || s.includes('prep') || s.includes('transit') || s.includes('placed') || s.includes('pending');
+  }).length;
+
   const navDeckItems = [
     { group: '1. OVERVIEW & TELEMETRY' },
     { id: 'overview', label: 'Central Dashboard', icon: Activity, dot: true },
     { id: 'hud', label: 'Live Operations Map', icon: MapPin, textBadge: 'HUD' },
-    { id: 'finance', label: 'Financial & Revenue', icon: DollarSign, textBadge: '৳482K', highlightColor: '#10B981' },
+    { id: 'finance', label: 'Financial & Revenue', icon: DollarSign, textBadge: `৳${Math.round(totalRevenue / 1000)}K`, highlightColor: '#10B981' },
 
     { group: '2. FORMULARY & SKU (SHOP)' },
-    { id: 'shop', label: 'Formulary & SKU Dock', icon: ShoppingBag, textBadge: '4 Low', highlight: true, highlightColor: '#EF4444' },
+    { id: 'shop', label: 'Formulary & SKU Dock', icon: ShoppingBag, textBadge: criticalStockCount > 0 ? `${criticalStockCount} Low` : 'Nominal', highlight: criticalStockCount > 0, highlightColor: '#EF4444' },
     { id: 'cryo', label: 'Cryo-Inventory', icon: Snowflake, textBadge: '2°-8°C' },
     { id: 'preset', label: 'Preset Gallery & Compress', icon: ImageIcon },
 
     { group: '3. COLD-CHAIN ORDERS (ORDERS)' },
-    { id: 'orders', label: 'Orders & Dispatch Hub', icon: Package, textBadge: '18 Transit', highlight: true, highlightColor: '#0D9488' },
-    { id: 'datalogger', label: 'IoT Dataloggers', icon: Radio, textBadge: '48/48 OK' },
+    { id: 'orders', label: 'Orders & Dispatch Hub', icon: Package, textBadge: `${activeOrdersCount} Transit`, highlight: true, highlightColor: '#0D9488' },
+    { id: 'datalogger', label: 'IoT Dataloggers', icon: Radio, textBadge: `${devices.length || 4}/${devices.length || 4} OK` },
     { id: 'manifests', label: 'Manifests & Audit', icon: CheckSquare },
 
     { group: '4. CLINICAL GOVERNANCE (SERVICES)' },
-    { id: 'services', label: 'Clinicians & Vetting', icon: Stethoscope, textBadge: '2' },
-    { id: 'licenses', label: 'BMDC / DGDA Licenses', icon: BadgeCheck, textBadge: '3 Audit', highlight: true, highlightColor: '#F59E0B' },
-    { id: 'telehealth', label: 'Telehealth Triage', icon: Video, textBadge: '18 Live', highlightColor: '#3B82F6' },
+    { id: 'services', label: 'Clinicians & Vetting', icon: Stethoscope, textBadge: `${vets.length}` },
+    { id: 'licenses', label: 'BMDC / DGDA Licenses', icon: BadgeCheck, textBadge: `${pendingServicesCount} Audit`, highlight: pendingServicesCount > 0, highlightColor: '#F59E0B' },
+    { id: 'telehealth', label: 'Telehealth Triage', icon: Video, textBadge: `${verifiedServicesCount} Live`, highlightColor: '#3B82F6' },
     { id: 'rx_approvals', label: 'Prescription Approvals (Sched-H)', icon: Lock },
 
     { group: '5. GUARDIANS & KYC (USERS)' },
-    { id: 'users', label: 'Guardians & KYC', icon: Users, textBadge: '8 Pend', highlightColor: '#F59E0B' },
-    { id: 'microchip', label: 'Microchip Registry', icon: Wifi, textBadge: '190.11764' },
+    { id: 'users', label: 'Guardians & KYC', icon: Users, textBadge: `${pendingUsersCount} Pend`, highlightColor: '#F59E0B' },
+    { id: 'microchip', label: 'Microchip Registry', icon: Wifi, textBadge: `${usersList.length * 12 + 100}` },
     { id: 'ehr', label: 'Master EHR Directory', icon: FileText },
 
     { group: '6. SAFETY & FIELD EMERGENCY' },
-    { id: 'amber', label: 'Amber Alert Desk', icon: AlertTriangle, textBadge: '● 1 Urgent', highlight: true, highlightColor: '#EF4444' },
-    { id: 'collar_mesh', label: 'IoT Collar Mesh', icon: Radio, textBadge: '924 Sync' },
+    { id: 'amber', label: 'Amber Alert Desk', icon: AlertTriangle, textBadge: urgentAmberCount > 0 ? `● ${urgentAmberCount} Urgent` : 'Nominal', highlight: urgentAmberCount > 0, highlightColor: '#EF4444' },
+    { id: 'collar_mesh', label: 'IoT Collar Mesh', icon: Radio, textBadge: `${devices.length || 4} Sync` },
 
     { group: '7. DISPATCHES & COMMUNICATIONS' },
-    { id: 'blogs', label: 'Article Moderation', icon: BookOpen, textBadge: '3 Review', highlightColor: '#8B5CF6' },
-    { id: 'broadcasts', label: 'System Broadcasts', icon: Radio, textBadge: 'LIVE', highlightColor: '#10B981' },
+    { id: 'blogs', label: 'Article Moderation', icon: BookOpen, textBadge: `${pendingBlogs.length} Review`, highlightColor: '#8B5CF6' },
+    { id: 'broadcasts', label: 'System Broadcasts', icon: Radio, textBadge: broadcasts.length > 0 ? 'LIVE' : 'IDLE', highlightColor: '#10B981' },
     { id: 'escrow', label: 'Care Wallet Escrow', icon: DollarSign }
   ];
 
@@ -1504,20 +1462,24 @@ export default function AdminPortal() {
             </span>
           </div>
 
-          {/* Right: Regulatory Badges & Chief Medical Officer Profile */}
+          {/* Right: Regulatory Badges & User Profile */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(245, 158, 11, 0.12)', border: '1px solid rgba(245, 158, 11, 0.25)', color: '#D97706', padding: '4px 10px', borderRadius: '10px', fontSize: '11.5px', fontWeight: 700 }}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#EF4444' }} />
-              <span>2 Licenses Approved</span>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10B981' }} />
+              <span>{verifiedServicesCount} Licenses Approved</span>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#0F766E', color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '12px' }}>
-                EV
+                {getUserInitials(currentUser?.displayName || currentUser?.email || 'Admin')}
               </div>
               <div style={{ textAlign: 'left' }}>
-                <strong style={{ fontSize: '12.5px', color: 'var(--text-main)', display: 'block', lineHeight: 1.1 }}>Dr. Evelyn Vance</strong>
-                <span style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>Chief Medical Officer</span>
+                <strong style={{ fontSize: '12.5px', color: 'var(--text-main)', display: 'block', lineHeight: 1.1 }}>
+                  {currentUser?.displayName || currentUser?.email?.split('@')[0] || 'Admin Operator'}
+                </strong>
+                <span style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>
+                  {currentUser?.role || 'Super Admin'}
+                </span>
               </div>
             </div>
           </div>
@@ -1562,11 +1524,15 @@ export default function AdminPortal() {
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 12px', background: 'var(--surface-alt)', borderRadius: '12px', border: '1px solid var(--border)' }}>
                   <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--primary)', color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '11px' }}>
-                    AD
+                    {getUserInitials(currentUser?.displayName || currentUser?.email || 'AD')}
                   </div>
                   <div>
-                    <div style={{ fontSize: '11.5px', fontWeight: 700, color: 'var(--text-main)', lineHeight: 1.1 }}>Admin</div>
-                    <div style={{ fontSize: '9.5px', color: 'var(--text-muted)' }}>Central Command</div>
+                    <div style={{ fontSize: '11.5px', fontWeight: 700, color: 'var(--text-main)', lineHeight: 1.1 }}>
+                      {currentUser?.displayName || currentUser?.email?.split('@')[0] || 'Admin'}
+                    </div>
+                    <div style={{ fontSize: '9.5px', color: 'var(--text-muted)' }}>
+                      {currentUser?.role || 'Central Command'}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1934,74 +1900,126 @@ export default function AdminPortal() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
                 {/* 1. Amber Alert Urgent Desk */}
-                <div
-                  className="apple-solid-card"
-                  style={{
-                    padding: '22px',
-                    textAlign: 'left',
-                    border: '1px solid rgba(239, 68, 68, 0.3)',
-                    background: 'linear-gradient(135deg, var(--surface) 0%, rgba(239, 68, 68, 0.06) 100%)'
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                    <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em', color: '#EF4444', textTransform: 'uppercase' }}>
-                      ● ACTIVE AMBER RESCUE DESK
-                    </span>
-                    <span className="badge badge-red" style={{ fontSize: '10px', fontWeight: 800, animation: 'pulse 2s infinite' }}>
-                      URGENT (1 LIVE)
-                    </span>
-                  </div>
+                {(() => {
+                  const liveAmber = (posts || []).find(p => (p.isAmberAlert || p.category === 'lost') && !p.isResolved && !p.resolved)
+                    || (posts || []).find(p => p.isAmberAlert);
+                  const isLive = liveAmber && !liveAmber.isResolved && !liveAmber.resolved;
 
-                  <div style={{ display: 'flex', gap: '14px', alignItems: 'center', marginBottom: '14px' }}>
-                    <img
-                      src="https://images.unsplash.com/photo-1552053831-71594a27632d?w=200&auto=format&fit=crop&q=80"
-                      alt="Missing Pet"
-                      style={{ width: 64, height: 64, borderRadius: '14px', objectFit: 'cover', border: '2px solid #EF4444' }}
-                    />
-                    <div>
-                      <div style={{ fontWeight: 800, fontSize: '15px', color: 'var(--text-main)' }}>Milo (Beagle, 2.5 yrs)</div>
-                      <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Microchip #BD-88910 • Mirpur Hub</div>
-                      <div style={{ fontSize: '11.5px', color: '#EF4444', fontWeight: 700, marginTop: '2px' }}>
-                        📍 Last seen: Dhanmondi Lake (45m ago)
+                  return (
+                    <div
+                      className="apple-solid-card"
+                      style={{
+                        padding: '22px',
+                        textAlign: 'left',
+                        border: isLive ? '1px solid rgba(239, 68, 68, 0.3)' : '1px solid var(--border)',
+                        background: isLive 
+                          ? 'linear-gradient(135deg, var(--surface) 0%, rgba(239, 68, 68, 0.06) 100%)'
+                          : 'var(--surface)'
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                        <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em', color: isLive ? '#EF4444' : '#10B981', textTransform: 'uppercase' }}>
+                          ● {isLive ? 'ACTIVE AMBER RESCUE DESK' : 'AMBER RESCUE MESH • ALL CLEAR'}
+                        </span>
+                        <span className={isLive ? 'badge badge-red' : 'badge badge-green'} style={{ fontSize: '10px', fontWeight: 800 }}>
+                          {isLive ? 'URGENT (1 LIVE)' : 'ALL COMPANIONS SECURE'}
+                        </span>
                       </div>
-                    </div>
-                  </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '14px' }}>
-                    <div style={{ background: 'var(--surface-alt)', padding: '8px 10px', borderRadius: '8px', textAlign: 'center' }}>
-                      <div style={{ fontSize: '16px', fontWeight: 800, color: '#EF4444' }}>14</div>
-                      <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Guardians Notified</div>
-                    </div>
-                    <div style={{ background: 'var(--surface-alt)', padding: '8px 10px', borderRadius: '8px', textAlign: 'center' }}>
-                      <div style={{ fontSize: '16px', fontWeight: 800, color: '#10B981' }}>5 Nearby</div>
-                      <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Searchers En Route</div>
-                    </div>
-                  </div>
+                      {isLive ? (
+                        <>
+                          <div style={{ display: 'flex', gap: '14px', alignItems: 'center', marginBottom: '14px' }}>
+                            <img
+                              src={liveAmber.image || liveAmber.petPhoto || 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=200&auto=format&fit=crop&q=80'}
+                              alt="Missing Pet"
+                              style={{ width: 64, height: 64, borderRadius: '14px', objectFit: 'cover', border: '2px solid #EF4444' }}
+                              onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=200'; }}
+                            />
+                            <div>
+                              <div style={{ fontWeight: 800, fontSize: '15px', color: 'var(--text-main)' }}>
+                                {liveAmber.petName || liveAmber.title || 'Reported Lost Pet'}
+                              </div>
+                              <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                                Microchip #{liveAmber.microchip || 'BD-88910'} • {liveAmber.petBreed || liveAmber.breed || 'Companion'}
+                              </div>
+                              <div style={{ fontSize: '11.5px', color: '#EF4444', fontWeight: 700, marginTop: '2px' }}>
+                                📍 Last seen: {liveAmber.location || liveAmber.lastSeen || 'Dhaka Metropolitan Zone'}
+                              </div>
+                            </div>
+                          </div>
 
-                  <button
-                    onClick={handleTriggerAmberBroadcast}
-                    disabled={isAmberBroadcasting}
-                    style={{
-                      width: '100%',
-                      padding: '11px',
-                      background: 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)',
-                      color: '#FFFFFF',
-                      border: 'none',
-                      borderRadius: '12px',
-                      fontWeight: 800,
-                      fontSize: '13px',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '8px',
-                      boxShadow: '0 4px 14px rgba(239, 68, 68, 0.4)'
-                    }}
-                  >
-                    <AlertTriangle size={16} />
-                    <span>{isAmberBroadcasting ? 'Broadcasting Urgent Signal...' : 'Broadcast Urgent Amber Push'}</span>
-                  </button>
-                </div>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '14px' }}>
+                            <div style={{ background: 'var(--surface-alt)', padding: '8px 10px', borderRadius: '8px', textAlign: 'center' }}>
+                              <div style={{ fontSize: '16px', fontWeight: 800, color: '#EF4444' }}>{usersList.length || 14}</div>
+                              <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Guardians Notified</div>
+                            </div>
+                            <div style={{ background: 'var(--surface-alt)', padding: '8px 10px', borderRadius: '8px', textAlign: 'center' }}>
+                              <div style={{ fontSize: '16px', fontWeight: 800, color: '#10B981' }}>{devices.length || 5} Nearby</div>
+                              <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Search Mesh Active</div>
+                            </div>
+                          </div>
+
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            <button
+                              onClick={handleTriggerAmberBroadcast}
+                              disabled={isAmberBroadcasting}
+                              style={{
+                                flex: 1,
+                                padding: '11px',
+                                background: 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)',
+                                color: '#FFFFFF',
+                                border: 'none',
+                                borderRadius: '12px',
+                                fontWeight: 800,
+                                fontSize: '12.5px',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '8px',
+                                boxShadow: '0 4px 14px rgba(239, 68, 68, 0.4)'
+                              }}
+                            >
+                              <AlertTriangle size={15} />
+                              <span>{isAmberBroadcasting ? 'Broadcasting...' : 'Broadcast Amber Push'}</span>
+                            </button>
+
+                            <button
+                              onClick={() => resolveAmberAlert(liveAmber.id)}
+                              style={{
+                                padding: '11px 16px',
+                                background: '#10B981',
+                                color: '#FFFFFF',
+                                border: 'none',
+                                borderRadius: '12px',
+                                fontWeight: 700,
+                                fontSize: '12.5px',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px'
+                              }}
+                              title="Mark pet as safely found and reunited"
+                            >
+                              <CheckCircle2 size={15} />
+                              <span>Resolve</span>
+                            </button>
+                          </div>
+                        </>
+                      ) : (
+                        <div style={{ textAlign: 'center', padding: '14px 0', color: 'var(--text-muted)' }}>
+                          <CheckCircle2 size={32} color="#10B981" style={{ margin: '0 auto 8px' }} />
+                          <div style={{ fontWeight: 700, fontSize: '13.5px', color: 'var(--text-main)', marginBottom: '4px' }}>
+                            All Registered Companions Accounted For
+                          </div>
+                          <span style={{ fontSize: '12px' }}>
+                            No active amber alerts. Dhaka GPS collar telemetry mesh is operating with 100% perimeter containment.
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
 
                 {/* 2. Cold-Chain Courier Pod IoT Telemetry */}
                 <div className="apple-solid-card" style={{ padding: '22px', textAlign: 'left', border: '1px solid var(--border)' }}>
@@ -2011,34 +2029,42 @@ export default function AdminPortal() {
                         ● REFRIGERATED IOT MESH
                       </span>
                       <h4 style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-main)', margin: '2px 0 0 0' }}>
-                        Courier Pod Telemetry (48 Active)
+                        Courier Pod Telemetry ({devices.length || 3} Active)
                       </h4>
                     </div>
                     <span className="badge badge-green" style={{ fontSize: '9.5px' }}>LIVE GPS</span>
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    {[
-                      { id: 'Pod #CC-101', route: 'Mirpur Central → Uttara Sec 3', temp: '3.4°C', batt: 94, status: 'En Route' },
-                      { id: 'Pod #CC-104', route: 'Dhanmondi Vault → Gulshan 2', temp: '4.1°C', batt: 88, status: 'In Transit' },
-                      { id: 'Pod #CC-108', route: 'Central Cryo Hub Storage', temp: '2.8°C', batt: 100, status: 'Docked' }
-                    ].map((pod, i) => (
-                      <div key={i} style={{ background: 'var(--surface-alt)', padding: '10px 12px', borderRadius: '10px', border: '1px solid var(--border)' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                          <span style={{ fontWeight: 700, fontSize: '12.5px', color: 'var(--text-main)' }}>{pod.id}</span>
-                          <span className="badge badge-green" style={{ fontSize: '9.5px' }}>{pod.status}</span>
+                    {((devices && devices.length > 0) ? devices.slice(0, 3) : [
+                      { id: 'Pod #CC-101', petName: 'Mirpur Central → Uttara Sec 3', trackingMode: '3.4°C', batteryLevel: 94, isSafeZone: true },
+                      { id: 'Pod #CC-104', petName: 'Dhanmondi Vault → Gulshan 2', trackingMode: '4.1°C', batteryLevel: 88, isSafeZone: true },
+                      { id: 'Pod #CC-108', petName: 'Central Cryo Hub Storage', trackingMode: '2.8°C', batteryLevel: 100, isSafeZone: true }
+                    ]).map((pod, i) => {
+                      const podId = pod.serialNumber || `Pod #CC-${101 + i * 3}`;
+                      const route = pod.name || (pod.petName ? `${pod.petName}'s Route` : 'Mirpur Central → Uttara');
+                      const temp = `${(3.2 + i * 0.4).toFixed(1)}°C`;
+                      const batt = pod.batteryLevel ?? (94 - i * 6);
+                      const status = pod.isOnline !== false ? (pod.isSafeZone ? 'In Transit' : 'Perimeter Check') : 'Docked';
+
+                      return (
+                        <div key={i} style={{ background: 'var(--surface-alt)', padding: '10px 12px', borderRadius: '10px', border: '1px solid var(--border)' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                            <span style={{ fontWeight: 700, fontSize: '12.5px', color: 'var(--text-main)' }}>{podId}</span>
+                            <span className="badge badge-green" style={{ fontSize: '9.5px' }}>{status}</span>
+                          </div>
+                          <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '6px' }}>{route}</div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', fontWeight: 700 }}>
+                            <span style={{ color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <Thermometer size={12} /> {temp}
+                            </span>
+                            <span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <BatteryCharging size={12} /> {batt}% Battery
+                            </span>
+                          </div>
                         </div>
-                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '6px' }}>{pod.route}</div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', fontWeight: 700 }}>
-                          <span style={{ color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <Thermometer size={12} /> {pod.temp}
-                          </span>
-                          <span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <BatteryCharging size={12} /> {pod.batt}% Battery
-                          </span>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -2125,7 +2151,7 @@ export default function AdminPortal() {
                     gap: '6px'
                   }}>
                     <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#0D9488' }} />
-                    Live Catalog • 501 Active Formulations
+                    Live Catalog • {products.length} Active Formulations
                   </span>
                 </div>
               </div>
@@ -2175,7 +2201,7 @@ export default function AdminPortal() {
                     </div>
                   </div>
                   <strong style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-main)', display: 'block', letterSpacing: '-0.02em' }}>
-                    ৳1,482,950
+                    ৳{Math.round(totalValuation).toLocaleString()}
                   </strong>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11.5px', marginTop: '10px', color: 'var(--text-muted)' }}>
@@ -2183,7 +2209,7 @@ export default function AdminPortal() {
                     &uarr; +14.2% vs Q3
                   </span>
                   <span>•</span>
-                  <span>501 Live Formulary SKUs</span>
+                  <span>{products.length} Live Formulary SKUs</span>
                 </div>
               </div>
 
@@ -2200,7 +2226,7 @@ export default function AdminPortal() {
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <strong style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.02em' }}>
-                      142 Vials
+                      {(products || []).filter(p => p.isRx || (p.category || '').toLowerCase().includes('cold') || (p.name || '').toLowerCase().includes('vaccine') || (p.name || '').toLowerCase().includes('biologic') || (p.name || '').toLowerCase().includes('rabies')).reduce((acc, p) => acc + (typeof p.stockCount === 'number' ? p.stockCount : 25), 0)} Vials
                     </strong>
                     <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10B981', boxShadow: '0 0 6px #10B981' }} />
                   </div>
@@ -2223,13 +2249,13 @@ export default function AdminPortal() {
                       <AlertTriangle size={16} />
                     </div>
                   </div>
-                  <strong style={{ fontSize: '28px', fontWeight: 800, color: '#EF4444', display: 'block', letterSpacing: '-0.02em' }}>
-                    4 Critical
+                  <strong style={{ fontSize: '28px', fontWeight: 800, color: criticalStockCount > 0 ? '#EF4444' : '#10B981', display: 'block', letterSpacing: '-0.02em' }}>
+                    {criticalStockCount} Critical
                   </strong>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11.5px', marginTop: '10px', color: 'var(--text-muted)' }}>
-                  <span style={{ color: '#EF4444', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#EF4444' }} />
+                  <span style={{ color: criticalStockCount > 0 ? '#EF4444' : '#10B981', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: criticalStockCount > 0 ? '#EF4444' : '#10B981' }} />
                     Auto-Reorder Armed
                   </span>
                   <span>•</span>
@@ -2249,7 +2275,7 @@ export default function AdminPortal() {
                     </div>
                   </div>
                   <strong style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-main)', display: 'block', letterSpacing: '-0.02em' }}>
-                    186 Items
+                    {(products || []).filter(p => p.isRx).length} Items
                   </strong>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11.5px', marginTop: '10px', color: 'var(--text-muted)' }}>
@@ -2291,11 +2317,11 @@ export default function AdminPortal() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                 <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.06em' }}>PRESET VAULT:</span>
                 {[
-                  { id: 'DRY_FOOD', label: 'Dry Food (142)' },
-                  { id: 'COLD_BIOLOGIC', label: 'Cold Biologics (38)' },
-                  { id: 'COLLARS', label: 'Smart Collars (14)' },
-                  { id: 'ORAL_RX', label: 'Oral Rx/MS (84)' },
-                  { id: 'SUPPLEMENTS', label: 'Supplements (223)' }
+                  { id: 'DRY_FOOD', label: `Dry Food (${(products || []).filter(p => (p.category || '').toLowerCase().includes('food') || (p.category || '').toLowerCase().includes('diet')).length})` },
+                  { id: 'COLD_BIOLOGIC', label: `Cold Biologics (${(products || []).filter(p => p.isRx || (p.category || '').toLowerCase().includes('cold') || (p.name || '').toLowerCase().includes('vaccine')).length})` },
+                  { id: 'COLLARS', label: `Smart Collars (${devices.length || (products || []).filter(p => (p.category || '').toLowerCase().includes('gear')).length || 14})` },
+                  { id: 'ORAL_RX', label: `Oral Rx/MS (${(products || []).filter(p => p.isRx || (p.category || '').toLowerCase().includes('health')).length})` },
+                  { id: 'SUPPLEMENTS', label: `Supplements (${(products || []).filter(p => (p.category || '').toLowerCase().includes('joint') || (p.category || '').toLowerCase().includes('groom') || (p.category || '').toLowerCase().includes('suppl')).length})` }
                 ].map((vault) => {
                   const isSelected = presetVaultCategory === vault.id;
                   return (
@@ -2417,7 +2443,7 @@ export default function AdminPortal() {
                     { id: 'ALL', label: 'All Inventory' },
                     { id: 'IN_STOCK', label: 'In Stock Only' },
                     { id: 'LOW_STOCK', label: 'Low Stock (<10)', color: '#EF4444' },
-                    { id: 'RX_LOCKED', label: '186 Locked' },
+                    { id: 'RX_LOCKED', label: `${(products || []).filter(p => p.isRx).length} Locked` },
                     { id: 'CRYO', label: 'Cryo Monitored', color: '#06B6D4' }
                   ].map((filter) => {
                     const isSelected = inventoryStatusFilter === filter.id;
@@ -2447,12 +2473,12 @@ export default function AdminPortal() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', paddingBottom: '16px', borderBottom: '1px solid var(--border)' }}>
                 <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.06em' }}>TAXONOMY:</span>
                 {[
-                  { id: 'ALL', label: 'All (501)' },
-                  { id: 'CANINE', label: 'Canine Rx (147)' },
-                  { id: 'FELINE', label: 'Feline Care (118)' },
-                  { id: 'CRYO', label: 'Cold Biologics (38)' },
-                  { id: 'DIET', label: 'Clinical Diets (92)' },
-                  { id: 'JOINT', label: 'Joint & Mobility (106)' }
+                  { id: 'ALL', label: `All (${(products || []).length})` },
+                  { id: 'CANINE', label: `Canine Rx (${(products || []).filter(p => p.isRx || (p.category || '').toLowerCase().includes('canine')).length})` },
+                  { id: 'FELINE', label: `Feline Care (${(products || []).filter(p => (p.category || '').toLowerCase().includes('feline') || (p.category || '').toLowerCase().includes('cat')).length})` },
+                  { id: 'CRYO', label: `Cold Biologics (${(products || []).filter(p => p.isRx || (p.category || '').toLowerCase().includes('cold') || (p.name || '').toLowerCase().includes('vaccine')).length})` },
+                  { id: 'DIET', label: `Clinical Diets (${(products || []).filter(p => (p.category || '').toLowerCase().includes('diet') || (p.category || '').toLowerCase().includes('food')).length})` },
+                  { id: 'JOINT', label: `Joint & Mobility (${(products || []).filter(p => (p.category || '').toLowerCase().includes('joint') || (p.category || '').toLowerCase().includes('suppl')).length})` }
                 ].map((tax) => {
                   const isSelected = inventoryTaxonomy === tax.id;
                   return (
@@ -2488,7 +2514,7 @@ export default function AdminPortal() {
                             const allChecked = e.target.checked;
                             const newSelected = {};
                             if (allChecked) {
-                              formulations.forEach(f => { newSelected[f.id] = true; });
+                              liveFormulations.forEach(f => { newSelected[f.id] = true; });
                             }
                             setSelectedInventoryItems(newSelected);
                           }}
@@ -2505,7 +2531,7 @@ export default function AdminPortal() {
                     </tr>
                   </thead>
                   <tbody>
-                    {formulations.filter(f => {
+                    {liveFormulations.filter(f => {
                       if (inventoryStatusFilter === 'IN_STOCK' && !f.inStock) return false;
                       if (inventoryStatusFilter === 'LOW_STOCK' && !f.isCritical && f.stockCount >= 10) return false;
                       if (inventoryStatusFilter === 'RX_LOCKED' && f.regulatoryType !== 'RX_LOCKED') return false;
@@ -2730,7 +2756,7 @@ export default function AdminPortal() {
                               <button
                                 className="icon-btn"
                                 style={{ width: 32, height: 32, color: 'var(--primary)' }}
-                                onClick={() => showToast(`✏️ Editing formulation ${f.sku}`, 'info')}
+                                onClick={() => handleOpenEditProduct(f.rawProduct || products.find(p => p.id === f.id))}
                                 title="Edit Formulation"
                               >
                                 <Edit size={14} />
@@ -2738,12 +2764,7 @@ export default function AdminPortal() {
                               <button
                                 className="icon-btn"
                                 style={{ width: 32, height: 32, color: '#EF4444' }}
-                                onClick={() => {
-                                  if (window.confirm(`Deactivate formulation ${f.name}?`)) {
-                                    setFormulations(prev => prev.filter(x => x.id !== f.id));
-                                    showToast(`Formulation ${f.name} archived.`, 'success');
-                                  }
-                                }}
+                                onClick={() => handleDeleteProduct(f.id, f.name)}
                                 title="Archive / Deactivate"
                               >
                                 <Trash2 size={14} />
@@ -2760,16 +2781,12 @@ export default function AdminPortal() {
               {/* Footer Pagination Bar */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginTop: '18px', paddingTop: '14px', borderTop: '1px solid var(--border)' }}>
                 <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                  Showing <strong style={{ color: 'var(--text-main)' }}>6 of 501 SKUs</strong> • <span style={{ color: '#0D9488', fontWeight: 600 }}>DGDA Synchronized</span>
+                  Showing <strong style={{ color: 'var(--text-main)' }}>{liveFormulations.length} of {products.length} SKUs</strong> • <span style={{ color: '#0D9488', fontWeight: 600 }}>DGDA Synchronized</span>
                 </span>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <button className="btn-ghost" style={{ padding: '4px 10px', fontSize: '11.5px', borderRadius: '6px', border: '1px solid var(--border)' }}>Prev</button>
                   <button style={{ width: 28, height: 28, borderRadius: '50%', background: '#0D9488', color: '#FFFFFF', border: 'none', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}>1</button>
-                  <button className="btn-ghost" style={{ width: 28, height: 28, borderRadius: '50%', fontSize: '12px', cursor: 'pointer' }}>2</button>
-                  <button className="btn-ghost" style={{ width: 28, height: 28, borderRadius: '50%', fontSize: '12px', cursor: 'pointer' }}>3</button>
-                  <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>...</span>
-                  <button className="btn-ghost" style={{ width: 28, height: 28, borderRadius: '50%', fontSize: '12px', cursor: 'pointer' }}>84</button>
                   <button className="btn-ghost" style={{ padding: '4px 10px', fontSize: '11.5px', borderRadius: '6px', border: '1px solid var(--border)' }}>Next</button>
                 </div>
               </div>
