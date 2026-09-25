@@ -2815,8 +2815,13 @@ html, body {
     border-radius: 0 24px 24px 0 !important;
     z-index: 9999 !important;
   }
-  .admin-left-deck.open {
+  .admin-left-deck.open,
+  .admin-left-deck.expanded {
     transform: translateX(0) !important;
+    width: 280px !important;
+    min-width: 280px !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
   }
 }
 
@@ -2960,6 +2965,41 @@ html, body {
   background-color: var(--surface);
   border-right: 1px solid var(--border);
   color: var(--text-main);
+}
+
+.admin-left-deck.collapsed {
+  width: 0 !important;
+  min-width: 0 !important;
+  opacity: 0 !important;
+  padding: 0 !important;
+  margin-right: -24px !important;
+  border: none !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
+}
+
+.deck-3bar-toggle-btn {
+  user-select: none;
+}
+
+.deck-3bar-toggle-btn:hover {
+  filter: brightness(1.08);
+  border-color: var(--primary) !important;
+}
+
+.admin-deck-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 88;
+}
+
+@media (min-width: 1025px) {
+  .admin-deck-backdrop {
+    display: none !important;
+  }
 }
 
 [data-theme="dark"] .admin-page-layout {

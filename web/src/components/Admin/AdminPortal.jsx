@@ -78,7 +78,8 @@ import {
   Wifi,
   Signal,
   Bell,
-  CheckSquare
+  CheckSquare,
+  Menu
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -207,9 +208,37 @@ export default function AdminPortal() {
     }
   }, [currentUser]);
 
-  // Active Admin Sub-Tab
+  // Active Admin Sub-Tab & Expandable Side Deck
   const [adminTab, setAdminTab] = useState('overview');
-  const [isLeftDeckOpen, setIsLeftDeckOpen] = useState(false);
+  const [isDeckExpanded, setIsDeckExpanded] = useState(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        const saved = localStorage.getItem('pm_admin_deck_expanded');
+        if (saved !== null) return saved === 'true';
+        return window.innerWidth > 1024;
+      }
+    } catch (_) {}
+    return true;
+  });
+
+  const toggleDeck = () => {
+    setIsDeckExpanded(prev => {
+      const next = !prev;
+      try { localStorage.setItem('pm_admin_deck_expanded', String(next)); } catch (_) {}
+      return next;
+    });
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
+        e.preventDefault();
+        toggleDeck();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // ─── SHOP & INVENTORY STATE ───
   const [productSearch, setProductSearch] = useState('');
@@ -1203,6 +1232,14 @@ export default function AdminPortal() {
   return (
     <div className="admin-page-layout" style={{ display: 'flex', gap: '24px', width: '100%', minHeight: '100vh', padding: '16px 24px 60px', position: 'relative', backgroundColor: 'var(--bg)', color: 'var(--text-main)' }}>
 
+      {/* ── MOBILE / TABLET BACKDROP ── */}
+      {isDeckExpanded && (
+        <div
+          className="admin-deck-backdrop"
+          onClick={() => setIsDeckExpanded(false)}
+        />
+      )}
+
       {/* ── MOBILE / TABLET LEFT DECK TOGGLE BAR ── */}
       <div className="mobile-deck-toggle-bar" style={{
         display: 'none',
@@ -1216,7 +1253,7 @@ export default function AdminPortal() {
         marginBottom: '16px'
       }}>
         <button
-          onClick={() => setIsLeftDeckOpen(!isLeftDeckOpen)}
+          onClick={toggleDeck}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -1229,9 +1266,9 @@ export default function AdminPortal() {
             cursor: 'pointer'
           }}
         >
-          <Boxes size={20} color="var(--primary)" />
+          <Menu size={18} color="var(--primary)" />
           <span>Core Admin Deck</span>
-          <ChevronDown size={16} style={{ transform: isLeftDeckOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+          <ChevronDown size={16} style={{ transform: isDeckExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
         </button>
 
         <span className="badge badge-green" style={{ fontSize: '10px' }}>
@@ -1241,14 +1278,19 @@ export default function AdminPortal() {
 
       {/* ── LEFT SLIDING DECK SIDEBAR ── */}
       <aside
-        className={`admin-left-deck ${isLeftDeckOpen ? 'open' : ''}`}
+        className={`admin-left-deck ${isDeckExpanded ? 'open expanded' : 'collapsed'}`}
         style={{
-          width: '270px',
+          width: isDeckExpanded ? '270px' : '0px',
+          minWidth: isDeckExpanded ? '270px' : '0px',
+          opacity: isDeckExpanded ? 1 : 0,
+          padding: isDeckExpanded ? '22px 14px' : '0px',
+          marginRight: isDeckExpanded ? '0px' : '-24px',
+          border: isDeckExpanded ? '1px solid var(--border)' : 'none',
+          overflow: isDeckExpanded ? 'auto' : 'hidden',
+          pointerEvents: isDeckExpanded ? 'auto' : 'none',
           flexShrink: 0,
           backgroundColor: 'var(--surface)',
           borderRadius: '24px',
-          border: '1px solid var(--border)',
-          padding: '22px 14px',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
@@ -1256,18 +1298,40 @@ export default function AdminPortal() {
           top: '20px',
           height: 'calc(100vh - 40px)',
           zIndex: 90,
-          overflowY: 'auto',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.03)'
+          boxShadow: isDeckExpanded ? '0 4px 20px rgba(0,0,0,0.03)' : 'none',
+          transition: 'width 0.28s cubic-bezier(0.16, 1, 0.3, 1), min-width 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease, padding 0.28s ease, margin 0.28s ease'
         }}
       >
         <div>
           {/* Deck Header */}
           <div style={{ padding: '0 8px 16px 8px', marginBottom: '12px', borderBottom: '1px solid var(--border)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-              <div style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--primary)', boxShadow: '0 0 10px var(--primary)' }} />
-              <h2 style={{ fontSize: '19px', fontWeight: 800, letterSpacing: '-0.02em', margin: 0, color: 'var(--text-main)', fontFamily: 'serif' }}>
-                Pet Maya
-              </h2>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--primary)', boxShadow: '0 0 10px var(--primary)' }} />
+                <h2 style={{ fontSize: '19px', fontWeight: 800, letterSpacing: '-0.02em', margin: 0, color: 'var(--text-main)', fontFamily: 'serif' }}>
+                  Pet Maya
+                </h2>
+              </div>
+              <button
+                onClick={toggleDeck}
+                title="Hide side deck (Ctrl+B)"
+                className="deck-3bar-toggle-btn"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '30px',
+                  height: '30px',
+                  borderRadius: '8px',
+                  background: 'var(--surface-alt)',
+                  border: '1px solid var(--border)',
+                  color: 'var(--text-muted)',
+                  cursor: 'pointer',
+                  transition: 'all 0.18s ease'
+                }}
+              >
+                <Menu size={16} />
+              </button>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <span style={{ fontSize: '9px', fontWeight: 800, letterSpacing: '0.08em', color: 'var(--primary)', textTransform: 'uppercase' }}>
@@ -1306,7 +1370,9 @@ export default function AdminPortal() {
                   key={item.id}
                   onClick={() => {
                     setAdminTab(item.id);
-                    setIsLeftDeckOpen(false);
+                    if (typeof window !== 'undefined' && window.innerWidth <= 1024) {
+                      setIsDeckExpanded(false);
+                    }
                     const targetId = item.id === 'overview' ? 'section-overview' :
                       (item.id === 'shop' || item.id === 'cryo' || item.id === 'preset') ? 'section-shop' :
                         (item.id === 'orders' || item.id === 'datalogger' || item.id === 'manifests') ? 'section-orders' :
@@ -1454,8 +1520,35 @@ export default function AdminPortal() {
           border: '1px solid var(--border)',
           boxShadow: '0 2px 10px rgba(0,0,0,0.02)'
         }}>
-          {/* Left: Hub Location & System Health */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          {/* Left: 3-bar Expand/Hide Side Deck Button & Hub Location */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <button
+              onClick={toggleDeck}
+              title={isDeckExpanded ? "Hide side deck (Ctrl+B)" : "Expand side deck (Ctrl+B)"}
+              className="deck-3bar-toggle-btn"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '7px',
+                padding: '7px 12px',
+                borderRadius: '10px',
+                border: '1px solid var(--border)',
+                backgroundColor: isDeckExpanded ? 'var(--surface-alt)' : 'var(--primary-light, rgba(26, 182, 128, 0.15))',
+                color: isDeckExpanded ? 'var(--text-main)' : 'var(--primary)',
+                fontWeight: 700,
+                fontSize: '12.5px',
+                cursor: 'pointer',
+                transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                boxShadow: isDeckExpanded ? 'none' : '0 2px 8px rgba(26, 182, 128, 0.2)'
+              }}
+            >
+              <Menu size={18} strokeWidth={2.4} />
+              <span style={{ fontSize: '12px', letterSpacing: '0.02em', display: 'inline-block' }}>
+                {isDeckExpanded ? 'Deck' : 'Expand Deck'}
+              </span>
+            </button>
+
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--surface-alt)', padding: '5px 12px', borderRadius: '10px', border: '1px solid var(--border)' }}>
               <Sparkles size={14} color="#0D9488" />
               <span style={{ fontSize: '12.5px', fontWeight: 700, color: 'var(--text-main)' }}>Banani Central Hub</span>
@@ -1567,7 +1660,7 @@ export default function AdminPortal() {
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>COLD-CHAIN COMPLIANCE</span>
-                    <div style={{ background: 'var(--primary-light)', color: 'var(--primary)', borderRadius: '50%', padding: '6px' }}><Snowflake size={15} /></div>
+                    <div style={{ width: 34, height: 34, minWidth: 34, minHeight: 34, borderRadius: '50%', background: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Snowflake size={16} /></div>
                   </div>
                   <div style={{ margin: '12px 0 10px' }}>
                     <span style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-main)' }}>48 / 48</span>
@@ -1607,7 +1700,7 @@ export default function AdminPortal() {
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>GROSS REVENUE</span>
-                    <div style={{ background: 'rgba(16, 185, 129, 0.12)', color: '#10B981', borderRadius: '50%', padding: '6px' }}><DollarSign size={15} /></div>
+                    <div style={{ width: 34, height: 34, minWidth: 34, minHeight: 34, borderRadius: '50%', background: 'rgba(16, 185, 129, 0.12)', color: '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><DollarSign size={16} /></div>
                   </div>
                   <div style={{ margin: '12px 0 10px' }}>
                     <span style={{ fontSize: '28px', fontWeight: 800, color: '#10B981' }}>৳{Math.round(totalRevenue).toLocaleString()}</span>
@@ -1659,7 +1752,7 @@ export default function AdminPortal() {
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>CLINICAL GOVERNANCE</span>
-                    <div style={{ background: 'rgba(139, 92, 246, 0.12)', color: '#8B5CF6', borderRadius: '50%', padding: '6px' }}><Stethoscope size={15} /></div>
+                    <div style={{ width: 34, height: 34, minWidth: 34, minHeight: 34, borderRadius: '50%', background: 'rgba(139, 92, 246, 0.12)', color: '#8B5CF6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Stethoscope size={16} /></div>
                   </div>
                   <div style={{ margin: '12px 0 10px' }}>
                     <span style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-main)' }}>{verifiedServicesCount} / {vets.length}</span>
@@ -1700,7 +1793,7 @@ export default function AdminPortal() {
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>GUARDIANS &amp; KYC</span>
-                    <div style={{ background: 'rgba(59, 130, 246, 0.12)', color: '#3B82F6', borderRadius: '50%', padding: '6px' }}><Users size={15} /></div>
+                    <div style={{ width: 34, height: 34, minWidth: 34, minHeight: 34, borderRadius: '50%', background: 'rgba(59, 130, 246, 0.12)', color: '#3B82F6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Users size={16} /></div>
                   </div>
                   <div style={{ margin: '12px 0 10px' }}>
                     <span style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-main)' }}>{usersList.length || 13}</span>
@@ -2217,7 +2310,7 @@ export default function AdminPortal() {
                     <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                       INVENTORY CAPITAL STASIS
                     </span>
-                    <div style={{ width: 28, height: 28, borderRadius: '8px', background: 'rgba(13, 148, 136, 0.12)', color: '#0D9488', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ width: 34, height: 34, minWidth: 34, minHeight: 34, borderRadius: '50%', background: 'rgba(13, 148, 136, 0.12)', color: '#0D9488', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <DollarSign size={16} />
                     </div>
                   </div>
@@ -2241,7 +2334,7 @@ export default function AdminPortal() {
                     <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                       COLD-CHAIN BIOLOGICS
                     </span>
-                    <div style={{ width: 28, height: 28, borderRadius: '8px', background: 'rgba(6, 182, 212, 0.12)', color: '#06B6D4', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ width: 34, height: 34, minWidth: 34, minHeight: 34, borderRadius: '50%', background: 'rgba(6, 182, 212, 0.12)', color: '#06B6D4', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <Snowflake size={16} />
                     </div>
                   </div>
@@ -2266,7 +2359,7 @@ export default function AdminPortal() {
                     <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                       DEFICIT &amp; LOW STOCK ALERTS
                     </span>
-                    <div style={{ width: 28, height: 28, borderRadius: '8px', background: 'rgba(239, 68, 68, 0.12)', color: '#EF4444', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ width: 34, height: 34, minWidth: 34, minHeight: 34, borderRadius: '50%', background: 'rgba(239, 68, 68, 0.12)', color: '#EF4444', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <AlertTriangle size={16} />
                     </div>
                   </div>
@@ -2291,7 +2384,7 @@ export default function AdminPortal() {
                     <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                       PRESCRIPTIONS GATED (BMDC)
                     </span>
-                    <div style={{ width: 28, height: 28, borderRadius: '8px', background: 'rgba(245, 158, 11, 0.12)', color: '#D97706', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ width: 34, height: 34, minWidth: 34, minHeight: 34, borderRadius: '50%', background: 'rgba(245, 158, 11, 0.12)', color: '#D97706', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <Lock size={16} />
                     </div>
                   </div>
