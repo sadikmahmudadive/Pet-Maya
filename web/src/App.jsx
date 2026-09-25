@@ -207,12 +207,96 @@ const VALID_EDITORIAL_ROUTES = [
   'product', 'product-detail', 'pdp', 'tracker', 'gps', 'radar', 'dashboard', 'community',
   'cart', 'bag', 'dispensary', 'checkout', 'payment', 'settlement',
   'orders', 'order', 'tracking', 'telemetry', 'order-tracking', 'dispensary-orders',
-  'profile', 'account', 'guardian-profile', 'health-vault-profile'
+  'profile', 'account', 'guardian-profile', 'health-vault-profile', 'admin'
 ];
 
 const VALID_APP_ROUTES = [
-  'dashboard', 'vets', 'tracker', 'community', 'food', 'vaccines', 'profile', 'journal'
+  'dashboard', 'vets', 'tracker', 'community', 'food', 'vaccines', 'profile', 'journal', 'admin'
 ];
+
+class AdminErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('AdminPortal runtime exception caught by ErrorBoundary:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{
+          minHeight: '80vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '24px',
+          color: 'var(--text-main)',
+          backgroundColor: 'var(--bg)'
+        }}>
+          <div style={{
+            maxWidth: '520px',
+            width: '100%',
+            padding: '32px',
+            borderRadius: '20px',
+            background: 'var(--card-bg, #1a2320)',
+            border: '1px solid rgba(239, 68, 68, 0.3)',
+            textAlign: 'center',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.4)'
+          }}>
+            <div style={{ fontSize: '40px', marginBottom: '16px' }}>⚠️</div>
+            <h2 style={{ fontSize: '20px', fontWeight: 800, marginBottom: '8px', color: '#EF4444' }}>
+              Admin Console Recovery Mode
+            </h2>
+            <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '16px', lineHeight: 1.5 }}>
+              An unexpected runtime error was caught in the Admin Portal.
+            </p>
+            <div style={{
+              background: 'rgba(0,0,0,0.3)',
+              padding: '12px',
+              borderRadius: '8px',
+              fontSize: '11px',
+              fontFamily: 'monospace',
+              color: '#F87171',
+              wordBreak: 'break-word',
+              marginBottom: '20px',
+              textAlign: 'left'
+            }}>
+              {this.state.error?.toString()}
+            </div>
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+              <button
+                onClick={() => {
+                  try { sessionStorage.removeItem('petmaya_admin_auth'); } catch (_) {}
+                  window.location.reload();
+                }}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: '10px',
+                  border: 'none',
+                  background: 'var(--primary, #1AB680)',
+                  color: '#fff',
+                  fontWeight: 700,
+                  fontSize: '13px',
+                  cursor: 'pointer'
+                }}
+              >
+                Reload Admin Portal
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 function MainContent() {
   const { activeTab, setActiveTab } = useApp();
@@ -221,6 +305,16 @@ function MainContent() {
 
   // Synchronize route from URL pathname and hash
   const resolveCurrentRoute = useCallback(() => {
+    // 0. Check admin query / path / subdomain
+    if (typeof window !== 'undefined') {
+      if (
+        window.location.hostname.startsWith('admin.') || 
+        window.location.search.includes('portal=admin') ||
+        window.location.pathname.startsWith('/admin')
+      ) {
+        return 'admin';
+      }
+    }
     // 1. Check hash first if present (e.g. #dashboard, #shop, #tracker, #shop-product/p1)
     const rawHash = window.location.hash.replace(/^#\/?/, '');
     const hash = rawHash.toLowerCase();
@@ -285,6 +379,9 @@ function MainContent() {
     if (ogDesc) ogDesc.content = seo.description;
 
     // Sync URL cleanly
+    if (activeTab === 'admin') {
+      return;
+    }
     if (activeTab && activeTab !== 'landing') {
       if (activeTab.startsWith('shop-product/') || activeTab.startsWith('product/')) {
         window.history.replaceState(null, '', `/${activeTab}`);
@@ -298,17 +395,19 @@ function MainContent() {
     }
   }, [activeTab]);
 
-  // Subdomain check: admin.petmaya.app / portal=admin / /admin
+  // Subdomain / route check: admin.petmaya.app / portal=admin / /admin / activeTab='admin'
   const isAdminSubdomain = typeof window !== 'undefined' && (
     window.location.hostname.startsWith('admin.') || 
     window.location.search.includes('portal=admin') ||
     window.location.pathname.startsWith('/admin')
   );
 
-  if (isAdminSubdomain) {
+  if (isAdminSubdomain || activeTab === 'admin') {
     return (
       <div style={{ minHeight: '100vh', width: '100%', backgroundColor: 'var(--bg)', color: 'var(--text-main)' }}>
-        <AdminPortal />
+        <AdminErrorBoundary>
+          <AdminPortal />
+        </AdminErrorBoundary>
         <ModalRoot />
         <Toast />
       </div>
@@ -429,7 +528,11 @@ function MainContent() {
       case 'profile':
         return <Profile key="profile" onNavigate={handleNavigate} />;
       case 'admin':
-        return <AdminPortal key="admin" />;
+        return (
+          <AdminErrorBoundary>
+            <AdminPortal key="admin" />
+          </AdminErrorBoundary>
+        );
       default:
         return <LandingPage onNavigate={handleNavigate} key="landing-default" />;
     }

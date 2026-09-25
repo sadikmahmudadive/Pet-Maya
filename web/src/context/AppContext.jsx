@@ -200,6 +200,15 @@ const PAGE_DESCRIPTIONS = {
 const resolveInitialTab = () => {
   if (typeof window === 'undefined') return 'landing';
 
+  // 0. Check admin subdomain or portal=admin query or /admin pathname
+  if (
+    window.location.hostname.startsWith('admin.') || 
+    window.location.search.includes('portal=admin') || 
+    window.location.pathname.startsWith('/admin')
+  ) {
+    return 'admin';
+  }
+
   // 1. Check hash first if present (e.g. #dashboard, #shop, #shop-product/p1, #book-vet)
   const rawHash = window.location.hash.replace(/^#\/?/, '');
   const hash = rawHash.toLowerCase();

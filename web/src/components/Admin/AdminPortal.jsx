@@ -83,36 +83,36 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 
 // ─── STYLISH INITIAL MONOGRAM / REAL AVATAR COMPONENT ───
+export const getUserInitials = (str) => {
+  if (!str) return 'PM';
+  const parts = str.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+};
+
+export const getUserGradient = (idOrName) => {
+  const gradients = [
+    'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
+    'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)',
+    'linear-gradient(135deg, #10B981 0%, #047857 100%)',
+    'linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%)',
+    'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+    'linear-gradient(135deg, #EC4899 0%, #BE185D 100%)'
+  ];
+  let hash = 0;
+  const key = idOrName || 'petmaya';
+  for (let i = 0; i < key.length; i++) {
+    hash = key.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const idx = Math.abs(hash) % gradients.length;
+  return gradients[idx];
+};
+
 function UserAvatar({ user, size = 40 }) {
   const [imgError, setImgError] = useState(false);
   const name = user?.name || user?.displayName || user?.email?.split('@')[0] || 'User';
   const avatarUrl = user?.avatar || user?.photoUrl || user?.photoURL;
   const hasPhoto = avatarUrl && typeof avatarUrl === 'string' && avatarUrl.trim() !== '' && !imgError;
-
-  const getUserInitials = (str) => {
-    if (!str) return 'PM';
-    const parts = str.trim().split(/\s+/);
-    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-  };
-
-  const getUserGradient = (idOrName) => {
-    const gradients = [
-      'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
-      'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)',
-      'linear-gradient(135deg, #10B981 0%, #047857 100%)',
-      'linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%)',
-      'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
-      'linear-gradient(135deg, #EC4899 0%, #BE185D 100%)'
-    ];
-    let hash = 0;
-    const key = idOrName || 'petmaya';
-    for (let i = 0; i < key.length; i++) {
-      hash = key.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const idx = Math.abs(hash) % gradients.length;
-    return gradients[idx];
-  };
 
   if (hasPhoto) {
     return (
@@ -186,11 +186,26 @@ export default function AdminPortal() {
   } = useApp();
   const { currentUser } = useAuth();
 
-  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(
-    currentUser?.role === 'Super Admin' || currentUser?.role === 'admin' || currentUser?.email === 'admin@petmaya.app'
-  );
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(() => {
+    try {
+      if (typeof window !== 'undefined' && sessionStorage.getItem('petmaya_admin_auth') === 'true') {
+        return true;
+      }
+    } catch (_) {}
+    return currentUser?.role === 'Super Admin' || currentUser?.role === 'admin' || currentUser?.email === 'admin@petmaya.app';
+  });
   const [adminKey, setAdminKey] = useState('');
   const [authError, setAuthError] = useState('');
+
+  // Auto-authenticate when currentUser role resolves
+  useEffect(() => {
+    if (currentUser?.role === 'Super Admin' || currentUser?.role === 'admin' || currentUser?.email === 'admin@petmaya.app') {
+      setIsAdminAuthenticated(true);
+      try {
+        sessionStorage.setItem('petmaya_admin_auth', 'true');
+      } catch (_) {}
+    }
+  }, [currentUser]);
 
   // Active Admin Sub-Tab
   const [adminTab, setAdminTab] = useState('overview');
@@ -583,6 +598,9 @@ export default function AdminPortal() {
     e.preventDefault();
     if (adminKey === 'admin2026' || adminKey === 'petmaya@admin' || adminKey.length >= 6) {
       setIsAdminAuthenticated(true);
+      try {
+        sessionStorage.setItem('petmaya_admin_auth', 'true');
+      } catch (_) {}
       setAuthError('');
       showToast('🛡️ Super Admin credentials authorized.', 'success');
     } else {
@@ -1394,7 +1412,10 @@ export default function AdminPortal() {
           </button>
 
           <button
-            onClick={() => setIsAdminAuthenticated(false)}
+            onClick={() => {
+              setIsAdminAuthenticated(false);
+              try { sessionStorage.removeItem('petmaya_admin_auth'); } catch (_) {}
+            }}
             style={{
               width: '100%',
               padding: '10px 14px',
