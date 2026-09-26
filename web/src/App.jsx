@@ -5,7 +5,6 @@ import { AppProvider, useApp } from './context/AppContext';
 import GlobalBanner from './components/GlobalBanner';
 import Header from './components/Header';
 import Toast from './components/Toast';
-import PermissionPrompt from './components/PermissionPrompt';
 import ModalRoot from './components/Modals/ModalRoot';
 import QuickActionSheet from './components/Common/QuickActionSheet';
 
@@ -773,7 +772,6 @@ function MainContent() {
 
       <ModalRoot />
       <Toast />
-      <PermissionPrompt />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { 
   db,
   collection,
@@ -403,7 +403,7 @@ export function AppProvider({ children }) {
     return DEFAULT_BANNER;
   });
 
-  // Permissions & Device Geolocation
+  // ─── ROBUST NATIVE BROWSER PERMISSIONS & PUSH ENGINE ───
   const [locationPermission, setLocationPermission] = useState('prompt'); // 'prompt', 'granted', 'denied'
   const [notificationPermission, setNotificationPermission] = useState(
     typeof window !== 'undefined' && 'Notification' in window ? Notification.permission : 'default'
@@ -416,53 +416,142 @@ export function AppProvider({ children }) {
     return { lat: 23.8120, lng: 90.4150 };
   });
 
-  // Request Device Location
-  const requestLocationPermission = () => {
+  const swRegistrationRef = useRef(null);
+  const watchIdRef = useRef(null);
+
+  // 1. Service Worker Initialization (Production Web Push & Background Alerts)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      navigator.serviceWorker
+        .register('/sw.js')
+        .then((reg) => {
+          swRegistrationRef.current = reg;
+        })
+        .catch((err) => {
+          console.warn('[SW Registration Error]:', err);
+        });
+    }
+  }, []);
+
+  // 2. Real-time Browser Native Permission State Listeners
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    if ('Notification' in window) {
+      setNotificationPermission(Notification.permission);
+    }
+
+    if (navigator.permissions && navigator.permissions.query) {
+      navigator.permissions.query({ name: 'geolocation' }).then((result) => {
+        setLocationPermission(result.state);
+        result.onchange = () => {
+          setLocationPermission(result.state);
+        };
+      }).catch(() => {});
+
+      if ('Notification' in window) {
+        navigator.permissions.query({ name: 'notifications' }).then((result) => {
+          setNotificationPermission(result.state);
+          result.onchange = () => {
+            setNotificationPermission(result.state);
+          };
+        }).catch(() => {});
+      }
+    }
+  }, []);
+
+  // 3. Request Browser Native Device Location (Triggers Chrome's native prompt)
+  const requestLocationPermission = (options = {}) => {
     return new Promise((resolve) => {
-      if (!navigator.geolocation) {
-        showToast('Geolocation is not supported by your browser', 'info');
+      if (typeof window === 'undefined' || !navigator.geolocation) {
+        if (!options.silent) showToast('Geolocation is not supported by your browser', 'info');
         resolve(null);
         return;
       }
+
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          const coords = {
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+            accuracy: pos.coords.accuracy,
+            heading: pos.coords.heading,
+            speed: pos.coords.speed,
+            timestamp: pos.timestamp
+          };
           setUserLiveLocation(coords);
           setLocationPermission('granted');
-          localStorage.setItem('pm_user_location', JSON.stringify(coords));
-          showToast('📍 Live GPS location active & synced!', 'success');
+          localStorage.setItem('pm_user_location', JSON.stringify({ lat: coords.lat, lng: coords.lng }));
+          if (!options.silent) {
+            showToast('📍 Live GPS location synced & active!', 'success');
+          }
+
+          // Automatically activate live continuous tracking if not already active
+          if (!watchIdRef.current) {
+            try {
+              watchIdRef.current = navigator.geolocation.watchPosition(
+                (watchPos) => {
+                  const updatedCoords = {
+                    lat: watchPos.coords.latitude,
+                    lng: watchPos.coords.longitude,
+                    accuracy: watchPos.coords.accuracy
+                  };
+                  setUserLiveLocation((prev) => ({ ...prev, ...updatedCoords }));
+                },
+                null,
+                { enableHighAccuracy: true, maximumAge: 10000, timeout: 20000 }
+              );
+            } catch (_) {}
+          }
+
           resolve(coords);
         },
         (err) => {
-          console.warn('[Geolocation] Error:', err);
+          console.warn('[Geolocation Error]:', err.code, err.message);
           setLocationPermission('denied');
-          showToast('Location access was denied in browser settings', 'info');
+          if (!options.silent) {
+            if (err.code === 1) {
+              showToast('Location access was denied in Chrome settings', 'info');
+            } else if (err.code === 2) {
+              showToast('GPS position unavailable on this device', 'info');
+            } else if (err.code === 3) {
+              showToast('GPS location request timed out', 'info');
+            }
+          }
           resolve(null);
         },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+        { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 }
       );
     });
   };
 
-  // Request Web Push Notifications
-  const requestNotificationPermission = async () => {
+  // 4. Request Browser Native Push Notifications (Triggers Chrome's native prompt)
+  const requestNotificationPermission = async (options = {}) => {
     if (typeof window === 'undefined' || !('Notification' in window)) {
-      showToast('Notifications are not supported by this browser', 'info');
+      if (!options.silent) showToast('Notifications are not supported by this browser', 'info');
       return 'unsupported';
     }
     try {
+      // Trigger Chrome's native browser popup dialog
       const permission = await Notification.requestPermission();
       setNotificationPermission(permission);
+
       if (permission === 'granted') {
-        showToast('🔔 Live push alerts & boundary sirens enabled!', 'success');
-        try {
-          new Notification('Pet Maya Smart Care', {
-            body: 'Live GPS boundary alarms and healthcare reminders are now active.',
-            icon: '/assets/images/tail_wagging_logo.png'
-          });
-        } catch (_) {}
+        if (!options.silent) {
+          showToast('🔔 Native push notifications & safe-zone sirens enabled!', 'success');
+        }
+        // Send immediate confirmation push notification
+        sendPushNotification('Pet Maya — Live Radar & Alerts Active', {
+          body: 'Real-time satellite GPS boundary sirens and medical reminders are now live.',
+          icon: '/favicon-96x96.png',
+          badge: '/favicon-48x48.png',
+          tag: 'petmaya-welcome',
+          url: '/tracker'
+        });
       } else if (permission === 'denied') {
-        showToast('Notifications blocked in browser settings', 'info');
+        if (!options.silent) {
+          showToast('Notifications blocked in Chrome settings', 'info');
+        }
       }
       return permission;
     } catch (e) {
@@ -471,20 +560,81 @@ export function AppProvider({ children }) {
     }
   };
 
-  // Dispatch Native Notification
-  const sendPushNotification = (title, body, icon = '/assets/images/tail_wagging_logo.png') => {
-    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-      try {
-        new Notification(title, { body, icon });
-      } catch (_) {}
+  // 5. Send Real Native Push Notification (Service Worker + Notification API)
+  const sendPushNotification = (title, options = {}) => {
+    if (typeof window === 'undefined' || !('Notification' in window)) return;
+    if (Notification.permission !== 'granted') return;
+
+    const payload = {
+      body: typeof options === 'string' ? options : (options.body || ''),
+      icon: (typeof options === 'object' && options.icon) || '/favicon-96x96.png',
+      badge: (typeof options === 'object' && options.badge) || '/favicon-48x48.png',
+      tag: (typeof options === 'object' && options.tag) || 'petmaya-alert',
+      renotify: true,
+      data: {
+        url: (typeof options === 'object' && options.url) || '/',
+        timestamp: Date.now()
+      }
+    };
+
+    // ServiceWorker Registration notification (works on Android Chrome & Desktop Chrome)
+    if (swRegistrationRef.current && 'showNotification' in swRegistrationRef.current) {
+      swRegistrationRef.current.showNotification(title, payload).catch(() => {
+        try {
+          const n = new Notification(title, payload);
+          n.onclick = () => {
+            window.focus();
+            if (payload.data && payload.data.url) window.location.href = payload.data.url;
+          };
+        } catch (_) {}
+      });
+      return;
     }
+
+    // Direct Window Notification fallback
+    try {
+      const n = new Notification(title, payload);
+      n.onclick = () => {
+        window.focus();
+        if (payload.data && payload.data.url) window.location.href = payload.data.url;
+      };
+    } catch (_) {}
   };
 
-  // Request both permissions in one click
+  // 6. Request all native browser permissions
   const requestAllPermissions = async () => {
     await requestNotificationPermission();
     await requestLocationPermission();
   };
+
+  // 7. Non-intrusive native permission prompt on user interaction
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const hasPrompted = sessionStorage.getItem('pm_browser_perm_prompted');
+    if (hasPrompted) return;
+
+    const handleFirstUserInteraction = () => {
+      sessionStorage.setItem('pm_browser_perm_prompted', 'true');
+      window.removeEventListener('click', handleFirstUserInteraction);
+      window.removeEventListener('touchstart', handleFirstUserInteraction);
+
+      // Trigger Chrome native prompt if still default
+      if ('Notification' in window && Notification.permission === 'default') {
+        requestNotificationPermission({ silent: true });
+      }
+      if (navigator.geolocation && locationPermission === 'prompt') {
+        requestLocationPermission({ silent: true });
+      }
+    };
+
+    window.addEventListener('click', handleFirstUserInteraction, { once: true });
+    window.addEventListener('touchstart', handleFirstUserInteraction, { once: true });
+
+    return () => {
+      window.removeEventListener('click', handleFirstUserInteraction);
+      window.removeEventListener('touchstart', handleFirstUserInteraction);
+    };
+  }, [locationPermission]);
 
   // ─── THEME SYNCHRONIZATION ───
   useEffect(() => {
