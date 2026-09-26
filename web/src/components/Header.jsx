@@ -5,6 +5,7 @@ import {
   Sun, 
   Moon, 
   ShoppingBag,
+  Bell,
   X,
   LayoutGrid
 } from 'lucide-react';
@@ -12,7 +13,18 @@ import { motion, AnimatePresence } from 'framer-motion';
 import LottieMenuIcon from './Common/LottieMenuIcon';
 
 export default function Header() {
-  const { activeTab, setActiveTab, theme, toggleTheme, cartCount, openModal, showToast } = useApp();
+  const { 
+    activeTab, 
+    setActiveTab, 
+    theme, 
+    toggleTheme, 
+    cartCount, 
+    openModal, 
+    showToast,
+    notificationPermission,
+    requestNotificationPermission,
+    sendPushNotification
+  } = useApp();
   const { currentUser, loginAsGuest } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -185,6 +197,62 @@ export default function Header() {
                 </motion.span>
               )}
             </AnimatePresence>
+          </button>
+
+          {/* Native Push Notifications Trigger */}
+          <button
+            className="icon-btn"
+            onClick={async () => {
+              if (notificationPermission !== 'granted') {
+                const res = await requestNotificationPermission();
+                if (res === 'granted') {
+                  showToast('🔔 Native push notifications enabled!', 'success');
+                }
+              } else {
+                sendPushNotification('Pet Maya Notification Active 🔔', {
+                  body: 'Live push notifications & Service Worker are active on this device.',
+                  url: '/'
+                });
+                showToast('🔔 Sent test push notification!', 'info');
+              }
+            }}
+            style={{ width: 32, height: 32, position: 'relative' }}
+            title={
+              notificationPermission === 'granted'
+                ? "Push Notifications Active (Click to send test alert)"
+                : notificationPermission === 'denied'
+                ? "Notifications Blocked in Browser Settings"
+                : "Click to Enable Native Push Notifications"
+            }
+          >
+            <Bell size={15} color={notificationPermission === 'granted' ? '#10B981' : 'var(--text-muted)'} />
+            {notificationPermission === 'granted' ? (
+              <span
+                style={{
+                  position: 'absolute',
+                  top: 5,
+                  right: 5,
+                  width: 6,
+                  height: 6,
+                  borderRadius: '50%',
+                  background: '#10B981',
+                  boxShadow: '0 0 6px #10B981'
+                }}
+              />
+            ) : notificationPermission === 'default' ? (
+              <span
+                style={{
+                  position: 'absolute',
+                  top: 5,
+                  right: 5,
+                  width: 6,
+                  height: 6,
+                  borderRadius: '50%',
+                  background: '#38BDF8',
+                  animation: 'pulse 1.8s infinite'
+                }}
+              />
+            ) : null}
           </button>
 
           {/* Theme Switcher */}

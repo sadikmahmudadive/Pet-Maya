@@ -1,12 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
-import { Search, ShoppingBag, Menu, X, Sun, Moon } from 'lucide-react';
+import { Search, ShoppingBag, Menu, X, Sun, Moon, Bell } from 'lucide-react';
 import GlobalBanner from '../GlobalBanner';
 import UserAvatar from '../Common/UserAvatar';
 
 export default function EditorialNavbar({ currentRoute, onNavigate }) {
-  const { openModal, showToast, cart, theme, toggleTheme } = useApp();
+  const { 
+    openModal, 
+    showToast, 
+    cart, 
+    theme, 
+    toggleTheme,
+    notificationPermission,
+    requestNotificationPermission,
+    sendPushNotification
+  } = useApp();
   const { currentUser, loginAsGuest } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -179,6 +188,78 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
             onMouseLeave={(e) => { e.currentTarget.style.color = isDark ? '#8EA6A2' : '#55605C'; }}
           >
             <Search size={18} />
+          </button>
+
+          {/* Native Push Notification Toggle Button */}
+          <button
+            onClick={async () => {
+              if (notificationPermission !== 'granted') {
+                const res = await requestNotificationPermission();
+                if (res === 'granted') {
+                  showToast('🔔 Native push notifications enabled!', 'success');
+                }
+              } else {
+                sendPushNotification('Pet Maya Notification Active 🔔', {
+                  body: 'Live push alerts, radar safe-zone sirens, and vaccine reminders are active.',
+                  url: '/'
+                });
+                showToast('🔔 Sent test push notification!', 'info');
+              }
+            }}
+            aria-label="Native Push Notifications"
+            title={
+              notificationPermission === 'granted'
+                ? "Push Notifications Active (Click to send test alert)"
+                : notificationPermission === 'denied'
+                ? "Notifications Blocked in Browser Settings"
+                : "Click to Enable Native Browser Push Notifications"
+            }
+            className="btn-elevate"
+            style={{
+              position: 'relative',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '36px',
+              height: '36px',
+              borderRadius: '50%',
+              backgroundColor: isDark ? '#0B2826' : '#FFFFFF',
+              border: isDark ? '1px solid rgba(26, 182, 128, 0.35)' : '1px solid rgba(222, 217, 214, 0.9)',
+              color: notificationPermission === 'granted' ? '#1AB680' : (isDark ? '#94A3B8' : '#64748B'),
+              cursor: 'pointer',
+              boxShadow: isDark ? '0 1px 6px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.04)',
+              transition: 'all 0.2s ease',
+              flexShrink: 0
+            }}
+          >
+            <Bell size={17} />
+            {notificationPermission === 'granted' ? (
+              <span
+                style={{
+                  position: 'absolute',
+                  top: '6px',
+                  right: '6px',
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  backgroundColor: '#1AB680',
+                  boxShadow: '0 0 6px #1AB680'
+                }}
+              />
+            ) : notificationPermission === 'default' ? (
+              <span
+                style={{
+                  position: 'absolute',
+                  top: '6px',
+                  right: '6px',
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  backgroundColor: '#38BDF8',
+                  animation: 'pulse 1.8s infinite'
+                }}
+              />
+            ) : null}
           </button>
 
           {/* Theme Toggle Button (Light/Dark mode) */}
