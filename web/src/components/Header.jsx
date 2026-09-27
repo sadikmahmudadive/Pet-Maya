@@ -23,7 +23,8 @@ export default function Header() {
     showToast,
     notificationPermission,
     requestNotificationPermission,
-    sendPushNotification
+    sendPushNotification,
+    unreadNotificationsCount
   } = useApp();
   const { currentUser, loginAsGuest } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -199,34 +200,42 @@ export default function Header() {
             </AnimatePresence>
           </button>
 
-          {/* Native Push Notifications Trigger */}
+          {/* In-App Notifications & Web Push Trigger */}
           <button
             className="icon-btn"
-            onClick={async () => {
-              if (notificationPermission !== 'granted') {
-                const res = await requestNotificationPermission();
-                if (res === 'granted') {
-                  showToast('🔔 Native push notifications enabled!', 'success');
-                }
-              } else {
-                sendPushNotification('Pet Maya Notification Active 🔔', {
-                  body: 'Live push notifications & Service Worker are active on this device.',
-                  url: '/'
-                });
-                showToast('🔔 Sent test push notification!', 'info');
-              }
-            }}
+            onClick={() => openModal('notifications')}
             style={{ width: 32, height: 32, position: 'relative' }}
             title={
-              notificationPermission === 'granted'
-                ? "Push Notifications Active (Click to send test alert)"
-                : notificationPermission === 'denied'
-                ? "Notifications Blocked in Browser Settings"
-                : "Click to Enable Native Push Notifications"
+              unreadNotificationsCount > 0
+                ? `${unreadNotificationsCount} Unread Notifications — Click to open Notification Center`
+                : "Notification Center & Live Alerts"
             }
           >
-            <Bell size={15} color={notificationPermission === 'granted' ? '#10B981' : 'var(--text-muted)'} />
-            {notificationPermission === 'granted' ? (
+            <Bell size={15} color={unreadNotificationsCount > 0 ? '#10B981' : 'var(--text-muted)'} />
+            {unreadNotificationsCount > 0 ? (
+              <span
+                style={{
+                  position: 'absolute',
+                  top: -2,
+                  right: -2,
+                  minWidth: 16,
+                  height: 16,
+                  borderRadius: '9999px',
+                  background: '#10B981',
+                  color: '#021E20',
+                  fontSize: '9.5px',
+                  fontWeight: 800,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '0 4px',
+                  border: '1.5px solid var(--bg-pure)',
+                  boxShadow: '0 0 8px rgba(16, 185, 129, 0.4)'
+                }}
+              >
+                {unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount}
+              </span>
+            ) : notificationPermission === 'granted' ? (
               <span
                 style={{
                   position: 'absolute',
@@ -237,19 +246,6 @@ export default function Header() {
                   borderRadius: '50%',
                   background: '#10B981',
                   boxShadow: '0 0 6px #10B981'
-                }}
-              />
-            ) : notificationPermission === 'default' ? (
-              <span
-                style={{
-                  position: 'absolute',
-                  top: 5,
-                  right: 5,
-                  width: 6,
-                  height: 6,
-                  borderRadius: '50%',
-                  background: '#38BDF8',
-                  animation: 'pulse 1.8s infinite'
                 }}
               />
             ) : null}

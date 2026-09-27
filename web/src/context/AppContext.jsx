@@ -234,6 +234,75 @@ const resolveInitialTab = () => {
   return localStorage.getItem('pm_active_tab') || 'landing';
 };
 
+const INITIAL_NOTIFICATIONS = [
+  {
+    id: 'notif-1',
+    title: '🚨 Radar Geofence Alert',
+    body: 'Buddy has moved outside the primary safe zone (Dhanmondi Lake Perimeter). Sub-meter GPS beacon active.',
+    type: 'radar',
+    category: 'GPS & Security',
+    timestamp: new Date(Date.now() - 1000 * 60 * 8).toISOString(),
+    read: false,
+    actionUrl: 'pet-gps',
+    priority: 'high'
+  },
+  {
+    id: 'notif-2',
+    title: '💉 Rabies Booster Immunization Due',
+    body: 'Milo is due for the annual Rabies & DHPP booster in 3 days. Digital Health Passport updated.',
+    type: 'vaccine',
+    category: 'Health & Vaccine',
+    timestamp: new Date(Date.now() - 1000 * 60 * 42).toISOString(),
+    read: false,
+    actionUrl: 'vaccines',
+    priority: 'medium'
+  },
+  {
+    id: 'notif-3',
+    title: '📦 Pharmacy Cold-Chain Dispatched',
+    body: 'Dispensary Order #PM-8924 (Simparica Trio & Royal Canin) is out for express delivery with live temperature logging.',
+    type: 'order',
+    category: 'Prescription Order',
+    timestamp: new Date(Date.now() - 1000 * 60 * 135).toISOString(),
+    read: false,
+    actionUrl: 'shop',
+    priority: 'normal'
+  },
+  {
+    id: 'notif-4',
+    title: '🩺 Teleconsultation Confirmed',
+    body: 'Your live video consultation with Dr. Farhana Rahman (DVM, Specialist) is confirmed for 4:30 PM.',
+    type: 'vet',
+    category: 'Appointments',
+    timestamp: new Date(Date.now() - 1000 * 60 * 360).toISOString(),
+    read: true,
+    actionUrl: 'specialists',
+    priority: 'high'
+  },
+  {
+    id: 'notif-5',
+    title: '🐾 AI Vision Triage Scan Complete',
+    body: 'Neural diagnostic model completed dermatological assessment for Buddy. No acute lesions detected.',
+    type: 'ai',
+    category: 'AI Wellness',
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+    read: true,
+    actionUrl: 'ai',
+    priority: 'normal'
+  },
+  {
+    id: 'notif-6',
+    title: '💬 Community Story Liked',
+    body: 'Tanjil and 14 others liked your story "Golden Retriever beach training weekend" in the community feed.',
+    type: 'community',
+    category: 'Community',
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 30).toISOString(),
+    read: true,
+    actionUrl: 'community',
+    priority: 'low'
+  }
+];
+
 const AppContext = createContext();
 
 export function AppProvider({ children }) {
@@ -653,6 +722,72 @@ export function AppProvider({ children }) {
       window.removeEventListener('touchstart', handleFirstUserInteraction);
     };
   }, [locationPermission]);
+
+  // ─── 8. ROBUST IN-APP NOTIFICATIONS ENGINE ───
+  const [notifications, setNotifications] = useState(() => {
+    try {
+      const saved = localStorage.getItem('pm_notifications');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (_) {}
+    return INITIAL_NOTIFICATIONS;
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('pm_notifications', JSON.stringify(notifications));
+    } catch (_) {}
+  }, [notifications]);
+
+  const unreadNotificationsCount = (notifications || []).filter((n) => !n.read).length;
+
+  const addNotification = (notif) => {
+    const newNotif = {
+      id: `notif-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+      title: notif.title || 'Pet Maya Alert',
+      body: notif.body || '',
+      type: notif.type || 'general',
+      category: notif.category || 'System Alert',
+      timestamp: new Date().toISOString(),
+      read: false,
+      actionUrl: notif.actionUrl || '/',
+      priority: notif.priority || 'normal',
+      ...(notif.metadata || {})
+    };
+
+    setNotifications((prev) => [newNotif, ...prev]);
+
+    // Dispatch native Push Notification to browser / OS tray
+    sendPushNotification(newNotif.title, {
+      body: newNotif.body,
+      url: newNotif.actionUrl,
+      tag: newNotif.type
+    });
+
+    return newNotif;
+  };
+
+  const markNotificationAsRead = (id) => {
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+    );
+  };
+
+  const markAllNotificationsAsRead = () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    showToast('All notifications marked as read', 'info');
+  };
+
+  const deleteNotification = (id) => {
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  };
+
+  const clearAllNotifications = () => {
+    setNotifications([]);
+    showToast('Cleared all notifications', 'info');
+  };
 
   // ─── THEME SYNCHRONIZATION ───
   useEffect(() => {
@@ -2255,7 +2390,14 @@ export function AppProvider({ children }) {
       requestLocationPermission,
       requestNotificationPermission,
       sendPushNotification,
-      requestAllPermissions
+      requestAllPermissions,
+      notifications,
+      unreadNotificationsCount,
+      addNotification,
+      markNotificationAsRead,
+      markAllNotificationsAsRead,
+      deleteNotification,
+      clearAllNotifications
     }}>
       {children}
     </AppContext.Provider>

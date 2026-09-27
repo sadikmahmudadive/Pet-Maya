@@ -17,6 +17,7 @@ import MyAppointmentsModal from './MyAppointmentsModal';
 import BreedFinderModal from './BreedFinderModal';
 import FavoriteVetsModal from './FavoriteVetsModal';
 import PetDetailsModal from './PetDetailsModal';
+import NotificationDrawer from './NotificationDrawer';
 
 export default function ModalRoot() {
   const { activeModal } = useApp();
@@ -60,6 +61,8 @@ export default function ModalRoot() {
       return <BreedFinderModal />;
     case 'favoriteVets':
       return <FavoriteVetsModal />;
+    case 'notifications':
+      return <NotificationDrawer />;
     default:
       return null;
   }

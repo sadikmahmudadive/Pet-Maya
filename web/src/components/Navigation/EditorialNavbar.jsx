@@ -14,7 +14,8 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
     toggleTheme,
     notificationPermission,
     requestNotificationPermission,
-    sendPushNotification
+    sendPushNotification,
+    unreadNotificationsCount
   } = useApp();
   const { currentUser, loginAsGuest } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -190,29 +191,14 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
             <Search size={18} />
           </button>
 
-          {/* Native Push Notification Toggle Button */}
+          {/* Native Push & In-App Notification Center Button */}
           <button
-            onClick={async () => {
-              if (notificationPermission !== 'granted') {
-                const res = await requestNotificationPermission();
-                if (res === 'granted') {
-                  showToast('🔔 Native push notifications enabled!', 'success');
-                }
-              } else {
-                sendPushNotification('Pet Maya Notification Active 🔔', {
-                  body: 'Live push alerts, radar safe-zone sirens, and vaccine reminders are active.',
-                  url: '/'
-                });
-                showToast('🔔 Sent test push notification!', 'info');
-              }
-            }}
-            aria-label="Native Push Notifications"
+            onClick={() => openModal('notifications')}
+            aria-label="Notification Center"
             title={
-              notificationPermission === 'granted'
-                ? "Push Notifications Active (Click to send test alert)"
-                : notificationPermission === 'denied'
-                ? "Notifications Blocked in Browser Settings"
-                : "Click to Enable Native Browser Push Notifications"
+              unreadNotificationsCount > 0
+                ? `${unreadNotificationsCount} Unread Notifications — Click to open Notification Center`
+                : "Notification Center & Live Alerts"
             }
             className="btn-elevate"
             style={{
@@ -225,7 +211,7 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
               borderRadius: '50%',
               backgroundColor: isDark ? '#0B2826' : '#FFFFFF',
               border: isDark ? '1px solid rgba(26, 182, 128, 0.35)' : '1px solid rgba(222, 217, 214, 0.9)',
-              color: notificationPermission === 'granted' ? '#1AB680' : (isDark ? '#94A3B8' : '#64748B'),
+              color: unreadNotificationsCount > 0 ? '#1AB680' : (isDark ? '#94A3B8' : '#64748B'),
               cursor: 'pointer',
               boxShadow: isDark ? '0 1px 6px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.04)',
               transition: 'all 0.2s ease',
@@ -233,7 +219,31 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
             }}
           >
             <Bell size={17} />
-            {notificationPermission === 'granted' ? (
+            {unreadNotificationsCount > 0 ? (
+              <span
+                style={{
+                  position: 'absolute',
+                  top: '-3px',
+                  right: '-3px',
+                  minWidth: '18px',
+                  height: '18px',
+                  borderRadius: '9999px',
+                  backgroundColor: '#1AB680',
+                  color: '#021E20',
+                  border: isDark ? '2px solid #021E20' : '2px solid #FAF7F5',
+                  fontSize: '10px',
+                  fontWeight: 800,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '0 3px',
+                  lineHeight: 1,
+                  boxShadow: '0 0 8px rgba(26, 182, 128, 0.5)'
+                }}
+              >
+                {unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount}
+              </span>
+            ) : notificationPermission === 'granted' ? (
               <span
                 style={{
                   position: 'absolute',
@@ -244,19 +254,6 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
                   borderRadius: '50%',
                   backgroundColor: '#1AB680',
                   boxShadow: '0 0 6px #1AB680'
-                }}
-              />
-            ) : notificationPermission === 'default' ? (
-              <span
-                style={{
-                  position: 'absolute',
-                  top: '6px',
-                  right: '6px',
-                  width: '6px',
-                  height: '6px',
-                  borderRadius: '50%',
-                  backgroundColor: '#38BDF8',
-                  animation: 'pulse 1.8s infinite'
                 }}
               />
             ) : null}
