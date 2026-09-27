@@ -248,6 +248,7 @@ export default function AdminPortal() {
   const [editingProduct, setEditingProduct] = useState(null);
   const [isSubmittingProduct, setIsSubmittingProduct] = useState(false);
   const fileInputRef = useRef(null);
+  const extraFileInputRef = useRef(null);
 
   const [productFormData, setProductFormData] = useState({
     name: '',
@@ -256,6 +257,7 @@ export default function AdminPortal() {
     price: '',
     stockCount: 50,
     image: '',
+    extraImages: [],
     description: '',
     isRx: false,
     inStock: true,
@@ -647,6 +649,7 @@ export default function AdminPortal() {
       price: '',
       stockCount: 50,
       image: PRESET_IMAGES[0].url,
+      extraImages: [],
       shortDescription: '',
       longDescription: '',
       description: '',
@@ -659,13 +662,27 @@ export default function AdminPortal() {
 
   const handleOpenEditProduct = (product) => {
     setEditingProduct(product);
+    const mainImg = product.image || product.imageUrl || PRESET_IMAGES[0].url;
+    const rawExtras = Array.isArray(product.extraImages)
+      ? product.extraImages
+      : (Array.isArray(product.images)
+          ? product.images.filter(img => {
+              const src = typeof img === 'string' ? img : (img?.src || img?.url || '');
+              return src && src !== mainImg;
+            })
+          : [product.extraImage1, product.extraImage2, product.extraImage3, product.extraImage4].filter(Boolean)
+        );
+
+    const parsedExtras = rawExtras.map(img => typeof img === 'string' ? img : (img?.src || img?.url || '')).filter(Boolean);
+
     setProductFormData({
       name: product.name || '',
       brand: product.brand || '',
       category: (product.category || 'food').toLowerCase(),
       price: product.price || '',
       stockCount: typeof product.stockCount === 'number' ? product.stockCount : 50,
-      image: product.image || product.imageUrl || PRESET_IMAGES[0].url,
+      image: mainImg,
+      extraImages: parsedExtras,
       shortDescription: product.shortDescription || (product.description ? (product.description.length > 85 ? product.description.slice(0, 82) + '…' : product.description) : ''),
       longDescription: product.longDescription || product.description || '',
       description: product.description || product.longDescription || product.shortDescription || '',
@@ -705,11 +722,59 @@ export default function AdminPortal() {
         ctx.drawImage(img, 0, 0, width, height);
         const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
         setProductFormData(prev => ({ ...prev, image: compressedDataUrl }));
-        showToast('📸 Photo loaded & optimized into gallery', 'success');
+        showToast('📸 Primary photo loaded & optimized', 'success');
       };
       img.src = uploadEvent.target.result;
     };
     reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  const handleExtraFileUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (uploadEvent) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_DIM = 600;
+        let width = img.width;
+        let height = img.height;
+        if (width > height) {
+          if (width > MAX_DIM) {
+            height = Math.round(height * (MAX_DIM / width));
+            width = MAX_DIM;
+          }
+        } else {
+          if (height > MAX_DIM) {
+            width = Math.round(width * (MAX_DIM / height));
+            height = MAX_DIM;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        setProductFormData(prev => ({
+          ...prev,
+          extraImages: [...(prev.extraImages || []), compressedDataUrl]
+        }));
+        showToast('📸 Additional gallery photo added', 'success');
+      };
+      img.src = uploadEvent.target.result;
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  const handleRemoveExtraImage = (indexToRemove) => {
+    setProductFormData(prev => ({
+      ...prev,
+      extraImages: (prev.extraImages || []).filter((_, idx) => idx !== indexToRemove)
+    }));
   };
 
   const handleSaveProduct = async (e) => {
@@ -727,6 +792,8 @@ export default function AdminPortal() {
     try {
       const shortDesc = productFormData.shortDescription?.trim() || productFormData.description?.trim()?.slice(0, 85) || 'Veterinary-grade formulation.';
       const longDesc = productFormData.longDescription?.trim() || productFormData.description?.trim() || shortDesc;
+      const mainImg = productFormData.image || PRESET_IMAGES[0].url;
+      const cleanExtras = (productFormData.extraImages || []).filter(Boolean);
 
       const payload = {
         name: productFormData.name.trim(),
@@ -734,7 +801,9 @@ export default function AdminPortal() {
         category: (productFormData.category || 'food').toLowerCase(),
         price: parseFloat(productFormData.price) || 0,
         stockCount: typeof productFormData.stockCount === 'number' ? productFormData.stockCount : (parseInt(productFormData.stockCount, 10) || 50),
-        image: productFormData.image || PRESET_IMAGES[0].url,
+        image: mainImg,
+        images: [mainImg, ...cleanExtras],
+        extraImages: cleanExtras,
         shortDescription: shortDesc,
         longDescription: longDesc,
         description: longDesc || shortDesc,
@@ -4222,7 +4291,7 @@ export default function AdminPortal() {
 
               <form onSubmit={handleSaveProduct} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <div>
-                  <label className="label-mini">PRODUCT GALLERY &amp; IMAGE</label>
+                  <label className="label-mini">PRIMARY PRODUCT IMAGE *</label>
                   <input
                     type="file"
                     ref={fileInputRef}
@@ -4247,7 +4316,7 @@ export default function AdminPortal() {
                         cursor: 'pointer',
                         flexShrink: 0
                       }}
-                      title="Upload photo"
+                      title="Upload primary photo"
                     >
                       {!productFormData.image && (
                         <>
@@ -4258,7 +4327,7 @@ export default function AdminPortal() {
                     </div>
 
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Preset Images:</span>
+                      <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Preset Primary Images:</span>
                       <div style={{ display: 'flex', gap: '4px', overflowX: 'auto', paddingBottom: '4px' }}>
                         {PRESET_IMAGES.map((preset, idx) => (
                           <button
@@ -4281,6 +4350,89 @@ export default function AdminPortal() {
                         ))}
                       </div>
                     </div>
+                  </div>
+                </div>
+
+                {/* Additional Gallery Images (Optional) */}
+                <div style={{ background: 'var(--surface-alt)', border: '1px dashed var(--border)', borderRadius: '14px', padding: '12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <label className="label-mini" style={{ margin: 0 }}>ADDITIONAL GALLERY IMAGES ({productFormData.extraImages?.length || 0})</label>
+                    <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Shown only if added</span>
+                  </div>
+
+                  <input
+                    type="file"
+                    ref={extraFileInputRef}
+                    onChange={handleExtraFileUpload}
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                  />
+
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                    {(productFormData.extraImages || []).map((imgUrl, idx) => (
+                      <div
+                        key={idx}
+                        style={{
+                          position: 'relative',
+                          width: '56px',
+                          height: '56px',
+                          borderRadius: '10px',
+                          border: '1px solid var(--border)',
+                          overflow: 'hidden',
+                          background: `url("${imgUrl}") center/cover no-repeat`
+                        }}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveExtraImage(idx)}
+                          style={{
+                            position: 'absolute',
+                            top: '2px',
+                            right: '2px',
+                            background: 'rgba(239, 68, 68, 0.9)',
+                            border: 'none',
+                            borderRadius: '50%',
+                            width: '18px',
+                            height: '18px',
+                            color: '#FFFFFF',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            fontSize: '10px',
+                            padding: 0
+                          }}
+                          title="Remove photo"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+
+                    <button
+                      type="button"
+                      onClick={() => extraFileInputRef.current?.click()}
+                      style={{
+                        width: '56px',
+                        height: '56px',
+                        borderRadius: '10px',
+                        border: '1.5px dashed var(--primary)',
+                        background: 'transparent',
+                        color: 'var(--primary)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        fontSize: '9px',
+                        fontWeight: 700,
+                        gap: '2px'
+                      }}
+                      title="Add extra product image"
+                    >
+                      <Plus size={14} />
+                      <span>ADD</span>
+                    </button>
                   </div>
                 </div>
 

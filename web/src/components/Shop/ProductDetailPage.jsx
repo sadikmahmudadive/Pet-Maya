@@ -52,33 +52,70 @@ export default function ProductDetailPage({ productId, onBack, onNavigate }) {
   const [is360Mode, setIs360Mode] = useState(false);
   const [rotDegree, setRotDegree] = useState(0);
 
-  // Gallery assets matching reference
-  const galleryItems = [
-    {
-      id: 'box',
+  // Dynamic gallery assets: only include real images added for this product (no placeholders)
+  const galleryItems = React.useMemo(() => {
+    const items = [];
+    const seenUrls = new Set();
+
+    // 1. Primary main product image
+    if (prodImage && typeof prodImage === 'string' && prodImage.trim()) {
+      items.push({
+        id: 'primary',
+        label: 'Primary Pack',
+        src: prodImage,
+        alt: prodName
+      });
+      seenUrls.add(prodImage.trim());
+    }
+
+    // 2. Additional images array if defined (e.g. product.images or product.gallery or product.extraImages)
+    const extraArrays = [
+      matchedProduct?.images,
+      matchedProduct?.gallery,
+      matchedProduct?.extraImages,
+      matchedProduct?.additionalImages
+    ];
+
+    extraArrays.forEach((arr) => {
+      if (Array.isArray(arr)) {
+        arr.forEach((img, i) => {
+          const src = typeof img === 'string' ? img.trim() : (img?.src || img?.url || '').trim();
+          if (src && !seenUrls.has(src)) {
+            seenUrls.add(src);
+            items.push({
+              id: `extra-arr-${items.length}`,
+              label: (typeof img === 'object' && img?.label) ? img.label : `View ${items.length + 1}`,
+              src,
+              alt: `${prodName} View ${items.length + 1}`
+            });
+          }
+        });
+      }
+    });
+
+    // 3. Individual extra image fields (only if explicitly set as real URLs by admin)
+    ['extraImage1', 'extraImage2', 'extraImage3', 'extraImage4'].forEach((key, i) => {
+      const src = matchedProduct?.[key];
+      if (src && typeof src === 'string' && src.trim() && !seenUrls.has(src.trim())) {
+        seenUrls.add(src.trim());
+        items.push({
+          id: `extra-field-${i + 1}`,
+          label: `View ${items.length + 1}`,
+          src: src.trim(),
+          alt: `${prodName} View ${items.length + 1}`
+        });
+      }
+    });
+
+    return items.length > 0 ? items : [{
+      id: 'primary',
       label: 'Primary Pack',
       src: prodImage,
       alt: prodName
-    },
-    {
-      id: 'blister',
-      label: 'Clinical Pack',
-      src: matchedProduct?.extraImage1 || 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=900&auto=format&fit=crop&q=80',
-      alt: `${prodName} Foil Integrity`
-    },
-    {
-      id: 'lab',
-      label: 'GC-MS Assay',
-      src: matchedProduct?.extraImage2 || 'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=900&auto=format&fit=crop&q=80',
-      alt: 'Analytical balance and HPLC chromatography in clinical lab'
-    },
-    {
-      id: 'coldchain',
-      label: 'Cold-Chain Log',
-      src: matchedProduct?.extraImage3 || 'https://images.unsplash.com/photo-1584017911766-d451b3d0e843?w=900&auto=format&fit=crop&q=80',
-      alt: 'Refrigerated cold-chain pharmaceutical insulated container'
-    }
-  ];
+    }];
+  }, [matchedProduct, prodImage, prodName]);
+
+  const safeActiveIdx = activeImageIdx < galleryItems.length ? activeImageIdx : 0;
 
   // Weight & Dosage Range state (2x2 grid)
   const weightVariants = [
@@ -416,8 +453,8 @@ export default function ProductDetailPage({ productId, onBack, onNavigate }) {
                   transition: 'transform 0.4s ease'
                 }}>
                   <img
-                    src={galleryItems[activeImageIdx].src}
-                    alt={galleryItems[activeImageIdx].alt}
+                    src={galleryItems[safeActiveIdx]?.src || prodImage}
+                    alt={galleryItems[safeActiveIdx]?.alt || prodName}
                     style={{
                       width: '100%',
                       height: '100%',
@@ -496,59 +533,61 @@ export default function ProductDetailPage({ productId, onBack, onNavigate }) {
               </div>
             </div>
 
-            {/* Thumbnail Strip (4 Images) */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(4, 1fr)',
-              gap: '12px',
-              marginBottom: '24px'
-            }}>
-              {galleryItems.map((item, idx) => (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveImageIdx(idx)}
-                  style={{
-                    backgroundColor: '#FFFFFF',
-                    border: activeImageIdx === idx ? '2px solid #346B73' : '1px solid #E5DED8',
-                    borderRadius: '14px',
-                    padding: '6px',
-                    height: '84px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                    position: 'relative',
-                    overflow: 'hidden'
-                  }}
-                >
-                  <img
-                    src={item.src}
-                    alt={item.alt}
+            {/* Thumbnail Strip: Only render when extra gallery images exist */}
+            {galleryItems.length > 1 && (
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: `repeat(${Math.min(galleryItems.length, 5)}, 1fr)`,
+                gap: '12px',
+                marginBottom: '24px'
+              }}>
+                {galleryItems.map((item, idx) => (
+                  <button
+                    key={item.id || idx}
+                    onClick={() => setActiveImageIdx(idx)}
                     style={{
-                      width: '100%',
-                      height: '52px',
-                      objectFit: 'cover',
-                      borderRadius: '8px'
+                      backgroundColor: '#FFFFFF',
+                      border: safeActiveIdx === idx ? '2px solid #346B73' : '1px solid #E5DED8',
+                      borderRadius: '14px',
+                      padding: '6px',
+                      height: '84px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                      position: 'relative',
+                      overflow: 'hidden'
                     }}
-                  />
-                  <span style={{
-                    fontSize: '9px',
-                    fontFamily: 'var(--font-mono, monospace)',
-                    fontWeight: 600,
-                    color: activeImageIdx === idx ? '#346B73' : '#707973',
-                    marginTop: '4px',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    maxWidth: '100%'
-                  }}>
-                    {item.label}
-                  </span>
-                </button>
-              ))}
-            </div>
+                  >
+                    <img
+                      src={item.src}
+                      alt={item.alt}
+                      style={{
+                        width: '100%',
+                        height: '52px',
+                        objectFit: 'cover',
+                        borderRadius: '8px'
+                      }}
+                    />
+                    <span style={{
+                      fontSize: '9px',
+                      fontFamily: 'var(--font-mono, monospace)',
+                      fontWeight: 600,
+                      color: safeActiveIdx === idx ? '#346B73' : '#707973',
+                      marginTop: '4px',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      maxWidth: '100%'
+                    }}>
+                      {item.label}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
 
             {/* Supply-Chain Integrity Assurance Card */}
             <div style={{
