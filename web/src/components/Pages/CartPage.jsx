@@ -38,13 +38,14 @@ export default function CartPage({ onNavigate }) {
     applyCoupon, 
     openModal, 
     showToast,
-    pets = []
+    pets = [],
+    setPostLoginRedirect
   } = useApp();
   const { currentUser } = useAuth();
 
   const activePet = pets[0];
   const defaultPatientLabel = activePet 
-    ? `${activePet.name} (${activePet.species || activePet.breed || 'Companion'}${activePet.weight ? ' • ' + activePet.weight + 'kg' : ''})` 
+    ? `${activePet.name} (${activePet.species || activePet.type || activePet.breed || 'Companion'}${activePet.weight ? ' • ' + activePet.weight + 'kg' : ''})` 
     : 'Companion Patient';
 
   // Normalize cart items with clinical styling fallbacks
@@ -106,12 +107,30 @@ export default function CartPage({ onNavigate }) {
     applyCoupon(couponInput.trim());
   };
 
-  // Proceed to Checkout
+  // Proceed to Checkout: 1st check authentication, then launch checkout with real data
   const handleProceedCheckout = () => {
     if (items.length === 0) {
       showToast('Your dispensary bag is empty', 'warning');
       return;
     }
+
+    const isRealUser = currentUser && !currentUser.uid?.startsWith('demo_guest');
+    if (!isRealUser) {
+      showToast('Please sign in to proceed to secure checkout', 'info');
+      if (setPostLoginRedirect) {
+        setPostLoginRedirect('checkout');
+      }
+      openModal('auth', {
+        redirect: 'checkout',
+        title: 'Sign In to Secure Checkout',
+        message: 'Sign in to your Pet Maya Guardian account to verify your delivery address and pet health vault.',
+        onSuccess: () => {
+          handleRoute('checkout');
+        }
+      });
+      return;
+    }
+
     handleRoute('checkout');
   };
 

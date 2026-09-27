@@ -281,6 +281,24 @@ export function AppProvider({ children }) {
   // Modals & Drawers
   const [activeModal, setActiveModal] = useState(null);
   const [modalData, setModalData] = useState(null);
+  const [authRedirect, setAuthRedirect] = useState(() => {
+    try {
+      return sessionStorage.getItem('pm_auth_redirect') || null;
+    } catch (_) {
+      return null;
+    }
+  });
+
+  const setPostLoginRedirect = (route) => {
+    setAuthRedirect(route);
+    try {
+      if (route) {
+        sessionStorage.setItem('pm_auth_redirect', route);
+      } else {
+        sessionStorage.removeItem('pm_auth_redirect');
+      }
+    } catch (_) {}
+  };
 
   // Core Datasets with Client-Side Cache to eliminate initial flash of hardcoded mock data
   const [pets, setPets] = useState(() => {
@@ -2166,6 +2184,8 @@ export function AppProvider({ children }) {
       modalData,
       openModal,
       closeModal,
+      authRedirect,
+      setPostLoginRedirect,
       toasts,
       showToast,
       pets,

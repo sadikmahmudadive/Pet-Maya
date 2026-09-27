@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
+import { useAuth } from '../../context/AuthContext';
 import { 
   X, 
   Plus, 
@@ -15,7 +16,8 @@ import {
 } from 'lucide-react';
 
 export default function CartDrawer() {
-  const { cart, cartTotal, updateCartQty, removeFromCart, appliedCoupon, applyCoupon, openModal, closeModal } = useApp();
+  const { cart, cartTotal, updateCartQty, removeFromCart, appliedCoupon, applyCoupon, openModal, closeModal, setPostLoginRedirect, showToast } = useApp();
+  const { currentUser } = useAuth();
   const [couponInput, setCouponInput] = useState('');
 
   const freeShipThreshold = 1000;
@@ -38,6 +40,26 @@ export default function CartDrawer() {
 
   const handleProceedToCheckout = () => {
     closeModal();
+    const isRealUser = currentUser && !currentUser.uid?.startsWith('demo_guest');
+    if (!isRealUser) {
+      if (showToast) showToast('Please sign in to proceed to secure checkout', 'info');
+      if (setPostLoginRedirect) setPostLoginRedirect('checkout');
+      openModal('auth', {
+        redirect: 'checkout',
+        title: 'Sign In to Secure Checkout',
+        message: 'Sign in to access your secure dispensary checkout with your real patient records.',
+        onSuccess: () => {
+          openModal('checkout', { 
+            subtotal: cartTotal, 
+            discount: discountAmount, 
+            shipping: shippingFee, 
+            total: finalTotal 
+          });
+        }
+      });
+      return;
+    }
+
     openModal('checkout', { 
       subtotal: cartTotal, 
       discount: discountAmount, 

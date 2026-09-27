@@ -10,11 +10,18 @@ export default function CheckoutModal() {
   const { closeModal, modalData, cart, placeOrder, openModal } = useApp();
   const { currentUser } = useAuth();
 
-  const [address, setAddress] = useState(currentUser?.address || 'House 14, Road 7, Block D, Banani, Dhaka');
-  const [phone, setPhone] = useState(currentUser?.phone || '+880 1712-345678');
+  const [address, setAddress] = useState(currentUser?.address || '');
+  const [phone, setPhone] = useState(currentUser?.phone || '');
   const [deliveryZone, setDeliveryZone] = useState('inside_dhaka'); // 'inside_dhaka' (60) or 'outside_dhaka' (120)
   const [paymentMethod, setPaymentMethod] = useState('bKash / Mobile Banking');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (currentUser) {
+      if (currentUser.address) setAddress(currentUser.address);
+      if (currentUser.phone) setPhone(currentUser.phone);
+    }
+  }, [currentUser]);
 
   // Single direct "Buy Now" product vs full cart
   const singleItem = modalData?.product;

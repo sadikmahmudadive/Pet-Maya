@@ -18,10 +18,10 @@ import UserAvatar from '../Common/UserAvatar';
 export default function AuthPage({ 
   initialMode = 'signin', 
   onNavigate, 
-  redirectAfterLogin = 'dashboard',
+  redirectAfterLogin,
   onSuccess 
 }) {
-  const { showToast, openModal, cart } = useApp();
+  const { showToast, openModal, cart, authRedirect, setPostLoginRedirect } = useApp();
   const { loginWithEmail, signupWithEmail, loginWithGoogle, loginAsGuest, currentUser } = useAuth();
 
   const [mode, setMode] = useState(initialMode); // 'signin' | 'signup'
@@ -37,6 +37,8 @@ export default function AuthPage({
   const [error, setError] = useState('');
 
   const totalCartCount = (cart || []).reduce((sum, item) => sum + (Number(item.qty || item.quantity) || 1), 0);
+
+  const effectiveRedirect = redirectAfterLogin || authRedirect || 'dashboard';
 
   const handleRoute = (path) => {
     if (onNavigate) {
@@ -54,14 +56,16 @@ export default function AuthPage({
     try {
       if (mode === 'signin') {
         await loginWithEmail(email, password);
-        showToast('Signed in to Health Vault', 'success');
+        showToast('Signed in to Health Vault! Loading clinical records...', 'success');
         if (onSuccess) onSuccess();
-        handleRoute(redirectAfterLogin || 'dashboard');
+        handleRoute(effectiveRedirect);
+        if (setPostLoginRedirect) setPostLoginRedirect(null);
       } else {
         await signupWithEmail(name || 'Pet Guardian', email, password);
-        showToast('Guardian registry created successfully! Welcome to Pet Maya.', 'success');
+        showToast('Guardian registry created successfully! Loading clinical records...', 'success');
         if (onSuccess) onSuccess();
-        handleRoute(redirectAfterLogin || 'dashboard');
+        handleRoute(effectiveRedirect);
+        if (setPostLoginRedirect) setPostLoginRedirect(null);
       }
     } catch (err) {
       console.warn('Auth error:', err);
@@ -76,9 +80,10 @@ export default function AuthPage({
     try {
       setLoading(true);
       await loginWithGoogle();
-      showToast('Signed in via Google Sovereign Vault', 'success');
+      showToast('Signed in via Google Sovereign Vault! Loading clinical records...', 'success');
       if (onSuccess) onSuccess();
-      handleRoute(redirectAfterLogin || 'dashboard');
+      handleRoute(effectiveRedirect);
+      if (setPostLoginRedirect) setPostLoginRedirect(null);
     } catch (err) {
       console.warn('Google auth error:', err);
       setError('Google authentication could not be completed.');
@@ -96,7 +101,8 @@ export default function AuthPage({
     loginAsGuest('Pet Owner');
     showToast('Signed in as Guest Guardian', 'success');
     if (onSuccess) onSuccess();
-    handleRoute(redirectAfterLogin || 'dashboard');
+    handleRoute(effectiveRedirect);
+    if (setPostLoginRedirect) setPostLoginRedirect(null);
   };
 
   const handleForgotPassword = (e) => {

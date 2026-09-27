@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import UserAvatar from '../Common/UserAvatar';
@@ -30,6 +30,8 @@ import {
 export default function CheckoutPage({ onNavigate }) {
   const { cart = [], cartTotal, appliedCoupon, pets = [], openModal, showToast, placeOrder, clearCart } = useApp();
   const { currentUser, updateUserProfile } = useAuth();
+
+  const isRealUser = currentUser && !currentUser.uid?.startsWith('demo_guest');
 
   // Active items in checkout
   const activeItems = (cart && cart.length > 0) ? cart.map(i => ({
@@ -75,6 +77,33 @@ export default function CheckoutPage({ onNavigate }) {
   const [mobileNumber, setMobileNumber] = useState(() => currentUser?.phone ? currentUser.phone.replace(/[^0-9]/g, '') : '');
   const [mobileProvider, setMobileProvider] = useState('bKash');
 
+  // Synchronize with currentUser's real data when loaded or updated
+  useEffect(() => {
+    if (currentUser) {
+      if (currentUser.address) {
+        setGuardianAddress(currentUser.address);
+      }
+      if (currentUser.phone) {
+        setGuardianPhone(currentUser.phone);
+        setMobileNumber(currentUser.phone.replace(/[^0-9]/g, ''));
+      }
+      if (currentUser.name || currentUser.displayName) {
+        const name = currentUser.name || currentUser.displayName;
+        setGuardianName(name);
+        setCardName(name.toUpperCase());
+      }
+    }
+  }, [currentUser]);
+
+  // Synchronize active patient with real pets from Firestore
+  useEffect(() => {
+    if (pets && pets.length > 0) {
+      if (!selectedPetId || !pets.some(p => p.id === selectedPetId || p.petID === selectedPetId)) {
+        setSelectedPetId(pets[0].id || pets[0].petID || '');
+      }
+    }
+  }, [pets, selectedPetId]);
+
   // Processing state
   const [isProcessing, setIsProcessing] = useState(false);
   const [isOrderComplete, setIsOrderComplete] = useState(false);
@@ -98,6 +127,16 @@ export default function CheckoutPage({ onNavigate }) {
 
   // Submit payment & trigger dispatch
   const handleAuthorizeDispatch = async () => {
+    if (!isRealUser) {
+      showToast('Please sign in with your guardian account to authorize dispatch', 'warning');
+      openModal('auth', {
+        redirect: 'checkout',
+        title: 'Sign In to Secure Checkout',
+        message: 'Sign in to your Pet Maya Guardian account to authorize your prescription dispatch.',
+      });
+      return;
+    }
+
     setIsProcessing(true);
     showToast('Auditing thermal continuity & processing 256-bit TLS authorization...', 'info');
 
@@ -489,6 +528,66 @@ export default function CheckoutPage({ onNavigate }) {
               ──────────────────────────────────────────────────────────── */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
+            {/* Unauthenticated / Guest Guardian Verification Notice */}
+            {!isRealUser && (
+              <div style={{
+                backgroundColor: '#FFFBEB',
+                border: '1px solid #FDE68A',
+                borderRadius: '16px',
+                padding: '16px 20px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '16px',
+                boxShadow: '0 1px 3px rgba(217, 119, 6, 0.05)'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                  <div style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '10px',
+                    backgroundColor: '#FEF3C7',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#D97706',
+                    flexShrink: 0
+                  }}>
+                    <Lock size={20} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#92400E' }}>
+                      Sign in to link your verified Guardian Profile
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#B45309', marginTop: '2px' }}>
+                      Sign in to load your registered companion records, microchip telemetry, and saved delivery address.
+                    </div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => openModal('auth', {
+                    redirect: 'checkout',
+                    title: 'Sign In to Secure Checkout',
+                    message: 'Sign in to access your registered pets and verified delivery details.'
+                  })}
+                  style={{
+                    backgroundColor: '#0D9488',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '8px 16px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  Sign In Now
+                </button>
+              </div>
+            )}
+
             {/* A. Patient Verification & Clinical Dispatch Destination Card */}
             <div style={{
               backgroundColor: '#FFFFFF',
@@ -541,7 +640,7 @@ export default function CheckoutPage({ onNavigate }) {
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <img
-                    src={activePatient.photo || activePatient.image || 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=150&auto=format&fit=crop&q=80'}
+                    src={activePatient.photoUrl || activePatient.photo || activePatient.image || 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=150&auto=format&fit=crop&q=80'}
                     alt={activePatient.name}
                     style={{
                       width: '44px',
@@ -554,7 +653,7 @@ export default function CheckoutPage({ onNavigate }) {
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span style={{ fontSize: '15px', fontWeight: 700, color: '#160F0C' }}>{activePatient.name}</span>
-                      <span style={{ fontSize: '12px', color: '#6B7280' }}>{activePatient.species || 'Companion'}{activePatient.breed ? ` • ${activePatient.breed}` : ''}</span>
+                      <span style={{ fontSize: '12px', color: '#6B7280' }}>{activePatient.species || activePatient.type || 'Companion'}{activePatient.breed ? ` • ${activePatient.breed}` : ''}</span>
                     </div>
                     <div style={{
                       fontSize: '11.5px',
@@ -634,20 +733,26 @@ export default function CheckoutPage({ onNavigate }) {
                         {guardianName}
                       </span>
                       <span style={{
-                        backgroundColor: '#E0F2FE',
-                        color: '#0284C7',
+                        backgroundColor: guardianAddress ? '#E0F2FE' : '#FEF3C7',
+                        color: guardianAddress ? '#0284C7' : '#D97706',
                         fontSize: '10px',
                         fontWeight: 700,
                         padding: '2px 8px',
                         borderRadius: '9999px',
                         fontFamily: 'var(--font-mono, monospace)'
                       }}>
-                        Primary Residence
+                        {guardianAddress ? 'Primary Residence' : 'Address Required'}
                       </span>
                     </div>
-                    <div style={{ fontSize: '12.5px', color: '#4B5563', lineHeight: 1.45 }}>
-                      {guardianAddress}<br />
-                      Dhaka, Bangladesh • {guardianPhone}
+                    <div style={{ fontSize: '12.5px', color: guardianAddress ? '#4B5563' : '#DC2626', lineHeight: 1.45 }}>
+                      {guardianAddress ? (
+                        <>
+                          {guardianAddress}<br />
+                          Dhaka, Bangladesh • {guardianPhone || 'Phone unlisted'}
+                        </>
+                      ) : (
+                        <span>⚠️ No delivery address specified. Please click &ldquo;Change Address&rdquo; to add your destination.</span>
+                      )}
                     </div>
                   </div>
                   <MapPin size={18} color="#0D9488" style={{ marginTop: '2px' }} />
@@ -1827,44 +1932,51 @@ export default function CheckoutPage({ onNavigate }) {
               <button onClick={() => setShowPatientModal(false)} style={{ border: 'none', background: 'none', fontSize: '20px', cursor: 'pointer' }}>✕</button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {pets.map((pet) => {
-                const isSelected = (selectedPetId === pet.id || selectedPetId === pet.petID);
-                return (
-                  <div
-                    key={pet.id || pet.petID}
-                    onClick={() => {
-                      setSelectedPetId(pet.id || pet.petID);
-                      setShowPatientModal(false);
-                      showToast(`Active prescription patient set to ${pet.name}`, 'info');
-                    }}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '12px',
-                      padding: '12px',
-                      borderRadius: '12px',
-                      border: isSelected ? '2px solid #0D9488' : '1px solid #E5DFD9',
-                      backgroundColor: isSelected ? '#E6F4F1' : '#FFFFFF',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    <img
-                      src={pet.photo || pet.image || 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=100&auto=format&fit=crop&q=80'}
-                      alt={pet.name}
-                      style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'cover' }}
-                    />
-                    <div>
-                      <div style={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span>{pet.name}</span>
-                        {isSelected && <span style={{ fontSize: '10.5px', color: '#0D9488', fontWeight: 800 }}>✓ ACTIVE</span>}
-                      </div>
-                      <div style={{ fontSize: '12px', color: '#6B7280' }}>
-                        {pet.breed || pet.species || 'Companion'} • {pet.weight || '12 kg'} • #{pet.microchip || 'ISO Microchip'}
+              {pets && pets.length > 0 ? (
+                pets.map((pet) => {
+                  const isSelected = (selectedPetId === pet.id || selectedPetId === pet.petID);
+                  return (
+                    <div
+                      key={pet.id || pet.petID}
+                      onClick={() => {
+                        setSelectedPetId(pet.id || pet.petID);
+                        setShowPatientModal(false);
+                        showToast(`Active prescription patient set to ${pet.name}`, 'info');
+                      }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                        padding: '12px',
+                        borderRadius: '12px',
+                        border: isSelected ? '2px solid #0D9488' : '1px solid #E5DFD9',
+                        backgroundColor: isSelected ? '#E6F4F1' : '#FFFFFF',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <img
+                        src={pet.photoUrl || pet.photo || pet.image || 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=100&auto=format&fit=crop&q=80'}
+                        alt={pet.name}
+                        style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'cover' }}
+                      />
+                      <div>
+                        <div style={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span>{pet.name}</span>
+                          {isSelected && <span style={{ fontSize: '10.5px', color: '#0D9488', fontWeight: 800 }}>✓ ACTIVE</span>}
+                        </div>
+                        <div style={{ fontSize: '12px', color: '#6B7280' }}>
+                          {pet.species || pet.type || 'Companion'}{pet.breed ? ` • ${pet.breed}` : ''} • {pet.weight ? `${pet.weight} kg` : 'N/A'} • #{pet.microchip || 'UNREGISTERED'}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })
+              ) : (
+                <div style={{ textAlign: 'center', padding: '24px 12px', color: '#6B7280', fontSize: '13px' }}>
+                  <p style={{ margin: '0 0 8px 0', fontWeight: 600 }}>No registered companions on file.</p>
+                  <p style={{ margin: 0, fontSize: '12px' }}>Orders will be fulfilled under the default verified Companion prescription ledger.</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
