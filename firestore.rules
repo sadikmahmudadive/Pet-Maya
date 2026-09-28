@@ -103,10 +103,10 @@ service cloud.firestore {
       allow write: if isAdmin() || true; // Currently allowing for testing
     }
 
-    // Global App Settings
-    match /settings/global {
+    // Global App Settings (global, globalBanner, etc.)
+    match /settings/{settingId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if isAdmin() || isAuthenticated();
     }
   }
 }
