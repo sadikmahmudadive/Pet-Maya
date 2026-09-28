@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
 import { 
   Zap, 
@@ -35,6 +35,70 @@ import {
   Eye
 } from 'lucide-react';
 
+const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || 'AIzaSyAhmOHCWgWf7exFnjQ1nns8cDjPZvKRTto';
+
+// Google Maps Custom Paper Minimal Theme (Pet Maya aesthetic)
+const googleMapsPaperTheme = [
+  { elementType: "geometry", stylers: [{ color: "#F7F3EE" }] },
+  { elementType: "labels.text.stroke", stylers: [{ color: "#F7F3EE" }, { weight: 2 }] },
+  { elementType: "labels.text.fill", stylers: [{ color: "#675C58" }] },
+  {
+    featureType: "administrative",
+    elementType: "geometry.stroke",
+    stylers: [{ color: "#E0D7CE" }]
+  },
+  {
+    featureType: "administrative.locality",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#2B2625" }]
+  },
+  {
+    featureType: "poi",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#346B73" }]
+  },
+  {
+    featureType: "poi.park",
+    elementType: "geometry",
+    stylers: [{ color: "#E4ECE7" }]
+  },
+  {
+    featureType: "poi.park",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#3E7B6C" }]
+  },
+  {
+    featureType: "road",
+    elementType: "geometry",
+    stylers: [{ color: "#FFFFFF" }]
+  },
+  {
+    featureType: "road",
+    elementType: "geometry.stroke",
+    stylers: [{ color: "#EBE3DA" }]
+  },
+  {
+    featureType: "road.highway",
+    elementType: "geometry",
+    stylers: [{ color: "#F0E8DF" }]
+  },
+  {
+    featureType: "road.highway",
+    elementType: "geometry.stroke",
+    stylers: [{ color: "#DFD6CC" }]
+  },
+  {
+    featureType: "water",
+    elementType: "geometry",
+    stylers: [{ color: "#D7E9E5" }]
+  },
+  {
+    featureType: "water",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#346B73" }]
+  }
+];
+
 export default function PetGPSPage({ onNavigate }) {
   const { 
     showToast, 
@@ -68,10 +132,401 @@ export default function PetGPSPage({ onNavigate }) {
 
   // Map Mode State
   const [mapMode, setMapMode] = useState('paper'); // 'paper' | 'topo' | 'sat'
-  const [zoomLevel, setZoomLevel] = useState(1);
   const [isChimeActive, setIsChimeActive] = useState(false);
   const [isAmberLostMode, setIsAmberLostMode] = useState(false);
   const [activeZone, setActiveZone] = useState('home');
+
+  // Google Maps State & Refs
+  const [googleMapsLoaded, setGoogleMapsLoaded] = useState(false);
+  const [mapsError, setMapsError] = useState('');
+  
+  const initialPetLat = activeDevice.lat || userLiveLocation?.lat || 23.7939;
+  const initialPetLng = activeDevice.lng || userLiveLocation?.lng || 90.4033;
+  const [petLatLng, setPetLatLng] = useState({ lat: initialPetLat, lng: initialPetLng });
+  
+  const homeHubLatLng = {
+    lat: initialPetLat - 0.0012,
+    lng: initialPetLng - 0.0016
+  };
+
+  const mapContainerRef = useRef(null);
+  const googleMapInstanceRef = useRef(null);
+  const petOverlayRef = useRef(null);
+  const homeHubOverlayRef = useRef(null);
+  const safeZoneOverlayRef = useRef(null);
+  const geofenceCircleRef = useRef(null);
+  const breadcrumbPolylineRef = useRef(null);
+
+  // 1. DYNAMICALLY LOAD GOOGLE MAPS JAVASCRIPT API
+  useEffect(() => {
+    if (window.google && window.google.maps) {
+      setGoogleMapsLoaded(true);
+      return;
+    }
+
+    const scriptId = 'google-maps-api-script';
+    const existing = document.getElementById(scriptId);
+    if (existing) {
+      if (window.google && window.google.maps) {
+        setGoogleMapsLoaded(true);
+      } else {
+        const prevCb = window.__gmapsReady;
+        window.__gmapsReady = () => {
+          if (typeof prevCb === 'function') prevCb();
+          setGoogleMapsLoaded(true);
+        };
+      }
+      return;
+    }
+
+    if (!GOOGLE_MAPS_API_KEY) {
+      setMapsError('No Google Maps API key configured.');
+      return;
+    }
+
+    window.__gmapsReady = () => {
+      setGoogleMapsLoaded(true);
+    };
+
+    const script = document.createElement('script');
+    script.id = scriptId;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places,geometry&v=weekly&callback=__gmapsReady`;
+    script.async = true;
+    script.defer = true;
+    script.onerror = (err) => {
+      console.error('[Google Maps] Failed to load:', err);
+      setMapsError('Google Maps failed to load. Check API key permissions or network.');
+    };
+    document.head.appendChild(script);
+
+    return () => {
+      // Keep __gmapsReady clean
+    };
+  }, []);
+
+  // 2. INITIALIZE GOOGLE MAPS ONCE SCRIPT LOADS
+  useEffect(() => {
+    if (!googleMapsLoaded || !mapContainerRef.current || !window.google || !window.google.maps) return;
+
+    try {
+      const mapOptions = {
+        center: petLatLng,
+        zoom: 17.2,
+        mapTypeId: mapMode === 'sat' 
+          ? window.google.maps.MapTypeId.HYBRID 
+          : (mapMode === 'topo' ? window.google.maps.MapTypeId.TERRAIN : window.google.maps.MapTypeId.ROADMAP),
+        styles: mapMode === 'paper' ? googleMapsPaperTheme : null,
+        disableDefaultUI: true,
+        gestureHandling: 'greedy',
+        backgroundColor: '#F5EFE9'
+      };
+
+      const map = new window.google.maps.Map(mapContainerRef.current, mapOptions);
+      googleMapInstanceRef.current = map;
+
+      // Geofence Circle (350m radius around Home Hub)
+      const circle = new window.google.maps.Circle({
+        map: map,
+        center: homeHubLatLng,
+        radius: 350,
+        strokeColor: '#0D9488',
+        strokeOpacity: 0.75,
+        strokeWeight: 1.5,
+        strokeDasharray: '4 4',
+        fillColor: '#0D9488',
+        fillOpacity: 0.07,
+        zIndex: 2
+      });
+      geofenceCircleRef.current = circle;
+
+      // Home Hub Base Station Custom Overlay
+      class HomeHubOverlay extends window.google.maps.OverlayView {
+        constructor(position) {
+          super();
+          this.position = position;
+          this.div = null;
+        }
+        onAdd() {
+          const div = document.createElement('div');
+          div.style.position = 'absolute';
+          div.style.transform = 'translate(-50%, -50%)';
+          div.style.zIndex = '8';
+          div.style.pointerEvents = 'none';
+          div.innerHTML = `
+            <div style="text-align: center;">
+              <div style="
+                width: 32px; height: 32px; border-radius: 8px;
+                background-color: #FFFFFF; border: 1.5px solid #D6CDC5;
+                display: flex; align-items: center; justify-content: center;
+                margin: 0 auto 4px auto; box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+              ">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#707973" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
+                  <path d="M1.42 9a16 16 0 0 1 21.16 0"></path>
+                  <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
+                  <line x1="12" y1="20" x2="12.01" y2="20"></line>
+                </svg>
+              </div>
+              <span style="
+                font-size: 9px; font-family: monospace; font-weight: 700;
+                color: #707973; text-transform: uppercase; background: rgba(255,255,255,0.9);
+                padding: 1px 5px; border-radius: 4px; border: 1px solid #E8E1DA; white-space: nowrap;
+              ">
+                HOME HUB
+              </span>
+            </div>
+          `;
+          this.div = div;
+          this.getPanes().overlayMouseTarget.appendChild(div);
+        }
+        draw() {
+          const projection = this.getProjection();
+          if (!projection || !this.div) return;
+          const point = projection.fromLatLngToDivPixel(new window.google.maps.LatLng(this.position.lat, this.position.lng));
+          if (point) {
+            this.div.style.left = point.x + 'px';
+            this.div.style.top = point.y + 'px';
+          }
+        }
+        onRemove() {
+          if (this.div && this.div.parentNode) {
+            this.div.parentNode.removeChild(this.div);
+            this.div = null;
+          }
+        }
+      }
+      const homeOverlay = new HomeHubOverlay(homeHubLatLng);
+      homeOverlay.setMap(map);
+      homeHubOverlayRef.current = homeOverlay;
+
+      // Safe-Zone Perimeter Label Overlay
+      class SafeZoneLabelOverlay extends window.google.maps.OverlayView {
+        constructor(position) {
+          super();
+          this.position = position;
+          this.div = null;
+        }
+        onAdd() {
+          const div = document.createElement('div');
+          div.style.position = 'absolute';
+          div.style.transform = 'translate(-50%, -50%)';
+          div.style.zIndex = '6';
+          div.style.pointerEvents = 'none';
+          div.innerHTML = `
+            <div style="
+              background-color: rgba(255, 255, 255, 0.95);
+              border: 1px solid #C8E5DF;
+              border-radius: 9999px;
+              padding: 2px 10px;
+              font-size: 9px;
+              font-family: monospace;
+              color: #346B73;
+              font-weight: 700;
+              letter-spacing: 0.04em;
+              white-space: nowrap;
+              box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            ">
+              HOME SANCTUARY SAFE-ZONE (350M RADIUS)
+            </div>
+          `;
+          this.div = div;
+          this.getPanes().overlayMouseTarget.appendChild(div);
+        }
+        draw() {
+          const projection = this.getProjection();
+          if (!projection || !this.div) return;
+          const point = projection.fromLatLngToDivPixel(new window.google.maps.LatLng(this.position.lat, this.position.lng));
+          if (point) {
+            this.div.style.left = point.x + 'px';
+            this.div.style.top = point.y + 'px';
+          }
+        }
+        onRemove() {
+          if (this.div && this.div.parentNode) {
+            this.div.parentNode.removeChild(this.div);
+            this.div = null;
+          }
+        }
+      }
+      const topPerimeterPos = {
+        lat: homeHubLatLng.lat + (350 / 111320),
+        lng: homeHubLatLng.lng
+      };
+      const safeLabel = new SafeZoneLabelOverlay(topPerimeterPos);
+      safeLabel.setMap(map);
+      safeZoneOverlayRef.current = safeLabel;
+
+      // Breadcrumb Trajectory Path Polyline
+      const breadcrumbCoords = [
+        { lat: homeHubLatLng.lat, lng: homeHubLatLng.lng },
+        { lat: homeHubLatLng.lat + 0.0003, lng: homeHubLatLng.lng + 0.0004 },
+        { lat: homeHubLatLng.lat + 0.0006, lng: homeHubLatLng.lng + 0.0009 },
+        { lat: homeHubLatLng.lat + 0.0009, lng: homeHubLatLng.lng + 0.0012 },
+        { lat: petLatLng.lat, lng: petLatLng.lng }
+      ];
+      const polyline = new window.google.maps.Polyline({
+        map: map,
+        path: breadcrumbCoords,
+        strokeColor: '#0D9488',
+        strokeOpacity: 0.85,
+        strokeWeight: 2.5
+      });
+      breadcrumbPolylineRef.current = polyline;
+
+      // Companion Live Animated Marker Custom Overlay
+      class PetMarkerOverlay extends window.google.maps.OverlayView {
+        constructor(position, pet, speed) {
+          super();
+          this.position = position;
+          this.pet = pet;
+          this.speed = speed;
+          this.div = null;
+        }
+        onAdd() {
+          const div = document.createElement('div');
+          div.style.position = 'absolute';
+          div.style.transform = 'translate(-50%, -50%)';
+          div.style.zIndex = '15';
+          div.style.cursor = 'pointer';
+          div.innerHTML = `
+            <div style="display: flex; flex-direction: column; align-items: center;">
+              <div style="position: relative; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;">
+                <div style="
+                  position: absolute; width: 100%; height: 100%; border-radius: 50%;
+                  background-color: rgba(13, 148, 136, 0.25);
+                  animation: radarPulse 2s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+                "></div>
+                <div style="
+                  position: absolute; width: 26px; height: 26px; border-radius: 50%;
+                  background-color: rgba(13, 148, 136, 0.45);
+                "></div>
+                <div style="
+                  width: 32px; height: 32px; border-radius: 50%;
+                  border: 2px solid #0D9488; overflow: hidden;
+                  background-color: #FFFFFF; box-shadow: 0 0 12px rgba(13, 148, 136, 0.6);
+                  display: flex; align-items: center; justify-content: center; z-index: 2;
+                ">
+                  <img src="${this.pet.photo || 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=120&auto=format&fit=crop&q=80'}" 
+                       alt="${this.pet.name}" style="width: 100%; height: 100%; object-fit: cover;" />
+                </div>
+              </div>
+
+              <div style="
+                display: inline-flex; align-items: center; gap: 5px;
+                background-color: #160F0C; color: #FFFFFF;
+                padding: 4px 10px; border-radius: 9999px;
+                font-size: 11px; font-family: monospace; font-weight: 700;
+                margin-top: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+                white-space: nowrap;
+              ">
+                <span style="width: 5px; height: 5px; border-radius: 50%; background-color: #10B981;"></span>
+                <span>${this.pet.name} • ${this.speed || '1.1 km/h'}</span>
+              </div>
+            </div>
+          `;
+          this.div = div;
+          this.getPanes().overlayMouseTarget.appendChild(div);
+        }
+        draw() {
+          const projection = this.getProjection();
+          if (!projection || !this.div) return;
+          const point = projection.fromLatLngToDivPixel(new window.google.maps.LatLng(this.position.lat, this.position.lng));
+          if (point) {
+            this.div.style.left = point.x + 'px';
+            this.div.style.top = point.y + 'px';
+          }
+        }
+        onRemove() {
+          if (this.div && this.div.parentNode) {
+            this.div.parentNode.removeChild(this.div);
+            this.div = null;
+          }
+        }
+        update(pos, speed) {
+          this.position = pos;
+          if (speed) this.speed = speed;
+          if (this.div) {
+            this.draw();
+          }
+        }
+      }
+
+      const petOverlay = new PetMarkerOverlay(petLatLng, activePet, '1.1 km/h');
+      petOverlay.setMap(map);
+      petOverlayRef.current = petOverlay;
+
+      setTimeout(() => {
+        if (googleMapInstanceRef.current && window.google?.maps?.event) {
+          window.google.maps.event.trigger(googleMapInstanceRef.current, 'resize');
+          googleMapInstanceRef.current.panTo(petLatLng);
+        }
+      }, 200);
+
+    } catch (err) {
+      console.error('[Google Maps in PetGPSPage] Init error:', err);
+      setMapsError('Failed to initialize Google Maps: ' + (err.message || String(err)));
+    }
+  }, [googleMapsLoaded]);
+
+  // 3. MAP MODE SWITCHER EFFECT
+  useEffect(() => {
+    if (!googleMapInstanceRef.current || !window.google || !window.google.maps) return;
+    const map = googleMapInstanceRef.current;
+    if (mapMode === 'sat') {
+      map.setMapTypeId(window.google.maps.MapTypeId.HYBRID);
+      map.setOptions({ styles: null });
+    } else if (mapMode === 'topo') {
+      map.setMapTypeId(window.google.maps.MapTypeId.TERRAIN);
+      map.setOptions({ styles: null });
+    } else {
+      map.setMapTypeId(window.google.maps.MapTypeId.ROADMAP);
+      map.setOptions({ styles: googleMapsPaperTheme });
+    }
+  }, [mapMode]);
+
+  // Zoom & Center Control Handlers
+  const handleRecenter = () => {
+    if (googleMapInstanceRef.current) {
+      googleMapInstanceRef.current.panTo(petLatLng);
+      googleMapInstanceRef.current.setZoom(17.2);
+      showToast(`Recentered on ${activePet.name} GNSS Fix`, 'info');
+    }
+  };
+
+  const handleCompassReset = () => {
+    if (googleMapInstanceRef.current) {
+      googleMapInstanceRef.current.setHeading(0);
+      googleMapInstanceRef.current.setTilt(0);
+      showToast('Calibrated magnetic compass heading to North', 'info');
+    }
+  };
+
+  const handleZoomIn = () => {
+    if (googleMapInstanceRef.current) {
+      googleMapInstanceRef.current.setZoom(googleMapInstanceRef.current.getZoom() + 1);
+    }
+  };
+
+  const handleZoomOut = () => {
+    if (googleMapInstanceRef.current) {
+      googleMapInstanceRef.current.setZoom(googleMapInstanceRef.current.getZoom() - 1);
+    }
+  };
+
+  // Helper to format lat/lng to degrees, minutes, seconds string
+  const formatCoordinates = (lat, lng) => {
+    const latDeg = Math.floor(Math.abs(lat));
+    const latMin = Math.floor((Math.abs(lat) - latDeg) * 60);
+    const latSec = (((Math.abs(lat) - latDeg) * 60 - latMin) * 60).toFixed(1);
+    const latDir = lat >= 0 ? 'N' : 'S';
+
+    const lngDeg = Math.floor(Math.abs(lng));
+    const lngMin = Math.floor((Math.abs(lng) - lngDeg) * 60);
+    const lngSec = (((Math.abs(lng) - lngDeg) * 60 - lngMin) * 60).toFixed(1);
+    const lngDir = lng >= 0 ? 'E' : 'W';
+
+    return `${latDeg}°${latMin}'${latSec}"${latDir}, ${lngDeg}°${lngMin}'${lngSec}"${lngDir} • Accuracy: ±1.2m`;
+  };
 
   // Interactive Audio Acoustic Chime Synthesizer
   const triggerAcousticChime = async () => {
@@ -302,6 +757,7 @@ export default function PetGPSPage({ onNavigate }) {
           <div>
             
             {/* Primary Map / Radar Canvas Box */}
+            {/* Primary Map / Radar Canvas Box */}
             <div style={{
               backgroundColor: mapMode === 'sat' ? '#1A2328' : '#F5EFE9',
               backgroundImage: mapMode === 'paper' 
@@ -317,7 +773,92 @@ export default function PetGPSPage({ onNavigate }) {
               marginBottom: '16px'
             }}>
               
-              {/* Polar Radar Range Rings & Crosshair Overlay (SVG) */}
+              {/* Google Maps Real Interactive Canvas Container */}
+              <div
+                ref={mapContainerRef}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  zIndex: 1
+                }}
+              />
+
+              {/* Map Loading State */}
+              {!googleMapsLoaded && !mapsError && (
+                <div style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: 'rgba(245, 239, 233, 0.88)',
+                  backdropFilter: 'blur(4px)',
+                  zIndex: 20,
+                  gap: '12px'
+                }}>
+                  <div style={{
+                    width: '38px',
+                    height: '38px',
+                    borderRadius: '50%',
+                    border: '3px solid rgba(13, 148, 136, 0.2)',
+                    borderTop: '3px solid #0D9488',
+                    animation: 'radarSpin 0.9s linear infinite'
+                  }} />
+                  <span style={{ fontSize: '12px', color: '#675C58', fontFamily: 'var(--font-mono, monospace)', fontWeight: 700 }}>
+                    INITIALIZING SATELLITE GNSS MAP…
+                  </span>
+                  <style>{`@keyframes radarSpin { to { transform: rotate(360deg); } }`}</style>
+                </div>
+              )}
+
+              {/* Map Error State */}
+              {mapsError && (
+                <div style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: 'rgba(245, 239, 233, 0.95)',
+                  zIndex: 20,
+                  gap: '12px',
+                  padding: '24px',
+                  textAlign: 'center'
+                }}>
+                  <div style={{ fontSize: '36px' }}>🗺️</div>
+                  <span style={{ fontSize: '15px', fontWeight: 800, color: '#DC2626' }}>Map Connection Issue</span>
+                  <span style={{ fontSize: '12px', color: '#675C58', maxWidth: '340px', lineHeight: '1.6' }}>{mapsError}</span>
+                  <button
+                    onClick={() => { setMapsError(''); window.location.reload(); }}
+                    style={{
+                      marginTop: '8px',
+                      padding: '8px 18px',
+                      borderRadius: '10px',
+                      backgroundColor: '#0D9488',
+                      border: 'none',
+                      color: '#FFF',
+                      fontWeight: 700,
+                      fontSize: '12px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Retry Loading
+                  </button>
+                </div>
+              )}
+
+              {/* Polar Radar Range Rings & Crosshair Overlay (HUD layer on top of Google Map) */}
               <svg style={{
                 position: 'absolute',
                 top: 0,
@@ -325,10 +866,10 @@ export default function PetGPSPage({ onNavigate }) {
                 width: '100%',
                 height: '100%',
                 pointerEvents: 'none',
-                opacity: 0.85
+                opacity: mapMode === 'sat' ? 0.35 : 0.45,
+                zIndex: 4
               }}>
                 <defs>
-                  {/* Subtle Grid Pattern */}
                   <pattern id="radarGrid" width="60" height="60" patternUnits="userSpaceOnUse">
                     <path d="M 60 0 L 0 0 0 60" fill="none" stroke="rgba(195, 182, 172, 0.25)" strokeWidth="0.8" />
                   </pattern>
@@ -336,169 +877,171 @@ export default function PetGPSPage({ onNavigate }) {
 
                 <rect width="100%" height="100%" fill="url(#radarGrid)" />
 
-                {/* Radar Polar Circles centered around (45%, 48%) */}
-                <circle cx="45%" cy="48%" r="70" fill="none" stroke="rgba(195, 182, 172, 0.45)" strokeWidth="1" />
-                <circle cx="45%" cy="48%" r="150" fill="none" stroke="rgba(195, 182, 172, 0.4)" strokeWidth="1" />
-                <circle cx="45%" cy="48%" r="240" fill="none" stroke="#346B73" strokeWidth="1.5" strokeDasharray="5 5" opacity="0.6" />
-                <circle cx="45%" cy="48%" r="330" fill="none" stroke="rgba(195, 182, 172, 0.3)" strokeWidth="1" />
+                {/* Radar Polar Circles */}
+                <circle cx="50%" cy="50%" r="70" fill="none" stroke="rgba(195, 182, 172, 0.45)" strokeWidth="1" />
+                <circle cx="50%" cy="50%" r="150" fill="none" stroke="rgba(195, 182, 172, 0.4)" strokeWidth="1" />
+                <circle cx="50%" cy="50%" r="240" fill="none" stroke="#346B73" strokeWidth="1.2" strokeDasharray="5 5" opacity="0.6" />
+                <circle cx="50%" cy="50%" r="330" fill="none" stroke="rgba(195, 182, 172, 0.3)" strokeWidth="1" />
 
                 {/* Compass Axes */}
-                <line x1="45%" y1="0%" x2="45%" y2="100%" stroke="rgba(195, 182, 172, 0.35)" strokeWidth="0.8" strokeDasharray="3 3" />
-                <line x1="0%" y1="48%" x2="100%" y2="48%" stroke="rgba(195, 182, 172, 0.35)" strokeWidth="0.8" strokeDasharray="3 3" />
+                <line x1="50%" y1="0%" x2="50%" y2="100%" stroke="rgba(195, 182, 172, 0.35)" strokeWidth="0.8" strokeDasharray="3 3" />
+                <line x1="0%" y1="50%" x2="100%" y2="50%" stroke="rgba(195, 182, 172, 0.35)" strokeWidth="0.8" strokeDasharray="3 3" />
 
                 {/* Diagonal Radials */}
-                <line x1="10%" y1="10%" x2="80%" y2="86%" stroke="rgba(195, 182, 172, 0.2)" strokeWidth="0.8" />
-                <line x1="10%" y1="86%" x2="80%" y2="10%" stroke="rgba(195, 182, 172, 0.2)" strokeWidth="0.8" />
+                <line x1="10%" y1="10%" x2="90%" y2="90%" stroke="rgba(195, 182, 172, 0.2)" strokeWidth="0.8" />
+                <line x1="10%" y1="90%" x2="90%" y2="10%" stroke="rgba(195, 182, 172, 0.2)" strokeWidth="0.8" />
 
-                {/* Breadcrumb Trajectory Path from Home Hub to Companion */}
-                <path
-                  d="M 330 350 Q 380 320 460 260 T 540 180"
-                  fill="none"
-                  stroke="#346B73"
-                  strokeWidth="2"
-                  strokeDasharray="4 4"
-                  opacity="0.85"
-                />
-                
-                {/* Historical Trail Dots */}
-                <circle cx="330" cy="350" r="3" fill="#675C58" />
-                <circle cx="380" cy="340" r="3" fill="#675C58" />
-                <circle cx="430" cy="320" r="3" fill="#675C58" />
-                <circle cx="470" cy="280" r="3" fill="#0D9488" />
-                <circle cx="510" cy="230" r="3" fill="#0D9488" />
+                {/* Fallback Trajectory only if Google Maps fails to load */}
+                {!googleMapsLoaded && (
+                  <>
+                    <path
+                      d="M 330 350 Q 380 320 460 260 T 540 180"
+                      fill="none"
+                      stroke="#346B73"
+                      strokeWidth="2"
+                      strokeDasharray="4 4"
+                      opacity="0.85"
+                    />
+                    <circle cx="330" cy="350" r="3" fill="#675C58" />
+                    <circle cx="380" cy="340" r="3" fill="#675C58" />
+                    <circle cx="430" cy="320" r="3" fill="#675C58" />
+                    <circle cx="470" cy="280" r="3" fill="#0D9488" />
+                    <circle cx="510" cy="230" r="3" fill="#0D9488" />
+                  </>
+                )}
               </svg>
 
-              {/* Compass Degree Markers */}
-              <span style={{ position: 'absolute', top: '14px', left: '45%', transform: 'translateX(-50%)', fontSize: '10px', fontFamily: 'var(--font-mono, monospace)', color: '#707973', fontWeight: 600 }}>
+              {/* Compass Degree Markers (HUD Layer) */}
+              <span style={{ position: 'absolute', top: '14px', left: '50%', transform: 'translateX(-50%)', fontSize: '10px', fontFamily: 'var(--font-mono, monospace)', color: mapMode === 'sat' ? '#94A3B8' : '#707973', fontWeight: 600, pointerEvents: 'none', zIndex: 5 }}>
                 N 000°
               </span>
-              <span style={{ position: 'absolute', top: '48%', right: '14px', transform: 'translateY(-50%)', fontSize: '10px', fontFamily: 'var(--font-mono, monospace)', color: '#707973', fontWeight: 600 }}>
+              <span style={{ position: 'absolute', top: '50%', right: '14px', transform: 'translateY(-50%)', fontSize: '10px', fontFamily: 'var(--font-mono, monospace)', color: mapMode === 'sat' ? '#94A3B8' : '#707973', fontWeight: 600, pointerEvents: 'none', zIndex: 5 }}>
                 E 090°
               </span>
-              <span style={{ position: 'absolute', bottom: '14px', left: '45%', transform: 'translateX(-50%)', fontSize: '10px', fontFamily: 'var(--font-mono, monospace)', color: '#707973', fontWeight: 600 }}>
+              <span style={{ position: 'absolute', bottom: '14px', left: '50%', transform: 'translateX(-50%)', fontSize: '10px', fontFamily: 'var(--font-mono, monospace)', color: mapMode === 'sat' ? '#94A3B8' : '#707973', fontWeight: 600, pointerEvents: 'none', zIndex: 5 }}>
                 S 180°
               </span>
-              <span style={{ position: 'absolute', top: '48%', left: '14px', transform: 'translateY(-50%)', fontSize: '10px', fontFamily: 'var(--font-mono, monospace)', color: '#707973', fontWeight: 600 }}>
+              <span style={{ position: 'absolute', top: '50%', left: '14px', transform: 'translateY(-50%)', fontSize: '10px', fontFamily: 'var(--font-mono, monospace)', color: mapMode === 'sat' ? '#94A3B8' : '#707973', fontWeight: 600, pointerEvents: 'none', zIndex: 5 }}>
                 W 270°
               </span>
 
-              {/* Safe-Zone Radius Pill on dashed circle */}
-              <div style={{
-                position: 'absolute',
-                top: '74px',
-                left: '45%',
-                transform: 'translateX(-50%)',
-                backgroundColor: 'rgba(255, 255, 255, 0.92)',
-                border: '1px solid #C8E5DF',
-                borderRadius: '9999px',
-                padding: '2px 10px',
-                fontSize: '9px',
-                fontFamily: 'var(--font-mono, monospace)',
-                color: '#346B73',
-                fontWeight: 700,
-                letterSpacing: '0.04em'
-              }}>
-                HOME SANCTUARY SAFE-ZONE (350M RADIUS)
-              </div>
-
-              {/* Home Hub Base Station Marker */}
-              <div style={{
-                position: 'absolute',
-                left: '37%',
-                top: '46%',
-                transform: 'translate(-50%, -50%)',
-                textAlign: 'center'
-              }}>
-                <div style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '8px',
-                  backgroundColor: '#FFFFFF',
-                  border: '1px solid #D6CDC5',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  margin: '0 auto 4px auto',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
-                }}>
-                  <Wifi size={16} color="#707973" />
-                </div>
-                <span style={{
-                  fontSize: '9px',
-                  fontFamily: 'var(--font-mono, monospace)',
-                  fontWeight: 700,
-                  color: '#707973',
-                  textTransform: 'uppercase'
-                }}>
-                  HOME HUB
-                </span>
-              </div>
-
-              {/* Companion Live Animated Marker */}
-              <div style={{
-                position: 'absolute',
-                left: '56%',
-                top: '28%',
-                transform: 'translate(-50%, -50%)',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                zIndex: 10
-              }}>
-                {/* Concentric Pulse Wave */}
-                <div style={{
-                  position: 'relative',
-                  width: '40px',
-                  height: '40px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
+              {/* Fallback Static Markers (rendered only if Google Maps not loaded) */}
+              {!googleMapsLoaded && (
+                <>
                   <div style={{
                     position: 'absolute',
-                    width: '100%',
-                    height: '100%',
-                    borderRadius: '50%',
-                    backgroundColor: 'rgba(13, 148, 136, 0.25)',
-                    animation: 'radarPulse 2s cubic-bezier(0.24, 0, 0.38, 1) infinite'
-                  }} />
+                    top: '74px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.92)',
+                    border: '1px solid #C8E5DF',
+                    borderRadius: '9999px',
+                    padding: '2px 10px',
+                    fontSize: '9px',
+                    fontFamily: 'var(--font-mono, monospace)',
+                    color: '#346B73',
+                    fontWeight: 700,
+                    letterSpacing: '0.04em'
+                  }}>
+                    HOME SANCTUARY SAFE-ZONE (350M RADIUS)
+                  </div>
+
                   <div style={{
                     position: 'absolute',
-                    width: '24px',
-                    height: '24px',
-                    borderRadius: '50%',
-                    backgroundColor: 'rgba(13, 148, 136, 0.45)'
-                  }} />
-                  <div style={{
-                    width: '14px',
-                    height: '14px',
-                    borderRadius: '50%',
-                    backgroundColor: '#0D9488',
-                    border: '2.5px solid #FFFFFF',
-                    boxShadow: '0 0 10px #0D9488'
-                  }} />
-                </div>
+                    left: '37%',
+                    top: '46%',
+                    transform: 'translate(-50%, -50%)',
+                    textAlign: 'center'
+                  }}>
+                    <div style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '8px',
+                      backgroundColor: '#FFFFFF',
+                      border: '1px solid #D6CDC5',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      margin: '0 auto 4px auto',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+                    }}>
+                      <Wifi size={16} color="#707973" />
+                    </div>
+                    <span style={{
+                      fontSize: '9px',
+                      fontFamily: 'var(--font-mono, monospace)',
+                      fontWeight: 700,
+                      color: '#707973',
+                      textTransform: 'uppercase'
+                    }}>
+                      HOME HUB
+                    </span>
+                  </div>
 
-                {/* Companion Floating Live Speed Pill */}
-                <div style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '5px',
-                  backgroundColor: '#160F0C',
-                  color: '#FFFFFF',
-                  padding: '4px 10px',
-                  borderRadius: '9999px',
-                  fontSize: '11px',
-                  fontFamily: 'var(--font-mono, monospace)',
-                  fontWeight: 700,
-                  marginTop: '4px',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.18)',
-                  whiteSpace: 'nowrap'
-                }}>
-                  <span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#10B981' }}></span>
-                  <span>{activePet.name} • 1.1 km/h</span>
-                </div>
-              </div>
+                  <div style={{
+                    position: 'absolute',
+                    left: '56%',
+                    top: '28%',
+                    transform: 'translate(-50%, -50%)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    zIndex: 10
+                  }}>
+                    <div style={{
+                      position: 'relative',
+                      width: '40px',
+                      height: '40px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <div style={{
+                        position: 'absolute',
+                        width: '100%',
+                        height: '100%',
+                        borderRadius: '50%',
+                        backgroundColor: 'rgba(13, 148, 136, 0.25)',
+                        animation: 'radarPulse 2s cubic-bezier(0.24, 0, 0.38, 1) infinite'
+                      }} />
+                      <div style={{
+                        position: 'absolute',
+                        width: '24px',
+                        height: '24px',
+                        borderRadius: '50%',
+                        backgroundColor: 'rgba(13, 148, 136, 0.45)'
+                      }} />
+                      <div style={{
+                        width: '14px',
+                        height: '14px',
+                        borderRadius: '50%',
+                        backgroundColor: '#0D9488',
+                        border: '2.5px solid #FFFFFF',
+                        boxShadow: '0 0 10px #0D9488'
+                      }} />
+                    </div>
+
+                    <div style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      backgroundColor: '#160F0C',
+                      color: '#FFFFFF',
+                      padding: '4px 10px',
+                      borderRadius: '9999px',
+                      fontSize: '11px',
+                      fontFamily: 'var(--font-mono, monospace)',
+                      fontWeight: 700,
+                      marginTop: '4px',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.18)',
+                      whiteSpace: 'nowrap'
+                    }}>
+                      <span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#10B981' }}></span>
+                      <span>{activePet.name} • 1.1 km/h</span>
+                    </div>
+                  </div>
+                </>
+              )}
 
               {/* Top-Left Specimen Identifier Badge Overlay */}
               <div style={{
@@ -513,7 +1056,7 @@ export default function PetGPSPage({ onNavigate }) {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '12px',
-                boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
                 zIndex: 10
               }}>
                 <img
@@ -588,7 +1131,8 @@ export default function PetGPSPage({ onNavigate }) {
                         fontSize: '11px',
                         fontFamily: 'var(--font-mono, monospace)',
                         fontWeight: 600,
-                        cursor: 'pointer'
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease'
                       }}
                     >
                       {m.label}
@@ -606,7 +1150,7 @@ export default function PetGPSPage({ onNavigate }) {
                   padding: '3px'
                 }}>
                   <button
-                    onClick={() => showToast(`Recentered on ${activePet.name} GNSS Fix`, 'info')}
+                    onClick={handleRecenter}
                     style={{
                       background: 'none',
                       border: 'none',
@@ -616,12 +1160,12 @@ export default function PetGPSPage({ onNavigate }) {
                       display: 'flex',
                       alignItems: 'center'
                     }}
-                    title="Recenter"
+                    title="Recenter Map on Pet"
                   >
                     <Target size={15} />
                   </button>
                   <button
-                    onClick={() => showToast('Calibrated magnetic compass heading', 'info')}
+                    onClick={handleCompassReset}
                     style={{
                       background: 'none',
                       border: 'none',
@@ -631,7 +1175,7 @@ export default function PetGPSPage({ onNavigate }) {
                       display: 'flex',
                       alignItems: 'center'
                     }}
-                    title="Heading"
+                    title="Reset Compass Heading"
                   >
                     <Compass size={15} />
                   </button>
@@ -658,7 +1202,7 @@ export default function PetGPSPage({ onNavigate }) {
                 zIndex: 10
               }}>
                 <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#0D9488' }}></span>
-                23°47'38.2"N, 90°24'11.8"E • Accuracy: ±1.2m
+                {formatCoordinates(petLatLng.lat, petLatLng.lng)}
               </div>
 
               {/* Bottom-Right Zoom Controls */}
@@ -672,7 +1216,7 @@ export default function PetGPSPage({ onNavigate }) {
                 zIndex: 10
               }}>
                 <button
-                  onClick={() => setZoomLevel(prev => Math.min(prev + 0.2, 2))}
+                  onClick={handleZoomIn}
                   style={{
                     width: '32px',
                     height: '32px',
@@ -687,11 +1231,12 @@ export default function PetGPSPage({ onNavigate }) {
                     justifyContent: 'center',
                     color: '#160F0C'
                   }}
+                  title="Zoom In"
                 >
                   +
                 </button>
                 <button
-                  onClick={() => setZoomLevel(prev => Math.max(prev - 0.2, 0.6))}
+                  onClick={handleZoomOut}
                   style={{
                     width: '32px',
                     height: '32px',
@@ -706,6 +1251,7 @@ export default function PetGPSPage({ onNavigate }) {
                     justifyContent: 'center',
                     color: '#160F0C'
                   }}
+                  title="Zoom Out"
                 >
                   −
                 </button>
