@@ -58,8 +58,9 @@ export default function Community({ onNavigate }) {
     uploadImageFile, 
     pets = [],
     devices = [],
-    vets = []
-  } = useApp ? useApp() : { showToast: () => {}, openModal: () => {}, cart: [], posts: [] };
+    vets = [],
+    usersMap = {}
+  } = useApp ? useApp() : { showToast: () => {}, openModal: () => {}, cart: [], posts: [], usersMap: {} };
   const { currentUser } = useAuth ? useAuth() : { currentUser: null };
 
   const primaryPetName = pets[0]?.name || 'Companion';
@@ -78,6 +79,11 @@ export default function Community({ onNavigate }) {
   const [showAmberTriggerModal, setShowAmberTriggerModal] = useState(false);
   const [sightingLocation, setSightingLocation] = useState('');
   const [questionInput, setQuestionInput] = useState('');
+
+  // Interactive Comments state
+  const [expandedComments, setExpandedComments] = useState({});
+  const [newCommentText, setNewCommentText] = useState({});
+  const [isSubmittingComment, setIsSubmittingComment] = useState({});
 
   const activeAmberAlert = useMemo(() => {
     return (communityPosts || []).find(p => (p.isAmberAlert || p.category === 'amber') && !p.isResolved);
@@ -735,8 +741,26 @@ export default function Community({ onNavigate }) {
             {/* Dynamic Community Posts from Firestore */}
             {communityPosts.map(post => {
               const pId = post.postId || post.id;
-              const hasLiked = post.likedByMe || (post.likedByUserIds && currentUser && post.likedByUserIds.includes(currentUser.uid));
-              const likes = post.likesCount || (post.likedBy ? post.likedBy.length : 0) || 0;
+              const hasLiked = post.likedByMe || post.isLiked || (post.likedByUserIds && currentUser && post.likedByUserIds.includes(currentUser.uid));
+              const likes = Math.max(0, post.likesCount ?? post.likes ?? 0);
+
+              // Dynamically resolve real user details from Firestore usersMap or post data
+              const matchedUser = (post.userId && usersMap && usersMap[post.userId]) || (post.userName && usersMap && usersMap[post.userName.toLowerCase().trim()]);
+              const authorName = (matchedUser && matchedUser.name) || post.userName || post.author || post.authorName || 'Pet Parent';
+              const authorPhoto = post.userPhoto || post.authorPhoto || (matchedUser && matchedUser.photoUrl) || '';
+              const isVerified = (matchedUser && matchedUser.isVerified) || post.isVerified === true || post.verificationStatus === 'VERIFIED';
+              const userRole = (matchedUser && matchedUser.role) || post.userRole || post.authorRole || 'Pet Guardian';
+              const roleDisplay = userRole === 'Veterinarian' ? 'Veterinarian' : (userRole === 'petOwner' || userRole === 'Pet Owner' ? 'Pet Guardian' : userRole);
+              const postTag = post.petName || (post.category && post.category !== 'MOMENT' ? post.category : roleDisplay);
+              
+              const postImage = post.imageUrl || post.image || '';
+              const isCommentsOpen = Boolean(expandedComments[pId]);
+              const postComments = Array.isArray(post.comments) ? post.comments : [];
+              const commentsCount = typeof post.commentsCount === 'number' ? post.commentsCount : postComments.length;
+
+              const postTime = post.time || (post.timestamp ? new Date(post.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Just now');
+              const subtitleText = isVerified ? 'Verified Pet Guardian' : (post.location || (matchedUser && matchedUser.address) || roleDisplay);
+
               return (
                 <div key={pId} style={{
                   backgroundColor: '#FFFFFF',
@@ -749,10 +773,10 @@ export default function Community({ onNavigate }) {
                   {/* Author Header */}
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '12px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <UserAvatar photoUrl={post.userPhoto} size={42} alt={post.userName || 'Member'} />
+                      <UserAvatar photoUrl={authorPhoto} size={42} alt={authorName} />
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <span style={{ fontSize: '14.5px', fontWeight: 800, color: '#160F0C' }}>{post.userName || 'Dhaka Guardian'}</span>
+                          <span style={{ fontSize: '14.5px', fontWeight: 800, color: '#160F0C' }}>{authorName}</span>
                           <span style={{
                             backgroundColor: 'rgba(62, 123, 132, 0.12)',
                             color: '#3E7B84',
@@ -761,11 +785,16 @@ export default function Community({ onNavigate }) {
                             padding: '1px 6px',
                             borderRadius: '4px'
                           }}>
-                            {post.petName || 'Companion'}
+                            {postTag}
                           </span>
+                          {isVerified && (
+                            <span title="Verified Pet Guardian" style={{ display: 'inline-flex', alignItems: 'center', color: '#059669' }}>
+                              <CheckCircle2 size={14} fill="#059669" color="#FFFFFF" />
+                            </span>
+                          )}
                         </div>
                         <div style={{ fontSize: '11px', color: '#8C827A' }}>
-                          {post.timestamp ? new Date(post.timestamp).toLocaleDateString() : 'Just now'} • Verified Mesh Member
+                          {postTime} • {subtitleText}
                         </div>
                       </div>
                     </div>
@@ -776,9 +805,28 @@ export default function Community({ onNavigate }) {
                     {post.content}
                   </p>
 
-                  {post.imageUrl && (
-                    <div style={{ marginBottom: '14px', borderRadius: '12px', overflow: 'hidden', maxHeight: '380px' }}>
-                      <img src={post.imageUrl} alt="Post media" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  {/* Post Image Media */}
+                  {postImage && (
+                    <div style={{
+                      marginBottom: '14px',
+                      borderRadius: '14px',
+                      overflow: 'hidden',
+                      maxHeight: '480px',
+                      backgroundColor: '#F5EFEB',
+                      border: '1px solid #EBE5DF'
+                    }}>
+                      <img
+                        src={postImage}
+                        alt="Post media"
+                        loading="lazy"
+                        referrerPolicy="no-referrer"
+                        style={{
+                          width: '100%',
+                          maxHeight: '480px',
+                          objectFit: 'cover',
+                          display: 'block'
+                        }}
+                      />
                     </div>
                   )}
 
@@ -811,10 +859,128 @@ export default function Community({ onNavigate }) {
                       <Heart size={15} fill={hasLiked ? '#EF4444' : 'none'} color={hasLiked ? '#EF4444' : '#675C58'} /> {likes}
                     </button>
 
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <MessageCircle size={14} /> {post.commentsCount || 0} comments
-                    </span>
+                    <button
+                      onClick={() => {
+                        setExpandedComments(prev => ({ ...prev, [pId]: !prev[pId] }));
+                      }}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#675C58',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        cursor: 'pointer',
+                        fontSize: '12px',
+                        fontWeight: 500
+                      }}
+                    >
+                      <MessageCircle size={14} /> {commentsCount} comments
+                    </button>
                   </div>
+
+                  {/* Interactive Comments Section */}
+                  {isCommentsOpen && (
+                    <div style={{
+                      marginTop: '14px',
+                      paddingTop: '14px',
+                      borderTop: '1px solid #F5EFEB'
+                    }}>
+                      {/* Comments List */}
+                      {postComments.length > 0 ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '14px' }}>
+                          {postComments.map((c, idx) => {
+                            const cAuthor = c.userName || c.author || 'Member';
+                            const cPhoto = c.userPhoto || c.photoUrl || (c.userId && usersMap && usersMap[`photo_${c.userId}`]) || '';
+                            const cTime = c.createdAt ? new Date(c.createdAt).toLocaleDateString() : '';
+                            return (
+                              <div key={c.commentId || idx} style={{
+                                display: 'flex',
+                                gap: '10px',
+                                backgroundColor: '#F9F6F0',
+                                padding: '10px 14px',
+                                borderRadius: '12px'
+                              }}>
+                                <UserAvatar photoUrl={cPhoto} size={28} alt={cAuthor} />
+                                <div style={{ flex: 1 }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
+                                    <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#160F0C' }}>{cAuthor}</span>
+                                    {cTime && <span style={{ fontSize: '10px', color: '#8C827A' }}>{cTime}</span>}
+                                  </div>
+                                  <p style={{ margin: 0, fontSize: '12px', color: '#4A403A', lineHeight: 1.4 }}>
+                                    {c.text || c.commentText}
+                                  </p>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p style={{ fontSize: '11.5px', color: '#8C827A', fontStyle: 'italic', marginBottom: '12px' }}>
+                          No comments yet. Share your thoughts below!
+                        </p>
+                      )}
+
+                      {/* Comment Input */}
+                      <form
+                        onSubmit={async (e) => {
+                          e.preventDefault();
+                          const text = (newCommentText[pId] || '').trim();
+                          if (!text) return;
+                          setIsSubmittingComment(prev => ({ ...prev, [pId]: true }));
+                          try {
+                            if (addPostComment) {
+                              await addPostComment(pId, text);
+                              setNewCommentText(prev => ({ ...prev, [pId]: '' }));
+                              showToast('Comment posted!', 'success');
+                            }
+                          } catch (err) {
+                            showToast('Failed to post comment: ' + err.message, 'error');
+                          } finally {
+                            setIsSubmittingComment(prev => ({ ...prev, [pId]: false }));
+                          }
+                        }}
+                        style={{ display: 'flex', gap: '8px', alignItems: 'center' }}
+                      >
+                        <input
+                          type="text"
+                          value={newCommentText[pId] || ''}
+                          onChange={(e) => setNewCommentText(prev => ({ ...prev, [pId]: e.target.value }))}
+                          placeholder="Write a supportive reply..."
+                          style={{
+                            flex: 1,
+                            padding: '8px 14px',
+                            borderRadius: '9999px',
+                            border: '1px solid #D6CEC7',
+                            fontSize: '12px',
+                            outline: 'none',
+                            fontFamily: 'inherit',
+                            backgroundColor: '#FFFFFF',
+                            color: '#160F0C'
+                          }}
+                        />
+                        <button
+                          type="submit"
+                          disabled={isSubmittingComment[pId] || !(newCommentText[pId] || '').trim()}
+                          style={{
+                            padding: '8px 14px',
+                            borderRadius: '9999px',
+                            backgroundColor: (newCommentText[pId] || '').trim() ? '#3E7B84' : '#D6CEC7',
+                            color: '#FFFFFF',
+                            border: 'none',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            cursor: (newCommentText[pId] || '').trim() ? 'pointer' : 'default',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}
+                        >
+                          <Send size={12} /> Reply
+                        </button>
+                      </form>
+                    </div>
+                  )}
                 </div>
               );
             })}

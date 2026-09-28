@@ -25,6 +25,7 @@ export default function UserAvatar({
         src={finalPhoto}
         alt={alt}
         className={className}
+        referrerPolicy="no-referrer"
         style={{
           width: size,
           height: size,

@@ -980,10 +980,29 @@ export function AppProvider({ children }) {
           snapshot.docs.forEach(docSnap => {
             const data = docSnap.data();
             const photo = data.photoUrl || data.photoURL || data.userPhoto || data.avatar || '';
-            const name = (data.name || data.displayName || '').trim().toLowerCase();
-            if (docSnap.id) map[docSnap.id] = photo;
-            if (data.uid) map[data.uid] = photo;
-            if (name) map[name] = photo;
+            const rawName = (data.name || data.displayName || '').trim();
+            const userObj = {
+              id: docSnap.id,
+              uid: data.uid || docSnap.id,
+              name: rawName,
+              photoUrl: photo,
+              role: data.role || 'petOwner',
+              isVerified: data.isVerified === true || data.verificationStatus === 'VERIFIED',
+              address: data.address || '',
+              phone: data.phone || ''
+            };
+            if (docSnap.id) {
+              map[docSnap.id] = userObj;
+              map[`photo_${docSnap.id}`] = photo;
+            }
+            if (data.uid) {
+              map[data.uid] = userObj;
+              map[`photo_${data.uid}`] = photo;
+            }
+            if (rawName) {
+              map[rawName.toLowerCase()] = userObj;
+              map[`photo_${rawName.toLowerCase()}`] = photo;
+            }
           });
           setUsersMap(map);
         }
@@ -1068,7 +1087,7 @@ export function AppProvider({ children }) {
               else if (diffSec < 604800) displayTime = `${Math.floor(diffSec / 86400)}d ago`;
               else {
                 const dateObj = new Date(rawTs);
-                displayTime = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                displayTime = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
               }
             } else if (typeof data.time === 'string' && data.time) {
               displayTime = data.time;
@@ -1080,42 +1099,65 @@ export function AppProvider({ children }) {
             const rawComments = Array.isArray(data.comments) ? data.comments.map(c => ({
               commentId: c.commentId || c.id || '',
               author: c.author || c.userName || 'Pet Parent',
+              userName: c.userName || c.author || 'Pet Parent',
+              userPhoto: c.userPhoto || c.photoUrl || '',
               text: c.commentText || c.text || '',
               createdAt: c.createdAt || (c.timestamp ? new Date(c.timestamp).toISOString() : new Date().toISOString())
             })) : [];
 
-            // Resolve author profile photo dynamically
+            // Resolve author profile photo and user details dynamically
             const postUserId = data.userId || data.authorId || data.uid || '';
-            const postAuthor = data.userName || data.authorName || data.author || 'Pet Parent';
-            let authorPhoto = data.userPhoto || data.authorPhoto || data.userPhotoUrl || data.photoUrl || '';
+            const matchedUser = (postUserId && usersMap[postUserId]) || (data.userName && usersMap[data.userName.toLowerCase().trim()]);
+            
+            const postAuthor = (matchedUser && matchedUser.name) || data.userName || data.authorName || data.author || 'Pet Parent';
+            let authorPhoto = data.userPhoto || data.authorPhoto || data.userPhotoUrl || data.photoUrl || (matchedUser && matchedUser.photoUrl) || '';
+            
             if (!authorPhoto || authorPhoto.includes('tail_wagging_logo.png')) {
-              if (postUserId && usersMap[postUserId]) {
-                authorPhoto = usersMap[postUserId];
-              } else if (postAuthor && usersMap[postAuthor.toLowerCase().trim()]) {
-                authorPhoto = usersMap[postAuthor.toLowerCase().trim()];
+              if (matchedUser && matchedUser.photoUrl) {
+                authorPhoto = matchedUser.photoUrl;
+              } else if (postUserId && usersMap[`photo_${postUserId}`]) {
+                authorPhoto = usersMap[`photo_${postUserId}`];
+              } else if (postAuthor && usersMap[`photo_${postAuthor.toLowerCase().trim()}`]) {
+                authorPhoto = usersMap[`photo_${postAuthor.toLowerCase().trim()}`];
               } else if (currentUser && (currentUser.uid === postUserId || currentUser.name?.toLowerCase().trim() === postAuthor?.toLowerCase().trim())) {
                 authorPhoto = currentUser.photoUrl || '';
               }
             }
+
+            const postRole = (matchedUser && matchedUser.role) || data.userRole || 'Pet Parent';
+            const isUserVerified = (matchedUser && matchedUser.isVerified) || data.isVerified === true || data.verificationStatus === 'VERIFIED';
+            const postImg = data.imageUrl || data.image || data.photoUrl || data.photo || (Array.isArray(data.images) && data.images[0]) || (Array.isArray(data.photos) && data.photos[0]) || (Array.isArray(data.mediaUrls) && data.mediaUrls[0]) || '';
 
             return {
               id: docSnap.id,
               postId: data.postId || docSnap.id,
               userId: postUserId,
               author: postAuthor,
+              authorName: postAuthor,
+              userName: postAuthor,
               authorPhoto: authorPhoto || '',
+              userPhoto: authorPhoto || '',
+              authorRole: postRole,
+              userRole: postRole,
+              isVerified: isUserVerified,
               petTag: data.petTag || (postType ? `${postType}` : 'Pet'),
               category: postType,
+              postType: postType,
               time: displayTime,
               timestamp: rawTs || Date.now(),
               content: data.content || '',
-              image: data.imageUrl || data.image || data.photoUrl || data.photo || '',
+              image: postImg,
+              imageUrl: postImg,
+              images: Array.isArray(data.images) ? data.images : (postImg ? [postImg] : []),
               likes: likesCount,
+              likesCount: likesCount,
               isLiked: isLiked,
+              likedByMe: isLiked,
               userReaction: userReaction,
               userReactions: rawUserReactions,
               activeReactionTypes: activeReactionTypes,
               likedBy: Array.isArray(likedBy) ? likedBy : (likedBy ? Object.keys(likedBy) : []),
+              likedByUserIds: Array.isArray(likedByUserIds) ? likedByUserIds : (Array.isArray(likedBy) ? likedBy : []),
               comments: rawComments,
               commentsCount: typeof data.commentsCount === 'number' ? data.commentsCount : rawComments.length,
               sharesCount: data.sharesCount || 0,
@@ -1127,7 +1169,7 @@ export function AppProvider({ children }) {
               isResolved: data.isResolved === true || data.isResolved === 'true',
               petName: data.petName || '',
               petBreed: data.petBreed || '',
-              location: data.location || '',
+              location: data.location || (matchedUser && matchedUser.address) || '',
               contactPhone: data.contactPhone || '',
               microchipId: data.microchipId || '',
               collarTag: data.collarTag || '',
@@ -1466,11 +1508,12 @@ export function AppProvider({ children }) {
     const newPost = {
       // Modern App Schema
       userId: currentUser ? currentUser.uid : 'guest',
-      userName: userDisplayName,
-      userPhoto: userPhotoUrl,
+      userName: postData.userName || userDisplayName,
+      userPhoto: postData.userPhoto || userPhotoUrl,
       postType: postType,
       content: postData.content || '',
-      imageUrl: postData.image || '',
+      imageUrl: postData.imageUrl || postData.image || '',
+      image: postData.imageUrl || postData.image || '',
       timestamp: Date.now(),
       likesCount: 0,
       commentsCount: 0,
@@ -1478,9 +1521,10 @@ export function AppProvider({ children }) {
       likedBy: {},
       
       // Web Legacy compatibility fields
-      authorName: userDisplayName,
+      author: postData.userName || userDisplayName,
+      authorName: postData.userName || userDisplayName,
       authorId: currentUser ? currentUser.uid : 'guest',
-      authorPhoto: userPhotoUrl,
+      authorPhoto: postData.userPhoto || userPhotoUrl,
       petTag: postData.petTag || 'Pet',
       category: postData.category || 'Moment',
       mood: postData.mood || '🐾 Playful & Energetic',
@@ -1508,15 +1552,20 @@ export function AppProvider({ children }) {
     } else {
       setPosts(prev => [{ 
         id: 'p_' + Date.now(), 
-        author: userDisplayName,
-        authorPhoto: userPhotoUrl,
+        author: postData.userName || userDisplayName,
+        authorName: postData.userName || userDisplayName,
+        userName: postData.userName || userDisplayName,
+        authorPhoto: postData.userPhoto || userPhotoUrl,
+        userPhoto: postData.userPhoto || userPhotoUrl,
         petTag: postData.petTag || 'Pet',
         category: postData.category || 'Moment',
         time: 'Just now',
         timestamp: Date.now(),
         content: postData.content || '',
-        image: postData.image || '',
+        image: postData.imageUrl || postData.image || '',
+        imageUrl: postData.imageUrl || postData.image || '',
         likes: 0, 
+        likesCount: 0,
         isLiked: false, 
         comments: [],
         isAmberAlert: isAmber,
