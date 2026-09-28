@@ -158,6 +158,7 @@ export default function PetTracker() {
   const [showStylePicker, setShowStylePicker] = useState(false);
   const [isPlayingSound, setIsPlayingSound] = useState(false);
   const [googleMapsLoaded, setGoogleMapsLoaded] = useState(false);
+  const [mapsError, setMapsError] = useState('');
 
   // Lat/Lng Coordinates (Synced with user's live device location or assigned tracker)
   const initialLat = assignedDevice?.latitude || userLiveLocation?.latitude || 23.8103;
@@ -202,16 +203,37 @@ export default function PetTracker() {
     }
 
     const scriptId = 'google-maps-api-script';
-    if (document.getElementById(scriptId)) return;
+    if (document.getElementById(scriptId)) {
+      // Script tag already injected; wait for callback
+      return;
+    }
 
+    if (!GOOGLE_MAPS_API_KEY) {
+      setMapsError('No Google Maps API key configured.');
+      return;
+    }
+
+    // Register a global callback that Google Maps will invoke once fully ready
+    window.__gmapsReady = () => {
+      setGoogleMapsLoaded(true);
+    };
+
+    // Use v=weekly for the latest stable release + callback parameter
     const script = document.createElement('script');
     script.id = scriptId;
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places,geometry`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places,geometry&v=weekly&callback=__gmapsReady`;
     script.async = true;
     script.defer = true;
-    script.onload = () => setGoogleMapsLoaded(true);
-    script.onerror = () => console.warn('[Google Maps] Script load fallback active.');
+    script.onerror = (err) => {
+      console.error('[Google Maps] Failed to load:', err);
+      setMapsError('Google Maps failed to load. Check your API key restrictions and billing account.');
+    };
     document.head.appendChild(script);
+
+    return () => {
+      // Clean up global callback on unmount
+      delete window.__gmapsReady;
+    };
   }, []);
 
   // ── 2. INITIALIZE GOOGLE MAPS INSTANCE ──
@@ -781,10 +803,55 @@ export default function PetTracker() {
             </div>
 
             {/* Google Map Container Canvas */}
-            <div 
-              ref={mapContainerRef} 
-              style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }} 
+            <div
+              ref={mapContainerRef}
+              style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}
             />
+
+            {/* Map Loading State */}
+            {!googleMapsLoaded && !mapsError && (
+              <div style={{
+                position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                background: 'rgba(11, 15, 20, 0.92)',
+                zIndex: 20, gap: '14px'
+              }}>
+                <div style={{
+                  width: '42px', height: '42px', borderRadius: '50%',
+                  border: '3px solid rgba(16, 185, 129, 0.2)',
+                  borderTop: '3px solid #10B981',
+                  animation: 'spin 0.9s linear infinite'
+                }} />
+                <span style={{ fontSize: '13px', color: '#94A3B8', fontWeight: 600 }}>Loading Google Maps…</span>
+                <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+              </div>
+            )}
+
+            {/* Map Error State */}
+            {mapsError && (
+              <div style={{
+                position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                background: 'rgba(11, 15, 20, 0.95)', zIndex: 20, gap: '12px', padding: '24px', textAlign: 'center'
+              }}>
+                <div style={{ fontSize: '36px' }}>🗺️</div>
+                <span style={{ fontSize: '15px', fontWeight: 800, color: '#EF4444' }}>Map Failed to Load</span>
+                <span style={{ fontSize: '12px', color: '#94A3B8', maxWidth: '320px', lineHeight: '1.6' }}>{mapsError}</span>
+                <div style={{ fontSize: '11px', color: '#64748B', maxWidth: '320px', lineHeight: '1.6' }}>
+                  Check: API key HTTP referrer restrictions in Google Cloud Console → Credentials → restrict to your domains (<code>petmaya.app</code>, <code>pet-maya.web.app</code>) or set to unrestricted.
+                </div>
+                <button
+                  onClick={() => { setMapsError(''); window.location.reload(); }}
+                  style={{
+                    marginTop: '8px', padding: '8px 18px', borderRadius: '10px',
+                    background: '#10B981', border: 'none', color: '#FFF',
+                    fontWeight: 700, fontSize: '12px', cursor: 'pointer'
+                  }}
+                >
+                  Retry
+                </button>
+              </div>
+            )}
 
             {/* Right Map Action Floating Toolbar */}
             <div 
