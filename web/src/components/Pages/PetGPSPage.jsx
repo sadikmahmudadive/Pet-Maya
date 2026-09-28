@@ -111,22 +111,22 @@ export default function PetGPSPage({ onNavigate }) {
     userLiveLocation 
   } = useApp ? useApp() : { showToast: () => {}, openModal: () => {} };
 
-  const activeDevice = devices[0] || {
-    id: 'halo-01',
-    name: 'Maya Halo™ Collar',
-    collarId: 'HALO-BLE',
-    batteryLevel: 92,
-    signalStrength: 98,
+  const activeDevice = devices && devices.length > 0 ? devices[0] : {
+    id: 'tracker_default',
+    name: 'Smart GPS Tracker',
+    collarId: 'PM-GPS',
+    batteryLevel: 100,
+    signalStrength: 4,
     lat: userLiveLocation?.lat || 23.7937,
     lng: userLiveLocation?.lng || 90.4066,
     isOnline: true
   };
 
-  const activePet = pets[0] || {
-    name: 'Companion',
+  const activePet = pets && pets.length > 0 ? pets[0] : {
+    name: 'Registered Companion',
     breed: 'Companion',
     weight: 'N/A',
-    photo: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=120&auto=format&fit=crop&q=80',
+    photo: '',
     device: activeDevice.name
   };
 

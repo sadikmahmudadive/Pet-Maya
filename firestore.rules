@@ -79,11 +79,16 @@ service cloud.firestore {
 
     // Notifications
     match /notifications/{userId} {
-      allow read, write: if isOwner(userId) || isAdmin();
+      allow read, write: if true;
       
       match /{allSubcollections=**} {
-        allow read, write: if isOwner(userId) || isAdmin();
+        allow read, write: if true;
       }
+    }
+
+    // Devices & Smart Trackers
+    match /devices/{deviceId} {
+      allow read, write: if true;
     }
 
     // Blogs

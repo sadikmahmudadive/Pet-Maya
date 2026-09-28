@@ -93,22 +93,22 @@ export default function NutritionBreeds() {
   // ── Selected Pet State ──
   const [selectedPetId, setSelectedPetId] = useState(pets[0]?.id || pets[0]?.petID || 'default_pet');
   const activePet = pets.find(p => p.id === selectedPetId || p.petID === selectedPetId) || pets[0] || {
-    id: 'default_pet',
-    name: 'Miko',
-    breed: 'Domestic Shorthair',
-    species: 'Cat',
-    age: '1.5 Yrs',
-    weight: '3.2',
-    photo: 'assets/images/Pet_1.jpg',
-    currentFoodName: 'Royal Canin Indoor 27',
-    foodType: 'Dry Food',
-    feedingTimes: ['08:00 AM', '02:00 PM', '08:00 PM']
+    id: 'unassigned',
+    name: 'Registered Companion',
+    breed: 'Companion',
+    species: 'Pet',
+    age: '',
+    weight: '',
+    photo: '',
+    currentFoodName: '',
+    foodType: 'Balanced Diet',
+    feedingTimes: []
   };
 
   // ── Diet Form State ──
-  const [foodName, setFoodName] = useState(activePet.currentFoodName || 'Royal Canin Indoor 27');
-  const [foodType, setFoodType] = useState(activePet.foodType || 'Dry Food');
-  const [feedingTimes, setFeedingTimes] = useState(activePet.feedingTimes || ['08:00 AM', '02:00 PM', '08:00 PM']);
+  const [foodName, setFoodName] = useState(activePet.currentFoodName || '');
+  const [foodType, setFoodType] = useState(activePet.foodType || 'Balanced Diet');
+  const [feedingTimes, setFeedingTimes] = useState(activePet.feedingTimes || []);
   const [isSavingDiet, setIsSavingDiet] = useState(false);
   const [newTimeInput, setNewTimeInput] = useState('');
   const [showAddTime, setShowAddTime] = useState(false);
@@ -126,9 +126,9 @@ export default function NutritionBreeds() {
 
   // Sync pet change to inputs
   useEffect(() => {
-    setFoodName(activePet.currentFoodName || 'Royal Canin Indoor 27');
-    setFoodType(activePet.foodType || 'Dry Food');
-    setFeedingTimes(activePet.feedingTimes || ['08:00 AM', '02:00 PM', '08:00 PM']);
+    setFoodName(activePet.currentFoodName || '');
+    setFoodType(activePet.foodType || 'Balanced Diet');
+    setFeedingTimes(activePet.feedingTimes || []);
     setAiRecommendation(null);
   }, [selectedPetId]);
 

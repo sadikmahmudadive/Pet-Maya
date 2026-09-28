@@ -55,20 +55,9 @@ export default function Dashboard({ onNavigate }) {
   const { currentUser } = useAuth();
 
   const guardianDisplayName = currentUser?.name || currentUser?.displayName || 'Pet Guardian';
-  const activePet = pets[0] || {
-    id: 'placeholder',
-    name: 'Maya',
-    breed: 'Golden Retriever',
-    weight: '15.0',
-    age: '3 yrs',
-    photo: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=300&auto=format&fit=crop&q=80',
-    microchip: 'UNREGISTERED'
-  };
-  const activeDevice = devices[0] || {
-    collarId: 'HALO-BLE',
-    batteryLevel: 92
-  };
-  const nextAppt = appointments.find(a => a.status === 'confirmed' || a.status === 'upcoming') || appointments[0] || null;
+  const activePet = pets && pets.length > 0 ? pets[0] : null;
+  const activeDevice = devices && devices.length > 0 ? devices[0] : null;
+  const nextAppt = appointments && appointments.length > 0 ? (appointments.find(a => (a.status || '').toLowerCase() === 'confirmed' || (a.status || '').toLowerCase() === 'upcoming') || appointments[0]) : null;
 
   const handleRoute = (path) => {
     if (onNavigate) onNavigate(path);
@@ -160,7 +149,7 @@ export default function Dashboard({ onNavigate }) {
               lineHeight: 1.5,
               maxWidth: '620px'
             }}>
-              {activePet.name}'s clinical vitals and preventative schedule are fully in sync. Zero acute anomalies detected in the last 72 hours.
+              {activePet ? `${activePet.name}'s clinical vitals and preventative schedule are fully in sync. Zero acute anomalies detected in the last 72 hours.` : 'Clinical vitals, digital health records, and preventive schedules are centralized here.'}
             </p>
           </div>
 
@@ -195,191 +184,257 @@ export default function Dashboard({ onNavigate }) {
         {/* ════════════════════════════════════════════════════════════════
             2. ACTIVE COMPANION BANNER
             ════════════════════════════════════════════════════════════════ */}
-        <div style={{
-          backgroundColor: '#FFFFFF',
-          border: '1px solid #EBE4DF',
-          borderRadius: '24px',
-          padding: '20px 24px',
-          marginBottom: '28px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '20px',
-          flexWrap: 'wrap',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.02)'
-        }}>
-          {/* Companion Info Left */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <div style={{ position: 'relative' }}>
-              <img
-                src={activePet.photo || activePet.image || "https://images.unsplash.com/photo-1552053831-71594a27632d?w=160&auto=format&fit=crop&q=80"}
-                alt={activePet.name}
-                style={{
-                  width: '56px',
-                  height: '56px',
-                  borderRadius: '50%',
-                  objectFit: 'cover',
-                  border: '2px solid #0D9488'
-                }}
-              />
-              <span style={{
-                position: 'absolute',
-                bottom: '2px',
-                right: '2px',
-                width: '12px',
-                height: '12px',
-                backgroundColor: '#0D9488',
-                borderRadius: '50%',
-                border: '2px solid #FFFFFF'
-              }}></span>
-            </div>
-
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
-                <h2 style={{
-                  fontFamily: 'var(--font-serif, "Playfair Display", Georgia, serif)',
-                  fontSize: '20px',
-                  fontWeight: 700,
-                  color: '#160F0C',
-                  margin: 0
-                }}>
-                  {activePet.name}
-                </h2>
-                <span style={{
-                  backgroundColor: '#FAF7F5',
-                  border: '1px solid #EAE3DC',
-                  color: '#675C58',
-                  fontSize: '10.5px',
-                  fontFamily: 'var(--font-mono, monospace)',
-                  fontWeight: 600,
-                  padding: '2px 8px',
-                  borderRadius: '9999px'
-                }}>
-                  {activePet.breed || activePet.species || 'Companion'}
-                </span>
-                <span style={{
-                  backgroundColor: '#FAF7F5',
-                  border: '1px solid #EAE3DC',
-                  color: '#675C58',
-                  fontSize: '10.5px',
-                  fontFamily: 'var(--font-mono, monospace)',
-                  fontWeight: 600,
-                  padding: '2px 8px',
-                  borderRadius: '9999px'
-                }}>
-                  Verified Companion
-                </span>
-              </div>
-
+        {!activePet ? (
+          <div style={{
+            backgroundColor: '#FFFFFF',
+            border: '1.5px dashed #D6CDC5',
+            borderRadius: '24px',
+            padding: '24px 28px',
+            marginBottom: '28px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '20px',
+            flexWrap: 'wrap',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.02)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
               <div style={{
-                fontSize: '11.5px',
-                color: '#707973',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                flexWrap: 'wrap'
-              }}>
-                <span>{activePet.weight ? `${activePet.weight} kg (Ideal)` : 'Weight Recorded'}</span>
-                <span>•</span>
-                <span>{activePet.age || 'Adult'}</span>
-                <span>•</span>
-                <button
-                  onClick={() => {
-                    const chip = activePet.microchip || 'UNREGISTERED';
-                    if (chip !== 'UNREGISTERED') {
-                      navigator.clipboard.writeText(chip);
-                      showToast(`Microchip #${chip} copied to clipboard`, 'success');
-                    }
-                  }}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    padding: 0,
-                    color: '#0D9488',
-                    fontFamily: 'var(--font-mono, monospace)',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px'
-                  }}
-                >
-                  <span>● Microchip: #{activePet.microchip || 'UNREGISTERED'}</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Health Score & Action Buttons */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-            <div style={{
-              backgroundColor: '#FAF7F5',
-              border: '1px solid #EAE3DC',
-              borderRadius: '9999px',
-              padding: '6px 16px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}>
-              <span style={{ fontSize: '10.5px', fontFamily: 'var(--font-mono, monospace)', color: '#707973', textTransform: 'uppercase', fontWeight: 600 }}>
-                HEALTH INDEX:
-              </span>
-              <span style={{ fontSize: '15px', fontWeight: 800, color: '#160F0C' }}>
-                96 <span style={{ fontSize: '11px', fontWeight: 400, color: '#707973' }}>/ 100</span>
-              </span>
-              <span style={{
-                backgroundColor: '#E6F4F1',
-                color: '#0D9488',
-                fontSize: '9px',
-                fontFamily: 'var(--font-mono, monospace)',
-                fontWeight: 700,
-                padding: '1px 6px',
-                borderRadius: '4px'
-              }}>
-                OPTIMAL
-              </span>
-            </div>
-
-            <button
-              onClick={() => showToast(`Switched to ${activePet.name} active telemetry profile`, 'info')}
-              style={{
-                width: '36px',
-                height: '36px',
+                width: '54px',
+                height: '54px',
                 borderRadius: '50%',
-                backgroundColor: '#FAF7F5',
-                border: '1px solid #EAE3DC',
+                backgroundColor: '#EDF5F3',
+                border: '1.5px solid #C4DCD6',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                cursor: 'pointer',
-                color: '#675C58'
-              }}
-              title="Switch Pet"
-            >
-              <Repeat size={15} />
-            </button>
-
+                color: '#346B73'
+              }}>
+                <Heart size={24} />
+              </div>
+              <div>
+                <h2 style={{
+                  fontFamily: 'var(--font-serif, "Playfair Display", Georgia, serif)',
+                  fontSize: '19px',
+                  fontWeight: 700,
+                  color: '#160F0C',
+                  margin: '0 0 4px 0'
+                }}>
+                  No Companion Registered Yet
+                </h2>
+                <div style={{ fontSize: '12.5px', color: '#707973' }}>
+                  Register your companion to access their digital health passport, biometric vitals, and live telemetry.
+                </div>
+              </div>
+            </div>
             <button
               onClick={() => openModal('addPet')}
               style={{
-                backgroundColor: '#FAF7F5',
-                border: '1px solid #D6CDC5',
+                backgroundColor: '#160F0C',
+                color: '#FFFFFF',
                 borderRadius: '9999px',
-                padding: '8px 16px',
-                fontSize: '12px',
+                padding: '10px 22px',
+                fontSize: '12.5px',
                 fontWeight: 700,
-                color: '#160F0C',
+                border: 'none',
                 cursor: 'pointer',
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
-                gap: '6px'
+                gap: '8px',
+                boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
               }}
             >
-              <Plus size={14} />
-              <span>Add Pet</span>
+              <Plus size={15} />
+              <span>Register Companion</span>
             </button>
           </div>
-        </div>
+        ) : (
+          <div style={{
+            backgroundColor: '#FFFFFF',
+            border: '1px solid #EBE4DF',
+            borderRadius: '24px',
+            padding: '20px 24px',
+            marginBottom: '28px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '20px',
+            flexWrap: 'wrap',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.02)'
+          }}>
+            {/* Companion Info Left */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div style={{ position: 'relative' }}>
+                <img
+                  src={activePet.photo || activePet.image || "https://images.unsplash.com/photo-1552053831-71594a27632d?w=160&auto=format&fit=crop&q=80"}
+                  alt={activePet.name}
+                  style={{
+                    width: '56px',
+                    height: '56px',
+                    borderRadius: '50%',
+                    objectFit: 'cover',
+                    border: '2px solid #0D9488'
+                  }}
+                />
+                <span style={{
+                  position: 'absolute',
+                  bottom: '2px',
+                  right: '2px',
+                  width: '12px',
+                  height: '12px',
+                  backgroundColor: '#0D9488',
+                  borderRadius: '50%',
+                  border: '2px solid #FFFFFF'
+                }}></span>
+              </div>
+
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
+                  <h2 style={{
+                    fontFamily: 'var(--font-serif, "Playfair Display", Georgia, serif)',
+                    fontSize: '20px',
+                    fontWeight: 700,
+                    color: '#160F0C',
+                    margin: 0
+                  }}>
+                    {activePet.name}
+                  </h2>
+                  <span style={{
+                    backgroundColor: '#FAF7F5',
+                    border: '1px solid #EAE3DC',
+                    color: '#675C58',
+                    fontSize: '10.5px',
+                    fontFamily: 'var(--font-mono, monospace)',
+                    fontWeight: 600,
+                    padding: '2px 8px',
+                    borderRadius: '9999px'
+                  }}>
+                    {activePet.breed || activePet.species || 'Companion'}
+                  </span>
+                  <span style={{
+                    backgroundColor: '#FAF7F5',
+                    border: '1px solid #EAE3DC',
+                    color: '#675C58',
+                    fontSize: '10.5px',
+                    fontFamily: 'var(--font-mono, monospace)',
+                    fontWeight: 600,
+                    padding: '2px 8px',
+                    borderRadius: '9999px'
+                  }}>
+                    Verified Companion
+                  </span>
+                </div>
+
+                <div style={{
+                  fontSize: '11.5px',
+                  color: '#707973',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  flexWrap: 'wrap'
+                }}>
+                  <span>{activePet.weight ? `${activePet.weight} kg (Ideal)` : 'Weight Recorded'}</span>
+                  <span>•</span>
+                  <span>{activePet.age || 'Adult'}</span>
+                  <span>•</span>
+                  <button
+                    onClick={() => {
+                      const chip = activePet.microchip || 'UNREGISTERED';
+                      if (chip !== 'UNREGISTERED') {
+                        navigator.clipboard.writeText(chip);
+                        showToast(`Microchip #${chip} copied to clipboard`, 'success');
+                      }
+                    }}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      padding: 0,
+                      color: '#0D9488',
+                      fontFamily: 'var(--font-mono, monospace)',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                  >
+                    <span>● Microchip: #{activePet.microchip || 'UNREGISTERED'}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Health Score & Action Buttons */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+              <div style={{
+                backgroundColor: '#FAF7F5',
+                border: '1px solid #EAE3DC',
+                borderRadius: '9999px',
+                padding: '6px 16px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}>
+                <span style={{ fontSize: '10.5px', fontFamily: 'var(--font-mono, monospace)', color: '#707973', textTransform: 'uppercase', fontWeight: 600 }}>
+                  HEALTH INDEX:
+                </span>
+                <span style={{ fontSize: '15px', fontWeight: 800, color: '#160F0C' }}>
+                  96 <span style={{ fontSize: '11px', fontWeight: 400, color: '#707973' }}>/ 100</span>
+                </span>
+                <span style={{
+                  backgroundColor: '#E6F4F1',
+                  color: '#0D9488',
+                  fontSize: '9px',
+                  fontFamily: 'var(--font-mono, monospace)',
+                  fontWeight: 700,
+                  padding: '1px 6px',
+                  borderRadius: '4px'
+                }}>
+                  OPTIMAL
+                </span>
+              </div>
+
+              <button
+                onClick={() => showToast(`Switched to ${activePet.name} active telemetry profile`, 'info')}
+                style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '50%',
+                  backgroundColor: '#FAF7F5',
+                  border: '1px solid #EAE3DC',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  color: '#675C58'
+                }}
+                title="Switch Pet"
+              >
+                <Repeat size={15} />
+              </button>
+
+              <button
+                onClick={() => openModal('addPet')}
+                style={{
+                  backgroundColor: '#FAF7F5',
+                  border: '1px solid #D6CDC5',
+                  borderRadius: '9999px',
+                  padding: '8px 16px',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  color: '#160F0C',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <Plus size={14} />
+                <span>Add Pet</span>
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* ════════════════════════════════════════════════════════════════
             3. QUICK ACTION FEATURE LAUNCHPAD (6 CARDS IN 1 ROW)
@@ -1023,11 +1078,11 @@ export default function Dashboard({ onNavigate }) {
                   color: '#160F0C',
                   margin: 0
                 }}>
-                  Maya Halo™ Collar
+                  {activeDevice ? (activeDevice.name || 'PetMaya Tracker') : 'GPS Radar & Tracker'}
                 </h3>
               </div>
 
-              <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#0D9488' }}></span>
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: activeDevice ? '#0D9488' : '#D6CDC5' }}></span>
             </div>
 
             {/* Radar Mini Map Card */}
@@ -1089,7 +1144,7 @@ export default function Dashboard({ onNavigate }) {
                   fontFamily: 'var(--font-mono, monospace)',
                   fontWeight: 700
                 }}>
-                  ● {activePet.name} • Indoors
+                  ● {activePet ? activePet.name : 'Companion'} • {activeDevice ? 'Indoors' : 'Standby'}
                 </div>
               </div>
 
@@ -1097,11 +1152,11 @@ export default function Dashboard({ onNavigate }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '11.5px', marginBottom: '14px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: '#707973' }}>Sanctuary Perimeter:</span>
-                  <span style={{ fontWeight: 700, color: '#160F0C' }}>Safe • Indoors</span>
+                  <span style={{ fontWeight: 700, color: '#160F0C' }}>{activeDevice ? 'Safe • Indoors' : 'Calibrated'}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: '#707973' }}>Hardware Battery:</span>
-                  <span style={{ fontWeight: 700, color: '#0D9488' }}>🔋 {activeDevice.batteryLevel ?? 92}% (6.5 days)</span>
+                  <span style={{ fontWeight: 700, color: '#0D9488' }}>{activeDevice ? `🔋 ${activeDevice.batteryLevel ?? 92}% (6.5 days)` : '📡 Paired on demand'}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: '#707973' }}>Cellular Uplink:</span>
@@ -1158,7 +1213,7 @@ export default function Dashboard({ onNavigate }) {
               </div>
 
               <p style={{ fontSize: '11.5px', lineHeight: 1.55, color: '#52625D', margin: '0 0 10px 0' }}>
-                High ambient pollen counts logged in your precinct this week. Inspect {activePet.name}'s interdigital paws and outer pinnae following morning walks.
+                High ambient pollen counts logged in your precinct this week. Inspect {activePet ? activePet.name : 'your companion'}'s interdigital paws and outer pinnae following morning walks.
               </p>
 
               <a
@@ -1222,7 +1277,7 @@ export default function Dashboard({ onNavigate }) {
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <button
-                onClick={() => showToast(`Exported ${activePet.name} Certified EHR Dossier (PDF)`, 'success')}
+                onClick={() => showToast(`Exported ${activePet?.name || 'Companion'} Certified EHR Dossier (PDF)`, 'success')}
                 style={{
                   backgroundColor: '#FAF7F5',
                   border: '1px solid #D6CDC5',

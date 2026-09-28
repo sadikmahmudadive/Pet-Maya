@@ -27,44 +27,7 @@ import {
 } from '../config/firebase';
 import { useAuth } from './AuthContext';
 
-export const INITIAL_DEVICES = [
-  {
-    id: 'pm_trk_01',
-    name: "Max's GPS Collar",
-    deviceType: 'gps_collar',
-    modelNumber: 'PetMaya ProTrack Gen 2',
-    serialNumber: 'PM-TRK-7821',
-    petId: 'piku_01',
-    petName: 'Piku',
-    batteryLevel: 88,
-    isOnline: true,
-    signalStrength: 4,
-    trackingMode: 'Real-Time (10s)',
-    isSafeZone: true,
-    firmwareVersion: 'v2.4.1',
-    lastSync: '2m ago',
-    latitude: 23.8103,
-    longitude: 90.4125
-  },
-  {
-    id: 'pm_trk_02',
-    name: "Maya Smart Tag",
-    deviceType: 'ble_beacon',
-    modelNumber: 'PetMaya BLE Beacon Gen 1',
-    serialNumber: 'PM-BLE-4109',
-    petId: null,
-    petName: 'Unassigned',
-    batteryLevel: 95,
-    isOnline: true,
-    signalStrength: 3,
-    trackingMode: 'Balanced (5m)',
-    isSafeZone: true,
-    firmwareVersion: 'v1.2.0',
-    lastSync: '10m ago',
-    latitude: 23.8115,
-    longitude: 90.4140
-  }
-];
+export const INITIAL_DEVICES = [];
 
 // Route to Tab Mapping & Document Titles
 export const TAB_ROUTES = {
@@ -234,74 +197,7 @@ const resolveInitialTab = () => {
   return localStorage.getItem('pm_active_tab') || 'landing';
 };
 
-const INITIAL_NOTIFICATIONS = [
-  {
-    id: 'notif-1',
-    title: '🚨 Radar Geofence Alert',
-    body: 'Buddy has moved outside the primary safe zone (Dhanmondi Lake Perimeter). Sub-meter GPS beacon active.',
-    type: 'radar',
-    category: 'GPS & Security',
-    timestamp: new Date(Date.now() - 1000 * 60 * 8).toISOString(),
-    read: false,
-    actionUrl: 'pet-gps',
-    priority: 'high'
-  },
-  {
-    id: 'notif-2',
-    title: '💉 Rabies Booster Immunization Due',
-    body: 'Milo is due for the annual Rabies & DHPP booster in 3 days. Digital Health Passport updated.',
-    type: 'vaccine',
-    category: 'Health & Vaccine',
-    timestamp: new Date(Date.now() - 1000 * 60 * 42).toISOString(),
-    read: false,
-    actionUrl: 'vaccines',
-    priority: 'medium'
-  },
-  {
-    id: 'notif-3',
-    title: '📦 Pharmacy Cold-Chain Dispatched',
-    body: 'Dispensary Order #PM-8924 (Simparica Trio & Royal Canin) is out for express delivery with live temperature logging.',
-    type: 'order',
-    category: 'Prescription Order',
-    timestamp: new Date(Date.now() - 1000 * 60 * 135).toISOString(),
-    read: false,
-    actionUrl: 'shop',
-    priority: 'normal'
-  },
-  {
-    id: 'notif-4',
-    title: '🩺 Teleconsultation Confirmed',
-    body: 'Your live video consultation with Dr. Farhana Rahman (DVM, Specialist) is confirmed for 4:30 PM.',
-    type: 'vet',
-    category: 'Appointments',
-    timestamp: new Date(Date.now() - 1000 * 60 * 360).toISOString(),
-    read: true,
-    actionUrl: 'specialists',
-    priority: 'high'
-  },
-  {
-    id: 'notif-5',
-    title: '🐾 AI Vision Triage Scan Complete',
-    body: 'Neural diagnostic model completed dermatological assessment for Buddy. No acute lesions detected.',
-    type: 'ai',
-    category: 'AI Wellness',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-    read: true,
-    actionUrl: 'ai',
-    priority: 'normal'
-  },
-  {
-    id: 'notif-6',
-    title: '💬 Community Story Liked',
-    body: 'Tanjil and 14 others liked your story "Golden Retriever beach training weekend" in the community feed.',
-    type: 'community',
-    category: 'Community',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 30).toISOString(),
-    read: true,
-    actionUrl: 'community',
-    priority: 'low'
-  }
-];
+const INITIAL_NOTIFICATIONS = [];
 
 const AppContext = createContext();
 
@@ -375,7 +271,7 @@ export function AppProvider({ children }) {
       const saved = localStorage.getItem('pm_cached_pets');
       if (saved) return JSON.parse(saved);
     } catch (_) {}
-    return INITIAL_PETS;
+    return [];
   });
 
   const [vets, setVets] = useState(() => {
@@ -395,14 +291,8 @@ export function AppProvider({ children }) {
     try {
       const saved = localStorage.getItem('pm_cached_products');
       if (saved) return JSON.parse(saved);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length >= 24 && parsed[0]?.price >= 500) {
-          return parsed;
-        }
-      }
     } catch (_) {}
-    return INITIAL_PRODUCTS || [];
+    return [];
   });
   const [isProductsLoading, setIsProductsLoading] = useState(() => {
     try {
@@ -415,22 +305,24 @@ export function AppProvider({ children }) {
       const saved = localStorage.getItem('pm_cached_posts');
       if (saved) return JSON.parse(saved);
     } catch (_) {}
-    return INITIAL_POSTS;
+    return [];
   });
   const [isPostsLoading, setIsPostsLoading] = useState(() => {
     try {
       return !localStorage.getItem('pm_cached_posts');
     } catch (_) { return true; }
   });
+  const [blogs, setBlogs] = useState([]);
+  const [isBlogsLoading, setIsBlogsLoading] = useState(true);
   const [usersMap, setUsersMap] = useState({});
 
   const [appointments, setAppointments] = useState([]);
   const [favoriteVetIds, setFavoriteVetIds] = useState(() => {
     try {
       const saved = localStorage.getItem('pm_favorite_vets');
-      return saved ? JSON.parse(saved) : ['vet-1', 'vet-2'];
+      return saved ? JSON.parse(saved) : [];
     } catch (_) {
-      return ['vet-1', 'vet-2'];
+      return [];
     }
   });
   const [medicalRecords, setMedicalRecords] = useState([]);
@@ -461,7 +353,7 @@ export function AppProvider({ children }) {
       const saved = localStorage.getItem('pm_cached_devices');
       if (saved) return JSON.parse(saved);
     } catch (_) {}
-    return INITIAL_DEVICES;
+    return [];
   });
   const [ringingDeviceId, setRingingDeviceId] = useState(null);
 
@@ -816,15 +708,12 @@ export function AppProvider({ children }) {
       } catch (_) {}
     }
 
-    if (!currentUser || currentUser.uid.startsWith('demo_guest')) {
-      const saved = localStorage.getItem('pm_pets');
-      setPets(saved ? JSON.parse(saved) : INITIAL_PETS);
-      return;
-    }
-
+    // If guest or no user, query all public pets from Firestore
     try {
       const petsRef = collection(db, 'pets');
-      const q = query(petsRef, where('ownerID', '==', currentUser.uid));
+      const q = (currentUser && !currentUser.uid.startsWith('demo_guest'))
+        ? query(petsRef, where('ownerID', '==', currentUser.uid))
+        : query(petsRef);
 
       const unsubscribe = onSnapshot(q, (snapshot) => {
         if (!snapshot.empty) {
@@ -833,15 +722,16 @@ export function AppProvider({ children }) {
             return {
               id: docSnap.id,
               petID: docSnap.id,
+              ownerID: data.ownerID || '',
               name: data.name || 'Pet',
-              species: data.species || data.type || 'Dove',
-              breed: data.breed || 'Ring-necked Dove',
+              species: data.species || data.type || 'Pet',
+              breed: data.breed || 'Companion',
               gender: data.gender || 'Unknown',
               age: data.age || '1 Yr',
-              weight: data.weight || '160 g',
+              weight: data.weight || 'N/A',
               photo: data.photoUrl || data.photo || 'assets/images/Pet_1.jpg',
               microchip: data.microchip || data.microchipId || `PM-${docSnap.id.slice(0, 5).toUpperCase()}`,
-              nextVaccine: data.nextVaccine || '2026-09-30'
+              nextVaccine: data.nextVaccine || ''
             };
           });
           setPets(fetchedPets);
@@ -849,7 +739,6 @@ export function AppProvider({ children }) {
             localStorage.setItem('pm_pets', JSON.stringify(fetchedPets));
           } catch (_) {}
         } else {
-          // User has no pets registered in Firestore yet
           setPets([]);
           try {
             localStorage.removeItem('pm_pets');
@@ -863,10 +752,70 @@ export function AppProvider({ children }) {
       return () => unsubscribe();
     } catch (e) {
       console.warn('[Firebase] Error setting up pets listener:', e);
-      const saved = localStorage.getItem('pm_pets');
-      setPets(saved ? JSON.parse(saved) : INITIAL_PETS);
+      setPets([]);
     }
   }, [currentUser]);
+
+  // ─── 1.2 FIREBASE REAL-TIME HARDWARE DEVICES LISTENER ───
+  useEffect(() => {
+    try {
+      const devicesRef = collection(db, 'devices');
+      const unsubscribe = onSnapshot(devicesRef, (snapshot) => {
+        if (!snapshot.empty) {
+          const fetchedDevices = snapshot.docs.map(docSnap => ({
+            id: docSnap.id,
+            ...docSnap.data()
+          }));
+          setDevices(fetchedDevices);
+          try {
+            localStorage.setItem('pm_cached_devices', JSON.stringify(fetchedDevices));
+          } catch (_) {}
+        } else {
+          setDevices([]);
+        }
+      }, (err) => {
+        console.warn('[Firebase] Devices listener warning:', err);
+      });
+      return () => unsubscribe();
+    } catch (e) {
+      console.warn('[Firebase] Devices setup error:', e);
+    }
+  }, []);
+
+  // ─── 1.3 FIREBASE REAL-TIME BLOGS LISTENER ───
+  useEffect(() => {
+    try {
+      const blogsRef = collection(db, 'blogs');
+      const q = query(blogsRef, orderBy('timestamp', 'desc'));
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        if (!snapshot.empty) {
+          const fetchedBlogs = snapshot.docs.map(docSnap => ({
+            id: docSnap.id,
+            ...docSnap.data()
+          }));
+          setBlogs(fetchedBlogs);
+        } else {
+          setBlogs([]);
+        }
+        setIsBlogsLoading(false);
+      }, (err) => {
+        // Fallback without orderBy if index not created
+        console.warn('[Firebase] Blogs orderBy error, trying plain collection:', err);
+        onSnapshot(blogsRef, (snap) => {
+          if (!snap.empty) {
+            setBlogs(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+          } else {
+            setBlogs([]);
+          }
+          setIsBlogsLoading(false);
+        }, () => setIsBlogsLoading(false));
+      });
+      return () => unsubscribe();
+    } catch (e) {
+      console.warn('[Firebase] Blogs setup error:', e);
+      setIsBlogsLoading(false);
+    }
+  }, []);
 
   // ─── 1.5 FIREBASE REAL-TIME GLOBAL BANNER LISTENER ───
   useEffect(() => {
@@ -927,6 +876,16 @@ export function AppProvider({ children }) {
         if (!snapshot.empty) {
           const fetchedVets = snapshot.docs.map(docSnap => {
             const data = docSnap.data();
+            let rawPrice = data.price;
+            let displayPrice = '৳350/visit';
+            if (rawPrice !== undefined && rawPrice !== null) {
+              if (typeof rawPrice === 'number') {
+                displayPrice = `৳${rawPrice}/visit`;
+              } else {
+                const str = String(rawPrice).trim();
+                displayPrice = str.startsWith('৳') ? str : `৳${str}`;
+              }
+            }
             return {
               id: docSnap.id,
               name: data.name || 'Specialist',
@@ -936,7 +895,7 @@ export function AppProvider({ children }) {
               reviewsCount: data.reviewsCount || data.reviews || 45,
               reviews: data.reviewsCount || data.reviews || 45,
               distance: data.distance || '1.5 km away',
-              price: data.price || '৳35/visit',
+              price: displayPrice,
               availability: data.businessHours || data.availability || 'Mon - Fri • 9am - 6pm',
               isVerified: data.isVerified ?? true,
               bio: data.bio || 'Dedicated veterinary specialist.',
@@ -950,6 +909,7 @@ export function AppProvider({ children }) {
             localStorage.setItem('pm_cached_vets', JSON.stringify(fetchedVets));
           } catch (_) {}
         } else {
+          setVets([]);
           setIsVetsLoading(false);
         }
       }, (err) => {
@@ -995,7 +955,7 @@ export function AppProvider({ children }) {
             localStorage.setItem('pm_cached_products', JSON.stringify(fetchedProducts));
           } catch (_) {}
         } else {
-          setProducts(INITIAL_PRODUCTS);
+          setProducts([]);
           setIsProductsLoading(false);
         }
       }, (err) => {
@@ -1180,12 +1140,12 @@ export function AppProvider({ children }) {
 
           setPosts(fetchedPosts);
         } else {
-          setPosts(prev => prev.length > 0 ? prev : INITIAL_POSTS);
+          setPosts(prev => prev.length > 0 ? prev : []);
         }
         setIsPostsLoading(false);
       }, (err) => {
         console.warn('[Firebase] community_posts onSnapshot error:', err);
-        setPosts(prev => prev.length > 0 ? prev : INITIAL_POSTS);
+        setPosts(prev => prev.length > 0 ? prev : []);
         setIsPostsLoading(false);
       });
 
@@ -1200,12 +1160,7 @@ export function AppProvider({ children }) {
   useEffect(() => {
     if (!currentUser || currentUser.uid.startsWith('demo_guest')) {
       const saved = localStorage.getItem('pm_appointments');
-      setAppointments(saved ? JSON.parse(saved) : [
-        { id: 'apt-1', title: 'Annual Nobivac Booster with Dr. Sarah Jenkins', doctor: 'Dr. Sarah Jenkins', clinic: 'Greenwood Animal Hospital', petName: 'Max', date: '2026-09-15', time: '10:30 AM', fromTime: '10:30 AM', toTime: '11:00 AM', mode: 'In-Clinic Consultation', status: 'Confirmed', isCompleted: false },
-        { id: 'apt-2', title: 'Dermatology Follow-up & Allergy Review', doctor: 'Dr. Michael Chang', clinic: 'Pet Med Care Center', petName: 'Bella', date: '2026-09-18', time: '02:15 PM', fromTime: '02:15 PM', toTime: '02:45 PM', mode: 'Teleconsultation', status: 'Confirmed', isCompleted: false },
-        { id: 'apt-3', title: 'Dental Scaling & Prophylaxis Clean', doctor: 'Dr. Emily Watson', clinic: 'Central Veterinary Clinic', petName: 'Luna', date: '2026-08-14', time: '11:00 AM', fromTime: '11:00 AM', toTime: '12:00 PM', mode: 'In-Clinic Consultation', status: 'Completed', isCompleted: true },
-        { id: 'apt-4', title: 'Cardiology ECG & Ultrasound Screening', doctor: 'Dr. Sarah Jenkins', clinic: 'Greenwood Animal Hospital', petName: 'Max', date: '2026-07-20', time: '04:00 PM', fromTime: '04:00 PM', toTime: '04:30 PM', mode: 'In-Clinic Consultation', status: 'Completed', isCompleted: true }
-      ]);
+      setAppointments(saved ? JSON.parse(saved) : []);
       return;
     }
 
@@ -1260,10 +1215,7 @@ export function AppProvider({ children }) {
   useEffect(() => {
     if (!currentUser || currentUser.uid.startsWith('demo_guest')) {
       const saved = localStorage.getItem('pm_ehr');
-      setMedicalRecords(saved ? JSON.parse(saved) : [
-        { id: 'ehr-1', petName: 'Bella', ownerName: 'Alex Johnson', serviceType: 'Consultation', weight: '14.2 kg', diagnosis: 'Otitis Externa (mild fungal ear canal infection)', prescription: 'Otomax Drops 4 drops 2x daily (7 days). Apoquel 16mg daily.', cost: 45, date: '2026-08-15', nextBooster: '2026-08-25' },
-        { id: 'ehr-2', petName: 'Max', ownerName: 'Alex Johnson', serviceType: 'Vaccination', weight: '28.4 kg', diagnosis: 'Routine Annual Immunization', prescription: 'Nobivac DHPP + Rabies 1ml SC administered.', cost: 35, date: '2026-08-10', nextBooster: '2027-08-10' }
-      ]);
+      setMedicalRecords(saved ? JSON.parse(saved) : []);
       return;
     }
 
@@ -1302,16 +1254,7 @@ export function AppProvider({ children }) {
   useEffect(() => {
     if (!currentUser || currentUser.uid.startsWith('demo_guest')) {
       const saved = localStorage.getItem('pm_orders');
-      setOrders(saved ? JSON.parse(saved) : [
-        {
-          id: 'PM-ORD-8941',
-          date: '2026-08-24',
-          items: [{ id: 'p1', name: 'Royal Canin Golden Retriever Adult', price: 64.99, qty: 1 }],
-          total: 64.99,
-          status: 'In Preparation',
-          address: 'House 14, Road 7, Banani, Dhaka'
-        }
-      ]);
+      setOrders(saved ? JSON.parse(saved) : []);
       return;
     }
 
@@ -1441,7 +1384,7 @@ export function AppProvider({ children }) {
   };
 
   // ── Smart Tracker Hardware Management ──
-  const addDevice = (deviceData) => {
+  const addDevice = async (deviceData) => {
     const newId = deviceData.id || `pm_trk_${Date.now()}`;
     const newDevice = {
       id: newId,
@@ -1459,32 +1402,48 @@ export function AppProvider({ children }) {
       firmwareVersion: deviceData.firmwareVersion || 'v2.4.1',
       lastSync: 'Just now',
       latitude: deviceData.latitude || 23.8103,
-      longitude: deviceData.longitude || 90.4125
+      longitude: deviceData.longitude || 90.4125,
+      createdAt: Date.now()
     };
-    const nextList = [newDevice, ...devices];
+    const nextList = [newDevice, ...devices.filter(d => d.id !== newId)];
     setDevices(nextList);
     try {
       localStorage.setItem('pm_cached_devices', JSON.stringify(nextList));
     } catch (_) {}
+    try {
+      await setDoc(doc(db, 'devices', newId), newDevice, { merge: true });
+    } catch (e) {
+      console.warn('[Firebase] addDevice error:', e);
+    }
     showToast(`📡 Paired "${newDevice.name}" successfully!`, 'success');
   };
 
-  const updateDevice = (updatedDevice) => {
-    const nextList = devices.map(d => d.id === updatedDevice.id ? updatedDevice : d);
+  const updateDevice = async (updatedDevice) => {
+    const nextList = devices.map(d => d.id === updatedDevice.id ? { ...d, ...updatedDevice } : d);
     setDevices(nextList);
     try {
       localStorage.setItem('pm_cached_devices', JSON.stringify(nextList));
     } catch (_) {}
+    try {
+      await setDoc(doc(db, 'devices', updatedDevice.id), updatedDevice, { merge: true });
+    } catch (e) {
+      console.warn('[Firebase] updateDevice error:', e);
+    }
     showToast(`⚙️ Updated "${updatedDevice.name}" settings.`, 'success');
   };
 
-  const removeDevice = (deviceId) => {
+  const removeDevice = async (deviceId) => {
     const target = devices.find(d => d.id === deviceId);
     const nextList = devices.filter(d => d.id !== deviceId);
     setDevices(nextList);
     try {
       localStorage.setItem('pm_cached_devices', JSON.stringify(nextList));
     } catch (_) {}
+    try {
+      await deleteDoc(doc(db, 'devices', deviceId));
+    } catch (e) {
+      console.warn('[Firebase] removeDevice error:', e);
+    }
     showToast(`🗑️ Unpaired "${target?.name || 'Device'}".`, 'info');
   };
 
@@ -2347,6 +2306,8 @@ export function AppProvider({ children }) {
       deleteProduct,
       posts,
       isPostsLoading,
+      blogs,
+      isBlogsLoading,
       usersMap,
       createPost,
       updatePost,

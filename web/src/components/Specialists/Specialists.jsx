@@ -34,96 +34,7 @@ const STATIC_SPECIALTY_CATEGORIES = [
   { id: 'nutrition', label: 'Clinical Nutrition & Metabolism' },
 ];
 
-// ── Faculty Specialists Data Matching Reference ──────────────────────────────
-const FACULTY_CLINICIANS = [
-  {
-    id: 'dr_sarah',
-    name: 'Dr. Sarah Jenkins, MRCVS',
-    degrees: 'MRCVS, BVM&S',
-    role: 'Companion Internal Medicine & Feline Longevity Therapeutics',
-    specialtyId: 'internal',
-    rating: 4.98,
-    reviewsCount: 184,
-    availability: 'AVAILABLE IN 15M',
-    availabilityType: 'normal',
-    price: 650,
-    unit: '/ 25 min',
-    priceLabel: 'TELEHEALTH STANDARD',
-    bio: '12 years of clinical research at Cambridge Veterinary School. Specialized in chronic renal management, complex endocrine disorders, and preventative metabolic...',
-    image: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=300&auto=format&fit=crop&q=80',
-    badgeType: 'video',
-    slots: [
-      { id: 's1', time: '15:15 - 15:40' },
-      { id: 's2', time: '16:00 - 16:25' },
-      { id: 's3', time: '17:30 - 17:55' }
-    ]
-  },
-  {
-    id: 'dr_nazmul',
-    name: 'Dr. Nazmul Hoda, DVM, MS',
-    degrees: 'DVM, MS (Surg)',
-    role: 'Orthopedics & Canine Cruciate Biomechanical Rehabilitation',
-    specialtyId: 'ortho',
-    rating: 4.99,
-    reviewsCount: 312,
-    availability: 'AVAILABLE TODAY 16:30',
-    availabilityType: 'normal',
-    price: 500,
-    unit: '/ 25 min',
-    priceLabel: 'TELEHEALTH STANDARD',
-    bio: 'Certified canine sports rehabilitation specialist. Pioneering non-invasive biomechanical joint therapies, post-operative TPLO recoveries, and geriatric...',
-    image: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=200&auto=format&fit=crop&q=80',
-    badgeType: 'stethoscope',
-    slots: [
-      { id: 'n1', time: '15:00 - 15:25' },
-      { id: 'n2', time: '16:30 - 16:55' },
-      { id: 'n3', time: '18:15 - 18:40' }
-    ]
-  },
-  {
-    id: 'dr_ananya',
-    name: 'Dr. Ananya Roy, DVM, Dip. ECVD',
-    degrees: 'DVM, Dip. ECVD',
-    role: 'Clinical Dermatology & Tropical Atopic Allergies',
-    specialtyId: 'derma',
-    rating: 4.96,
-    reviewsCount: 97,
-    availability: 'AVAILABLE TODAY 18:00',
-    availabilityType: 'normal',
-    price: 500,
-    unit: '/ 25 min',
-    priceLabel: 'TELEHEALTH STANDARD',
-    bio: 'European Board diplomat specializing in canine refractory pruritus, feline eosinophilic granuloma complex, and cytology-guided immunotherapy for humid...',
-    image: 'https://images.unsplash.com/photo-1651008376811-b90baee60c1f?w=300&auto=format&fit=crop&q=80',
-    badgeType: 'stethoscope',
-    slots: [
-      { id: 'a1', time: '18:00 - 18:25' },
-      { id: 'a2', time: '19:00 - 19:25' },
-      { id: 'a3', time: '20:15 - 20:40' }
-    ]
-  },
-  {
-    id: 'dr_samira',
-    name: 'Dr. Samira Khan, DVM',
-    degrees: 'DVM (Emergency & ICU)',
-    role: 'Emergency & Critical Care Intensivist',
-    specialtyId: 'internal',
-    rating: 5.0,
-    reviewsCount: 420,
-    availability: 'ON-CALL EMERGENCY NOW',
-    availabilityType: 'emergency',
-    price: 600,
-    unit: '/ Priority Queue',
-    priceLabel: 'URGENT TELECONSULT',
-    bio: 'Senior veterinary triage intensivist. Immediate evaluation of acute respiratory distress, toxic ingestion protocols, traumatic shock triage, and bedside telemetry...',
-    image: 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=300&auto=format&fit=crop&q=80',
-    badgeType: 'emergency',
-    slots: [
-      { id: 'e1', time: 'Instant Connect (0m wait)' },
-      { id: 'e2', time: 'Priority Escalation' }
-    ]
-  }
-];
+// Dynamic clinicians streamed directly from Firestore vets collection
 // ── Helper: generate rolling 4-day date options from today ───────────────────
 function getRollingDates() {
   const now = new Date();
@@ -164,35 +75,45 @@ export default function Specialists({ onNavigate }) {
   }, [vets]);
 
   // Map vets from Firestore to card-compatible shape
-  const mappedVets = useMemo(() => vets.map((v, idx) => ({
-    id: v.id,
-    name: v.name || 'Veterinary Specialist',
-    degrees: v.qualification || v.degrees || 'DVM',
-    role: v.tag || v.specialty || v.role || 'Veterinary Specialist',
-    specialtyId: v.specialty || v.specialtyId || 'internal',
-    rating: typeof v.rating === 'number' ? v.rating : 4.9,
-    reviewsCount: v.reviewsCount || 0,
-    availability: v.availability || 'AVAILABLE TODAY',
-    availabilityType: (v.availability || '').toLowerCase().includes('emergency') ? 'emergency' : 'normal',
-    price: typeof v.price === 'number' ? v.price : (parseInt(v.price) || 500),
-    unit: '/ 25 min',
-    priceLabel: 'TELEHEALTH STANDARD',
-    bio: v.bio || v.description || 'Board-certified veterinary specialist with extensive clinical experience.',
-    image: v.photo || v.image || '',
-    badgeType: idx === 0 ? 'video' : (v.specialty || '').toLowerCase().includes('emergency') ? 'emergency' : 'stethoscope',
-    slots: v.slots || [
-      { id: `${v.id}_s1`, time: '10:00 - 10:25' },
-      { id: `${v.id}_s2`, time: '14:00 - 14:25' },
-      { id: `${v.id}_s3`, time: '16:30 - 16:55' },
-    ]
-  })), [vets]);
+  const mappedVets = useMemo(() => vets.map((v, idx) => {
+    let numericPrice = 350;
+    if (typeof v.price === 'number') {
+      numericPrice = v.price;
+    } else if (v.price) {
+      const parsed = parseInt(String(v.price).replace(/[^0-9]/g, ''), 10);
+      if (!isNaN(parsed) && parsed > 0) numericPrice = parsed;
+    }
+
+    return {
+      id: v.id,
+      name: v.name || 'Veterinary Specialist',
+      degrees: v.qualification || v.degrees || 'DVM',
+      role: v.tag || v.specialty || v.role || 'Veterinary Specialist',
+      specialtyId: v.specialty || v.specialtyId || 'internal',
+      rating: typeof v.rating === 'number' ? v.rating : 4.9,
+      reviewsCount: v.reviewsCount || 0,
+      availability: v.availability || 'AVAILABLE TODAY',
+      availabilityType: (v.availability || '').toLowerCase().includes('emergency') ? 'emergency' : 'normal',
+      price: numericPrice,
+      unit: '/ 25 min',
+      priceLabel: 'TELEHEALTH STANDARD',
+      bio: v.bio || v.description || 'Board-certified veterinary specialist with extensive clinical experience.',
+      image: v.photo || v.image || '',
+      badgeType: idx === 0 ? 'video' : (v.specialty || '').toLowerCase().includes('emergency') ? 'emergency' : 'stethoscope',
+      slots: v.slots || [
+        { id: `${v.id}_s1`, time: '10:00 - 10:25' },
+        { id: `${v.id}_s2`, time: '14:00 - 14:25' },
+        { id: `${v.id}_s3`, time: '16:30 - 16:55' },
+      ]
+    };
+  }), [vets]);
 
   // Rolling 4-day date options
   const rollingDates = useMemo(() => getRollingDates(), []);
 
-  // Selected Clinician (default to first from Firestore or static)
-  const [selectedClinicianId, setSelectedClinicianId] = useState('dr_nazmul');
-  const activeClinician = mappedVets.find(c => c.id === selectedClinicianId) || mappedVets[0] || FACULTY_CLINICIANS[0];
+  // Selected Clinician (default to first from Firestore)
+  const [selectedClinicianId, setSelectedClinicianId] = useState('');
+  const activeClinician = mappedVets.find(c => c.id === selectedClinicianId) || mappedVets[0] || null;
 
   // Schedule Dates
   const [selectedDate, setSelectedDate] = useState('today');
@@ -217,8 +138,8 @@ export default function Specialists({ onNavigate }) {
 
   // Filtered Clinicians
   const filteredClinicians = useMemo(() => {
-    if (selectedSpecialty === 'all') return mappedVets.length > 0 ? mappedVets : FACULTY_CLINICIANS;
-    return (mappedVets.length > 0 ? mappedVets : FACULTY_CLINICIANS).filter(c => c.specialtyId === selectedSpecialty || (c.role || '').toLowerCase().includes(selectedSpecialty));
+    if (selectedSpecialty === 'all') return mappedVets;
+    return mappedVets.filter(c => c.specialtyId === selectedSpecialty || (c.role || '').toLowerCase().includes(selectedSpecialty));
   }, [mappedVets, selectedSpecialty]);
 
   // Handle Selection of Clinician

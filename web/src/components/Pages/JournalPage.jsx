@@ -26,7 +26,7 @@ import {
 } from 'lucide-react';
 
 export default function JournalPage({ onNavigate }) {
-  const { showToast, openModal, addToCart, posts = [], isPostsLoading, vets = [] } = useApp ? useApp() : { showToast: () => {}, openModal: () => {}, addToCart: () => {}, posts: [], isPostsLoading: false, vets: [] };
+  const { showToast, openModal, addToCart, posts = [], isPostsLoading, vets = [], blogs = [], isBlogsLoading } = useApp ? useApp() : { showToast: () => {}, openModal: () => {}, addToCart: () => {}, posts: [], isPostsLoading: false, vets: [], blogs: [], isBlogsLoading: false };
   const { currentUser } = useAuth ? useAuth() : { currentUser: null };
 
   const handleRoute = (path) => {
@@ -43,10 +43,8 @@ export default function JournalPage({ onNavigate }) {
   const [newsletterSubscribed, setNewsletterSubscribed] = useState(false);
 
   // Category filter tabs
-  // Dynamic category filter tabs
   const categoryTabs = [
-    { id: 'all', label: 'All Dispatches (48)' },
-    { id: 'all', label: `All Dispatches (${posts.length || 6})` },
+    { id: 'all', label: `All Dispatches (${(blogs?.length || 0) + (posts?.length || 0) || 6})` },
     { id: 'nutrition', label: 'Clinical Nutrition & GI' },
     { id: 'diagnostics', label: 'Preventive Diagnostics & Labs' },
     { id: 'cold-chain', label: 'Cold-Chain Biologics' },
@@ -55,11 +53,48 @@ export default function JournalPage({ onNavigate }) {
     { id: 'travel', label: 'Travel & Global Export' }
   ];
 
-  // Dynamic clinical articles from community posts filtered by article/clinical type (with static fallback)
-  const articlePosts = posts.filter(p => 
+  // Dynamic clinical articles from community posts filtered by article/clinical type
+  const articlePosts = useMemo(() => posts.filter(p => 
     p.postType === 'article' || p.category === 'article' || 
     p.category === 'journal' || p.category === 'clinical'
-  );
+  ), [posts]);
+
+  // Combined real articles from Firestore blogs collection and community posts
+  const allArticles = useMemo(() => {
+    const fromBlogs = (blogs || []).map(b => ({
+      id: b.id,
+      category: (b.category || b.tags?.[0] || 'diagnostics').toLowerCase(),
+      badge: (b.category || b.tags?.[0] || 'Veterinary Journal').toUpperCase(),
+      image: b.coverUrl || b.imageUrl || b.photoUrl || b.image || 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&w=600&q=80',
+      readTime: b.readTime || '6 MIN READ',
+      author: b.authorName || b.author || 'Pet Maya Editorial',
+      authorPhoto: b.authorPhoto || b.photoUrl || '',
+      title: b.title || 'Clinical Dispatch',
+      desc: b.summary || b.excerpt || (b.content ? b.content.substring(0, 160) + '...' : ''),
+      content: b.content || b.summary || '',
+      fullText: b.content || b.summary || '',
+      actionText: 'Read Full Dispatch',
+      createdAt: b.timestamp || b.createdAt
+    }));
+
+    const fromPosts = articlePosts.map(p => ({
+      id: p.id,
+      category: (p.category || 'diagnostics').toLowerCase(),
+      badge: p.badge || p.category || 'Clinical Monograph',
+      image: p.image || 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=600&q=80',
+      readTime: p.readTime || '5 MIN READ',
+      author: p.authorName || vets[0]?.name || 'Pet Maya Editorial',
+      authorPhoto: p.authorPhoto || '',
+      title: p.title || p.content?.substring(0, 80) || 'Clinical Dispatch',
+      desc: p.excerpt || p.content?.substring(0, 150) || '',
+      content: p.content || '',
+      fullText: p.content || '',
+      actionText: 'Read Full Monograph',
+      createdAt: p.timestamp || p.createdAt
+    }));
+
+    return [...fromBlogs, ...fromPosts];
+  }, [blogs, articlePosts, vets]);
 
   const fallbackFeatured = {
     id: 'microbiome-gut-brain',
@@ -70,11 +105,6 @@ export default function JournalPage({ onNavigate }) {
     title: 'Beyond Kibble: Microbiome Diversification and Gut-Brain Axis in Senior Canines',
     excerpt: 'An editorial review on cold-chain digestive supplements, short-chain fatty acids (SCFAs), and targeted probiotic modulation in longevity. Evidence confirms that maintaining tight microbial flora diversity reduces systemic neuro-inflammation and prolongs cognitive threshold in aging canines.',
     authors: [
-      {
-        name: 'Dr. Evelyn Vance, MRCVS',
-        role: 'Head of Internal Medicine',
-        avatar: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=120&q=80'
-      },
       {
         name: vets[0]?.name || 'Dr. Evelyn Vance, MRCVS',
         role: vets[0]?.tag || 'Head of Internal Medicine',
@@ -95,39 +125,28 @@ export default function JournalPage({ onNavigate }) {
     `
   };
 
-  const featuredArticle = articlePosts.length > 0 ? {
-    id: articlePosts[0].id,
-    categoryTag: (articlePosts[0].category || 'CLINICAL MONOGRAPH').toUpperCase(),
-    readTime: articlePosts[0].readTime || '5 MIN READ',
-    publishedDate: articlePosts[0].createdAt ? new Date(articlePosts[0].createdAt.seconds * 1000).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }).toUpperCase() : 'RECENT',
-    specialty: (articlePosts[0].specialty || articlePosts[0].category || 'CLINICAL RESEARCH').toUpperCase(),
-    title: articlePosts[0].title || articlePosts[0].content?.substring(0, 80) || 'Clinical Monograph',
-    excerpt: articlePosts[0].excerpt || articlePosts[0].content?.substring(0, 200) || '',
+  const featuredArticle = allArticles.length > 0 ? {
+    id: allArticles[0].id,
+    categoryTag: (allArticles[0].category || 'CLINICAL MONOGRAPH').toUpperCase(),
+    readTime: allArticles[0].readTime || '5 MIN READ',
+    publishedDate: allArticles[0].createdAt ? new Date(allArticles[0].createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }).toUpperCase() : 'RECENT',
+    specialty: (allArticles[0].specialty || allArticles[0].category || 'CLINICAL RESEARCH').toUpperCase(),
+    title: allArticles[0].title || 'Clinical Monograph',
+    excerpt: allArticles[0].desc || '',
     authors: [
       {
-        name: articlePosts[0].authorName || vets[0]?.name || 'Editorial Board',
-        role: articlePosts[0].authorRole || vets[0]?.tag || 'Veterinary Reviewer',
-        avatar: articlePosts[0].authorPhoto || vets[0]?.photo || 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=120&q=80'
+        name: allArticles[0].author || vets[0]?.name || 'Editorial Board',
+        role: 'Veterinary Contributor',
+        avatar: allArticles[0].authorPhoto || vets[0]?.photo || 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=120&q=80'
       }
     ],
     peerReviewNotice: 'Peer-reviewed by Board Specialists',
-    heroImage: articlePosts[0].image || 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&w=1000&q=80',
+    heroImage: allArticles[0].image || 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&w=1000&q=80',
     figureTag: 'FIG. 01 // CLINICAL DISPATCH',
-    content: articlePosts[0].content || 'No content provided.'
+    content: allArticles[0].content || 'No content provided.'
   } : fallbackFeatured;
 
-  const clinicalArticles = articlePosts.length > 1 ? articlePosts.slice(1).map(p => ({
-    id: p.id,
-    category: p.category || 'diagnostics',
-    badge: p.badge || p.category || 'Clinical Monograph',
-    image: p.image || 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=600&q=80',
-    readTime: p.readTime || '5 MIN READ',
-    author: p.authorName || vets[0]?.name || 'Pet Maya Editorial',
-    title: p.title || p.content?.substring(0, 80) || 'Clinical Dispatch',
-    desc: p.excerpt || p.content?.substring(0, 150) || '',
-    actionText: 'Read Full Monograph',
-    fullText: p.content || ''
-  })) : [
+  const clinicalArticles = allArticles.length > 1 ? allArticles.slice(1) : [
     {
       id: 'sdma-feline-renal',
       category: 'diagnostics',

@@ -34,13 +34,13 @@ export default function DigitalPassportPage({ onNavigate }) {
   const { pets = [], showToast, openModal } = useApp();
   const { currentUser } = useAuth();
 
-  const activePet = pets[0] || { 
-    name: 'Companion', 
+  const activePet = pets && pets.length > 0 ? pets[0] : { 
+    name: 'Registered Companion', 
     breed: 'Companion', 
     microchip: 'UNREGISTERED', 
-    weight: '28.4', 
-    age: '3 yrs',
-    photo: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&auto=format&fit=crop&q=80'
+    weight: 'N/A', 
+    age: '',
+    photo: ''
   };
 
   const [copiedTransponder, setCopiedTransponder] = useState(false);
