@@ -35,7 +35,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { AppleReveal } from '../Animations/AppleReveal';
 
-const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
+const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || 'AIzaSyAhmOHCWgWf7exFnjQ1nns8cDjPZvKRTto';
 
 // Google Maps Custom Apple Dark/OLED Style
 const googleMapsDarkTheme = [
