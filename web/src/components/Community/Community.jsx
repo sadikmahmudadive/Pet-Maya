@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
-import EditorialNavbar from '../Navigation/EditorialNavbar';
 import UserAvatar from '../Common/UserAvatar';
 import {
   Heart,
@@ -159,11 +158,6 @@ export default function Community({ onNavigate }) {
       display: 'flex',
       flexDirection: 'column'
     }}>
-
-      {/* ════════════════════════════════════════════════════════════════
-          1. TOP GLOBAL PROTOCOL BANNER & EDITORIAL NAVBAR
-          ════════════════════════════════════════════════════════════════ */}
-      <EditorialNavbar currentRoute="community" onNavigate={handleRoute} />
 
       {/* ════════════════════════════════════════════════════════════════
           3. MAIN 3-COLUMN COMMUNITY MESH LAYOUT

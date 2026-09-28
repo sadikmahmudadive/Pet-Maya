@@ -417,7 +417,7 @@ function MainContent() {
   const handleNavigate = (target) => {
     const cleanTarget = target.replace(/^\//, '').replace(/^#/, '');
     setActiveTab(cleanTarget);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo(0, 0);
   };
 
   // Determine whether current view is an editorial marketing page
@@ -490,7 +490,7 @@ function MainContent() {
 
       // Application platform views
       case 'dashboard':
-        return <Dashboard key="dashboard" />;
+        return <Dashboard key="dashboard" onNavigate={handleNavigate} />;
       case 'specialists':
       case 'vets':
         return <Specialists key="specialists" onNavigate={handleNavigate} />;
@@ -500,7 +500,7 @@ function MainContent() {
       case 'food':
         return <NutritionBreeds key="food" />;
       case 'community':
-        return <Community key="community" />;
+        return <Community key="community" onNavigate={handleNavigate} />;
       case 'shop':
         return <Shop key="shop" onNavigate={handleNavigate} />;
       case 'product':
@@ -628,52 +628,6 @@ function MainContent() {
               onNavigate={handleNavigate} 
               initialTab={activeTab === 'health-vault-profile' ? 'ehr-vault' : 'settings'} 
             />
-          </motion.div>
-        </AnimatePresence>
-        <ModalRoot />
-        <Toast />
-      </div>
-    );
-  }
-
-  // Dedicated Dhaka Mesh Guardian Community Screen
-  const isCommunityRoute = ['community', 'guardian-circle', 'circle', 'feed'].includes(activeTab);
-
-  if (isCommunityRoute) {
-    return (
-      <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg)' }}>
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-          >
-            <Community onNavigate={handleNavigate} />
-          </motion.div>
-        </AnimatePresence>
-        <ModalRoot />
-        <Toast />
-      </div>
-    );
-  }
-
-  // Dedicated Clinical Journal & Evidence-Based Repository Screen
-  const isJournalRoute = ['journal', 'blog', 'gazette', 'pet-health', 'pet-care'].includes(activeTab);
-
-  if (isJournalRoute) {
-    return (
-      <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg)' }}>
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-          >
-            <JournalPage onNavigate={handleNavigate} />
           </motion.div>
         </AnimatePresence>
         <ModalRoot />

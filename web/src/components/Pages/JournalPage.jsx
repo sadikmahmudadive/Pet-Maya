@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
-import EditorialNavbar from '../Navigation/EditorialNavbar';
 import {
   Search,
   Bookmark,
@@ -273,11 +272,6 @@ export default function JournalPage({ onNavigate }) {
       display: 'flex',
       flexDirection: 'column'
     }}>
-
-      {/* ════════════════════════════════════════════════════════════════
-          1. TOP GLOBAL PROTOCOL BANNER & EDITORIAL NAVBAR
-          ════════════════════════════════════════════════════════════════ */}
-      <EditorialNavbar currentRoute="journal" onNavigate={handleRoute} />
 
       {/* ════════════════════════════════════════════════════════════════
           2. MAIN CONTENT BODY
