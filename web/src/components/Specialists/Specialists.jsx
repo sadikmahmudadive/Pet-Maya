@@ -404,7 +404,18 @@ export default function Specialists({ onNavigate }) {
                   }} className="doctor-card-grid">
 
                     {/* Avatar with Floating Badge */}
-                    <div style={{ position: 'relative', width: '100px', height: '100px', flexShrink: 0 }}>
+                    <div style={{ position: 'relative', width: '100px', height: '100px' }}>
+                      <img
+                        src={doctor.image}
+                        alt={doctor.name}
+                        style={{
+                          width: '100px',
+                          height: '100px',
+                          borderRadius: '50%',
+                          objectFit: 'cover',
+                          border: '2px solid #F5F1EE'
+                        }}
+                      />
                       {doctor.image ? (
                         <img
                           src={doctor.image}
@@ -416,7 +427,7 @@ export default function Specialists({ onNavigate }) {
                             objectFit: 'cover',
                             border: '2px solid #F5F1EE'
                           }}
-                          onError={e => { e.target.style.display = 'none'; if (e.target.nextSibling) e.target.nextSibling.style.display = 'flex'; }}
+                          onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
                         />
                       ) : null}
                       <div style={{
