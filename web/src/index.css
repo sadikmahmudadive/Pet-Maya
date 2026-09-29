@@ -3069,3 +3069,109 @@ html, body {
   color: #FFFFFF !important;
 }
 
+/* ═════════════════════════════════════════════════════════════════
+   PET MAYA — BULLETPROOF UNIVERSAL ALL-DEVICE RESPONSIVENESS SYSTEM
+   Optimized for: Mobile (320px–480px), Phablets (481px–640px),
+   Tablets (641px–1024px), Laptops (1025px–1440px), Ultrawides (>1440px)
+   ═════════════════════════════════════════════════════════════════ */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden !important;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Fluid Media & Embeds across all screen sizes */
+img, svg, video, canvas, audio, iframe {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Overflow protection on all root layouts */
+#root, .app-container, .app-main, main {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* Mobile & Small Device Ergonomics */
+@media (max-width: 768px) {
+  button, a, input, select, textarea, [role="button"] {
+    touch-action: manipulation;
+  }
+
+  /* Prevent auto-zoom on iOS text inputs */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+
+  /* Safe Area Inset Support for notched devices */
+  body {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* Smooth scrollable pills and category bars */
+  .category-scroll-bar, .pill-scroll-bar, .specialty-pills {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .category-scroll-bar::-webkit-scrollbar,
+  .pill-scroll-bar::-webkit-scrollbar,
+  .specialty-pills::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Responsive Grid Helpers */
+  .grid-responsive-2, .grid-responsive-3 {
+    grid-template-columns: 1fr !important;
+  }
+  .grid-responsive-4 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Floating Action Button (FAB) safe positioning */
+  .fab-dock {
+    bottom: calc(20px + env(safe-area-inset-bottom, 0px)) !important;
+    right: 16px !important;
+  }
+}
+
+/* Ultra-compact phones (320px–380px) */
+@media (max-width: 380px) {
+  .grid-responsive-4 {
+    grid-template-columns: 1fr !important;
+  }
+  h1 {
+    font-size: clamp(24px, 7vw, 32px) !important;
+    line-height: 1.2 !important;
+  }
+  h2 {
+    font-size: clamp(20px, 6vw, 26px) !important;
+    line-height: 1.25 !important;
+  }
+}
+
+/* Tablet Optimizations (769px–1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .editorial-desktop-nav a {
+    padding: 6px 10px !important;
+    font-size: 12px !important;
+  }
+  .grid-responsive-4 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .grid-responsive-3 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+

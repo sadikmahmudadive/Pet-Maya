@@ -617,7 +617,7 @@ export default function Specialists({ onNavigate }) {
                         </div>
 
                         {/* Action Buttons: Reviews & Select */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div className="specialist-card-actions" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -1223,11 +1223,34 @@ export default function Specialists({ onNavigate }) {
         }
         @media (max-width: 640px) {
           .doctor-card-grid {
-            grid-template-columns: 1fr !important;
-            text-align: center;
+            grid-template-columns: 80px 1fr !important;
+            gap: 14px !important;
+            text-align: left !important;
           }
           .doctor-card-grid > div:first-child {
-            margin: 0 auto;
+            width: 80px !important;
+            height: 80px !important;
+          }
+          .doctor-card-grid > div:first-child img,
+          .doctor-card-grid > div:first-child > div:first-child {
+            width: 80px !important;
+            height: 80px !important;
+          }
+        }
+        @media (max-width: 480px) {
+          .doctor-card-grid {
+            grid-template-columns: 1fr !important;
+            gap: 12px !important;
+          }
+          .specialist-card-actions {
+            width: 100% !important;
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 8px !important;
+          }
+          .specialist-card-actions button {
+            width: 100% !important;
+            justify-content: center !important;
           }
         }
       `}</style>

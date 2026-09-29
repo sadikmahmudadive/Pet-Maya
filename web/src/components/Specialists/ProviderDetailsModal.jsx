@@ -356,6 +356,7 @@ export default function ProviderDetailsModal({
           >
             {/* ── Provider Hero Header ── */}
             <div
+              className="provider-modal-header"
               style={{
                 background: 'linear-gradient(180deg, #F3F8F7 0%, #FFFFFF 100%)',
                 padding: '28px 28px 20px 28px',
@@ -1496,6 +1497,7 @@ export default function ProviderDetailsModal({
 
           {/* ── 4. Sticky Bottom Action Footer ── */}
           <div
+            className="provider-modal-footer"
             style={{
               padding: '16px 28px',
               borderTop: '1px solid #F0ECE8',
@@ -1572,6 +1574,30 @@ export default function ProviderDetailsModal({
               </button>
             </div>
           </div>
+
+          {/* ── RESPONSIVE STYLES ── */}
+          <style>{`
+            @media (max-width: 640px) {
+              .rating-breakdown-grid {
+                grid-template-columns: 1fr !important;
+                gap: 16px !important;
+                padding: 16px !important;
+              }
+              .provider-modal-header {
+                padding: 20px 16px !important;
+              }
+              .provider-modal-footer {
+                padding: 14px 16px !important;
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 12px !important;
+              }
+              .provider-modal-footer button {
+                width: 100% !important;
+                justify-content: center !important;
+              }
+            }
+          `}</style>
         </motion.div>
       </div>
     </AnimatePresence>
