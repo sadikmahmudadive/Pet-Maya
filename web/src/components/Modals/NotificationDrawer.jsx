@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { 
   X, 
@@ -15,7 +15,9 @@ import {
   ExternalLink,
   ShieldCheck,
   AlertTriangle,
-  Send
+  Send,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -40,14 +42,85 @@ export default function NotificationDrawer() {
   const [activeFilter, setActiveFilter] = useState('all');
   const isDark = theme === 'dark';
 
+  // Chip Scroll & A11y Refs
+  const chipsScrollRef = useRef(null);
+  const chipRefs = useRef({});
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const checkScroll = () => {
+    if (chipsScrollRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = chipsScrollRef.current;
+      setCanScrollLeft(scrollLeft > 4);
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 4);
+    }
+  };
+
+  useEffect(() => {
+    checkScroll();
+    const handleResize = () => checkScroll();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [notifications]);
+
+  // Scroll active chip into view smoothly
+  const handleSelectFilter = (id) => {
+    setActiveFilter(id);
+    if (chipRefs.current[id]) {
+      chipRefs.current[id].scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'center'
+      });
+    }
+  };
+
+  const handleScrollLeft = () => {
+    if (chipsScrollRef.current) {
+      chipsScrollRef.current.scrollBy({ left: -140, behavior: 'smooth' });
+    }
+  };
+
+  const handleScrollRight = () => {
+    if (chipsScrollRef.current) {
+      chipsScrollRef.current.scrollBy({ left: 140, behavior: 'smooth' });
+    }
+  };
+
   const filterCategories = [
-    { id: 'all', label: 'All', count: notifications.length },
-    { id: 'radar', label: '🚨 Radar', count: notifications.filter(n => n.type === 'radar').length },
-    { id: 'vaccine', label: '💉 Vaccines', count: notifications.filter(n => n.type === 'vaccine').length },
-    { id: 'order', label: '📦 Orders', count: notifications.filter(n => n.type === 'order').length },
-    { id: 'vet', label: '🩺 Clinical', count: notifications.filter(n => n.type === 'vet' || n.type === 'ai').length },
-    { id: 'community', label: '💬 Social', count: notifications.filter(n => n.type === 'community').length }
+    { id: 'all', label: 'All', icon: '🔔', count: notifications.length },
+    { id: 'radar', label: 'Radar', icon: '🚨', count: notifications.filter(n => n.type === 'radar').length },
+    { id: 'vaccine', label: 'Vaccines', icon: '💉', count: notifications.filter(n => n.type === 'vaccine').length },
+    { id: 'order', label: 'Orders', icon: '📦', count: notifications.filter(n => n.type === 'order').length },
+    { id: 'vet', label: 'Clinical', icon: '🩺', count: notifications.filter(n => n.type === 'vet' || n.type === 'ai').length },
+    { id: 'community', label: 'Social', icon: '💬', count: notifications.filter(n => n.type === 'community').length }
   ];
+
+  // Keyboard navigation for tablist (ArrowLeft, ArrowRight, Home, End)
+  const handleChipKeyDown = (e, currentIndex) => {
+    let nextIndex = currentIndex;
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      nextIndex = (currentIndex + 1) % filterCategories.length;
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      nextIndex = (currentIndex - 1 + filterCategories.length) % filterCategories.length;
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      nextIndex = 0;
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      nextIndex = filterCategories.length - 1;
+    }
+
+    if (nextIndex !== currentIndex) {
+      const nextCategory = filterCategories[nextIndex];
+      handleSelectFilter(nextCategory.id);
+      if (chipRefs.current[nextCategory.id]) {
+        chipRefs.current[nextCategory.id].focus();
+      }
+    }
+  };
 
   const filteredNotifications = notifications.filter((notif) => {
     if (activeFilter === 'all') return true;
@@ -181,6 +254,30 @@ export default function NotificationDrawer() {
       }}
       onClick={closeModal}
     >
+      {/* ── CSS Styles for custom sleek mini scrollbar ── */}
+      <style>{`
+        .notif-chips-mini-scrollbar {
+          scrollbar-width: thin;
+          scrollbar-color: ${isDark ? 'rgba(16, 185, 129, 0.45) rgba(255, 255, 255, 0.04)' : 'rgba(13, 148, 136, 0.4) rgba(0, 0, 0, 0.04)'};
+        }
+        .notif-chips-mini-scrollbar::-webkit-scrollbar {
+          height: 4px;
+        }
+        .notif-chips-mini-scrollbar::-webkit-scrollbar-track {
+          background: ${isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.04)'};
+          border-radius: 9999px;
+          margin: 0 16px;
+        }
+        .notif-chips-mini-scrollbar::-webkit-scrollbar-thumb {
+          background: ${isDark ? 'rgba(16, 185, 129, 0.45)' : 'rgba(13, 148, 136, 0.45)'};
+          border-radius: 9999px;
+          transition: background 0.2s ease;
+        }
+        .notif-chips-mini-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: ${isDark ? '#10B981' : '#0D9488'};
+        }
+      `}</style>
+
       <motion.div
         initial={{ x: '100%', opacity: 0.8 }}
         animate={{ x: 0, opacity: 1 }}
@@ -334,43 +431,205 @@ export default function NotificationDrawer() {
           </div>
         </div>
 
-        {/* ── FILTER CHIPS ── */}
+        {/* ── ACCESSIBLE FILTER CHIP SELECTOR WITH MINI SCROLLBAR ── */}
         <div style={{
-          padding: '12px 20px',
-          display: 'flex',
-          gap: '6px',
-          overflowX: 'auto',
-          borderBottom: isDark ? '1px solid rgba(255, 255, 255, 0.06)' : '1px solid #F3F4F6',
-          scrollbarWidth: 'none',
-          backgroundColor: isDark ? '#021618' : '#FFFFFF'
+          position: 'relative',
+          backgroundColor: isDark ? '#021618' : '#FAF9F8',
+          borderBottom: isDark ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid #EBE4DF'
         }}>
-          {filterCategories.map((cat) => {
-            const isActive = activeFilter === cat.id;
-            return (
-              <button
-                key={cat.id}
-                onClick={() => setActiveFilter(cat.id)}
-                style={{
-                  padding: '6px 12px',
-                  borderRadius: '20px',
-                  border: 'none',
-                  fontSize: '12px',
-                  fontWeight: isActive ? 700 : 500,
-                  backgroundColor: isActive
-                    ? (isDark ? '#10B981' : '#160F0C')
-                    : (isDark ? 'rgba(255, 255, 255, 0.06)' : '#F3F4F6'),
-                  color: isActive
-                    ? (isDark ? '#021E20' : '#FFFFFF')
-                    : (isDark ? '#94A3B8' : '#4B5563'),
-                  cursor: 'pointer',
-                  whiteSpace: 'nowrap',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                {cat.label} {cat.count > 0 && <span style={{ opacity: 0.8, fontSize: '10.5px' }}>({cat.count})</span>}
-              </button>
-            );
-          })}
+          {/* Left Scroll Chevron Button */}
+          {canScrollLeft && (
+            <button
+              onClick={handleScrollLeft}
+              aria-label="Scroll filter categories left"
+              style={{
+                position: 'absolute',
+                left: '6px',
+                top: 'calc(50% - 3px)',
+                transform: 'translateY(-50%)',
+                zIndex: 5,
+                width: '28px',
+                height: '28px',
+                borderRadius: '50%',
+                backgroundColor: isDark ? 'rgba(3, 35, 37, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                border: isDark ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid #DFD7CF',
+                color: isDark ? '#FFFFFF' : '#160F0C',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+                backdropFilter: 'blur(4px)'
+              }}
+            >
+              <ChevronLeft size={16} />
+            </button>
+          )}
+
+          {/* Left Fade Gradient Mask */}
+          {canScrollLeft && (
+            <div style={{
+              position: 'absolute',
+              left: 0,
+              top: 0,
+              bottom: '4px',
+              width: '32px',
+              background: isDark
+                ? 'linear-gradient(to right, #021618 30%, transparent 100%)'
+                : 'linear-gradient(to right, #FAF9F8 30%, transparent 100%)',
+              pointerEvents: 'none',
+              zIndex: 3
+            }} />
+          )}
+
+          {/* Scrollable Chip Track with Mini Scrollbar */}
+          <div
+            ref={chipsScrollRef}
+            onScroll={checkScroll}
+            onWheel={(e) => {
+              if (e.deltaY !== 0 && chipsScrollRef.current) {
+                chipsScrollRef.current.scrollLeft += e.deltaY;
+                checkScroll();
+              }
+            }}
+            className="notif-chips-mini-scrollbar"
+            role="tablist"
+            aria-label="Filter notifications by category"
+            style={{
+              display: 'flex',
+              gap: '8px',
+              overflowX: 'auto',
+              WebkitOverflowScrolling: 'touch',
+              scrollBehavior: 'smooth',
+              padding: '12px 20px 8px 20px',
+              alignItems: 'center'
+            }}
+          >
+            {filterCategories.map((cat, idx) => {
+              const isActive = activeFilter === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  ref={(el) => (chipRefs.current[cat.id] = el)}
+                  role="tab"
+                  id={`notif-tab-${cat.id}`}
+                  aria-selected={isActive}
+                  aria-controls="notifications-panel"
+                  tabIndex={isActive ? 0 : -1}
+                  onKeyDown={(e) => handleChipKeyDown(e, idx)}
+                  onClick={() => handleSelectFilter(cat.id)}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    minHeight: '36px',
+                    padding: '6px 14px',
+                    borderRadius: '9999px',
+                    fontSize: '12.5px',
+                    fontWeight: isActive ? 700 : 600,
+                    fontFamily: 'var(--font-sans, inherit)',
+                    backgroundColor: isActive
+                      ? (isDark ? '#10B981' : '#160F0C')
+                      : (isDark ? 'rgba(255, 255, 255, 0.08)' : '#FFFFFF'),
+                    border: isActive
+                      ? (isDark ? '1px solid #10B981' : '1px solid #160F0C')
+                      : (isDark ? '1px solid rgba(255, 255, 255, 0.12)' : '1px solid #E2DAD3'),
+                    color: isActive
+                      ? (isDark ? '#021E20' : '#FFFFFF')
+                      : (isDark ? '#E2E8F0' : '#374151'),
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                    flexShrink: 0,
+                    boxShadow: isActive
+                      ? (isDark ? '0 2px 10px rgba(16, 185, 129, 0.35)' : '0 2px 8px rgba(22, 15, 12, 0.2)')
+                      : '0 1px 3px rgba(0, 0, 0, 0.04)',
+                    transition: 'all 0.18s cubic-bezier(0.4, 0, 0.2, 1)',
+                    outline: 'none'
+                  }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.boxShadow = isDark
+                      ? '0 0 0 2px #10B981'
+                      : '0 0 0 2px #0D9488';
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.boxShadow = isActive
+                      ? (isDark ? '0 2px 10px rgba(16, 185, 129, 0.35)' : '0 2px 8px rgba(22, 15, 12, 0.2)')
+                      : '0 1px 3px rgba(0, 0, 0, 0.04)';
+                  }}
+                >
+                  <span aria-hidden="true" style={{ fontSize: '13px' }}>{cat.icon}</span>
+                  <span>{cat.label}</span>
+                  <span
+                    aria-label={`${cat.count} notifications`}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      minWidth: '18px',
+                      height: '18px',
+                      padding: '0 5px',
+                      borderRadius: '9999px',
+                      fontSize: '11px',
+                      fontWeight: 800,
+                      backgroundColor: isActive
+                        ? (isDark ? 'rgba(2, 30, 32, 0.25)' : 'rgba(255, 255, 255, 0.22)')
+                        : (isDark ? 'rgba(255, 255, 255, 0.14)' : '#EDE7E1'),
+                      color: isActive
+                        ? (isDark ? '#021E20' : '#FFFFFF')
+                        : (isDark ? '#CBD5E1' : '#675C58')
+                    }}
+                  >
+                    {cat.count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Right Scroll Chevron Button */}
+          {canScrollRight && (
+            <button
+              onClick={handleScrollRight}
+              aria-label="Scroll filter categories right"
+              style={{
+                position: 'absolute',
+                right: '6px',
+                top: 'calc(50% - 3px)',
+                transform: 'translateY(-50%)',
+                zIndex: 5,
+                width: '28px',
+                height: '28px',
+                borderRadius: '50%',
+                backgroundColor: isDark ? 'rgba(3, 35, 37, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                border: isDark ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid #DFD7CF',
+                color: isDark ? '#FFFFFF' : '#160F0C',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+                backdropFilter: 'blur(4px)'
+              }}
+            >
+              <ChevronRight size={16} />
+            </button>
+          )}
+
+          {/* Right Fade Gradient Mask */}
+          {canScrollRight && (
+            <div style={{
+              position: 'absolute',
+              right: 0,
+              top: 0,
+              bottom: '4px',
+              width: '32px',
+              background: isDark
+                ? 'linear-gradient(to left, #021618 30%, transparent 100%)'
+                : 'linear-gradient(to left, #FAF9F8 30%, transparent 100%)',
+              pointerEvents: 'none',
+              zIndex: 3
+            }} />
+          )}
         </div>
 
         {/* ── ACTION TOOLBAR (MARK READ / CLEAR) ── */}
@@ -428,14 +687,20 @@ export default function NotificationDrawer() {
         </div>
 
         {/* ── NOTIFICATIONS SCROLLABLE LIST ── */}
-        <div style={{
-          flex: 1,
-          overflowY: 'auto',
-          padding: '12px 16px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '10px'
-        }}>
+        <div 
+          id="notifications-panel"
+          role="tabpanel"
+          aria-label={`${activeFilter} notifications`}
+          aria-live="polite"
+          style={{
+            flex: 1,
+            overflowY: 'auto',
+            padding: '12px 16px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '10px'
+          }}
+        >
           <AnimatePresence>
             {filteredNotifications.length > 0 ? (
               filteredNotifications.map((notif) => {
