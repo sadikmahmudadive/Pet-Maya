@@ -694,7 +694,18 @@ export default function PetTracker() {
                     <img 
                       src={p.photo || 'assets/images/Pet_2.jpg'} 
                       alt={p.name} 
-                      style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover', border: isSelected ? '2px solid var(--primary)' : '1px solid var(--border)' }} 
+                      referrerPolicy="no-referrer"
+                      style={{ 
+                        width: '44px', 
+                        height: '44px', 
+                        minWidth: '44px', 
+                        minHeight: '44px', 
+                        borderRadius: '50%', 
+                        objectFit: 'cover', 
+                        flexShrink: 0, 
+                        aspectRatio: '1 / 1', 
+                        border: isSelected ? '2px solid var(--primary)' : '1px solid var(--border)' 
+                      }} 
                     />
                     <div>
                       <strong style={{ fontSize: '15px', color: 'var(--text-main)', display: 'block' }}>{p.name}</strong>

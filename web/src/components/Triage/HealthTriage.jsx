@@ -1423,7 +1423,17 @@ export default function HealthTriage({ onNavigate }) {
                               <img
                                 src={pet.image}
                                 alt={pet.name}
-                                style={{ width: '22px', height: '22px', borderRadius: '50%', objectFit: 'cover' }}
+                                referrerPolicy="no-referrer"
+                                style={{
+                                  width: '24px',
+                                  height: '24px',
+                                  minWidth: '24px',
+                                  minHeight: '24px',
+                                  borderRadius: '50%',
+                                  objectFit: 'cover',
+                                  flexShrink: 0,
+                                  aspectRatio: '1 / 1'
+                                }}
                               />
                               <span>{pet.name} ({pet.breed})</span>
                             </button>

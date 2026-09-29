@@ -268,11 +268,16 @@ export default function Dashboard({ onNavigate }) {
                 <img
                   src={activePet.photo || activePet.image || "https://images.unsplash.com/photo-1552053831-71594a27632d?w=160&auto=format&fit=crop&q=80"}
                   alt={activePet.name}
+                  referrerPolicy="no-referrer"
                   style={{
                     width: '56px',
                     height: '56px',
+                    minWidth: '56px',
+                    minHeight: '56px',
                     borderRadius: '50%',
                     objectFit: 'cover',
+                    flexShrink: 0,
+                    aspectRatio: '1 / 1',
                     border: '2px solid #0D9488'
                   }}
                 />

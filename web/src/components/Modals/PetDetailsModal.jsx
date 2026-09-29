@@ -159,11 +159,16 @@ export default function PetDetailsModal() {
           <img 
             src={pet.photo || pet.photoUrl || 'assets/images/Pet_1.jpg'} 
             alt={pet.name} 
+            referrerPolicy="no-referrer"
             style={{
-              width: 72,
-              height: 72,
+              width: '72px',
+              height: '72px',
+              minWidth: '72px',
+              minHeight: '72px',
               borderRadius: '50%',
               objectFit: 'cover',
+              flexShrink: 0,
+              aspectRatio: '1 / 1',
               border: '3px solid var(--primary)'
             }}
           />

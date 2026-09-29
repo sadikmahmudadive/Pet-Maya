@@ -114,7 +114,21 @@ Verification Registry: PetMaya Central Health Ledger (AES-256 Verified)
                   flexShrink: 0
                 }}
               >
-                <img src={p.photo} alt={p.name} style={{ width: 18, height: 18, borderRadius: '50%', objectFit: 'cover' }} />
+                <img 
+                  src={p.photo} 
+                  alt={p.name} 
+                  referrerPolicy="no-referrer"
+                  style={{ 
+                    width: '20px', 
+                    height: '20px', 
+                    minWidth: '20px', 
+                    minHeight: '20px', 
+                    borderRadius: '50%', 
+                    objectFit: 'cover', 
+                    flexShrink: 0, 
+                    aspectRatio: '1 / 1' 
+                  }} 
+                />
                 <span>{p.name}</span>
               </button>
             ))}
@@ -156,11 +170,16 @@ Verification Registry: PetMaya Central Health Ledger (AES-256 Verified)
                 <img 
                   src={pet.photo} 
                   alt={pet.name} 
+                  referrerPolicy="no-referrer"
                   style={{ 
                     width: 76, 
                     height: 76, 
-                    borderRadius: '16px', 
+                    minWidth: 76,
+                    minHeight: 76,
+                    borderRadius: '50%', 
                     objectFit: 'cover', 
+                    flexShrink: 0,
+                    aspectRatio: '1 / 1',
                     border: '2px solid var(--primary)',
                     boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
                   }} 

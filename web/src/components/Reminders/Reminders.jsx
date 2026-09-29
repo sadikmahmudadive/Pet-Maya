@@ -191,7 +191,17 @@ END:VCALENDAR`;
                   <img 
                     src={p.photo || p.photoUrl || 'assets/images/Pet_1.jpg'} 
                     alt={p.name} 
-                    style={{ width: 22, height: 22, borderRadius: '50%', objectFit: 'cover' }}
+                    referrerPolicy="no-referrer"
+                    style={{
+                      width: '24px',
+                      height: '24px',
+                      minWidth: '24px',
+                      minHeight: '24px',
+                      borderRadius: '50%',
+                      objectFit: 'cover',
+                      flexShrink: 0,
+                      aspectRatio: '1 / 1'
+                    }}
                   />
                   <span>{p.name}</span>
                 </button>

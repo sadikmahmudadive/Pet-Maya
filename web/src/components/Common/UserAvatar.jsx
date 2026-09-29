@@ -34,6 +34,8 @@ export default function UserAvatar({
           borderRadius: '50%',
           objectFit: 'cover',
           display: 'block',
+          flexShrink: 0,
+          aspectRatio: '1 / 1',
           ...style
         }}
         onError={() => setHasError(true)}

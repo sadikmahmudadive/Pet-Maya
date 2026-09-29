@@ -1062,11 +1062,16 @@ export default function PetGPSPage({ onNavigate }) {
                 <img
                   src={activePet.photo || "https://images.unsplash.com/photo-1552053831-71594a27632d?w=120&auto=format&fit=crop&q=80"}
                   alt={activePet.name || "Companion"}
+                  referrerPolicy="no-referrer"
                   style={{
                     width: '36px',
                     height: '36px',
+                    minWidth: '36px',
+                    minHeight: '36px',
                     borderRadius: '50%',
                     objectFit: 'cover',
+                    flexShrink: 0,
+                    aspectRatio: '1 / 1',
                     border: '1.5px solid #0D9488'
                   }}
                 />

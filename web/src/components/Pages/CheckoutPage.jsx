@@ -1957,7 +1957,17 @@ export default function CheckoutPage({ onNavigate }) {
                       <img
                         src={pet.photoUrl || pet.photo || pet.image || 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=100&auto=format&fit=crop&q=80'}
                         alt={pet.name}
-                        style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'cover' }}
+                        referrerPolicy="no-referrer"
+                        style={{
+                          width: '40px',
+                          height: '40px',
+                          minWidth: '40px',
+                          minHeight: '40px',
+                          borderRadius: '50%',
+                          objectFit: 'cover',
+                          flexShrink: 0,
+                          aspectRatio: '1 / 1'
+                        }}
                       />
                       <div>
                         <div style={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>

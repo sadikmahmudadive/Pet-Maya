@@ -954,7 +954,17 @@ export default function Specialists({ onNavigate }) {
                         <img
                           src={p.photo || p.image || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=100&auto=format&fit=crop&q=80'}
                           alt={p.name}
-                          style={{ width: '30px', height: '30px', borderRadius: '50%', objectFit: 'cover' }}
+                          referrerPolicy="no-referrer"
+                          style={{
+                            width: '36px',
+                            height: '36px',
+                            minWidth: '36px',
+                            minHeight: '36px',
+                            borderRadius: '50%',
+                            objectFit: 'cover',
+                            flexShrink: 0,
+                            aspectRatio: '1 / 1'
+                          }}
                         />
                         <div>
                           <div style={{ fontSize: '12px', fontWeight: 700, color: '#160F0C' }}>

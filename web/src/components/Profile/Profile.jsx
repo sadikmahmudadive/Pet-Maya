@@ -619,7 +619,17 @@ export default function Profile({ onNavigate, initialTab = 'settings' }) {
                         <img
                           src={p.avatarUrl}
                           alt={p.name}
-                          style={{ width: '42px', height: '42px', borderRadius: '50%', objectFit: 'cover' }}
+                          referrerPolicy="no-referrer"
+                          style={{
+                            width: '42px',
+                            height: '42px',
+                            minWidth: '42px',
+                            minHeight: '42px',
+                            borderRadius: '50%',
+                            objectFit: 'cover',
+                            flexShrink: 0,
+                            aspectRatio: '1 / 1'
+                          }}
                         />
                         <div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>

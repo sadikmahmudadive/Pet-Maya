@@ -260,7 +260,21 @@ export default function MyDevicesModal() {
                           <span style={{ color: 'var(--text-muted)' }}>Worn by:</span>
                           {assignedPet ? (
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              <img src={assignedPet.photo} alt={assignedPet.name} style={{ width: 20, height: 20, borderRadius: '50%', objectFit: 'cover' }} />
+                              <img 
+                                src={assignedPet.photo} 
+                                alt={assignedPet.name} 
+                                referrerPolicy="no-referrer"
+                                style={{ 
+                                  width: '22px', 
+                                  height: '22px', 
+                                  minWidth: '22px', 
+                                  minHeight: '22px', 
+                                  borderRadius: '50%', 
+                                  objectFit: 'cover', 
+                                  flexShrink: 0, 
+                                  aspectRatio: '1 / 1' 
+                                }} 
+                              />
                               <strong style={{ color: 'var(--primary)' }}>{assignedPet.name}</strong>
                               <span style={{ color: 'var(--text-muted)', fontSize: '11px' }}>({assignedPet.breed})</span>
                             </div>
