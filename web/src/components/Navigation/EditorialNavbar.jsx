@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
-import { Search, ShoppingBag, Menu, X, Sun, Moon, Bell } from 'lucide-react';
+import { Search, ShoppingBag, Menu, X, Sun, Moon, Bell, Radio } from 'lucide-react';
 import GlobalBanner from '../GlobalBanner';
 import UserAvatar from '../Common/UserAvatar';
 
@@ -15,7 +15,8 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
     notificationPermission,
     requestNotificationPermission,
     sendPushNotification,
-    unreadNotificationsCount
+    unreadNotificationsCount,
+    devices = []
   } = useApp();
   const { currentUser, loginAsGuest } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -257,6 +258,57 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
                 }}
               />
             ) : null}
+          </button>
+
+          {/* Smart Devices & GPS Tracker Button */}
+          <button
+            onClick={() => openModal('myDevices')}
+            aria-label="My Devices & Trackers"
+            title={(devices || []).length > 0 ? `${devices.length} Paired Trackers — Click to open My Devices` : "Pair & Manage PetMaya Smart Collars"}
+            className="btn-elevate"
+            style={{
+              position: 'relative',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '36px',
+              height: '36px',
+              borderRadius: '50%',
+              backgroundColor: isDark ? '#0B2826' : '#FFFFFF',
+              border: isDark ? '1px solid rgba(26, 182, 128, 0.35)' : '1px solid rgba(222, 217, 214, 0.9)',
+              color: (devices || []).length > 0 ? '#1AB680' : (isDark ? '#94A3B8' : '#64748B'),
+              cursor: 'pointer',
+              boxShadow: isDark ? '0 1px 6px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.04)',
+              transition: 'all 0.2s ease',
+              flexShrink: 0
+            }}
+          >
+            <Radio size={16} />
+            {(devices || []).length > 0 && (
+              <span
+                style={{
+                  position: 'absolute',
+                  top: '-3px',
+                  right: '-3px',
+                  minWidth: '18px',
+                  height: '18px',
+                  borderRadius: '9999px',
+                  backgroundColor: '#1AB680',
+                  color: '#021E20',
+                  border: isDark ? '2px solid #021E20' : '2px solid #FAF7F5',
+                  fontSize: '10px',
+                  fontWeight: 800,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '0 3px',
+                  lineHeight: 1,
+                  boxShadow: '0 0 8px rgba(26, 182, 128, 0.5)'
+                }}
+              >
+                {devices.length}
+              </span>
+            )}
           </button>
 
           {/* Theme Toggle Button (Light/Dark mode) */}
@@ -541,6 +593,47 @@ export default function EditorialNavbar({ currentRoute, onNavigate }) {
               </a>
             );
           })()}
+
+          {/* Dedicated My Devices & Smart Collars link for mobile */}
+          <button
+            onClick={() => {
+              setMobileMenuOpen(false);
+              openModal('myDevices');
+            }}
+            style={{
+              width: '100%',
+              fontSize: '14.5px',
+              fontWeight: 500,
+              color: isDark ? '#9DB4B0' : '#55605C',
+              backgroundColor: 'transparent',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '10px 12px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+              textAlign: 'left'
+            }}
+          >
+            <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Radio size={16} color="var(--primary, #1AB680)" />
+              <span>My Devices &amp; Smart Collars</span>
+            </span>
+            {(devices || []).length > 0 && (
+              <span style={{
+                fontSize: '10px',
+                fontWeight: 700,
+                backgroundColor: isDark ? 'rgba(26, 182, 128, 0.2)' : '#EDF5F3',
+                color: isDark ? '#1AB680' : '#0D9488',
+                padding: '2px 8px',
+                borderRadius: '9999px'
+              }}>
+                {devices.length} Paired
+              </span>
+            )}
+          </button>
 
           <div style={{ 
             paddingTop: '14px', 

@@ -206,6 +206,7 @@ const VALID_EDITORIAL_ROUTES = [
   'product', 'product-detail', 'pdp', 'tracker', 'gps', 'radar', 'dashboard', 'community',
   'cart', 'bag', 'dispensary', 'checkout', 'payment', 'settlement',
   'orders', 'order', 'tracking', 'telemetry', 'order-tracking', 'dispensary-orders',
+  'devices', 'my-devices', 'pair-device', 'trackers',
   'profile', 'account', 'guardian-profile', 'health-vault-profile', 'admin'
 ];
 
@@ -298,7 +299,7 @@ class AdminErrorBoundary extends React.Component {
 }
 
 function MainContent() {
-  const { activeTab, setActiveTab } = useApp();
+  const { activeTab, setActiveTab, openModal } = useApp();
   const { currentUser } = useAuth();
   const [isQuickActionOpen, setIsQuickActionOpen] = useState(false);
 
@@ -339,7 +340,13 @@ function MainContent() {
   useEffect(() => {
     const handleRouteChange = () => {
       const route = resolveCurrentRoute();
-      if (route) {
+      if (route === 'devices' || route === 'my-devices' || route === 'trackers') {
+        openModal('myDevices');
+        setActiveTab('dashboard');
+      } else if (route === 'pair-device') {
+        openModal('pairDevice');
+        setActiveTab('dashboard');
+      } else if (route) {
         setActiveTab(route);
       }
     };
@@ -350,7 +357,7 @@ function MainContent() {
       window.removeEventListener('hashchange', handleRouteChange);
       window.removeEventListener('popstate', handleRouteChange);
     };
-  }, [resolveCurrentRoute, setActiveTab]);
+  }, [resolveCurrentRoute, setActiveTab, openModal]);
 
   // Dynamic SEO metadata update
   useEffect(() => {

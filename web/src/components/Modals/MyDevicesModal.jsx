@@ -32,20 +32,35 @@ export default function MyDevicesModal() {
     ringingDeviceId, 
     closeModal, 
     setActiveTab, 
-    showToast 
+    showToast,
+    activeModal,
+    modalData
   } = useApp();
 
   // Mode: 'list', 'pair', 'settings', 'siren'
-  const [viewMode, setViewMode] = useState('list');
+  const isPairDirect = activeModal === 'pairDevice';
+  const [viewMode, setViewMode] = useState(isPairDirect ? 'pair' : 'list');
   const [selectedDevice, setSelectedDevice] = useState(null);
 
   // Pairing Wizard State
   const [pairType, setPairType] = useState('gps_collar');
-  const [pairName, setPairName] = useState('');
-  const [pairPetId, setPairPetId] = useState(pets[0]?.id || '');
-  const [isScanning, setIsScanning] = useState(false);
+  const [pairName, setPairName] = useState(isPairDirect ? 'Maya GPS Collar Gen 2' : '');
+  const [pairPetId, setPairPetId] = useState(modalData?.petId || pets[0]?.id || '');
+  const [isScanning, setIsScanning] = useState(isPairDirect);
   const [scanFound, setScanFound] = useState(false);
   const [sirenCountdown, setSirenCountdown] = useState(8);
+
+  // Auto trigger scan if opened with pairDevice
+  useEffect(() => {
+    if (isPairDirect) {
+      setIsScanning(true);
+      const timer = setTimeout(() => {
+        setIsScanning(false);
+        setScanFound(true);
+      }, 1800);
+      return () => clearTimeout(timer);
+    }
+  }, [isPairDirect]);
 
   // Siren countdown timer
   useEffect(() => {
@@ -72,7 +87,7 @@ export default function MyDevicesModal() {
     setTimeout(() => {
       setIsScanning(false);
       setScanFound(true);
-    }, 2200);
+    }, 1800);
   };
 
   const handleConfirmPair = (e) => {
@@ -173,7 +188,6 @@ export default function MyDevicesModal() {
               </div>
               <div style={{ background: 'var(--surface-alt)', padding: '12px 14px', borderRadius: '14px', textAlign: 'center' }}>
                 <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 700 }}>Safe Perimeter</span>
-                <strong style={{ fontSize: '18px', display: 'block', marginTop: '4px', color: 'var(--primary)' }}>100% OK</strong>
                 <strong style={{ fontSize: '18px', display: 'block', marginTop: '4px', color: 'var(--primary)' }}>
                   {devices.length > 0 ? `${Math.round((devices.filter(d => d.isSafeZone !== false).length / devices.length) * 100)}% OK` : '100% OK'}
                 </strong>

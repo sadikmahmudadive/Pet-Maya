@@ -868,6 +868,40 @@ export function AppProvider({ children }) {
     }
   };
 
+  // ─── 1.6 FIREBASE REAL-TIME SMART DEVICES LISTENER ───
+  useEffect(() => {
+    try {
+      const savedLocal = localStorage.getItem('pm_cached_devices');
+      if (savedLocal) {
+        try {
+          const parsed = JSON.parse(savedLocal);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setDevices(parsed);
+          }
+        } catch (_) {}
+      }
+
+      const devicesRef = collection(db, 'devices');
+      const unsubscribe = onSnapshot(devicesRef, (snapshot) => {
+        if (!snapshot.empty) {
+          const fetchedDevices = snapshot.docs.map(docSnap => ({
+            id: docSnap.id,
+            ...docSnap.data()
+          }));
+          setDevices(fetchedDevices);
+          try {
+            localStorage.setItem('pm_cached_devices', JSON.stringify(fetchedDevices));
+          } catch (_) {}
+        }
+      }, (err) => {
+        console.warn('[Firebase] Devices stream notice:', err);
+      });
+      return () => unsubscribe();
+    } catch (e) {
+      console.warn('[Firebase] Devices setup error:', e);
+    }
+  }, []);
+
   // ─── 2. FIREBASE REAL-TIME VETS LISTENER ───
   useEffect(() => {
     try {

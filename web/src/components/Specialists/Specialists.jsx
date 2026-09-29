@@ -21,7 +21,11 @@ import {
   ArrowRight,
   ExternalLink,
   ChevronRight,
-  Filter
+  Filter,
+  Radio,
+  Battery,
+  Wifi,
+  Plus
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ProviderDetailsModal from './ProviderDetailsModal';
@@ -54,7 +58,7 @@ function getRollingDates() {
 }
 
 export default function Specialists({ onNavigate }) {
-  const { pets = [], openModal, showToast, addAppointment, vets = [], isVetsLoading, medicalRecords = [] } = useApp();
+  const { pets = [], openModal, showToast, addAppointment, vets = [], isVetsLoading, medicalRecords = [], devices = [] } = useApp();
   const { currentUser } = useAuth();
 
   // Mode: 'telehealth' | 'clinic'
@@ -158,6 +162,17 @@ export default function Specialists({ onNavigate }) {
     return medicalRecords.find(r => r.petId === petId && (r.type === 'triage' || r.category === 'triage'));
   }, [medicalRecords, selectedCompanion]);
 
+  // Smart Tracker & Live Device Telemetry
+  const [syncDeviceTelemetry, setSyncDeviceTelemetry] = useState(true);
+  const companionDevice = useMemo(() => {
+    if (!selectedCompanion) return (devices && devices[0]) || null;
+    const pId = selectedCompanion.id || selectedCompanion.petID;
+    return (devices || []).find(d => 
+      (pId && d.petId === pId) || 
+      (d.petName && selectedCompanion.name && d.petName.toLowerCase() === selectedCompanion.name.toLowerCase())
+    ) || null;
+  }, [devices, selectedCompanion]);
+
   // Symptoms description
   const [symptomNotes, setSymptomNotes] = useState('');
 
@@ -200,6 +215,13 @@ export default function Specialists({ onNavigate }) {
         status: 'confirmed',
         fee: activeClinician.price,
         linkedTriageScan: linkAiScan ? latestTriageScan?.id : null,
+        linkedDeviceId: syncDeviceTelemetry && companionDevice ? companionDevice.id : null,
+        deviceTelemetry: syncDeviceTelemetry && companionDevice ? {
+          name: companionDevice.name,
+          battery: companionDevice.batteryLevel,
+          mode: companionDevice.trackingMode,
+          isSafeZone: companionDevice.isSafeZone
+        } : null,
         notes: symptomNotes || 'Routine clinical assessment.'
       };
 
@@ -313,6 +335,41 @@ export default function Specialists({ onNavigate }) {
               <span>In-Clinic Physical Visit</span>
             </button>
           </div>
+
+          {/* Quick Hardware & Device Management Pill */}
+          <button
+            onClick={() => openModal('myDevices')}
+            title="Manage Paired Trackers & Collars"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '7px',
+              padding: '8px 16px',
+              borderRadius: '9999px',
+              border: '1px solid #DFE8E5',
+              backgroundColor: '#FFFFFF',
+              color: '#160F0C',
+              fontSize: '12px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              boxShadow: '0 1px 4px rgba(0,0,0,0.03)',
+              transition: 'all 0.18s ease'
+            }}
+          >
+            <Radio size={13} color="#0D9488" />
+            <span>My Devices</span>
+            <span style={{
+              fontSize: '10px',
+              fontWeight: 700,
+              backgroundColor: (devices || []).length > 0 ? '#EDF5F3' : '#F5F1EE',
+              color: (devices || []).length > 0 ? '#0D9488' : '#707973',
+              padding: '1px 6px',
+              borderRadius: '9999px',
+              fontFamily: 'var(--font-mono)'
+            }}>
+              {(devices || []).length}
+            </span>
+          </button>
         </div>
 
         {/* Main Headline */}
@@ -1097,6 +1154,216 @@ export default function Specialists({ onNavigate }) {
                   {linkAiScan && <Check size={12} strokeWidth={3} />}
                 </div>
               </div>
+
+              {/* Paired Smart Collar / Tracker & Live Telemetry Section */}
+              {companionDevice ? (
+                <div
+                  style={{
+                    backgroundColor: syncDeviceTelemetry ? '#F0FDF4' : '#FAF7F5',
+                    border: syncDeviceTelemetry ? '1px solid #A7D0C8' : '1px solid #EAE5E1',
+                    borderRadius: '14px',
+                    padding: '12px 14px',
+                    marginBottom: '10px',
+                    transition: 'all 0.18s ease'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
+                      <div style={{
+                        width: '30px',
+                        height: '30px',
+                        borderRadius: '50%',
+                        backgroundColor: '#FFFFFF',
+                        border: '1px solid #C4DCD6',
+                        color: '#0D9488',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0
+                      }}>
+                        <Radio size={15} />
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '11.5px', fontWeight: 700, color: '#160F0C', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span>{companionDevice.name}</span>
+                          <span style={{
+                            fontSize: '9px',
+                            backgroundColor: '#DCFCE7',
+                            color: '#15803D',
+                            padding: '1px 6px',
+                            borderRadius: '9999px',
+                            fontWeight: 700
+                          }}>
+                            ● {companionDevice.isOnline ? 'ONLINE' : 'LINKED'}
+                          </span>
+                        </div>
+                        <div style={{ fontSize: '10px', color: '#707973' }}>
+                          {companionDevice.modelNumber || 'GPS Smart Collar'} • {companionDevice.trackingMode || 'Real-Time'}
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => openModal('myDevices')}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#346B73',
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        textDecoration: 'underline'
+                      }}
+                    >
+                      Manage
+                    </button>
+                  </div>
+
+                  {/* Telemetry Chips */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginBottom: '8px' }}>
+                    <div style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      backgroundColor: '#FFFFFF',
+                      border: '1px solid #DFE8E5',
+                      borderRadius: '8px',
+                      padding: '3px 8px',
+                      fontSize: '10px',
+                      fontWeight: 600,
+                      color: '#160F0C'
+                    }}>
+                      <Battery size={11} color="#0D9488" />
+                      <span>{companionDevice.batteryLevel ?? 94}% Bat</span>
+                    </div>
+                    <div style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      backgroundColor: '#FFFFFF',
+                      border: '1px solid #DFE8E5',
+                      borderRadius: '8px',
+                      padding: '3px 8px',
+                      fontSize: '10px',
+                      fontWeight: 600,
+                      color: '#160F0C'
+                    }}>
+                      <Wifi size={11} color="#3B82F6" />
+                      <span>{companionDevice.signalStrength ?? 4}/4 Cellular</span>
+                    </div>
+                    <div style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      backgroundColor: '#FFFFFF',
+                      border: '1px solid #DFE8E5',
+                      borderRadius: '8px',
+                      padding: '3px 8px',
+                      fontSize: '10px',
+                      fontWeight: 600,
+                      color: '#0D9488'
+                    }}>
+                      <ShieldCheck size={11} color="#0D9488" />
+                      <span>Safe Zone Active</span>
+                    </div>
+                  </div>
+
+                  {/* Sync Toggle */}
+                  <div
+                    onClick={() => setSyncDeviceTelemetry(!syncDeviceTelemetry)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      backgroundColor: '#FFFFFF',
+                      border: '1px solid #EAE5E1',
+                      borderRadius: '10px',
+                      padding: '6px 10px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <div style={{ fontSize: '10.5px', color: '#5C524E', fontWeight: 500 }}>
+                      Attach Live Telemetry &amp; Biometrics to EHR
+                    </div>
+                    <div style={{
+                      width: '16px',
+                      height: '16px',
+                      borderRadius: '4px',
+                      backgroundColor: syncDeviceTelemetry ? '#346B73' : '#FFFFFF',
+                      border: syncDeviceTelemetry ? 'none' : '1px solid #C4DCD6',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#FFFFFF'
+                    }}>
+                      {syncDeviceTelemetry && <Check size={11} strokeWidth={3} />}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div
+                  style={{
+                    backgroundColor: '#FAF7F5',
+                    border: '1px dashed #D6CEC8',
+                    borderRadius: '14px',
+                    padding: '10px 14px',
+                    marginBottom: '10px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '10px'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{
+                      width: '28px',
+                      height: '28px',
+                      borderRadius: '50%',
+                      backgroundColor: '#FFFFFF',
+                      border: '1px solid #DFE8E5',
+                      color: '#8C827A',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0
+                    }}>
+                      <Radio size={14} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '11px', fontWeight: 700, color: '#160F0C' }}>
+                        No Tracker Paired to {selectedCompanion?.name || 'Companion'}
+                      </div>
+                      <div style={{ fontSize: '10px', color: '#707973' }}>
+                        Pair GPS collar or beacon for real-time vitals
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => openModal('pairDevice', { petId: selectedCompanion?.id || selectedCompanion?.petID })}
+                    style={{
+                      padding: '5px 12px',
+                      borderRadius: '9999px',
+                      border: '1px solid #C4DCD6',
+                      backgroundColor: '#EDF5F3',
+                      color: '#0D9488',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      whiteSpace: 'nowrap',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    <Plus size={12} />
+                    <span>Pair Device</span>
+                  </button>
+                </div>
+              )}
 
               {/* Chief Complaint / Symptoms Input */}
               <div>
