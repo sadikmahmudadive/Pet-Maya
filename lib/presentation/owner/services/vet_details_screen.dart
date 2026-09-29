@@ -418,28 +418,37 @@ class _VetDetailsScreenState extends State<VetDetailsScreen> {
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: ElevatedButton(
-                  onPressed: () {
-                    HapticFeedback.heavyImpact();
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => BookingScreen(vet: currentVet),
+                child: SizedBox(
+                  height: 52,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      HapticFeedback.heavyImpact();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => BookingScreen(vet: currentVet),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1AB680),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18),
                       ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1AB680),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(18),
                     ),
-                  ),
-                  child: Text(
-                    'BOOK APPOINTMENT • ${currentVet.price.toUpperCase()}',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.8,
-                      fontSize: 11.5,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        'BOOK APPOINTMENT • ${currentVet.price.toUpperCase()}',
+                        maxLines: 1,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.5,
+                          fontSize: 12,
+                        ),
+                      ),
                     ),
                   ),
                 ),

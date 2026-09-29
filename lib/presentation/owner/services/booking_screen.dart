@@ -563,7 +563,7 @@ class _BookingScreenState extends State<BookingScreen> {
       ),
       child: SafeArea(
         child: SizedBox(
-          height: 64,
+          height: 54,
           child: ElevatedButton(
             onPressed: () {
               HapticFeedback.heavyImpact();
@@ -571,9 +571,17 @@ class _BookingScreenState extends State<BookingScreen> {
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF1AB680),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             ),
-            child: const Text('CONFIRM BOOKING', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 1.2, fontSize: 13)),
+            child: const FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                'CONFIRM BOOKING',
+                maxLines: 1,
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 1.0, fontSize: 13),
+              ),
+            ),
           ),
         ),
       ),
