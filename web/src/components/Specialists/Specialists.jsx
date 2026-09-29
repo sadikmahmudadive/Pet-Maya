@@ -24,6 +24,7 @@ import {
   Filter
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import ProviderDetailsModal from './ProviderDetailsModal';
 
 // ── Specialty Filter Categories fallback ─────────────────────────────────────
 const STATIC_SPECIALTY_CATEGORIES = [
@@ -90,9 +91,14 @@ export default function Specialists({ onNavigate }) {
       degrees: v.qualification || v.degrees || 'DVM',
       role: v.tag || v.specialty || v.role || 'Veterinary Specialist',
       specialtyId: v.specialty || v.specialtyId || 'internal',
-      rating: typeof v.rating === 'number' ? v.rating : 4.9,
-      reviewsCount: v.reviewsCount || 0,
+      rating: typeof v.rating === 'number' ? v.rating : 5.0,
+      reviewsCount: typeof v.reviewsCount === 'number' ? v.reviewsCount : (v.reviews || 0),
       availability: v.availability || 'AVAILABLE TODAY',
+      businessHours: v.businessHours || v.availability || 'Mon - Fri: 8:00 AM - 6:00 PM',
+      distance: v.distance || '1.2 km away',
+      experience: v.experience || '5+ Years Exp',
+      clinic: v.clinic || (v.tag === 'Grooming' ? 'Pet Maya Care Center' : 'Central Veterinary Hospital'),
+      phone: v.phone || '',
       availabilityType: (v.availability || '').toLowerCase().includes('emergency') ? 'emergency' : 'normal',
       price: numericPrice,
       unit: '/ 25 min',
@@ -111,9 +117,31 @@ export default function Specialists({ onNavigate }) {
   // Rolling 4-day date options
   const rollingDates = useMemo(() => getRollingDates(), []);
 
+  // Fallback Clinician while database streams
+  const fallbackClinician = useMemo(() => ({
+    id: 'placeholder',
+    name: 'Veterinary Specialist',
+    degrees: 'DVM',
+    role: 'Veterinary Specialist',
+    price: 350,
+    availability: 'AVAILABLE TODAY',
+    slots: [
+      { id: 's1', time: '10:00 - 10:25' },
+      { id: 's2', time: '14:00 - 14:25' },
+      { id: 's3', time: '16:30 - 16:55' },
+    ]
+  }), []);
+
   // Selected Clinician (default to first from Firestore)
   const [selectedClinicianId, setSelectedClinicianId] = useState('');
-  const activeClinician = mappedVets.find(c => c.id === selectedClinicianId) || mappedVets[0] || null;
+  const activeClinician = mappedVets.find(c => c.id === selectedClinicianId) || mappedVets[0] || fallbackClinician;
+
+  // Active Provider for Details & Reviews Modal
+  const [activeDetailProvider, setActiveDetailProvider] = useState(null);
+  const currentDetailProvider = useMemo(() => {
+    if (!activeDetailProvider) return null;
+    return mappedVets.find(v => v.id === activeDetailProvider.id) || activeDetailProvider;
+  }, [activeDetailProvider, mappedVets]);
 
   // Schedule Dates
   const [selectedDate, setSelectedDate] = useState('today');
@@ -384,7 +412,7 @@ export default function Specialists({ onNavigate }) {
               return (
                 <div
                   key={doctor.id}
-                  onClick={() => handleSelectClinician(doctor)}
+                  onClick={() => setActiveDetailProvider(doctor)}
                   style={{
                     backgroundColor: '#FFFFFF',
                     borderRadius: '24px',
@@ -395,6 +423,7 @@ export default function Specialists({ onNavigate }) {
                     transition: 'all 0.2s ease',
                     position: 'relative'
                   }}
+                  title="Click to view details & reviews"
                 >
                   <div style={{
                     display: 'grid',
@@ -493,18 +522,29 @@ export default function Specialists({ onNavigate }) {
                           <span>{doctor.availability}</span>
                         </div>
 
-                        {/* Star Rating */}
-                        <div style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          fontSize: '12px',
-                          fontWeight: 700,
-                          color: '#160F0C'
-                        }}>
+                        {/* Star Rating & Reviews */}
+                        <div 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveDetailProvider(doctor);
+                          }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            color: '#160F0C',
+                            cursor: 'pointer',
+                            padding: '2px 6px',
+                            borderRadius: '6px',
+                            transition: 'background-color 0.15s ease'
+                          }}
+                          title="Click to view reviews & write a review"
+                        >
                           <Star size={13} color="#F59E0B" fill="#F59E0B" />
                           <span>{doctor.rating.toFixed(2)}</span>
-                          <span style={{ color: '#707973', fontWeight: 500, fontSize: '11px' }}>
+                          <span style={{ color: '#707973', fontWeight: 500, fontSize: '11px', textDecoration: 'underline' }}>
                             ({doctor.reviewsCount} reviews)
                           </span>
                         </div>
@@ -576,27 +616,54 @@ export default function Specialists({ onNavigate }) {
                           </span>
                         </div>
 
-                        {/* CTA Select / Active Button */}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleSelectClinician(doctor);
-                          }}
-                          style={{
-                            padding: '8px 22px',
-                            borderRadius: '9999px',
-                            border: 'none',
-                            backgroundColor: isSelected ? '#346B73' : '#160F0C',
-                            color: '#FFFFFF',
-                            fontSize: '12.5px',
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                            boxShadow: isSelected ? '0 2px 8px rgba(52, 107, 115, 0.25)' : 'none',
-                            transition: 'all 0.18s ease'
-                          }}
-                        >
-                          {isSelected ? 'Clinician Active' : 'Select Clinician'}
-                        </button>
+                        {/* Action Buttons: Reviews & Select */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveDetailProvider(doctor);
+                            }}
+                            style={{
+                              padding: '8px 14px',
+                              borderRadius: '9999px',
+                              border: '1px solid #DFE8E5',
+                              backgroundColor: '#FFFFFF',
+                              color: '#346B73',
+                              fontSize: '12px',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              transition: 'all 0.15s ease'
+                            }}
+                          >
+                            <span>Reviews & Bio</span>
+                            <ChevronRight size={13} />
+                          </button>
+
+                          {/* CTA Select / Active Button */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSelectClinician(doctor);
+                            }}
+                            style={{
+                              padding: '8px 20px',
+                              borderRadius: '9999px',
+                              border: 'none',
+                              backgroundColor: isSelected ? '#346B73' : '#160F0C',
+                              color: '#FFFFFF',
+                              fontSize: '12.5px',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              boxShadow: isSelected ? '0 2px 8px rgba(52, 107, 115, 0.25)' : 'none',
+                              transition: 'all 0.18s ease'
+                            }}
+                          >
+                            {isSelected ? 'Clinician Active' : 'Select Clinician'}
+                          </button>
+                        </div>
                       </div>
 
                     </div>
@@ -789,10 +856,10 @@ export default function Specialists({ onNavigate }) {
                       STEP 01 • ACTIVE FACULTY
                     </div>
                     <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#160F0C' }}>
-                      {activeClinician.name}
+                      {activeClinician?.name || 'Veterinary Specialist'}
                     </div>
                     <div style={{ fontSize: '11px', color: '#707973' }}>
-                      {activeClinician.role.split('&')[0]}
+                      {(activeClinician?.role || 'Specialist').split('&')[0]}
                     </div>
                   </div>
                 </div>
@@ -808,7 +875,7 @@ export default function Specialists({ onNavigate }) {
                   border: '1px solid #C4DCD6',
                   whiteSpace: 'nowrap'
                 }}>
-                  {activeClinician.availability.replace('AVAILABLE ', '')}
+                  {(activeClinician?.availability || 'AVAILABLE TODAY').replace('AVAILABLE ', '')}
                 </span>
               </div>
             </div>
@@ -1126,7 +1193,7 @@ export default function Specialists({ onNavigate }) {
               }}
             >
               <Video size={16} />
-              <span>{isSubmitting ? 'Securing Encrypted Room...' : `Confirm & Secure Consultation (৳${activeClinician.price})`}</span>
+              <span>{isSubmitting ? 'Securing Encrypted Room...' : `Confirm & Secure Consultation (৳${activeClinician?.price || 350})`}</span>
             </button>
 
             {/* Continuity Guarantee Footer Note */}
@@ -1164,6 +1231,17 @@ export default function Specialists({ onNavigate }) {
           }
         }
       `}</style>
+
+      {/* ── Provider Profile & Reviews Modal with Review Writing ── */}
+      <ProviderDetailsModal
+        provider={currentDetailProvider}
+        isOpen={Boolean(currentDetailProvider)}
+        onClose={() => setActiveDetailProvider(null)}
+        onSelectClinician={(clinician) => {
+          handleSelectClinician(clinician);
+        }}
+        isSelected={selectedClinicianId === currentDetailProvider?.id}
+      />
 
     </div>
   );

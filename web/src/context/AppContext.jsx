@@ -891,16 +891,19 @@ export function AppProvider({ children }) {
               name: data.name || 'Specialist',
               qualification: data.qualification || 'DVM',
               tag: data.tag || 'Veterinarian',
-              rating: typeof data.rating === 'number' ? data.rating : (parseFloat(data.rating) || 4.9),
-              reviewsCount: data.reviewsCount || data.reviews || 45,
-              reviews: data.reviewsCount || data.reviews || 45,
-              distance: data.distance || '1.5 km away',
+              rating: typeof data.rating === 'number' ? data.rating : (parseFloat(data.rating) || 5.0),
+              reviewsCount: typeof data.reviewsCount === 'number' ? data.reviewsCount : (data.reviews !== undefined ? Number(data.reviews) : 0),
+              reviews: typeof data.reviewsCount === 'number' ? data.reviewsCount : (data.reviews !== undefined ? Number(data.reviews) : 0),
+              distance: data.distance || '1.2 km away',
               price: displayPrice,
               availability: data.businessHours || data.availability || 'Mon - Fri • 9am - 6pm',
+              businessHours: data.businessHours || data.availability || 'Mon - Fri • 9am - 6pm',
+              experience: data.experience || '5+ Years',
+              phone: data.phone || '',
               isVerified: data.isVerified ?? true,
               bio: data.bio || 'Dedicated veterinary specialist.',
               photo: data.photoUrl || data.photo || 'assets/images/Pet_1.jpg',
-              clinic: data.clinic || data.businessHours || 'Animal Hospital'
+              clinic: data.clinic || (data.tag === 'Grooming' ? 'Pet Maya Care Center' : 'Central Veterinary Hospital')
             };
           });
           setVets(fetchedVets);
