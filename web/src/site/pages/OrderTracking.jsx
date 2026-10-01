@@ -104,7 +104,7 @@ function OrderDetail({ order: o }) {
       {placed && (
         <div className="card row gap-12" style={{ marginTop: 18, background: 'var(--teal-tint)', borderColor: 'transparent' }}>
           <span className="well round" style={{ background: 'var(--teal)', color: '#fff' }}><Icon name="check" stroke={2.4} /></span>
-          <div><b>Order placed — thank you!</b><div className="sub" style={{ color: 'var(--teal-deep)' }}>We’ve sent the details{o.phone ? ` to ${o.phone}` : ''}. {o.hasRx ? 'A vet will check your prescription shortly.' : ''}</div></div>
+          <div><b>Order placed — thank you!</b><div className="sub" style={{ color: 'var(--teal-ink, var(--teal))' }}>We’ve sent the details{o.phone ? ` to ${o.phone}` : ''}. {o.hasRx ? 'A vet will check your prescription shortly.' : ''}</div></div>
         </div>
       )}
 
@@ -138,7 +138,7 @@ function OrderDetail({ order: o }) {
         <div className="card flush">
           <div className="route-map">
             <svg viewBox="0 0 600 260" preserveAspectRatio="none" aria-hidden="true" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
-              <path d="M90 40 V120 H300 V200 H470" fill="none" stroke="var(--teal-deep)" strokeWidth="3" strokeDasharray="2 7" strokeLinecap="round" />
+              <path d="M90 40 V120 H300 V200 H470" fill="none" stroke="var(--teal)" strokeWidth="3" strokeDasharray="2 7" strokeLinecap="round" />
             </svg>
             <span className="map-label" style={{ left: '9%', top: '10%' }}><span className="dot" style={{ background: 'var(--ink)' }} /> Pet Maya pharmacy</span>
             {o.status === 'In transit' && <><span className="map-pin" style={{ left: '50%', top: '46%' }} /><span className="map-label dark" style={{ left: '44%', top: '30%' }}>On the way</span></>}

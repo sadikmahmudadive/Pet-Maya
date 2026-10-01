@@ -27,6 +27,7 @@
   --teal: #37747F;
   --teal-hover: #2E636D;
   --teal-deep: #1F4C55;   /* admin sidebar, hero panels */
+  --teal-ink: #1F4C55;    /* text on teal tints, pills, badges */
   --teal-tint: #DCEBEC;
   --teal-tint-2: #EAF3F3;
 
@@ -101,6 +102,7 @@
     --teal: #4EA3B0;
     --teal-hover: #60B7C4;
     --teal-deep: #16282D;
+    --teal-ink: #7FE5EF;
     --teal-tint: rgba(78, 163, 176, 0.18);
     --teal-tint-2: rgba(78, 163, 176, 0.10);
 
@@ -157,6 +159,7 @@
   --teal: #4EA3B0;
   --teal-hover: #60B7C4;
   --teal-deep: #16282D;
+  --teal-ink: #7FE5EF;
   --teal-tint: rgba(78, 163, 176, 0.18);
   --teal-tint-2: rgba(78, 163, 176, 0.10);
 

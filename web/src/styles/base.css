@@ -114,13 +114,13 @@ em.accent { font-style: italic; color: var(--teal); }
   background: var(--sunk-2); color: var(--ink-2);
 }
 .pill svg { width: 12px; height: 12px; }
-.pill.teal { background: var(--teal-tint); color: var(--teal-deep); }
+.pill.teal { background: var(--teal-tint); color: var(--teal-ink, #1F4C55); font-weight: 600; }
 .pill.yellow { background: var(--yellow-tint); color: var(--yellow-ink); }
 .pill.red { background: var(--red-tint); color: var(--red); }
 .pill.dark { background: var(--btn-dark-bg, var(--ink)); color: var(--btn-dark-ink, #fff); }
 .pill.solid-teal { background: var(--teal); color: #fff; }
 .pill.outline { background: var(--surface); border: 1px solid var(--line-2); color: var(--ink); }
-.pill.mono { font: 500 10.5px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; height: 22px; }
+.pill.mono { font: 600 10.5px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; height: 22px; }
 .pill.sm { height: 20px; padding: 0 8px; font-size: 11px; }
 .count {
   display: inline-grid; place-items: center;
@@ -142,7 +142,7 @@ em.accent { font-style: italic; color: var(--teal); }
 .well.round { border-radius: 50%; }
 .well.sm { width: 32px; height: 32px; border-radius: 10px; }
 .well.lg { width: 48px; height: 48px; }
-.well.teal { background: var(--teal-tint); color: var(--teal-deep); }
+.well.teal { background: var(--teal-tint); color: var(--teal-ink, #1F4C55); }
 .well.yellow { background: var(--yellow-tint); color: var(--yellow-ink); }
 .well.red { background: var(--red-tint); color: var(--red); }
 .well.white { background: var(--surface); border: 1px solid var(--line); }

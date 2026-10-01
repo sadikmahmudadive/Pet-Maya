@@ -78,7 +78,7 @@
 .stepper span { min-width: 30px; text-align: center; font-weight: 600; font-size: 14px; }
 .pair-row { display: grid; grid-auto-flow: column; grid-auto-columns: 140px; gap: 10px; overflow-x: auto; padding-bottom: 4px; }
 .pair-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); padding: 10px; }
-.coupon-applied { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-radius: var(--r-sm); background: var(--teal-tint); color: var(--teal-deep); font-size: 13.5px; }
+.coupon-applied { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-radius: var(--r-sm); background: var(--teal-tint); color: var(--teal-ink, var(--teal)); font-size: 13.5px; font-weight: 500; }
 
 /* ── Product card ──────────────────────────────────────── */
 .product-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
@@ -287,7 +287,7 @@ details.faq p { padding-bottom: 18px; color: var(--muted); font-size: 14.5px; }
 .track-step .n { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 600; background: var(--sunk-2); flex: none; }
 .track-step .bar { height: 2px; flex: 1; background: var(--line-2); border-radius: 2px; }
 .track-step.done .n { background: var(--teal); color: #fff; }
-.track-step.done .bar { background: var(--teal-deep); }
+.track-step.done .bar { background: var(--teal); }
 .track-step.now .n { background: var(--nav-active-bg, var(--ink)); color: var(--nav-active-ink, #fff); }
 .track-step:last-child .bar { display: none; }
 .track-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
@@ -327,7 +327,7 @@ details.faq p { padding-bottom: 18px; color: var(--muted); font-size: 14.5px; }
   .display-1 { font-size: 38px; }
   .app-banner .ph { display: none; }
 }
-.nav-link.nav-admin { gap: 6px; color: var(--teal-deep); font-weight: 600; }
+.nav-link.nav-admin { gap: 6px; color: var(--teal-ink, var(--teal)); font-weight: 600; }
 .nav-link.nav-admin.active { color: #fff; }
 .dash-pets { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
 .dash-pet { display: flex; align-items: center; gap: 12px; text-align: left; padding: 16px 18px; }
@@ -335,7 +335,7 @@ details.faq p { padding-bottom: 18px; color: var(--muted); font-size: 14.5px; }
 .dash-pet.add { justify-content: center; border-style: dashed; color: var(--muted); }
 .dash-quick { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .dash-quick .card:hover { border-color: var(--line-2); box-shadow: var(--shadow-sm); }
-.dash-date { width: 46px; height: 50px; flex: none; border-radius: 12px; background: var(--teal-tint); color: var(--teal-deep); display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1; }
+.dash-date { width: 46px; height: 50px; flex: none; border-radius: 12px; background: var(--teal-tint); color: var(--teal-ink, var(--teal)); display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1; font-weight: 600; }
 .dash-date b { font-size: 18px; }
 .dash-date small { font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; }
 

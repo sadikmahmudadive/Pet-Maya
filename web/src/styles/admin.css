@@ -66,7 +66,7 @@
 .appt:hover { transform: translateY(-1px); }
 .appt b { display: block; font-size: 12px; }
 .appt.solid { background: var(--teal); color: #fff; }
-.appt.soft { background: var(--teal-tint); color: var(--teal-deep); }
+.appt.soft { background: var(--teal-tint); color: var(--teal-ink, var(--teal)); font-weight: 500; }
 .appt.urgent { background: var(--red-tint); color: var(--red); }
 .appt.open { background: transparent; border: 1.5px dashed var(--line-2); color: var(--muted); }
 
