@@ -101,7 +101,7 @@ export default function Product({ params }) {
             <Ph className="main" src={gallery[img]} tone={p.coldChain ? 'teal' : ''} label={`product photo — ${p.name}`}>
               {p.coldChain && <span className="pill teal mono" style={{ position: 'absolute', top: 16, left: 16 }}><span className="dot" /> Ships at 2°C – 8°C</span>}
               <button className={cx('pcard-fav', wishlist.includes(p.id) && 'on')} style={{ top: 16, right: 16, width: 42, height: 42 }} onClick={() => toggleWish(p.id)} aria-label="Save"><Icon name="heart" size={17} /></button>
-              <span className="pill" style={{ position: 'absolute', left: 16, bottom: 16, background: '#fff', height: 30 }}><Icon name="shield" size={13} /> Authentic batch</span>
+              <span className="pill" style={{ position: 'absolute', left: 16, bottom: 16, background: 'var(--surface)', color: 'var(--ink)', border: '1px solid var(--line)', height: 30 }}><Icon name="shield" size={13} /> Authentic batch</span>
             </Ph>
           </div>
           {gallery.length > 1 && (
@@ -144,7 +144,7 @@ export default function Product({ params }) {
                 <span>Free delivery</span>
                 <span className="teal" style={{ fontWeight: 600 }}>{toFree ? `Add ${money(toFree)}` : 'Unlocked'}</span>
               </div>
-              <div className="meter" style={{ marginTop: 10, height: 4, background: '#fff' }}><span style={{ width: `${Math.min(100, ((DELIVERY.freeOver - toFree) / DELIVERY.freeOver) * 100)}%` }} /></div>
+              <div className="meter" style={{ marginTop: 10, height: 4, background: 'var(--sunk-2)' }}><span style={{ width: `${Math.min(100, ((DELIVERY.freeOver - toFree) / DELIVERY.freeOver) * 100)}%` }} /></div>
             </div>
 
             {activePet && (

@@ -104,7 +104,7 @@ export default function Journal({ params }) {
             {rest.map((b, i) => (
               <Link key={b.id} to={`/journal/${b.id}`} className="card tight article-card">
                 <Ph src={b.image} tone={b.tone === 'teal' || i % 2 ? 'teal' : ''} label="photo" style={{ height: 190 }}>
-                  <span className="pill" style={{ position: 'absolute', top: 10, left: 10, background: '#fff' }}>{b.category}</span>
+                  <span className="pill" style={{ position: 'absolute', top: 10, left: 10, background: 'var(--surface)', color: 'var(--ink)', border: '1px solid var(--line)' }}>{b.category}</span>
                 </Ph>
                 <div className="sub" style={{ fontSize: 12, marginTop: 4 }}>{b.readMin} min read · {b.author}</div>
                 <h3>{b.title}</h3>

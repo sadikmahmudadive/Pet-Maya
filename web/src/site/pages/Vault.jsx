@@ -155,7 +155,7 @@ export default function Vault() {
 
             <div className="row between wrap gap-8">
               <h2 className="display-3">Timeline</h2>
-              <select className="select" style={{ width: 'auto', height: 38, borderRadius: 999, background: '#fff', border: '1px solid var(--line-2)' }} value={filter} onChange={(e) => setFilter(e.target.value)} aria-label="Filter records">
+              <select className="select" style={{ width: 'auto', height: 38, borderRadius: 999, background: 'var(--surface)', color: 'var(--ink)', border: '1px solid var(--line-2)' }} value={filter} onChange={(e) => setFilter(e.target.value)} aria-label="Filter records">
                 <option value="all">All records</option><option value="visit">Visits</option><option value="lab">Lab tests</option><option value="vaccine">Vaccines</option><option value="surgery">Procedures</option><option value="order">Pharmacy</option>
               </select>
             </div>

@@ -144,11 +144,11 @@ export default function Gps() {
                   <div className="sub" style={{ fontSize: 12 }}>{[pet.breed, pet.weight, dev.name].filter(Boolean).join(' · ')}</div>
                 </div>
               </div>
-              <div className="row gap-4 hide-sm" style={{ position: 'absolute', right: 16, top: 16, background: '#fff', borderRadius: 999, padding: 4 }}>
+              <div className="row gap-4 hide-sm" style={{ position: 'absolute', right: 16, top: 16, background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 999, padding: 4 }}>
                 <Segmented items={[{ value: 'radar', label: 'Radar' }, { value: 'map', label: 'Map' }]} value={layer} onChange={(v) => { setLayer(v); if (v === 'map') window.open(`https://www.google.com/maps?q=${dev.latitude},${dev.longitude}`, '_blank', 'noopener'); }} />
               </div>
               <span className="map-label mono" style={{ left: 16, bottom: 16, fontSize: 11 }}><span className="dot" /> {dms(dev.latitude, 'N', 'S')}, {dms(dev.longitude, 'E', 'W')} · updated {ago(dev.lastSyncAt) || 'just now'}</span>
-              <div className="stack" style={{ position: 'absolute', right: 16, bottom: 16, background: '#fff', borderRadius: 14, boxShadow: 'var(--shadow-sm)' }}>
+              <div className="stack" style={{ position: 'absolute', right: 16, bottom: 16, background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 14, boxShadow: 'var(--shadow-sm)' }}>
                 <button className="btn btn-ghost btn-square" onClick={() => setZoom((z) => Math.min(3, z * 1.3))} aria-label="Zoom in"><Icon name="plus" /></button>
                 <hr className="divider" />
                 <button className="btn btn-ghost btn-square" onClick={() => setZoom((z) => Math.max(0.4, z / 1.3))} aria-label="Zoom out"><Icon name="minus" /></button>
@@ -212,7 +212,9 @@ export default function Gps() {
       <section className="section">
         <div className="card flat row between wrap gap-16" style={{ padding: 24 }}>
           <div className="row gap-8 wrap">
-            {['Water-resistant', 'Wireless charging', 'Lightweight clasp', 'Works across Bangladesh'].map((t) => <Pill key={t} className="outline" style={{ height: 32, background: '#fff' }}>{t}</Pill>)}
+            {['Water-resistant', 'Wireless charging', 'Lightweight clasp', 'Works across Bangladesh'].map((t) => (
+              <Pill key={t} className="outline" style={{ height: 32, background: 'var(--surface)', color: 'var(--ink)' }}>{t}</Pill>
+            ))}
           </div>
           <div className="row gap-12"><span className="sub">Help with your collar?</span><Button variant="outline" icon="phone" to="mailto:support@petmaya.app">Contact support</Button></div>
         </div>

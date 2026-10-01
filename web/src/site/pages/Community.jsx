@@ -166,7 +166,7 @@ export default function Community() {
               {p.scores && (
                 <div className="panel row gap-8" style={{ overflowX: 'auto' }}>
                   {p.scores.map((s, i) => (
-                    <div key={i} className="card tight" style={{ minWidth: 56, textAlign: 'center', padding: 10, background: s <= 2 ? 'var(--teal-tint)' : '#fff' }}>
+                    <div key={i} className="card tight" style={{ minWidth: 56, textAlign: 'center', padding: 10, background: s <= 2 ? 'var(--teal-tint)' : 'var(--surface)' }}>
                       <div className="mono subtle" style={{ fontSize: 10 }}>D{i * 2 + 1}</div><b className={s >= 5 ? 'red' : ''} style={{ fontSize: 18 }}>{s}</b>
                     </div>
                   ))}

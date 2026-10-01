@@ -103,7 +103,7 @@ export default function Triage() {
             </div>
             <div className="panel" style={{ marginTop: 14 }}>
               <span className="label">Describe what you’re seeing</span>
-              <textarea className="textarea" style={{ background: '#fff' }} value={text} onChange={(e) => setText(e.target.value)} placeholder={`e.g. ${pet?.name || 'Milo'} skipped his afternoon meal and vomited clear liquid once at 3:30 PM. Otherwise alert but quieter than usual.`} />
+              <textarea className="textarea white" value={text} onChange={(e) => setText(e.target.value)} placeholder={`e.g. ${pet?.name || 'Milo'} skipped his afternoon meal and vomited clear liquid once at 3:30 PM. Otherwise alert but quieter than usual.`} />
               <label className="btn btn-ghost btn-sm" style={{ marginTop: 8, cursor: 'pointer' }}>
                 <Icon name="image" size={14} /> {photo ? photo.name : 'Add a photo (optional)'}
                 <input type="file" accept="image/*" hidden onChange={(e) => setPhoto(e.target.files?.[0] || null)} />

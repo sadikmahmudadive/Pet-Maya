@@ -119,7 +119,7 @@ em.accent { font-style: italic; color: var(--teal); }
 .pill.red { background: var(--red-tint); color: var(--red); }
 .pill.dark { background: var(--btn-dark-bg, var(--ink)); color: var(--btn-dark-ink, #fff); }
 .pill.solid-teal { background: var(--teal); color: #fff; }
-.pill.outline { background: transparent; border: 1px solid var(--line-2); }
+.pill.outline { background: var(--surface); border: 1px solid var(--line-2); color: var(--ink); }
 .pill.mono { font: 500 10.5px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; height: 22px; }
 .pill.sm { height: 20px; padding: 0 8px; font-size: 11px; }
 .count {

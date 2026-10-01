@@ -93,10 +93,10 @@
     --line: rgba(255, 255, 255, 0.08);
     --line-2: rgba(255, 255, 255, 0.14);
 
-    --ink: #F5F4F0;
-    --ink-2: #D8D5CD;
-    --muted: #9E9A92;
-    --subtle: #6D6962;
+    --ink: #FFFFFF;
+    --ink-2: #E6E3DB;
+    --muted: #B8B4AB;
+    --subtle: #8F8B83;
 
     --teal: #4EA3B0;
     --teal-hover: #60B7C4;
@@ -149,10 +149,10 @@
   --line: rgba(255, 255, 255, 0.08);
   --line-2: rgba(255, 255, 255, 0.14);
 
-  --ink: #F5F4F0;
-  --ink-2: #D8D5CD;
-  --muted: #9E9A92;
-  --subtle: #6D6962;
+  --ink: #FFFFFF;
+  --ink-2: #E6E3DB;
+  --muted: #B8B4AB;
+  --subtle: #8F8B83;
 
   --teal: #4EA3B0;
   --teal-hover: #60B7C4;

@@ -157,7 +157,7 @@ export default function Checkout() {
           {totals.needsRx && (
             <div className="card" style={{ background: 'var(--yellow-tint)', borderColor: 'transparent' }}>
               <div className="row gap-12" style={{ alignItems: 'flex-start' }}>
-                <span className="well" style={{ background: '#fff' }}><Icon name="file" /></span>
+                <span className="well white"><Icon name="file" /></span>
                 <div className="grow">
                   <h2 className="h-card">Prescription needed</h2>
                   <p className="muted" style={{ fontSize: 14, marginTop: 4 }}>
