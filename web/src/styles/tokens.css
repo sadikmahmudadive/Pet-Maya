@@ -1,0 +1,58 @@
+/* ─────────────────────────────────────────────────────────────
+   Pet Maya design tokens — single source of truth.
+   Change brand colours / type here only.
+   ───────────────────────────────────────────────────────────── */
+:root {
+  /* Type */
+  --serif: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --sans: 'DM Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Canvas & surfaces */
+  --bg: #FCF8F5;
+  --surface: #FFFFFF;
+  --sunk: #F3EFE9;        /* inputs, muted panels */
+  --sunk-2: #ECEAE3;      /* icon wells, chips */
+  --footer: #F4F0EA;
+  --line: #ECE6DE;        /* card borders */
+  --line-2: #E2DAD0;      /* stronger dividers / outlines */
+
+  /* Ink */
+  --ink: #1A1917;
+  --ink-2: #3A3834;
+  --muted: #6E6A64;
+  --subtle: #9C978F;
+
+  /* Brand */
+  --teal: #37747F;
+  --teal-hover: #2E636D;
+  --teal-deep: #1F4C55;   /* admin sidebar, hero panels */
+  --teal-tint: #DCEBEC;
+  --teal-tint-2: #EAF3F3;
+
+  /* Status */
+  --yellow-tint: #FBF0C4;
+  --yellow-ink: #8A6A0B;
+  --red: #C2362B;
+  --red-tint: #FDECEA;
+  --amber: #D9921A;
+  --green: #2F7D5B;
+
+  /* Shape & depth */
+  --r-xs: 8px;
+  --r-sm: 12px;
+  --r-md: 16px;
+  --r-lg: 22px;
+  --r-xl: 28px;
+  --shadow-sm: 0 1px 2px rgba(26, 25, 23, .04);
+  --shadow-md: 0 8px 24px -12px rgba(26, 25, 23, .18);
+  --shadow-lg: 0 24px 60px -20px rgba(26, 25, 23, .35);
+
+  /* Layout */
+  --container: 1200px;
+  --gutter: 24px;
+}
+
+@media (max-width: 640px) {
+  :root { --gutter: 16px; }
+}
