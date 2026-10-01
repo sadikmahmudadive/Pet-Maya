@@ -268,8 +268,8 @@ export default function Home() {
             <h2 style={{ font: '400 clamp(32px,4vw,48px)/1.05 var(--serif)', letterSpacing: '-0.025em' }}>Your pet’s care,<br />in your pocket.</h2>
             <p style={{ color: 'rgba(255,255,255,.75)', marginTop: 14, maxWidth: '46ch' }}>Order, track deliveries, talk to a vet and watch the GPS radar — one app, one pet profile.</p>
             <div className="row gap-10" style={{ marginTop: 24 }}>
-              <Button className="btn-on-dark" to="https://apps.apple.com/">App Store</Button>
-              <Button className="btn-ghost-dark" variant="ghost" to="https://play.google.com/store">Google Play</Button>
+              <Button className="btn-on-dark" icon="apple" to="https://apps.apple.com/">App Store</Button>
+              <Button className="btn-ghost-dark" variant="ghost" icon="playStore" to="https://play.google.com/store">Google Play</Button>
             </div>
           </div>
           <div className="app-banner-visual">
