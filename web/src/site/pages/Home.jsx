@@ -272,7 +272,14 @@ export default function Home() {
               <Button className="btn-ghost-dark" variant="ghost" to="https://play.google.com/store">Google Play</Button>
             </div>
           </div>
-          <Ph tone="teal" label="app screenshots" style={{ minHeight: 280, borderRadius: 24 }} />
+          <div className="app-banner-visual">
+            <img
+              src="/assets/images/Smartphones_displaying_app_screen.jpg"
+              alt="Pet Maya mobile app screen showcasing smart care hub, AI health scanner, veterinary services and community"
+              className="app-banner-img"
+              loading="lazy"
+            />
+          </div>
         </Reveal>
       </section>
     </div>

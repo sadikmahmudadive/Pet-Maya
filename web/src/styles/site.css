@@ -128,8 +128,8 @@
 .hero-side { display: grid; grid-template-rows: 1fr 1fr; gap: 16px; }
 .hero-tile { border-radius: var(--r-xl); padding: 30px; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; }
 .hero-tile h3 { font: 400 clamp(26px, 2.6vw, 34px)/1.08 var(--serif); letter-spacing: -0.02em; margin-top: 14px; max-width: 15ch; }
-.btn-on-dark { background: #fff; color: var(--ink); }
-.btn-on-dark:hover { background: #F1EEE8; }
+.btn-on-dark { background: #fff; color: #1A1917; }
+.btn-on-dark:hover { background: #F1EEE8; color: #1A1917; }
 .btn-ghost-dark { border: 1px solid rgba(255,255,255,.35); color: #fff; }
 .btn-ghost-dark:hover { background: rgba(255,255,255,.08); }
 @media (max-width: 900px) {
@@ -162,6 +162,9 @@
 @media (max-width: 900px) { .reviews-grid { grid-template-columns: 1fr; } }
 
 .app-banner { display: grid; grid-template-columns: 1.1fr .9fr; gap: 32px; align-items: center; background: var(--teal-deep); color: #fff; border-radius: var(--r-xl); padding: 56px; }
+.app-banner-visual { position: relative; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.45); border: 1px solid rgba(255, 255, 255, 0.14); background: rgba(0, 0, 0, 0.25); display: flex; }
+.app-banner-img { width: 100%; height: auto; max-height: 380px; object-fit: cover; display: block; transition: transform .4s ease; }
+.app-banner:hover .app-banner-img { transform: scale(1.02); }
 @media (max-width: 800px) { .app-banner { grid-template-columns: 1fr; padding: 32px 24px; } }
 
 /* ── Listing ───────────────────────────────────────────── */
