@@ -166,6 +166,7 @@ export function Portal({ children }) {
     document.body.appendChild(host);
     return () => { document.body.removeChild(host); };
   }, [host]);
-  if (!host) return null;
   return createPortal(children, host);
 }
+
+export { default as ThemeToggle } from './ThemeToggle.jsx';

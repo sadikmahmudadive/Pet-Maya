@@ -62,7 +62,7 @@ export default function SignIn() {
         <div className="card" style={{ padding: 'clamp(24px,3.5vw,44px)', borderRadius: 32, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
           <div className="row gap-4" style={{ background: 'var(--sunk)', borderRadius: 14, padding: 4 }}>
             {[['signin', 'Sign in'], ['signup', 'Create account']].map(([k, l]) => (
-              <button key={k} className={cx('tab grow')} style={{ justifyContent: 'center', height: 44, borderRadius: 11, background: mode === k ? '#fff' : 'transparent', boxShadow: mode === k ? 'var(--shadow-sm)' : 'none', color: mode === k ? 'var(--ink)' : 'var(--muted)' }} onClick={() => { setMode(k); setErr(''); }}>{l}</button>
+              <button key={k} className={cx('tab grow')} style={{ justifyContent: 'center', height: 44, borderRadius: 11, background: mode === k ? 'var(--surface)' : 'transparent', boxShadow: mode === k ? 'var(--shadow-sm)' : 'none', color: mode === k ? 'var(--ink)' : 'var(--muted)' }} onClick={() => { setMode(k); setErr(''); }}>{l}</button>
             ))}
           </div>
           <h2 className="display-2" style={{ marginTop: 28, fontSize: 'clamp(28px,3vw,38px)' }}>{mode === 'signin' ? 'Welcome back' : 'Create your account'}</h2>

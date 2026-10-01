@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useRouter } from '../lib/router.jsx';
 import { useStore } from '../lib/store.jsx';
-import { Icon, Button } from '../ui/index.jsx';
+import { Icon, Button, ThemeToggle } from '../ui/index.jsx';
 import { money, cx } from '../lib/format.js';
 import { useScrolled, useBump, Reveal } from '../lib/motion.jsx';
 import { subscribeNewsletter } from '../data/actions.js';
@@ -73,6 +73,7 @@ function Header() {
           <div className="row gap-4 hdr-actions">
             <Link to="/shop?saved=1" className="btn btn-ghost btn-square hide-sm" aria-label="Saved items"><Icon name="heart" /></Link>
             <NotificationBell />
+            <ThemeToggle />
             <Link to={user ? '/dashboard' : '/signin'} className="btn btn-ghost btn-square" aria-label={user ? 'Your account' : 'Sign in'}><Icon name="user" /></Link>
             <button className="btn btn-dark bag-btn" onClick={() => setBagOpen(true)} aria-label={`Open bag, ${totals.count} items`}>
               <Icon name="bag" size={17} />
@@ -95,6 +96,9 @@ function Header() {
           <div className="row gap-8 nav-cta">
             <Link to="/shop?deals=1" className="pill red" style={{ height: 36, padding: '0 16px', fontSize: 14, fontWeight: 600 }}>Deals</Link>
             <Button variant="teal" icon="video" to="/specialists">Book a vet</Button>
+            <div className="show-sm" style={{ marginTop: 6, display: 'flex', justifyContent: 'center', width: '100%' }}>
+              <ThemeToggle mode="segmented" />
+            </div>
           </div>
         </nav>
       </div>
@@ -204,7 +208,10 @@ function MinimalHeader() {
       <div className="container hdr-row" style={{ minHeight: 74 }}>
         <Logo />
         <span className="row gap-6 teal hide-sm" style={{ fontSize: 13 }}><Icon name="lock" size={14} /> Secure checkout</span>
-        <Link to="/shop?bag=1" className="row gap-6" style={{ fontSize: 14, fontWeight: 500 }}><Icon name="arrowLeft" size={16} /> Back to bag</Link>
+        <div className="row gap-8" style={{ marginLeft: 'auto' }}>
+          <ThemeToggle />
+          <Link to="/shop?bag=1" className="row gap-6" style={{ fontSize: 14, fontWeight: 500 }}><Icon name="arrowLeft" size={16} /> Back to bag</Link>
+        </div>
       </div>
     </header>
   );

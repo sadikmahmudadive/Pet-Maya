@@ -160,7 +160,7 @@ export default function Home() {
           </div>
           <div><Button variant="dark" icon="arrowRight" to="/specialists">Book a consult</Button></div>
         </div>
-        <div className="promo" style={{ background: 'var(--ink)', color: '#fff' }}>
+        <div className="promo dark-card">
           <div>
             <div className="eyebrow" style={{ color: 'rgba(255,255,255,.7)' }}>Code {PROMOS.firstOrderCode}</div>
             <h3>{PROMOS.firstOrderPct}% off your first order.</h3>

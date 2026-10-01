@@ -3,7 +3,19 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="color-scheme" content="light" />
+    <meta name="color-scheme" content="light dark" />
+    <script>
+      (function() {
+        try {
+          var s = localStorage.getItem('pm_theme');
+          var dark = s === 'dark' || ((!s || s === 'system') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          var t = dark ? 'dark' : 'light';
+          document.documentElement.setAttribute('data-theme', t);
+          if (dark) document.documentElement.classList.add('dark');
+          else document.documentElement.classList.remove('dark');
+        } catch (e) {}
+      })();
+    </script>
     <title>Pet Maya — Pet medicine, vets &amp; care in one place</title>
     <meta name="description" content="Genuine pet medicine, vet-approved food and smart gear delivered across Dhaka. Book a vet, check symptoms and keep your pet's health records in one place." />
     <link rel="canonical" href="https://www.petmaya.app/" />

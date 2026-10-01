@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useTheme } from '../context/ThemeContext.jsx';
 import { useMyPets, useProducts, useMyOrders, useVets } from '../data/hooks.js';
 import { addDocument, useDoc } from '../data/firestore.js';
 import { decrementStock, awardPoints, notify, syncWishlist, isRealUser } from '../data/actions.js';
@@ -14,6 +15,7 @@ const lineKey = (id, variant) => `${id}::${variant || ''}`;
 
 export function StoreProvider({ children }) {
   const { currentUser } = useAuth() || {};
+  const themeCtx = useTheme();
   const products = useProducts();
   const vets = useVets();
   const pets = useMyPets(currentUser);
@@ -172,6 +174,11 @@ export function StoreProvider({ children }) {
     activePet, setPetId,
     placeOrder,
     toasts, toast, dismissToast,
+    theme: themeCtx.theme,
+    resolvedTheme: themeCtx.resolvedTheme,
+    isDark: themeCtx.isDark,
+    setTheme: themeCtx.setTheme,
+    toggleTheme: themeCtx.toggleTheme,
   };
   return <StoreCtx.Provider value={value}>{children}</StoreCtx.Provider>;
 }
@@ -179,3 +186,5 @@ export function StoreProvider({ children }) {
 export function useStore() {
   return useContext(StoreCtx);
 }
+
+export { useTheme } from '../context/ThemeContext.jsx';

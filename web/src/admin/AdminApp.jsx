@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { Link, useRouter, match } from '../lib/router.jsx';
-import { Icon, Button, Avatar, Field } from '../ui/index.jsx';
+import { Icon, Button, Avatar, Field, ThemeToggle } from '../ui/index.jsx';
 import { cx } from '../lib/format.js';
 import Toasts from '../site/Toasts.jsx';
 import { AdminDataProvider, useAdmin } from './data.jsx';
@@ -99,6 +99,7 @@ function Topbar({ onMenu }) {
         <span className={cx('pill', anySample ? 'yellow' : 'teal')} title={anySample ? 'Some collections are empty — showing sample data there' : 'Connected to Firestore'}>
           <Icon name="pulse" size={12} /> {anySample ? 'Sample data' : 'Live data'}
         </span>
+        <ThemeToggle />
         <Link to="/admin/prescriptions" className="btn btn-outline btn-square" style={{ position: 'relative' }} aria-label={`${rxQueue.length} prescriptions waiting`}>
           <Icon name="bell" size={17} />
           {rxQueue.length > 0 && <span style={{ position: 'absolute', top: 7, right: 8, width: 8, height: 8, borderRadius: '50%', background: 'var(--red)' }} />}

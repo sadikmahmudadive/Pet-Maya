@@ -1,6 +1,6 @@
 /* ─────────────────────────────────────────────────────────────
    Pet Maya design tokens — single source of truth.
-   Change brand colours / type here only.
+   Supports rich light and dark modes with automatic system sync.
    ───────────────────────────────────────────────────────────── */
 :root {
   /* Type */
@@ -8,7 +8,7 @@
   --sans: 'DM Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  /* Canvas & surfaces */
+  /* Canvas & surfaces (Light) */
   --bg: #FCF8F5;
   --surface: #FFFFFF;
   --sunk: #F3EFE9;        /* inputs, muted panels */
@@ -17,20 +17,20 @@
   --line: #ECE6DE;        /* card borders */
   --line-2: #E2DAD0;      /* stronger dividers / outlines */
 
-  /* Ink */
+  /* Ink (Light) */
   --ink: #1A1917;
   --ink-2: #3A3834;
   --muted: #6E6A64;
   --subtle: #9C978F;
 
-  /* Brand */
+  /* Brand (Light) */
   --teal: #37747F;
   --teal-hover: #2E636D;
   --teal-deep: #1F4C55;   /* admin sidebar, hero panels */
   --teal-tint: #DCEBEC;
   --teal-tint-2: #EAF3F3;
 
-  /* Status */
+  /* Status (Light) */
   --yellow-tint: #FBF0C4;
   --yellow-ink: #8A6A0B;
   --red: #C2362B;
@@ -51,8 +51,145 @@
   /* Layout */
   --container: 1200px;
   --gutter: 24px;
+
+  /* Semantic helper tokens */
+  --btn-dark-bg: var(--ink);
+  --btn-dark-ink: #ffffff;
+  --btn-dark-hover: #33312d;
+  --announce-bg: var(--ink);
+  --announce-ink: #ffffff;
+  --dark-card-bg: var(--ink);
+  --dark-card-border: transparent;
+  --table-hover: #FDFBF8;
+  --scrim: rgba(26, 25, 23, .38);
+  --adm-top-bg: rgba(252, 248, 245, 0.92);
+  --bag-count-bg: #ffffff;
+  --bag-count-ink: var(--ink);
+  --nav-active-bg: var(--ink);
+  --nav-active-ink: #ffffff;
+  --radar-bg: #EFEDE6;
+  --radar-ring: #CFCAC0;
+  --fav-bg: rgba(255, 255, 255, 0.92);
+  --ph-bg: repeating-linear-gradient(135deg, #EFE6D9 0 14px, #F6F0E7 14px 28px);
+  --ph-ink: #9C9183;
+  --ph-teal-bg: repeating-linear-gradient(135deg, #D7E6E6 0 14px, #E6F0EF 14px 28px);
+  --ph-teal-ink: #7E9A9B;
 }
 
 @media (max-width: 640px) {
   :root { --gutter: 16px; }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Dark mode tokens
+   ───────────────────────────────────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]):not(.light) {
+    --bg: #0F1115;
+    --surface: #181A20;
+    --sunk: #21242C;
+    --sunk-2: #2A2E37;
+    --footer: #0A0C0E;
+    --line: rgba(255, 255, 255, 0.08);
+    --line-2: rgba(255, 255, 255, 0.14);
+
+    --ink: #F5F4F0;
+    --ink-2: #D8D5CD;
+    --muted: #9E9A92;
+    --subtle: #6D6962;
+
+    --teal: #4EA3B0;
+    --teal-hover: #60B7C4;
+    --teal-deep: #16282D;
+    --teal-tint: rgba(78, 163, 176, 0.18);
+    --teal-tint-2: rgba(78, 163, 176, 0.10);
+
+    --yellow-tint: rgba(251, 240, 196, 0.13);
+    --yellow-ink: #F0CF65;
+    --red: #E0584C;
+    --red-tint: rgba(224, 88, 76, 0.18);
+    --amber: #F0A326;
+    --green: #3EB382;
+
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
+    --shadow-md: 0 8px 24px -8px rgba(0, 0, 0, 0.7);
+    --shadow-lg: 0 24px 60px -16px rgba(0, 0, 0, 0.9);
+
+    --btn-dark-bg: #F5F4F0;
+    --btn-dark-ink: #121316;
+    --btn-dark-hover: #E2DFD7;
+    --announce-bg: #14161C;
+    --announce-ink: #F5F4F0;
+    --dark-card-bg: #1F2229;
+    --dark-card-border: rgba(255, 255, 255, 0.1);
+    --table-hover: rgba(255, 255, 255, 0.03);
+    --scrim: rgba(0, 0, 0, .68);
+    --adm-top-bg: rgba(15, 17, 21, 0.92);
+    --bag-count-bg: #181A20;
+    --bag-count-ink: #F5F4F0;
+    --nav-active-bg: #F5F4F0;
+    --nav-active-ink: #121316;
+    --radar-bg: #15171C;
+    --radar-ring: rgba(255, 255, 255, 0.12);
+    --fav-bg: rgba(24, 26, 32, 0.9);
+    --ph-bg: repeating-linear-gradient(135deg, #1E2127 0 14px, #262931 14px 28px);
+    --ph-ink: #6D7380;
+    --ph-teal-bg: repeating-linear-gradient(135deg, #16262A 0 14px, #1D3237 14px 28px);
+    --ph-teal-ink: #5E898F;
+  }
+}
+
+[data-theme="dark"],
+:root.dark {
+  --bg: #0F1115;
+  --surface: #181A20;
+  --sunk: #21242C;
+  --sunk-2: #2A2E37;
+  --footer: #0A0C0E;
+  --line: rgba(255, 255, 255, 0.08);
+  --line-2: rgba(255, 255, 255, 0.14);
+
+  --ink: #F5F4F0;
+  --ink-2: #D8D5CD;
+  --muted: #9E9A92;
+  --subtle: #6D6962;
+
+  --teal: #4EA3B0;
+  --teal-hover: #60B7C4;
+  --teal-deep: #16282D;
+  --teal-tint: rgba(78, 163, 176, 0.18);
+  --teal-tint-2: rgba(78, 163, 176, 0.10);
+
+  --yellow-tint: rgba(251, 240, 196, 0.13);
+  --yellow-ink: #F0CF65;
+  --red: #E0584C;
+  --red-tint: rgba(224, 88, 76, 0.18);
+  --amber: #F0A326;
+  --green: #3EB382;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 8px 24px -8px rgba(0, 0, 0, 0.7);
+  --shadow-lg: 0 24px 60px -16px rgba(0, 0, 0, 0.9);
+
+  --btn-dark-bg: #F5F4F0;
+  --btn-dark-ink: #121316;
+  --btn-dark-hover: #E2DFD7;
+  --announce-bg: #14161C;
+  --announce-ink: #F5F4F0;
+  --dark-card-bg: #1F2229;
+  --dark-card-border: rgba(255, 255, 255, 0.1);
+  --table-hover: rgba(255, 255, 255, 0.03);
+  --scrim: rgba(0, 0, 0, .68);
+  --adm-top-bg: rgba(15, 17, 21, 0.92);
+  --bag-count-bg: #181A20;
+  --bag-count-ink: #F5F4F0;
+  --nav-active-bg: #F5F4F0;
+  --nav-active-ink: #121316;
+  --radar-bg: #15171C;
+  --radar-ring: rgba(255, 255, 255, 0.12);
+  --fav-bg: rgba(24, 26, 32, 0.9);
+  --ph-bg: repeating-linear-gradient(135deg, #1E2127 0 14px, #262931 14px 28px);
+  --ph-ink: #6D7380;
+  --ph-teal-bg: repeating-linear-gradient(135deg, #16262A 0 14px, #1D3237 14px 28px);
+  --ph-teal-ink: #5E898F;
 }
