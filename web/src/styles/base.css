@@ -93,6 +93,18 @@ em.accent { font-style: italic; color: var(--teal); }
 .btn-danger { background: var(--surface); border-color: #F2C9C4; color: var(--red); font-weight: 500; }
 .btn-danger:hover { background: var(--red-tint); }
 .btn-red { background: var(--red); color: #fff; }
+.btn-on-dark,
+.btn.btn-on-dark { background: #ffffff !important; color: #1A1917 !important; border-color: transparent !important; }
+.btn-on-dark:hover,
+.btn.btn-on-dark:hover { background: #F1EEE8 !important; color: #1A1917 !important; }
+.btn-on-dark svg,
+.btn.btn-on-dark svg { color: #1A1917 !important; stroke: currentColor; }
+.btn-ghost-dark,
+.btn.btn-ghost-dark { border: 1px solid rgba(255,255,255,.35) !important; color: #ffffff !important; background: transparent !important; }
+.btn-ghost-dark:hover,
+.btn.btn-ghost-dark:hover { background: rgba(255,255,255,.12) !important; color: #ffffff !important; }
+.btn-ghost-dark svg,
+.btn.btn-ghost-dark svg { color: #ffffff !important; stroke: currentColor; }
 .btn-ghost { color: var(--ink); font-weight: 500; padding: 0 10px; }
 .btn-ghost:hover { background: var(--sunk); }
 .btn-sm { height: 32px; padding: 0 14px; font-size: 13px; }
