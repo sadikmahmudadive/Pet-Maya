@@ -8,6 +8,7 @@ import { normDevice, SAMPLE_DEVICE, metersBetween } from './Gps.jsx';
 import { Icon, Button, Pill, Avatar, Stat, Empty, Ph } from '../../ui/index.jsx';
 import { money, cx, greeting, shortDate, timeOfDay, ago } from '../../lib/format.js';
 import { Reveal } from '../../lib/motion.jsx';
+import { useApp } from '../../context/AppContext.jsx';
 
 const STATUS_STEP = { 'Rx review': 1, Packing: 2, 'In transit': 3, Delivered: 4 };
 const STATUS_TONE = { 'Rx review': 'yellow', Packing: '', 'In transit': 'teal', Delivered: '', Return: 'red', Cancelled: 'red' };
@@ -25,6 +26,8 @@ const QUICK = [
 
 export default function PetDashboard() {
   const { user, pets, activePet, setPetId, myOrders, localOrders, addToCart, products, vets } = useStore();
+  const appCtx = useApp();
+  const openModal = appCtx?.openModal;
   const real = user && !String(user.uid).startsWith('demo_guest');
   const events = useMyEvents(user);
   const devices = useCollection('devices', { map: normDevice, sample: [normDevice(SAMPLE_DEVICE.id, SAMPLE_DEVICE)], sampleWhenEmpty: !real });
@@ -100,6 +103,7 @@ export default function PetDashboard() {
         </div>
         <div className="row gap-8 wrap">
           {isAdmin && <Button variant="ghost" icon="grid" to="/admin">Admin console</Button>}
+          <Button variant="outline" icon="phoneDevice" onClick={() => openModal && openModal('myDevices')}>My Devices</Button>
           <Button variant="outline" icon="bag" to="/shop">Shop</Button>
           <Button variant="teal" icon="video" to="/specialists">Book a vet</Button>
         </div>
