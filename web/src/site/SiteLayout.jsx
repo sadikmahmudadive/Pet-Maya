@@ -22,6 +22,7 @@ const NAV = [
   { to: '/vault', label: 'Health Vault' },
   { to: '/community', label: 'Community' },
   { to: '/journal', label: 'Journal', match: (p) => p.startsWith('/journal') },
+  { to: '/dashboard', label: 'Dashboard' },
 ];
 
 export function Logo({ sub = true }) {
@@ -89,9 +90,9 @@ function Header() {
             <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search medicine, food, vets…" aria-label="Search" />
           </form>
           <div className="nav-links">
-            {[...NAV, { to: '/dashboard', label: 'Dashboard', icon: 'grid' }].map((n) => {
+            {NAV.map((n) => {
               const active = n.match ? n.match(path) : path === n.to;
-              return <Link key={n.to} to={n.to} className={cx('nav-link', active && 'active', n.icon && 'nav-admin')}>{n.icon && <Icon name={n.icon} size={14} />}{n.label}</Link>;
+              return <Link key={n.to} to={n.to} className={cx('nav-link', active && 'active')}>{n.label}</Link>;
             })}
           </div>
           <div className="row gap-8 nav-cta">
