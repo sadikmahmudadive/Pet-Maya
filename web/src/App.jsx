@@ -14,6 +14,7 @@ import Triage from './site/pages/Triage.jsx';
 import Gps from './site/pages/Gps.jsx';
 import Vault from './site/pages/Vault.jsx';
 import PetDashboard from './site/pages/PetDashboard.jsx';
+import Profile from './site/pages/Profile.jsx';
 import Community from './site/pages/Community.jsx';
 import Journal from './site/pages/Journal.jsx';
 import SignIn from './site/pages/SignIn.jsx';
@@ -34,6 +35,7 @@ const SITE_ROUTES = [
   ['/gps', Gps, 'GPS radar'],
   ['/vault', Vault, 'Health vault'],
   ['/dashboard', PetDashboard, 'My dashboard'],
+  ['/profile', Profile, 'Your profile'],
   ['/community', Community, 'Community'],
   ['/journal', Journal, 'Journal'],
   ['/journal/:id', Journal, 'Journal'],

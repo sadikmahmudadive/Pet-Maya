@@ -7,6 +7,7 @@ import { useScrolled, useBump, Reveal } from '../lib/motion.jsx';
 import { subscribeNewsletter } from '../data/actions.js';
 import { ANNOUNCEMENTS, TRUST, BRAND } from '../data/content.js';
 import BagDrawer from './BagDrawer.jsx';
+import AccountButton from './AccountButton.jsx';
 import NotificationBell from './NotificationBell.jsx';
 import Toasts from './Toasts.jsx';
 
@@ -34,7 +35,7 @@ export function Logo({ sub = true }) {
 
 function Header() {
   const { path, navigate } = useRouter();
-  const { totals, setBagOpen, user } = useStore();
+  const { totals, setBagOpen } = useStore();
   const [menu, setMenu] = useState(false);
   const [q, setQ] = useState('');
   const scrolled = useScrolled(10);
@@ -74,7 +75,7 @@ function Header() {
             <Link to="/shop?saved=1" className="btn btn-ghost btn-square hide-sm" aria-label="Saved items"><Icon name="heart" /></Link>
             <NotificationBell />
             <ThemeToggle />
-            <Link to={user ? '/dashboard' : '/signin'} className="btn btn-ghost btn-square" aria-label={user ? 'Your account' : 'Sign in'}><Icon name="user" /></Link>
+            <AccountButton />
             <button className="btn btn-dark bag-btn" onClick={() => setBagOpen(true)} aria-label={`Open bag, ${totals.count} items`}>
               <Icon name="bag" size={17} />
               <span className="hide-sm">Bag · {money(totals.subtotal)}</span>
@@ -210,6 +211,7 @@ function MinimalHeader() {
         <span className="row gap-6 teal hide-sm" style={{ fontSize: 13 }}><Icon name="lock" size={14} /> Secure checkout</span>
         <div className="row gap-8" style={{ marginLeft: 'auto' }}>
           <ThemeToggle />
+          <AccountButton />
           <Link to="/shop?bag=1" className="row gap-6" style={{ fontSize: 14, fontWeight: 500 }}><Icon name="arrowLeft" size={16} /> Back to bag</Link>
         </div>
       </div>

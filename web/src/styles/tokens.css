@@ -20,20 +20,22 @@
   /* Ink (Light) */
   --ink: #1A1917;
   --ink-2: #3A3834;
-  --muted: #6E6A64;
-  --subtle: #9C978F;
+  --muted: #6C6862;
+  --subtle: #7A756D;
 
   /* Brand (Light) */
-  --teal: #37747F;
+  --teal: #35727D;
   --teal-hover: #2E636D;
   --teal-deep: #1F4C55;   /* admin sidebar, hero panels */
   --teal-ink: #1F4C55;    /* text on teal tints, pills, badges */
   --teal-tint: #DCEBEC;
   --teal-tint-2: #EAF3F3;
+  --on-teal: #FFFFFF;      /* text/icons sitting on a --teal fill */
+  --on-red: #FFFFFF;
 
   /* Status (Light) */
   --yellow-tint: #FBF0C4;
-  --yellow-ink: #8A6A0B;
+  --yellow-ink: #886809;
   --red: #C2362B;
   --red-tint: #FDECEA;
   --amber: #D9921A;
@@ -72,9 +74,9 @@
   --radar-ring: #CFCAC0;
   --fav-bg: rgba(255, 255, 255, 0.92);
   --ph-bg: repeating-linear-gradient(135deg, #EFE6D9 0 14px, #F6F0E7 14px 28px);
-  --ph-ink: #9C9183;
+  --ph-ink: #807567;
   --ph-teal-bg: repeating-linear-gradient(135deg, #D7E6E6 0 14px, #E6F0EF 14px 28px);
-  --ph-teal-ink: #7E9A9B;
+  --ph-teal-ink: #5E7A7B;
 }
 
 @media (max-width: 640px) {
@@ -105,10 +107,12 @@
     --teal-ink: #7FE5EF;
     --teal-tint: rgba(78, 163, 176, 0.18);
     --teal-tint-2: rgba(78, 163, 176, 0.10);
+    --on-teal: #0F1115;      /* dark ink reads on the brighter dark-mode teal */
+    --on-red: #15100F;
 
     --yellow-tint: rgba(251, 240, 196, 0.13);
     --yellow-ink: #F0CF65;
-    --red: #E0584C;
+    --red: #EE695D;
     --red-tint: rgba(224, 88, 76, 0.18);
     --amber: #F0A326;
     --green: #3EB382;
@@ -135,7 +139,7 @@
     --radar-ring: rgba(255, 255, 255, 0.12);
     --fav-bg: rgba(24, 26, 32, 0.9);
     --ph-bg: repeating-linear-gradient(135deg, #1E2127 0 14px, #262931 14px 28px);
-    --ph-ink: #6D7380;
+    --ph-ink: #7D8390;
     --ph-teal-bg: repeating-linear-gradient(135deg, #16262A 0 14px, #1D3237 14px 28px);
     --ph-teal-ink: #5E898F;
   }
@@ -162,10 +166,12 @@
   --teal-ink: #7FE5EF;
   --teal-tint: rgba(78, 163, 176, 0.18);
   --teal-tint-2: rgba(78, 163, 176, 0.10);
+  --on-teal: #0F1115;      /* dark ink reads on the brighter dark-mode teal */
+  --on-red: #15100F;
 
   --yellow-tint: rgba(251, 240, 196, 0.13);
   --yellow-ink: #F0CF65;
-  --red: #E0584C;
+  --red: #EE695D;
   --red-tint: rgba(224, 88, 76, 0.18);
   --amber: #F0A326;
   --green: #3EB382;
@@ -192,7 +198,7 @@
   --radar-ring: rgba(255, 255, 255, 0.12);
   --fav-bg: rgba(24, 26, 32, 0.9);
   --ph-bg: repeating-linear-gradient(135deg, #1E2127 0 14px, #262931 14px 28px);
-  --ph-ink: #6D7380;
+  --ph-ink: #7D8390;
   --ph-teal-bg: repeating-linear-gradient(135deg, #16262A 0 14px, #1D3237 14px 28px);
   --ph-teal-ink: #5E898F;
 }

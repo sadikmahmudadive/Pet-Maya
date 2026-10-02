@@ -8,7 +8,8 @@ const RouterCtx = createContext({ path: '/', query: new URLSearchParams(), navig
 const LEGACY = {
   '/ai-pet-care': '/triage', '/ai': '/triage', '/wellness': '/triage',
   '/pet-gps': '/gps', '/tracker': '/gps', '/connected-care': '/gps',
-  '/digital-pet-passport': '/vault', '/profile': '/vault', '/vaccines': '/vault',
+  '/digital-pet-passport': '/vault', '/vaccines': '/vault',
+  '/account': '/profile', '/account/profile': '/profile', '/my-account': '/profile', '/settings': '/profile',
   '/vets': '/specialists', '/book-vet': '/specialists', '/for-veterinarians': '/specialists', '/for-clinics': '/specialists',
   '/login': '/signin', '/auth': '/signin', '/signup': '/signin?mode=signup',
   '/blog': '/journal', '/gazette': '/journal', '/pet-health': '/journal', '/pet-care': '/journal',

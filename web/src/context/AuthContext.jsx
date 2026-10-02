@@ -33,7 +33,14 @@ export function AuthProvider({ children }) {
   };
 
   useEffect(() => {
+    // Firestore listener on the signed-in user's document. Held out here so it is
+    // torn down on sign-out and on unmount (the callback's own return value is ignored
+    // by onAuthStateChanged, so it can't do the cleanup itself).
+    let unsubUserDoc = null;
+    const stopUserDoc = () => { if (unsubUserDoc) { unsubUserDoc(); unsubUserDoc = null; } };
+
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      stopUserDoc();
       if (user) {
         localStorage.removeItem('pm_signed_out');
         localStorage.removeItem('pm_demo_user');
@@ -41,7 +48,7 @@ export function AuthProvider({ children }) {
         const userDocRef = doc(db, 'users', user.uid);
 
         // Real-time listener on user profile document in Firestore
-        const un有機 = onSnapshot(userDocRef, (snap) => {
+        unsubUserDoc = onSnapshot(userDocRef, (snap) => {
           if (snap.exists()) {
             const data = snap.data();
             setCurrentUser({
@@ -91,7 +98,7 @@ export function AuthProvider({ children }) {
           setLoading(false);
         });
 
-        return () => un有機();
+        return;
       } else {
         // No active Firebase user
         const savedDemo = localStorage.getItem('pm_demo_user');
@@ -109,7 +116,7 @@ export function AuthProvider({ children }) {
       }
     });
 
-    return () => unsubscribe();
+    return () => { stopUserDoc(); unsubscribe(); };
   }, []);
 
   const loginWithEmail = async (email, password) => {

@@ -84,7 +84,7 @@ em.accent { font-style: italic; color: var(--teal); }
 .btn svg { flex: none; }
 .btn-dark { background: var(--btn-dark-bg, var(--ink)); color: var(--btn-dark-ink, #fff); }
 .btn-dark:hover { background: var(--btn-dark-hover, #33312d); }
-.btn-teal { background: var(--teal); color: #fff; }
+.btn-teal { background: var(--teal); color: var(--on-teal, #fff); }
 .btn-teal:hover { background: var(--teal-hover); }
 .btn-outline { background: var(--surface); border-color: var(--line-2); color: var(--ink); font-weight: 500; }
 .btn-outline:hover { border-color: var(--ink); }
@@ -92,7 +92,7 @@ em.accent { font-style: italic; color: var(--teal); }
 .btn-soft:hover { background: var(--sunk-2); }
 .btn-danger { background: var(--surface); border-color: #F2C9C4; color: var(--red); font-weight: 500; }
 .btn-danger:hover { background: var(--red-tint); }
-.btn-red { background: var(--red); color: #fff; }
+.btn-red { background: var(--red); color: var(--on-red, #fff); }
 .btn-on-dark,
 .btn.btn-on-dark { background: #ffffff !important; color: #1A1917 !important; border-color: transparent !important; }
 .btn-on-dark:hover,
@@ -130,7 +130,7 @@ em.accent { font-style: italic; color: var(--teal); }
 .pill.yellow { background: var(--yellow-tint); color: var(--yellow-ink); }
 .pill.red { background: var(--red-tint); color: var(--red); }
 .pill.dark { background: var(--btn-dark-bg, var(--ink)); color: var(--btn-dark-ink, #fff); }
-.pill.solid-teal { background: var(--teal); color: #fff; }
+.pill.solid-teal { background: var(--teal); color: var(--on-teal, #fff); }
 .pill.outline { background: var(--surface); border: 1px solid var(--line-2); color: var(--ink); }
 .pill.mono { font: 600 10.5px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; height: 22px; }
 .pill.sm { height: 20px; padding: 0 8px; font-size: 11px; }
@@ -166,7 +166,7 @@ em.accent { font-style: italic; color: var(--teal); }
   overflow: hidden;
 }
 .avatar img { width: 100%; height: 100%; object-fit: cover; }
-.avatar.teal { background: var(--teal); color: #fff; }
+.avatar.teal { background: var(--teal); color: var(--on-teal, #fff); }
 .avatar.dark { background: var(--btn-dark-bg, var(--ink)); color: var(--btn-dark-ink, #fff); }
 .avatar.lg { width: 52px; height: 52px; font-size: 16px; }
 .avatar.xl { width: 60px; height: 60px; font-size: 18px; }
@@ -278,7 +278,7 @@ em.accent { font-style: italic; color: var(--teal); }
 }
 .chip:hover { border-color: var(--ink-2); }
 .chip.active { background: var(--nav-active-bg, var(--ink)); border-color: var(--nav-active-bg, var(--ink)); color: var(--nav-active-ink, #fff); }
-.chip.teal.active { background: var(--teal); border-color: var(--teal); color: #fff; }
+.chip.teal.active { background: var(--teal); border-color: var(--teal); color: var(--on-teal, #fff); }
 
 /* ── Tables ────────────────────────────────────────────── */
 .table-wrap { overflow-x: auto; }
@@ -351,7 +351,7 @@ em.accent { font-style: italic; color: var(--teal); }
   border: 1px solid var(--dark-card-border, transparent);
   animation: rise .25s ease;
 }
-.toast .well { width: 26px; height: 26px; border-radius: 50%; background: var(--teal); color: #fff; }
+.toast .well { width: 26px; height: 26px; border-radius: 50%; background: var(--teal); color: var(--on-teal, #fff); }
 .toast button { height: 34px; padding: 0 16px; border-radius: 999px; background: rgba(255,255,255,.14); color: #fff; font-weight: 600; }
 @media (max-width: 560px) { .toasts { left: 12px; right: 12px; } }
 
