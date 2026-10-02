@@ -113,12 +113,13 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
           '${pet.name}\'s Nutrition',
           style: const TextStyle(fontWeight: FontWeight.w800),
         ),
+        centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(20, 100, 20, 40),
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 40),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -218,11 +219,12 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Wrap(
-                            spacing: 10,
-                            runSpacing: 12,
+                          Column(
                             children: pet.feedingTimes
-                                .map((time) => _buildMealChip(time))
+                                .map((time) => Padding(
+                                      padding: const EdgeInsets.only(bottom: 10),
+                                      child: _buildMealChip(time),
+                                    ))
                                 .toList(),
                           ),
                           if (pet.feedingTimes.isEmpty)
@@ -459,21 +461,24 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
 
   Widget _buildMealChip(String time) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: const Color(0xFFA8D5BA).withValues(alpha: 0.4),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFF2D8C69).withValues(alpha: 0.3)),
       ),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            time,
-            style: const TextStyle(
-              fontWeight: FontWeight.w900,
-              color: Color(0xFF2D8C69),
-              fontSize: 12,
+          Expanded(
+            child: Text(
+              time,
+              style: const TextStyle(
+                fontWeight: FontWeight.w900,
+                color: Color(0xFF2D8C69),
+                fontSize: 13,
+              ),
             ),
           ),
           const SizedBox(width: 8),
@@ -481,7 +486,7 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
             onTap: () => _removeMeal(time),
             child: const Icon(
               Icons.close_rounded,
-              size: 16,
+              size: 18,
               color: Color(0xFF2D8C69),
             ),
           ),
