@@ -196,8 +196,18 @@ export default function Inventory() {
             <div className="fields" style={{ marginTop: 16 }}>
               <Field className="full" label="Name" value={form.name} onChange={(e) => set('name', e.target.value)} />
               <Field label="SKU" value={form.sku} onChange={(e) => set('sku', e.target.value)} />
-              <Field label="Price (BDT)" type="number" min="0" value={form.price} onChange={(e) => set('price', e.target.value)} />
-              <Field label="Stock" type="number" value={form.stockCount} onChange={(e) => set('stockCount', e.target.value)} />
+              <Field label="Sale Price (BDT)" type="number" min="0" value={form.price} onChange={(e) => set('price', e.target.value)} />
+              <Field label="Regular Price (BDT)" type="number" min="0" value={form.compareAt || ''} onChange={(e) => set('compareAt', e.target.value)} />
+              <Field label="Stock Count">
+                <div className="stack gap-6">
+                  <input className="input" type="number" value={form.stockCount} onChange={(e) => set('stockCount', e.target.value)} />
+                  <div className="row gap-4 wrap" style={{ fontSize: 11 }}>
+                    <button type="button" className="pill sm" onClick={() => set('stockCount', (Number(form.stockCount) || 0) + 10)}>+10</button>
+                    <button type="button" className="pill sm" onClick={() => set('stockCount', (Number(form.stockCount) || 0) + 50)}>+50</button>
+                    <button type="button" className="pill sm" onClick={() => set('stockCount', Number(form.stockTarget) || 100)}>Fill target</button>
+                  </div>
+                </div>
+              </Field>
               <Field label="Reorder point" type="number" value={form.reorderPoint} onChange={(e) => set('reorderPoint', e.target.value)} />
               <Field label="Brand" value={form.brand} onChange={(e) => set('brand', e.target.value)} />
               <Field label="Category">

@@ -147,10 +147,12 @@ em.accent { font-style: italic; color: var(--teal); }
 
 /* ── Icon wells & avatars ──────────────────────────────── */
 .well {
-  display: inline-grid; place-items: center; flex: none;
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
   width: 40px; height: 40px; border-radius: 12px;
   background: var(--sunk-2); color: var(--ink-2);
+  line-height: 0;
 }
+.well svg { display: block; flex: none; margin: 0 auto; }
 .well.round { border-radius: 50%; }
 .well.sm { width: 32px; height: 32px; border-radius: 10px; }
 .well.lg { width: 48px; height: 48px; }

@@ -137,6 +137,7 @@ export default function Dashboard({ user }) {
             {[
               ['file', 'yellow', 'Prescriptions to verify', oldestRx ? `Oldest waiting ${oldestRx} min` : 'All clear', rxQueue.length, '/admin/prescriptions'],
               ['flask', 'red', 'SKUs below reorder point', `${m.lowStock.filter((p) => p.coldChain).length} are cold-chain`, m.lowStock.length, '/admin/inventory?tab=low'],
+              ['tag', 'teal', 'Active promo codes', 'Drive storefront conversions', 4, '/admin/promotions'],
               ['calendar', 'teal', 'Consults without a vet', m.unassigned.length ? 'Assign before the slot starts' : 'All assigned', m.unassigned.length, '/admin/appointments'],
               ['bag', '', `Orders packing > ${ADMIN_CONFIG.packingSlaMin} min`, 'Check the pharmacy bench', m.slowPacking.length, '/admin/orders?status=Packing'],
             ].map(([icon, tone, title, sub, n, to]) => (

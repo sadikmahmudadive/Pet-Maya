@@ -23,8 +23,172 @@ export const statusUpdate = (status, by) => ({
 const TABS = [['all', 'All'], ['Rx review', 'Needs Rx'], ['Packing', 'Packing'], ['In transit', 'In transit'], ['Delivered', 'Delivered'], ['Return', 'Returns']];
 const PAGE = 10;
 
+import { Portal, Field } from '../../ui/index.jsx';
+
+function ManualOrderModal({ onClose, onSave, products = [], customers = [] }) {
+  const [custName, setCustName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
+  const [area, setArea] = useState('Gulshan');
+  const [payment, setPayment] = useState('COD');
+  const [shipping, setShipping] = useState(60);
+  const [status, setStatus] = useState('Packing');
+  const [selectedProd, setSelectedProd] = useState(products[0]?.id || '');
+  const [cartItems, setCartItems] = useState([]);
+  const [busy, setBusy] = useState(false);
+
+  const addItem = () => {
+    const p = products.find((x) => x.id === selectedProd);
+    if (!p) return;
+    setCartItems((prev) => {
+      const existing = prev.find((x) => x.id === p.id);
+      if (existing) {
+        return prev.map((x) => (x.id === p.id ? { ...x, qty: x.qty + 1 } : x));
+      }
+      return [...prev, { id: p.id, name: p.name, brand: p.brand, price: p.price, qty: 1, isRx: p.isRx, coldChain: p.coldChain, image: p.image || '' }];
+    });
+  };
+
+  const removeItem = (id) => setCartItems((prev) => prev.filter((x) => x.id !== id));
+
+  const updateQty = (id, delta) => {
+    setCartItems((prev) => prev.map((x) => {
+      if (x.id !== id) return x;
+      const n = Math.max(1, x.qty + delta);
+      return { ...x, qty: n };
+    }));
+  };
+
+  const subtotal = cartItems.reduce((a, i) => a + i.price * i.qty, 0);
+  const total = subtotal + Number(shipping || 0);
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!custName.trim() || !cartItems.length) return;
+    setBusy(true);
+    const numId = Math.floor(10000 + Math.random() * 90000);
+    const orderId = `PM-${numId}`;
+    const docId = `ord_${Date.now()}`;
+    const data = {
+      id: orderId,
+      docId,
+      customer: custName.trim(),
+      phone: phone.trim(),
+      address: address.trim(),
+      area,
+      payment,
+      items: cartItems,
+      subtotal,
+      shipping: Number(shipping || 0),
+      total,
+      status,
+      placedAt: Date.now(),
+      hasCold: cartItems.some((i) => i.coldChain),
+      hasRx: cartItems.some((i) => i.isRx),
+      notes: [{ by: 'Admin', text: 'Manual order created from console', at: Date.now() }],
+      timeline: [{ status: 'Placed', at: Date.now(), by: 'Admin' }],
+    };
+    await onSave('orders', docId, data, `Order ${orderId} created!`);
+    setBusy(false);
+    onClose();
+  };
+
+  return (
+    <Portal>
+      <div className="scrim" onClick={onClose} />
+      <form className="modal" onSubmit={submit} role="dialog" aria-modal="true" aria-label="Create manual order" style={{ maxWidth: 600 }}>
+        <div className="row between">
+          <h2 className="serif" style={{ fontSize: 24 }}>Create Manual Order</h2>
+          <button type="button" className="btn btn-outline btn-square btn-sm" onClick={onClose} aria-label="Close"><Icon name="x" size={15} /></button>
+        </div>
+        <p className="sub" style={{ marginTop: 4 }}>Place an order on behalf of a phone/WhatsApp customer.</p>
+
+        <div className="stack gap-14" style={{ marginTop: 16 }}>
+          <div className="grid-2" style={{ gap: 12 }}>
+            <Field label="Customer name">
+              <input className="input" required placeholder="e.g. Tanzim Rahman" value={custName} onChange={(e) => setCustName(e.target.value)} />
+            </Field>
+            <Field label="Phone number">
+              <input className="input" placeholder="e.g. +880 1711 000000" value={phone} onChange={(e) => setPhone(e.target.value)} />
+            </Field>
+          </div>
+          <div className="grid-2" style={{ gap: 12 }}>
+            <Field label="Delivery Area">
+              <input className="input" value={area} onChange={(e) => setArea(e.target.value)} placeholder="e.g. Gulshan-2, Dhaka" />
+            </Field>
+            <Field label="Full Address">
+              <input className="input" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="House #, Road #, Apt #" />
+            </Field>
+          </div>
+
+          <div className="card" style={{ padding: 14, background: 'var(--sunk-2)' }}>
+            <b style={{ fontSize: 14 }}>Add Items</b>
+            <div className="row gap-8" style={{ marginTop: 8 }}>
+              <select className="select grow" value={selectedProd} onChange={(e) => setSelectedProd(e.target.value)}>
+                {products.map((p) => (
+                  <option key={p.id} value={p.id}>{p.name} ({money(p.price)})</option>
+                ))}
+              </select>
+              <Button variant="dark" size="sm" type="button" icon="plus" onClick={addItem}>Add</Button>
+            </div>
+
+            {cartItems.length > 0 && (
+              <div className="stack gap-8" style={{ marginTop: 12 }}>
+                {cartItems.map((item) => (
+                  <div key={item.id} className="row between" style={{ background: 'var(--surface)', padding: '8px 12px', borderRadius: 8, fontSize: 13 }}>
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <b>{item.name}</b>
+                      <div className="sub" style={{ fontSize: 11 }}>{money(item.price)} each</div>
+                    </div>
+                    <div className="row gap-8">
+                      <button type="button" className="btn btn-outline btn-square btn-sm" onClick={() => updateQty(item.id, -1)}>−</button>
+                      <span>{item.qty}</span>
+                      <button type="button" className="btn btn-outline btn-square btn-sm" onClick={() => updateQty(item.id, 1)}>+</button>
+                      <b style={{ minWidth: 60, textAlign: 'right' }}>{money(item.price * item.qty)}</b>
+                      <button type="button" className="btn btn-ghost btn-square btn-sm" style={{ color: 'var(--red)' }} onClick={() => removeItem(item.id)}><Icon name="x" size={14} /></button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="grid-3" style={{ gap: 12 }}>
+            <Field label="Payment Method">
+              <select className="select" value={payment} onChange={(e) => setPayment(e.target.value)}>
+                <option value="COD">Cash on Delivery (COD)</option>
+                <option value="bKash">bKash</option>
+                <option value="Card">Credit/Debit Card</option>
+              </select>
+            </Field>
+            <Field label="Delivery Charge (BDT)">
+              <input className="input" type="number" value={shipping} onChange={(e) => setShipping(e.target.value)} />
+            </Field>
+            <Field label="Initial Status">
+              <select className="select" value={status} onChange={(e) => setStatus(e.target.value)}>
+                <option value="Packing">Packing</option>
+                <option value="In transit">In transit</option>
+                <option value="Delivered">Delivered</option>
+              </select>
+            </Field>
+          </div>
+
+          <div className="row between" style={{ paddingTop: 8, borderTop: '1px solid var(--line)' }}>
+            <span>Total Amount:</span>
+            <b style={{ fontSize: 20 }}>{money(total)}</b>
+          </div>
+        </div>
+
+        <Button type="submit" variant="dark" size="lg" block icon="check" style={{ marginTop: 18 }} disabled={busy || !custName.trim() || !cartItems.length}>
+          {busy ? 'Creating Order…' : 'Place Order'}
+        </Button>
+      </form>
+    </Portal>
+  );
+}
+
 export default function Orders({ user }) {
-  const { orders } = useAdmin();
+  const { orders, products, customers } = useAdmin();
   const write = useAdminWrite();
   const { query, navigate } = useRouter();
   const [tab, setTab] = useState(query.get('status') || 'all');
@@ -34,6 +198,7 @@ export default function Orders({ user }) {
   const [when, setWhen] = useState('all');
   const [sel, setSel] = useState([]);
   const [page, setPage] = useState(0);
+  const [showManualModal, setShowManualModal] = useState(false);
 
   useEffect(() => { setQ(query.get('q') || ''); }, [query]);
   useEffect(() => { setPage(0); setSel([]); }, [tab, q, pay, zone, when]);
@@ -76,7 +241,7 @@ export default function Orders({ user }) {
     <>
       <PageHead eyebrow="Fulfilment" title="Orders">
         <Button variant="outline" icon="download" onClick={() => downloadCsv('orders.csv', [['Order', 'Placed', 'Customer', 'Phone', 'Area', 'Items', 'Total', 'Status', 'Payment'], ...list.map((o) => [o.id, new Date(o.placedAt).toISOString(), o.customer, o.phone, o.area, o.items.length, o.total, o.status, o.payment])])}>Export CSV</Button>
-        <Button variant="dark" icon="plus" to="/shop">Create manual order</Button>
+        <Button variant="dark" icon="plus" onClick={() => setShowManualModal(true)}>Create manual order</Button>
       </PageHead>
 
       <div className="filter-row">
@@ -134,6 +299,15 @@ export default function Orders({ user }) {
           </div>
         </div>
       </div>
+
+      {showManualModal && (
+        <ManualOrderModal
+          onClose={() => setShowManualModal(false)}
+          onSave={write}
+          products={products}
+          customers={customers}
+        />
+      )}
     </>
   );
 }

@@ -427,7 +427,7 @@ details.faq p { padding-bottom: 18px; color: var(--muted); font-size: 14.5px; }
   transition: border-color .2s ease, transform .2s var(--ease-out);
 }
 .pf-quick-item:hover { border-color: var(--teal); transform: translateY(-1px); }
-.pf-quick-item > span { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pf-quick-item > span:not(.well) { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .pf-quick-item b { font-size: 14px; }
 
 @media (max-width: 1000px) {

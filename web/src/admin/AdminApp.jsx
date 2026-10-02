@@ -12,6 +12,7 @@ import Prescriptions from './pages/Prescriptions.jsx';
 import Inventory from './pages/Inventory.jsx';
 import Appointments from './pages/Appointments.jsx';
 import Customers from './pages/Customers.jsx';
+import Promotions from './pages/Promotions.jsx';
 
 const ADMIN_ROLES = /^(admin|super ?admin|superadmin)$/i;
 
@@ -21,20 +22,23 @@ const ROUTES = [
   ['/admin/orders/:id', OrderDetail, 'Order'],
   ['/admin/prescriptions', Prescriptions, 'Prescriptions'],
   ['/admin/inventory', Inventory, 'Inventory'],
+  ['/admin/promotions', Promotions, 'Promotions'],
   ['/admin/appointments', Appointments, 'Appointments'],
   ['/admin/customers', Customers, 'Customers'],
 ];
 
 function Sidebar({ open, onClose, user }) {
   const { path } = useRouter();
-  const { orders, rxQueue } = useAdmin();
+  const { orders, rxQueue, coupons = [] } = useAdmin();
   const openOrders = orders.filter((o) => o.status === 'Packing' || o.status === 'Rx review' || o.status === 'In transit').length;
+  const activeCoupons = coupons.filter((c) => c.active && (!c.expiresAt || c.expiresAt > Date.now())).length;
   const nav = [
     ['Operations', [
       ['/admin', 'Dashboard', 'grid'],
       ['/admin/orders', 'Orders', 'bag', openOrders],
       ['/admin/prescriptions', 'Prescriptions', 'file', rxQueue.length],
       ['/admin/inventory', 'Inventory', 'flask'],
+      ['/admin/promotions', 'Promotions', 'tag', activeCoupons],
     ]],
     ['Care', [
       ['/admin/appointments', 'Appointments', 'calendar'],

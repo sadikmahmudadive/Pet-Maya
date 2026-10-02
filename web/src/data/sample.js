@@ -150,3 +150,11 @@ export const SAMPLE_COLDCHAIN = [
   { order: 'PM-88891', customer: 'Farzana A.', eta: '58 min', temp: 7.9 },
   { order: 'PM-88885', customer: 'Imran C.', eta: '1 h 10', temp: 9.2 },
 ];
+
+export const SAMPLE_COUPONS = [
+  { id: 'c-welcome', code: 'MAYAFIRST', discountType: 'fixed', value: 200, minOrder: 1000, usageCount: 142, maxUsage: 500, active: true, expiresAt: Date.now() + 30 * 864e5, description: '৳200 off your first order' },
+  { id: 'c-cold', code: 'COLD10', discountType: 'percent', value: 10, minOrder: 1500, usageCount: 68, maxUsage: 200, active: true, expiresAt: Date.now() + 15 * 864e5, description: '10% off cold-chain vaccines & meds' },
+  { id: 'c-vet', code: 'VETCARE20', discountType: 'percent', value: 20, minOrder: 2000, usageCount: 94, maxUsage: 300, active: true, expiresAt: Date.now() + 45 * 864e5, description: '20% off vet consultations & Rx items' },
+  { id: 'c-ship', code: 'FREESHIP', discountType: 'fixed', value: 100, minOrder: 800, usageCount: 312, maxUsage: 1000, active: true, expiresAt: Date.now() + 60 * 864e5, description: 'Free delivery on orders over ৳800' },
+  { id: 'c-flash', code: 'FLASH500', discountType: 'fixed', value: 500, minOrder: 5000, usageCount: 15, maxUsage: 50, active: false, expiresAt: Date.now() - 2 * 864e5, description: '৳500 off high-value orders (Expired)' },
+];

@@ -2,7 +2,7 @@ import { createContext, useContext, useMemo } from 'react';
 import { useStore } from '../lib/store.jsx';
 import { saveDoc, useCollection, normProduct, normOrder, normVet, normUser, normEvent, normPet } from '../data/firestore.js';
 import { SAMPLES } from '../data/hooks.js';
-import { SAMPLE_CUSTOMERS, SAMPLE_APPOINTMENTS, SAMPLE_REQUESTS, SAMPLE_RX } from '../data/sample.js';
+import { SAMPLE_CUSTOMERS, SAMPLE_APPOINTMENTS, SAMPLE_REQUESTS, SAMPLE_RX, SAMPLE_COUPONS } from '../data/sample.js';
 
 const Ctx = createContext(null);
 
@@ -34,6 +34,7 @@ export function AdminDataProvider({ children }) {
   const users = useCollection('users', { map: normUser, sample: sampleUsers });
   const events = useCollection('events', { map: (id, d) => ({ ...normEvent(id, d), requestedAt: Number(d.timestamp) || Date.parse(d.createdAt) || 0 }), sample: sampleEvents });
   const pets = useCollection('pets', { map: normPet, sample: [] });
+  const coupons = useCollection('coupons', { sample: SAMPLE_COUPONS });
 
   const value = useMemo(() => {
     const ordersSorted = [...orders.items].sort((a, b) => b.placedAt - a.placedAt);
@@ -75,12 +76,12 @@ export function AdminDataProvider({ children }) {
     }).sort((a, b) => b.lifetime - a.lifetime);
 
     return {
-      orders: ordersSorted, products: products.items, vets: vets.items, events: events.items, customers, rxQueue, pets: pets.items,
-      live: { orders: orders.live, products: products.live, vets: vets.live, users: users.live, events: events.live },
+      orders: ordersSorted, products: products.items, vets: vets.items, events: events.items, customers, rxQueue, pets: pets.items, coupons: coupons.items,
+      live: { orders: orders.live, products: products.live, vets: vets.live, users: users.live, events: events.live, coupons: coupons.live },
       anySample: !(orders.live && products.live && users.live),
       loading: orders.loading || products.loading,
     };
-  }, [orders, products, vets, users, events, pets]);
+  }, [orders, products, vets, users, events, pets, coupons]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
