@@ -5,6 +5,7 @@ import { useCollection, saveDoc } from '../../data/firestore.js';
 import { Icon, Button, Pill, Avatar, Toggle, Segmented } from '../../ui/index.jsx';
 import ProductCard from '../ProductCard.jsx';
 import { cx, toMillis, ago } from '../../lib/format.js';
+import GoogleMapView from '../../components/Common/GoogleMapView.jsx';
 
 export const SAMPLE_DEVICE = {
   id: 'sample-halo', name: 'Maya Halo', petName: 'Milo', batteryLevel: 89, isOnline: true, signalStrength: 4,
@@ -122,40 +123,60 @@ export default function Gps() {
 
       <div className="split wide-right" style={{ marginTop: 20 }}>
         <div className="stack gap-12">
-          <div className="card flush" style={{ borderRadius: 28 }}>
-            <div className="radar" style={{ borderRadius: 0 }}>
-              <div className="ring" style={{ width: '82%', aspectRatio: '1', height: 'auto' }} />
-              <div className="ring" style={{ width: '48%', aspectRatio: '1', height: 'auto' }} />
-              <div className="ring" style={{ width: '22%', aspectRatio: '1', height: 'auto' }} />
-              <div className="zone" style={{ width: `${zonePct}%`, aspectRatio: '1', height: 'auto' }} />
-              <span className="home"><span className="well sm white" style={{ width: 30, height: 30 }}><Icon name="home" size={14} /></span></span>
-              {dev.trail.length > 0 && [[-0.35, 0.3], [-0.1, 0.55], [0.15, 0.2]].map(([a, b], i) => <span key={i} className="trail-dot" style={{ left: `${50 + a * zonePct * 0.5}%`, top: `${50 + b * zonePct * 0.5}%` }} />)}
-              <div className="pet-dot" style={{ left: `${px}%`, top: `${py}%` }} />
-              <span className="map-label dark" style={{ left: `${px}%`, top: `${py + 6}%`, transform: 'translateX(-50%)' }}>{pet.name} · {inZone ? 'in safe zone' : `${Math.round(d)} m away`}</span>
-              <span className="compass" style={{ top: 12, left: '50%' }}>N</span>
-              <span className="compass" style={{ bottom: 12, left: '50%' }}>S</span>
-              <span className="compass" style={{ left: 14, top: '50%' }}>W</span>
-              <span className="compass" style={{ right: 14, top: '50%' }}>E</span>
+          <div className="card flush" style={{ borderRadius: 28, overflow: 'hidden' }}>
+            <div className="radar" style={{ borderRadius: 0, height: 420 }}>
+              {layer === 'radar' ? (
+                <>
+                  <div className="ring" style={{ width: '82%', aspectRatio: '1', height: 'auto' }} />
+                  <div className="ring" style={{ width: '48%', aspectRatio: '1', height: 'auto' }} />
+                  <div className="ring" style={{ width: '22%', aspectRatio: '1', height: 'auto' }} />
+                  <div className="zone" style={{ width: `${zonePct}%`, aspectRatio: '1', height: 'auto' }} />
+                  <span className="home"><span className="well sm white" style={{ width: 30, height: 30 }}><Icon name="home" size={14} /></span></span>
+                  {dev.trail.length > 0 && [[-0.35, 0.3], [-0.1, 0.55], [0.15, 0.2]].map(([a, b], i) => <span key={i} className="trail-dot" style={{ left: `${50 + a * zonePct * 0.5}%`, top: `${50 + b * zonePct * 0.5}%` }} />)}
+                  <div className="pet-dot" style={{ left: `${px}%`, top: `${py}%` }} />
+                  <span className="map-label dark" style={{ left: `${px}%`, top: `${py + 6}%`, transform: 'translateX(-50%)' }}>{pet.name} · {inZone ? 'in safe zone' : `${Math.round(d)} m away`}</span>
+                  <span className="compass" style={{ top: 12, left: '50%' }}>N</span>
+                  <span className="compass" style={{ bottom: 12, left: '50%' }}>S</span>
+                  <span className="compass" style={{ left: 14, top: '50%' }}>W</span>
+                  <span className="compass" style={{ right: 14, top: '50%' }}>E</span>
+                </>
+              ) : (
+                <GoogleMapView
+                  center={{ lat: dev.latitude, lng: dev.longitude }}
+                  zoom={16}
+                  mapType={layer === 'satellite' ? 'satellite' : 'roadmap'}
+                  height="100%"
+                  circle={{ center: { lat: dev.homeLat, lng: dev.homeLng }, radius: dev.safeZoneRadius }}
+                  markers={[
+                    { lat: dev.latitude, lng: dev.longitude, title: pet.name, type: 'pet', label: pet.name, info: `${inZone ? 'In safe zone' : 'Outside safe zone'} (${Math.round(d)}m away)` },
+                    { lat: dev.homeLat, lng: dev.homeLng, title: 'Home Base', label: 'Home' },
+                  ]}
+                  routePath={[{ lat: dev.homeLat, lng: dev.homeLng }, { lat: dev.latitude, lng: dev.longitude }]}
+                />
+              )}
 
-              <div className="card tight row gap-10" style={{ position: 'absolute', left: 16, top: 16, padding: '10px 14px' }}>
+              <div className="card tight row gap-10" style={{ position: 'absolute', left: 16, top: 16, padding: '10px 14px', zIndex: 10 }}>
                 <Avatar name={pet.name} src={pet.photo} />
                 <div>
                   <div className="row gap-6"><span className="serif" style={{ fontSize: 17 }}>{pet.name}</span><Pill tone={inZone ? 'teal' : 'red'} mono sm>{inZone ? 'In safe zone' : 'Outside zone'}</Pill></div>
                   <div className="sub" style={{ fontSize: 12 }}>{[pet.breed, pet.weight, dev.name].filter(Boolean).join(' · ')}</div>
                 </div>
               </div>
-              <div className="row gap-4 hide-sm" style={{ position: 'absolute', right: 16, top: 16, background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 999, padding: 4 }}>
-                <Segmented items={[{ value: 'radar', label: 'Radar' }, { value: 'map', label: 'Map' }]} value={layer} onChange={(v) => { setLayer(v); if (v === 'map') window.open(`https://www.google.com/maps?q=${dev.latitude},${dev.longitude}`, '_blank', 'noopener'); }} />
+              <div className="row gap-4 hide-sm" style={{ position: 'absolute', right: 16, top: 16, background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 999, padding: 4, zIndex: 10 }}>
+                <Segmented items={[{ value: 'radar', label: 'Radar' }, { value: 'map', label: 'Map' }, { value: 'satellite', label: 'Satellite' }]} value={layer} onChange={(v) => setLayer(v)} />
               </div>
-              <span className="map-label mono" style={{ left: 16, bottom: 16, fontSize: 11 }}><span className="dot" /> {dms(dev.latitude, 'N', 'S')}, {dms(dev.longitude, 'E', 'W')} · updated {ago(dev.lastSyncAt) || 'just now'}</span>
-              <div className="stack" style={{ position: 'absolute', right: 16, bottom: 16, background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 14, boxShadow: 'var(--shadow-sm)' }}>
-                <button className="btn btn-ghost btn-square" onClick={() => setZoom((z) => Math.min(3, z * 1.3))} aria-label="Zoom in"><Icon name="plus" /></button>
-                <hr className="divider" />
-                <button className="btn btn-ghost btn-square" onClick={() => setZoom((z) => Math.max(0.4, z / 1.3))} aria-label="Zoom out"><Icon name="minus" /></button>
-              </div>
+              <span className="map-label mono" style={{ left: 16, bottom: 16, fontSize: 11, zIndex: 10 }}><span className="dot" /> {dms(dev.latitude, 'N', 'S')}, {dms(dev.longitude, 'E', 'W')} · updated {ago(dev.lastSyncAt) || 'just now'}</span>
+              {layer === 'radar' && (
+                <div className="stack" style={{ position: 'absolute', right: 16, bottom: 16, background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 14, boxShadow: 'var(--shadow-sm)', zIndex: 10 }}>
+                  <button className="btn btn-ghost btn-square" onClick={() => setZoom((z) => Math.min(3, z * 1.3))} aria-label="Zoom in"><Icon name="plus" /></button>
+                  <hr className="divider" />
+                  <button className="btn btn-ghost btn-square" onClick={() => setZoom((z) => Math.max(0.4, z / 1.3))} aria-label="Zoom out"><Icon name="minus" /></button>
+                </div>
+              )}
             </div>
             <div className="row gap-12 wrap" style={{ padding: 18 }}>
               <Button variant="dark" size="lg" icon="volume" onClick={ring}>Ring the collar</Button>
+              <Button variant="outline" size="lg" icon="navigation" to={`https://www.google.com/maps/dir/?api=1&destination=${dev.latitude},${dev.longitude}`} target="_blank" rel="noopener">Route in Google Maps</Button>
               <div className="panel row gap-12 grow" style={{ padding: '10px 16px' }}>
                 <Icon name="navigation" className="teal" />
                 <div><div className="stat-label" style={{ fontSize: 9.5 }}>Distance from home</div><div style={{ fontSize: 14, marginTop: 3 }}>{Math.round(d)} m {d > 5 ? bearing(dx, dy) : ''}</div></div>

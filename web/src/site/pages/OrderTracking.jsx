@@ -5,6 +5,7 @@ import { normOrder } from '../../data/firestore.js';
 import { SAMPLES } from '../../data/hooks.js';
 import { Icon, Button, Ph, Pill, Empty, Avatar } from '../../ui/index.jsx';
 import { money, cx, timeOfDay, shortDate } from '../../lib/format.js';
+import GoogleMapView from '../../components/Common/GoogleMapView.jsx';
 
 const STAGES = [
   { key: 'Rx review', title: 'Verified & prescribed', short: 'Checked' },
@@ -135,14 +136,23 @@ function OrderDetail({ order: o }) {
       )}
 
       <div className="track-grid" style={{ marginTop: 16 }}>
-        <div className="card flush">
-          <div className="route-map">
-            <svg viewBox="0 0 600 260" preserveAspectRatio="none" aria-hidden="true" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
-              <path d="M90 40 V120 H300 V200 H470" fill="none" stroke="var(--teal)" strokeWidth="3" strokeDasharray="2 7" strokeLinecap="round" />
-            </svg>
-            <span className="map-label" style={{ left: '9%', top: '10%' }}><span className="dot" style={{ background: 'var(--ink)' }} /> Pet Maya pharmacy</span>
-            {o.status === 'In transit' && <><span className="map-pin" style={{ left: '50%', top: '46%' }} /><span className="map-label dark" style={{ left: '44%', top: '30%' }}>On the way</span></>}
-            <span className="map-label" style={{ left: '70%', top: '78%' }}><span className="dot" style={{ background: 'var(--ink)' }} /> {o.area || 'Your address'}</span>
+        <div className="card flush" style={{ overflow: 'hidden' }}>
+          <div className="route-map" style={{ height: 280 }}>
+            <GoogleMapView
+              center={{ lat: 23.7915, lng: 90.4080 }}
+              zoom={14}
+              height="100%"
+              markers={[
+                { lat: 23.7939, lng: 90.4032, title: 'Pet Maya Central Pharmacy', label: 'Rx', type: 'pharmacy', info: 'Gulshan 2, Dhaka' },
+                { lat: 23.7880, lng: 90.4130, title: o.area ? `Delivery: ${o.area}` : 'Destination Address', label: 'Dest', info: o.area || 'Customer Address' },
+                ...(o.status === 'In transit' ? [{ lat: 23.7910, lng: 90.4080, title: `Courier: ${o.courier || 'On the way'}`, label: 'Courier', type: 'pet', info: 'Live Cold-chain Courier' }] : []),
+              ]}
+              routePath={[
+                { lat: 23.7939, lng: 90.4032 },
+                { lat: 23.7910, lng: 90.4080 },
+                { lat: 23.7880, lng: 90.4130 }
+              ]}
+            />
           </div>
           <div className="row gap-12" style={{ padding: 18 }}>
             <Avatar name={o.courier || 'Courier'} tone="dark" />
