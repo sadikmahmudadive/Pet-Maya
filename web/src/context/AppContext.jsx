@@ -2452,5 +2452,19 @@ export function AppProvider({ children }) {
 }
 
 export function useApp() {
-  return useContext(AppContext);
+  const ctx = useContext(AppContext);
+  if (!ctx) {
+    return {
+      activeModal: null,
+      openModal: () => {},
+      closeModal: () => {},
+      showToast: () => {},
+      devices: [],
+      pets: [],
+      vets: [],
+      cart: [],
+      theme: 'light',
+    };
+  }
+  return ctx;
 }

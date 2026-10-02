@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect } from 'react';
 import { ThemeProvider } from './context/ThemeContext.jsx';
 import { AuthProvider } from './context/AuthContext.jsx';
+import { AppProvider } from './context/AppContext.jsx';
 import { RouterProvider, useRouter, match } from './lib/router.jsx';
 import { StoreProvider } from './lib/store.jsx';
 import SiteLayout from './site/SiteLayout.jsx';
@@ -81,11 +82,13 @@ export default function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <RouterProvider>
-          <StoreProvider>
-            <Routes />
-          </StoreProvider>
-        </RouterProvider>
+        <AppProvider>
+          <RouterProvider>
+            <StoreProvider>
+              <Routes />
+            </StoreProvider>
+          </RouterProvider>
+        </AppProvider>
       </AuthProvider>
     </ThemeProvider>
   );

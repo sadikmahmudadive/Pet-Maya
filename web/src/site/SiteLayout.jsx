@@ -10,6 +10,7 @@ import BagDrawer from './BagDrawer.jsx';
 import AccountButton from './AccountButton.jsx';
 import NotificationBell from './NotificationBell.jsx';
 import Toasts from './Toasts.jsx';
+import ModalRoot from '../components/Modals/ModalRoot.jsx';
 
 const NAV = [
   { to: '/shop', label: 'Care Shop', match: (p) => p === '/shop' },
@@ -232,6 +233,7 @@ export default function SiteLayout({ minimal, children }) {
       <main className="site-main">{children}</main>
       <Footer />
       <BagDrawer />
+      <ModalRoot />
       <Toasts />
     </div>
   );

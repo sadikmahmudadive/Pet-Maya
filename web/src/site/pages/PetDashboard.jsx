@@ -26,8 +26,7 @@ const QUICK = [
 
 export default function PetDashboard() {
   const { user, pets, activePet, setPetId, myOrders, localOrders, addToCart, products, vets } = useStore();
-  const appCtx = useApp();
-  const openModal = appCtx?.openModal;
+  const { openModal } = useApp();
   const real = user && !String(user.uid).startsWith('demo_guest');
   const events = useMyEvents(user);
   const devices = useCollection('devices', { map: normDevice, sample: [normDevice(SAMPLE_DEVICE.id, SAMPLE_DEVICE)], sampleWhenEmpty: !real });

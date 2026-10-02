@@ -23,8 +23,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 export default function MyDevicesModal() {
   const { 
-    devices, 
-    pets, 
+    devices = [], 
+    pets = [], 
     addDevice, 
     updateDevice, 
     removeDevice, 
@@ -37,6 +37,9 @@ export default function MyDevicesModal() {
     modalData
   } = useApp();
 
+  const safeDevices = Array.isArray(devices) ? devices : [];
+  const safePets = Array.isArray(pets) ? pets : [];
+
   // Mode: 'list', 'pair', 'settings', 'siren'
   const isPairDirect = activeModal === 'pairDevice';
   const [viewMode, setViewMode] = useState(isPairDirect ? 'pair' : 'list');
@@ -45,7 +48,7 @@ export default function MyDevicesModal() {
   // Pairing Wizard State
   const [pairType, setPairType] = useState('gps_collar');
   const [pairName, setPairName] = useState(isPairDirect ? 'Maya GPS Collar Gen 2' : '');
-  const [pairPetId, setPairPetId] = useState(modalData?.petId || pets[0]?.id || '');
+  const [pairPetId, setPairPetId] = useState(modalData?.petId || safePets[0]?.id || '');
   const [isScanning, setIsScanning] = useState(isPairDirect);
   const [scanFound, setScanFound] = useState(false);
   const [sirenCountdown, setSirenCountdown] = useState(8);
@@ -148,17 +151,49 @@ export default function MyDevicesModal() {
     }
   };
 
-  const onlineCount = devices.filter(d => d.isOnline).length;
-  const avgBattery = devices.length > 0
-    ? Math.round(devices.reduce((acc, d) => acc + (d.batteryLevel || 100), 0) / devices.length)
+  const onlineCount = safeDevices.filter(d => d.isOnline).length;
+  const avgBattery = safeDevices.length > 0
+    ? Math.round(safeDevices.reduce((acc, d) => acc + (d.batteryLevel || 100), 0) / safeDevices.length)
     : 100;
 
   return (
-    <div className="modal-backdrop" onClick={closeModal}>
-      <div 
-        className="modal-dialog" 
+    <div 
+      className="scrim" 
+      onClick={closeModal}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(0, 0, 0, 0.45)',
+        backdropFilter: 'blur(6px)',
+        WebkitBackdropFilter: 'blur(6px)',
+        zIndex: 10000,
+        display: 'flex',
+        justifyContent: 'flex-end',
+        animation: 'fade 0.2s ease-out',
+      }}
+    >
+      <aside 
+        className="drawer side-deck-drawer" 
         onClick={e => e.stopPropagation()} 
-        style={{ maxWidth: '640px', width: '92%', maxHeight: '90vh', overflowY: 'auto', padding: '24px' }}
+        style={{
+          position: 'fixed',
+          top: 0,
+          right: 0,
+          bottom: 0,
+          width: 'min(520px, 100vw)',
+          height: '100vh',
+          maxHeight: '100vh',
+          zIndex: 10001,
+          background: 'var(--surface, #FFFFFF)',
+          borderLeft: '1px solid var(--line-2, #E2E8F0)',
+          borderRadius: 0,
+          boxShadow: '-12px 0 40px rgba(0, 0, 0, 0.22)',
+          display: 'flex',
+          flexDirection: 'column',
+          overflowY: 'auto',
+          padding: '24px',
+          animation: 'slide-in 0.28s cubic-bezier(0.16, 1, 0.3, 1)',
+        }}
       >
         {/* Modal Top Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid var(--border)', paddingBottom: '16px' }}>
@@ -184,12 +219,12 @@ export default function MyDevicesModal() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
               <div style={{ background: 'var(--surface-alt)', padding: '12px 14px', borderRadius: '14px', textAlign: 'center' }}>
                 <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 700 }}>Paired Trackers</span>
-                <strong style={{ fontSize: '18px', display: 'block', marginTop: '4px', color: 'var(--text-main)' }}>{devices.length}</strong>
+                <strong style={{ fontSize: '18px', display: 'block', marginTop: '4px', color: 'var(--text-main)' }}>{safeDevices.length}</strong>
               </div>
               <div style={{ background: 'var(--surface-alt)', padding: '12px 14px', borderRadius: '14px', textAlign: 'center' }}>
                 <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 700 }}>Safe Perimeter</span>
                 <strong style={{ fontSize: '18px', display: 'block', marginTop: '4px', color: 'var(--primary)' }}>
-                  {devices.length > 0 ? `${Math.round((devices.filter(d => d.isSafeZone !== false).length / devices.length) * 100)}% OK` : '100% OK'}
+                  {safeDevices.length > 0 ? `${Math.round((safeDevices.filter(d => d.isSafeZone !== false).length / safeDevices.length) * 100)}% OK` : '100% OK'}
                 </strong>
               </div>
               <div style={{ background: 'var(--surface-alt)', padding: '12px 14px', borderRadius: '14px', textAlign: 'center' }}>
@@ -200,7 +235,7 @@ export default function MyDevicesModal() {
 
             {/* Devices List */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {devices.length === 0 ? (
+              {safeDevices.length === 0 ? (
                 <div style={{ padding: '36px 20px', textAlign: 'center', background: 'var(--surface-alt)', borderRadius: '18px' }}>
                   <div style={{ width: 54, height: 54, borderRadius: '50%', background: 'rgba(16,185,129,0.12)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
                     <Radio size={26} />
@@ -215,8 +250,8 @@ export default function MyDevicesModal() {
                   </button>
                 </div>
               ) : (
-                devices.map(device => {
-                  const assignedPet = pets.find(p => p.id === device.petId);
+                safeDevices.map(device => {
+                  const assignedPet = safePets.find(p => p.id === device.petId);
                   const isRinging = ringingDeviceId === device.id;
 
                   return (
@@ -583,7 +618,7 @@ export default function MyDevicesModal() {
           </div>
         )}
 
-      </div>
+      </aside>
     </div>
   );
 }

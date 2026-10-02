@@ -9,8 +9,7 @@ import { auth, signOut } from '../config/firebase.js';
 
 export default function AccountButton({ className }) {
   const { user, profile } = useStore();
-  const appCtx = useApp();
-  const openModal = appCtx?.openModal;
+  const { openModal } = useApp();
 
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
