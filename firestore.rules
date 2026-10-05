@@ -77,14 +77,60 @@ service cloud.firestore {
 
     // Notifications
     match /notifications/{userId} {
-      allow read, write: if true;
-      
-      match /{allSubcollections=**} {
-        allow read, write: if true;
+      match /items/{itemId} {
+        allow read, update, delete: if isOwner(userId) || isAdmin();
+        // Others may notify a user (likes, comments, orders), within sane bounds
+        allow create: if isAuthenticated()
+          && request.resource.data.keys().hasOnly(['title', 'body', 'message', 'category', 'type', 'url', 'read', 'isRead', 'timestamp', 'createdAt', 'id'])
+          && request.resource.data.title is string && request.resource.data.title.size() <= 100
+          && (!('body' in request.resource.data) || request.resource.data.body.size() <= 500);
+      }
+    }
+
+    // Tele-vet video calls: WebRTC signaling (offer/answer/ICE) between two parties
+    function isCallParty(call) {
+      return isAuthenticated() && (call.callerId == request.auth.uid || call.calleeId == request.auth.uid);
+    }
+    match /calls/{callId} {
+      allow read: if isCallParty(resource.data);
+      allow create: if isAuthenticated()
+        && request.resource.data.keys().hasOnly(['callerId', 'calleeId', 'callerName', 'calleeName', 'callerPhoto', 'petId', 'petName', 'appointmentId', 'status', 'createdAt', 'createdAtMs', 'offer', 'participants', 'video'])
+        && request.resource.data.callerId == request.auth.uid
+        && request.resource.data.calleeId is string
+        && request.resource.data.calleeId != request.auth.uid
+        && request.resource.data.status == 'ringing'
+        && request.resource.data.participants == [request.auth.uid, request.resource.data.calleeId];
+      allow update: if isCallParty(resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'answer', 'answeredAt', 'endedAt', 'endedBy', 'endReason'])
+        && (
+          (resource.data.calleeId == request.auth.uid && resource.data.status == 'ringing' && request.resource.data.status in ['accepted', 'declined'])
+          || (resource.data.callerId == request.auth.uid && resource.data.status == 'ringing' && request.resource.data.status in ['cancelled', 'missed'])
+          || (resource.data.status == 'accepted' && request.resource.data.status == 'ended')
+        );
+      allow delete: if false;
+
+      match /callerCandidates/{candidateId} {
+        allow read: if isCallParty(get(/databases/$(database)/documents/calls/$(callId)).data);
+        allow create: if isAuthenticated() && get(/databases/$(database)/documents/calls/$(callId)).data.callerId == request.auth.uid;
+      }
+      match /calleeCandidates/{candidateId} {
+        allow read: if isCallParty(get(/databases/$(database)/documents/calls/$(callId)).data);
+        allow create: if isAuthenticated() && get(/databases/$(database)/documents/calls/$(callId)).data.calleeId == request.auth.uid;
       }
     }
 
     // Devices & Smart Trackers
+    // LoRa gateways: written only by lora_ingest (admin SDK); visible to admins for monitoring.
+    match /gateways/{gatewayId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    // OTA release pointers (firmware/esp32dev, firmware/lora-gateway): admin-managed.
+    match /firmware/{target} {
+      allow read, write: if isAdmin();
+    }
+
     match /devices/{deviceId} {
       allow read, write: if true;
     }

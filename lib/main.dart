@@ -24,6 +24,9 @@ import 'presentation/owner/pets/ai_health_scanner_screen.dart';
 import 'presentation/owner/pets/my_pets_screen.dart';
 import 'presentation/owner/calendar/calendar_screen.dart';
 import 'firebase_options.dart';
+import 'core/services/call_service.dart';
+import 'data/models/vet_model.dart';
+import 'presentation/owner/services/tele_vet_video_call_screen.dart';
 
 /// Custom HttpOverrides to prevent Samsung One UI / Android 13
 /// aggressive OS power-saving from tearing down pooled sockets ungracefully.
@@ -134,6 +137,35 @@ void main() async {
 
   // Initialize Workmanager for battery-optimization-aware tasks
   Workmanager().initialize(callbackDispatcher);
+
+  // Incoming tele-vet calls accepted from the native ringing UI open the call screen.
+  CallService().openIncomingScreen = (call) {
+    final nav = TailWaggingApp.navigatorKey.currentState;
+    if (nav == null || CallService().activeCallId == call.id) return;
+    nav.push(
+      MaterialPageRoute(
+        builder: (_) => TeleVetVideoCallScreen(
+          callId: call.id,
+          vet: VetModel(
+            id: call.callerId,
+            name: call.callerName,
+            qualification: 'Video consultation',
+            tag: 'Veterinarian',
+            photoUrl: call.callerPhoto,
+          ),
+          pet: PetModel(
+            petID: call.petId,
+            ownerID: call.calleeId,
+            name: call.petName.isEmpty ? 'Pet' : call.petName,
+            breed: '',
+            gender: '',
+            age: '',
+            dob: '',
+          ),
+        ),
+      ),
+    );
+  };
 
   runApp(
     MultiProvider(

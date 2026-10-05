@@ -417,8 +417,15 @@ class VetConsoleHomeFragment extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                         builder: (_) => TeleVetVideoCallScreen(
-                          vet: vet,
+                          // Vet-initiated: the screen shows (and rings) the pet's owner.
+                          vet: VetModel(
+                            id: pet.ownerID,
+                            name: "${pet.name}'s owner",
+                            qualification: 'Pet owner',
+                            tag: 'Pet Owner',
+                          ),
                           pet: pet,
+                          calleeId: pet.ownerID,
                           channelId: 'channel_${evt.id}',
                         ),
                       ),

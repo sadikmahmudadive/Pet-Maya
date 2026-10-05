@@ -1,34 +1,41 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:camera/camera.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
+import '../../../core/services/call_service.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_typography.dart';
 import '../../../data/models/vet_model.dart';
 import '../../../data/models/pet_model.dart';
 import '../../../data/models/service_record_model.dart';
+import '../../../data/models/user_model.dart';
 import '../../../data/repositories/app_state_repository.dart';
+import '../../../data/services/call_session.dart';
 import '../../common_widgets/resilient_network_image.dart';
 
-enum TeleVetCallState { ringing, connected, ended }
-
-/// Production-grade Tele-Health Video Consultation Screen.
-/// Features Outgoing/Incoming Ringing Screen, Live Camera Streams,
-/// Swapable & Draggable Picture-in-Picture feeds, Camera Flip, Mute, and EHR Log Exports.
+/// Real-time Tele-Health video consultation (WebRTC, Firestore signaling).
+///
+/// Outgoing: leave [callId] null — the screen places the call to [calleeId]
+/// (defaults to the vet for owners, or the pet's owner for vets).
+/// Incoming: pass the [callId] the user already accepted from the native UI.
 class TeleVetVideoCallScreen extends StatefulWidget {
   final VetModel vet;
   final PetModel pet;
-  final String channelId;
+  final String channelId; // appointment reference, kept for call-site compatibility
+  final String? callId;
+  final String? calleeId;
 
   const TeleVetVideoCallScreen({
     super.key,
     required this.vet,
     required this.pet,
-    this.channelId = 'tele_vet_channel_default',
+    this.channelId = '',
+    this.callId,
+    this.calleeId,
   });
 
   @override
@@ -36,122 +43,93 @@ class TeleVetVideoCallScreen extends StatefulWidget {
 }
 
 class _TeleVetVideoCallScreenState extends State<TeleVetVideoCallScreen> {
-  TeleVetCallState _callState = TeleVetCallState.ringing;
-  bool _isMuted = false;
-  bool _isVideoOff = false;
-  bool _isFrontCamera = true;
+  CallSession? _session;
   bool _isSwappedPiP = false;
+  bool _finishing = false;
+  String? _startError;
+  Timer? _ticker;
 
-  int _callDurationSeconds = 0;
-  Timer? _callTimer;
-  Timer? _ringingTimer;
+  bool get _isIncoming => widget.callId != null;
+  CallPhase get _phase => _session?.phase ?? CallPhase.preparing;
 
-  List<CameraDescription> _cameras = [];
-  CameraController? _cameraController;
-  bool _cameraReady = false;
-  String? _cameraError;
+  String get _ringingLabel {
+    if (_startError != null) return _startError!;
+    if (_isIncoming || _phase == CallPhase.connecting) return 'Connecting…';
+    if (_phase == CallPhase.preparing) return 'Starting call…';
+    return 'Calling ${widget.vet.name}…';
+  }
 
   @override
   void initState() {
     super.initState();
-    _initPermissionsAndCamera();
-    _startRingingPhase();
+    WakelockPlus.enable();
+    _begin();
   }
 
-  Future<void> _initPermissionsAndCamera() async {
+  Future<void> _begin() async {
     final statuses = await [Permission.camera, Permission.microphone].request();
-    final cameraGranted = statuses[Permission.camera]?.isGranted ?? false;
-    final micGranted = statuses[Permission.microphone]?.isGranted ?? false;
-
+    final granted = (statuses[Permission.camera]?.isGranted ?? false) &&
+        (statuses[Permission.microphone]?.isGranted ?? false);
     if (!mounted) return;
-
-    if (!cameraGranted || !micGranted) {
-      setState(() {
-        _cameraError = cameraGranted
-            ? 'Microphone permission required.'
-            : 'Camera permission required.';
-      });
+    if (!granted) {
+      setState(() => _startError = 'Camera and microphone access are required for video calls.');
+      if (_isIncoming) CallService.declineCall(widget.callId!);
       return;
     }
 
-    await _initCamera(useFrontCamera: true);
-  }
-
-  void _startRingingPhase() {
-    _ringingTimer?.cancel();
-    // Auto-connect after 4.5 seconds of ringing
-    _ringingTimer = Timer(const Duration(milliseconds: 4500), () {
-      if (mounted && _callState == TeleVetCallState.ringing) {
-        _connectCallNow();
-      }
-    });
-  }
-
-  void _connectCallNow() {
-    _ringingTimer?.cancel();
-    HapticFeedback.heavyImpact();
-    if (mounted) {
-      setState(() {
-        _callState = TeleVetCallState.connected;
-      });
-      _startCallTimer();
+    final repo = context.read<AppStateRepository>();
+    final me = repo.currentUser;
+    if (me == null) {
+      setState(() => _startError = 'Please sign in to start a call.');
+      return;
     }
-  }
 
-  Future<void> _initCamera({required bool useFrontCamera}) async {
-    try {
-      if (_cameras.isEmpty) {
-        _cameras = await availableCameras();
-      }
-      if (_cameras.isEmpty) {
-        if (mounted) setState(() => _cameraError = 'No camera found.');
-        return;
-      }
-      final selected = _cameras.firstWhere(
-        (c) => c.lensDirection == (useFrontCamera ? CameraLensDirection.front : CameraLensDirection.back),
-        orElse: () => _cameras.first,
-      );
-      await _cameraController?.dispose();
-      final controller = CameraController(selected, ResolutionPreset.medium, enableAudio: true);
-      await controller.initialize();
-      if (!mounted) { await controller.dispose(); return; }
-      setState(() { _cameraController = controller; _cameraReady = true; _cameraError = null; });
-    } catch (e) {
-      if (mounted) setState(() => _cameraError = 'Camera error: $e');
-    }
-  }
-
-  Future<void> _flipCamera() async {
-    HapticFeedback.lightImpact();
-    setState(() { _isFrontCamera = !_isFrontCamera; _cameraReady = false; });
-    await _initCamera(useFrontCamera: _isFrontCamera);
-  }
-
-  Future<void> _toggleVideo() async {
-    HapticFeedback.lightImpact();
-    if (_cameraController == null || !_cameraReady) return;
-    if (_isVideoOff) {
-      await _cameraController!.resumePreview();
+    final CallSession session;
+    if (_isIncoming) {
+      session = await CallSession.answerIncoming(callId: widget.callId!, myUid: me.uid);
     } else {
-      await _cameraController!.pausePreview();
+      final iAmVet = me.role == UserRole.veterinarian;
+      final calleeId = widget.calleeId ?? (iAmVet ? widget.pet.ownerID : widget.vet.id);
+      session = await CallSession.startOutgoing(
+        myUid: me.uid,
+        myName: iAmVet && !me.name.toLowerCase().startsWith('dr') ? 'Dr. ${me.name}' : me.name,
+        myPhoto: me.photoUrl,
+        calleeId: calleeId,
+        calleeName: iAmVet ? 'Pet owner' : widget.vet.name,
+        petId: widget.pet.petID,
+        petName: widget.pet.name,
+        appointmentId: widget.channelId.isEmpty ? null : widget.channelId,
+      );
     }
-    setState(() => _isVideoOff = !_isVideoOff);
-  }
-
-  void _startCallTimer() {
-    _callTimer?.cancel();
-    _callDurationSeconds = 0;
-    _callTimer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (mounted) setState(() => _callDurationSeconds++);
+    if (!mounted) {
+      await session.hangUp();
+      session.dispose();
+      return;
+    }
+    CallService().activeCallId = session.callId;
+    session.addListener(_onSession);
+    setState(() => _session = session);
+    _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted && _phase == CallPhase.connected) setState(() {});
     });
+    _onSession();
   }
 
-  @override
-  void dispose() {
-    _ringingTimer?.cancel();
-    _callTimer?.cancel();
-    _cameraController?.dispose();
-    super.dispose();
+  bool _markedConnected = false;
+
+  void _onSession() {
+    final s = _session;
+    if (s == null || !mounted) return;
+    if (s.phase == CallPhase.connected && !_markedConnected) {
+      _markedConnected = true;
+      CallService().markConnected(s.callId);
+      HapticFeedback.heavyImpact();
+    }
+    if (s.phase == CallPhase.ended && !_finishing) {
+      _finish();
+      return;
+    }
+    setState(() {});
   }
 
   String _formatDuration(int totalSeconds) {
@@ -160,31 +138,60 @@ class _TeleVetVideoCallScreenState extends State<TeleVetVideoCallScreen> {
     return '$m:$s';
   }
 
-  void _endCall() {
+  /// User pressed end / cancel / decline.
+  Future<void> _endCall() async {
     HapticFeedback.mediumImpact();
-    _ringingTimer?.cancel();
-    _callTimer?.cancel();
-    _cameraController?.dispose();
-    _cameraController = null;
+    if (_session == null) {
+      if (mounted) Navigator.pop(context);
+      return;
+    }
+    await _session!.hangUp();
+  }
+
+  Future<void> _finish() async {
+    if (_finishing) return;
+    _finishing = true;
+    _ticker?.cancel();
+    final s = _session!;
+    final seconds = s.elapsedSeconds;
+    final wasConnected = s.connectedAt != null;
+    CallService().markEnded(s.callId);
+    WakelockPlus.disable();
+    if (!mounted) return;
+
+    if (!wasConnected) {
+      final msg = s.endReason ?? 'Call ended.';
+      final messenger = ScaffoldMessenger.maybeOf(context);
+      Navigator.pop(context);
+      messenger?.showSnackBar(SnackBar(content: Text(msg)));
+      return;
+    }
 
     final repo = context.read<AppStateRepository>();
+    final me = repo.currentUser;
+    final iAmVet = me?.role == UserRole.veterinarian;
+    final call = s.call;
+    final providerId = iAmVet ? me!.uid : (widget.calleeId ?? widget.vet.id);
+    final providerName = iAmVet ? me!.name : widget.vet.name;
     final ts = DateTime.now().millisecondsSinceEpoch;
-    final record = ServiceRecordModel(
-      recordId: 'consult_$ts',
-      petId: widget.pet.petID,
-      petName: widget.pet.name,
+    // Same id on both devices so the two writers never create duplicates.
+    repo.addServiceRecord(ServiceRecordModel(
+      recordId: 'consult_${s.callId}',
+      petId: (call?.petId.isNotEmpty ?? false) ? call!.petId : widget.pet.petID,
+      petName: (call?.petName.isNotEmpty ?? false) ? call!.petName : widget.pet.name,
       serviceType: 'Tele-Consultation',
-      providerId: widget.vet.id,
-      providerName: widget.vet.name,
+      providerId: providerId,
+      providerName: providerName,
       providerRole: 'Veterinarian',
       date: DateTime.now().toString().substring(0, 10),
-      title: 'Tele-Vet Consultation with ${widget.vet.name}',
-      description: 'HD Video consultation completed. Duration: ${_formatDuration(_callDurationSeconds)}.',
+      title: 'Tele-Vet Consultation with $providerName',
+      description: 'HD Video consultation completed. Duration: ${_formatDuration(seconds)}.',
       isSharedWithVets: true,
       timestamp: ts,
-    );
-    repo.addServiceRecord(record);
+    ));
 
+    final petName = widget.pet.name;
+    final doctor = widget.vet.name;
     showModalBottomSheet(
       context: context,
       isDismissible: false,
@@ -211,7 +218,7 @@ class _TeleVetVideoCallScreenState extends State<TeleVetVideoCallScreen> {
             Text('Consultation Ended',
                 style: GoogleFonts.plusJakartaSans(fontSize: 20, fontWeight: FontWeight.w800, color: Colors.white)),
             const SizedBox(height: 6),
-            Text('Duration: ${_formatDuration(_callDurationSeconds)} • Doctor: ${widget.vet.name}',
+            Text('Duration: ${_formatDuration(seconds)} • $doctor',
                 style: const TextStyle(color: Colors.white60, fontSize: 13)),
             const SizedBox(height: 20),
             Container(
@@ -227,7 +234,7 @@ class _TeleVetVideoCallScreenState extends State<TeleVetVideoCallScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Log saved to ${widget.pet.name}\'s Passport EHR Vault.',
+                      'Log saved to $petName\'s Passport EHR Vault.',
                       style: const TextStyle(color: Colors.white70, fontSize: 12),
                     ),
                   ),
@@ -255,106 +262,117 @@ class _TeleVetVideoCallScreenState extends State<TeleVetVideoCallScreen> {
   }
 
   @override
+  void dispose() {
+    _ticker?.cancel();
+    WakelockPlus.disable();
+    final s = _session;
+    if (s != null) {
+      s.removeListener(_onSession);
+      if (s.phase != CallPhase.ended) s.hangUp(); // screen torn down mid-call
+      CallService().markEnded(s.callId);
+      s.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final topPadding = MediaQuery.of(context).padding.top;
 
-    if (_callState == TeleVetCallState.ringing) {
+    if (_phase == CallPhase.preparing || _phase == CallPhase.ringing || _startError != null) {
       return _buildRingingScreen(topPadding);
     }
 
-    return Scaffold(
-      backgroundColor: const Color(0xFF090D16),
-      body: Stack(
-        children: [
-          // ─── MAIN FULLSCREEN STREAM ───
-          Positioned.fill(
-            child: _isSwappedPiP ? _buildVetVideoStream() : _buildLocalCameraStream(),
-          ),
-
-          // ─── TOP CONTROL HEADER ───
-          _buildTopHeader(topPadding),
-
-          // ─── PICTURE-IN-PICTURE FLOATING WINDOW ───
-          Positioned(
-            top: topPadding + 70,
-            right: 16,
-            child: FadeInRight(
-              child: GestureDetector(
-                onTap: () {
-                  HapticFeedback.mediumImpact();
-                  setState(() => _isSwappedPiP = !_isSwappedPiP);
-                },
-                child: Container(
-                  width: 110,
-                  height: 155,
-                  decoration: BoxDecoration(
-                    color: Colors.black87,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: AppColors.primary, width: 2),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.5),
-                        blurRadius: 16,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(18),
-                    child: Stack(
-                      fit: StackFit.expand,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _endCall();
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFF090D16),
+        body: Stack(
+          children: [
+            Positioned.fill(
+              child: _isSwappedPiP ? _buildLocalStream() : _buildRemoteStream(),
+            ),
+            _buildTopHeader(topPadding),
+            if (_phase == CallPhase.connecting || _phase == CallPhase.reconnecting)
+              Positioned(
+                top: topPadding + 64,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.65),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        _isSwappedPiP ? _buildLocalCameraStream() : _buildVetVideoStream(),
-                        Positioned(
-                          bottom: 6,
-                          left: 6,
-                          right: 6,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withValues(alpha: 0.7),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    _isSwappedPiP
-                                        ? (_isFrontCamera ? 'You' : 'Pet Cam')
-                                        : 'Dr. ${widget.vet.name.split(' ').first}',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                const Icon(Icons.swap_calls_rounded, color: AppColors.primary, size: 10),
-                              ],
-                            ),
-                          ),
+                        const SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          _phase == CallPhase.reconnecting ? 'Poor connection — reconnecting…' : 'Connecting…',
+                          style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
                         ),
                       ],
                     ),
                   ),
                 ),
               ),
+            Positioned(
+              top: topPadding + 70,
+              right: 16,
+              child: FadeInRight(
+                child: GestureDetector(
+                  onTap: () {
+                    HapticFeedback.mediumImpact();
+                    setState(() => _isSwappedPiP = !_isSwappedPiP);
+                  },
+                  child: Container(
+                    width: 110,
+                    height: 155,
+                    decoration: BoxDecoration(
+                      color: Colors.black87,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: AppColors.primary, width: 2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.5),
+                          blurRadius: 16,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(18),
+                      child: _isSwappedPiP ? _buildRemoteStream() : _buildLocalStream(),
+                    ),
+                  ),
+                ),
+              ),
             ),
-          ),
-
-          // ─── BOTTOM CONTROL DOCK ───
-          _buildControlDock(),
-        ],
+            _buildControlDock(),
+          ],
+        ),
       ),
     );
   }
 
   // ─── RINGING / OUTGOING CALL VIEW ──────────────────────────────────────────
   Widget _buildRingingScreen(double topPadding) {
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _endCall();
+      },
+      child: Scaffold(
       backgroundColor: const Color(0xFF090D16),
       body: Stack(
         fit: StackFit.expand,
@@ -446,7 +464,7 @@ class _TeleVetVideoCallScreenState extends State<TeleVetVideoCallScreen> {
                       const Icon(Icons.ring_volume_rounded, color: AppColors.primary, size: 16),
                       const SizedBox(width: 8),
                       Text(
-                        'Calling Dr. ${widget.vet.name.split(' ').first}...',
+                        _ringingLabel,
                         style: const TextStyle(
                           color: Colors.white70,
                           fontSize: 13,
@@ -466,14 +484,13 @@ class _TeleVetVideoCallScreenState extends State<TeleVetVideoCallScreen> {
             left: 32,
             right: 32,
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Decline / Cancel Call
+                // Cancel / End
                 GestureDetector(
                   onTap: () {
                     HapticFeedback.mediumImpact();
-                    _ringingTimer?.cancel();
-                    Navigator.pop(context);
+                    _endCall();
                   },
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -494,43 +511,17 @@ class _TeleVetVideoCallScreenState extends State<TeleVetVideoCallScreen> {
                         child: const Icon(Icons.call_end_rounded, color: Colors.white, size: 30),
                       ),
                       const SizedBox(height: 8),
-                      const Text('Cancel', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold)),
+                      Text(_isIncoming ? 'End' : 'Cancel', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ),
 
-                // Accept Call (Direct Answer)
-                GestureDetector(
-                  onTap: _connectCallNow,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(22),
-                        decoration: const BoxDecoration(
-                          color: AppColors.healthGreen,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.healthGreen,
-                              blurRadius: 18,
-                              spreadRadius: 2,
-                            ),
-                          ],
-                        ),
-                        child: const Icon(Icons.call_rounded, color: Colors.white, size: 30),
-                      ),
-                      const SizedBox(height: 8),
-                      const Text('Accept', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                ),
               ],
             ),
           ),
         ],
       ),
-    );
+    ));
   }
 
   // ─── TOP CONTROL HEADER ───────────────────────────────────────────────────
@@ -562,7 +553,7 @@ class _TeleVetVideoCallScreenState extends State<TeleVetVideoCallScreen> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  _formatDuration(_callDurationSeconds),
+                  _formatDuration(_session?.elapsedSeconds ?? 0),
                   style: GoogleFonts.plusJakartaSans(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 13),
                 ),
               ],
@@ -593,6 +584,7 @@ class _TeleVetVideoCallScreenState extends State<TeleVetVideoCallScreen> {
 
   // ─── BOTTOM CONTROL DOCK ──────────────────────────────────────────────────
   Widget _buildControlDock() {
+    final s = _session;
     return Positioned(
       bottom: 40,
       left: 24,
@@ -609,21 +601,38 @@ class _TeleVetVideoCallScreenState extends State<TeleVetVideoCallScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               _buildDockIconButton(
-                icon: _isMuted ? Icons.mic_off_rounded : Icons.mic_rounded,
-                isActive: _isMuted,
+                icon: (s?.isMuted ?? false) ? Icons.mic_off_rounded : Icons.mic_rounded,
+                isActive: s?.isMuted ?? false,
                 activeColor: AppColors.dangerRed,
-                onTap: () { HapticFeedback.lightImpact(); setState(() => _isMuted = !_isMuted); },
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  s?.toggleMute();
+                },
               ),
               _buildDockIconButton(
-                icon: _isVideoOff ? Icons.videocam_off_rounded : Icons.videocam_rounded,
-                isActive: _isVideoOff,
+                icon: (s?.isVideoOff ?? false) ? Icons.videocam_off_rounded : Icons.videocam_rounded,
+                isActive: s?.isVideoOff ?? false,
                 activeColor: AppColors.dangerRed,
-                onTap: _toggleVideo,
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  s?.toggleVideo();
+                },
               ),
               _buildDockIconButton(
                 icon: Icons.flip_camera_ios_rounded,
                 isActive: false,
-                onTap: _flipCamera,
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  s?.switchCamera();
+                },
+              ),
+              _buildDockIconButton(
+                icon: (s?.speakerOn ?? true) ? Icons.volume_up_rounded : Icons.volume_down_rounded,
+                isActive: !(s?.speakerOn ?? true),
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  s?.toggleSpeaker();
+                },
               ),
               GestureDetector(
                 onTap: _endCall,
@@ -645,75 +654,25 @@ class _TeleVetVideoCallScreenState extends State<TeleVetVideoCallScreen> {
   }
 
   // ─── LOCAL CAMERA STREAM ──────────────────────────────────────────────────
-  Widget _buildLocalCameraStream() {
-    if (_cameraError != null) return _buildCameraErrorState();
-    if (!_cameraReady || _cameraController == null) return _buildConnectingState();
-
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        if (!_isVideoOff)
-          _isFrontCamera
-              ? Transform(
-                  alignment: Alignment.center,
-                  transform: Matrix4.rotationY(3.14159),
-                  child: CameraPreview(_cameraController!),
-                )
-              : CameraPreview(_cameraController!)
-        else
-          Container(
-            color: const Color(0xFF0F172A),
-            child: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.videocam_off_rounded, color: Colors.white38, size: 48),
-                  const SizedBox(height: 12),
-                  Text('Camera Paused', style: GoogleFonts.plusJakartaSans(color: Colors.white54, fontSize: 14)),
-                ],
-              ),
-            ),
-          ),
-        Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Colors.black.withValues(alpha: 0.55),
-                Colors.transparent,
-                Colors.black.withValues(alpha: 0.7),
-              ],
-              stops: const [0.0, 0.4, 1.0],
-            ),
-          ),
-        ),
-        if (_isMuted)
-          Positioned(
-            top: 80,
-            left: 16,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              decoration: BoxDecoration(
-                color: AppColors.dangerRed.withValues(alpha: 0.85),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.mic_off_rounded, color: Colors.white, size: 14),
-                  SizedBox(width: 4),
-                  Text('Muted', style: TextStyle(color: Colors.white, fontSize: 11)),
-                ],
-              ),
-            ),
-          ),
-      ],
+  Widget _buildLocalStream() {
+    final s = _session;
+    if (s == null) return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+    if (s.isVideoOff) {
+      return Container(
+        color: const Color(0xFF0F172A),
+        child: const Center(child: Icon(Icons.videocam_off_rounded, color: Colors.white38, size: 36)),
+      );
+    }
+    return RTCVideoView(
+      s.localRenderer,
+      mirror: s.isFrontCamera,
+      objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
     );
   }
 
-  // ─── REMOTE VET STREAM ────────────────────────────────────────────────────
-  Widget _buildVetVideoStream() {
+  // ─── REMOTE STREAM (shows the other party's photo until video flows) ──────
+  Widget _buildRemoteStream() {
+    final s = _session;
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -722,6 +681,11 @@ class _TeleVetVideoCallScreenState extends State<TeleVetVideoCallScreen> {
           fit: BoxFit.cover,
           fallbackAssetPath: 'assets/images/vet_placeholder.png',
         ),
+        if (s != null && s.hasRemoteVideo)
+          RTCVideoView(
+            s.remoteRenderer,
+            objectFit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
+          ),
         Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -737,56 +701,6 @@ class _TeleVetVideoCallScreenState extends State<TeleVetVideoCallScreen> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildConnectingState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.15),
-              shape: BoxShape.circle,
-            ),
-            child: const CircularProgressIndicator(color: AppColors.primary, strokeWidth: 3),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            'Starting video feed...',
-            style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCameraErrorState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.videocam_off_rounded, color: Colors.white38, size: 56),
-            const SizedBox(height: 16),
-            Text('Camera Unavailable',
-                style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white)),
-            const SizedBox(height: 8),
-            Text(_cameraError ?? 'Unknown error',
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.white54, fontSize: 13)),
-            const SizedBox(height: 20),
-            TextButton.icon(
-              onPressed: openAppSettings,
-              icon: const Icon(Icons.settings, color: AppColors.primary, size: 16),
-              label: const Text('Open Settings', style: TextStyle(color: AppColors.primary)),
-            ),
-          ],
-        ),
-      ),
     );
   }
 

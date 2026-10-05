@@ -36,11 +36,19 @@ class _AdminBroadcastScreenState extends State<AdminBroadcastScreen> {
     HapticFeedback.heavyImpact();
     
     // Perform the broadcast in the repository
-    await repo.sendBroadcastNotification(
-      title: title,
-      message: message,
-      targetGroup: _targetGroup,
-    );
+    try {
+      await repo.sendBroadcastNotification(
+        title: title,
+        message: message,
+        targetGroup: _targetGroup,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Broadcast failed. Check your connection and admin permissions, then try again.')),
+      );
+      return;
+    }
 
     if (!mounted) return;
 

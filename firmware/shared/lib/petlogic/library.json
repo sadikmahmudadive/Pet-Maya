@@ -1,0 +1,5 @@
+{
+  "name": "petlogic",
+  "version": "1.0.0",
+  "description": "Pure tracker logic: geofence, battery curve, signal bars (host-testable)"
+}

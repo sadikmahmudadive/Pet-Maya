@@ -1,0 +1,7 @@
+{
+  "name": "pmui",
+  "version": "1.0.0",
+  "description": "Pet Maya status LED patterns and find-my-pet buzzer (non-blocking)",
+  "frameworks": "arduino",
+  "platforms": "espressif32"
+}

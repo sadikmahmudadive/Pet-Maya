@@ -18,7 +18,12 @@
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>Pet Maya needs camera access for Tele-Vet video consultations.</string>
+	<string>Pet Maya uses your camera for Tele-Vet video consultations and to photograph your pets for AI health scans and community posts.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+		<string>remote-notification</string>
+	</array>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Pet Maya needs microphone access for Tele-Vet video consultations.</string>
 	<key>CFBundleDevelopmentRegion</key>
@@ -72,8 +77,6 @@
 	<string>Pet Maya requires location access to track smart collars and send safety alerts.</string>
 	<key>NSLocationUsageDescription</key>
 	<string>Pet Maya requires location access to find nearby pet services and track pets on the map.</string>
-	<key>NSCameraUsageDescription</key>
-	<string>Pet Maya needs access to your camera to take photos of your pets for AI health scans and community posts.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Pet Maya needs access to your photo library to select photos of your pets and medical records.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>

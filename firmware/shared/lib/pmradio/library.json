@@ -1,0 +1,8 @@
+{
+  "name": "pmradio",
+  "version": "1.0.0",
+  "description": "Ra-02 SX1278/SX1279 driver with the Pet Maya LoRa radio profile",
+  "frameworks": "arduino",
+  "platforms": "espressif32",
+  "dependencies": [{ "name": "RadioLib", "owner": "jgromes", "version": "^7.1.0" }]
+}

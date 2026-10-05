@@ -1,0 +1,7 @@
+{
+  "name": "pmota",
+  "version": "1.0.0",
+  "description": "Verified HTTPS OTA (SHA-256 checked, dual-slot)",
+  "frameworks": "arduino",
+  "platforms": "espressif32"
+}

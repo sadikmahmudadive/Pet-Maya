@@ -1,0 +1,5 @@
+{
+  "name": "pmlora",
+  "version": "1.0.0",
+  "description": "Pet Maya LoRa wire protocol v1: framing, codecs, AES-128-CCM (mbedTLS on ESP32)"
+}

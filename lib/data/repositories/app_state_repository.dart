@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:geolocator/geolocator.dart';
@@ -28,6 +29,7 @@ import '../models/pet_device_model.dart';
 import '../services/firebase_service.dart';
 import '../services/local_cache_service.dart';
 import '../../core/services/notification_service.dart';
+import '../../core/services/call_service.dart';
 import '../../core/services/native_bridge_service.dart';
 import '../../main.dart';
 import '../../presentation/common_widgets/premium_toast.dart';
@@ -574,6 +576,7 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
     try {
       _syncFcmToken(user);
       _subscribeToTopics(user);
+      CallService().start(user.uid);
       _currentUser = user;
 
       // Always reload products in parallel
@@ -983,16 +986,56 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
   }
 
   bool _fcmTokenSynced = false;
+  StreamSubscription<String>? _tokenRefreshSub;
+
+  Future<void> _saveFcmToken(String uid, String token) async {
+    try {
+      await FirebaseFirestore.instance.collection('users').doc(uid).set({
+        'fcmToken': token,
+        'fcmTokens': FieldValue.arrayUnion([token]),
+      }, SetOptions(merge: true));
+      if (_currentUser != null && _currentUser!.uid == uid) {
+        _currentUser = _currentUser!.copyWith(fcmToken: token);
+      }
+    } catch (e) {
+      debugPrint('FCM token save failed: $e');
+    }
+  }
+
   void _syncFcmToken(UserModel user) {
     if (_fcmTokenSynced) return;
     _fcmTokenSynced = true;
     NotificationService().getToken().then((fcmToken) {
-      if (fcmToken != null && fcmToken != user.fcmToken) {
-        final updatedUser = user.copyWith(fcmToken: fcmToken);
-        _firebase.saveUserProfile(updatedUser);
-        _currentUser = updatedUser;
-      }
+      if (fcmToken != null) _saveFcmToken(user.uid, fcmToken);
     });
+    // Tokens rotate; keep the server copy fresh.
+    _tokenRefreshSub?.cancel();
+    _tokenRefreshSub = NotificationService().onTokenRefresh.listen((t) => _saveFcmToken(user.uid, t));
+  }
+
+  Future<void> _teardownNotifications() async {
+    final ns = NotificationService();
+    final uid = _currentUser?.uid;
+    await CallService().stop();
+    await _tokenRefreshSub?.cancel();
+    _tokenRefreshSub = null;
+    for (final t in ['everyone', 'pet_owners', 'vets', 'merchants']) {
+      await ns.unsubscribeFromTopic(t);
+    }
+    if (uid != null) {
+      final token = await ns.getToken();
+      if (token != null) {
+        try {
+          await FirebaseFirestore.instance.collection('users').doc(uid).update({
+            'fcmTokens': FieldValue.arrayRemove([token]),
+            'fcmToken': FieldValue.delete(),
+          });
+        } catch (_) {}
+      }
+    }
+    await ns.deleteToken();
+    _topicsSubscribed = false;
+    _fcmTokenSynced = false;
   }
 
   Future<void> addBlog(BlogPostModel blog) async {
@@ -1186,6 +1229,7 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
   }
 
   Future<void> logout() async {
+    await _teardownNotifications();
     await _firebase.signOut();
     _currentUser = null;
     _pets.clear();
@@ -1894,34 +1938,13 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
     required String message,
     required String targetGroup,
   }) async {
-    List<UserModel> targets = [];
-    if (targetGroup == 'Everyone in App') {
-      targets = await _firebase.fetchUsers();
-    } else {
-      String role = targetGroup == 'All Pet Owners'
-          ? 'Pet Owner'
-          : targetGroup == 'All Veterinarians'
-          ? 'Veterinarian'
-          : 'Pet Shop';
-      targets = await _firebase.fetchUsersByRole(role);
-    }
-    for (final u in targets) {
-      final n = NotificationModel(
-        id: _uuid.v4().substring(0, 8),
-        title: title,
-        message: message,
-        type: NotificationType.system,
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-      );
-      await _firebase.saveNotification(u.uid, n);
-    }
-    try {
-      await FirebaseFunctions.instance.httpsCallable('send_broadcast').call({
-        'title': title,
-        'message': message,
-        'targetGroup': targetGroup,
-      });
-    } catch (_) {}
+    // The function persists in-app notifications and sends the push; errors
+    // propagate so the admin screen can report a failed broadcast.
+    await FirebaseFunctions.instance.httpsCallable('send_broadcast').call({
+      'title': title,
+      'message': message,
+      'targetGroup': targetGroup,
+    });
   }
 
   void markNotificationAsRead(String id) async {

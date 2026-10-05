@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'call_service.dart';
 
 /// Production-grade multi-channel notification manager for Android, iOS, and Web.
 /// Guarantees heads-up banners across Foreground, Background, and Terminated app states.
@@ -97,8 +99,7 @@ class NotificationService {
     await _localNotifications.initialize(
       initSettings,
       onDidReceiveNotificationResponse: (details) {
-        debugPrint(
-            '[NotificationService] Notification clicked: ${details.payload}');
+        _emitTap(_decodePayload(details.payload));
       },
     );
 
@@ -144,7 +145,6 @@ class NotificationService {
         alert: true,
         badge: true,
         sound: true,
-        criticalAlert: true,
         provisional: false,
       );
       debugPrint(
@@ -166,6 +166,12 @@ class NotificationService {
 
   /// Handle messages received while the app is in the foreground or background
   void handleRemoteMessage(RemoteMessage message) {
+    final type = message.data['type'];
+    if (type == 'incoming_call') return; // CallService's Firestore listener rings in foreground
+    if (type == 'call_ended') {
+      CallService.hideIncoming(message.data['callId'] ?? '');
+      return;
+    }
     String title =
         message.notification?.title ?? message.data['title'] ?? 'Pet Maya Alert';
     String body = message.notification?.body ??
@@ -183,7 +189,7 @@ class NotificationService {
       showHealthAlert(
         title: title.isNotEmpty ? title : 'Pet Health Alert 🩺',
         body: body,
-        payload: message.data.toString(),
+        payload: jsonEncode(message.data),
       );
     } else if (category.toLowerCase().contains('feed') ||
         category.toLowerCase().contains('food') ||
@@ -191,7 +197,7 @@ class NotificationService {
       showFeedingAlert(
         title: title.isNotEmpty ? title : 'Meal Time Reminder 🍲',
         body: body,
-        payload: message.data.toString(),
+        payload: jsonEncode(message.data),
       );
     } else if (category.toLowerCase().contains('social') ||
         category.toLowerCase().contains('comment') ||
@@ -200,20 +206,58 @@ class NotificationService {
       showSocialAlert(
         title: title.isNotEmpty ? title : 'Community Notification 💬',
         body: body,
-        payload: message.data.toString(),
+        payload: jsonEncode(message.data),
       );
     } else {
       showEventAlert(
         title: title.isNotEmpty ? title : 'Pet Care Reminder 📅',
         body: body,
-        payload: message.data.toString(),
+        payload: jsonEncode(message.data),
       );
     }
   }
 
   /// Handle notification tap when the app is in background/terminated
   void _handleMessageTap(RemoteMessage message) {
-    debugPrint('[NotificationService] FCM Notification Tapped: ${message.data}');
+    _emitTap(Map<String, dynamic>.from(message.data));
+  }
+
+  /// Emits tap payloads (category, url, notificationId...) so the UI layer can
+  /// route to the right screen. Taps arriving before a listener attaches
+  /// (cold start) are kept in [pendingTap].
+  final StreamController<Map<String, dynamic>> _tapController =
+      StreamController<Map<String, dynamic>>.broadcast();
+  Stream<Map<String, dynamic>> get onTap => _tapController.stream;
+  Map<String, dynamic>? pendingTap;
+
+  void _emitTap(Map<String, dynamic> data) {
+    if (_tapController.hasListener) {
+      _tapController.add(data);
+    } else {
+      pendingTap = data;
+    }
+  }
+
+  Map<String, dynamic> _decodePayload(String? payload) {
+    if (payload == null || payload.isEmpty) return {};
+    try {
+      final decoded = jsonDecode(payload);
+      if (decoded is Map) return Map<String, dynamic>.from(decoded);
+    } catch (_) {}
+    return {};
+  }
+
+  /// Fires with the new token whenever FCM rotates it, so it can be re-synced.
+  Stream<String> get onTokenRefresh => _fcm.onTokenRefresh;
+
+  /// Drop this device's token (call on logout so the previous user stops
+  /// receiving pushes on a shared device).
+  Future<void> deleteToken() async {
+    try {
+      await _fcm.deleteToken();
+    } catch (e) {
+      debugPrint('[NotificationService] Error deleting FCM token: $e');
+    }
   }
 
   /// Trigger a Community Social / Reaction / Comment Notification
@@ -248,7 +292,7 @@ class NotificationService {
     );
 
     await _localNotifications.show(
-      id ?? DateTime.now().millisecondsSinceEpoch.remainder(100000),
+      id ?? DateTime.now().millisecondsSinceEpoch.remainder(2147483647),
       title,
       body,
       platformDetails,
@@ -273,7 +317,6 @@ class NotificationService {
       showWhen: true,
       enableVibration: true,
       playSound: true,
-      fullScreenIntent: true,
       category: AndroidNotificationCategory.alarm,
       visibility: NotificationVisibility.public,
     );
@@ -289,7 +332,7 @@ class NotificationService {
     );
 
     await _localNotifications.show(
-      id ?? DateTime.now().millisecondsSinceEpoch.remainder(100000),
+      id ?? DateTime.now().millisecondsSinceEpoch.remainder(2147483647),
       title,
       body,
       platformDetails,
@@ -329,7 +372,7 @@ class NotificationService {
     );
 
     await _localNotifications.show(
-      id ?? DateTime.now().millisecondsSinceEpoch.remainder(100000),
+      id ?? DateTime.now().millisecondsSinceEpoch.remainder(2147483647),
       title,
       body,
       platformDetails,
@@ -367,7 +410,7 @@ class NotificationService {
     );
 
     await _localNotifications.show(
-      id ?? DateTime.now().millisecondsSinceEpoch.remainder(100000),
+      id ?? DateTime.now().millisecondsSinceEpoch.remainder(2147483647),
       title,
       body,
       platformDetails,

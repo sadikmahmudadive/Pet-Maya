@@ -1,0 +1,8 @@
+{
+  "name": "pmhw",
+  "version": "1.0.0",
+  "description": "Pet Maya tracker hardware drivers: NEO-6M GPS, LiPo battery gauge",
+  "frameworks": "arduino",
+  "platforms": "espressif32",
+  "dependencies": [{ "name": "TinyGPSPlus", "owner": "mikalhart", "version": "^1.1.0" }]
+}

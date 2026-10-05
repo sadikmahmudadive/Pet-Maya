@@ -11,6 +11,7 @@ import AccountButton from './AccountButton.jsx';
 import NotificationBell from './NotificationBell.jsx';
 import Toasts from './Toasts.jsx';
 import ModalRoot from '../components/Modals/ModalRoot.jsx';
+import IncomingCallListener from '../components/Modals/IncomingCallListener.jsx';
 
 const NAV = [
   { to: '/shop', label: 'Care Shop', match: (p) => p === '/shop' },
@@ -234,6 +235,7 @@ export default function SiteLayout({ minimal, children }) {
       <Footer />
       <BagDrawer />
       <ModalRoot />
+      <IncomingCallListener />
       <Toasts />
     </div>
   );
