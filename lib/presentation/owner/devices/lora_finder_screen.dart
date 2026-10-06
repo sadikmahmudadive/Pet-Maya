@@ -277,6 +277,7 @@ class _LoraFinderScreenState extends State<LoraFinderScreen> {
             ),
             Positioned(
               left: 10,
+              right: 60, // keep clear of the my-location button
               bottom: 10,
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -333,13 +334,15 @@ class _LoraFinderScreenState extends State<LoraFinderScreen> {
                     child: const Icon(Icons.navigation_rounded, size: 40, color: AppColors.primary),
                   ),
                   const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(_distance(dist), style: GoogleFonts.plusJakartaSans(fontSize: 26, fontWeight: FontWeight.w900)),
-                      Text('${_direction(bearing)} of you · arrow points relative to North',
-                          style: TextStyle(fontSize: 11.5, color: Colors.grey.shade600)),
-                    ],
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(_distance(dist), style: GoogleFonts.plusJakartaSans(fontSize: 26, fontWeight: FontWeight.w900)),
+                        Text('${_direction(bearing)} of you · arrow points relative to North',
+                            style: TextStyle(fontSize: 11.5, color: Colors.grey.shade600)),
+                      ],
+                    ),
                   ),
                 ],
               )

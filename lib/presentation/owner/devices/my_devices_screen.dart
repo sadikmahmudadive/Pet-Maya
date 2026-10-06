@@ -861,18 +861,25 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                   _buildOverviewBento(context, devices, onlineCount, isDark),
                   const SizedBox(height: 20),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'Connected Hardware (${devices.length})',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -0.3,
+                      Expanded(
+                        child: Text(
+                          'Connected Hardware (${devices.length})',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.3,
+                          ),
                         ),
                       ),
                       TextButton.icon(
                         onPressed: () => _showPairDeviceSheet(context, repo),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          visualDensity: VisualDensity.compact,
+                        ),
                         icon: const Icon(Icons.add_circle_outline_rounded, size: 16),
                         label: const Text('Add Tracker', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
                       ),
