@@ -67,8 +67,22 @@ void test_parse_header_rejects_bad_frames() {
   TEST_ASSERT_FALSE(parseHeader(frame, kMaxFrame - 1, h));  // wrong length for type
   frame[0] = 0x21;                                            // version 2
   TEST_ASSERT_FALSE(parseHeader(frame, kMaxFrame, h));
-  frame[0] = 0x13;                                            // unknown type
+  frame[0] = 0x14;                                            // unknown type
   TEST_ASSERT_FALSE(parseHeader(frame, kMaxFrame, h));
+}
+
+void test_command_codec() {
+  Command c;
+  c.flags = kCmdRing | kCmdSearch;
+  c.searchMinutes = 30;
+  uint8_t b[kCommandLen];
+  encodeCommand(c, b);
+  assertHex("031e", b, kCommandLen);
+  uint8_t frame[kHeaderLen + kCommandLen + kTagLen] = {0x13, 0x3d, 0x2c, 0x1b, 0x0a, 0x08, 0, 0, 0};
+  Header h;
+  TEST_ASSERT_TRUE(parseHeader(frame, sizeof(frame), h));
+  TEST_ASSERT_EQUAL_UINT8(kTypeCommand, h.type);
+  TEST_ASSERT_EQUAL_UINT32(8, h.counter);
 }
 
 void test_device_id_format() {
@@ -83,6 +97,7 @@ int main() {
   RUN_TEST(test_negative_coordinates_roundtrip);
   RUN_TEST(test_header_and_downlink_golden_bytes);
   RUN_TEST(test_parse_header_rejects_bad_frames);
+  RUN_TEST(test_command_codec);
   RUN_TEST(test_device_id_format);
   return UNITY_END();
 }

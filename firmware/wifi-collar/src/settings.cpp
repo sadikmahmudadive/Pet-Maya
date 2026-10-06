@@ -8,7 +8,7 @@ static const char* NS = "petmaya";
 
 void Settings::load() {
   Preferences p;
-  p.begin(NS, true);
+  p.begin(NS, false);  // read-write: creates the namespace on first boot
   deviceId = p.getString("id", "");
   deviceSecret = p.getString("secret", "");
   intervalSec = constrain(p.getUInt("interval", DEFAULT_INTERVAL_S), MIN_INTERVAL_S, MAX_INTERVAL_S);

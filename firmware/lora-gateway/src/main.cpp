@@ -171,11 +171,14 @@ void setup() {
   gw.load();
   checkFactoryReset();
 
-  if (!gw.provisioned()) {
-    Serial.printf("Not provisioned. Join Wi-Fi '%s' (password %s) or: provision <gatewayId> <secret>\n",
+  if (!gw.provisioned() || !gwsetup::hasSavedWifi()) {
+    Serial.printf("Setup needed (identity: %s, Wi-Fi: %s).\n", gw.provisioned() ? "ok" : "missing",
+                  gwsetup::hasSavedWifi() ? "ok" : "missing");
+    Serial.printf("  Phone/laptop: join Wi-Fi '%s' (password %s), open 192.168.4.1\n",
                   gwsetup::apName().c_str(), gwsetup::apPassword().c_str());
-    esp_task_wdt_delete(nullptr);  // the portal blocks for minutes
-    while (!gwsetup::runPortal()) gwsetup::handleSerial();
+    Serial.println("  or serial:    provision <gatewayId> <secret>   and   wifi <ssid> <password>");
+    esp_task_wdt_delete(nullptr);  // setup can take minutes
+    gwsetup::runPortal();
     ESP.restart();
   }
 

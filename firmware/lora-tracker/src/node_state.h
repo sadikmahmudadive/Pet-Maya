@@ -35,6 +35,7 @@ struct RtcState {
   bool insideZone;
   bool haveFix;
   bool coldBootPending;
+  uint32_t searchUntilS;  // time(nullptr) deadline for finder search mode (RTC clock survives deep sleep)
   Sample lastFix;
 };
 

@@ -13,6 +13,7 @@ import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
 import '../../common_widgets/resilient_network_image.dart';
 import '../home/pet_tracker_screen.dart';
+import 'lora_finder_screen.dart';
 
 /// Screen for managing smart tracking collars, Bluetooth beacons,
 /// activity bands, and RFID/QR tags paired with the Pet Maya app.
@@ -820,6 +821,14 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
+          IconButton(
+            tooltip: 'LoRa Finder (offline)',
+            icon: const Icon(Icons.radar_rounded),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const LoraFinderScreen()),
+            ),
+          ),
           IconButton(
             tooltip: 'Pair Device',
             icon: Container(

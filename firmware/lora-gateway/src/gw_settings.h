@@ -15,6 +15,9 @@ extern GatewaySettings gw;
 namespace gwsetup {
 String apName();
 String apPassword();
-bool runPortal();    // Wi-Fi + Gateway ID/secret captive portal (blocking)
+bool hasSavedWifi();
+// Captive portal for Wi-Fi + Gateway ID/secret. Serial commands keep working while it runs.
+// Returns when fully set up or when the portal times out.
+void runPortal();
 void handleSerial(); // provision <id> <secret> | wifi <ssid> <pass> | status | factory-reset | reboot
 }  // namespace gwsetup

@@ -8,7 +8,7 @@
 // Frame (over the air, max 49 bytes):
 //   [0]      version(4 bits) | type(4 bits)
 //   [1..4]   nodeId     uint32 LE
-//   [5..8]   counter    uint32 LE   (uplink and downlink counters are independent)
+//   [5..8]   counter    uint32 LE   (uplink and downlink/command counters are independent)
 //   [9..n-9] ciphertext (AES-128-CCM)
 //   [n-8..]  tag        8 bytes     (CCM MIC over header + payload)
 // Nonce (13 B) = nodeId LE | counter LE | direction (0 up, 1 down) | 0,0,0,0
@@ -23,7 +23,8 @@ namespace pmlora {
 
 constexpr uint8_t kVersion = 1;
 constexpr uint8_t kTypeUplink = 1;
-constexpr uint8_t kTypeDownlink = 2;
+constexpr uint8_t kTypeDownlink = 2;  // cloud → tracker: full configuration
+constexpr uint8_t kTypeCommand = 3;   // offline finder → tracker: one-shot action, config untouched
 constexpr uint8_t kDirUp = 0;
 constexpr uint8_t kDirDown = 1;
 
@@ -33,6 +34,7 @@ constexpr size_t kNonceLen = 13;
 constexpr size_t kKeyLen = 16;
 constexpr size_t kUplinkLen = 23;
 constexpr size_t kDownlinkLen = 13;
+constexpr size_t kCommandLen = 2;
 constexpr size_t kMaxFrame = kHeaderLen + kUplinkLen + kTagLen;
 
 // ── Radio profile (both ends must match) ──────────────────────────────────────
@@ -58,11 +60,23 @@ enum UpFlags : uint8_t {
   kUpLowBattery = 1 << 4,
   kUpColdBoot = 1 << 5,    // first uplink after power-on
   kUpRinging = 1 << 6,
+  kUpSearchMode = 1 << 7,  // fast reporting requested by a finder
 };
 enum DownFlags : uint8_t {
   kDownRing = 1 << 0,
   kDownLostMode = 1 << 1,
   kDownZoneValid = 1 << 2,
+};
+enum CmdFlags : uint8_t {
+  kCmdRing = 1 << 0,
+  kCmdSearch = 1 << 1,  // report at the fastest allowed rate for `searchMinutes`
+};
+
+// Command (finder → tracker). Shares the downlink counter space, so the tracker's
+// replay protection covers both; a finder uses the last counter the tracker reported + 1.
+struct Command {
+  uint8_t flags = 0;
+  uint8_t searchMinutes = 0;
 };
 
 struct Header {
@@ -119,6 +133,7 @@ inline bool parseHeader(const uint8_t* frame, size_t len, Header& h) {
   if (h.version != kVersion) return false;
   if (h.type == kTypeUplink) return len == kHeaderLen + kUplinkLen + kTagLen;
   if (h.type == kTypeDownlink) return len == kHeaderLen + kDownlinkLen + kTagLen;
+  if (h.type == kTypeCommand) return len == kHeaderLen + kCommandLen + kTagLen;
   return false;
 }
 
@@ -174,6 +189,16 @@ inline void decodeDownlink(const uint8_t in[kDownlinkLen], Downlink& d) {
   d.zoneLatE7 = (int32_t)get32(in + 3);
   d.zoneLngE7 = (int32_t)get32(in + 7);
   d.zoneRadiusM = get16(in + 11);
+}
+
+inline void encodeCommand(const Command& c, uint8_t out[kCommandLen]) {
+  out[0] = c.flags;
+  out[1] = c.searchMinutes;
+}
+
+inline void decodeCommand(const uint8_t in[kCommandLen], Command& c) {
+  c.flags = in[0];
+  c.searchMinutes = in[1];
 }
 
 // "PML-0A1B2C3D" — the Firestore devices/{id} document for a LoRa tracker.

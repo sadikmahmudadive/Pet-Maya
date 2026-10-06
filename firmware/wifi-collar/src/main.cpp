@@ -246,14 +246,13 @@ void setup() {
   gps::begin(gcfg);
   gps::configureUblox();
 
-  if (!settings.provisioned()) {
-    Serial.printf("Not provisioned. Join Wi-Fi '%s' (password %s) or use the serial console.\n",
+  if (!settings.provisioned() || !provisioning::hasSavedWifi()) {
+    Serial.printf("Setup needed (identity: %s, Wi-Fi: %s).\n", settings.provisioned() ? "ok" : "missing",
+                  provisioning::hasSavedWifi() ? "ok" : "missing");
+    Serial.printf("  Phone/laptop: join Wi-Fi '%s' (password %s), open 192.168.4.1\n",
                   provisioning::apName().c_str(), provisioning::apPassword().c_str());
-    while (!provisioning::runPortal()) {
-      esp_task_wdt_reset();
-      provisioning::handleSerial();
-      if (settings.provisioned()) break;
-    }
+    Serial.println("  or serial:    provision <deviceId> <secret>   and   wifi <ssid> <password>");
+    provisioning::runPortal();
     ESP.restart();  // clean start with the new credentials
   }
 

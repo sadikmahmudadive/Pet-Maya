@@ -10,7 +10,7 @@
  */
 import * as crypto from "crypto";
 import * as admin from "firebase-admin";
-import { onRequest } from "firebase-functions/v2/https";
+import { HttpsError, onCall, onRequest } from "firebase-functions/v2/https";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import {
   DEVICE_MASTER_SECRET, MAX_CLOCK_SKEW_S, deviceAlerts, haversineM, intervalFromMode, newDeviceDefaults, num,
@@ -259,4 +259,33 @@ export const mark_offline_gateways = onSchedule("every 5 minutes", async () => {
   await Promise.all(online.docs
     .filter((d) => now - (num(d.data().lastSeenAt) ?? 0) > 5 * 60 * 1000)
     .map((d) => d.ref.update({ isOnline: false })));
+});
+
+/**
+ * Hands the owner the AES key of their own LoRa tracker so the app can pair it with an
+ * offline LoRa Finder (firmware/lora-finder), which then decrypts it without internet.
+ * Only the device's owner (ownerId/userId) or an admin may fetch it; every issue is logged.
+ */
+export const get_tracker_key = onCall({ secrets: [DEVICE_MASTER_SECRET] }, async (request) => {
+  if (!request.auth) throw new HttpsError("unauthenticated", "Sign in required");
+  const deviceId = String(request.data?.deviceId ?? "");
+  if (!/^PML-[0-9A-F]{8}$/.test(deviceId)) throw new HttpsError("invalid-argument", "Not a LoRa tracker id");
+
+  const db = admin.firestore();
+  const ref = db.collection("devices").doc(deviceId);
+  const dev = (await ref.get()).data();
+  if (!dev) throw new HttpsError("not-found", "Tracker not found");
+  if (dev.revoked === true) throw new HttpsError("failed-precondition", "Tracker is revoked");
+
+  const uid = request.auth.uid;
+  const isOwner = (dev.ownerId || dev.userId) === uid;
+  let isAdmin = false;
+  if (!isOwner) {
+    const role = (await db.collection("users").doc(uid).get()).data()?.role;
+    isAdmin = ["Admin", "admin", "superAdmin", "Super Admin"].includes(role);
+  }
+  if (!isOwner && !isAdmin) throw new HttpsError("permission-denied", "Not your tracker");
+
+  await ref.set({ finderKeyIssuedAt: Date.now(), finderKeyIssuedTo: uid }, { merge: true });
+  return { deviceId, key: loraKeyFor(DEVICE_MASTER_SECRET.value(), deviceId).toString("hex") };
 });

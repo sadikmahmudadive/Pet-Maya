@@ -10,7 +10,7 @@ static constexpr uint32_t kRtcMagic = 0x504D4C31;  // "PML1"
 
 void NodeState::load() {
   Preferences p;
-  p.begin(NS, true);
+  p.begin(NS, false);  // read-write: creates the namespace on first boot
   nodeId = p.getUInt("node", 0);
   hasKey = p.getBytes("key", key, sizeof(key)) == sizeof(key);
   intervalS = constrain(p.getUInt("interval", DEFAULT_INTERVAL_S), 5u, MAX_INTERVAL_S);

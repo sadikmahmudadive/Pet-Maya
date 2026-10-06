@@ -4,6 +4,7 @@
 |---|---|---|
 | [lora-tracker/](lora-tracker/) | GPS tracker: ESP32-WROOM + NEO-6M + Ra-02 (SX1278 433 MHz) | LoRa → any Pet Maya gateway |
 | [lora-gateway/](lora-gateway/) | LoRa gateway: ESP32-WROOM + Ra-02 on Wi-Fi, mains powered | Wi-Fi → `lora_ingest` |
+| [lora-finder/](lora-finder/) | Handheld offline receiver: ESP32-WROOM + Ra-02 + Bluetooth | BLE → Pet Maya app (no internet) |
 | [wifi-collar/](wifi-collar/) | Wi-Fi-only collar (for use around home Wi-Fi) | Wi-Fi → `device_ingest` |
 | [shared/lib/](shared/lib/) | `pmlora` protocol, `pmradio` Ra-02 driver, `pmhw` GPS/battery, `pmui` LED/buzzer, `pmota`, `petlogic` | — |
 | [tools/provision.py](tools/provision.py) | Factory tool: derives and flashes device/gateway credentials | — |
@@ -24,7 +25,11 @@ same controls (tracking mode, lost mode, safe zone, "ring").
   any Pet Maya tracker, so every gateway installed improves coverage for everyone (the model LoRaWAN and
   community networks use).
 
-**Trade-off:** a tracker is only "live" while it's within reach of some gateway. Outside coverage it keeps
+**Offline option:** every LoRa uplink is a broadcast, so a [LoRa Finder](lora-finder/) in your hand can hear
+the same report as the gateways, decrypt it locally and show it in the app over Bluetooth, with no
+internet at all. It can also ring the collar or switch it to fast search mode.
+
+**Trade-off:** without a finder, a tracker is only "live" while it's within reach of some gateway. Outside coverage it keeps
 running and the next uplink a gateway hears updates the map. Plan gateways around where pets actually go:
 home, the local park, the clinic.
 
@@ -80,6 +85,7 @@ regional-band modules (e.g. AS923 in much of Asia) rather than the 433 MHz Ra-02
 ```bash
 cd firmware/lora-tracker && pio run && pio test -e native
 cd firmware/lora-gateway && pio run
+cd firmware/lora-finder  && pio run
 cd firmware/wifi-collar  && pio run && pio test -e native
 cd functions && npm test
 ```

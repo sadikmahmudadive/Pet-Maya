@@ -61,7 +61,19 @@ bool selfTest() {
   Header h2;
   if (!open(key, frame, len, kDirUp, h2, back, backLen) || memcmp(back, plain, kUplinkLen) != 0) return false;
   frame[12] ^= 0x01;  // tampering must be rejected
-  return !open(key, frame, len, kDirUp, h2, back, backLen);
+  if (open(key, frame, len, kDirUp, h2, back, backLen)) return false;
+
+  // Command frame (finder → tracker, direction down): ring + search 30 min, counter 8.
+  static const uint8_t cmdExpected[kHeaderLen + kCommandLen + kTagLen] = {
+      0x13, 0x3d, 0x2c, 0x1b, 0x0a, 0x08, 0x00, 0x00, 0x00, 0xd7,
+      0x7a, 0x98, 0x0d, 0xb5, 0x3f, 0x28, 0x7b, 0xb1, 0xfd};
+  const uint8_t cmdPlain[kCommandLen] = {kCmdRing | kCmdSearch, 30};
+  Header ch;
+  ch.type = kTypeCommand;
+  ch.nodeId = 0x0A1B2C3D;
+  ch.counter = 8;
+  if (!seal(key, ch, kDirDown, cmdPlain, kCommandLen, frame, len)) return false;
+  return len == sizeof(cmdExpected) && memcmp(frame, cmdExpected, len) == 0;
 }
 
 }  // namespace pmlora

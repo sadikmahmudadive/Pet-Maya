@@ -558,4 +558,4 @@ async function handleBreedFinder(openai: OpenAI, data: any) {
 
   return { breed: response.choices[0].message.content };
 }
-export { lora_ingest, mark_offline_gateways } from "./lora";
+export { get_tracker_key, lora_ingest, mark_offline_gateways } from "./lora";

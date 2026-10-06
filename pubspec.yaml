@@ -83,7 +83,7 @@ dependencies:
   flutter_webrtc: ^1.6.2+hotfix.3
   flutter_callkit_incoming: ^3.1.6
   wakelock_plus: ^1.5.2
-
+  flutter_reactive_ble: ^5.6.0
 dependency_overrides:
   # latlong2: 0.10.1
 

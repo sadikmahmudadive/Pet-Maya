@@ -34,14 +34,17 @@ static uint32_t lastCycleMs = 0;
 static bool radioOk = false;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
+static bool searchActive() { return rtc.searchUntilS && (uint32_t)time(nullptr) < rtc.searchUntilS; }
+
 static uint32_t effectiveInterval() {
+  if (searchActive()) return minIntervalS;  // a finder is looking for us right now
   uint32_t iv = node.intervalS;
   if (node.zone.valid && !rtc.insideZone) iv = min(iv, ESCAPE_INTERVAL_S);
   return max(iv, minIntervalS);
 }
 
 static bool useDeepSleep() {
-  return !node.lostMode && !indicators::ringing() && effectiveInterval() >= DEEP_SLEEP_MIN_INTERVAL_S;
+  return !node.lostMode && !searchActive() && !indicators::ringing() && effectiveInterval() >= DEEP_SLEEP_MIN_INTERVAL_S;
 }
 
 static void feed() {
@@ -114,6 +117,16 @@ static void applyDownlink(const pmlora::Downlink& d, uint32_t counter) {
        node.lostMode, node.zone.valid, (d.flags & pmlora::kDownRing) != 0);
 }
 
+static void applyCommand(const pmlora::Command& c, uint32_t counter) {
+  node.lastDownCounter = counter;
+  node.saveConfig();
+  if (c.flags & pmlora::kCmdRing) indicators::startRing(RING_DURATION_MS);
+  if (c.flags & pmlora::kCmdSearch) {
+    rtc.searchUntilS = c.searchMinutes ? (uint32_t)time(nullptr) + c.searchMinutes * 60u : 0;
+  }
+  LOGF("[cmd] #%u ring=%d search=%umin\n", (unsigned)counter, (c.flags & pmlora::kCmdRing) != 0, c.searchMinutes);
+}
+
 static bool receiveWindow() {
   pmradio::startReceive();
   const uint32_t t0 = millis();
@@ -126,12 +139,18 @@ static bool receiveWindow() {
     pmlora::Header h;
     uint8_t plain[pmlora::kDownlinkLen];
     size_t plainLen = 0;
-    if (len > 0 && pmlora::parseHeader(buf, len, h) && h.type == pmlora::kTypeDownlink &&
-        h.nodeId == node.nodeId && h.counter > node.lastDownCounter &&
-        pmlora::open(node.key, buf, len, pmlora::kDirDown, h, plain, plainLen)) {
-      pmlora::Downlink d;
-      pmlora::decodeDownlink(plain, d);
-      applyDownlink(d, h.counter);
+    if (len > 0 && pmlora::parseHeader(buf, len, h) &&
+        (h.type == pmlora::kTypeDownlink || h.type == pmlora::kTypeCommand) && h.nodeId == node.nodeId &&
+        h.counter > node.lastDownCounter && pmlora::open(node.key, buf, len, pmlora::kDirDown, h, plain, plainLen)) {
+      if (h.type == pmlora::kTypeDownlink) {
+        pmlora::Downlink d;
+        pmlora::decodeDownlink(plain, d);
+        applyDownlink(d, h.counter);
+      } else {
+        pmlora::Command c;
+        pmlora::decodeCommand(plain, c);
+        applyCommand(c, h.counter);
+      }
       return true;
     }
     pmradio::startReceive();  // someone else's packet — keep listening
@@ -164,7 +183,7 @@ static void runCycle() {
             (rtc.insideZone ? pmlora::kUpInsideZone : 0) | (node.lostMode ? pmlora::kUpLostMode : 0) |
             (battery::present() && pct <= LOW_BATTERY_PCT ? pmlora::kUpLowBattery : 0) |
             (rtc.coldBootPending ? pmlora::kUpColdBoot : 0) |
-            (indicators::ringing() ? pmlora::kUpRinging : 0);
+            (indicators::ringing() ? pmlora::kUpRinging : 0) | (searchActive() ? pmlora::kUpSearchMode : 0);
   const bool wantAck = rtc.coldBootPending || rtc.uplinks % ACK_EVERY_N_UPLINKS == 0 ||
                        rtc.missedAcks >= LINK_LOST_AFTER_MISSED_ACKS;
   if (wantAck) u.flags |= pmlora::kUpAckRequest;

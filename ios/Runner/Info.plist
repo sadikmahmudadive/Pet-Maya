@@ -24,6 +24,8 @@
 		<string>audio</string>
 		<string>remote-notification</string>
 	</array>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Pet Maya connects to your LoRa Finder over Bluetooth to locate your pet without internet.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Pet Maya needs microphone access for Tele-Vet video consultations.</string>
 	<key>CFBundleDevelopmentRegion</key>

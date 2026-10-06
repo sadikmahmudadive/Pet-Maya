@@ -1,6 +1,6 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # PET MAYA — Flutter, Firebase & Web
-# .gitignore  |  Updated 2026-08-23
+# .gitignore  |  Updated 2026-10-07
 # ─────────────────────────────────────────────────────────────────────────────
 
 
@@ -116,6 +116,36 @@ ui-debug.log*
 # Cloud Functions dependencies
 functions/node_modules/
 functions/lib/
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# IoT FIRMWARE (PlatformIO — firmware/)
+# ══════════════════════════════════════════════════════════════════════════════
+# Build output & downloaded libraries (per project: firmware/*/.pio/)
+.pio/
+.pioenvs/
+.piolibdeps/
+
+# Compiled images & OTA release artifacts (upload these to storage, never commit)
+firmware/**/*.bin
+firmware/**/*.elf
+firmware/**/*.map
+firmware/releases/
+
+# Device credentials (DEVICE_MASTER_SECRET, per-device keys, factory label sheets)
+*.secret
+*.secrets
+firmware/tools/output/
+firmware/**/*credentials*.csv
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# PYTHON (firmware/tools)
+# ══════════════════════════════════════════════════════════════════════════════
+__pycache__/
+*.py[cod]
+.venv/
+venv/
 
 
 # ══════════════════════════════════════════════════════════════════════════════
