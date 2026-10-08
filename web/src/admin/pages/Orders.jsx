@@ -3,6 +3,7 @@ import { useRouter } from '../../lib/router.jsx';
 import { arrayUnion } from '../../config/firebase';
 import { useAdmin, useAdminWrite, downloadCsv } from '../data.jsx';
 import { PageHead } from '../AdminApp.jsx';
+import { deductOrderStock } from '../erp.js';
 import { Icon, Button, Pill, Tabs, Empty } from '../../ui/index.jsx';
 import { money, timeOfDay, shortDate, cx } from '../../lib/format.js';
 
@@ -19,6 +20,13 @@ export const statusUpdate = (status, by) => ({
   ...(status === 'Delivered' ? { deliveredAt: Date.now() } : {}),
   timeline: arrayUnion({ status, at: Date.now(), by: by || 'Admin' }),
 });
+
+/** When an order leaves the warehouse, take its items out of stock (once). */
+export async function syncOrderStock(order, status, by, live) {
+  if (!live?.products || !live?.orders || order.stockDeducted) return;
+  if (status !== 'In transit' && status !== 'Delivered') return;
+  try { await deductOrderStock(order, by); } catch (e) { console.warn('stock deduction failed', e); }
+}
 
 const TABS = [['all', 'All'], ['Rx review', 'Needs Rx'], ['Packing', 'Packing'], ['In transit', 'In transit'], ['Delivered', 'Delivered'], ['Return', 'Returns']];
 const PAGE = 10;
@@ -188,7 +196,7 @@ function ManualOrderModal({ onClose, onSave, products = [], customers = [] }) {
 }
 
 export default function Orders({ user }) {
-  const { orders, products, customers } = useAdmin();
+  const { orders, products, customers, live } = useAdmin();
   const write = useAdminWrite();
   const { query, navigate } = useRouter();
   const [tab, setTab] = useState(query.get('status') || 'all');
@@ -227,7 +235,9 @@ export default function Orders({ user }) {
   const selected = orders.filter((o) => sel.includes(o.docId));
 
   const bulk = async (status) => {
-    for (const o of selected) await write('orders', o.docId, statusUpdate(status, user?.name));
+    for (const o of selected) {
+      if (await write('orders', o.docId, statusUpdate(status, user?.name))) await syncOrderStock(o, status, user?.name, live);
+    }
     setSel([]);
   };
   const printLabels = () => {

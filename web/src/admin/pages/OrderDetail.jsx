@@ -2,14 +2,14 @@ import { useState } from 'react';
 import { Link } from '../../lib/router.jsx';
 import { arrayUnion } from '../../config/firebase';
 import { useAdmin, useAdminWrite } from '../data.jsx';
-import { StatusPill, statusUpdate } from './Orders.jsx';
+import { StatusPill, statusUpdate, syncOrderStock } from './Orders.jsx';
 import { Icon, Button, Pill, Avatar, Ph, Empty, Field } from '../../ui/index.jsx';
 import { money, timeOfDay, shortDate, cx } from '../../lib/format.js';
 
 const NEXT = { 'Rx review': ['Packing', 'Approve Rx'], Packing: ['In transit', 'Send out'], 'In transit': ['Delivered', 'Mark delivered'] };
 
 export default function OrderDetail({ params, user }) {
-  const { orders, customers, pets } = useAdmin();
+  const { orders, customers, pets, live } = useAdmin();
   const write = useAdminWrite();
   const id = decodeURIComponent(params.id);
   const o = orders.find((x) => x.docId === id || x.id === id);
@@ -37,7 +37,9 @@ export default function OrderDetail({ params, user }) {
   const isDone = (st) => rank >= st.r;
   const nowIdx = steps.findIndex((st) => !isDone(st));
 
-  const advance = () => write('orders', o.docId, statusUpdate(next[0], user?.name), `${o.id} → ${next[0]}`);
+  const advance = async () => {
+    if (await write('orders', o.docId, statusUpdate(next[0], user?.name), `${o.id} → ${next[0]}`)) await syncOrderStock(o, next[0], user?.name, live);
+  };
   const refund = () => { if (window.confirm(`Mark ${o.id} as returned/refunded?`)) write('orders', o.docId, statusUpdate('Return', user?.name), 'Marked for refund'); };
   const saveNote = async () => {
     if (!note.trim()) return;

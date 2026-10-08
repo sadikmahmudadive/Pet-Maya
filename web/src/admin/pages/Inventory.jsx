@@ -14,7 +14,7 @@ const statusOf = (p) => {
   return ['Healthy', 'teal', 'check'];
 };
 
-const BLANK = { id: '', name: '', brand: '', category: 'medicine', sku: '', price: 0, stockCount: 0, reorderPoint: 20, stockTarget: 100, isRx: false, coldChain: false, showOnStorefront: true, autoRefill: false, image: '', shortDescription: '', variants: [] };
+const BLANK = { id: '', name: '', brand: '', category: 'medicine', sku: '', barcode: '', cost: 0, unit: 'pc', supplier: '', price: 0, stockCount: 0, reorderPoint: 20, stockTarget: 100, isRx: false, coldChain: false, showOnStorefront: true, autoRefill: false, image: '', shortDescription: '', variants: [] };
 const slug = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || `p-${Date.now()}`;
 
 function parseCsv(text) {
@@ -54,7 +54,7 @@ export default function Inventory() {
   const isExp = (p) => p.expiresInDays != null && p.expiresInDays <= ADMIN_CONFIG.expiringDays;
 
   const filtered = useMemo(() => products.filter((p) => {
-    if (q && !`${p.name} ${p.sku} ${p.brand}`.toLowerCase().includes(q.toLowerCase())) return false;
+    if (q && !`${p.name} ${p.sku} ${p.brand} ${p.barcode}`.toLowerCase().includes(q.toLowerCase())) return false;
     if (cat && p.category !== cat) return false;
     if (brand && p.brand !== brand) return false;
     if (storageF === 'cold' && !p.coldChain) return false;
@@ -84,6 +84,8 @@ export default function Inventory() {
     const id = form.id || slug(form.name);
     const data = {
       name: form.name, brand: form.brand, category: form.category, sku: form.sku, price: Number(form.price) || 0,
+      barcode: String(form.barcode || '').trim(), cost: Number(form.cost) || 0, unit: form.unit || 'pc', supplier: form.supplier || form.brand || '',
+      ...(form.compareAt ? { compareAt: Number(form.compareAt) || null } : {}),
       stockCount: Number(form.stockCount) || 0, reorderPoint: Number(form.reorderPoint) || 0, stockTarget: Number(form.stockTarget) || 0,
       inStock: Number(form.stockCount) > 0, isRx: !!form.isRx, coldChain: !!form.coldChain, showOnStorefront: !!form.showOnStorefront,
       autoRefill: !!form.autoRefill, image: form.image || '', imageUrl: form.image || '', shortDescription: form.shortDescription || '',
@@ -103,12 +105,13 @@ export default function Inventory() {
   const importCsv = async (file) => {
     if (!file) return;
     const rows = parseCsv(await file.text());
-    if (!rows.length) { toast('No rows found. Columns: name, sku, brand, category, price, stockCount, reorderPoint, isRx, coldChain', { tone: 'error', duration: 7000 }); return; }
+    if (!rows.length) { toast('No rows found. Columns: name, sku, barcode, brand, supplier, category, price, cost, stockCount, reorderPoint, isRx, coldChain', { tone: 'error', duration: 7000 }); return; }
     let n = 0;
     for (const r of rows) {
       if (!r.name) continue;
       const ok = await write('products', r.id || slug(r.sku || r.name), {
         name: r.name, sku: r.sku || '', brand: r.brand || 'Pet Maya', category: (r.category || 'supplies').toLowerCase(), price: Number(r.price) || 0,
+        ...(r.cost ? { cost: Number(r.cost) || 0 } : {}), ...(r.barcode ? { barcode: r.barcode } : {}), ...(r.supplier ? { supplier: r.supplier } : {}),
         stockCount: Number(r.stockCount ?? r.stock) || 0, reorderPoint: Number(r.reorderPoint) || 20, isRx: /^(1|true|yes)$/i.test(r.isRx || ''),
         coldChain: /^(1|true|yes)$/i.test(r.coldChain || ''), inStock: (Number(r.stockCount ?? r.stock) || 0) > 0,
       });
@@ -122,6 +125,7 @@ export default function Inventory() {
       <PageHead eyebrow="Catalogue & stock" title="Inventory">
         <input ref={csvRef} type="file" accept=".csv,text/csv" hidden onChange={(e) => { importCsv(e.target.files?.[0]); e.target.value = ''; }} />
         <Button variant="outline" icon="download" onClick={() => csvRef.current?.click()}>Import CSV</Button>
+        <Button variant="outline" icon="layers" to="/admin/stock">Stock control</Button>
         <Button variant="dark" icon="plus" onClick={() => setEditId('__new')}>Add product</Button>
       </PageHead>
 
@@ -159,7 +163,7 @@ export default function Inventory() {
                             <div className="row between" style={{ fontSize: 13 }}><b>{p.stockCount}</b><span className="subtle">/ {p.stockTarget}</span></div>
                             <div className={cx('meter', tone === 'red' ? 'red' : tone === 'yellow' ? 'amber' : '')} style={{ marginTop: 6, height: 5 }}><span style={{ width: `${Math.max(2, ratio * 100)}%` }} /></div>
                           </td>
-                          <td>{money(p.price)}</td>
+                          <td>{money(p.price)}{p.cost > 0 && <div className="cell-sub">{Math.round(((p.price - p.cost) / (p.price || 1)) * 100)}% margin</div>}</td>
                           <td><Pill tone={tone} icon={icon} sm>{label}</Pill></td>
                         </tr>
                       );
@@ -180,8 +184,9 @@ export default function Inventory() {
                     <div key={p.id} className="list-row"><div className="grow"><b style={{ fontSize: 14 }}>{p.name}</b><div className="sub" style={{ fontSize: 12 }}>{p.brand} · {p.stockCount <= 0 ? 'Out of stock' : `${p.stockCount} left`}</div></div><b>+{qty}</b></div>
                   ))}
                 </div>
-                <Button variant="teal" block icon="arrowRight" style={{ marginTop: 14 }} onClick={() => downloadCsv(`purchase-orders-${new Date().toISOString().slice(0, 10)}.csv`, [['Supplier', 'SKU', 'Product', 'Order qty', 'Current stock'], ...reorder.map(({ p, qty }) => [p.supplier || p.brand, p.sku, p.name, qty, p.stockCount])])}>
-                  Download purchase orders
+                <Button variant="dark" block icon="truck" style={{ marginTop: 14 }} to="/admin/purchasing">Create purchase order</Button>
+                <Button variant="outline" block icon="download" style={{ marginTop: 8 }} onClick={() => downloadCsv(`purchase-orders-${new Date().toISOString().slice(0, 10)}.csv`, [['Supplier', 'SKU', 'Product', 'Order qty', 'Current stock'], ...reorder.map(({ p, qty }) => [p.supplier || p.brand, p.sku, p.name, qty, p.stockCount])])}>
+                  Download reorder list (CSV)
                 </Button>
               </>
             )}
@@ -198,6 +203,8 @@ export default function Inventory() {
               <Field label="SKU" value={form.sku} onChange={(e) => set('sku', e.target.value)} />
               <Field label="Sale Price (BDT)" type="number" min="0" value={form.price} onChange={(e) => set('price', e.target.value)} />
               <Field label="Regular Price (BDT)" type="number" min="0" value={form.compareAt || ''} onChange={(e) => set('compareAt', e.target.value)} />
+              <Field label="Cost price (BDT)" hint={Number(form.cost) > 0 && Number(form.price) > 0 ? `${Math.round(((form.price - form.cost) / form.price) * 100)}% margin` : 'for profit reports'} type="number" min="0" step="0.01" value={form.cost || ''} onChange={(e) => set('cost', e.target.value)} />
+              <Field label="Barcode" hint="scan into the field" value={form.barcode || ''} onChange={(e) => set('barcode', e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }} />
               <Field label="Stock Count">
                 <div className="stack gap-6">
                   <input className="input" type="number" value={form.stockCount} onChange={(e) => set('stockCount', e.target.value)} />
@@ -210,6 +217,10 @@ export default function Inventory() {
               </Field>
               <Field label="Reorder point" type="number" value={form.reorderPoint} onChange={(e) => set('reorderPoint', e.target.value)} />
               <Field label="Brand" value={form.brand} onChange={(e) => set('brand', e.target.value)} />
+              <Field label="Supplier" value={form.supplier || ''} onChange={(e) => set('supplier', e.target.value)} placeholder={form.brand} />
+              <Field label="Unit">
+                <select className="select" value={form.unit || 'pc'} onChange={(e) => set('unit', e.target.value)}>{['pc', 'box', 'strip', 'bottle', 'vial', 'pack', 'kg', 'g', 'ml', 'l'].map((u) => <option key={u}>{u}</option>)}</select>
+              </Field>
               <Field label="Category">
                 <input className="input" list="cats" value={form.category} onChange={(e) => set('category', e.target.value.toLowerCase())} />
                 <datalist id="cats">{cats.map((c) => <option key={c} value={c} />)}</datalist>

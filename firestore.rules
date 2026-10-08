@@ -18,9 +18,38 @@ service cloud.firestore {
       return isAuthenticated() && (role == 'Admin' || role == 'admin' || role == 'superAdmin' || role == 'Super Admin');
     }
 
+    // ── ERP / POS staff ─────────────────────────────────────────────
+    // Staff access lives in users/{uid}.staffRole (the mobile app rewrites `role`, never this).
+    function myStaffRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('staffRole', '');
+    }
+    function hasStaffRole(roles) {
+      return isAuthenticated() && (isAdmin() || myStaffRole() in roles);
+    }
+    function isStaff() {
+      return hasStaffRole(['Manager', 'Cashier', 'Pharmacist', 'Accountant', 'Storekeeper']);
+    }
+    function isPrivilegedRole(r) {
+      return r is string && r.lower().matches('(super ?)?admin');
+    }
+
     // User Profiles
     match /users/{userId} {
-      allow read, write: if true;
+      allow read: if true;
+      // Nobody can make themselves Admin or grant themselves console (staff) access.
+      // Managers may grant staff roles, but not Manager or Admin.
+      allow create: if (!isPrivilegedRole(request.resource.data.get('role', ''))
+                        && request.resource.data.get('staffRole', '') == '') || isAdmin();
+      allow update: if (
+          !isPrivilegedRole(request.resource.data.get('role', ''))
+          || request.resource.data.get('role', '') == resource.data.get('role', '')
+          || isAdmin()
+        ) && (
+          request.resource.data.get('staffRole', '') == resource.data.get('staffRole', '')
+          || isAdmin()
+          || (hasStaffRole(['Manager']) && request.resource.data.get('staffRole', '') in ['', 'Cashier', 'Pharmacist', 'Accountant', 'Storekeeper'])
+        );
+      allow delete: if isAdmin();
     }
 
     // Pets
@@ -155,7 +184,54 @@ service cloud.firestore {
     // Global App Settings (global, globalBanner, etc.)
     match /settings/{settingId} {
       allow read: if true;
-      allow write: if isAdmin() || isAuthenticated();
+      // settings/erp (VAT, receipts, POS rules) is restricted to admins and managers.
+      allow write: if isAdmin()
+        || (settingId != 'erp' && isAuthenticated())
+        || (settingId == 'erp' && hasStaffRole(['Manager']));
+    }
+
+    // ── ERP / POS ───────────────────────────────────────────────────
+    match /pos_sales/{id} {
+      allow read, create: if isStaff();
+      allow update: if isStaff();          // refunds
+      allow delete: if false;              // receipts are never deleted
+    }
+    match /pos_shifts/{id} {
+      allow read, create, update: if isStaff();
+      allow delete: if false;
+    }
+    match /stock_moves/{id} {
+      allow read: if isStaff();
+      allow create: if isStaff();
+      allow update, delete: if false;      // append-only ledger
+    }
+    match /counters/{id} {
+      allow read, write: if isStaff();
+    }
+    match /suppliers/{id} {
+      allow read, write: if hasStaffRole(['Manager', 'Accountant', 'Storekeeper', 'Pharmacist']);
+    }
+    match /purchase_orders/{id} {
+      allow read, write: if hasStaffRole(['Manager', 'Accountant', 'Storekeeper', 'Pharmacist']);
+    }
+    match /supplier_payments/{id} {
+      allow read, create: if hasStaffRole(['Manager', 'Accountant']);
+      allow update, delete: if isAdmin();
+    }
+    match /expenses/{id} {
+      allow read, write: if hasStaffRole(['Manager', 'Accountant']);
+    }
+    match /staff/{id} {
+      allow read: if isStaff();
+      allow write: if hasStaffRole(['Manager']);
+    }
+    match /attendance/{id} {
+      allow read, write: if isStaff();
+    }
+    match /payroll/{id} {
+      allow read: if hasStaffRole(['Manager', 'Accountant']);
+      allow create: if hasStaffRole(['Manager', 'Accountant']);
+      allow update, delete: if false;
     }
   }
 }

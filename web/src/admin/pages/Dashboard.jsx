@@ -11,7 +11,7 @@ const dayKey = (ms) => { const d = new Date(ms); d.setHours(0, 0, 0, 0); return 
 const pct = (a, b) => (b ? `${a >= b ? '+' : ''}${(((a - b) / b) * 100).toFixed(1)}%` : '—');
 
 export default function Dashboard({ user }) {
-  const { orders, products, events, rxQueue, live } = useAdmin();
+  const { orders, products, events, rxQueue, live, sales = [], purchases = [], coupons = [] } = useAdmin();
   const { navigate } = useRouter();
   const [range, setRange] = useState(14);
 
@@ -49,12 +49,21 @@ export default function Dashboard({ user }) {
     let top = Object.entries(units).sort((a, b) => b[1] - a[1]).slice(0, 5);
     if (!live.orders) top = [['NexGard Spectra Chews', 148], ['Royal Canin Renal', 96], ['Apoquel 16mg', 71], ['Nobivac Rabies', 64], ['Synoquin EFA', 52]];
 
+    // In-store (POS) takings, net of refunds — counted alongside online revenue.
+    const posRev = (day) => sales.filter((x) => dayKey(x.createdAt) === day).reduce((a, x) => a + (x.total || 0) - (x.refundedTotal || 0), 0);
+    const posToday = posRev(today);
+    const posCount = sales.filter((x) => dayKey(x.createdAt) === today).length;
+    series = series.map((s) => ({ ...s, value: s.value + posRev(s.day) }));
+    const toReceive = purchases.filter((p) => p.status === 'Ordered' || p.status === 'Partially received');
+    const activeCoupons = coupons.filter((c) => c.active && (!c.expiresAt || c.expiresAt > Date.now())).length;
+
     return {
-      revToday: live.orders ? rev(todays) : 118400, revYest: live.orders ? rev(yest) : 105270,
+      posToday, posCount, toReceive, activeCoupons,
+      revToday: (live.orders ? rev(todays) : 118400) + posToday, revYest: (live.orders ? rev(yest) : 105270) + posRev(yesterday),
       ordToday: live.orders ? todays.length : 184, ordYest: live.orders ? yest.length : 169,
       series, growth, avgDelivery: avgDelivery ?? (!live.orders ? 52 : null), cold, lowStock, unassigned, slowPacking, top,
     };
-  }, [orders, products, events, live, range]);
+  }, [orders, products, events, live, range, sales, purchases, coupons]);
 
   const max = Math.max(...m.series.map((s) => s.value), 1);
   const oldestRx = rxQueue.reduce((a, r) => Math.max(a, r.waitingMin || 0), 0);
@@ -78,7 +87,7 @@ export default function Dashboard({ user }) {
       </PageHead>
 
       <div className="stat-grid">
-        <Stat label="Revenue today" value={money(m.revToday)} icon="trend" delta={pct(m.revToday, m.revYest)} note="vs yesterday" />
+        <Stat label="Revenue today" value={money(m.revToday)} icon="trend" delta={pct(m.revToday, m.revYest)} note={m.posToday ? `incl. ${money(m.posToday, { compact: true })} in store` : 'vs yesterday'} />
         <Stat label="Orders" value={m.ordToday.toLocaleString('en-US')} icon="bag" delta={pct(m.ordToday, m.ordYest)} note="vs yesterday" />
         <Stat label="Rx pending" value={rxQueue.length} icon="file" delta={oldestRx ? `${oldestRx} min` : '0'} deltaTone={oldestRx > ADMIN_CONFIG.rxSlaMin ? 'red' : 'teal'} note="oldest waiting" />
         <Stat label="Avg. delivery" value={m.avgDelivery != null ? `${m.avgDelivery} min` : '—'} icon="clock" delta={m.avgDelivery != null ? 'live' : null} note={m.avgDelivery != null ? 'placed → delivered' : 'Needs deliveredAt on orders'} />
@@ -87,7 +96,7 @@ export default function Dashboard({ user }) {
       <div className="adm-grid-2" style={{ marginTop: 16 }}>
         <div className="card">
           <div className="card-head">
-            <div><h2 className="h-card">Revenue · last {range} days</h2><div className="sub">Gross merchandise value, BDT</div></div>
+            <div><h2 className="h-card">Revenue · last {range} days</h2><div className="sub">Online + in-store, BDT</div></div>
             <Pill tone="teal" sm>{m.growth} vs prior {Math.floor(range / 2)} days</Pill>
           </div>
           <div style={{ position: 'relative' }}>
@@ -137,7 +146,9 @@ export default function Dashboard({ user }) {
             {[
               ['file', 'yellow', 'Prescriptions to verify', oldestRx ? `Oldest waiting ${oldestRx} min` : 'All clear', rxQueue.length, '/admin/prescriptions'],
               ['flask', 'red', 'SKUs below reorder point', `${m.lowStock.filter((p) => p.coldChain).length} are cold-chain`, m.lowStock.length, '/admin/inventory?tab=low'],
-              ['tag', 'teal', 'Active promo codes', 'Drive storefront conversions', 4, '/admin/promotions'],
+              ['tag', 'teal', 'Active promo codes', 'Drive storefront conversions', m.activeCoupons, '/admin/promotions'],
+              ['truck', 'teal', 'Deliveries to receive', m.toReceive.length ? 'Check them in under Purchasing' : 'Nothing on order', m.toReceive.length, '/admin/purchasing'],
+              ['cash', '', 'Till receipts today', m.posCount ? `${money(m.posToday)} taken in store` : 'Open the register to start selling', m.posCount, '/admin/sales'],
               ['calendar', 'teal', 'Consults without a vet', m.unassigned.length ? 'Assign before the slot starts' : 'All assigned', m.unassigned.length, '/admin/appointments'],
               ['bag', '', `Orders packing > ${ADMIN_CONFIG.packingSlaMin} min`, 'Check the pharmacy bench', m.slowPacking.length, '/admin/orders?status=Packing'],
             ].map(([icon, tone, title, sub, n, to]) => (

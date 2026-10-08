@@ -59,6 +59,7 @@ export function AuthProvider({ children }) {
               address: data.address || '',
               photoUrl: data.photoUrl || user.photoURL || '',
               role: data.role || 'Pet Owner',
+              staffRole: data.staffRole || '',
               points: data.points ?? 25,
               referralCode: data.referralCode || generateReferralCode(user.uid),
               isVerified: data.isVerified ?? false,

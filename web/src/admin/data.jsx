@@ -1,6 +1,7 @@
 import { createContext, useContext, useMemo } from 'react';
 import { useStore } from '../lib/store.jsx';
-import { saveDoc, useCollection, normProduct, normOrder, normVet, normUser, normEvent, normPet } from '../data/firestore.js';
+import { saveDoc, useCollection, useDoc, normProduct, normOrder, normVet, normUser, normEvent, normPet } from '../data/firestore.js';
+import { DEFAULT_SETTINGS } from './erp.js';
 import { SAMPLES } from '../data/hooks.js';
 import { SAMPLE_CUSTOMERS, SAMPLE_APPOINTMENTS, SAMPLE_REQUESTS, SAMPLE_RX, SAMPLE_COUPONS } from '../data/sample.js';
 
@@ -35,6 +36,20 @@ export function AdminDataProvider({ children }) {
   const events = useCollection('events', { map: (id, d) => ({ ...normEvent(id, d), requestedAt: Number(d.timestamp) || Date.parse(d.createdAt) || 0 }), sample: sampleEvents });
   const pets = useCollection('pets', { map: normPet, sample: [] });
   const coupons = useCollection('coupons', { sample: SAMPLE_COUPONS });
+  // ERP / POS — empty collections are real (not sample) once connected.
+  const raw = (id, d) => ({ id, ...d });
+  const erp = { map: raw, sample: [], sampleWhenEmpty: false };
+  const sales = useCollection('pos_sales', erp);
+  const shifts = useCollection('pos_shifts', erp);
+  const moves = useCollection('stock_moves', erp);
+  const suppliers = useCollection('suppliers', erp);
+  const purchases = useCollection('purchase_orders', erp);
+  const supplierPayments = useCollection('supplier_payments', erp);
+  const expenses = useCollection('expenses', erp);
+  const staff = useCollection('staff', erp);
+  const attendance = useCollection('attendance', erp);
+  const payroll = useCollection('payroll', erp);
+  const settingsDoc = useDoc('settings', 'erp');
 
   const value = useMemo(() => {
     const ordersSorted = [...orders.items].sort((a, b) => b.placedAt - a.placedAt);
@@ -55,7 +70,7 @@ export function AdminDataProvider({ children }) {
     const petsByOwner = {};
     pets.items.forEach((p) => { (petsByOwner[p.ownerID] ||= []).push(p); });
 
-    const customers = (users.live ? users.items.filter((u) => !/admin|vet|veterinarian|groom|board|merchant/i.test(u.role)) : users.items).map((u) => {
+    const customers = (users.live ? users.items.filter((u) => !(/admin|vet|veterinarian|groom|board|merchant/i.test(u.role) || u.staffRole)) : users.items).map((u) => {
       const os = ordersByUser[u.uid] || ordersByUser[u.id] || [];
       const lifetime = u.lifetime ?? os.reduce((a, o) => a + (o.status === 'Cancelled' ? 0 : o.total), 0);
       const lastOrder = os[0]?.placedAt || 0;
@@ -75,13 +90,21 @@ export function AdminDataProvider({ children }) {
       };
     }).sort((a, b) => b.lifetime - a.lifetime);
 
+    const byNewest = (l, k = 'createdAt') => [...l.items].sort((a, b) => (b[k] || 0) - (a[k] || 0));
     return {
+      sales: byNewest(sales), shifts: byNewest(shifts, 'openedAt'), stockMoves: byNewest(moves, 'at'),
+      suppliers: [...suppliers.items].sort((a, b) => String(a.name).localeCompare(String(b.name))),
+      purchases: byNewest(purchases), supplierPayments: byNewest(supplierPayments, 'at'), expenses: byNewest(expenses, 'date'),
+      staff: [...staff.items].sort((a, b) => String(a.name).localeCompare(String(b.name))), attendance: attendance.items, payroll: payroll.items,
+      settings: { ...DEFAULT_SETTINGS, ...(settingsDoc.data || {}) },
+      erpLive: sales.live || shifts.live || suppliers.live,
+      allUsers: users.items,
       orders: ordersSorted, products: products.items, vets: vets.items, events: events.items, customers, rxQueue, pets: pets.items, coupons: coupons.items,
       live: { orders: orders.live, products: products.live, vets: vets.live, users: users.live, events: events.live, coupons: coupons.live },
       anySample: !(orders.live && products.live && users.live),
       loading: orders.loading || products.loading,
     };
-  }, [orders, products, vets, users, events, pets, coupons]);
+  }, [orders, products, vets, users, events, pets, coupons, sales, shifts, moves, suppliers, purchases, supplierPayments, expenses, staff, attendance, payroll, settingsDoc.data]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

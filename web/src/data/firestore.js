@@ -38,6 +38,9 @@ export function normProduct(id, d = {}) {
     stockTarget: n(d.stockTarget, 0) || Math.max(100, n(d.stockCount, 0)),
     reorderPoint: n(d.reorderPoint, 20),
     sku: d.sku || `PM-${String(id).slice(0, 5).toUpperCase()}`,
+    barcode: String(d.barcode || ''),
+    cost: n(d.cost ?? d.costPrice, 0),
+    unit: d.unit || 'pc',
     supplier: d.supplier || d.brand || '',
     expiresInDays: d.expiresInDays != null ? n(d.expiresInDays) : null,
     badge: d.badge || '',
@@ -106,6 +109,7 @@ export function normOrder(id, d = {}) {
     deliveredAt: toMillis(d.deliveredAt),
     hasRx: items.some((i) => i.isRx) || bool(d.hasRx),
     hasCold: items.some((i) => i.coldChain),
+    stockDeducted: bool(d.stockDeducted),
   };
 }
 
@@ -159,6 +163,7 @@ export function normUser(id, d = {}) {
     area: d.area || addr.split(',').slice(-2, -1)[0]?.trim() || addr.split(',')[0] || '',
     city: d.city || 'Dhaka',
     role: d.role || 'Pet Owner',
+    staffRole: d.staffRole || '',
     photo: d.photoUrl || d.photoURL || '',
     createdAt: toMillis(d.createdAt),
     points: n(d.points),
@@ -245,7 +250,7 @@ export function normBlog(id, d = {}) {
    Live collection hook with sample fallback
    ─────────────────────────────────────────────────────────── */
 
-export function useCollection(name, { map, sample = [], filters = [], enabled = true, sampleWhenEmpty = true } = {}) {
+export function useCollection(name, { map = (id, d) => ({ id, ...d }), sample = [], filters = [], enabled = true, sampleWhenEmpty = true } = {}) {
   const key = JSON.stringify(filters);
   const [state, setState] = useState({ items: sample, loading: enabled, live: false });
 

@@ -13,8 +13,19 @@ import Inventory from './pages/Inventory.jsx';
 import Appointments from './pages/Appointments.jsx';
 import Customers from './pages/Customers.jsx';
 import Promotions from './pages/Promotions.jsx';
+import POS from './pages/POS.jsx';
+import Sales from './pages/Sales.jsx';
+import Stock from './pages/Stock.jsx';
+import Purchasing from './pages/Purchasing.jsx';
+import Finance from './pages/Finance.jsx';
+import Reports from './pages/Reports.jsx';
+import Staff from './pages/Staff.jsx';
+import Settings from './pages/Settings.jsx';
+import { STAFF_ROLES, canAccess, homeFor } from './erp.js';
 
 const ADMIN_ROLES = /^(admin|super ?admin|superadmin)$/i;
+// Admins are recognised by `role`; staff by `staffRole` (the mobile app rewrites `role`, never `staffRole`).
+const consoleRole = (u) => (ADMIN_ROLES.test(String(u?.role || '').trim()) ? u.role : STAFF_ROLES.includes(u?.staffRole) ? u.staffRole : '');
 
 const ROUTES = [
   ['/admin', Dashboard, 'Dashboard'],
@@ -25,26 +36,51 @@ const ROUTES = [
   ['/admin/promotions', Promotions, 'Promotions'],
   ['/admin/appointments', Appointments, 'Appointments'],
   ['/admin/customers', Customers, 'Customers'],
+  ['/admin/pos', POS, 'Point of sale'],
+  ['/admin/sales', Sales, 'Sales & returns'],
+  ['/admin/stock', Stock, 'Stock'],
+  ['/admin/purchasing', Purchasing, 'Purchasing'],
+  ['/admin/finance', Finance, 'Finance'],
+  ['/admin/reports', Reports, 'Reports'],
+  ['/admin/staff', Staff, 'Staff'],
+  ['/admin/settings', Settings, 'Settings'],
 ];
 
 function Sidebar({ open, onClose, user }) {
   const { path } = useRouter();
-  const { orders, rxQueue, coupons = [] } = useAdmin();
+  const { orders, rxQueue, coupons = [], products, purchases = [], shifts = [] } = useAdmin();
   const openOrders = orders.filter((o) => o.status === 'Packing' || o.status === 'Rx review' || o.status === 'In transit').length;
   const activeCoupons = coupons.filter((c) => c.active && (!c.expiresAt || c.expiresAt > Date.now())).length;
+  const lowStock = products.filter((p) => p.stockCount <= p.reorderPoint).length;
+  const toReceive = purchases.filter((p) => p.status === 'Ordered' || p.status === 'Partially received').length;
+  const openShifts = shifts.filter((s) => s.status === 'open').length;
   const nav = [
     ['Operations', [
       ['/admin', 'Dashboard', 'grid'],
       ['/admin/orders', 'Orders', 'bag', openOrders],
       ['/admin/prescriptions', 'Prescriptions', 'file', rxQueue.length],
-      ['/admin/inventory', 'Inventory', 'flask'],
       ['/admin/promotions', 'Promotions', 'tag', activeCoupons],
+    ]],
+    ['Store', [
+      ['/admin/pos', 'Point of sale', 'cash', openShifts],
+      ['/admin/sales', 'Sales & returns', 'list'],
+    ]],
+    ['Supply chain', [
+      ['/admin/inventory', 'Inventory', 'flask', lowStock],
+      ['/admin/stock', 'Stock control', 'layers'],
+      ['/admin/purchasing', 'Purchasing', 'truck', toReceive],
     ]],
     ['Care', [
       ['/admin/appointments', 'Appointments', 'calendar'],
       ['/admin/customers', 'Customers', 'user'],
     ]],
-  ];
+    ['Back office', [
+      ['/admin/finance', 'Finance', 'trend'],
+      ['/admin/reports', 'Reports', 'pulse'],
+      ['/admin/staff', 'Staff', 'users'],
+      ['/admin/settings', 'Settings', 'settings'],
+    ]],
+  ].map(([g, items]) => [g, items.filter(([to]) => canAccess(user?.role, to))]).filter(([, items]) => items.length);
   return (
     <>
       {open && <div className="scrim adm-scrim" onClick={onClose} />}
@@ -53,7 +89,7 @@ function Sidebar({ open, onClose, user }) {
           <span className="logo-word" style={{ color: '#fff' }}>PET MAYA</span>
           <span className="logo-sub" style={{ color: '#9FD0CF' }}>Admin console</span>
         </Link>
-        <nav className="stack" style={{ gap: 22, marginTop: 30 }}>
+        <nav className="stack" style={{ gap: 20, marginTop: 26 }}>
           {nav.map(([group, items]) => (
             <div key={group}>
               <div className="adm-group">{group}</div>
@@ -120,11 +156,12 @@ function Gate({ children }) {
   useEffect(() => { if (preview) sessionStorage.setItem('pm_admin_preview', '1'); }, [preview]);
   const [f, setF] = useState({ email: '', password: '' });
   const [err, setErr] = useState('');
-  const isAdmin = currentUser && ADMIN_ROLES.test(String(currentUser.role || '').trim());
+  const role = consoleRole(currentUser);
+  const isAdmin = !!(currentUser && role);
   const canPreview = import.meta.env.DEV;
 
   if (loading) return <div className="adm-gate"><div className="skeleton" style={{ width: 320, height: 200 }} /></div>;
-  if (isAdmin || (preview && canPreview)) return children(isAdmin ? currentUser : { name: 'Preview', role: 'Sample data' });
+  if (isAdmin || (preview && canPreview)) return children(isAdmin ? { ...currentUser, role } : { name: 'Preview', role: 'Admin', preview: true });
 
   return (
     <div className="adm-gate">
@@ -134,7 +171,7 @@ function Gate({ children }) {
         {currentUser && !String(currentUser.uid).startsWith('demo_guest') ? (
           <>
             <h1 className="serif" style={{ fontSize: 28, marginTop: 24 }}>No access</h1>
-            <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>You’re signed in as {currentUser.email}, which isn’t an admin account. Ask a super admin to change your role.</p>
+            <p className="muted" style={{ marginTop: 8, fontSize: 14 }}>You’re signed in as {currentUser.email}, which isn’t a staff account. Ask an admin to add you under Staff with console access.</p>
             <div className="row gap-8" style={{ marginTop: 20 }}><Button variant="outline" onClick={logout}>Sign out</Button><Button variant="ghost" to="/">Back to store</Button></div>
           </>
         ) : (
@@ -174,13 +211,29 @@ export default function AdminApp() {
             <Sidebar open={menu} onClose={() => setMenu(false)} user={user} />
             <div className="adm-main">
               <Topbar onMenu={() => setMenu(true)} />
-              <main className="adm-content"><Comp params={params} user={user} /></main>
+              <main className="adm-content">
+                {canAccess(user?.role, path) ? <Comp params={params} user={user} /> : <NoAccess role={user?.role} />}
+              </main>
             </div>
           </div>
           <Toasts />
         </AdminDataProvider>
       )}
     </Gate>
+  );
+}
+
+function NoAccess({ role }) {
+  const home = homeFor(role);
+  const { path, navigate } = useRouter();
+  useEffect(() => { if (path === '/admin' && home !== '/admin') navigate(home); }, [path, home]); // eslint-disable-line
+  return (
+    <div className="card" style={{ maxWidth: 520, margin: '60px auto', padding: 32, textAlign: 'center' }}>
+      <span className="well round lg"><Icon name="lock" size={22} /></span>
+      <h1 className="serif" style={{ fontSize: 28, marginTop: 16 }}>Not available for {role || 'your role'}</h1>
+      <p className="muted" style={{ marginTop: 8 }}>Ask an admin if you need access to this page.</p>
+      <Button variant="dark" to={home} style={{ marginTop: 18 }}>Go to {home === '/admin' ? 'dashboard' : home.replace('/admin/', '')}</Button>
+    </div>
   );
 }
 
