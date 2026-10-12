@@ -25,6 +25,7 @@ import 'pet_food_screen.dart';
 import 'pet_health_tracker_screen.dart';
 import 'pet_passport_screen.dart';
 import 'vaccination_screen.dart';
+import '../../../core/security/upload_validator.dart';
 
 class PetDetailsScreen extends StatefulWidget {
   final String petId;
@@ -43,19 +44,12 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
     HapticFeedback.lightImpact();
 
     try {
-      FilePickerResult? result;
-      try {
-        result = await FilePicker.platform.pickFiles(
-          type: FileType.custom,
-          allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
-          allowMultiple: false,
-        );
-      } catch (_) {
-        result = await FilePicker.platform.pickFiles(
-          type: FileType.any,
-          allowMultiple: false,
-        );
-      }
+      // Only PDFs and photos; the bytes are checked again before upload.
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png', 'webp', 'heic'],
+        allowMultiple: false,
+      );
 
       if (result != null && result.files.single.path != null) {
         if (mounted) setState(() => _isUploadingReport = true);
@@ -72,9 +66,15 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
           repo.showToast('Clinical report uploaded successfully! 📄');
         }
       }
+    } on UploadRejected catch (e) {
+      if (mounted) repo.showToast(e.message, type: ToastType.error);
     } catch (e) {
+      debugPrint('[PetDetails] report upload failed: $e');
       if (mounted) {
-        repo.showToast('Upload failed: $e', type: ToastType.error);
+        repo.showToast(
+          'Upload failed. Please try again.',
+          type: ToastType.error,
+        );
       }
     } finally {
       if (mounted) setState(() => _isUploadingReport = false);
@@ -1088,7 +1088,15 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                   ),
                   if (record.reportUrl != null)
                     IconButton(
-                      onPressed: () => launchUrl(Uri.parse(record.reportUrl!)),
+                      onPressed: () {
+                        // Only open files from our own storage bucket.
+                        if (isTrustedFileUrl(record.reportUrl)) {
+                          launchUrl(
+                            Uri.parse(record.reportUrl!),
+                            mode: LaunchMode.externalApplication,
+                          );
+                        }
+                      },
                       icon: const Icon(
                         Icons.picture_as_pdf_rounded,
                         color: AppColors.primary,

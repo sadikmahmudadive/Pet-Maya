@@ -559,6 +559,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> with Single
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GlassScaffold(
+      maxContentWidth: double.infinity,
       body: Stack(
         children: [
           // ─── 1. FULL SCREEN 3D GOOGLE MAP (Full Data + POIs + 3D Buildings) ──

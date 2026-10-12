@@ -4,6 +4,7 @@ import { PageHead } from '../AdminApp.jsx';
 import { saveRecord, printReceipt, DEFAULT_SETTINGS } from '../erp.js';
 import { Button, Field, Toggle, Pill } from '../../ui/index.jsx';
 import { useStore } from '../../lib/store.jsx';
+import { functions, httpsCallable } from '../../config/firebase';
 
 function ListEditor({ label, items, onChange, placeholder }) {
   const [v, setV] = useState('');
@@ -39,6 +40,18 @@ export default function Settings() {
       setDirty(false);
       toast('Settings saved');
     } catch { toast('Couldn’t save — only admins can change settings', { tone: 'error' }); }
+  };
+
+  const [backfill, setBackfill] = useState(null);
+  const runBackfill = async () => {
+    setBackfill('running');
+    try {
+      const { data } = await httpsCallable(functions, 'backfill_security_data', { timeout: 540_000 })({});
+      setBackfill(`Updated ${data.profiles} public profiles and ${data.records} medical records.`);
+    } catch (e) {
+      setBackfill(null);
+      toast(e?.code === 'functions/permission-denied' ? 'Only admins can run this' : 'Couldn’t run the update — try again', { tone: 'error' });
+    }
   };
 
   const testReceipt = () => printReceipt({
@@ -100,6 +113,18 @@ export default function Settings() {
           <div style={{ marginTop: 10 }}>
             <ListEditor label="Expense categories" items={f.expenseCategories || []} onChange={(v) => set('expenseCategories', v.length ? v : DEFAULT_SETTINGS.expenseCategories)} placeholder="e.g. Veterinary consumables" />
           </div>
+        </div>
+
+        <div className="card">
+          <h2 className="h-card">Security data</h2>
+          <div className="sub" style={{ marginBottom: 14 }}>
+            Run once after deploying the security update: builds public author cards (names and photos only)
+            and links older medical records to their pet’s owner. New data is kept in sync automatically.
+          </div>
+          <Button variant="outline" icon="shield" disabled={backfill === 'running'} onClick={runBackfill}>
+            {backfill === 'running' ? 'Updating…' : 'Update security data'}
+          </Button>
+          {backfill && backfill !== 'running' && <div className="sub" style={{ marginTop: 10 }}>{backfill}</div>}
         </div>
       </div>
     </>

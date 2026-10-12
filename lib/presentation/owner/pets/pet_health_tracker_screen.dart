@@ -10,6 +10,7 @@ import '../../common_widgets/bento_card.dart';
 import '../../common_widgets/status_chip.dart';
 import '../../common_widgets/empty_state.dart';
 import 'vaccination_screen.dart';
+import '../../../core/responsive.dart';
 
 class PetHealthTrackerScreen extends StatelessWidget {
   final String petId;
@@ -190,10 +191,11 @@ class PetHealthTrackerScreen extends StatelessWidget {
             GridView.count(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 2,
+              // 2x2 on phones, one row of 4 on tablets
+              crossAxisCount: context.isCompact ? 2 : 4,
               mainAxisSpacing: 14,
               crossAxisSpacing: 14,
-              childAspectRatio: 1.25,
+              childAspectRatio: context.isSmallPhone ? 1.05 : 1.25,
               children: [
                 _buildGoalCard(
                   'Weight',

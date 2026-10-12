@@ -67,7 +67,7 @@ export default function Triage() {
           <p className="lead" style={{ marginTop: 16 }}>Tell us what you’re seeing. We’ll tell you how urgent it is, what you can do at home, and connect you to a vet if needed.</p>
         </div>
         <div className="stack gap-10">
-          {[['Safety rules first', 'Emergency signs always escalate', 'shield'], ['Takes about 2 minutes', 'Three short steps', 'clock'], ['A vet is one tap away', `Video consults from ${money(Math.min(...vets.items.map((v) => v.price), 500))}`, 'video']].map(([t, s, i]) => (
+          {[['Safety rules first', 'Emergency signs always escalate', 'shield'], ['Takes about 2 minutes', 'Three short steps', 'clock'], ['A vet is one tap away', `Clinic visits from ${money(Math.min(...vets.items.map((v) => v.price), 500))}`, 'stethoscope']].map(([t, s, i]) => (
             <div key={t} className="card tight row gap-12"><div className="grow"><div className="stat-label" style={{ fontSize: 9.5 }}>{s}</div><div className="mono" style={{ fontSize: 15, marginTop: 4 }}>{t}</div></div><Icon name={i} className="teal" /></div>
           ))}
         </div>
@@ -172,8 +172,8 @@ export default function Triage() {
             {res && vet && (
               <div style={{ background: 'var(--sunk-2)', padding: 22 }}>
                 <div className="row gap-10"><Avatar name={vet.name.replace('Dr. ', '')} src={vet.photo} tone="white" /><div><b style={{ fontSize: 14 }}>{vet.name}</b><div className="sub" style={{ fontSize: 12 }}>{vet.specialty} · {vet.availability}</div></div></div>
-                <p className="muted" style={{ fontSize: 13, margin: '10px 0 14px' }}>{res.tier === 'emergency' ? 'Start an urgent video call now. The vet will tell you whether to go straight to a clinic.' : 'Want a vet to take a look? They can check on video in a few minutes.'}</p>
-                <Button variant={res.tier === 'emergency' ? 'red' : 'teal'} block icon="video" onClick={() => setBook(vet)}>{res.tier === 'emergency' ? 'Urgent video call' : `Video consult · ${money(vet.price)}`}</Button>
+                <p className="muted" style={{ fontSize: 13, margin: '10px 0 14px' }}>{res.tier === 'emergency' ? 'Book the next urgent visit now, or call us if it can’t wait.' : 'Want a vet to take a look? Book a clinic visit at a time that suits you.'}</p>
+                <Button variant={res.tier === 'emergency' ? 'red' : 'teal'} block icon="calendar" onClick={() => setBook(vet)}>{res.tier === 'emergency' ? 'Book an urgent visit' : `Book a visit · ${money(vet.price)}`}</Button>
               </div>
             )}
           </div>

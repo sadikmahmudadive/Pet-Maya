@@ -15,6 +15,9 @@ class ServiceRecordModel {
   final bool isSharedWithVets;
   final int timestamp;
 
+  /// The pet owner's uid. Security rules grant owners access through it.
+  final String? ownerId;
+
   ServiceRecordModel({
     required this.recordId,
     required this.petId,
@@ -31,7 +34,33 @@ class ServiceRecordModel {
     this.reportUrl,
     this.isSharedWithVets = true,
     required this.timestamp,
+    this.ownerId,
   });
+
+  ServiceRecordModel copyWith({
+    String? providerId,
+    String? ownerId,
+    bool? isSharedWithVets,
+  }) {
+    return ServiceRecordModel(
+      recordId: recordId,
+      petId: petId,
+      petName: petName,
+      serviceType: serviceType,
+      providerId: providerId ?? this.providerId,
+      providerName: providerName,
+      providerRole: providerRole,
+      date: date,
+      title: title,
+      description: description,
+      diagnosis: diagnosis,
+      suggestion: suggestion,
+      reportUrl: reportUrl,
+      isSharedWithVets: isSharedWithVets ?? this.isSharedWithVets,
+      timestamp: timestamp,
+      ownerId: ownerId ?? this.ownerId,
+    );
+  }
 
   Map<String, dynamic> toMap() {
     return {
@@ -50,6 +79,7 @@ class ServiceRecordModel {
       'reportUrl': reportUrl,
       'isSharedWithVets': isSharedWithVets,
       'timestamp': timestamp,
+      if (ownerId != null) 'ownerId': ownerId,
     };
   }
 
@@ -70,6 +100,7 @@ class ServiceRecordModel {
       reportUrl: map['reportUrl'],
       isSharedWithVets: map['isSharedWithVets'] ?? true,
       timestamp: (map['timestamp'] as num?)?.toInt() ?? DateTime.now().millisecondsSinceEpoch,
+      ownerId: map['ownerId'],
     );
   }
 }

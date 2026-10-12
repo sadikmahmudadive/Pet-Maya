@@ -1,4 +1,5 @@
 import 'dart:ui';
+import '../../core/app_info.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -1181,7 +1182,7 @@ class _SuperAdminSettingsModalState extends State<SuperAdminSettingsModal> {
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
-                  'v1.0.16+18',
+                  AppInfo.short,
                   style: TextStyle(
                     fontSize: 10.5,
                     fontWeight: FontWeight.w900,

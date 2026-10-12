@@ -37,7 +37,11 @@ const dms = (v, pos, neg) => { const a = Math.abs(v); const d = Math.floor(a); c
 export default function Gps() {
   const { user, pets, products, toast } = useStore();
   const real = user && !String(user.uid).startsWith('demo_guest');
-  const devices = useCollection('devices', { map: normDevice, sample: [normDevice(SAMPLE_DEVICE.id, SAMPLE_DEVICE)], sampleWhenEmpty: !real });
+  // Live location is private: only the signed-in owner's collars (guests see the sample).
+  const devices = useCollection('devices', {
+    map: normDevice, sample: [normDevice(SAMPLE_DEVICE.id, SAMPLE_DEVICE)], sampleWhenEmpty: !real,
+    filters: real ? [['ownerId', '==', user.uid]] : [], enabled: !!real,
+  });
   const myPetIds = new Set((pets.items || []).map((p) => p.id));
   const mine = useMemo(() => {
     const all = devices.items;

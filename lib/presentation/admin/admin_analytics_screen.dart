@@ -6,6 +6,7 @@ import '../../core/theme/app_typography.dart';
 import '../../data/repositories/app_state_repository.dart';
 import '../common_widgets/glass_scaffold.dart';
 import '../common_widgets/premium_card.dart';
+import '../../core/responsive.dart';
 
 class AdminAnalyticsScreen extends StatelessWidget {
   const AdminAnalyticsScreen({super.key});
@@ -19,6 +20,7 @@ class AdminAnalyticsScreen extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GlassScaffold(
+      maxContentWidth: Responsive.dashboardMaxWidth,
       appBar: AppBar(
         title: const Text('Insights Console', style: TextStyle(fontWeight: FontWeight.w800)),
         backgroundColor: Colors.transparent,

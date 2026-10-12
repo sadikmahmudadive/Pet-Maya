@@ -12,6 +12,7 @@ import '../auth/login_screen.dart';
 import 'package:animate_do/animate_do.dart';
 import 'inventory_management_screen.dart';
 import 'shop_orders_screen.dart';
+import '../../core/responsive.dart';
 
 class PetShopDashboardScreen extends StatelessWidget {
   const PetShopDashboardScreen({super.key});
@@ -30,6 +31,7 @@ class PetShopDashboardScreen extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GlassScaffold(
+      maxContentWidth: Responsive.dashboardMaxWidth,
       appBar: AppBar(
         title: const Text('Store Manager'),
         backgroundColor: Colors.transparent,

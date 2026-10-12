@@ -7,6 +7,7 @@ import '../../data/repositories/app_state_repository.dart';
 import '../common_widgets/glass_scaffold.dart';
 import '../common_widgets/premium_card.dart';
 import '../common_widgets/empty_state.dart';
+import '../../core/responsive.dart';
 
 class AdminLogsScreen extends StatelessWidget {
   const AdminLogsScreen({super.key});
@@ -17,6 +18,7 @@ class AdminLogsScreen extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GlassScaffold(
+      maxContentWidth: Responsive.dashboardMaxWidth,
       appBar: AppBar(
         title: const Text('System Audit', style: TextStyle(fontWeight: FontWeight.w800)),
         backgroundColor: Colors.transparent,

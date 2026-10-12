@@ -11,7 +11,6 @@ import AccountButton from './AccountButton.jsx';
 import NotificationBell from './NotificationBell.jsx';
 import Toasts from './Toasts.jsx';
 import ModalRoot from '../components/Modals/ModalRoot.jsx';
-import IncomingCallListener from '../components/Modals/IncomingCallListener.jsx';
 
 const NAV = [
   { to: '/shop', label: 'Care Shop', match: (p) => p === '/shop' },
@@ -99,7 +98,7 @@ function Header() {
           </div>
           <div className="row gap-8 nav-cta">
             <Link to="/shop?deals=1" className="pill red" style={{ height: 36, padding: '0 16px', fontSize: 14, fontWeight: 600 }}>Deals</Link>
-            <Button variant="teal" icon="video" to="/specialists">Book a vet</Button>
+            <Button variant="teal" icon="stethoscope" to="/specialists">Book a vet</Button>
             <div className="show-sm" style={{ marginTop: 6, display: 'flex', justifyContent: 'center', width: '100%' }}>
               <ThemeToggle mode="segmented" />
             </div>
@@ -235,7 +234,6 @@ export default function SiteLayout({ minimal, children }) {
       <Footer />
       <BagDrawer />
       <ModalRoot />
-      <IncomingCallListener />
       <Toasts />
     </div>
   );

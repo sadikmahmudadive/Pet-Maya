@@ -29,10 +29,10 @@ import '../models/pet_device_model.dart';
 import '../services/firebase_service.dart';
 import '../services/local_cache_service.dart';
 import '../../core/services/notification_service.dart';
-import '../../core/services/call_service.dart';
 import '../../core/services/native_bridge_service.dart';
 import '../../main.dart';
 import '../../presentation/common_widgets/premium_toast.dart';
+import '../../core/security/upload_validator.dart';
 
 class AppStateRepository extends ChangeNotifier {
   static final AppStateRepository _instance = AppStateRepository._internal();
@@ -576,7 +576,6 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
     try {
       _syncFcmToken(user);
       _subscribeToTopics(user);
-      CallService().start(user.uid);
       _currentUser = user;
 
       // Always reload products in parallel
@@ -596,20 +595,27 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
         case UserRole.petOwner:
           if (_petsSub == null) _listenToPets(user.uid);
           if (_eventsSub == null) _listenToEvents(user.uid);
-          if (_serviceRecordsSub == null) _listenToServiceRecords('');
+          if (_serviceRecordsSub == null) _listenToOwnerRecords(user.uid);
           if (_ordersSub == null) _listenToUserOrders(user.uid);
           break;
         case UserRole.veterinarian:
         case UserRole.grooming:
         case UserRole.boarding:
         case UserRole.shelter:
-          if (_petsSub == null) _listenToPets('');
+          // The patient directory opens once an admin verifies the provider.
+          if (user.isVerified) {
+            if (_petsSub == null) _listenToPets('');
+            if (_serviceRecordsSub == null) _listenToServiceRecords('');
+          }
           if (_eventsSub == null) _listenToEventsForProvider(user.uid);
-          if (_serviceRecordsSub == null) _listenToServiceRecords('');
-          if (_ordersSub == null) _listenToAllOrders();
+          if (_ordersSub == null) _listenToUserOrders(user.uid);
           break;
         case UserRole.petShop:
-          if (_ordersSub == null) _listenToAllOrders();
+          if (_ordersSub == null) {
+            user.isVerified
+                ? _listenToAllOrders()
+                : _listenToUserOrders(user.uid);
+          }
           break;
         case UserRole.admin:
         case UserRole.superAdmin:
@@ -730,35 +736,52 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
 
   void _listenToServiceRecords(String petId) {
     _serviceRecordsSub?.cancel();
-    _serviceRecordsSub = _firebase.streamServiceRecords(petId).listen((
-      fetched,
-    ) {
-      _serviceRecords
-        ..clear()
-        ..addAll(fetched);
-      _localCache.saveRecords(_serviceRecords);
-      _debouncedNotify();
-    });
+    _serviceRecordsSub = _firebase.streamServiceRecords(petId).listen(
+      _onRecords,
+      onError: (e) => debugPrint('[AppStateRepository] records error: $e'),
+    );
+  }
+
+  void _listenToOwnerRecords(String ownerId) {
+    _serviceRecordsSub?.cancel();
+    _serviceRecordsSub = _firebase.streamServiceRecordsForOwner(ownerId).listen(
+      _onRecords,
+      onError: (e) => debugPrint('[AppStateRepository] records error: $e'),
+    );
+  }
+
+  void _onRecords(List<ServiceRecordModel> fetched) {
+    _serviceRecords
+      ..clear()
+      ..addAll(fetched);
+    _localCache.saveRecords(_serviceRecords);
+    _debouncedNotify();
   }
 
   void _listenToAllOrders() {
     _ordersSub?.cancel();
-    _ordersSub = _firebase.streamAllOrders().listen((fetched) {
-      _orders
-        ..clear()
-        ..addAll(fetched);
-      _debouncedNotify();
-    });
+    _ordersSub = _firebase.streamAllOrders().listen(
+      (fetched) {
+        _orders
+          ..clear()
+          ..addAll(fetched);
+        _debouncedNotify();
+      },
+      onError: (e) => debugPrint('[AppStateRepository] orders error: $e'),
+    );
   }
 
   void _listenToAllUsers() {
     _allUsersSub?.cancel();
-    _allUsersSub = _firebase.streamAllUsers().listen((fetched) {
-      _allUsers
-        ..clear()
-        ..addAll(fetched);
-      _debouncedNotify();
-    });
+    _allUsersSub = _firebase.streamAllUsers().listen(
+      (fetched) {
+        _allUsers
+          ..clear()
+          ..addAll(fetched);
+        _debouncedNotify();
+      },
+      onError: (e) => debugPrint('[AppStateRepository] users error: $e'),
+    );
   }
 
   void _listenToUserOrders(String userId) {
@@ -824,7 +847,13 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
   Future<void> fetchAndCacheUser(String userId) async {
     if (_userCache.containsKey(userId)) return;
     try {
-      final user = await _firebase.fetchUserProfile(userId);
+      // Other people's private profiles (email, phone, address) are admin-only;
+      // everyone else sees the public card kept in public_profiles.
+      final isAdmin = _currentUser?.role == UserRole.admin ||
+          _currentUser?.role == UserRole.superAdmin;
+      final user = isAdmin || userId == _currentUser?.uid
+          ? await _firebase.fetchUserProfile(userId)
+          : await _firebase.fetchPublicProfile(userId);
       if (user != null) {
         _userCache[userId] = user;
         _debouncedNotify();
@@ -1016,7 +1045,6 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
   Future<void> _teardownNotifications() async {
     final ns = NotificationService();
     final uid = _currentUser?.uid;
-    await CallService().stop();
     await _tokenRefreshSub?.cancel();
     _tokenRefreshSub = null;
     for (final t in ['everyone', 'pet_owners', 'vets', 'merchants']) {
@@ -1067,45 +1095,6 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
     await _firebase.deleteBlog(blogId);
   }
 
-  Future<void> loginAs({
-    required String email,
-    required String name,
-    required UserRole role,
-  }) async {
-    _setLoading(true);
-    try {
-      await _firebase.signInAnonymouslyIfNeeded();
-      final firebaseUID =
-          _firebase.currentFirebaseUser?.uid ??
-          'usr_${_uuid.v4().substring(0, 8)}';
-      UserRole effectiveRole = role;
-      if (email.toLowerCase() == 'admin@mail.com' ||
-          email.toLowerCase() == 'admin@petmaya.app') {
-        effectiveRole = UserRole.superAdmin;
-      }
-      final existingProfile = await _firebase.fetchUserProfile(firebaseUID);
-      _currentUser = UserModel(
-        uid: firebaseUID,
-        name: existingProfile?.name ?? name,
-        email: email,
-        role: existingProfile?.role ?? effectiveRole,
-        photoUrl: existingProfile?.photoUrl,
-        phone: existingProfile?.phone,
-        isVerified:
-            existingProfile?.isVerified ??
-            (effectiveRole == UserRole.veterinarian),
-        joinedTimestamp:
-            existingProfile?.joinedTimestamp ??
-            DateTime.now().millisecondsSinceEpoch,
-      );
-      await syncFromFirebase(_currentUser!);
-    } catch (e) {
-      _syncError = 'Login error: $e';
-    } finally {
-      _setLoading(false);
-    }
-  }
-
   Future<void> signInWithEmail({
     required String email,
     required String password,
@@ -1117,12 +1106,8 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
         userCredential.user!.uid,
       );
       if (profile == null) throw 'User profile not found.';
-      UserRole effectiveRole = profile.role;
-      if (email.toLowerCase() == 'admin@mail.com' ||
-          email.toLowerCase() == 'admin@petmaya.app') {
-        effectiveRole = UserRole.superAdmin;
-      }
-      _currentUser = profile.copyWith(role: effectiveRole);
+      // Roles come only from the stored profile (admins are set server-side).
+      _currentUser = profile;
       await syncFromFirebase(_currentUser!);
     } catch (e) {
       _syncError = 'Login error: ${e.toString()}';
@@ -1151,7 +1136,7 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
             referralCode: UserModel.generateReferralCode(fUser.uid),
             joinedTimestamp: DateTime.now().millisecondsSinceEpoch,
           );
-          await _firebase.saveUserProfile(profile);
+          await _firebase.createUserProfile(profile);
         }
         _currentUser = profile;
         await syncFromFirebase(_currentUser!);
@@ -1190,11 +1175,13 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
         email: email,
         role: role,
         phone: phone,
-        isVerified: role == UserRole.veterinarian,
+        // Providers get access to patients' data only after an admin verifies them.
+        isVerified: false,
         points: 15,
         referralCode: UserModel.generateReferralCode(firebaseUID),
         joinedTimestamp: DateTime.now().millisecondsSinceEpoch,
       );
+      await _firebase.createUserProfile(_currentUser!);
       await syncFromFirebase(_currentUser!);
       if (referralCode != null && referralCode.trim().isNotEmpty) {
         await _firebase.applyReferralCode(
@@ -1210,11 +1197,11 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
             id: firebaseUID,
             name: name,
             qualification: role == UserRole.veterinarian
-                ? 'Verified Veterinarian'
+                ? 'Veterinarian'
                 : 'Pet Care Professional',
             tag: role.displayName,
             phone: phone ?? '',
-            isVerified: role == UserRole.veterinarian,
+            isVerified: false,
             rating: 0.0,
             reviewsCount: 0,
           ),
@@ -1442,7 +1429,8 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
       isSharedWithVets: true,
       timestamp: DateTime.now().millisecondsSinceEpoch,
     );
-    _serviceRecords.insert(0, record);
+    final stamped = _stampRecord(record);
+    _serviceRecords.insert(0, stamped);
     _localCache.saveRecords(_serviceRecords);
 
     // Decrease health index based on diagnosis severity
@@ -1456,10 +1444,20 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
     }
 
     notifyListeners();
-    await _firebase.saveServiceRecord(record);
+    await _firebase.saveServiceRecord(stamped);
+  }
+
+  /// The signed-in user is the record's author; ownerId is the pet's owner.
+  ServiceRecordModel _stampRecord(ServiceRecordModel record) {
+    final pet = _pets.where((p) => p.petID == record.petId).firstOrNull;
+    return record.copyWith(
+      providerId: _currentUser?.uid ?? record.providerId,
+      ownerId: pet?.ownerID ?? record.ownerId,
+    );
   }
 
   Future<void> addServiceRecord(ServiceRecordModel record) async {
+    record = _stampRecord(record);
     _serviceRecords.insert(0, record);
     _localCache.saveRecords(_serviceRecords);
     notifyListeners();
@@ -1483,12 +1481,16 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
   }) async {
     _setLoading(true);
     try {
-      final fileName = 'report_${DateTime.now().millisecondsSinceEpoch}.pdf';
+      // Real type from the file's bytes (PDF or photo), max 15 MB; the
+      // name/extension the user picked is never trusted.
+      final type = await UploadValidator.validateFile(file, UploadKind.document);
+      final fileName =
+          'report_${DateTime.now().millisecondsSinceEpoch}.${type.extension}';
       final storagePath = 'pets/$petId/reports/$fileName';
       final reportUrl = await _firebase.uploadFile(
         path: storagePath,
         file: file,
-        contentType: 'application/pdf',
+        contentType: type.contentType,
       );
 
       final record = ServiceRecordModel(
@@ -1535,9 +1537,10 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
         reportUrl: _serviceRecords[idx].reportUrl,
         isSharedWithVets: isShared,
         timestamp: _serviceRecords[idx].timestamp,
+        ownerId: _serviceRecords[idx].ownerId,
       );
       notifyListeners();
-      await _firebase.saveServiceRecord(_serviceRecords[idx]);
+      await _firebase.setRecordSharing(recordId, isShared);
     }
   }
 
@@ -1770,7 +1773,7 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
       );
       _allUsers[idx] = updated;
       notifyListeners();
-      await _firebase.saveUserProfile(updated);
+      await _firebase.saveUserProfile(updated, asAdmin: true);
     }
   }
 
@@ -1782,7 +1785,7 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
       );
       _allUsers[idx] = updated;
       notifyListeners();
-      await _firebase.saveUserProfile(updated);
+      await _firebase.saveUserProfile(updated, asAdmin: true);
       try {
         await _firebase.toggleVetVerification(userId, updated.isVerified);
       } catch (_) {}
@@ -1805,7 +1808,7 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
       final updated = _allUsers[idx].copyWith(role: newRole);
       _allUsers[idx] = updated;
       notifyListeners();
-      await _firebase.saveUserProfile(updated);
+      await _firebase.saveUserProfile(updated, asAdmin: true);
     }
   }
 

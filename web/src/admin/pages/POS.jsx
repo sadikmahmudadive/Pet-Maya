@@ -6,6 +6,7 @@ import {
 import { Icon, Button, Pill, Ph, Field, Portal, Empty } from '../../ui/index.jsx';
 import { money, cx } from '../../lib/format.js';
 import { useStore } from '../../lib/store.jsx';
+import { escapeHtml, openPrintWindow } from '../../lib/security.js';
 
 const REGISTER_KEY = 'pm_pos_register';
 const HELD_KEY = 'pm_pos_held';
@@ -137,16 +138,14 @@ function CloseShiftModal({ shift, sales, onClose, onDone, settings }) {
   const [note, setNote] = useState('');
   const variance = counted === '' ? null : Number(counted) - s.expectedCash;
   const print = () => {
-    const rows = Object.entries(s.byMethod).map(([m, v]) => `<tr><td>${m}</td><td class="r">${money(v)}</td></tr>`).join('');
-    const w = window.open('', '_blank', 'width=420,height=700');
-    if (!w) return;
-    w.document.write(`<title>Z report</title><style>body{font:12px/1.4 ui-monospace,monospace;width:74mm;margin:0 auto}table{width:100%}.r{text-align:right}h1{font-size:15px;text-align:center}hr{border:0;border-top:1px dashed #000}</style>
-      <h1>${settings.businessName}<br>Z REPORT</h1><p>${shift.register} · opened ${new Date(shift.openedAt).toLocaleString('en-GB')} by ${shift.openedBy?.name || ''}<br>closed ${new Date().toLocaleString('en-GB')}</p><hr>
+    const e = escapeHtml;
+    const rows = Object.entries(s.byMethod).map(([m, v]) => `<tr><td>${e(m)}</td><td class="r">${money(v)}</td></tr>`).join('');
+    openPrintWindow(`<title>Z report</title><style>body{font:12px/1.4 ui-monospace,monospace;width:74mm;margin:0 auto}table{width:100%}.r{text-align:right}h1{font-size:15px;text-align:center}hr{border:0;border-top:1px dashed #000}</style>
+      <h1>${e(settings.businessName)}<br>Z REPORT</h1><p>${e(shift.register)} · opened ${new Date(shift.openedAt).toLocaleString('en-GB')} by ${e(shift.openedBy?.name || '')}<br>closed ${new Date().toLocaleString('en-GB')}</p><hr>
       <table><tr><td>Sales</td><td class="r">${s.sales}</td></tr><tr><td>Gross</td><td class="r">${money(s.gross)}</td></tr><tr><td>Refunds</td><td class="r">${money(s.refunds)}</td></tr><tr><td><b>Net</b></td><td class="r"><b>${money(s.net)}</b></td></tr></table><hr>
       <table>${rows}</table><hr><table><tr><td>Opening float</td><td class="r">${money(shift.openingFloat)}</td></tr><tr><td>Paid in</td><td class="r">${money(s.paidIn)}</td></tr><tr><td>Paid out</td><td class="r">${money(s.paidOut)}</td></tr>
-      <tr><td>Expected cash</td><td class="r">${money(s.expectedCash)}</td></tr><tr><td>Counted</td><td class="r">${counted === '' ? '—' : money(counted)}</td></tr><tr><td>Variance</td><td class="r">${variance == null ? '—' : money(variance)}</td></tr></table>
-      <script>window.onload=()=>window.print()<\/script>`);
-    w.document.close();
+      <tr><td>Expected cash</td><td class="r">${money(s.expectedCash)}</td></tr><tr><td>Counted</td><td class="r">${counted === '' ? '—' : money(counted)}</td></tr><tr><td>Variance</td><td class="r">${variance == null ? '—' : money(variance)}</td></tr></table>`,
+    { features: 'width=420,height=700' });
   };
   return (
     <Modal title="Close shift" onClose={onClose} width={520}>

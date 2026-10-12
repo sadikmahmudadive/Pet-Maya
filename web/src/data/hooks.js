@@ -6,6 +6,7 @@ import {
 import {
   SAMPLE_PRODUCTS, SAMPLE_ORDERS, SAMPLE_VETS, SAMPLE_PETS, SAMPLE_POSTS, SAMPLE_BLOGS,
 } from './sample.js';
+import { safeInternalPath } from '../lib/security.js';
 
 const S = {
   products: SAMPLE_PRODUCTS.map((p) => normProduct(p.id, p)),
@@ -58,7 +59,7 @@ export function useMyRecords(user) {
   return useCollection('service_records', {
     map: (id, d) => ({ id, ...d }),
     sample: [],
-    filters: real ? [['userId', '==', user.uid]] : [],
+    filters: real ? [['ownerId', '==', user.uid]] : [],
     enabled: real,
     sampleWhenEmpty: false,
   });
@@ -84,7 +85,7 @@ export function useNotifications(user) {
       title: d.title || 'Pet Maya',
       body: d.body || d.message || '',
       category: d.category || 'system',
-      url: d.url || '',
+      url: safeInternalPath(d.url),
       read: d.read === true,
       time: toMillis(d.timestamp || d.createdAt),
     }),

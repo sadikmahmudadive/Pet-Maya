@@ -11,6 +11,7 @@ import '../common_widgets/premium_card.dart';
 import '../common_widgets/empty_state.dart';
 import '../common_widgets/monogram_avatar.dart';
 import 'package:intl/intl.dart';
+import '../../core/responsive.dart';
 
 class AdminUserListScreen extends StatefulWidget {
   const AdminUserListScreen({super.key});
@@ -35,6 +36,7 @@ class _AdminUserListScreenState extends State<AdminUserListScreen> {
     }).toList();
 
     return GlassScaffold(
+      maxContentWidth: Responsive.dashboardMaxWidth,
       appBar: AppBar(
         title: const Text('User Directory', style: TextStyle(fontWeight: FontWeight.w800)),
         backgroundColor: Colors.transparent,

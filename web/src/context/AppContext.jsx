@@ -26,6 +26,7 @@ import {
   INITIAL_POSTS 
 } from '../config/firebase';
 import { useAuth } from './AuthContext';
+import { safeInternalPath, validateUpload, ownUploadPath } from '../lib/security.js';
 
 export const INITIAL_DEVICES = [];
 
@@ -128,13 +129,13 @@ const PAGE_TITLES = {
   shop: 'Pet Maya — Veterinary Pharmacy, Diets & Smart GPS Collars',
   tracker: 'Pet Maya — Live GPS Radar, Sonar & Safe-Zone Telemetry',
   ai: 'Pet Maya — AI Vision Clinical Health Triage',
-  vets: 'Pet Maya — Verified Specialists & Teleconsultation',
+  vets: 'Pet Maya — Verified Vets & Clinic Visits',
   community: 'Pet Maya — Pet Community & Moments Feed',
   food: 'Pet Maya — Clinical Nutrition & Veterinary Articles',
   vaccines: 'Pet Maya — Medical Passport & Vaccine Schedule',
   profile: 'Pet Maya — Account & Pet EHR Records',
   admin: 'Pet Maya — Administration Control Center',
-  'book-vet': 'Pet Maya — Schedule Veterinary Appointment & Teleconsultation',
+  'book-vet': 'Pet Maya — Schedule a Veterinary Appointment',
   login: 'Pet Maya — Guardian Portal Access & Sovereign Health Vault',
   signin: 'Pet Maya — Guardian Portal Access & Sovereign Health Vault',
   signup: 'Pet Maya — Register Sovereign Guardian Account & Microchip',
@@ -147,13 +148,13 @@ const PAGE_DESCRIPTIONS = {
   shop: 'Shop genuine veterinary prescription medications, specialty food diets, tick preventatives, and smart GPS radar tracking collars on Pet Maya.',
   tracker: 'Sub-meter satellite GPS pet radar with interactive sonar, geofence boundary breach alarms, and smart biometric collar sensors.',
   ai: 'Instant AI neural health triage: Scan pet eye, skin, dental, and mobility conditions with your smartphone camera for rapid symptom assessment.',
-  vets: 'Book in-clinic consultations, surgeries, and HD video teleconsultations with 500+ verified veterinarians and livestock officers.',
+  vets: 'Book in-clinic consultations and surgeries with 500+ verified veterinarians and livestock officers.',
   community: 'Join the Pet Maya pet parent community. Share moments, ask veterinary questions, like, comment, and celebrate pet memories.',
   food: 'Scientific RER/MER calorie calculators, dry/wet nutrition ratio guidelines, and expert veterinary dietary guides.',
   vaccines: 'Never miss an immunization: Digital vaccination passport with automated rabies reminders and 1-click Apple Calendar sync.',
   profile: 'Manage your verified pet owner profile, registered pets, electronic health records, and clinic appointment history.',
   admin: 'Pet Maya administrative control center for specialist approvals, inventory management, and platform metrics.',
-  'book-vet': 'Schedule appointments and video teleconsultations with verified veterinarians and animal health clinicians.',
+  'book-vet': 'Schedule appointments with verified veterinarians and animal health clinicians.',
   login: 'Sign in to Pet Maya Guardian Portal. Manage electronic health records, cold-chain biologics formulary, and live collar telemetry.',
   signin: 'Sign in to Pet Maya Guardian Portal. Manage electronic health records, cold-chain biologics formulary, and live collar telemetry.',
   signup: 'Create your Pet Maya guardian account. Link ISO 11784 microchips, unlock 24/7 veterinary triage, and digital health records.',
@@ -364,7 +365,7 @@ export function AppProvider({ children }) {
   const [globalBanner, setGlobalBanner] = useState(() => {
     const DEFAULT_BANNER = {
       isActive: true,
-      text: "WINTER CLINICAL PROTOCOL • COMPLIMENTARY VETERINARY TELEHEALTH TRIAGE WITH EVERY BESPOKE WELLNESS PLAN.",
+      text: "WINTER CLINICAL PROTOCOL • COMPLIMENTARY VETERINARY HEALTH CHECK WITH EVERY BESPOKE WELLNESS PLAN.",
       linkText: "",
       linkUrl: "#",
       bgColor: "#F8F3EF",
@@ -563,7 +564,8 @@ export function AppProvider({ children }) {
           const n = new Notification(title, payload);
           n.onclick = () => {
             window.focus();
-            if (payload.data && payload.data.url) window.location.href = payload.data.url;
+            const to = safeInternalPath(payload.data?.url);
+            if (to) window.location.href = to;
           };
         } catch (_) {}
       });
@@ -575,7 +577,8 @@ export function AppProvider({ children }) {
       const n = new Notification(title, payload);
       n.onclick = () => {
         window.focus();
-        if (payload.data && payload.data.url) window.location.href = payload.data.url;
+        const to = safeInternalPath(payload.data?.url);
+        if (to) window.location.href = to;
       };
     } catch (_) {}
   };
@@ -708,12 +711,11 @@ export function AppProvider({ children }) {
       } catch (_) {}
     }
 
-    // If guest or no user, query all public pets from Firestore
+    // Pets are private: only a signed-in owner's own pets are loaded.
+    if (!currentUser || currentUser.uid.startsWith('demo_guest')) return undefined;
     try {
       const petsRef = collection(db, 'pets');
-      const q = (currentUser && !currentUser.uid.startsWith('demo_guest'))
-        ? query(petsRef, where('ownerID', '==', currentUser.uid))
-        : query(petsRef);
+      const q = query(petsRef, where('ownerID', '==', currentUser.uid));
 
       const unsubscribe = onSnapshot(q, (snapshot) => {
         if (!snapshot.empty) {
@@ -758,8 +760,10 @@ export function AppProvider({ children }) {
 
   // ─── 1.2 FIREBASE REAL-TIME HARDWARE DEVICES LISTENER ───
   useEffect(() => {
+    const ownerUid = currentUser && !currentUser.uid.startsWith('demo_guest') ? currentUser.uid : null;
+    if (!ownerUid) return undefined;
     try {
-      const devicesRef = collection(db, 'devices');
+      const devicesRef = query(collection(db, 'devices'), where('ownerId', '==', ownerUid));
       const unsubscribe = onSnapshot(devicesRef, (snapshot) => {
         if (!snapshot.empty) {
           const fetchedDevices = snapshot.docs.map(docSnap => ({
@@ -780,7 +784,7 @@ export function AppProvider({ children }) {
     } catch (e) {
       console.warn('[Firebase] Devices setup error:', e);
     }
-  }, []);
+  }, [currentUser?.uid]);
 
   // ─── 1.3 FIREBASE REAL-TIME BLOGS LISTENER ───
   useEffect(() => {
@@ -881,7 +885,9 @@ export function AppProvider({ children }) {
         } catch (_) {}
       }
 
-      const devicesRef = collection(db, 'devices');
+      const ownerUid = currentUser && !currentUser.uid.startsWith('demo_guest') ? currentUser.uid : null;
+      if (!ownerUid) return undefined;
+      const devicesRef = query(collection(db, 'devices'), where('ownerId', '==', ownerUid));
       const unsubscribe = onSnapshot(devicesRef, (snapshot) => {
         if (!snapshot.empty) {
           const fetchedDevices = snapshot.docs.map(docSnap => ({
@@ -900,7 +906,7 @@ export function AppProvider({ children }) {
     } catch (e) {
       console.warn('[Firebase] Devices setup error:', e);
     }
-  }, []);
+  }, [currentUser?.uid]);
 
   // ─── 2. FIREBASE REAL-TIME VETS LISTENER ───
   useEffect(() => {
@@ -1007,10 +1013,10 @@ export function AppProvider({ children }) {
     }
   }, []);
 
-  // ─── 3.5. FIREBASE REAL-TIME USERS MAP ───
+  // ─── 3.5. FIREBASE REAL-TIME AUTHOR MAP (public profiles only) ───
   useEffect(() => {
     try {
-      const usersRef = collection(db, 'users');
+      const usersRef = collection(db, 'public_profiles');
       const unsubscribe = onSnapshot(usersRef, (snapshot) => {
         if (!snapshot.empty) {
           const map = {};
@@ -1024,9 +1030,7 @@ export function AppProvider({ children }) {
               name: rawName,
               photoUrl: photo,
               role: data.role || 'petOwner',
-              isVerified: data.isVerified === true || data.verificationStatus === 'VERIFIED',
-              address: data.address || '',
-              phone: data.phone || ''
+              isVerified: data.isVerified === true,
             };
             if (docSnap.id) {
               map[docSnap.id] = userObj;
@@ -1300,7 +1304,7 @@ export function AppProvider({ children }) {
 
     try {
       const recordsRef = collection(db, 'service_records');
-      const q = query(recordsRef, where('userId', '==', currentUser.uid));
+      const q = query(recordsRef, where('ownerId', '==', currentUser.uid));
 
       const unsubscribe = onSnapshot(q, (snapshot) => {
         const fetched = snapshot.docs.map(docSnap => {
@@ -2101,10 +2105,18 @@ export function AppProvider({ children }) {
   const uploadImageFile = async (file, folder = 'community_images') => {
     if (!file) return null;
     try {
-      const cleanName = (file.name || 'image.jpg').replace(/[^a-zA-Z0-9._-]/g, '_');
-      const filename = `${folder}/${Date.now()}_${cleanName}`;
-      const storageRef = ref(storage, filename);
-      const uploadTask = uploadBytesResumable(storageRef, file);
+      // Real image check (magic bytes, ≤ 5 MB) and the uploader's own folder,
+      // matching storage.rules.
+      let type;
+      try {
+        type = await validateUpload(file, 'image');
+      } catch (err) {
+        showToast(err.message, 'error');
+        return null;
+      }
+      if (!currentUser || currentUser.uid.startsWith('demo_guest')) return null;
+      const storageRef = ref(storage, ownUploadPath(folder, currentUser.uid, type.ext));
+      const uploadTask = uploadBytesResumable(storageRef, file, { contentType: type.contentType });
 
       return new Promise((resolve) => {
         uploadTask.on(

@@ -163,6 +163,7 @@ class _PetTrackerScreenState extends State<PetTrackerScreen> with SingleTickerPr
     );
 
     return GlassScaffold(
+      maxContentWidth: double.infinity,
       body: Stack(
         children: [
           // ─── FULL SCREEN 3D MAP ─────────────────────────────────────────────

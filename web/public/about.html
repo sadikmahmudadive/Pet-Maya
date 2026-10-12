@@ -334,7 +334,7 @@
       </a>
 
       <div class="nav-actions">
-        <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" aria-label="Toggle theme">
+        <button class="theme-toggle-btn" id="themeToggleBtn" aria-label="Toggle theme">
           🌙
         </button>
         <a href="/" class="btn-nav">← Back to Home</a>
@@ -411,24 +411,7 @@
     <p>© 2026 Pet Maya by VertexHand & MASA. All rights reserved.</p>
   </footer>
 
-  <script>
-    function toggleTheme() {
-      const isDark = document.body.getAttribute('data-theme') === 'dark';
-      document.body.setAttribute('data-theme', isDark ? 'light' : 'dark');
-      document.getElementById('themeToggleBtn').textContent = isDark ? '🌙' : '☀️';
-      localStorage.setItem('petmaya_theme', isDark ? 'light' : 'dark');
-    }
-
-    // Auto-detect theme
-    (function () {
-      const saved = localStorage.getItem('petmaya_theme');
-      if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        document.body.setAttribute('data-theme', 'dark');
-        const btn = document.getElementById('themeToggleBtn');
-        if (btn) btn.textContent = '☀️';
-      }
-    })();
-  </script>
+  <script src="/static-page.js"></script>
 </body>
 
 </html>

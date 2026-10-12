@@ -52,7 +52,7 @@ export default function SignIn() {
           <h1 className="display-1" style={{ fontSize: 'clamp(38px,4.2vw,56px)' }}>Calmer, simpler care for the pets you love.</h1>
           <Ph label="photo — pet resting at home" style={{ height: 260, borderRadius: 22 }} />
           <div className="stack gap-10">
-            {[['lock', 'Health vault', 'Records, vaccines and prescriptions in one place.'], [TRUST[0].icon, TRUST[0].title, TRUST[0].text], ['video', 'Vets on video', 'Book a consult in minutes from your phone.']].map(([i, t, d]) => (
+            {[['lock', 'Health vault', 'Records, vaccines and prescriptions in one place.'], [TRUST[0].icon, TRUST[0].title, TRUST[0].text], ['stethoscope', 'Verified vets', 'Book a clinic visit in minutes from your phone.']].map(([i, t, d]) => (
               <div key={t} className="card row gap-12" style={{ padding: 16 }}><span className="well teal"><Icon name={i} /></span><div><b style={{ fontSize: 15 }}>{t}</b><div className="sub">{d}</div></div></div>
             ))}
           </div>

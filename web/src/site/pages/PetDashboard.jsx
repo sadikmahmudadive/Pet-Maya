@@ -17,7 +17,7 @@ const read = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; 
 
 const QUICK = [
   ['pulse', 'Check symptoms', 'AI triage in 2 minutes', '/triage', 'teal'],
-  ['video', 'Talk to a vet', 'Video or clinic visit', '/specialists', 'teal'],
+  ['stethoscope', 'Book a vet', 'Clinic visit', '/specialists', 'teal'],
   ['target', 'GPS radar', 'Live location & safe zones', '/gps', ''],
   ['file', 'Health vault', 'Records & vaccines', '/vault', ''],
   ['bag', 'Care shop', 'Medicine, food & gear', '/shop', 'yellow'],
@@ -29,7 +29,11 @@ export default function PetDashboard() {
   const { openModal } = useApp();
   const real = user && !String(user.uid).startsWith('demo_guest');
   const events = useMyEvents(user);
-  const devices = useCollection('devices', { map: normDevice, sample: [normDevice(SAMPLE_DEVICE.id, SAMPLE_DEVICE)], sampleWhenEmpty: !real });
+  // Live location is private: only the signed-in owner's collars (guests see the sample).
+  const devices = useCollection('devices', {
+    map: normDevice, sample: [normDevice(SAMPLE_DEVICE.id, SAMPLE_DEVICE)], sampleWhenEmpty: !real,
+    filters: real ? [['ownerId', '==', user.uid]] : [], enabled: !!real,
+  });
   const [done, setDone] = useState(() => read('pm_dash_done', []));
   const pet = activePet;
 
@@ -44,7 +48,7 @@ export default function PetDashboard() {
     const now = Date.now();
     if (!real) {
       const d = new Date(); d.setDate(d.getDate() + 3); d.setHours(10, 30, 0, 0);
-      return [{ id: 's1', pet: 'Milo', reason: 'Wellness check & stool test', doctor: 'Dr. Tariq Rahman', start: d.getTime(), mode: 'Video', status: 'Confirmed' }];
+      return [{ id: 's1', pet: 'Milo', reason: 'Wellness check & stool test', doctor: 'Dr. Tariq Rahman', start: d.getTime(), mode: 'Clinic', status: 'Confirmed' }];
     }
     return (events.items || []).filter((e) => e.start >= now - 3600e3).sort((a, b) => a.start - b.start);
   }, [real, events.items]);
@@ -71,7 +75,7 @@ export default function PetDashboard() {
 
   // Today's checklist, built from real data.
   const todo = [
-    next && { id: `appt-${next.id}`, icon: 'calendar', text: `${next.mode === 'Video' ? 'Video consult' : 'Clinic visit'} with ${next.doctor || 'your vet'}`, sub: `${shortDate(next.start)} · ${timeOfDay(next.start)}`, to: '/vault' },
+    next && { id: `appt-${next.id}`, icon: 'calendar', text: `Clinic visit with ${next.doctor || 'your vet'}`, sub: `${shortDate(next.start)} · ${timeOfDay(next.start)}`, to: '/vault' },
     pet?.nextVaccine && { id: `vac-${pet.id}`, icon: 'shield', text: `${pet.name}’s vaccine is due`, sub: pet.nextVaccine, to: '/specialists' },
     active.find((o) => o.status === 'Rx review') && { id: 'rx', icon: 'file', text: 'Prescription being checked', sub: 'We’ll message you once it’s approved', to: `/account/orders/${active.find((o) => o.status === 'Rx review').id}` },
     reorder[0] && { id: `re-${reorder[0].id}`, icon: 'refresh', text: `Running low on ${reorder[0].name}?`, sub: `Last ordered ${shortDate(reorder[0].lastAt)}`, action: () => addToCart(reorder[0]) },
@@ -104,7 +108,7 @@ export default function PetDashboard() {
           {isAdmin && <Button variant="ghost" icon="grid" to="/admin">Admin console</Button>}
           <Button variant="outline" icon="phoneDevice" onClick={() => openModal && openModal('myDevices')}>My Devices</Button>
           <Button variant="outline" icon="bag" to="/shop">Shop</Button>
-          <Button variant="teal" icon="video" to="/specialists">Book a vet</Button>
+          <Button variant="teal" icon="stethoscope" to="/specialists">Book a vet</Button>
         </div>
       </div>
 
@@ -186,7 +190,7 @@ export default function PetDashboard() {
                   <div key={e.id} className="list-row">
                     <div className="dash-date"><b>{new Date(e.start).getDate()}</b><small>{new Date(e.start).toLocaleDateString('en-GB', { month: 'short' })}</small></div>
                     <div className="grow"><b style={{ fontSize: 14 }}>{e.reason}</b><div className="sub" style={{ fontSize: 12 }}>{timeOfDay(e.start)} · {e.doctor || 'Vet to be assigned'} · {e.pet}</div></div>
-                    <Pill tone={/pending/i.test(e.status) ? 'yellow' : 'teal'} sm icon={e.mode === 'Video' ? 'video' : 'pin'}>{/pending/i.test(e.status) ? 'Requested' : e.mode}</Pill>
+                    <Pill tone={/pending/i.test(e.status) ? 'yellow' : 'teal'} sm icon="pin">{/pending/i.test(e.status) ? 'Requested' : e.mode}</Pill>
                   </div>
                 ))}
               </div>

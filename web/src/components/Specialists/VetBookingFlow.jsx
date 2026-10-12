@@ -94,7 +94,7 @@ export default function VetBookingFlow({ initialVet, onComplete, onCancel }) {
 
     addAppointment({
       id: newId,
-      title: `${consultationMode.includes('Video') ? 'Video Tele-Consult' : 'Clinical Visit'} with ${selectedVet.name}`,
+      title: `Clinical Visit with ${selectedVet.name}`,
       doctor: selectedVet.name,
       doctorPhoto: selectedVet.photo,
       clinic: selectedVet.clinic || 'Pet Maya Health Center',
@@ -239,7 +239,7 @@ export default function VetBookingFlow({ initialVet, onComplete, onCancel }) {
             Schedule Clinical Care
           </h1>
           <p style={{ fontSize: '15px', color: 'var(--text-secondary)', margin: 0 }}>
-            Connect with certified veterinary doctors for in-clinic evaluations and video teleconsultations.
+            Connect with certified veterinary doctors for in-clinic evaluations.
           </p>
         </div>
 
@@ -317,7 +317,7 @@ export default function VetBookingFlow({ initialVet, onComplete, onCancel }) {
             {/* Consultation Mode Switcher */}
             <div style={{
               display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
+              gridTemplateColumns: '1fr',
               gap: '12px',
               marginBottom: '24px'
             }}>
@@ -342,29 +342,6 @@ export default function VetBookingFlow({ initialVet, onComplete, onCancel }) {
               >
                 <Building2 size={18} />
                 <span>In-Clinic Visit</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setConsultationMode('HD Video Teleconsult')}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '10px',
-                  padding: '14px',
-                  borderRadius: '14px',
-                  border: consultationMode.includes('Video') ? '2px solid #2ECC9B' : '1px solid var(--border)',
-                  backgroundColor: consultationMode.includes('Video') ? 'rgba(46, 204, 155, 0.08)' : 'var(--surface)',
-                  color: consultationMode.includes('Video') ? '#158763' : 'var(--foreground)',
-                  fontWeight: 600,
-                  fontSize: '14px',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                <Video size={18} />
-                <span>HD Video Teleconsult</span>
               </button>
             </div>
 

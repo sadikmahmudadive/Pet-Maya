@@ -7,6 +7,7 @@ import '../../core/theme/app_typography.dart';
 import '../../data/repositories/app_state_repository.dart';
 import '../common_widgets/glass_scaffold.dart';
 import '../common_widgets/premium_card.dart';
+import '../../core/responsive.dart';
 
 class AdminVerifyVetsScreen extends StatelessWidget {
   const AdminVerifyVetsScreen({super.key});
@@ -17,6 +18,7 @@ class AdminVerifyVetsScreen extends StatelessWidget {
     final vets = state.vets;
 
     return GlassScaffold(
+      maxContentWidth: Responsive.dashboardMaxWidth,
       appBar: AppBar(
         title: const Text('License Approvals', style: TextStyle(fontWeight: FontWeight.w800)),
         backgroundColor: Colors.transparent,

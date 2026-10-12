@@ -6,6 +6,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../data/repositories/app_state_repository.dart';
 import '../common_widgets/glass_scaffold.dart';
 import '../common_widgets/premium_card.dart';
+import '../../core/responsive.dart';
 
 class AdminBroadcastScreen extends StatefulWidget {
   const AdminBroadcastScreen({super.key});
@@ -80,6 +81,7 @@ class _AdminBroadcastScreenState extends State<AdminBroadcastScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GlassScaffold(
+      maxContentWidth: Responsive.dashboardMaxWidth,
       appBar: AppBar(
         title: const Text('System Broadcast', style: TextStyle(fontWeight: FontWeight.w800)),
         backgroundColor: Colors.transparent,

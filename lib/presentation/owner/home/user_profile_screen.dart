@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/app_info.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
@@ -339,7 +340,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           icon: Icons.info_outline_rounded,
                           iconColor: Colors.grey,
                           title: 'App Version',
-                          subtitle: 'v2.4.0 (Build 42)',
+                          subtitle: AppInfo.label,
                           showChevron: false,
                         ),
                       ],

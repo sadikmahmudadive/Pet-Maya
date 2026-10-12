@@ -7,7 +7,7 @@ import { Reveal, Count } from '../../lib/motion.jsx';
 import { BRAND } from '../../data/content.js';
 
 const SERVICES = [
-  { k: 'Veterinarian', label: 'Veterinarian', sub: 'Video & clinic consults', icon: 'stethoscope', tag: 'Video & clinic' },
+  { k: 'Veterinarian', label: 'Veterinarian', sub: 'Clinic consults', icon: 'stethoscope', tag: 'Clinic visits' },
   { k: 'Boarding', label: 'Boarding', sub: 'Stays & recovery care', icon: 'home', tag: 'Supervised' },
   { k: 'Pet Shop', label: 'Pet shop', sub: 'Medicine & food', icon: 'bag', tag: 'Cold-chain Rx' },
   { k: 'Grooming', label: 'Pet groomer', sub: 'Baths, cuts & spa', icon: 'paw', tag: 'Fear-free' },
@@ -60,7 +60,7 @@ export default function Specialists() {
           Talk to a vet, <em className="accent">without the waiting room.</em>
         </h1>
         <p className="lead" style={{ marginTop: 18 }}>
-          Video consults and clinic visits with vets for skin, tummy, joints, behaviour and emergencies. Prescriptions go straight to your bag.
+          Clinic visits with vets for skin, tummy, joints, behaviour and emergencies. Prescriptions go straight to your bag.
         </p>
         <div className="kpi-row" style={{ marginTop: 26 }}>
           {[['stethoscope', 'Vets', `${pool.length} available`], ['clock', 'Response', 'Usually same day'], ['shield', 'Checks', 'Licence verified'], ['cloud', 'Records', 'Saved to Health Vault']].map(([i, k, v]) => (
@@ -109,8 +109,7 @@ export default function Specialists() {
                 {v.focus.length > 0 && <div className="focus-tags">{v.focus.slice(0, 3).map((f) => <span key={f}>{f}</span>)}</div>}
                 <div style={{ fontSize: 14, marginTop: 'auto' }}><b style={{ fontSize: 20 }}>{money(v.price)}</b> <span className="muted">/ 25 min session</span></div>
                 <div className="row gap-8">
-                  <Button variant={v.emergency ? 'red' : 'teal'} className="grow" onClick={() => setBooking({ vet: v, mode: 'Video' })}>{v.emergency ? 'Urgent video call' : 'Book video call'}</Button>
-                  <Button variant="soft" onClick={() => setBooking({ vet: v, mode: 'Clinic' })}>Clinic visit</Button>
+                  <Button variant={v.emergency ? 'red' : 'teal'} className="grow" icon="calendar" onClick={() => setBooking({ vet: v })}>{v.emergency ? 'Urgent visit' : 'Book a visit'}</Button>
                 </div>
               </article>
             ))}
@@ -126,7 +125,7 @@ export default function Specialists() {
           <div className="trio" style={{ marginTop: 22 }}>
             {[
               ['01', 'Share what’s happening', 'Pick your pet, describe the problem and add photos. Their weight, vaccines and history are shared with the vet automatically.', 'No repeated forms'],
-              ['02', 'Talk it through', 'A 25-minute video call or clinic visit. The vet can see the problem, ask questions and agree a plan with you.', 'Private, secure call'],
+              ['02', 'Talk it through', 'A 25-minute clinic visit. The vet examines your pet, answers your questions and agrees a plan with you.', 'No waiting-room queue'],
               ['03', 'Get the treatment', 'If medicine is needed, the vet sends the prescription to your bag and we deliver — cold items stay at 2–8°C.', 'Same-day in Dhaka'],
             ].map(([n, t, d, f]) => (
               <div key={n} className="card flat stack gap-10" style={{ padding: 22 }}>
@@ -169,16 +168,16 @@ export default function Specialists() {
         <div className="emergency-band">
           <div className="row gap-8" style={{ color: '#F19A90' }}><span className="dot red" /><span className="eyebrow" style={{ color: '#F19A90' }}>Emergency</span></div>
           <h2 className="display-2" style={{ marginTop: 12, maxWidth: '22ch' }}>Collapse, poisoning or a road accident?</h2>
-          <p style={{ marginTop: 12, color: 'rgba(255,255,255,.7)', maxWidth: '60ch' }}>Don’t wait for a booked slot. Start an urgent video call now — the vet will tell you whether to go straight to a clinic and what to do on the way.</p>
+          <p style={{ marginTop: 12, color: 'rgba(255,255,255,.7)', maxWidth: '60ch' }}>Don’t wait for a booked slot. Call us or book the next urgent visit — we’ll tell you where to go and what to do on the way.</p>
           <div className="row gap-10 wrap" style={{ marginTop: 22 }}>
-            {emergencyVet && <Button variant="red" icon="video" onClick={() => setBooking({ vet: emergencyVet, mode: 'Video' })}>Urgent video call</Button>}
+            {emergencyVet && <Button variant="red" icon="calendar" onClick={() => setBooking({ vet: emergencyVet })}>Book an urgent visit</Button>}
             {BRAND.supportPhone && <Button className="btn-ghost-dark" variant="ghost" icon="phone" to={`tel:${BRAND.supportPhone.replace(/\s/g, '')}`}>{BRAND.supportPhone}</Button>}
             <Button className="btn-ghost-dark" variant="ghost" icon="pulse" to="/triage">Check symptoms first</Button>
           </div>
         </div>
       </section>
 
-      {booking && <BookingModal vet={booking.vet} defaultMode={booking.mode} onClose={() => setBooking(null)} />}
+      {booking && <BookingModal vet={booking.vet} onClose={() => setBooking(null)} />}
     </div>
   );
 }

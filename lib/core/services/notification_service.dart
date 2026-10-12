@@ -4,7 +4,6 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'call_service.dart';
 
 /// Production-grade multi-channel notification manager for Android, iOS, and Web.
 /// Guarantees heads-up banners across Foreground, Background, and Terminated app states.
@@ -166,12 +165,6 @@ class NotificationService {
 
   /// Handle messages received while the app is in the foreground or background
   void handleRemoteMessage(RemoteMessage message) {
-    final type = message.data['type'];
-    if (type == 'incoming_call') return; // CallService's Firestore listener rings in foreground
-    if (type == 'call_ended') {
-      CallService.hideIncoming(message.data['callId'] ?? '');
-      return;
-    }
     String title =
         message.notification?.title ?? message.data['title'] ?? 'Pet Maya Alert';
     String body = message.notification?.body ??

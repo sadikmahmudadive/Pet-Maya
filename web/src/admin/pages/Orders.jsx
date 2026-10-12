@@ -32,6 +32,7 @@ const TABS = [['all', 'All'], ['Rx review', 'Needs Rx'], ['Packing', 'Packing'],
 const PAGE = 10;
 
 import { Portal, Field } from '../../ui/index.jsx';
+import { escapeHtml, openPrintWindow } from '../../lib/security.js';
 
 function ManualOrderModal({ onClose, onSave, products = [], customers = [] }) {
   const [custName, setCustName] = useState('');
@@ -241,10 +242,9 @@ export default function Orders({ user }) {
     setSel([]);
   };
   const printLabels = () => {
-    const w = window.open('', '_blank', 'width=720,height=900');
-    if (!w) return;
-    w.document.write(`<title>Labels</title><style>body{font-family:system-ui;margin:24px}.l{border:1px dashed #999;border-radius:12px;padding:18px;margin-bottom:14px;page-break-inside:avoid}b{font-size:20px}</style>${selected.map((o) => `<div class="l"><b>${o.id}</b><div>${o.customer} · ${o.phone || ''}</div><div>${o.address || o.area}</div><div>${o.items.length} items${o.hasCold ? ' · KEEP COLD 2–8°C' : ''}</div></div>`).join('')}`);
-    w.document.close(); w.focus(); w.print();
+    // Order fields come from customers: escape every one (stored XSS).
+    const e = escapeHtml;
+    openPrintWindow(`<title>Labels</title><style>body{font-family:system-ui;margin:24px}.l{border:1px dashed #999;border-radius:12px;padding:18px;margin-bottom:14px;page-break-inside:avoid}b{font-size:20px}</style>${selected.map((o) => `<div class="l"><b>${e(o.id)}</b><div>${e(o.customer)} · ${e(o.phone || '')}</div><div>${e(o.address || o.area)}</div><div>${Number(o.items.length) || 0} items${o.hasCold ? ' · KEEP COLD 2–8°C' : ''}</div></div>`).join('')}`);
   };
 
   return (

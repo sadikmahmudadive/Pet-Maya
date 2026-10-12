@@ -5,6 +5,7 @@ import { useAdmin, useAdminWrite } from '../data.jsx';
 import { StatusPill, statusUpdate, syncOrderStock } from './Orders.jsx';
 import { Icon, Button, Pill, Avatar, Ph, Empty, Field } from '../../ui/index.jsx';
 import { money, timeOfDay, shortDate, cx } from '../../lib/format.js';
+import { escapeHtml, openPrintWindow } from '../../lib/security.js';
 
 const NEXT = { 'Rx review': ['Packing', 'Approve Rx'], Packing: ['In transit', 'Send out'], 'In transit': ['Delivered', 'Mark delivered'] };
 
@@ -50,10 +51,10 @@ export default function OrderDetail({ params, user }) {
     if (await write('orders', o.docId, { courier }, 'Courier assigned')) setEditCourier(false);
   };
   const printSlip = () => {
-    const w = window.open('', '_blank', 'width=720,height=900');
-    if (!w) return;
-    w.document.write(`<title>${o.id}</title><style>body{font-family:system-ui;margin:32px}td{padding:6px 0}table{width:100%;border-collapse:collapse}tr+tr td{border-top:1px solid #eee}</style><h2>Pet Maya · ${o.id}</h2><p>${o.customer}<br>${o.phone || ''}<br>${o.address || o.area}</p><table>${o.items.map((i) => `<tr><td>${i.name}${i.variant ? ` (${i.variant})` : ''}</td><td>× ${i.qty}</td><td style="text-align:right">৳${(i.price * i.qty).toLocaleString()}</td></tr>`).join('')}<tr><td><b>Total</b></td><td></td><td style="text-align:right"><b>৳${o.total.toLocaleString()}</b></td></tr></table>${o.hasCold ? '<p><b>KEEP COLD 2–8°C</b></p>' : ''}`);
-    w.document.close(); w.focus(); w.print();
+    // Order fields come from the customer: escape every one (stored XSS).
+    const e = escapeHtml;
+    const n = (v) => (Number(v) || 0).toLocaleString();
+    openPrintWindow(`<title>${e(o.id)}</title><style>body{font-family:system-ui;margin:32px}td{padding:6px 0}table{width:100%;border-collapse:collapse}tr+tr td{border-top:1px solid #eee}</style><h2>Pet Maya · ${e(o.id)}</h2><p>${e(o.customer)}<br>${e(o.phone || '')}<br>${e(o.address || o.area)}</p><table>${o.items.map((i) => `<tr><td>${e(i.name)}${i.variant ? ` (${e(i.variant)})` : ''}</td><td>× ${n(i.qty)}</td><td style="text-align:right">৳${n(i.price * i.qty)}</td></tr>`).join('')}<tr><td><b>Total</b></td><td></td><td style="text-align:right"><b>৳${n(o.total)}</b></td></tr></table>${o.hasCold ? '<p><b>KEEP COLD 2–8°C</b></p>' : ''}`);
   };
 
   return (

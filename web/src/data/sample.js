@@ -104,20 +104,20 @@ export const SAMPLE_CUSTOMERS = [
 
 const d0 = (h, m) => at(h, m);
 export const SAMPLE_APPOINTMENTS = [
-  { id: 'a1', pet: 'Milo', reason: 'Skin check', vetId: 'v-sabrina', start: d0(9, 0), minutes: 60, mode: 'Video' },
+  { id: 'a1', pet: 'Milo', reason: 'Skin check', vetId: 'v-sabrina', start: d0(9, 0), minutes: 60, mode: 'Clinic' },
   { id: 'a2', pet: 'Bella', reason: 'Follow-up', vetId: 'v-sabrina', start: d0(11, 0), minutes: 60, mode: 'Clinic', tentative: true },
   { id: 'a3', pet: 'Rocky', reason: 'Allergy plan', vetId: 'v-sabrina', start: d0(13, 0), minutes: 90, mode: 'Clinic' },
-  { id: 'a4', pet: 'Coco', reason: 'Insulin review', vetId: 'v-tariq', start: d0(10, 0), minutes: 60, mode: 'Video' },
-  { id: 'a5', pet: 'Max', reason: 'Lab results', vetId: 'v-tariq', start: d0(12, 0), minutes: 60, mode: 'Video', tentative: true },
+  { id: 'a4', pet: 'Coco', reason: 'Insulin review', vetId: 'v-tariq', start: d0(10, 0), minutes: 60, mode: 'Clinic' },
+  { id: 'a5', pet: 'Max', reason: 'Lab results', vetId: 'v-tariq', start: d0(12, 0), minutes: 60, mode: 'Clinic', tentative: true },
   { id: 'a6', pet: 'Oreo', reason: 'Checkup', vetId: 'v-tariq', start: d0(14, 0), minutes: 60, mode: 'Clinic', tentative: true },
   { id: 'a7', pet: 'Simba', reason: 'Urgent triage', vetId: 'v-nadia', start: d0(9, 0), minutes: 90, mode: 'Clinic', urgent: true },
-  { id: 'a8', pet: 'Luna', reason: 'Limping', vetId: 'v-nadia', start: d0(12, 0), minutes: 60, mode: 'Video' },
-  { id: 'a9', pet: 'Kitty', reason: 'Anxiety', vetId: 'v-imran', start: d0(11, 0), minutes: 90, mode: 'Video' },
+  { id: 'a8', pet: 'Luna', reason: 'Limping', vetId: 'v-nadia', start: d0(12, 0), minutes: 60, mode: 'Clinic' },
+  { id: 'a9', pet: 'Kitty', reason: 'Anxiety', vetId: 'v-imran', start: d0(11, 0), minutes: 90, mode: 'Clinic' },
 ];
 
 export const SAMPLE_REQUESTS = [
-  { id: 'r1', customer: 'Rumana Islam', mode: 'Video', reason: 'Limping', pet: 'Bella', waitingMin: 4 },
-  { id: 'r2', customer: 'Shafiq Anwar', mode: 'Video', reason: 'Vomiting', pet: 'Rocky', waitingMin: 2 },
+  { id: 'r1', customer: 'Rumana Islam', mode: 'Clinic', reason: 'Limping', pet: 'Bella', waitingMin: 4 },
+  { id: 'r2', customer: 'Shafiq Anwar', mode: 'Clinic', reason: 'Vomiting', pet: 'Rocky', waitingMin: 2 },
 ];
 
 export const SAMPLE_POSTS = [

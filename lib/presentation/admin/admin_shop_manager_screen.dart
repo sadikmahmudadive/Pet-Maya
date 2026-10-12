@@ -19,6 +19,7 @@ import '../common_widgets/lottie_upload_icon.dart';
 import '../../data/models/coupon_model.dart';
 import '../../data/models/promo_model.dart';
 import '../../presentation/common_widgets/premium_toast.dart';
+import '../../core/responsive.dart';
 
 class AdminShopManagerScreen extends StatefulWidget {
   const AdminShopManagerScreen({super.key});
@@ -61,6 +62,7 @@ class _AdminShopManagerScreenState extends State<AdminShopManagerScreen> {
     final lowStockCount = products.where((p) => p.stockQuantity < 5).length;
 
     return GlassScaffold(
+      maxContentWidth: Responsive.dashboardMaxWidth,
       appBar: AppBar(
         title: const Text(
           'Inventory Command',

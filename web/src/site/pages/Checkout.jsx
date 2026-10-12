@@ -5,6 +5,7 @@ import { storage, ref, uploadBytesResumable, getDownloadURL } from '../../config
 import { Icon, Button, Ph, Pill, Field, Empty } from '../../ui/index.jsx';
 import { money, cx } from '../../lib/format.js';
 import { DELIVERY } from '../../data/content.js';
+import { validateUpload, ownUploadPath } from '../../lib/security.js';
 
 const PAYMENTS = [
   { k: 'bKash', icon: 'phoneDevice', sub: 'Mobile payment' },
@@ -55,12 +56,18 @@ export default function Checkout() {
     setBusy(true);
     try {
       let rxUrl = '';
-      if (rxFile && storage) {
+      if (rxFile && storage && user?.uid && !String(user.uid).startsWith('demo_guest')) {
         try {
-          const r = ref(storage, `prescriptions/${user?.uid || 'guest'}/${Date.now()}_${rxFile.name}`);
-          await uploadBytesResumable(r, rxFile);
+          // Prescriptions are private medical documents: PDF/photo only, ≤ 15 MB,
+          // in the customer's own folder (readable by them and pharmacy staff).
+          const type = await validateUpload(rxFile, 'document');
+          const r = ref(storage, ownUploadPath('prescriptions', user.uid, type.ext));
+          await uploadBytesResumable(r, rxFile, { contentType: type.contentType });
           rxUrl = await getDownloadURL(r);
-        } catch { /* order still goes through; pharmacy will ask for it */ }
+        } catch (uploadErr) {
+          // Order still goes through; pharmacy will ask for it.
+          if (uploadErr?.message && !uploadErr.code) setErr(uploadErr.message);
+        }
       }
       const id = await placeOrder({
         ...f,

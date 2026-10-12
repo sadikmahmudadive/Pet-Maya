@@ -248,15 +248,7 @@
         </div>
     </div>
 
-    <script>
-        (function() {
-            const saved = localStorage.getItem('petmaya_theme');
-            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-            if (saved === 'dark' || (!saved && prefersDark)) {
-                document.documentElement.setAttribute('data-theme', 'dark');
-            }
-        })();
-    </script>
+    <script src="/static-page.js"></script>
 </body>
 </html>
 

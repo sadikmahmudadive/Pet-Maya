@@ -66,6 +66,11 @@ class AppTheme {
         titleTextStyle: AppTypography.titleLarge.copyWith(color: AppColors.textPrimary),
         systemOverlayStyle: SystemUiOverlayStyle.dark,
       ),
+      // Bottom sheets stay a comfortable width on tablets/desktop instead of
+      // stretching edge to edge.
+      bottomSheetTheme: const BottomSheetThemeData(
+        constraints: BoxConstraints(maxWidth: 640),
+      ),
       dividerTheme: const DividerThemeData(
         color: AppColors.iosDivider,
         thickness: 0.5,
@@ -181,6 +186,11 @@ class AppTheme {
         iconTheme: const IconThemeData(color: AppColors.textPrimaryDark),
         titleTextStyle: AppTypography.titleLarge.copyWith(color: AppColors.textPrimaryDark),
         systemOverlayStyle: SystemUiOverlayStyle.light,
+      ),
+      // Bottom sheets stay a comfortable width on tablets/desktop instead of
+      // stretching edge to edge.
+      bottomSheetTheme: const BottomSheetThemeData(
+        constraints: BoxConstraints(maxWidth: 640),
       ),
       dividerTheme: const DividerThemeData(
         color: AppColors.iosDividerDark,

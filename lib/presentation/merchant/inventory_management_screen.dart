@@ -10,6 +10,7 @@ import '../common_widgets/glass_scaffold.dart';
 import '../common_widgets/premium_card.dart';
 import '../common_widgets/resilient_network_image.dart';
 import 'package:animate_do/animate_do.dart';
+import '../../core/responsive.dart';
 
 class InventoryManagementScreen extends StatelessWidget {
   const InventoryManagementScreen({super.key});
@@ -20,6 +21,7 @@ class InventoryManagementScreen extends StatelessWidget {
     final state = context.read<AppStateRepository>();
 
     return GlassScaffold(
+      maxContentWidth: Responsive.dashboardMaxWidth,
       appBar: AppBar(
         title: const Text('Store Inventory'),
         backgroundColor: Colors.transparent,

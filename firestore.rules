@@ -1,196 +1,445 @@
 rules_version = '2';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Pet Maya — Firestore security rules
+//
+// Principles
+//  • Deny by default: anything not matched below is closed.
+//  • Object-level access: every private document is tied to its owner
+//    (users/{uid}, pets.ownerID, orders.userId, events.userId/providerId,
+//    service_records.ownerId/providerId, devices.ownerId).
+//  • Server-controlled fields (role privileges, verification, suspension,
+//    referral credit, staff access, device ownership) can't be set by clients.
+//  • Cross-user side effects (referral points, public profiles, record owner
+//    stamping, order price checks) run in Cloud Functions with the Admin SDK,
+//    which bypasses these rules.
+// ─────────────────────────────────────────────────────────────────────────────
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Helper function to check if user is authenticated
-    function isAuthenticated() {
+
+    // ── Identity helpers ───────────────────────────────────────────────────
+    function signedIn() {
       return request.auth != null;
     }
-    
-    // Helper function to check if user owns the document by ID
-    function isOwner(userId) {
-      return isAuthenticated() && request.auth.uid == userId;
+    function isSelf(uid) {
+      return signedIn() && request.auth.uid == uid;
     }
-
-    // Helper function to check for Admin role
-    function isAdmin() {
-      let role = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
-      return isAuthenticated() && (role == 'Admin' || role == 'admin' || role == 'superAdmin' || role == 'Super Admin');
+    function me() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
-
-    // ── ERP / POS staff ─────────────────────────────────────────────
-    // Staff access lives in users/{uid}.staffRole (the mobile app rewrites `role`, never this).
-    function myStaffRole() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('staffRole', '');
+    function hasProfile() {
+      return signedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid));
     }
-    function hasStaffRole(roles) {
-      return isAuthenticated() && (isAdmin() || myStaffRole() in roles);
+    function myRole() {
+      return hasProfile() ? me().get('role', '') : '';
     }
-    function isStaff() {
-      return hasStaffRole(['Manager', 'Cashier', 'Pharmacist', 'Accountant', 'Storekeeper']);
+    function notSuspended() {
+      return !hasProfile() || me().get('isSuspended', false) != true;
     }
     function isPrivilegedRole(r) {
       return r is string && r.lower().matches('(super ?)?admin');
     }
+    function isAdmin() {
+      return signedIn() && isPrivilegedRole(myRole());
+    }
+    // Vets, groomers, boarding and shelters. Access to other people's pets and
+    // medical records needs an admin-verified, non-suspended provider account.
+    function isProviderRole(r) {
+      return r is string && r.lower().matches('(veterinarian|vet|grooming|groomer|boarding|shelter.*)');
+    }
+    function isVerifiedProvider() {
+      return signedIn() && isProviderRole(myRole())
+        && me().get('isVerified', false) == true
+        && me().get('isSuspended', false) != true;
+    }
+    function isShopRole(r) {
+      return r is string && r.lower().matches('(pet ?shop|petshop)');
+    }
+    function isVerifiedShop() {
+      return signedIn() && isShopRole(myRole())
+        && me().get('isVerified', false) == true
+        && me().get('isSuspended', false) != true;
+    }
 
-    // User Profiles
+    // ── ERP / POS staff (users/{uid}.staffRole; the app never writes it) ──
+    function myStaffRole() {
+      return hasProfile() ? me().get('staffRole', '') : '';
+    }
+    function hasStaffRole(roles) {
+      return signedIn() && (isAdmin() || myStaffRole() in roles);
+    }
+    function isStaff() {
+      return hasStaffRole(['Manager', 'Cashier', 'Pharmacist', 'Accountant', 'Storekeeper']);
+    }
+    function canManageCatalog() {
+      return hasStaffRole(['Manager', 'Storekeeper', 'Pharmacist']) || isVerifiedShop();
+    }
+    function canSeeAllOrders() {
+      return isStaff() || isVerifiedShop();
+    }
+
+    // ── Write-shape helpers ────────────────────────────────────────────────
+    function changed() {
+      return request.resource.data.diff(resource.data).affectedKeys();
+    }
+    function unchanged(field) {
+      return !(field in changed());
+    }
+    function shortString(v, max) {
+      return v is string && v.size() <= max;
+    }
+    function optShortString(field, max) {
+      return !(field in request.resource.data) || request.resource.data[field] == null
+        || shortString(request.resource.data[field], max);
+    }
+    // In-app links may only point inside the app/site (blocks javascript:,
+    // data: and off-site phishing URLs in notifications).
+    function isSafeLink(v) {
+      return v == null || v == '' || (v is string && v.size() <= 300 && v.matches('/[^/\\\\].*|/'));
+    }
+
+    // ── Users ──────────────────────────────────────────────────────────────
+    // Private: email, phone, address, push tokens. Other people's names and
+    // photos come from public_profiles (kept in sync by a Cloud Function).
+    function serverControlledUserFields() {
+      return ['isVerified', 'isSuspended', 'staffRole', 'referredBy', 'accountStatus'];
+    }
+    function validNewUser(uid) {
+      let d = request.resource.data;
+      return !isPrivilegedRole(d.get('role', ''))
+        && d.get('staffRole', '') == ''
+        && d.get('isVerified', false) == false
+        && d.get('isSuspended', false) == false
+        && d.get('referredBy', null) == null
+        && d.get('points', 0) is number && d.get('points', 0) <= 25
+        && d.get('uid', uid) == uid;
+    }
+    function pointsDelta() {
+      return request.resource.data.get('points', 0) - resource.data.get('points', 0);
+    }
+    function validSelfUpdate() {
+      return !changed().hasAny(serverControlledUserFields())
+        // Role: a non-privileged role, and only while the account is unverified
+        // (a verified provider can't move their verification to another role).
+        && (unchanged('role')
+            || (!isPrivilegedRole(request.resource.data.get('role', ''))
+                && resource.data.get('isVerified', false) == false))
+        // Loyalty points can only go up, in bounded steps (order/activity rewards).
+        && (unchanged('points') || (pointsDelta() > 0 && pointsDelta() <= 500))
+        && request.resource.data.get('uid', request.auth.uid) == request.auth.uid;
+    }
+
     match /users/{userId} {
-      allow read: if true;
-      // Nobody can make themselves Admin or grant themselves console (staff) access.
-      // Managers may grant staff roles, but not Manager or Admin.
-      allow create: if (!isPrivilegedRole(request.resource.data.get('role', ''))
-                        && request.resource.data.get('staffRole', '') == '') || isAdmin();
-      allow update: if (
-          !isPrivilegedRole(request.resource.data.get('role', ''))
-          || request.resource.data.get('role', '') == resource.data.get('role', '')
-          || isAdmin()
-        ) && (
-          request.resource.data.get('staffRole', '') == resource.data.get('staffRole', '')
-          || isAdmin()
-          || (hasStaffRole(['Manager']) && request.resource.data.get('staffRole', '') in ['', 'Cashier', 'Pharmacist', 'Accountant', 'Storekeeper'])
-        );
-      allow delete: if isAdmin();
+      allow get: if isSelf(userId) || isAdmin() || isStaff();
+      allow list: if isAdmin() || isStaff();
+      allow create: if (isSelf(userId) && validNewUser(userId)) || isAdmin();
+      allow update: if (isSelf(userId) && validSelfUpdate())
+        || isAdmin()
+        // Managers may grant console access, but never Manager or Admin.
+        || (hasStaffRole(['Manager'])
+            && changed().hasOnly(['staffRole', 'updatedAt'])
+            && request.resource.data.get('staffRole', '') in ['', 'Cashier', 'Pharmacist', 'Accountant', 'Storekeeper']
+            && !isPrivilegedRole(resource.data.get('role', '')));
+      allow delete: if isSelf(userId) || isAdmin();
     }
 
-    // Pets
+    // Public author card (name, photo, role label). Written only by functions.
+    match /public_profiles/{userId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // ── Pets ───────────────────────────────────────────────────────────────
+    function isPetOwner(petId) {
+      return signedIn()
+        && exists(/databases/$(database)/documents/pets/$(petId))
+        && get(/databases/$(database)/documents/pets/$(petId)).data.get('ownerID', '') == request.auth.uid;
+    }
     match /pets/{petId} {
-      allow read: if true;
-      allow write: if isAuthenticated() || true;
+      allow read: if (signedIn() && resource.data.ownerID == request.auth.uid)
+        || isAdmin() || isVerifiedProvider() || isStaff();
+      allow create: if signedIn() && notSuspended()
+        && request.resource.data.ownerID == request.auth.uid;
+      allow update: if (signedIn() && resource.data.ownerID == request.auth.uid
+                        && request.resource.data.ownerID == request.auth.uid)
+        // Providers update clinical fields (weight, vaccines) but can't re-home a pet.
+        || (isVerifiedProvider() && unchanged('ownerID'))
+        || isAdmin();
+      allow delete: if (signedIn() && resource.data.ownerID == request.auth.uid) || isAdmin();
     }
 
-    // Calendar & Reminders
+    // ── Calendar events & appointments ────────────────────────────────────
+    function eventParty() {
+      return signedIn() && (resource.data.get('userId', '') == request.auth.uid
+        || resource.data.get('providerId', '') == request.auth.uid);
+    }
     match /events/{eventId} {
-      allow read, write: if true;
+      allow read: if eventParty() || isAdmin() || isStaff();
+      allow create: if signedIn() && notSuspended() && (
+          request.resource.data.get('userId', '') == request.auth.uid
+          || (isVerifiedProvider() && request.resource.data.get('providerId', '') == request.auth.uid));
+      allow update: if (eventParty()
+                        && unchanged('userId') && unchanged('providerId'))
+        || isAdmin() || isStaff();
+      allow delete: if eventParty() || isAdmin();
     }
 
-    // Shop Catalog & Inventory
+    // ── Shop catalogue ─────────────────────────────────────────────────────
+    function validRatingBump() {
+      return changed().hasOnly(['rating', 'ratingCount', 'updatedAt'])
+        && request.resource.data.ratingCount == resource.data.get('ratingCount', 0) + 1
+        && request.resource.data.rating is number
+        && request.resource.data.rating >= 0 && request.resource.data.rating <= 5;
+    }
+    function validCheckoutStockMove() {
+      let sold = request.resource.data.get('unitsSold', 0) - resource.data.get('unitsSold', 0);
+      let stock = resource.data.get('stockCount', 0) - request.resource.data.get('stockCount', 0);
+      return changed().hasOnly(['stockCount', 'unitsSold', 'updatedAt'])
+        && sold == stock && sold > 0 && sold <= 50;
+    }
     match /products/{productId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow create, delete: if isAdmin() || canManageCatalog();
+      allow update: if isAdmin() || canManageCatalog()
+        // Shoppers: bounded side effects of checkout and reviews only.
+        || (signedIn() && notSuspended() && (validCheckoutStockMove() || validRatingBump()));
     }
 
-    // Orders
+    // ── Orders ─────────────────────────────────────────────────────────────
+    function orderServerFields() {
+      return ['stockDeducted', 'priceCheck', 'verifiedTotal', 'paidAt', 'refundedAt'];
+    }
     match /orders/{orderId} {
-      allow read, write: if true;
+      allow read: if (signedIn() && resource.data.userId == request.auth.uid)
+        || isAdmin() || canSeeAllOrders();
+      allow create: if signedIn() && notSuspended()
+        && request.resource.data.userId == request.auth.uid
+        && !request.resource.data.keys().hasAny(orderServerFields())
+        && request.resource.data.get('total', 0) is number
+        && request.resource.data.get('total', 0) >= 0;
+      // Customers may only cancel their own order; fulfilment is staff-side.
+      allow update: if isAdmin() || canSeeAllOrders()
+        || (signedIn() && resource.data.userId == request.auth.uid
+            && changed().hasOnly(['status', 'cancelReason', 'cancelledAt', 'updatedAt'])
+            && request.resource.data.status in ['Cancelled', 'cancelled', 'Canceled']);
+      allow delete: if isAdmin() || (signedIn() && resource.data.userId == request.auth.uid);
     }
 
-    // Veterinarians & Clinics
+    // ── Vets & service providers (public directory) ───────────────────────
     match /vets/{vetId} {
       allow read: if true;
-      allow write: if true;
+      allow create: if isAdmin() || (isSelf(vetId) && notSuspended()
+        && request.resource.data.get('isVerified', false) == false);
+      allow update: if isAdmin() || (isSelf(vetId) && notSuspended()
+        && unchanged('isVerified') && unchanged('rating')
+        && unchanged('reviewCount') && unchanged('reviewsCount'));
+      allow delete: if isAdmin() || isSelf(vetId);
     }
 
-    // Veterinary Service Records
+    // ── Medical / service records ─────────────────────────────────────────
+    // ownerId = the pet owner (stamped by the client and enforced/back-filled
+    // by the stamp_record_owner function); providerId = who wrote the record.
+    function recordParty() {
+      return signedIn() && (resource.data.get('ownerId', '') == request.auth.uid
+        || resource.data.get('providerId', '') == request.auth.uid);
+    }
     match /service_records/{recordId} {
-      allow read, write: if true;
+      allow read: if recordParty() || isAdmin() || isVerifiedProvider();
+      allow create: if signedIn() && notSuspended()
+        && request.resource.data.providerId == request.auth.uid
+        && (isVerifiedProvider() || isPetOwner(request.resource.data.petId))
+        && (!('ownerId' in request.resource.data)
+            || !exists(/databases/$(database)/documents/pets/$(request.resource.data.petId))
+            || request.resource.data.ownerId
+                 == get(/databases/$(database)/documents/pets/$(request.resource.data.petId)).data.get('ownerID', ''));
+      allow update: if isAdmin()
+        || (signedIn() && resource.data.get('providerId', '') == request.auth.uid
+            && unchanged('providerId') && unchanged('ownerId') && unchanged('petId'))
+        // The owner decides whether a record is shared with other vets.
+        || (signedIn() && resource.data.get('ownerId', '') == request.auth.uid
+            && changed().hasOnly(['isSharedWithVets']));
+      allow delete: if isAdmin() || recordParty();
     }
 
-    // Community Posts & Comments
+    // ── Community feed ─────────────────────────────────────────────────────
+    function onlyMyEntry(field) {
+      return !(field in changed())
+        || request.resource.data.get(field, {}).diff(resource.data.get(field, {}))
+             .affectedKeys().hasOnly([request.auth.uid]);
+    }
+    function onlyMeInList(field) {
+      let before = resource.data.get(field, []).toSet();
+      let after = request.resource.data.get(field, []).toSet();
+      return !(field in changed())
+        || (after.difference(before).union(before.difference(after))).hasOnly([request.auth.uid]);
+    }
+    function counterStep(field) {
+      return !(field in changed())
+        || (request.resource.data.get(field, 0) - resource.data.get(field, 0) >= -1
+            && request.resource.data.get(field, 0) - resource.data.get(field, 0) <= 1);
+    }
+    function validReaction() {
+      return changed().hasOnly(['likesCount', 'likes', 'likedByUserIds', 'likedBy', 'userReactions',
+                                'userReactions.' + request.auth.uid, 'sharesCount', 'commentsCount', 'comments'])
+        && onlyMyEntry('likedBy') && onlyMyEntry('userReactions') && onlyMeInList('likedByUserIds')
+        && counterStep('likesCount') && counterStep('likes') && counterStep('sharesCount') && counterStep('commentsCount')
+        // Embedded comment previews may only grow, by one of my own comments.
+        && (!('comments' in changed())
+            || (request.resource.data.comments.size() == resource.data.get('comments', []).size() + 1
+                && request.resource.data.comments.toSet().difference(resource.data.get('comments', []).toSet()).size() == 1
+                && request.resource.data.comments[request.resource.data.comments.size() - 1].get('userId', '') == request.auth.uid));
+    }
     match /community_posts/{postId} {
       allow read: if true;
-      allow create: if true;
-      // Allow updates for likes, unlikes, commentsCount, sharesCount, and comments array
-      allow update: if true;
-      // Only post author or admin can delete post
-      allow delete: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
-      
+      allow create: if signedIn() && notSuspended()
+        && request.resource.data.userId == request.auth.uid
+        && optShortString('content', 5000);
+      allow update: if isAdmin()
+        || (signedIn() && resource.data.userId == request.auth.uid && unchanged('userId'))
+        || (signedIn() && notSuspended() && validReaction());
+      allow delete: if isAdmin() || (signedIn() && resource.data.userId == request.auth.uid);
+
       match /comments/{commentId} {
-        allow read, create, update: if true;
-        allow delete: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+        allow read: if true;
+        allow create: if signedIn() && notSuspended()
+          && request.resource.data.userId == request.auth.uid
+          && optShortString('text', 2000) && optShortString('content', 2000);
+        allow update: if isAdmin()
+          || (signedIn() && resource.data.userId == request.auth.uid && unchanged('userId'))
+          || (signedIn() && notSuspended()
+              && changed().hasOnly(['likesCount', 'likes', 'likedBy', 'likedByUserIds', 'userReactions'])
+              && onlyMyEntry('likedBy') && onlyMyEntry('userReactions') && onlyMeInList('likedByUserIds'));
+        allow delete: if isAdmin()
+          || (signedIn() && resource.data.userId == request.auth.uid)
+          || (signedIn() && get(/databases/$(database)/documents/community_posts/$(postId)).data.get('userId', '') == request.auth.uid);
       }
     }
 
-    // Reviews & Ratings
+    // ── Reviews (vets & products) ─────────────────────────────────────────
+    function reviewAuthor(d) {
+      return d.get('reviewerId', d.get('userId', ''));
+    }
     match /reviews/{reviewId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow create: if signedIn() && notSuspended()
+        && reviewAuthor(request.resource.data) == request.auth.uid
+        && request.resource.data.rating is number
+        && request.resource.data.rating >= 1 && request.resource.data.rating <= 5
+        && optShortString('comment', 2000) && optShortString('text', 2000);
+      allow update: if isAdmin()
+        || (signedIn() && reviewAuthor(resource.data) == request.auth.uid
+            && reviewAuthor(request.resource.data) == request.auth.uid
+            && request.resource.data.rating >= 1 && request.resource.data.rating <= 5);
+      allow delete: if isAdmin() || (signedIn() && reviewAuthor(resource.data) == request.auth.uid);
     }
 
-    // Notifications
+    // ── Notifications ──────────────────────────────────────────────────────
     match /notifications/{userId} {
+      allow read, delete: if isSelf(userId) || isAdmin();
+
       match /items/{itemId} {
-        allow read, update, delete: if isOwner(userId) || isAdmin();
-        // Others may notify a user (likes, comments, orders), within sane bounds
-        allow create: if isAuthenticated()
-          && request.resource.data.keys().hasOnly(['title', 'body', 'message', 'category', 'type', 'url', 'read', 'isRead', 'timestamp', 'createdAt', 'id'])
-          && request.resource.data.title is string && request.resource.data.title.size() <= 100
-          && (!('body' in request.resource.data) || request.resource.data.body.size() <= 500);
+        allow read, delete: if isSelf(userId) || isAdmin();
+        // The owner only flips read flags.
+        allow update: if isAdmin()
+          || (isSelf(userId) && changed().hasOnly(['read', 'isRead', 'readAt']));
+        // Others may notify a user (likes, comments, orders), within sane bounds.
+        allow create: if signedIn() && notSuspended()
+          && request.resource.data.keys().hasOnly(['title', 'body', 'message', 'category', 'type', 'url',
+                                                   'read', 'isRead', 'timestamp', 'createdAt', 'id', 'fromUserId'])
+          && shortString(request.resource.data.title, 100)
+          && optShortString('body', 500) && optShortString('message', 500)
+          && optShortString('category', 30) && optShortString('type', 30)
+          && isSafeLink(request.resource.data.get('url', null))
+          && request.resource.data.get('fromUserId', request.auth.uid) == request.auth.uid
+          && request.resource.data.get('read', false) == false
+          && request.resource.data.get('isRead', false) == false;
       }
     }
 
-    // Tele-vet video calls: WebRTC signaling (offer/answer/ICE) between two parties
-    function isCallParty(call) {
-      return isAuthenticated() && (call.callerId == request.auth.uid || call.calleeId == request.auth.uid);
-    }
-    match /calls/{callId} {
-      allow read: if isCallParty(resource.data);
-      allow create: if isAuthenticated()
-        && request.resource.data.keys().hasOnly(['callerId', 'calleeId', 'callerName', 'calleeName', 'callerPhoto', 'petId', 'petName', 'appointmentId', 'status', 'createdAt', 'createdAtMs', 'offer', 'participants', 'video'])
-        && request.resource.data.callerId == request.auth.uid
-        && request.resource.data.calleeId is string
-        && request.resource.data.calleeId != request.auth.uid
-        && request.resource.data.status == 'ringing'
-        && request.resource.data.participants == [request.auth.uid, request.resource.data.calleeId];
-      allow update: if isCallParty(resource.data)
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'answer', 'answeredAt', 'endedAt', 'endedBy', 'endReason'])
-        && (
-          (resource.data.calleeId == request.auth.uid && resource.data.status == 'ringing' && request.resource.data.status in ['accepted', 'declined'])
-          || (resource.data.callerId == request.auth.uid && resource.data.status == 'ringing' && request.resource.data.status in ['cancelled', 'missed'])
-          || (resource.data.status == 'accepted' && request.resource.data.status == 'ended')
-        );
-      allow delete: if false;
-
-      match /callerCandidates/{candidateId} {
-        allow read: if isCallParty(get(/databases/$(database)/documents/calls/$(callId)).data);
-        allow create: if isAuthenticated() && get(/databases/$(database)/documents/calls/$(callId)).data.callerId == request.auth.uid;
-      }
-      match /calleeCandidates/{candidateId} {
-        allow read: if isCallParty(get(/databases/$(database)/documents/calls/$(callId)).data);
-        allow create: if isAuthenticated() && get(/databases/$(database)/documents/calls/$(callId)).data.calleeId == request.auth.uid;
-      }
-    }
-
-    // Devices & Smart Trackers
-    // LoRa gateways: written only by lora_ingest (admin SDK); visible to admins for monitoring.
+    // ── IoT ────────────────────────────────────────────────────────────────
+    // LoRa gateways: written only by lora_ingest (admin SDK); admins monitor.
     match /gateways/{gatewayId} {
       allow read: if isAdmin();
       allow write: if false;
     }
 
-    // OTA release pointers (firmware/esp32dev, firmware/lora-gateway): admin-managed.
+    // OTA release pointers (firmware/esp32dev, firmware/lora-gateway).
     match /firmware/{target} {
       allow read, write: if isAdmin();
     }
 
+    // Collars are created by the ingest functions and linked to an owner by an
+    // admin (ownerId). Owners control tracking; telemetry is server-written.
+    function deviceOwner(d) {
+      return d.get('ownerId', d.get('userId', ''));
+    }
     match /devices/{deviceId} {
-      allow read, write: if true;
+      allow read: if (signedIn() && deviceOwner(resource.data) == request.auth.uid) || isAdmin();
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin()
+        || (signedIn() && deviceOwner(resource.data) == request.auth.uid
+            && changed().hasOnly(['name', 'petId', 'petName', 'trackingMode', 'lostMode',
+                                  'ringRequestedAt', 'safeZone', 'safeZoneLat', 'safeZoneLng',
+                                  'safeZoneRadiusM', 'alertsEnabled', 'updatedAt'])
+            && (unchanged('petId') || request.resource.data.petId == null
+                || isPetOwner(request.resource.data.petId)));
+
+      match /history/{point} {
+        allow read: if isAdmin()
+          || (signedIn() && deviceOwner(get(/databases/$(database)/documents/devices/$(deviceId)).data) == request.auth.uid);
+        allow write: if false;
+      }
     }
 
-    // Blogs
+    // ── Content ────────────────────────────────────────────────────────────
     match /blogs/{blogId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow create: if signedIn() && notSuspended()
+        && (isAdmin() || (request.resource.data.authorId == request.auth.uid
+            && request.resource.data.get('isApproved', false) == false
+            && request.resource.data.get('status', 'PENDING').lower() in ['pending', 'draft']));
+      allow update: if isAdmin()
+        || (signedIn() && resource.data.authorId == request.auth.uid
+            && unchanged('authorId') && unchanged('isApproved') && unchanged('status'));
+      allow delete: if isAdmin() || (signedIn() && resource.data.authorId == request.auth.uid);
     }
 
-    // Coupons
     match /coupons/{couponCode} {
       allow read: if true;
-      allow write: if isAdmin() || true; // Currently allowing for testing, should ideally be isAdmin()
+      allow write: if isAdmin() || hasStaffRole(['Manager']);
     }
 
-    // Promos
     match /promos/{promoId} {
       allow read: if true;
-      allow write: if isAdmin() || true; // Currently allowing for testing
+      allow write: if isAdmin();
     }
 
-    // Global App Settings (global, globalBanner, etc.)
+    // Global settings (banner, maintenance mode, AI switch, shipping fee …).
     match /settings/{settingId} {
       allow read: if true;
-      // settings/erp (VAT, receipts, POS rules) is restricted to admins and managers.
-      allow write: if isAdmin()
-        || (settingId != 'erp' && isAuthenticated())
-        || (settingId == 'erp' && hasStaffRole(['Manager']));
+      allow write: if isAdmin() || (settingId == 'erp' && hasStaffRole(['Manager']));
     }
 
-    // ── ERP / POS ───────────────────────────────────────────────────
+    // Admin broadcast history (sending itself goes through send_broadcast).
+    match /broadcasts/{id} {
+      allow read, write: if isAdmin();
+    }
+
+    // Newsletter sign-ups: anyone may add their own address; only admins read.
+    match /newsletter/{id} {
+      allow read, delete: if isAdmin();
+      allow create, update: if request.resource.data.keys().hasOnly(['email', 'source', 'subscribedAt', 'createdAt'])
+        && shortString(request.resource.data.email, 254)
+        && request.resource.data.email.matches('[^@\\s]+@[^@\\s]+\\.[^@\\s]+')
+        && optShortString('source', 40);
+    }
+
+    // Per-user request counters for rate-limited callables (functions only).
+    match /rate_limits/{id} {
+      allow read, write: if false;
+    }
+
+    // ── ERP / POS ──────────────────────────────────────────────────────────
     match /pos_sales/{id} {
       allow read, create: if isStaff();
       allow update: if isStaff();          // refunds

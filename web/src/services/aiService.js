@@ -79,51 +79,8 @@ export async function runAiHealthDiagnosis({ petName, prompt, imageBase64, image
     console.warn('[aiService] Cloud Function openai_proxy call error:', cloudErr);
   }
 
-  // 2. Try Direct OpenAI API if VITE_OPENAI_API_KEY is available
-  const apiKey = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_OPENAI_API_KEY) ||
-    (typeof window !== 'undefined' && window.__OPENAI_API_KEY);
-
-  if (apiKey) {
-    try {
-      const content = [
-        { type: "text", text: `Pet Name: ${effectivePetName}. Issue description: ${effectivePrompt}` }
-      ];
-
-      if (base64Data) {
-        content.push({
-          type: "image_url",
-          image_url: { url: `data:image/jpeg;base64,${base64Data}` }
-        });
-      }
-
-      const res = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o',
-          messages: [
-            {
-              role: "system",
-              content: "You are a highly experienced Senior Veterinarian. Rules: 1. Highlight key terms with **. 2. Plain text only. 3. Describe location/appearance in photo. 4. Specific reasoning. 5. Empathetic tone. 6. State Urgency (Emergency/Routine)."
-            },
-            { role: "user", content }
-          ],
-          temperature: 0.5
-        })
-      });
-
-      const data = await res.json();
-      const directText = data?.choices?.[0]?.message?.content;
-      if (directText) {
-        return parseAiDiagnosisResponse(directText, effectivePetName);
-      }
-    } catch (directErr) {
-      console.warn('[aiService] Direct OpenAI GPT-4o API error:', directErr);
-    }
-  }
+  // No direct browser → OpenAI call: any key in a VITE_ variable would be
+  // published to every visitor. AI only runs through the openai_proxy function.
 
   // 3. Clinical Fallback (Matches expert veterinary protocol)
   return generateClinicalFallback(effectivePetName, effectivePrompt);
@@ -252,42 +209,6 @@ export async function runBreedFinder({ imageBase64, imageSrc }) {
     }
   } catch (e) {
     console.warn('[aiService] Breed finder Cloud Function error:', e);
-  }
-
-  const apiKey = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_OPENAI_API_KEY) ||
-    (typeof window !== 'undefined' && window.__OPENAI_API_KEY);
-
-  if (apiKey) {
-    try {
-      const res = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o',
-          messages: [
-            { role: "system", content: "Identify the breed of this pet. Return only the breed name." },
-            {
-              role: "user",
-              content: [
-                { type: "text", text: "Identify the breed of this pet. Return only the name." },
-                { type: "image_url", image_url: { url: `data:image/jpeg;base64,${base64Data}` } }
-              ]
-            }
-          ],
-          max_tokens: 50
-        })
-      });
-      const data = await res.json();
-      const breed = data?.choices?.[0]?.message?.content;
-      if (breed) {
-        return { success: true, breed: breed.trim(), model: 'gpt-4o-direct' };
-      }
-    } catch (e) {
-      console.warn('[aiService] Direct breed finder API error:', e);
-    }
   }
 
   return { success: true, breed: 'British Shorthair', model: 'baseline' };

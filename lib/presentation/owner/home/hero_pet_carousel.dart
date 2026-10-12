@@ -116,7 +116,8 @@ class _HeroPetCarouselState extends State<HeroPetCarousel> {
         mainAxisSize: MainAxisSize.min,
         children: [
           SizedBox(
-            height: 215,
+            // Grows with the user's font size so the card text never clips.
+            height: 215 * MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 1.3),
             child: NotificationListener<ScrollNotification>(
               onNotification: (notification) {
                 if (notification is ScrollStartNotification) {

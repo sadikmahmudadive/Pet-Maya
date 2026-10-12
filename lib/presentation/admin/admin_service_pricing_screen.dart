@@ -8,6 +8,7 @@ import '../../data/models/vet_model.dart';
 import '../common_widgets/glass_scaffold.dart';
 import '../common_widgets/premium_card.dart';
 import '../common_widgets/empty_state.dart';
+import '../../core/responsive.dart';
 
 class AdminServicePricingScreen extends StatefulWidget {
   const AdminServicePricingScreen({super.key});
@@ -32,6 +33,7 @@ class _AdminServicePricingScreenState extends State<AdminServicePricingScreen> {
     }).toList();
 
     return GlassScaffold(
+      maxContentWidth: Responsive.dashboardMaxWidth,
       appBar: AppBar(
         title: const Text(
           'Service Pricing',

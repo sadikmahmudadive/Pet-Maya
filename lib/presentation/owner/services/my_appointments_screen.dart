@@ -6,16 +6,12 @@ import 'package:intl/intl.dart';
 import 'package:animate_do/animate_do.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/event_model.dart';
-import '../../../data/models/pet_model.dart';
-import '../../../data/models/vet_model.dart';
 import '../../../data/repositories/app_state_repository.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/bento_card.dart';
 import '../../common_widgets/empty_state.dart';
 import '../../common_widgets/status_chip.dart';
-import '../../common_widgets/premium_toast.dart';
 import 'pet_services_screen.dart';
-import 'tele_vet_video_call_screen.dart';
 
 class MyAppointmentsScreen extends StatefulWidget {
   const MyAppointmentsScreen({super.key});
@@ -441,75 +437,6 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
                     ),
                   ),
                 ),
-                if (event.category.contains('Vet') || event.category.contains('Appointment')) ...[
-                  const SizedBox(width: 8),
-                  IconButton(
-                    style: IconButton.styleFrom(
-                      backgroundColor: isToday && !event.isCompleted
-                          ? const Color(0xFF0288D1).withValues(alpha: 0.2)
-                          : (isDark ? Colors.white10 : Colors.grey.shade200),
-                      padding: const EdgeInsets.all(12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                    ),
-                    icon: Icon(
-                      Icons.videocam_rounded,
-                      color: isToday && !event.isCompleted
-                          ? const Color(0xFF0288D1)
-                          : Colors.grey.shade500,
-                      size: 18,
-                    ),
-                    tooltip: isToday && !event.isCompleted
-                        ? 'Start Live Video Call'
-                        : 'Video call unlocks on appointment day',
-                    onPressed: () {
-                      if (!isToday || event.isCompleted) {
-                        state.showToast(
-                          'Video call unlocks on appointment day (${DateFormat('MMM d').format(event.date)}) at ${event.fromTime}! 📹',
-                          type: ToastType.warning,
-                          context: context,
-                        );
-                        return;
-                      }
-                      final targetVet = state.vets.where((v) => v.id == event.providerId).firstOrNull ??
-                          VetModel(
-                            id: event.providerId ?? 'vet_default',
-                            name: 'Dr. Sarah Jenkins',
-                            qualification: 'Veterinary Specialist',
-                            tag: 'Veterinarian',
-                            price: '৳800',
-                            photoUrl: 'assets/images/vet_placeholder.png',
-                            rating: 4.9,
-                            reviewsCount: 124,
-                            bio: 'Veterinary specialist',
-                            businessHours: '09:00 AM - 08:00 PM',
-                          );
-                      final targetPet = pet ??
-                          PetModel(
-                            petID: event.petId,
-                            ownerID: event.userId,
-                            name: event.petName,
-                            type: 'Dog',
-                            breed: 'Golden Retriever',
-                            dob: '2022-01-01',
-                            age: '2',
-                            gender: 'Male',
-                          );
-                      HapticFeedback.heavyImpact();
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => TeleVetVideoCallScreen(
-                            vet: targetVet,
-                            pet: targetPet,
-                            channelId: 'channel_${event.id}',
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ],
               ] else ...[
                 Expanded(
                   child: OutlinedButton.icon(

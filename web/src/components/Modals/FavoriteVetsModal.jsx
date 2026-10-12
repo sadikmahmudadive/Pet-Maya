@@ -84,7 +84,7 @@ export default function FavoriteVetsModal() {
                 No Favorite Specialists Yet
               </h4>
               <p style={{ fontSize: '13px', color: 'var(--text-muted)', maxWidth: '340px', margin: '0 auto 18px' }}>
-                Bookmark your favorite verified veterinarians to instantly book clinical consultations or start video teleconsults.
+                Bookmark your favorite verified veterinarians to instantly book clinical consultations.
               </p>
               <button 
                 type="button" 
@@ -186,19 +186,6 @@ export default function FavoriteVetsModal() {
                   >
                     <Calendar size={13} />
                     <span>Book In-Clinic</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    style={{ flex: 1, padding: '8px', fontSize: '12.5px' }}
-                    onClick={() => {
-                      closeModal();
-                      openModal('teleconsult', { doctor: vet });
-                    }}
-                  >
-                    <Video size={13} />
-                    <span>Video Consult (৳500)</span>
                   </button>
                 </div>
               </div>

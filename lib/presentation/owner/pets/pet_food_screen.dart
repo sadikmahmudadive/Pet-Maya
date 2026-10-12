@@ -105,389 +105,322 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
     final pet = context.watch<AppStateRepository>().pets.firstWhere(
       (p) => p.petID == widget.petId,
     );
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GlassScaffold(
+      // Keep content below the app bar so it never scrolls under the title/status bar.
+      extendBodyBehindAppBar: false,
       appBar: AppBar(
         title: Text(
           '${pet.name}\'s Nutrition',
-          style: const TextStyle(fontWeight: FontWeight.w800),
+          style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w800),
         ),
         centerTitle: true,
         backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
+        scrolledUnderElevation: 0,
       ),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 40),
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             FadeInDown(
-              child: PremiumCard(
-                opacity: 0.1,
-                borderRadius: 32,
-                backgroundColor: isDark
-                    ? const Color(0xFF1A1A1A)
-                    : const Color(0xFFEDF4F8),
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'CURRENT DIET',
-                        style: TextStyle(
-                          color: const Color(0xFF1AB680),
-                          fontWeight: FontWeight.w900,
-                          fontSize: 11,
-                          letterSpacing: 1.5,
-                        ),
-                      ),
-                      const SizedBox(height: 32),
-                      _buildCleanInput(
-                        'Food Name / Brand',
-                        _foodNameController,
-                        hint: 'e.g., Royal Canin',
-                      ),
-                      const SizedBox(height: 24),
-                      _buildDropdownField(
-                        'Food Type',
-                        _selectedFoodType,
-                        (val) => setState(() => _selectedFoodType = val),
-                      ),
-                      const SizedBox(height: 32),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 60,
-                        child: ElevatedButton(
-                          onPressed: _isSaving ? null : _saveDietDetails,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF1AB680),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            elevation: 8,
-                            shadowColor: const Color(
-                              0xFF1AB680,
-                            ).withValues(alpha: 0.4),
-                          ),
-                          child: _isSaving
-                              ? const CircularProgressIndicator(
-                                  color: Colors.white,
-                                )
-                              : const Text(
-                                  'SAVE DIET DETAILS',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                        ),
-                      ),
-                    ],
-                  ),
+              child: _buildSection(
+                'Current Diet',
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildFieldLabel('Food Name / Brand'),
+                    TextField(
+                      controller: _foodNameController,
+                      style: _fieldTextStyle(),
+                      decoration: _fieldDecoration('e.g., Royal Canin'),
+                    ),
+                    const SizedBox(height: 20),
+                    _buildFieldLabel('Food Type'),
+                    DropdownButtonFormField<String>(
+                      // Re-key once the saved value loads (initialValue is read once).
+                      key: ValueKey(_selectedFoodType),
+                      initialValue: _foodTypes.contains(_selectedFoodType)
+                          ? _selectedFoodType
+                          : null,
+                      isExpanded: true,
+                      icon: const Icon(Icons.keyboard_arrow_down_rounded),
+                      borderRadius: BorderRadius.circular(_fieldRadius),
+                      dropdownColor: _isDark
+                          ? AppColors.surfaceContainerDark
+                          : AppColors.surface,
+                      style: _fieldTextStyle(),
+                      decoration: _fieldDecoration('Select type'),
+                      items: _foodTypes
+                          .map(
+                            (t) => DropdownMenuItem(value: t, child: Text(t)),
+                          )
+                          .toList(),
+                      onChanged: (val) =>
+                          setState(() => _selectedFoodType = val),
+                    ),
+                    const SizedBox(height: 24),
+                    _buildPrimaryButton(
+                      label: 'Save Diet Details',
+                      icon: Icons.check_rounded,
+                      loading: _isSaving,
+                      onPressed: _isSaving ? null : _saveDietDetails,
+                    ),
+                  ],
                 ),
               ),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 28),
 
             FadeInUp(
               delay: const Duration(milliseconds: 100),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 4),
-                    child: Text(
-                      'Meal Schedule',
-                      style: AppTypography.titleLarge.copyWith(
-                        fontWeight: FontWeight.w800,
+              child: _buildSection(
+                'Meal Schedule',
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ...pet.feedingTimes.map(
+                      (time) => Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: _buildMealChip(time),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  PremiumCard(
-                    opacity: 0.1,
-                    borderRadius: 32,
-                    backgroundColor: isDark
-                        ? const Color(0xFF0D302D)
-                        : const Color(0xFFF9F5FB),
-                    child: Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Column(
-                            children: pet.feedingTimes
-                                .map((time) => Padding(
-                                      padding: const EdgeInsets.only(bottom: 10),
-                                      child: _buildMealChip(time),
-                                    ))
-                                .toList(),
-                          ),
-                          if (pet.feedingTimes.isEmpty)
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 24),
-                              child: Center(
-                                child: Text(
-                                  'No meals scheduled',
-                                  style: TextStyle(
-                                    color: Colors.grey[500],
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          const SizedBox(height: 24),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _buildActionButton(
-                                  Icons.add_rounded,
-                                  'Add Time',
-                                  _addMeal,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _buildActionButton(
-                                  Icons.auto_awesome_rounded,
-                                  'AI Suggest',
-                                  _aiSuggest,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 32),
-
-            FadeInUp(
-              delay: const Duration(milliseconds: 200),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 4),
-                    child: Text(
-                      'AI Nutritional Recommendation',
-                      style: AppTypography.titleLarge.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  PremiumCard(
-                    opacity: 0.1,
-                    borderRadius: 32,
-                    backgroundColor: isDark
-                        ? const Color(0xFF0D302D)
-                        : const Color(0xFFEDF4F8),
-                    child: Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        children: [
-                          SizedBox(
-                            width: double.infinity,
-                            height: 60,
-                            child: ElevatedButton.icon(
-                              onPressed: _runAiRecommendation,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF1AB680),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                              ),
-                              icon: const Icon(
-                                Icons.auto_awesome_rounded,
-                                color: Colors.white,
-                                size: 20,
-                              ),
-                              label: const Text(
-                                'Ask AI Expert',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 0.5,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Tap above to get a professional dietary plan based on your pet\'s profile.',
-                            textAlign: TextAlign.center,
-                            style: AppTypography.bodySmall.copyWith(
-                              color: Colors.grey[500],
-                              height: 1.4,
+                    if (pet.feedingTimes.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 20),
+                        child: Center(
+                          child: Text(
+                            'No meals scheduled',
+                            style: AppTypography.bodyMedium.copyWith(
+                              color: _mutedColor,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-                        ],
+                        ),
                       ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildActionButton(
+                            Icons.add_rounded,
+                            'Add Time',
+                            _addMeal,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildActionButton(
+                            Icons.auto_awesome_rounded,
+                            'AI Suggest',
+                            _aiSuggest,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-            const SizedBox(height: 100),
+            const SizedBox(height: 28),
+
+            FadeInUp(
+              delay: const Duration(milliseconds: 200),
+              child: _buildSection(
+                'AI Nutritional Recommendation',
+                Column(
+                  children: [
+                    _buildPrimaryButton(
+                      label: 'Ask AI Expert',
+                      icon: Icons.auto_awesome_rounded,
+                      onPressed: _runAiRecommendation,
+                    ),
+                    const SizedBox(height: 14),
+                    Text(
+                      'Tap above to get a professional dietary plan based on your pet\'s profile.',
+                      textAlign: TextAlign.center,
+                      style: AppTypography.bodySmall.copyWith(
+                        color: _mutedColor,
+                        height: 1.4,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 60),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildCleanInput(
-    String label,
-    TextEditingController controller, {
-    String? hint,
-  }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+  // ── Shared styling: every block on this screen uses these ──────────
+
+  static const double _cardRadius = 28;
+  static const double _fieldRadius = 16;
+
+  bool get _isDark => Theme.of(context).brightness == Brightness.dark;
+
+  Color get _mutedColor =>
+      _isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+
+  Widget _buildSection(String title, Widget child) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          padding: const EdgeInsets.only(left: 4),
           child: Text(
-            label.toUpperCase(),
-            style: TextStyle(
-              fontWeight: FontWeight.w900,
-              color: isDark ? Colors.white70 : Colors.black54,
-              fontSize: 10,
-              letterSpacing: 1.2,
+            title,
+            style: AppTypography.titleLarge.copyWith(
+              fontWeight: FontWeight.w800,
+              color: _isDark
+                  ? AppColors.textPrimaryDark
+                  : AppColors.textPrimary,
             ),
           ),
         ),
-        TextField(
-          controller: controller,
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
-            color: isDark ? Colors.white : Colors.black87,
-            fontSize: 15,
-          ),
-          decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: TextStyle(
-              fontSize: 14,
-              color: isDark ? Colors.white24 : Colors.grey[400],
-            ),
-            filled: true,
-            fillColor:
-                isDark
-                    ? Colors.white.withValues(alpha: 0.05)
-                    : Colors.white.withValues(alpha: 0.5),
-            contentPadding: const EdgeInsets.symmetric(
-              vertical: 20,
-              horizontal: 20,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(18),
-              borderSide: BorderSide.none,
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(18),
-              borderSide: const BorderSide(color: Color(0xFF1AB680), width: 1.5),
-            ),
-          ),
+        const SizedBox(height: 12),
+        PremiumCard(
+          opacity: 0.1,
+          borderRadius: _cardRadius,
+          child: Padding(padding: const EdgeInsets.all(20), child: child),
         ),
       ],
     );
   }
 
-  Widget _buildDropdownField(
-    String label,
-    String? value,
-    Function(String?) onChanged,
-  ) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 8),
-          child: Text(
-            label.toUpperCase(),
-            style: TextStyle(
-              fontWeight: FontWeight.w900,
-              color: isDark ? Colors.white70 : Colors.black54,
-              fontSize: 10,
-              letterSpacing: 1.2,
-            ),
-          ),
+  Widget _buildFieldLabel(String label) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, bottom: 8),
+      child: Text(
+        label.toUpperCase(),
+        style: TextStyle(
+          fontWeight: FontWeight.w800,
+          color: _mutedColor,
+          fontSize: 10.5,
+          letterSpacing: 1.2,
         ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(
-            color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
-            borderRadius: BorderRadius.circular(16),
+      ),
+    );
+  }
+
+  TextStyle _fieldTextStyle() => TextStyle(
+    fontWeight: FontWeight.w700,
+    color: _isDark ? Colors.white : Colors.black87,
+    fontSize: 15,
+  );
+
+  InputDecoration _fieldDecoration(String hint) {
+    OutlineInputBorder border(Color color, [double width = 1]) =>
+        OutlineInputBorder(
+          borderRadius: BorderRadius.circular(_fieldRadius),
+          borderSide: BorderSide(color: color, width: width),
+        );
+    final idle = _isDark ? AppColors.borderDark : AppColors.borderLight;
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+        color: _isDark ? Colors.white38 : Colors.grey[400],
+      ),
+      filled: true,
+      fillColor: _isDark
+          ? Colors.white.withValues(alpha: 0.05)
+          : Colors.white.withValues(alpha: 0.8),
+      isDense: true,
+      contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 18),
+      border: border(idle),
+      enabledBorder: border(idle),
+      focusedBorder: border(AppColors.primary, 1.5),
+    );
+  }
+
+  Widget _buildPrimaryButton({
+    required String label,
+    required IconData icon,
+    required VoidCallback? onPressed,
+    bool loading = false,
+  }) {
+    return SizedBox(
+      width: double.infinity,
+      height: 56,
+      child: ElevatedButton.icon(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+          disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.6),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(_fieldRadius),
           ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: value,
-              isExpanded: true,
-              dropdownColor: isDark ? const Color(0xFF0D302D) : Colors.white,
-              hint: Text(
-                'Select Type',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: isDark ? Colors.white24 : Colors.grey[400],
+          elevation: 0,
+        ),
+        icon: loading
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2.5,
                 ),
-              ),
-              items: _foodTypes
-                  .map(
-                    (t) => DropdownMenuItem(
-                      value: t,
-                      child: Text(
-                        t,
-                        style: const TextStyle(fontWeight: FontWeight.w700),
-                      ),
-                    ),
-                  )
-                  .toList(),
-              onChanged: onChanged,
-            ),
+              )
+            : Icon(icon, color: Colors.white, size: 20),
+        label: Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w800,
+            fontSize: 15,
+            letterSpacing: 0.3,
           ),
         ),
-      ],
+      ),
     );
   }
 
   Widget _buildMealChip(String time) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.fromLTRB(14, 6, 4, 6),
       decoration: BoxDecoration(
-        color: const Color(0xFFA8D5BA).withValues(alpha: 0.4),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF2D8C69).withValues(alpha: 0.3)),
+        color: AppColors.primary.withValues(alpha: _isDark ? 0.14 : 0.1),
+        borderRadius: BorderRadius.circular(_fieldRadius),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.25)),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          Icon(
+            Icons.schedule_rounded,
+            size: 18,
+            color: _isDark ? AppColors.primary : AppColors.primaryDark,
+          ),
+          const SizedBox(width: 10),
           Expanded(
             child: Text(
               time,
-              style: const TextStyle(
-                fontWeight: FontWeight.w900,
-                color: Color(0xFF2D8C69),
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                color: _isDark ? AppColors.primary : AppColors.primaryDark,
                 fontSize: 13,
+                height: 1.35,
               ),
             ),
           ),
-          const SizedBox(width: 8),
-          GestureDetector(
-            onTap: () => _removeMeal(time),
-            child: const Icon(
+          IconButton(
+            onPressed: () => _removeMeal(time),
+            tooltip: 'Remove',
+            visualDensity: VisualDensity.compact,
+            icon: Icon(
               Icons.close_rounded,
               size: 18,
-              color: Color(0xFF2D8C69),
+              color: _isDark ? AppColors.primary : AppColors.primaryDark,
             ),
           ),
         ],
@@ -496,32 +429,25 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
   }
 
   Widget _buildActionButton(IconData icon, String label, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
-        decoration: BoxDecoration(
-          color: const Color(0xFFD1E6EE),
-          borderRadius: BorderRadius.circular(12),
+    return SizedBox(
+      height: 48,
+      child: OutlinedButton.icon(
+        onPressed: onTap,
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.primary,
+          backgroundColor: AppColors.primary.withValues(alpha: 0.06),
+          side: BorderSide(color: AppColors.primary.withValues(alpha: 0.35)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(_fieldRadius),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 8),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 18, color: const Color(0xFF1AB680)),
-            const SizedBox(width: 4),
-            Flexible(
-              child: Text(
-                label,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFF1AB680),
-                  fontSize: 12,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
+        icon: Icon(icon, size: 18),
+        label: Text(
+          label,
+          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
       ),
     );
@@ -746,7 +672,7 @@ class _PetFoodScreenState extends State<PetFoodScreen> {
                   ),
                 ),
                 child: const Text(
-                  'GOT IT, THANKS!',
+                  'Got it, thanks!',
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w900,

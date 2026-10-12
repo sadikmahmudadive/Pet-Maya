@@ -38,6 +38,7 @@ import {
   getDownloadURL 
 } from 'firebase/storage';
 import { getFunctions, httpsCallable } from 'firebase/functions';
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
 
 const firebaseConfig = {
   apiKey: "AIzaSyDjikCtm7RK1CoebQMGQIQTAPh-cC23B-Q",
@@ -50,6 +51,18 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+
+// App Check proves requests come from this site (not scripts/bots), which lets
+// Firestore, Storage and Functions enforce it. Set VITE_APPCHECK_RECAPTCHA_KEY
+// to a reCAPTCHA Enterprise site key registered in Firebase → App Check.
+const appCheckKey = import.meta.env.VITE_APPCHECK_RECAPTCHA_KEY;
+if (appCheckKey) {
+  try {
+    initializeAppCheck(app, { provider: new ReCaptchaEnterpriseProvider(appCheckKey), isTokenAutoRefreshEnabled: true });
+  } catch (e) {
+    console.warn('[Firebase] App Check not started:', e);
+  }
+}
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);

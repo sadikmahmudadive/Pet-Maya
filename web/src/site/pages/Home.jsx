@@ -65,7 +65,7 @@ export default function Home() {
             <p>Genuine medicine, vet-approved food and smart gear — with a vet, AI triage and live GPS one tap away.</p>
             <div className="row gap-10 wrap" style={{ marginTop: 28 }}>
               <Button className="btn-on-dark" size="lg" icon="arrowRight" to="/shop">Shop the dispensary</Button>
-              <Button className="btn-ghost-dark" variant="ghost" size="lg" icon="video" to="/specialists">Talk to a vet</Button>
+              <Button className="btn-ghost-dark" variant="ghost" size="lg" icon="stethoscope" to="/specialists">Book a vet</Button>
             </div>
           </div>
           <div className="hero-stats" style={{ borderTop: '1px solid rgba(255,255,255,.14)', paddingTop: 24 }}>
@@ -190,7 +190,7 @@ export default function Home() {
           </Link>
           <Link to="/specialists" className="card stack gap-16">
             <div className="row gap-12"><span className="well teal"><Icon name="stethoscope" /></span><span className="serif" style={{ fontSize: 22 }}>Book a vet</span></div>
-            <p className="muted" style={{ fontSize: 14 }}>Video or clinic visits from {money(minFee)}, with prescriptions sent straight to your bag.</p>
+            <p className="muted" style={{ fontSize: 14 }}>Clinic visits from {money(minFee)}, with prescriptions sent straight to your bag.</p>
             <div className="stack gap-8">
               {twoVets.map((v) => (
                 <div key={v.id} className="panel row gap-12">

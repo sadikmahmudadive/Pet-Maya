@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../core/responsive.dart';
 
 class GlassScaffold extends StatelessWidget {
   final Widget body;
@@ -9,6 +10,10 @@ class GlassScaffold extends StatelessWidget {
   final FloatingActionButtonLocation? floatingActionButtonLocation;
   final bool extendBodyBehindAppBar;
   final Color backgroundColor;
+  /// Widest the body may grow on tablets/desktop; it is centred beyond that.
+  /// Pass [double.infinity] for full-bleed screens such as maps.
+  final double maxContentWidth;
+
 
   const GlassScaffold({
     super.key,
@@ -19,6 +24,7 @@ class GlassScaffold extends StatelessWidget {
     this.floatingActionButtonLocation,
     this.extendBodyBehindAppBar = true,
     this.backgroundColor = const Color(0xFFA7C9B1),
+    this.maxContentWidth = Responsive.contentMaxWidth,
   });
 
   @override
@@ -44,8 +50,10 @@ class GlassScaffold extends StatelessWidget {
               child: _buildStaticBackground(context, isDark),
             ),
             
-            // Main Content
-            body,
+            // Main Content (capped and centred on wide screens)
+            maxContentWidth.isFinite
+                ? ResponsiveCenter(maxWidth: maxContentWidth, child: body)
+                : body,
           ],
         ),
         floatingActionButton: floatingActionButton,

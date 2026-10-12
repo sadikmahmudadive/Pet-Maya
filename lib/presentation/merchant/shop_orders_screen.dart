@@ -9,6 +9,7 @@ import '../../data/models/order_model.dart';
 import '../common_widgets/glass_scaffold.dart';
 import '../common_widgets/premium_card.dart';
 import '../common_widgets/empty_state.dart';
+import '../../core/responsive.dart';
 
 class ShopOrdersScreen extends StatefulWidget {
   const ShopOrdersScreen({super.key});
@@ -34,6 +35,7 @@ class _ShopOrdersScreenState extends State<ShopOrdersScreen> {
     }).toList();
 
     return GlassScaffold(
+      maxContentWidth: Responsive.dashboardMaxWidth,
       appBar: AppBar(
         title: const Text('Store Orders', style: TextStyle(fontWeight: FontWeight.w800)),
         backgroundColor: Colors.transparent,

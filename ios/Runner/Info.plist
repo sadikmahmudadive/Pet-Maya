@@ -18,16 +18,13 @@
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>Pet Maya uses your camera for Tele-Vet video consultations and to photograph your pets for AI health scans and community posts.</string>
+	<string>Pet Maya uses your camera to photograph your pets for AI health scans and community posts, and to scan pet passport QR codes.</string>
 	<key>UIBackgroundModes</key>
 	<array>
-		<string>audio</string>
 		<string>remote-notification</string>
 	</array>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>Pet Maya connects to your LoRa Finder over Bluetooth to locate your pet without internet.</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>Pet Maya needs microphone access for Tele-Vet video consultations.</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>

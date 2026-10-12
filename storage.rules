@@ -1,51 +1,138 @@
 rules_version = '2';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Pet Maya — Cloud Storage security rules
+//
+//  • Every upload needs a signed-in user and goes under that user's own folder
+//    ({folder}/{uid}/{file}), so nobody can overwrite someone else's files.
+//  • Uploads are type- and size-checked here, server-side, in addition to the
+//    checks in the app and website.
+//  • Medical files (pet reports, prescriptions) are private.
+//  • Files uploaded before these rules (flat {folder}/{file} paths) stay
+//    readable but can no longer be written.
+// ─────────────────────────────────────────────────────────────────────────────
 service firebase.storage {
   match /b/{bucket}/o {
 
-    // Helper to check authentication
-    function isAuthenticated() {
+    function signedIn() {
       return request.auth != null;
     }
-
-    // Profiles folder
-    match /profile_pics/{allPaths=**} {
-      allow read: if true;
-      allow write: if true;
+    function isSelf(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+    function profile() {
+      return firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data;
+    }
+    function isAdmin() {
+      return signedIn() && profile().get('role', '').lower().matches('(super ?)?admin');
+    }
+    function isStaff() {
+      return signedIn() && (isAdmin()
+        || profile().get('staffRole', '') in ['Manager', 'Cashier', 'Pharmacist', 'Accountant', 'Storekeeper']);
+    }
+    function isVerifiedProvider() {
+      return signedIn()
+        && profile().get('role', '').lower().matches('(veterinarian|vet|grooming|groomer|boarding|shelter.*)')
+        && profile().get('isVerified', false) == true
+        && profile().get('isSuspended', false) != true;
+    }
+    function isVerifiedShop() {
+      return signedIn()
+        && profile().get('role', '').lower().matches('(pet ?shop|petshop)')
+        && profile().get('isVerified', false) == true;
+    }
+    function ownsPet(petId) {
+      return signedIn()
+        && firestore.exists(/databases/(default)/documents/pets/$(petId))
+        && firestore.get(/databases/(default)/documents/pets/$(petId)).data.get('ownerID', '') == request.auth.uid;
     }
 
-    // Pets folder
-    match /pets/{allPaths=**} {
-      allow read: if true;
-      allow write: if true;
+    // ── Upload validation ──────────────────────────────────────────────────
+    function isImage() {
+      return request.resource.contentType.matches('image/(jpeg|jpg|png|webp|gif|heic|heif)');
+    }
+    function isDocument() {
+      return request.resource.contentType == 'application/pdf' || isImage();
+    }
+    function underMB(mb) {
+      return request.resource.size > 0 && request.resource.size < mb * 1024 * 1024;
+    }
+    function validImage() {
+      return request.resource != null && isImage() && underMB(5);
+    }
+    function validDocument() {
+      return request.resource != null && isDocument() && underMB(15);
+    }
+    // Upload to my own folder; deleting needs no body checks.
+    function canWriteOwn(uid) {
+      return isSelf(uid) && (request.resource == null || validImage());
     }
 
-    // Community folder
-    match /community_posts/{allPaths=**} {
+    // ── Public images (profile photos, pets, posts, blogs) ────────────────
+    match /profile_pics/{uid}/{file} {
       allow read: if true;
-      allow write: if true;
+      allow write: if canWriteOwn(uid);
+    }
+    match /avatars/{uid}/{file} {
+      allow read: if true;
+      allow write: if canWriteOwn(uid);
+    }
+    match /pets/{uid}/{file} {
+      allow read: if true;
+      allow write: if canWriteOwn(uid);
+    }
+    match /community_posts/{uid}/{file} {
+      allow read: if true;
+      allow write: if canWriteOwn(uid);
+    }
+    match /community_images/{uid}/{file} {
+      allow read: if true;
+      allow write: if canWriteOwn(uid);
+    }
+    match /blogs/{uid}/{file} {
+      allow read: if true;
+      allow write: if canWriteOwn(uid);
+    }
+    match /blog_covers/{uid}/{file} {
+      allow read: if true;
+      allow write: if canWriteOwn(uid);
+    }
+    match /service_providers/{uid}/{file} {
+      allow read: if true;
+      allow write: if canWriteOwn(uid) && (isAdmin() || isVerifiedProvider());
     }
 
-    // Blogs & Cover images folder
-    match /blogs/{allPaths=**} {
+    // Catalogue photos: admins, catalogue staff and verified shops.
+    match /shop_products/{uid}/{file} {
       allow read: if true;
-      allow write: if true;
+      allow write: if isSelf(uid)
+        && (isStaff() || isVerifiedShop())
+        && (request.resource == null || validImage());
     }
 
-    match /blog_covers/{allPaths=**} {
-      allow read: if true;
-      allow write: if true;
+    // ── Private medical files ──────────────────────────────────────────────
+    // Clinical reports attached to a pet: the owner and verified providers.
+    match /pets/{petId}/reports/{file} {
+      allow read: if ownsPet(petId) || isVerifiedProvider() || isAdmin();
+      allow write: if (ownsPet(petId) || isVerifiedProvider())
+        && (request.resource == null || validDocument());
+    }
+    // Prescriptions attached to shop orders: the customer and pharmacy staff.
+    match /prescriptions/{uid}/{file} {
+      allow read: if isSelf(uid) || isStaff();
+      allow write: if isSelf(uid) && (request.resource == null || validDocument());
     }
 
-    // Shop folder
-    match /shop_products/{allPaths=**} {
-      allow read: if true;
-      allow write: if true;
+    // ── Legacy flat paths ({folder}/{file}) uploaded before per-user folders ─
+    match /{folder}/{file} {
+      allow read: if folder in ['profile_pics', 'avatars', 'pets', 'community_posts', 'community_images',
+                                'blogs', 'blog_covers', 'service_providers', 'shop_products'];
+      allow write: if false;
     }
 
-    // Global match fallback
+    // Everything else is closed.
     match /{allPaths=**} {
-      allow read: if true;
-      allow write: if isAuthenticated() || true;
+      allow read, write: if false;
     }
   }
 }

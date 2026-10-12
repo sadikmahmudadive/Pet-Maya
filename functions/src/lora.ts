@@ -16,6 +16,7 @@ import {
   DEVICE_MASTER_SECRET, MAX_CLOCK_SKEW_S, deviceAlerts, haversineM, intervalFromMode, newDeviceDefaults, num,
   safeZoneOf,
 } from "./iot_common";
+import { rateLimit } from "./security";
 import {
   DOWN_LOST_MODE, DOWN_RING, DOWN_ZONE_VALID, Downlink, TYPE_UPLINK, UP_ACK_REQUEST, UP_COLD_BOOT, UP_HAS_FIX,
   deviceIdFor, gatewaySecretFor, loraKeyFor, openUplink, parseHeader, sealDownlink,
@@ -268,6 +269,7 @@ export const mark_offline_gateways = onSchedule("every 5 minutes", async () => {
  */
 export const get_tracker_key = onCall({ secrets: [DEVICE_MASTER_SECRET] }, async (request) => {
   if (!request.auth) throw new HttpsError("unauthenticated", "Sign in required");
+  await rateLimit("tracker_key", request.auth.uid, [{ limit: 20, seconds: 3600 }]);
   const deviceId = String(request.data?.deviceId ?? "");
   if (!/^PML-[0-9A-F]{8}$/.test(deviceId)) throw new HttpsError("invalid-argument", "Not a LoRa tracker id");
 

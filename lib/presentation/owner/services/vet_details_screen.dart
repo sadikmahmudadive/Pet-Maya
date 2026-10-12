@@ -12,8 +12,6 @@ import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
 import 'booking_screen.dart';
 import 'reviews_screen.dart';
-import 'tele_vet_video_call_screen.dart';
-import '../../common_widgets/premium_toast.dart';
 
 class VetDetailsScreen extends StatefulWidget {
   final VetModel vet;
@@ -331,21 +329,6 @@ class _VetDetailsScreenState extends State<VetDetailsScreen> {
   }
 
   Widget _buildBottomBar(BuildContext context, VetModel currentVet) {
-    final repo = context.watch<AppStateRepository>();
-    final pets = repo.pets;
-    final primaryPet = pets.isNotEmpty ? pets.first : null;
-
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-
-    // Check if user has an active appointment for TODAY with this vet
-    final activeAppointment = repo.events.where((e) {
-      final isMatch = e.providerId == currentVet.id || e.note.contains(currentVet.name);
-      final isToday = e.date.year == today.year && e.date.month == today.month && e.date.day == today.day;
-      return isMatch && isToday && !e.isCompleted;
-    }).firstOrNull;
-
-    final bool isCallActiveNow = activeAppointment != null;
 
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
@@ -365,58 +348,6 @@ class _VetDetailsScreenState extends State<VetDetailsScreen> {
           height: 56,
           child: Row(
             children: [
-              IconButton(
-                style: IconButton.styleFrom(
-                  backgroundColor: isCallActiveNow
-                      ? const Color(0xFF0288D1).withValues(alpha: 0.2)
-                      : (Theme.of(context).brightness == Brightness.dark
-                          ? Colors.white10
-                          : Colors.grey.shade200),
-                  padding: const EdgeInsets.all(14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                ),
-                icon: Icon(
-                  Icons.videocam_rounded,
-                  color: isCallActiveNow
-                      ? const Color(0xFF0288D1)
-                      : Colors.grey.shade500,
-                  size: 24,
-                ),
-                tooltip: isCallActiveNow
-                    ? 'Start Live Video Consultation'
-                    : 'Video calls unlock at scheduled appointment times',
-                onPressed: () {
-                  if (!isCallActiveNow) {
-                    repo.showToast(
-                      'Video calls unlock at your scheduled appointment time. Tap BOOK APPOINTMENT to reserve a slot! 📅',
-                      type: ToastType.warning,
-                      context: context,
-                    );
-                    return;
-                  }
-                  if (primaryPet == null) {
-                    repo.showToast(
-                      'Please add a pet to start a video consultation 🐾',
-                      type: ToastType.warning,
-                      context: context,
-                    );
-                    return;
-                  }
-                  HapticFeedback.heavyImpact();
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => TeleVetVideoCallScreen(
-                        vet: currentVet,
-                        pet: primaryPet,
-                      ),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(width: 12),
               Expanded(
                 child: SizedBox(
                   height: 52,

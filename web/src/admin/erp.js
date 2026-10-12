@@ -20,6 +20,7 @@ import {
   doc, collection, runTransaction, increment, arrayUnion, setDoc, addDoc, updateDoc, deleteDoc,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
+import { escapeHtml, openPrintWindow } from '../lib/security.js';
 
 export const DEFAULT_SETTINGS = {
   businessName: 'Pet Maya',
@@ -384,17 +385,15 @@ export async function runPayroll(month, staff, { by }) {
 }
 
 /* ── Printing ──────────────────────────────────────────────── */
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const esc = escapeHtml;
 const tk = (v) => `৳${(Number(v) || 0).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
 
 /** Thermal-printer friendly receipt (58/80 mm) in a print window. */
 export function printReceipt(sale, settings, { copy = false } = {}) {
-  const w = window.open('', '_blank', 'width=420,height=720');
-  if (!w) return;
-  const width = settings.receiptWidthMm || 80;
+  const width = Math.min(Math.max(Number(settings.receiptWidthMm) || 80, 40), 120);
   const rows = sale.items.map((i) => `<tr><td colspan="3">${esc(i.name)}</td></tr><tr class="s"><td>${i.qty} × ${tk(i.price)}${i.discount ? ` −${tk(i.discount)}` : ''}</td><td></td><td class="r">${tk(i.lineTotal)}</td></tr>`).join('');
   const pays = (sale.payments || []).map((p) => `<tr><td>${esc(p.method)}${p.ref ? ` (${esc(p.ref)})` : ''}</td><td></td><td class="r">${tk(p.amount)}</td></tr>`).join('');
-  w.document.write(`<!doctype html><title>${esc(sale.number)}</title><style>
+  openPrintWindow(`<!doctype html><title>${esc(sale.number)}</title><style>
     @page{size:${width}mm auto;margin:3mm}body{font:12px/1.35 ui-monospace,Menlo,monospace;width:${width - 6}mm;margin:0 auto;color:#000}
     h1{font-size:15px;text-align:center;margin:4px 0}p{margin:2px 0;text-align:center}table{width:100%;border-collapse:collapse}
     td{padding:1px 0;vertical-align:top}.r{text-align:right}.s td{color:#333}hr{border:0;border-top:1px dashed #000;margin:6px 0}.t td{font-weight:700;font-size:14px}
@@ -408,20 +407,16 @@ export function printReceipt(sale, settings, { copy = false } = {}) {
   ${sale.vatRate ? `<tr><td>VAT ${sale.vatRate}%${sale.pricesIncludeVat ? ' (incl.)' : ''}</td><td></td><td class="r">${tk(sale.vat)}</td></tr>` : ''}
   <tr class="t"><td>TOTAL</td><td></td><td class="r">${tk(sale.total)}</td></tr></table><hr><table>${pays}
   ${sale.change ? `<tr><td>Change</td><td></td><td class="r">${tk(sale.change)}</td></tr>` : ''}</table>
-  ${sale.refundedTotal ? `<hr><p>Refunded: ${tk(sale.refundedTotal)}</p>` : ''}<hr><p>${esc(settings.receiptFooter)}</p>
-  <script>window.onload=()=>{window.print();setTimeout(()=>window.close(),300)}<\/script>`);
-  w.document.close();
+  ${sale.refundedTotal ? `<hr><p>Refunded: ${tk(sale.refundedTotal)}</p>` : ''}<hr><p>${esc(settings.receiptFooter)}</p>`,
+  { features: 'width=420,height=720', closeAfter: true });
 }
 
 /** Generic A4 document (purchase order, report) in a print window. */
 export function printDocument(title, html) {
-  const w = window.open('', '_blank', 'width=900,height=1000');
-  if (!w) return;
-  w.document.write(`<!doctype html><title>${esc(title)}</title><style>
+  openPrintWindow(`<!doctype html><title>${esc(title)}</title><style>
     body{font:13px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;margin:28px;color:#1a1917}h1{font:600 24px Georgia,serif;margin:0 0 4px}
     table{width:100%;border-collapse:collapse;margin-top:14px}th,td{padding:8px;border-bottom:1px solid #ddd;text-align:left}th{background:#f3efe9;font-size:12px;text-transform:uppercase;letter-spacing:.04em}
     .r{text-align:right}.muted{color:#6c6862}.tot td{font-weight:700;border-top:2px solid #1a1917}
-  </style>${html}<script>window.onload=()=>window.print()<\/script>`);
-  w.document.close();
+  </style>${html}`, { features: 'width=900,height=1000' });
 }
 export { esc as escapeHtml, tk as takaText };

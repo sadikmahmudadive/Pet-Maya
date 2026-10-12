@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
+import { safeHref } from './security.js';
 
 // Tiny history-API router. Firebase Hosting / Vercel already rewrite every path to index.html.
 
@@ -81,9 +82,12 @@ export function match(pattern, path) {
   return params;
 }
 
-export function Link({ to, children, onClick, replace, ...rest }) {
+export function Link({ to: rawTo, children, onClick, replace, ...rest }) {
   const { navigate } = useRouter();
+  // Hrefs can come from data (notifications, CMS): drop javascript:, data: etc.
+  const to = safeHref(rawTo);
   const external = /^(https?:|mailto:|tel:)/.test(to) || to?.endsWith('.html') || rest.target === '_blank';
+  if (rest.target === '_blank' && !rest.rel) rest.rel = 'noopener noreferrer';
   return (
     <a
       href={to}

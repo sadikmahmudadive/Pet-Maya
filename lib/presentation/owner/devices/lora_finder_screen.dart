@@ -97,6 +97,7 @@ class _LoraFinderScreenState extends State<LoraFinderScreen> {
   Widget build(BuildContext context) {
     final fixes = finder.fixes.values.toList()..sort((a, b) => b.receivedAt.compareTo(a.receivedAt));
     return GlassScaffold(
+      maxContentWidth: double.infinity,
       appBar: AppBar(
         title: const Text('LoRa Finder · Offline', style: TextStyle(fontWeight: FontWeight.w800)),
         centerTitle: true,

@@ -38,6 +38,7 @@ import '../devices/my_devices_screen.dart';
 import 'user_profile_screen.dart';
 import '../../common_widgets/pet_refresh_indicator.dart';
 import 'notification_screen.dart';
+import '../../../core/responsive.dart';
 import 'hero_pet_carousel.dart';
 
 class OwnerHomeScreen extends StatefulWidget {
@@ -63,6 +64,8 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return GlassScaffold(
+      // Full width shell: each tab caps its own content, the dock caps itself.
+      maxContentWidth: double.infinity,
       body: Stack(
         children: [
           Column(
@@ -72,8 +75,10 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
                 child: IndexedStack(
                   index: _currentNavIndex,
                   children: [
-                    HomeDashboardFragment(
-                      onNavRequested: _onTabSelected,
+                    ResponsiveCenter(
+                      child: HomeDashboardFragment(
+                        onNavRequested: _onTabSelected,
+                      ),
                     ), // 0
                     _activatedTabs.contains(1)
                         ? const PetServicesScreen()
@@ -82,7 +87,7 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
                         ? const CommunityFeedScreen()
                         : const SizedBox.shrink(), // 2
                     _activatedTabs.contains(3)
-                        ? const UserProfileScreen()
+                        ? const ResponsiveCenter(child: UserProfileScreen())
                         : const SizedBox.shrink(), // 3
                     _activatedTabs.contains(4)
                         ? const ShopScreen()

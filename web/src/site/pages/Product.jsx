@@ -206,7 +206,7 @@ export default function Product({ params }) {
               </Button>
             </div>
             {p.isRx && (
-              <Button variant="outline" size="lg" block icon="video" to="/specialists" style={{ marginTop: 10 }}>No prescription? Get one from a vet</Button>
+              <Button variant="outline" size="lg" block icon="stethoscope" to="/specialists" style={{ marginTop: 10 }}>No prescription? Get one from a vet</Button>
             )}
             <div className="row gap-8 wrap" style={{ marginTop: 12 }}>
               {p.coldChain && <span className="panel row gap-8" style={{ padding: '10px 14px', fontSize: 13 }}><Icon name="cold" size={15} className="teal" /> Insulated pack, temperature-tagged</span>}

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useStore } from '../lib/store.jsx';
 import { useRouter } from '../lib/router.jsx';
 import { bookAppointment, notify } from '../data/actions.js';
-import { Icon, Button, Avatar, Segmented, Field, Portal } from '../ui/index.jsx';
+import { Icon, Button, Avatar, Field, Portal } from '../ui/index.jsx';
 import { money, cx } from '../lib/format.js';
 
 const SLOTS = ['9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', '2:00 PM', '3:00 PM', '4:30 PM', '6:00 PM', '7:30 PM'];
@@ -11,11 +11,10 @@ function nextDays(n = 7) {
   return Array.from({ length: n }, (_, i) => { const d = new Date(); d.setDate(d.getDate() + i); d.setHours(0, 0, 0, 0); return d; });
 }
 
-export default function BookingModal({ vet, onClose, defaultMode = 'Video' }) {
+export default function BookingModal({ vet, onClose }) {
   const { user, pets, activePet, toast } = useStore();
   const { navigate } = useRouter();
   const days = useMemo(() => nextDays(7), []);
-  const [mode, setMode] = useState(defaultMode);
   const [day, setDay] = useState(0);
   const [slot, setSlot] = useState('');
   const [petId, setPetId] = useState(activePet?.id || '');
@@ -44,12 +43,12 @@ export default function BookingModal({ vet, onClose, defaultMode = 'Video' }) {
     setBusy(true);
     const d = days[day];
     const data = {
-      title: `${mode === 'Video' ? 'Video consult' : 'Clinic visit'} with ${vet.name}`,
+      title: `Clinic visit with ${vet.name}`,
       reason: reason || 'Consultation',
       doctor: vet.name, vetId: vet.id, clinic: vet.clinic || '',
       petName: pet?.name || 'Pet', petId: pet?.id || '',
       date: d.toISOString(), time: slot, fromTime: slot,
-      mode: mode === 'Video' ? 'Video Consultation' : 'In-Clinic Consultation',
+      mode: 'In-Clinic Consultation',
       status: 'Pending', category: 'VET APPOINTMENT',
       userId: user.uid, ownerName: user.name || '',
       fee: vet.price,
@@ -60,7 +59,7 @@ export default function BookingModal({ vet, onClose, defaultMode = 'Video' }) {
       setDone(true);
       notify(user, {
         title: 'Appointment requested',
-        body: `${mode === 'Video' ? 'Video consult' : 'Clinic visit'} with ${vet.name} on ${d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} at ${slot}.`,
+        body: `Clinic visit with ${vet.name} on ${d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} at ${slot}.`,
         category: 'appointment',
         url: '/vault',
       });
@@ -89,13 +88,12 @@ export default function BookingModal({ vet, onClose, defaultMode = 'Video' }) {
             <span className="well lg round teal" style={{ margin: '0 auto 12px' }}><Icon name="check" size={22} stroke={2.4} /></span>
             <div style={{ fontWeight: 600, color: 'var(--ink)', fontSize: 17 }}>Request sent</div>
             <div className="sub" style={{ marginTop: 6 }}>
-              {days[day].toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' })} at {slot}. We’ll confirm by SMS{mode === 'Video' ? ' and send the video link' : ''}.
+              {days[day].toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' })} at {slot}. We’ll confirm by SMS.
             </div>
             <Button variant="dark" style={{ marginTop: 18 }} onClick={() => { onClose(); navigate('/vault'); }}>View in Health Vault</Button>
           </div>
         ) : (
           <div className="stack gap-16" style={{ marginTop: 22 }}>
-            <Segmented items={[{ value: 'Video', label: 'Video call' }, { value: 'Clinic', label: 'Clinic visit' }]} value={mode} onChange={setMode} />
             <div>
               <span className="label">Day</span>
               <div className="tabs" style={{ gap: 8 }}>

@@ -53,7 +53,9 @@ self.addEventListener('push', (event) => {
 // Notification Click Handler - Focuses or opens the application
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const targetUrl = (event.notification.data && event.notification.data.url) ? event.notification.data.url : '/';
+  // Only in-site paths: a notification must never open javascript:, data: or another site.
+  const rawUrl = (event.notification.data && event.notification.data.url) || '/';
+  const targetUrl = /^\/(?![/\\])[\w\-./?=&%#:+~]*$/.test(String(rawUrl)) ? String(rawUrl) : '/';
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {

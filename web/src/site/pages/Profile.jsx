@@ -7,6 +7,7 @@ import { cx, money, num, shortDate, initials } from '../../lib/format.js';
 import { isRealUser } from '../../data/actions.js';
 import { storage, ref, uploadBytesResumable, getDownloadURL } from '../../config/firebase';
 import { Reveal } from '../../lib/motion.jsx';
+import { validateUpload, ownUploadPath } from '../../lib/security.js';
 
 const MAX_PHOTO = 4 * 1024 * 1024; // 4 MB
 
@@ -23,8 +24,9 @@ function PhotoPicker({ user, photo, name, onPicked, real }) {
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file) return;
-    if (!/^image\//.test(file.type)) { toast('Please choose an image file', { tone: 'error' }); return; }
     if (file.size > MAX_PHOTO) { toast('That image is over 4 MB — please pick a smaller one', { tone: 'error' }); return; }
+    let type;
+    try { type = await validateUpload(file, 'image'); } catch (err) { toast(err.message, { tone: 'error' }); return; }
 
     const local = URL.createObjectURL(file);
     setPreview(local);
@@ -37,9 +39,8 @@ function PhotoPicker({ user, photo, name, onPicked, real }) {
 
     setBusy(1);
     try {
-      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
-      const r = ref(storage, `avatars/${user.uid}/profile_${Date.now()}.${ext}`);
-      const task = uploadBytesResumable(r, file);
+      const r = ref(storage, ownUploadPath('avatars', user.uid, type.ext));
+      const task = uploadBytesResumable(r, file, { contentType: type.contentType });
       task.on('state_changed', (s) => setBusy(Math.max(1, Math.round((s.bytesTransferred / s.totalBytes) * 100))));
       await task;
       const url = await getDownloadURL(r);
@@ -156,7 +157,7 @@ export default function Profile() {
     { to: '/vault', icon: 'shield', label: 'Health vault', sub: 'Records, vaccines & pets' },
     { to: '/account/orders', icon: 'truck', label: 'Orders', sub: `${orders.length} placed` },
     { to: '/shop?saved=1', icon: 'heart', label: 'Saved items', sub: `${(wishlist || []).length} saved` },
-    { to: '/specialists', icon: 'video', label: 'Book a vet', sub: 'Video or clinic visit' },
+    { to: '/specialists', icon: 'stethoscope', label: 'Book a vet', sub: 'Clinic visit' },
     { to: '/gps', icon: 'navigation', label: 'GPS radar', sub: 'Collars & locations' },
   ];
 

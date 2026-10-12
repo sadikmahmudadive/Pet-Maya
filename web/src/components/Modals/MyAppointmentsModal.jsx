@@ -32,9 +32,6 @@ export default function MyAppointmentsModal() {
 
   const getModeBadge = (mode = '') => {
     const m = mode.toLowerCase();
-    if (m.includes('video') || m.includes('tele')) {
-      return { label: 'Video Teleconsult', icon: Video, color: 'var(--primary)', bg: 'rgba(26,182,128,0.1)' };
-    }
     if (m.includes('home')) {
       return { label: 'Home Visit', icon: MapPin, color: '#F59E0B', bg: 'rgba(245,158,11,0.1)' };
     }
@@ -79,7 +76,7 @@ export default function MyAppointmentsModal() {
               My Appointments
             </h3>
             <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
-              View and manage veterinary checkups, teleconsults, and follow-ups.
+              View and manage veterinary checkups and follow-ups.
             </p>
           </div>
           <button className="icon-btn" onClick={closeModal} title="Close">
@@ -205,7 +202,7 @@ export default function MyAppointmentsModal() {
               </h4>
               <p style={{ fontSize: '13px', color: 'var(--text-muted)', maxWidth: '340px', margin: '0 auto 18px' }}>
                 {activeFilter === 'upcoming' 
-                  ? 'Schedule clinical checkups, vaccination boosters, or instant teleconsultations with certified veterinarians.'
+                  ? 'Schedule clinical checkups and vaccination boosters with certified veterinarians.'
                   : 'Your past completed consultation notes, digital prescriptions, and receipts will appear here.'}
               </p>
               <button 
@@ -336,21 +333,6 @@ export default function MyAppointmentsModal() {
                   {/* Card Actions */}
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginTop: '12px', paddingTop: '10px', borderTop: '1px solid var(--border-color)' }}>
                     <div style={{ display: 'flex', gap: '8px' }}>
-                      {(apt.mode?.toLowerCase().includes('tele') || apt.mode?.toLowerCase().includes('video')) && !apt.isCompleted && (
-                        <button 
-                          type="button" 
-                          className="btn-primary" 
-                          style={{ padding: '6px 12px', fontSize: '12px' }}
-                          onClick={() => {
-                            closeModal();
-                            openModal('teleconsult', { appointment: apt });
-                          }}
-                        >
-                          <Video size={13} />
-                          <span>Join Video Room</span>
-                        </button>
-                      )}
-
                       {!apt.isCompleted && (
                         <button 
                           type="button" 

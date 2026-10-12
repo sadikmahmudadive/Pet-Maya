@@ -3,7 +3,6 @@ import { useApp } from '../../context/AppContext';
 import AuthModal from './AuthModal';
 import AddPetModal from './AddPetModal';
 import BookingModal from './BookingModal';
-import TeleConsultModal from './TeleConsultModal';
 import CartDrawer from './CartDrawer';
 import CheckoutModal from './CheckoutModal';
 import OrderTrackerModal from './OrderTrackerModal';
@@ -36,8 +35,6 @@ export default function ModalRoot() {
     case 'booking':
     case 'bookAppointment':
       return <BookingModal />;
-    case 'teleconsult':
-      return <TeleConsultModal />;
     case 'cart':
       return <CartDrawer />;
     case 'checkout':

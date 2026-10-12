@@ -24,9 +24,8 @@ import 'presentation/owner/pets/ai_health_scanner_screen.dart';
 import 'presentation/owner/pets/my_pets_screen.dart';
 import 'presentation/owner/calendar/calendar_screen.dart';
 import 'firebase_options.dart';
-import 'core/services/call_service.dart';
-import 'data/models/vet_model.dart';
-import 'presentation/owner/services/tele_vet_video_call_screen.dart';
+import 'core/app_info.dart';
+import 'core/responsive.dart';
 
 /// Custom HttpOverrides to prevent Samsung One UI / Android 13
 /// aggressive OS power-saving from tearing down pooled sockets ungracefully.
@@ -57,6 +56,9 @@ bool _isTransientNetworkError(dynamic error) {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Phones stay portrait; tablets, foldables and desktop may rotate.
+  await Responsive.applyOrientationPolicy();
 
   // Protect against Samsung & Android 13 socket teardowns
   HttpOverrides.global = ResilientHttpOverrides();
@@ -129,6 +131,7 @@ void main() async {
   await Future.wait([
     LocalCacheService().init(),
     notificationService.initialize(),
+    AppInfo.load(),
     HomeWidgetService.init(onDeepLink: (uri) => handleWidgetDeepLink(uri)),
   ]);
 
@@ -137,35 +140,6 @@ void main() async {
 
   // Initialize Workmanager for battery-optimization-aware tasks
   Workmanager().initialize(callbackDispatcher);
-
-  // Incoming tele-vet calls accepted from the native ringing UI open the call screen.
-  CallService().openIncomingScreen = (call) {
-    final nav = TailWaggingApp.navigatorKey.currentState;
-    if (nav == null || CallService().activeCallId == call.id) return;
-    nav.push(
-      MaterialPageRoute(
-        builder: (_) => TeleVetVideoCallScreen(
-          callId: call.id,
-          vet: VetModel(
-            id: call.callerId,
-            name: call.callerName,
-            qualification: 'Video consultation',
-            tag: 'Veterinarian',
-            photoUrl: call.callerPhoto,
-          ),
-          pet: PetModel(
-            petID: call.petId,
-            ownerID: call.calleeId,
-            name: call.petName.isEmpty ? 'Pet' : call.petName,
-            breed: '',
-            gender: '',
-            age: '',
-            dob: '',
-          ),
-        ),
-      ),
-    );
-  };
 
   runApp(
     MultiProvider(
@@ -258,7 +232,11 @@ class TailWaggingApp extends StatelessWidget {
             physics: const BouncingScrollPhysics(),
           ),
           builder: (context, child) {
-            return GlobalOfflineBanner(child: child ?? const SizedBox.shrink());
+            return ClampedTextScale(
+              child: GlobalOfflineBanner(
+                child: child ?? const SizedBox.shrink(),
+              ),
+            );
           },
           home: const SplashScreen(),
         );

@@ -7,7 +7,6 @@ import 'package:animate_do/animate_do.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../data/models/event_model.dart';
-import '../../data/models/pet_model.dart';
 import '../../data/models/vet_model.dart';
 import '../../data/models/user_model.dart';
 import '../../data/repositories/app_state_repository.dart';
@@ -19,9 +18,9 @@ import '../common_widgets/passport_qr_scanner.dart';
 import '../auth/login_screen.dart';
 import '../owner/community/community_feed_screen.dart';
 import '../owner/home/user_profile_screen.dart';
-import '../owner/services/tele_vet_video_call_screen.dart';
 import 'add_service_record_modal.dart';
 import 'client_list_screen.dart';
+import '../../core/responsive.dart';
 import 'edit_practice_hours_modal.dart';
 
 class ProviderRoleConfig {
@@ -109,15 +108,21 @@ class _VetDashboardScreenState extends State<VetDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return GlassScaffold(
+      // Full width shell: each tab caps its own content, the dock caps itself.
+      maxContentWidth: double.infinity,
       body: Stack(
         children: [
           IndexedStack(
             index: _currentNavIndex,
             children: [
-              const VetConsoleHomeFragment(), // 0: Clinic / Studio Console
+              const ResponsiveCenter(
+                child: VetConsoleHomeFragment(),
+              ), // 0: Clinic / Studio Console
               const ClientListScreen(), // 1: Patients Directory
               const CommunityFeedScreen(), // 2: Clinical Community
-              const UserProfileScreen(), // 3: Doctor Profile & Rewards
+              const ResponsiveCenter(
+                child: UserProfileScreen(),
+              ), // 3: Doctor Profile & Rewards
             ],
           ),
           Positioned(
@@ -377,68 +382,6 @@ class VetConsoleHomeFragment extends StatelessWidget {
               ),
               const SizedBox(height: 16),
 
-              // Action button to Launch Tele-Vet Video Call Room
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0288D1),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                  onPressed: () {
-                    final pet = state.pets.where((p) => p.petID == evt.petId).firstOrNull ??
-                        PetModel(
-                          petID: evt.petId,
-                          ownerID: evt.userId,
-                          name: evt.petName,
-                          type: 'Dog',
-                          breed: 'Golden Retriever',
-                          dob: '2022-01-01',
-                          age: '2',
-                          gender: 'Male',
-                        );
-                    final user = state.currentUser;
-                    final vet = state.vets.firstOrNull ??
-                        VetModel(
-                          id: user?.uid ?? 'vet_1',
-                          name: user?.name ?? 'Dr. Specialist',
-                          qualification: 'Veterinary Specialist',
-                          tag: 'Veterinarian',
-                          price: '৳800',
-                          photoUrl: user?.photoUrl ?? 'assets/images/vet_placeholder.png',
-                        );
-                    Navigator.pop(ctx);
-                    HapticFeedback.heavyImpact();
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => TeleVetVideoCallScreen(
-                          // Vet-initiated: the screen shows (and rings) the pet's owner.
-                          vet: VetModel(
-                            id: pet.ownerID,
-                            name: "${pet.name}'s owner",
-                            qualification: 'Pet owner',
-                            tag: 'Pet Owner',
-                          ),
-                          pet: pet,
-                          calleeId: pet.ownerID,
-                          channelId: 'channel_${evt.id}',
-                        ),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.videocam_rounded),
-                  label: const Text(
-                    'Start Live Video Consultation',
-                    style: TextStyle(fontWeight: FontWeight.w800),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 10),
 
               // Action button to Add Service EHR log
               SizedBox(

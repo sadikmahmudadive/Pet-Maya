@@ -178,7 +178,7 @@ export default function Vault() {
                   )}
                   {r.date > Date.now() && (
                     <div className="panel row between wrap gap-8" style={{ marginTop: 12, padding: '8px 8px 8px 14px' }}>
-                      <span className="sub row gap-6"><Icon name="video" size={14} /> Video link appears 15 minutes before</span>
+                      <span className="sub row gap-6"><Icon name="calendar" size={14} /> Arrive 10 minutes early for check-in</span>
                       <div className="row gap-6"><Button variant="outline" size="sm" to="/specialists">Reschedule</Button><Button variant="teal" size="sm" to="/triage">Add symptoms</Button></div>
                     </div>
                   )}
@@ -191,7 +191,7 @@ export default function Vault() {
             <div className="card">
               <div className="eyebrow muted" style={{ fontSize: 10 }}>Coming up</div>
               <h3 className="serif" style={{ fontSize: 22, margin: '8px 0 12px' }}>{upcoming ? upcoming.title : 'Nothing booked'}</h3>
-              {upcoming ? <div className="sub">{shortDate(upcoming.date)} · {timeOfDay(upcoming.date)}{upcoming.doctor ? ` · ${upcoming.doctor}` : ''}</div> : <p className="sub">Book a check-up or a quick video consult.</p>}
+              {upcoming ? <div className="sub">{shortDate(upcoming.date)} · {timeOfDay(upcoming.date)}{upcoming.doctor ? ` · ${upcoming.doctor}` : ''}</div> : <p className="sub">Book a check-up with a vet.</p>}
               <Button variant="soft" block icon="calendar" style={{ marginTop: 14 }} to="/specialists">{upcoming ? 'Manage booking' : 'Book a vet'}</Button>
             </div>
             <div className="card">
@@ -202,8 +202,8 @@ export default function Vault() {
             <div className="dark-card">
               <div className="row gap-6" style={{ color: '#F19A90' }}><span className="dot red" /><span className="eyebrow" style={{ color: '#F19A90' }}>Emergency</span></div>
               <h3 className="serif" style={{ fontSize: 24, marginTop: 10 }}>Something urgent?</h3>
-              <p style={{ fontSize: 13.5, color: 'rgba(255,255,255,.7)', marginTop: 8 }}>Start an urgent video call — {pet?.name || 'your pet'}’s records are shared with the vet automatically.</p>
-              <Button variant="teal" block icon="video" style={{ marginTop: 16 }} to="/specialists">{emergency ? `Urgent call · ${emergency.name}` : 'Urgent video call'}</Button>
+              <p style={{ fontSize: 13.5, color: 'rgba(255,255,255,.7)', marginTop: 8 }}>Book an urgent visit — {pet?.name || 'your pet'}’s records are shared with the vet automatically.</p>
+              <Button variant="teal" block icon="calendar" style={{ marginTop: 16 }} to="/specialists">{emergency ? `Urgent visit · ${emergency.name}` : 'Book an urgent visit'}</Button>
             </div>
             <div className="row gap-8 sub" style={{ fontSize: 12, padding: '0 6px' }}><Icon name="lock" size={14} /> Only you and the vets you book can see these records.</div>
           </aside>

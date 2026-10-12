@@ -10,6 +10,7 @@ import '../../data/models/order_model.dart';
 import '../common_widgets/glass_scaffold.dart';
 import '../common_widgets/premium_card.dart';
 import '../common_widgets/empty_state.dart';
+import '../../core/responsive.dart';
 
 class AdminOrderManagerScreen extends StatefulWidget {
   const AdminOrderManagerScreen({super.key});
@@ -31,6 +32,7 @@ class _AdminOrderManagerScreenState extends State<AdminOrderManagerScreen> {
         : orders.where((o) => o.status == _filterStatus).toList();
 
     return GlassScaffold(
+      maxContentWidth: Responsive.dashboardMaxWidth,
       appBar: AppBar(
         title: const Text('Global Orders', style: TextStyle(fontWeight: FontWeight.w800)),
         backgroundColor: Colors.transparent,

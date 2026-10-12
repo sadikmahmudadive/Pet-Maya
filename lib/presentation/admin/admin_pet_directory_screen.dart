@@ -7,6 +7,7 @@ import '../../data/repositories/app_state_repository.dart';
 import '../common_widgets/glass_scaffold.dart';
 import '../common_widgets/premium_card.dart';
 import '../common_widgets/empty_state.dart';
+import '../../core/responsive.dart';
 
 class AdminPetDirectoryScreen extends StatefulWidget {
   const AdminPetDirectoryScreen({super.key});
@@ -31,6 +32,7 @@ class _AdminPetDirectoryScreenState extends State<AdminPetDirectoryScreen> {
     }).toList();
 
     return GlassScaffold(
+      maxContentWidth: Responsive.dashboardMaxWidth,
       appBar: AppBar(
         title: const Text(
           'Global Pet Directory',

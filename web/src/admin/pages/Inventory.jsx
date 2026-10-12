@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from '../../lib/router.jsx';
-import { storage, ref, uploadBytesResumable, getDownloadURL } from '../../config/firebase';
+import { auth, storage, ref, uploadBytesResumable, getDownloadURL } from '../../config/firebase';
 import { useAdmin, useAdminWrite, downloadCsv, ADMIN_CONFIG } from '../data.jsx';
 import { PageHead } from '../AdminApp.jsx';
 import { Icon, Button, Pill, Stat, Tabs, Ph, Toggle, Field, Empty } from '../../ui/index.jsx';
 import { money, cx } from '../../lib/format.js';
 import { useStore } from '../../lib/store.jsx';
+import { validateUpload, ownUploadPath } from '../../lib/security.js';
 
 const statusOf = (p) => {
   if (p.stockCount <= 0) return ['Out of stock', 'red', 'x'];
@@ -97,10 +98,13 @@ export default function Inventory() {
     if (!file) return;
     if (!storage) { set('image', URL.createObjectURL(file)); return; }
     try {
-      const r = ref(storage, `shop_products/${Date.now()}_${file.name}`);
-      await uploadBytesResumable(r, file);
+      const type = await validateUpload(file, 'image');
+      const uid = auth.currentUser?.uid;
+      if (!uid) { toast('Sign in again to upload photos', { tone: 'error' }); return; }
+      const r = ref(storage, ownUploadPath('shop_products', uid, type.ext));
+      await uploadBytesResumable(r, file, { contentType: type.contentType });
       set('image', await getDownloadURL(r));
-    } catch { toast('Photo upload failed', { tone: 'error' }); }
+    } catch (e) { toast(e?.message && !e.code ? e.message : 'Photo upload failed', { tone: 'error' }); }
   };
   const importCsv = async (file) => {
     if (!file) return;

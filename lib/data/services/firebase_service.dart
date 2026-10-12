@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -172,8 +173,39 @@ class FirebaseService {
 
   // ─── USER PROFILE ────────────────────────────────────────────────────────
 
-  Future<void> saveUserProfile(app_models.UserModel user) async {
-    await _usersCol.doc(user.uid).set(user.toMap(), SetOptions(merge: true));
+  /// Fields only admins or Cloud Functions may change (see firestore.rules).
+  static const _serverControlledUserFields = [
+    'isVerified',
+    'isSuspended',
+    'referredBy',
+    'points',
+    'role',
+  ];
+
+  /// First write of a new account's profile (role chosen at sign-up,
+  /// unverified, starter points).
+  Future<void> createUserProfile(app_models.UserModel user) async {
+    final data = user.toMap()
+      ..['isVerified'] = false
+      ..['isSuspended'] = false
+      ..remove('referredBy');
+    await _usersCol.doc(user.uid).set(data, SetOptions(merge: true));
+  }
+
+  /// Saves profile edits. The signed-in user's own saves skip fields only
+  /// admins/functions may change; pass [asAdmin] for admin tools that manage
+  /// other accounts (verification, suspension, role).
+  Future<void> saveUserProfile(
+    app_models.UserModel user, {
+    bool asAdmin = false,
+  }) async {
+    final data = user.toMap();
+    if (!asAdmin) {
+      for (final f in _serverControlledUserFields) {
+        data.remove(f);
+      }
+    }
+    await _usersCol.doc(user.uid).set(data, SetOptions(merge: true));
   }
 
   Future<app_models.UserModel?> fetchUserProfile(String uid) async {
@@ -183,6 +215,20 @@ class FirebaseService {
       uid,
       doc.data()! as Map<String, dynamic>,
     );
+  }
+
+  /// Name, photo and role of another user (public_profiles, kept in sync by
+  /// the sync_public_profile function). Contains no contact details.
+  Future<app_models.UserModel?> fetchPublicProfile(String uid) async {
+    final doc = await _db.collection('public_profiles').doc(uid).get();
+    final data = doc.data();
+    if (!doc.exists || data == null) return null;
+    return app_models.UserModel.fromMap(uid, {
+      'name': data['name'],
+      'photoUrl': data['photoUrl'],
+      'role': data['role'],
+      'isVerified': data['isVerified'] == true,
+    });
   }
 
   Stream<app_models.UserModel?> streamUserProfile(String uid) {
@@ -232,92 +278,32 @@ class FirebaseService {
         .toList();
   }
 
-  /// Applies a referral code for a user, awarding +5 points to the referrer.
+  /// Applies a referral code for the signed-in user. The referrer's +5 points
+  /// are credited by the `apply_referral` Cloud Function (clients can't write
+  /// other users' documents), once per account.
   Future<({bool success, String? errorMessage})> applyReferralCode({
     required String userUid,
     required String code,
   }) async {
+    final normalizedCode = code.trim().toUpperCase();
+    if (normalizedCode.isEmpty) {
+      return (success: false, errorMessage: 'Referral code cannot be empty');
+    }
     try {
-      final normalizedCode = code.trim().toUpperCase();
-      if (normalizedCode.isEmpty) {
-        return (success: false, errorMessage: 'Referral code cannot be empty');
-      }
-
-      // 1. Find referrer user with matching referralCode
-      final snap = await _usersCol
-          .where('referralCode', isEqualTo: normalizedCode)
-          .limit(1)
-          .get();
-      if (snap.docs.isEmpty) {
-        return (
-          success: false,
-          errorMessage:
-              'Referral code "$normalizedCode" is invalid or does not exist',
-        );
-      }
-
-      final referrerDoc = snap.docs.first;
-      final referrerUid = referrerDoc.id;
-
-      // 2. Prevent self-referral
-      if (referrerUid == userUid) {
-        return (
-          success: false,
-          errorMessage: 'You cannot use your own referral code',
-        );
-      }
-
-      // 3. Prevent duplicate referral redemption by current user
-      final userDoc = await _usersCol.doc(userUid).get();
-      if (userDoc.exists && userDoc.data() != null) {
-        final userData = userDoc.data() as Map<String, dynamic>;
-        if (userData['referredBy'] != null &&
-            (userData['referredBy'] as String).isNotEmpty) {
-          return (
-            success: false,
-            errorMessage: 'You have already redeemed a referral code',
-          );
-        }
-      }
-
-      // 4. Award +5 points to referrer
-      await _usersCol.doc(referrerUid).update({
-        'points': FieldValue.increment(5),
-      });
-
-      // 5. Record referral on current user document
-      await _usersCol.doc(userUid).set({
-        'referredBy': normalizedCode,
-      }, SetOptions(merge: true));
-
-      // 6. Push notification to referrer
-      final notifId = 'notif_${DateTime.now().millisecondsSinceEpoch}';
-      await _notificationsCol
-          .doc(referrerUid)
-          .collection('items')
-          .doc(notifId)
-          .set({
-            'id': notifId,
-            'title': '🎉 +5 Referral Points Earned!',
-            'message':
-                'A friend just joined Pet Maya using your referral code $normalizedCode. You received 5 points!',
-            'type': 'reward',
-            'timestamp': DateTime.now().millisecondsSinceEpoch,
-            'isRead': false,
-          })
-          .catchError((_) => null);
-
+      await FirebaseFunctions.instanceFor(region: 'us-central1')
+          .httpsCallable('apply_referral')
+          .call({'code': normalizedCode});
       return (success: true, errorMessage: null);
-    } catch (e) {
-      debugPrint('[FirebaseService] applyReferralCode error: $e');
+    } on FirebaseFunctionsException catch (e) {
       return (
         success: false,
-        errorMessage: 'Failed to apply referral code: ${e.toString()}',
+        errorMessage: e.message ?? 'Failed to apply referral code',
       );
+    } catch (e) {
+      debugPrint('[FirebaseService] applyReferralCode error: $e');
+      return (success: false, errorMessage: 'Failed to apply referral code');
     }
   }
-
-
 
   /// Purge all user data from Firestore
   Future<void> deleteUserData(String userId) async {
@@ -622,6 +608,29 @@ class FirebaseService {
       list.sort((a, b) => b.timestamp.compareTo(a.timestamp));
       return list;
     });
+  }
+
+  /// Records of the owner's pets (firestore.rules matches on ownerId).
+  Stream<List<ServiceRecordModel>> streamServiceRecordsForOwner(String ownerId) {
+    return _recordsCol.where('ownerId', isEqualTo: ownerId).snapshots().map((
+      snap,
+    ) {
+      final list = snap.docs
+          .map(
+            (d) => ServiceRecordModel.fromMap(
+              d.id,
+              d.data()! as Map<String, dynamic>,
+            ),
+          )
+          .toList();
+      list.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      return list;
+    });
+  }
+
+  /// Owners may only flip sharing on their records (not edit clinical data).
+  Future<void> setRecordSharing(String recordId, bool isShared) async {
+    await _recordsCol.doc(recordId).update({'isSharedWithVets': isShared});
   }
 
   Future<void> saveServiceRecord(ServiceRecordModel record) async {

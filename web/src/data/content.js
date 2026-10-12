@@ -32,7 +32,7 @@ export const PROMOS = {
 export const ANNOUNCEMENTS = [
   `Code ${PROMOS.firstOrderCode} · ${PROMOS.firstOrderPct}% off your first order`,
   `Free delivery over ৳${DELIVERY.freeOver.toLocaleString('en-US')}`,
-  `Vet on video · from ৳${PROMOS.vetConsultFrom}`,
+  `Vet visits · from ৳${PROMOS.vetConsultFrom}`,
 ];
 
 export const TRUST = [

@@ -22,6 +22,7 @@ import 'admin_service_pricing_screen.dart';
 import 'admin_blog_manager_screen.dart';
 import 'super_admin_settings_modal.dart';
 import 'package:animate_do/animate_do.dart';
+import '../../core/responsive.dart';
 
 class AdminDashboardScreen extends StatelessWidget {
   const AdminDashboardScreen({super.key});
@@ -45,6 +46,7 @@ class AdminDashboardScreen extends StatelessWidget {
     final size = MediaQuery.of(context).size;
 
     return GlassScaffold(
+      maxContentWidth: Responsive.dashboardMaxWidth,
       appBar: AppBar(
         title: Text(isSuper ? 'Overlord Console' : 'Master Console'),
         backgroundColor: Colors.transparent,
@@ -177,9 +179,12 @@ class AdminDashboardScreen extends StatelessWidget {
                     child: GridView.count(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      crossAxisCount: size.width < 360
-                          ? 1
-                          : 2, // 1 column on tiny screens, 2 on others
+                      // 1 column on tiny phones, 2 on phones, up to 4 on tablets/desktop
+                      crossAxisCount: Responsive.columnsFor(
+                        size.width - 40,
+                        minTileWidth: 160,
+                        max: 4,
+                      ),
                       mainAxisSpacing: 12,
                       crossAxisSpacing: 12,
                       childAspectRatio: 2.8,

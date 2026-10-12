@@ -33,8 +33,9 @@ class PromoContainer extends StatelessWidget {
           ),
           
           Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32),
+            // Scrolls instead of overflowing on short screens / large text.
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
               child: ZoomIn(
                 duration: const Duration(milliseconds: 400),
                 child: Container(

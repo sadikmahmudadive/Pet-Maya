@@ -88,8 +88,8 @@ export default function Community() {
           <div className="card">
             <div className="eyebrow" style={{ color: 'var(--red)' }}>● Urgent help</div>
             <h3 className="h-card" style={{ marginTop: 8 }}>Worried about your pet?</h3>
-            <p className="sub" style={{ margin: '6px 0 12px' }}>Talk to a vet on video in minutes.</p>
-            <Button variant="red" block icon="video" to="/specialists">Urgent video call</Button>
+            <p className="sub" style={{ margin: '6px 0 12px' }}>See a vet today — book the next urgent visit.</p>
+            <Button variant="red" block icon="calendar" to="/specialists">Book an urgent visit</Button>
           </div>
         </aside>
 

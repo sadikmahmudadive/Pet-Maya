@@ -6,13 +6,7 @@ import { Icon, Button, Ph, Pill, Avatar, Empty } from '../../ui/index.jsx';
 import { cx } from '../../lib/format.js';
 import { subscribeNewsletter } from '../../data/actions.js';
 import { Reveal } from '../../lib/motion.jsx';
-
-function sanitize(html) {
-  return String(html)
-    .replace(/<\s*(script|style|iframe|object|embed)[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi, '')
-    .replace(/\son\w+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, '')
-    .replace(/(href|src)\s*=\s*(["'])\s*javascript:[^"']*\2/gi, '$1="#"');
-}
+import { sanitizeHtml } from '../../lib/security.js';
 
 function Article({ post }) {
   const { toast } = useStore();
@@ -30,11 +24,11 @@ function Article({ post }) {
       </div>
       <Ph src={post.image} tone="teal" label="feature photo" style={{ height: 'clamp(220px,40vw,440px)', borderRadius: 28, margin: '32px 0 40px' }} />
       {isHtml
-        ? <div className="prose" dangerouslySetInnerHTML={{ __html: sanitize(body) }} />
+        ? <div className="prose" dangerouslySetInnerHTML={{ __html: sanitizeHtml(body) }} />
         : <div className="prose">{String(body).split(/\n{2,}/).map((para, i) => <p key={i}>{para}</p>)}</div>}
       <div className="prose row gap-8" style={{ marginTop: 32 }}>
         <Button variant="outline" icon="share" onClick={() => { navigator.clipboard?.writeText(window.location.href); toast('Link copied'); }}>Share</Button>
-        <Button variant="teal" icon="video" to="/specialists">Questions? Ask a vet</Button>
+        <Button variant="teal" icon="stethoscope" to="/specialists">Questions? Ask a vet</Button>
       </div>
     </article>
   );

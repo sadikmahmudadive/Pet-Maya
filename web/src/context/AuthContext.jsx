@@ -17,7 +17,9 @@ import {
   onSnapshot,
   increment,
   arrayUnion,
-  arrayRemove
+  arrayRemove,
+  functions,
+  httpsCallable
 } from '../config/firebase';
 
 const AuthContext = createContext();
@@ -141,13 +143,21 @@ export function AuthProvider({ children }) {
       role: 'Pet Owner',
       points: 25,
       referralCode: generateReferralCode(cred.user.uid),
-      referredBy: referralCode ? referralCode.trim() : null,
       isVerified: false,
       favoriteVetIds: [],
       createdAt: new Date().toISOString()
     };
 
     await setDoc(userDocRef, newUserData, { merge: true });
+    // Referral credit is applied server-side (once per account; the referrer's
+    // points can't be written from the browser).
+    if (referralCode && referralCode.trim()) {
+      try {
+        await httpsCallable(functions, 'apply_referral')({ code: referralCode.trim().toUpperCase() });
+      } catch (e) {
+        console.warn('[Auth] referral not applied:', e?.message || e);
+      }
+    }
     return cred;
   };
 

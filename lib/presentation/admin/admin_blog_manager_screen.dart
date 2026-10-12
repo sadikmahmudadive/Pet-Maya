@@ -11,6 +11,7 @@ import '../../data/models/blog_post_model.dart';
 import '../common_widgets/glass_scaffold.dart';
 import '../common_widgets/premium_card.dart';
 import '../common_widgets/empty_state.dart';
+import '../../core/responsive.dart';
 
 class AdminBlogManagerScreen extends StatefulWidget {
   const AdminBlogManagerScreen({super.key});
@@ -48,6 +49,7 @@ class _AdminBlogManagerScreenState extends State<AdminBlogManagerScreen> {
     }).toList();
 
     return GlassScaffold(
+      maxContentWidth: Responsive.dashboardMaxWidth,
       appBar: AppBar(
         title: const Text(
           'Editorial Command',

@@ -15,6 +15,7 @@ import '../common_widgets/glass_scaffold.dart';
 import '../common_widgets/premium_card.dart';
 import '../common_widgets/empty_state.dart';
 import '../common_widgets/status_chip.dart';
+import '../../core/responsive.dart';
 
 class AdminServiceManagerScreen extends StatefulWidget {
   const AdminServiceManagerScreen({super.key});
@@ -39,6 +40,7 @@ class _AdminServiceManagerScreenState extends State<AdminServiceManagerScreen> {
         .toList();
 
     return GlassScaffold(
+      maxContentWidth: Responsive.dashboardMaxWidth,
       appBar: AppBar(
         title: const Text(
           'Clinical Ops',
