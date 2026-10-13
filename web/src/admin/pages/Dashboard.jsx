@@ -3,7 +3,7 @@ import { Link, useRouter } from '../../lib/router.jsx';
 import { useAdmin, downloadCsv, ADMIN_CONFIG } from '../data.jsx';
 import { PageHead } from '../AdminApp.jsx';
 import { Icon, Button, Pill, Stat, Well } from '../../ui/index.jsx';
-import { money, timeOfDay, greeting, cx } from '../../lib/format.js';
+import { money, timeOfDay, greeting, cx, tipSide } from '../../lib/format.js';
 import { SAMPLE_REVENUE_14D, SAMPLE_COLDCHAIN } from '../../data/sample.js';
 import { StatusPill } from './Orders.jsx';
 
@@ -104,7 +104,7 @@ export default function Dashboard({ user }) {
             <div className="bars" style={{ paddingLeft: 40 }}>
               {m.series.map((s, i) => (
                 <div key={s.day} className={cx('bar', i === m.series.length - 1 && 'now')} style={{ height: `${(s.value / max) * 100}%` }}>
-                  <span className="tip">{new Date(s.day).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} · {money(s.value)}</span>
+                  <span className={tipSide(i, m.series.length)}>{new Date(s.day).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} · {money(s.value)}</span>
                 </div>
               ))}
             </div>

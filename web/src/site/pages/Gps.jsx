@@ -169,7 +169,7 @@ export default function Gps() {
               <div className="row gap-4 hide-sm" style={{ position: 'absolute', right: 16, top: 16, background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 999, padding: 4, zIndex: 10 }}>
                 <Segmented items={[{ value: 'radar', label: 'Radar' }, { value: 'map', label: 'Map' }, { value: 'satellite', label: 'Satellite' }]} value={layer} onChange={(v) => setLayer(v)} />
               </div>
-              <span className="map-label mono" style={{ left: 16, bottom: 16, fontSize: 11, zIndex: 10 }}><span className="dot" /> {dms(dev.latitude, 'N', 'S')}, {dms(dev.longitude, 'E', 'W')} · updated {ago(dev.lastSyncAt) || 'just now'}</span>
+              <span className={cx('map-label mono map-coords', layer === 'radar' && 'beside-zoom')} style={{ left: 16, bottom: 16, fontSize: 11, zIndex: 10 }}><span className="dot" /> {dms(dev.latitude, 'N', 'S')}, {dms(dev.longitude, 'E', 'W')} · updated {ago(dev.lastSyncAt) || 'just now'}</span>
               {layer === 'radar' && (
                 <div className="stack" style={{ position: 'absolute', right: 16, bottom: 16, background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 14, boxShadow: 'var(--shadow-sm)', zIndex: 10 }}>
                   <button className="btn btn-ghost btn-square" onClick={() => setZoom((z) => Math.min(3, z * 1.3))} aria-label="Zoom in"><Icon name="plus" /></button>
@@ -177,6 +177,10 @@ export default function Gps() {
                   <button className="btn btn-ghost btn-square" onClick={() => setZoom((z) => Math.max(0.4, z / 1.3))} aria-label="Zoom out"><Icon name="minus" /></button>
                 </div>
               )}
+            </div>
+            {/* Phones: the Radar / Map / Satellite switch moves under the map. */}
+            <div className="show-sm" style={{ padding: '14px 18px 0' }}>
+              <Segmented items={[{ value: 'radar', label: 'Radar' }, { value: 'map', label: 'Map' }, { value: 'satellite', label: 'Satellite' }]} value={layer} onChange={(v) => setLayer(v)} />
             </div>
             <div className="row gap-12 wrap" style={{ padding: 18 }}>
               <Button variant="dark" size="lg" icon="volume" onClick={ring}>Ring the collar</Button>
@@ -204,7 +208,7 @@ export default function Gps() {
           {dev.steps > 0 && (
             <div className="card">
               <div className="card-head"><div className="row gap-8"><Icon name="pulse" className="teal" /><h2 className="h-card">Activity today</h2></div></div>
-              <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <div className="grid" style={{ gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 10 }}>
                 <div className="mini-stat"><div className="k">Steps</div><div className="v mono">{dev.steps.toLocaleString('en-US')}</div>{dev.stepsGoal > 0 && <div className="s">{Math.round((dev.steps / dev.stepsGoal) * 100)}% of goal</div>}</div>
                 <div className="mini-stat"><div className="k">Status</div><div className="v mono">{inZone ? 'Home' : 'Out'}</div><div className="s">{inZone ? 'Within safe zone' : 'Outside safe zone'}</div></div>
               </div>

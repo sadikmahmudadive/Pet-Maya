@@ -73,15 +73,15 @@ export default function Appointments() {
               <h2 className="h-card">{view === 'day' ? new Date(from).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' }) : 'Next 7 days'}</h2>
               <div className="sub">{view === 'day' ? `${new Set(today.map((e) => vetFor(e)?.id)).size} vets on shift · ${today.length} of ${totalSlots} slots booked` : `${week.reduce((a, d) => a + d.items.length, 0)} appointments`}</div>
             </div>
-            <div className="row gap-8">
+            <div className="row gap-8 wrap">
               {view === 'day' && <><Button variant="outline" size="sm" icon="chevronLeft" onClick={() => setDayOffset((d) => d - 1)} aria-label="Previous day" /><Button variant="outline" size="sm" onClick={() => setDayOffset(0)}>Today</Button><Button variant="outline" size="sm" icon="chevronRight" onClick={() => setDayOffset((d) => d + 1)} aria-label="Next day" /></>}
-              <div style={{ width: 160 }}><Segmented items={[{ value: 'day', label: 'Day' }, { value: 'week', label: 'Week' }]} value={view} onChange={setView} /></div>
+              <div style={{ width: 160, maxWidth: '100%' }}><Segmented items={[{ value: 'day', label: 'Day' }, { value: 'week', label: 'Week' }]} value={view} onChange={setView} /></div>
             </div>
           </div>
 
           {view === 'day' ? (
             <div style={{ overflowX: 'auto' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: `52px repeat(${columns.length}, minmax(150px, 1fr))`, minWidth: 52 + columns.length * 150 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: `52px repeat(${columns.length}, minmax(min(150px, 100%), 1fr))`, minWidth: 52 + columns.length * 150 }}>
                 <div />
                 {columns.map((v) => (
                   <div key={v.id} className="cal-head">

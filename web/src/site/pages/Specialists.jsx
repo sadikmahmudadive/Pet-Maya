@@ -140,7 +140,7 @@ export default function Specialists() {
       </section>
 
       <section className="section">
-        <div className="split" style={{ gridTemplateColumns: '1fr 1fr', gap: 32 }}>
+        <div className="split" style={{ gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 32 }}>
           <div>
             <div className="eyebrow">Our standards</div>
             <h2 className="display-2" style={{ marginTop: 8 }}>How we choose our vets</h2>
@@ -151,7 +151,7 @@ export default function Specialists() {
               <div><div style={{ fontSize: 30, fontWeight: 600 }}>{money(minFee)}</div><div className="stat-label" style={{ fontSize: 9.5 }}>Consults from</div></div>
             </div>
           </div>
-          <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div className="grid" style={{ gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 12 }}>
             {[
               ['shield', 'Licence checks', 'Registration and degree verified before onboarding, and re-checked every year.'],
               ['check', 'Clear prescribing', 'Prescriptions are written in the app and checked by our pharmacy before dispatch.'],

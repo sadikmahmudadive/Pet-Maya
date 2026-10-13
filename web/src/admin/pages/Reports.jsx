@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useAdmin, downloadCsv } from '../data.jsx';
 import { PageHead } from '../AdminApp.jsx';
 import { Button, Pill, Stat, Empty } from '../../ui/index.jsx';
-import { money } from '../../lib/format.js';
+import { money, tipSide } from '../../lib/format.js';
 
 const DAY = 864e5;
 const dayKey = (ms) => { const d = new Date(ms); d.setHours(0, 0, 0, 0); return d.getTime(); };
@@ -10,14 +10,16 @@ const dayKey = (ms) => { const d = new Date(ms); d.setHours(0, 0, 0, 0); return 
 function Bars({ series, height = 180, fmt = (v) => money(v, { compact: true }) }) {
   const max = Math.max(...series.map((s) => s.value), 1);
   return (
-    <div style={{ position: 'relative' }}>
-      <div className="gridlines" style={{ height }}>{[1, 0.5, 0].map((f) => <div key={f}>{fmt(max * f)}</div>)}</div>
-      <div className="bars" style={{ paddingLeft: 40, height }}>
-        {series.map((s, i) => (
-          <div key={i} className="bar" style={{ height: `${(s.value / max) * 100}%`, background: s.color }}>
-            <span className="tip">{s.label} · {fmt(s.value)}</span>
-          </div>
-        ))}
+    <div className="bars-scroll">
+      <div style={{ position: 'relative', minWidth: 40 + series.length * 7 }}>
+        <div className="gridlines" style={{ height }}>{[1, 0.5, 0].map((f) => <div key={f}>{fmt(max * f)}</div>)}</div>
+        <div className="bars" style={{ paddingLeft: 40, height }}>
+          {series.map((s, i) => (
+            <div key={i} className="bar" style={{ height: `${(s.value / max) * 100}%`, background: s.color }}>
+              <span className={tipSide(i, series.length)}>{s.label} · {fmt(s.value)}</span>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

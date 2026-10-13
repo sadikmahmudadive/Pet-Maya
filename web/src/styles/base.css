@@ -65,7 +65,7 @@ em.accent { font-style: italic; color: var(--teal); }
 .card.flat { background: var(--sunk); border-color: transparent; }
 .card.tight { padding: 16px; }
 .card.flush { padding: 0; overflow: hidden; }
-.card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.card-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
 .card-head .sub { margin-top: 2px; }
 .panel { background: var(--sunk); border-radius: var(--r-md); padding: 14px 16px; }
 
@@ -203,9 +203,9 @@ em.accent { font-style: italic; color: var(--teal); }
 .input:focus, .select:focus, .textarea:focus { outline: none; border-color: var(--teal); background: var(--surface); }
 .input.white { background: var(--surface); border-color: var(--line); }
 .field { display: block; }
-.fields { display: grid; gap: 16px; grid-template-columns: 1fr 1fr; }
+.fields { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 .fields > .full { grid-column: 1 / -1; }
-@media (max-width: 560px) { .fields { grid-template-columns: 1fr; } }
+@media (max-width: 560px) { .fields { grid-template-columns: minmax(0, 1fr); } }
 
 .searchbar {
   display: flex; align-items: center; gap: 10px;
@@ -372,3 +372,47 @@ em.accent { font-style: italic; color: var(--teal); }
   *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
 }
 .avatar.white { background: var(--surface); border: 1px solid var(--line); }
+
+/* ── Small screens & touch (shared by site and admin) ──── */
+/* Pills wrap instead of running off narrow screens. */
+.pill { max-width: 100%; }
+@media (max-width: 560px) {
+  .pill { height: auto; min-height: 24px; padding-block: 4px; white-space: normal; line-height: 1.25; }
+}
+/* Form fields at 16px stop iOS Safari zooming the page when they get focus. */
+@media (max-width: 760px), (pointer: coarse) {
+  .searchbar input, .input, .select, .textarea, input:not([type]), input[type=text], input[type=email],
+  input[type=tel], input[type=number], input[type=password], input[type=search], select, textarea { font-size: 16px; }
+}
+/* Tiny caps labels stay readable on phones (several are sized inline). */
+@media (max-width: 760px) {
+  /* These caps labels are 9.5–11px by design; 11px is the floor on phones. */
+  .stat-label, .eyebrow, .mini-stat .k, .pill.mono, .adm-group, .table th { font-size: 11px !important; }
+}
+/* Finger-sized hit areas on touch screens (WCAG 2.5.8 / platform guidance). */
+.tap { display: inline-flex; align-items: center; justify-content: center; }
+@media (pointer: coarse) {
+  .tap { min-width: 40px; min-height: 40px; }
+  .link-plain:not(p .link-plain, li .link-plain) { display: inline-flex; align-items: center; min-height: 40px; }
+  .check { width: 22px; height: 22px; }
+  .btn-square { min-width: 40px; min-height: 40px; }
+}
+
+/* ── Notches, browser bars and short screens ─────────── */
+/* index.html uses viewport-fit=cover, so keep content out of the iPhone notch
+   and home-indicator areas (landscape especially). */
+.container {
+  padding-left: max(var(--gutter), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--gutter), env(safe-area-inset-right, 0px));
+}
+.toasts { bottom: calc(24px + env(safe-area-inset-bottom, 0px)); left: calc(24px + env(safe-area-inset-left, 0px)); }
+.drawer { padding-bottom: env(safe-area-inset-bottom, 0px); }
+/* 100vh includes the area behind mobile browser bars; dvh is the visible height. */
+@supports (height: 100dvh) {
+  .modal { max-height: calc(100dvh - 32px); }
+  .drawer { height: 100dvh; bottom: auto; }
+}
+@media (max-width: 560px) {
+  .modal { width: calc(100vw - 24px); padding: 20px; border-radius: var(--r-lg); }
+  .toasts { left: 12px; right: 12px; }
+}

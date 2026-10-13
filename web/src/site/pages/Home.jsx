@@ -117,7 +117,7 @@ export default function Home() {
             </Link>
           ))}
         </Reveal>
-        <div className="card trust-inline" style={{ marginTop: 28, borderRadius: 999, padding: '18px 28px' }}>
+        <div className="card trust-inline" style={{ marginTop: 28 }}>
           <div className="trust-row" style={{ border: 0, padding: 0 }}>
             {[TRUST[0], TRUST[1], TRUST[2], { icon: 'check', title: 'Pay your way', text: 'bKash · Nagad · Card · COD' }].map((t) => (
               <div key={t.title} className="row gap-12">

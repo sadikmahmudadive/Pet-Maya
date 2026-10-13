@@ -13,7 +13,7 @@ function ListEditor({ label, items, onChange, placeholder }) {
       <span className="label">{label}</span>
       <div className="row gap-6 wrap" style={{ marginBottom: 8 }}>
         {items.map((it) => (
-          <span key={it} className="pill">{it}<button type="button" className="link" style={{ marginLeft: 6 }} onClick={() => onChange(items.filter((x) => x !== it))} aria-label={`Remove ${it}`}>×</button></span>
+          <span key={it} className="pill">{it}<button type="button" className="link tap" style={{ marginLeft: 2 }} onClick={() => onChange(items.filter((x) => x !== it))} aria-label={`Remove ${it}`}>×</button></span>
         ))}
       </div>
       <div className="row gap-8">

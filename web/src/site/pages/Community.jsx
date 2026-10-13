@@ -71,7 +71,7 @@ export default function Community() {
               <Avatar name={user?.name || 'Guest'} src={user?.photoUrl} />
               <div><b style={{ fontSize: 14 }}>{user?.name || 'Guest'}</b><div className="sub" style={{ fontSize: 12 }}>{(pets.items || []).map((p) => p.name).join(' & ') || 'No pets yet'}</div></div>
             </div>
-            <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 14 }}>
+            <div className="grid" style={{ gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 8, marginTop: 14 }}>
               <div className="mini-stat"><div className="k">Points</div><div className="v">{user?.points || 0}</div></div>
               <div className="mini-stat"><div className="k">Pets</div><div className="v">{(pets.items || []).length}</div></div>
             </div>
@@ -152,7 +152,7 @@ export default function Community() {
               {p.title && <h3>{p.title}</h3>}
               <p style={{ fontSize: 14.5, color: 'var(--ink-2)', whiteSpace: 'pre-wrap' }}>{p.content}</p>
               {(p.image || p.metrics) && (
-                <div className="grid" style={{ gridTemplateColumns: p.metrics ? '1fr 1fr' : '1fr', gap: 10 }}>
+                <div className="grid" style={{ gridTemplateColumns: p.metrics ? 'minmax(0, 1fr) minmax(0, 1fr)' : 'minmax(0, 1fr)', gap: 10 }}>
                   {(p.image || p.metrics) && <Ph src={p.image} label="photo" style={{ minHeight: 200 }} />}
                   {p.metrics && (
                     <div className="panel stack gap-12">
@@ -174,14 +174,14 @@ export default function Community() {
               )}
               <div className="row between" style={{ fontSize: 13 }}>
                 <div className="row gap-16 sub">
-                  <button className={cx('row gap-4', liked[p.id] && 'red')} onClick={() => like(p)} aria-pressed={!!liked[p.id]}><Icon name="heart" size={15} style={liked[p.id] ? { fill: 'currentColor' } : undefined} /> {p.likes + (liked[p.id] ? 1 : 0)}</button>
-                  <button className="row gap-4" onClick={() => setOpenThread(openThread === p.id ? null : p.id)} aria-expanded={openThread === p.id}>
+                  <button className={cx('row gap-4 tap', liked[p.id] && 'red')} onClick={() => like(p)} aria-pressed={!!liked[p.id]}><Icon name="heart" size={15} style={liked[p.id] ? { fill: 'currentColor' } : undefined} /> {p.likes + (liked[p.id] ? 1 : 0)}</button>
+                  <button className="row gap-4 tap" onClick={() => setOpenThread(openThread === p.id ? null : p.id)} aria-expanded={openThread === p.id}>
                     <Icon name="message" size={15} /> {p.comments} comments
                   </button>
                 </div>
                 <div className="row gap-8 sub">
-                  <button aria-label="Save"><Icon name="bookmark" size={15} /></button>
-                  <button aria-label="Share" onClick={() => { navigator.clipboard?.writeText(`${window.location.origin}/community#${p.id}`); toast('Link copied'); }}><Icon name="share" size={15} /></button>
+                  <button className="tap" aria-label="Save"><Icon name="bookmark" size={15} /></button>
+                  <button className="tap" aria-label="Share" onClick={() => { navigator.clipboard?.writeText(`${window.location.origin}/community#${p.id}`); toast('Link copied'); }}><Icon name="share" size={15} /></button>
                 </div>
               </div>
               {openThread === p.id && <CommentThread post={p} onClose={() => setOpenThread(null)} />}

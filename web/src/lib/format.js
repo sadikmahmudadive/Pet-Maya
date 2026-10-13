@@ -61,3 +61,6 @@ export function greeting(d = new Date()) {
 }
 
 export const cx = (...a) => a.filter(Boolean).join(' ');
+
+/** Chart tooltip anchor: bars near either edge open their tooltip inwards. */
+export const tipSide = (i, n) => (i < n / 3 ? 'tip start' : i >= (2 * n) / 3 ? 'tip end' : 'tip');

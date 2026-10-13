@@ -910,7 +910,7 @@ h1, h2, h3, h4, h5, h6 {
   margin: 0 auto;
   padding: 0 16px;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr));
   gap: 16px;
 }
 
@@ -1028,7 +1028,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .apple-footer-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(160px, 100%), 1fr));
   gap: 28px;
   padding-bottom: 32px;
   border-bottom: 1px solid var(--border);
@@ -1196,7 +1196,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .apple-card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(220px, 100%), 1fr));
   gap: 16px;
   width: 100%;
 }
@@ -1379,7 +1379,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 .radar-telemetry-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(140px, 100%), 1fr));
   gap: 12px;
   margin-top: 16px;
 }
@@ -1713,7 +1713,7 @@ h1, h2, h3, h4, h5, h6 {
 /* ── INSTAGRAM / FACEBOOK COMMUNITY STYLES ── */
 .community-layout {
   display: grid;
-  grid-template-columns: 260px 1fr 300px;
+  grid-template-columns: 260px minmax(0, 1fr) 300px;
   gap: 24px;
   width: 100%;
   max-width: 1200px;
@@ -1723,7 +1723,7 @@ h1, h2, h3, h4, h5, h6 {
 
 @media (max-width: 1140px) {
   .community-layout {
-    grid-template-columns: 1fr 280px;
+    grid-template-columns: minmax(0, 1fr) 280px;
   }
   .community-left-sidebar {
     display: none;
@@ -1732,7 +1732,7 @@ h1, h2, h3, h4, h5, h6 {
 
 @media (max-width: 860px) {
   .community-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   .community-right-sidebar {
     display: none;
@@ -1930,7 +1930,7 @@ h1, h2, h3, h4, h5, h6 {
   }
 
   .apple-card-grid {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important;
+    grid-template-columns: repeat(auto-fill, minmax(min(140px, 100%), 1fr)) !important;
     gap: 12px !important;
   }
 
@@ -1944,7 +1944,7 @@ h1, h2, h3, h4, h5, h6 {
   }
 
   .apple-bento-grid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: minmax(0, 1fr) !important;
     padding: 0 12px !important;
   }
 }
@@ -1963,7 +1963,7 @@ h1, h2, h3, h4, h5, h6 {
   }
 
   .apple-card-grid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: minmax(0, 1fr) !important;
   }
 
   h1, h2, h3 {
@@ -2215,7 +2215,7 @@ h1, h2, h3, h4, h5, h6 {
 /* ── QUICK ACTION SHEET MODAL ── */
 .quick-action-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(88px, 100%), 1fr));
   gap: 16px;
   padding: 12px 0;
 }
@@ -2626,10 +2626,10 @@ html, body {
     flex-direction: column-reverse !important;
   }
   .mobile-grid-1 {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: minmax(0, 1fr) !important;
   }
   .mobile-grid-2 {
-    grid-template-columns: repeat(2, 1fr) !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
   .mobile-gap-3 {
     gap: 12px !important;
@@ -2673,10 +2673,10 @@ html, body {
 /* Tablet & Mobile Grid Adaptation */
 @media (max-width: 1024px) {
   .responsive-bento-grid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: minmax(0, 1fr) !important;
   }
   .responsive-sidebar-layout {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: minmax(0, 1fr) !important;
   }
 }
 
@@ -2715,39 +2715,39 @@ html, body {
   .orders-manifest-grid,
   .product-stage-grid,
   .product-pharm-grid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: minmax(0, 1fr) !important;
     gap: 20px !important;
   }
 
   /* Profile cards & grids */
   .profile-hero-grid,
   .profile-main-grid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: minmax(0, 1fr) !important;
   }
-  div[style*="grid-template-columns: 1fr 1fr"] {
-    grid-template-columns: 1fr !important;
+  div[style*="grid-template-columns: minmax(0, 1fr) minmax(0, 1fr)"] {
+    grid-template-columns: minmax(0, 1fr) !important;
   }
   div[style*="repeat(auto-fit, minmax(420px, 1fr))"] {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: minmax(0, 1fr) !important;
   }
   div[style*="repeat(auto-fit, minmax(360px, 1fr))"] {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: minmax(0, 1fr) !important;
   }
-  div[style*="grid-template-columns: repeat(4, 1fr)"] {
-    grid-template-columns: repeat(2, 1fr) !important;
+  div[style*="grid-template-columns: repeat(4, minmax(0, 1fr))"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
   div[style*="grid-template-columns: repeat(3, minmax(0, 1fr))"] {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: minmax(0, 1fr) !important;
   }
-  section[style*="grid-template-columns: 1.18fr 1fr"] {
-    grid-template-columns: 1fr !important;
+  section[style*="grid-template-columns: minmax(0, 1.18fr) minmax(0, 1fr)"] {
+    grid-template-columns: minmax(0, 1fr) !important;
   }
 }
 
 /* Community mesh responsive layout */
 @media (max-width: 1080px) {
   .community-main-grid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: minmax(0, 1fr) !important;
     display: flex !important;
     flex-direction: column !important;
   }
@@ -2778,7 +2778,7 @@ html, body {
   .passport-main-layout,
   .vault-passport-grid,
   .triage-main-layout {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: minmax(0, 1fr) !important;
   }
   .cart-grid-layout > div:last-child,
   .checkout-grid-layout > div:last-child,
@@ -2792,8 +2792,8 @@ html, body {
   .journal-board-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
-  section[style*="grid-template-columns: 1.18fr 1fr"] {
-    grid-template-columns: 1fr !important;
+  section[style*="grid-template-columns: minmax(0, 1.18fr) minmax(0, 1fr)"] {
+    grid-template-columns: minmax(0, 1fr) !important;
   }
 }
 
@@ -2838,7 +2838,7 @@ html, body {
   .vault-passport-grid,
   .triage-main-layout,
   .dashboard-main-grid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: minmax(0, 1fr) !important;
   }
 
   .shop-products-grid {
@@ -2852,11 +2852,11 @@ html, body {
   .orders-manifest-grid,
   .product-stage-grid,
   .product-pharm-grid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: minmax(0, 1fr) !important;
   }
 
   .checkout-payment-methods-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 
   .modal-dialog,
@@ -2894,15 +2894,15 @@ html, body {
   }
 
   .passport-inner-grid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: minmax(0, 1fr) !important;
   }
 
   .journal-articles-grid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: minmax(0, 1fr) !important;
   }
 
   .journal-board-grid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: minmax(0, 1fr) !important;
   }
 
   .triage-durations-grid {
@@ -2910,7 +2910,7 @@ html, body {
   }
 
   .triage-crt-grid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: minmax(0, 1fr) !important;
   }
 }
 
@@ -2932,15 +2932,15 @@ html, body {
   }
 
   .checkout-payment-methods-grid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: minmax(0, 1fr) !important;
   }
 
   .triage-tiles-grid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: minmax(0, 1fr) !important;
   }
 
   .triage-durations-grid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: minmax(0, 1fr) !important;
   }
 
   .apple-cta-group {
@@ -3135,10 +3135,10 @@ img, svg, video, canvas, audio, iframe {
 
   /* Responsive Grid Helpers */
   .grid-responsive-2, .grid-responsive-3 {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: minmax(0, 1fr) !important;
   }
   .grid-responsive-4 {
-    grid-template-columns: repeat(2, 1fr) !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 
   /* Floating Action Button (FAB) safe positioning */
@@ -3151,7 +3151,7 @@ img, svg, video, canvas, audio, iframe {
 /* Ultra-compact phones (320px–380px) */
 @media (max-width: 380px) {
   .grid-responsive-4 {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: minmax(0, 1fr) !important;
   }
   h1 {
     font-size: clamp(24px, 7vw, 32px) !important;
@@ -3170,10 +3170,10 @@ img, svg, video, canvas, audio, iframe {
     font-size: 12px !important;
   }
   .grid-responsive-4 {
-    grid-template-columns: repeat(2, 1fr) !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
   .grid-responsive-3 {
-    grid-template-columns: repeat(2, 1fr) !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 }
 

@@ -4,7 +4,7 @@ import { arrayUnion } from '../../config/firebase';
 import { useAdmin, useAdminWrite } from '../data.jsx';
 import { StatusPill, statusUpdate, syncOrderStock } from './Orders.jsx';
 import { Icon, Button, Pill, Avatar, Ph, Empty, Field } from '../../ui/index.jsx';
-import { money, timeOfDay, shortDate, cx } from '../../lib/format.js';
+import { money, timeOfDay, shortDate, cx, tipSide } from '../../lib/format.js';
 import { escapeHtml, openPrintWindow } from '../../lib/security.js';
 
 const NEXT = { 'Rx review': ['Packing', 'Approve Rx'], Packing: ['In transit', 'Send out'], 'In transit': ['Delivered', 'Mark delivered'] };
@@ -108,7 +108,7 @@ export default function OrderDetail({ params, user }) {
               {o.temps ? (
                 <>
                   <div className="bars" style={{ height: 90, gap: 14 }}>
-                    {o.temps.map((t, i) => <div key={i} className={cx('bar', (t > 8 || t < 2) && 'now')} style={{ height: `${(t / 10) * 100}%`, background: t > 8 || t < 2 ? 'var(--red)' : undefined }}><span className="tip">{t}°C</span></div>)}
+                    {o.temps.map((t, i) => <div key={i} className={cx('bar', (t > 8 || t < 2) && 'now')} style={{ height: `${(t / 10) * 100}%`, background: t > 8 || t < 2 ? 'var(--red)' : undefined }}><span className={tipSide(i, o.temps.length)}>{t}°C</span></div>)}
                   </div>
                   <div className="row between mono sub" style={{ fontSize: 11, marginTop: 6 }}><span>Packed</span><span>Now {o.temps[o.temps.length - 1]}°C</span></div>
                 </>

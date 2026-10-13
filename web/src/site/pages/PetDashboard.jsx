@@ -211,7 +211,7 @@ export default function PetDashboard() {
           {pet && (
             <div className="card">
               <div className="card-head"><div><h2 className="h-card">{pet.name}’s health</h2><div className="sub">From the Health Vault</div></div><Link to="/vault" className="link-plain" style={{ fontSize: 13 }}>Open →</Link></div>
-              <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              <div className="grid" style={{ gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 8 }}>
                 <div className="mini-stat"><div className="k">Weight</div><div className="v">{pet.weight || '—'}</div></div>
                 <div className="mini-stat"><div className="k">Age</div><div className="v">{pet.age || '—'}</div></div>
                 <div className="mini-stat"><div className="k">Vaccines</div><div className="v" style={{ fontSize: 16 }}>{pet.nextVaccine ? 'Due soon' : 'Up to date'}</div></div>

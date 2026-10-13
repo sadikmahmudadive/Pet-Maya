@@ -172,14 +172,14 @@ export default function Vault() {
                   </div>
                   {r.note && <p className="muted" style={{ fontSize: 14, marginTop: 6 }}>{r.note}</p>}
                   {r.values && (
-                    <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit,minmax(110px,1fr))', gap: 8, marginTop: 12 }}>
+                    <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit,minmax(min(110px, 100%), 1fr))', gap: 8, marginTop: 12 }}>
                       {r.values.map(([k, v, s]) => <div key={k} className="mini-stat" style={{ padding: '8px 12px' }}><div className="k">{k}</div><div className="v" style={{ fontSize: 16 }}>{v}</div><div className="s">{s}</div></div>)}
                     </div>
                   )}
                   {r.date > Date.now() && (
                     <div className="panel row between wrap gap-8" style={{ marginTop: 12, padding: '8px 8px 8px 14px' }}>
                       <span className="sub row gap-6"><Icon name="calendar" size={14} /> Arrive 10 minutes early for check-in</span>
-                      <div className="row gap-6"><Button variant="outline" size="sm" to="/specialists">Reschedule</Button><Button variant="teal" size="sm" to="/triage">Add symptoms</Button></div>
+                      <div className="row gap-6 wrap"><Button variant="outline" size="sm" to="/specialists">Reschedule</Button><Button variant="teal" size="sm" to="/triage">Add symptoms</Button></div>
                     </div>
                   )}
                 </div>
