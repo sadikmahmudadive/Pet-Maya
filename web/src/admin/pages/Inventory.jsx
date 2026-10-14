@@ -4,7 +4,7 @@ import { auth, storage, ref, uploadBytesResumable, getDownloadURL } from '../../
 import { useAdmin, useAdminWrite, downloadCsv, ADMIN_CONFIG } from '../data.jsx';
 import { PageHead } from '../AdminApp.jsx';
 import { Icon, Button, Pill, Stat, Tabs, Ph, Toggle, Field, Empty } from '../../ui/index.jsx';
-import { money, cx } from '../../lib/format.js';
+import { money, cx, productPath } from '../../lib/format.js';
 import { useStore } from '../../lib/store.jsx';
 import { validateUpload, ownUploadPath } from '../../lib/security.js';
 
@@ -237,7 +237,7 @@ export default function Inventory() {
             </div>
             <div className="row gap-8" style={{ marginTop: 14 }}>
               <Button variant="dark" icon="check" className="grow" onClick={save} disabled={!dirty}>Save changes</Button>
-              {form.id && <Button variant="outline" icon="eye" to={`/product/${form.id}`} target="_blank">Preview</Button>}
+              {form.id && <Button variant="outline" icon="eye" to={productPath(form)} target="_blank">Preview</Button>}
             </div>
           </div>
         )}

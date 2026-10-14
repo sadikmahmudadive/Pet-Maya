@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from '../../lib/router.jsx';
+import { Link, useRouter } from '../../lib/router.jsx';
 import { useStore } from '../../lib/store.jsx';
 import { useCollection } from '../../data/firestore.js';
 import { Icon, Button, Ph, Pill, StarRow, Avatar, Empty } from '../../ui/index.jsx';
@@ -7,7 +7,7 @@ import { Stepper } from '../BagDrawer.jsx';
 import ProductCard from '../ProductCard.jsx';
 import ReviewModal from '../ReviewModal.jsx';
 import { Reveal } from '../../lib/motion.jsx';
-import { money, cx, ago, toMillis } from '../../lib/format.js';
+import { money, cx, ago, toMillis, productPath } from '../../lib/format.js';
 import { DELIVERY } from '../../data/content.js';
 import { SAMPLE_REVIEWS } from '../../data/sample.js';
 
@@ -24,7 +24,15 @@ const normReview = (id, d) => ({
 
 export default function Product({ params }) {
   const { products, addToCart, activePet, totals, wishlist, toggleWish, toast } = useStore();
+  const { path, navigate } = useRouter();
   const p = products.items.find((x) => x.id === params.id);
+
+  // Old links (/product/<id>) or a renamed product: show the current name in the address bar.
+  useEffect(() => {
+    if (!p) return;
+    const canonical = productPath(p);
+    if (canonical !== path) navigate(canonical + window.location.search, { replace: true });
+  }, [p?.id, p?.name, path]); // eslint-disable-line react-hooks/exhaustive-deps
   const reviews = useCollection('reviews', {
     map: normReview, sample: SAMPLE_REVIEWS.map((r, i) => normReview(`s${i}`, r)), filters: [['productId', '==', params.id]],
   });
@@ -280,7 +288,7 @@ export default function Product({ params }) {
               {bundle.map((b, i) => (
                 <div key={b.id} className="row gap-12" style={{ alignItems: 'center' }}>
                   {i > 0 && <Icon name="plus" size={16} className="subtle" />}
-                  <Link to={`/product/${b.id}`} style={{ width: '100%' }}>
+                  <Link to={productPath(b)} target="_blank" style={{ width: '100%' }}>
                     <Ph src={b.image} tone="teal" label=" " style={{ height: 120 }} />
                     <div style={{ fontWeight: 600, fontSize: 14, marginTop: 10 }}>{b.name}</div>
                     <div className="sub">{money(b.price)}</div>

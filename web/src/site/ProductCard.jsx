@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from '../lib/router.jsx';
 import { useStore } from '../lib/store.jsx';
 import { Icon, Ph } from '../ui/index.jsx';
-import { money, cx } from '../lib/format.js';
+import { money, cx, productPath } from '../lib/format.js';
 
 const BADGE_TONE = { 'Best seller': 'dark', New: 'dark', Rx: 'yellow', 'Cold-chain': 'teal', 'Vet diet': 'teal', 'Smart gear': 'dark' };
 
@@ -27,12 +27,12 @@ export default function ProductCard({ p }) {
       <button className={cx('pcard-fav', fav && 'on')} onClick={() => toggleWish(p.id)} aria-label={fav ? 'Remove from saved' : 'Save'} aria-pressed={fav}>
         <Icon name="heart" size={15} />
       </button>
-      <Link to={`/product/${p.id}`} aria-label={p.name}>
+      <Link to={productPath(p)} target="_blank" aria-label={`${p.name} (opens in a new tab)`}>
         <Ph src={p.image} tone={p.coldChain ? 'teal' : ''} label={p.category === 'vaccines' ? 'vial' : 'product'} />
       </Link>
       <div className="pcard-body">
         <span className="pcard-brand">{p.brand}</span>
-        <Link to={`/product/${p.id}`} className="pcard-name">{p.name}</Link>
+        <Link to={productPath(p)} target="_blank" className="pcard-name">{p.name}</Link>
         <span className="pcard-meta">
           <Icon name="star" size={12} stroke={1} style={{ fill: '#E0A526', color: '#E0A526' }} />
           <b style={{ color: 'var(--ink)' }}>{p.rating.toFixed(1)}</b> ({p.ratingCount})

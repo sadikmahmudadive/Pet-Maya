@@ -27,7 +27,8 @@ const SITE_ROUTES = [
   ['/', Home, 'Pet Maya — Pet medicine, vets & care in one place'],
   ['/shop', Shop, 'Care shop'],
   ['/shop/:category', Shop, 'Care shop'],
-  ['/product/:id', Product, null],
+  ['/product/:slug/:id', Product, null],
+  ['/product/:id', Product, null], // older links without the name
   ['/checkout', Checkout, 'Checkout', { minimal: true }],
   ['/account/orders', OrderTracking, 'Your orders'],
   ['/account/orders/:id', OrderTracking, 'Order status'],

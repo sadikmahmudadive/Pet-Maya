@@ -4,7 +4,7 @@ import { useStore } from '../../lib/store.jsx';
 import { useCollection, saveDoc } from '../../data/firestore.js';
 import { Icon, Button, Pill, Avatar, Toggle, Segmented } from '../../ui/index.jsx';
 import ProductCard from '../ProductCard.jsx';
-import { cx, toMillis, ago } from '../../lib/format.js';
+import { cx, toMillis, ago, productPath } from '../../lib/format.js';
 import GoogleMapView from '../../components/Common/GoogleMapView.jsx';
 
 export const SAMPLE_DEVICE = {
@@ -74,7 +74,7 @@ export default function Gps() {
         <h1 className="display-1" style={{ marginTop: 12, maxWidth: '14ch' }}>Always know where they are.</h1>
         <p className="lead" style={{ marginTop: 14 }}>Pair a Maya Halo collar to see live location, set safe zones and get an alert the moment your pet leaves one.</p>
         <div className="row gap-10" style={{ marginTop: 24 }}>
-          {collar && <Button variant="dark" icon="bag" to={`/product/${collar.id}`}>Get the collar</Button>}
+          {collar && <Button variant="dark" icon="bag" to={productPath(collar)} target="_blank">Get the collar</Button>}
           <Button variant="outline" icon="phoneDevice" to="/vault">Pair in the app</Button>
         </div>
         {collar && <div style={{ maxWidth: 320, marginTop: 32 }}><ProductCard p={collar} /></div>}

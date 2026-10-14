@@ -64,3 +64,20 @@ export const cx = (...a) => a.filter(Boolean).join(' ');
 
 /** Chart tooltip anchor: bars near either edge open their tooltip inwards. */
 export const tipSide = (i, n) => (i < n / 3 ? 'tip start' : i >= (2 * n) / 3 ? 'tip end' : 'tip');
+
+/** "Royal Canin — Hair & Skin 2 kg!" → "royal-canin-hair-skin-2-kg" (ASCII, max 70 chars). */
+export function slugify(text, max = 70) {
+  return String(text ?? '')
+    .normalize('NFKD').replace(/[̀-ͯ]/g, '')
+    .toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '').slice(0, max).replace(/-+$/, '');
+}
+
+/** Product page URL with the name in it: /product/<name-slug>/<id>.
+ *  The id stays its own segment (ids may contain hyphens); names that slugify
+ *  to nothing (e.g. non-Latin) fall back to /product/<id>. */
+export function productPath(p) {
+  const id = encodeURIComponent(p?.id ?? '');
+  const slug = slugify(p?.name);
+  return slug ? `/product/${slug}/${id}` : `/product/${id}`;
+}

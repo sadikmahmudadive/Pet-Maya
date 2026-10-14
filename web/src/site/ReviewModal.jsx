@@ -4,7 +4,7 @@ import { useRouter } from '../lib/router.jsx';
 import { saveReview } from '../data/actions.js';
 import { useLockBody } from '../lib/motion.jsx';
 import { Icon, Button, Field, Portal } from '../ui/index.jsx';
-import { cx } from '../lib/format.js';
+import { cx, productPath } from '../lib/format.js';
 
 const LABEL = ['', 'Poor', 'Not great', 'Okay', 'Good', 'Excellent'];
 
@@ -32,7 +32,7 @@ export default function ReviewModal({ product, onClose, onSaved }) {
     const res = await saveReview({ user, product, rating, title, text });
     setBusy(false);
     if (res.ok) { toast('Thanks — your review is live'); onSaved?.(); onClose(); }
-    else if (res.reason === 'signin') { onClose(); navigate(`/signin?next=/product/${product.id}`); }
+    else if (res.reason === 'signin') { onClose(); navigate(`/signin?next=${productPath(product)}`); }
     else toast('Couldn’t post your review — please try again', { tone: 'error' });
   };
 
