@@ -495,3 +495,14 @@ details.faq p { padding-bottom: 18px; color: var(--muted); font-size: 14.5px; }
     padding-right: 32px;
   }
 }
+
+/* ── Touch: remaining small links ─────────────────────── */
+@media (pointer: coarse) {
+  .site-header .logo { min-height: 40px; justify-content: center; }
+  .crumbs a { display: inline-flex; align-items: center; min-height: 40px; }
+  /* Standalone "→" links laid out as rows (See refill plans, Back to bag …). */
+  a.row:not(.btn):not(.card), button.row:not(.btn):not(.card) { min-height: 40px; }
+}
+@media (max-width: 560px) {
+  .pcard-brand { font-size: 11px; }
+}

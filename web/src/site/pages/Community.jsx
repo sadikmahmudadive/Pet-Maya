@@ -101,7 +101,7 @@ export default function Community() {
 
           {amber && !dismissed && (
             <Reveal className="amber-alert">
-              <div className="row between"><div className="row gap-8"><Pill tone="solid-teal" mono sm style={{ background: 'var(--red)' }}><Icon name="alert" size={11} /> Lost pet alert</Pill><span className="sub">Missing · {ago(amber.time)}</span></div><button onClick={() => setDismissed(true)} aria-label="Hide alert"><Icon name="x" size={15} /></button></div>
+              <div className="row between"><div className="row gap-8"><Pill tone="solid-teal" mono sm style={{ background: 'var(--red)' }}><Icon name="alert" size={11} /> Lost pet alert</Pill><span className="sub">Missing · {ago(amber.time)}</span></div><button className="tap" onClick={() => setDismissed(true)} aria-label="Hide alert"><Icon name="x" size={15} /></button></div>
               <div className="row gap-16" style={{ marginTop: 14, alignItems: 'flex-start' }}>
                 <Ph src={amber.image} label="photo" style={{ width: 96, height: 96, flex: 'none' }} />
                 <div>
@@ -167,7 +167,7 @@ export default function Community() {
                 <div className="panel row gap-8" style={{ overflowX: 'auto' }}>
                   {p.scores.map((s, i) => (
                     <div key={i} className="card tight" style={{ minWidth: 56, textAlign: 'center', padding: 10, background: s <= 2 ? 'var(--teal-tint)' : 'var(--surface)' }}>
-                      <div className="mono subtle" style={{ fontSize: 10 }}>D{i * 2 + 1}</div><b className={s >= 5 ? 'red' : ''} style={{ fontSize: 18 }}>{s}</b>
+                      <div className="mono subtle" style={{ fontSize: 11 }}>D{i * 2 + 1}</div><b className={s >= 5 ? 'red' : ''} style={{ fontSize: 18 }}>{s}</b>
                     </div>
                   ))}
                 </div>

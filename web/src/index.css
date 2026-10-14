@@ -286,6 +286,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+  overflow-x: clip;
   transition: background-color 0.35s ease, color 0.35s ease;
 }
 
@@ -2583,6 +2584,7 @@ h1, h2, h3, h4, h5, h6 {
 html, body {
   max-width: 100vw;
   overflow-x: hidden;
+  overflow-x: clip;
   -webkit-text-size-adjust: 100%;
 }
 
@@ -3085,6 +3087,7 @@ html, body {
   width: 100%;
   max-width: 100vw;
   overflow-x: hidden !important;
+  overflow-x: clip !important;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   -webkit-font-smoothing: antialiased;
@@ -3102,6 +3105,7 @@ img, svg, video, canvas, audio, iframe {
   width: 100%;
   max-width: 100vw;
   overflow-x: hidden;
+  overflow-x: clip;
 }
 
 /* Mobile & Small Device Ergonomics */

@@ -208,3 +208,6 @@ desktop.ini
 # ══════════════════════════════════════════════════════════════════════════════
 /cd/
 /echo/
+
+# Responsive audit screenshots (tests/responsive/audit-web.mjs --shots)
+tests/responsive/shots/
