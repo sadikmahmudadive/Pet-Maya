@@ -21,7 +21,7 @@ export const VIEWPORTS = [
 ];
 
 const SITE = ['/', '/shop', '/product/p1', '/checkout', '/account/orders', '/specialists', '/triage', '/gps',
-  '/vault', '/dashboard', '/profile', '/community', '/journal', '/signin', '/nope'];
+  '/vault', '/dashboard', '/profile', '/community', '/journal', '/halo', '/signin', '/nope'];
 const ADMIN = ['/admin', '/admin/orders', '/admin/prescriptions', '/admin/inventory', '/admin/promotions',
   '/admin/appointments', '/admin/customers', '/admin/pos', '/admin/sales', '/admin/stock', '/admin/purchasing',
   '/admin/finance', '/admin/reports', '/admin/staff', '/admin/settings'];

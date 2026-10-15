@@ -1,0 +1,127 @@
+/* Maya Halo page (/halo): a dark, scroll-driven product film inside the normal site chrome.
+   Everything is scoped to .halo so it can't leak into the rest of the site, and it keeps its own
+   dark palette in both the light and dark site themes. */
+.halo {
+  --h-bg: #050607;
+  --h-accent: #5fe0d2;
+  --h-text: #fcf8f5;
+  --h-dim: rgba(252, 248, 245, 0.62);
+  --halo-top: 0px; /* height of the sticky site header, set from JS */
+  position: relative;
+  color: var(--h-text);
+  font-family: var(--sans);
+}
+/* the track stays transparent so the translucent site header keeps its normal colour; only the
+   pinned stage and the sections below are dark */
+.halo-body { background: var(--h-bg); position: relative; }
+.halo em { font-style: italic; color: var(--h-accent); }
+.site-main:has(.halo) { padding-bottom: 0; }
+
+/* ── the film ── */
+.halo-track { height: 900vh; position: relative; }
+.halo-stage {
+  position: sticky; top: var(--halo-top);
+  height: calc(100vh - var(--halo-top)); height: calc(100svh - var(--halo-top));
+  width: 100%; overflow: hidden; background: var(--h-bg);
+}
+.halo-stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.halo-poster { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.halo-vignette { position: absolute; inset: 0; z-index: 5; pointer-events: none; background: radial-gradient(ellipse 75% 80% at 50% 50%, transparent 55%, rgba(5, 6, 7, 0.75) 100%); }
+
+.halo-loader { position: absolute; inset: 0; z-index: 30; background: var(--h-bg); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 26px; transition: opacity 0.7s ease; }
+.halo-loader.done { opacity: 0; pointer-events: none; }
+.halo-loader .mark { font-size: 13px; letter-spacing: 0.5em; text-indent: 0.5em; color: var(--h-accent); text-transform: uppercase; font-weight: 500; }
+.halo-loader .bar { width: 170px; height: 1px; background: rgba(95, 224, 210, 0.2); overflow: hidden; position: relative; }
+.halo-loader .bar i { position: absolute; inset: 0 auto 0 0; width: 40%; background: var(--h-accent); animation: halo-load 1.2s ease-in-out infinite; }
+@keyframes halo-load { 0% { transform: translateX(-100%); } 100% { transform: translateX(260%); } }
+
+/* ── captions ── */
+.halo-cap { position: absolute; z-index: 10; opacity: 0; pointer-events: none; will-change: opacity, translate; text-shadow: 0 2px 28px rgba(5, 6, 7, 0.85); }
+.halo-cap h1, .halo-cap h2 { font-family: var(--serif); font-weight: 300; letter-spacing: -0.03em; line-height: 1.0; margin: 0; color: var(--h-text); }
+.halo-cap h1, .halo-cap h2.big { font-size: clamp(46px, 7.4vw, 108px); }
+.halo-cap h2 { font-size: clamp(32px, 4.6vw, 68px); }
+.halo-cap p { margin: 16px 0 0; font-size: clamp(15px, 1.35vw, 19px); color: var(--h-dim); line-height: 1.55; max-width: 30ch; }
+.halo-cap.left { left: 7vw; top: 50%; transform: translateY(-50%); }
+.halo-cap.right { right: 7vw; top: 50%; transform: translateY(-50%); text-align: right; }
+.halo-cap.right p { margin-left: auto; }
+.halo-cap.finale h2 { max-width: 9ch; }
+.halo-cap .halo-cta { margin-top: 28px; }
+
+.halo-cue { position: absolute; bottom: 4.5vh; left: 50%; transform: translateX(-50%); z-index: 10; display: flex; flex-direction: column; align-items: center; gap: 10px; color: var(--h-dim); font-size: 11px; letter-spacing: 0.32em; text-indent: 0.32em; text-transform: uppercase; transition: opacity 0.5s ease; }
+.halo-cue::after { content: ""; width: 1px; height: 34px; background: linear-gradient(to bottom, var(--h-accent), transparent); animation: halo-cue 1.8s ease-in-out infinite; }
+@keyframes halo-cue { 0%, 100% { transform: translateY(0); opacity: 1; } 50% { transform: translateY(8px); opacity: 0.4; } }
+
+.halo .halo-cta {
+  display: inline-block; padding: 14px 36px; pointer-events: auto;
+  border: 1px solid var(--h-accent); border-radius: 100px; color: var(--h-accent); text-decoration: none;
+  font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; transition: background 0.3s, color 0.3s;
+}
+.halo .halo-cta:hover, .halo .halo-cta:focus-visible { background: var(--h-accent); color: #031211; outline: none; }
+.halo .halo-cta.solid { background: var(--h-accent); color: #031211; }
+.halo .halo-cta.solid:hover { background: #8cf0e5; }
+
+/* ── the brand page below the film ── */
+.halo-sec { position: relative; padding: 14vh 7vw; max-width: 1500px; margin: 0 auto; }
+.halo-sec .kicker { font-size: 11px; letter-spacing: 0.35em; text-transform: uppercase; color: var(--h-accent); margin-bottom: 18px; }
+.halo-sec h2 { font-family: var(--serif); font-weight: 300; letter-spacing: -0.025em; line-height: 1.02; font-size: clamp(34px, 4.6vw, 66px); margin: 0; color: var(--h-text); }
+.halo-sec p.lead { margin: 20px 0 0; color: var(--h-dim); font-size: clamp(15px, 1.3vw, 18px); line-height: 1.7; max-width: 44ch; }
+
+.halo-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6vw; align-items: center; }
+.halo-split img { width: 100%; height: auto; border-radius: 6px; display: block;
+  -webkit-mask-image: radial-gradient(ellipse 88% 88% at 50% 50%, #000 62%, transparent 100%);
+          mask-image: radial-gradient(ellipse 88% 88% at 50% 50%, #000 62%, transparent 100%); }
+.halo-split.flip > :first-child { order: 2; }
+
+.halo-manifesto { text-align: center; padding: 22vh 7vw; }
+.halo-manifesto h2 { font-size: clamp(40px, 7.2vw, 112px); max-width: 14ch; margin: 0 auto; }
+
+.halo-stats { display: flex; flex-wrap: wrap; justify-content: center; gap: 5vh 7vw; text-align: center; }
+.halo-stats .num { font-family: var(--serif); font-weight: 300; letter-spacing: -0.02em; font-size: clamp(38px, 5vw, 76px); color: var(--h-accent); line-height: 1.1; }
+.halo-stats .lbl { margin-top: 6px; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--h-dim); max-width: 18ch; margin-inline: auto; }
+
+.halo-specs table { width: 100%; max-width: 780px; margin: 28px auto 0; border-collapse: collapse; }
+.halo-specs td { padding: 16px 8px; border-bottom: 1px solid rgba(252, 248, 245, 0.1); font-size: clamp(13px, 1.2vw, 16px); color: var(--h-text); background: none; }
+.halo-specs td:first-child { color: var(--h-dim); letter-spacing: 0.12em; text-transform: uppercase; font-size: 12px; white-space: nowrap; padding-right: 20px; }
+.halo-specs td:last-child { text-align: right; }
+.halo-specs .fineprint { max-width: 780px; margin: 18px auto 0; font-size: 12px; line-height: 1.6; color: rgba(252, 248, 245, 0.45); }
+
+.halo-quote { text-align: center; }
+.halo-quote blockquote { max-width: 22ch; margin: 0 auto; font-family: var(--serif); font-weight: 300; font-size: clamp(24px, 3vw, 42px); letter-spacing: -0.02em; line-height: 1.25; }
+.halo-quote cite { display: block; margin-top: 22px; font-style: normal; font-size: 12px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--h-dim); }
+
+.halo-gallery { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 18px; }
+.halo-gallery img { width: 100%; height: 100%; object-fit: cover; border-radius: 6px; display: block; }
+.halo-gallery .g1 { grid-column: span 7; aspect-ratio: 4 / 3; }
+.halo-gallery .g2 { grid-column: span 5; aspect-ratio: 4 / 5; }
+.halo-gallery .g3 { grid-column: span 5; aspect-ratio: 1 / 1; }
+.halo-gallery .g4 { grid-column: span 7; aspect-ratio: 16 / 10; }
+
+.halo-ctaband { text-align: center; padding: 18vh 7vw; }
+.halo-ctaband .row { justify-content: center; flex-wrap: wrap; gap: 14px; margin-top: 34px; }
+.halo-note { text-align: center; padding: 0 7vw 7vh; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(252, 248, 245, 0.35); line-height: 1.8; }
+
+/* the dark sections reveal with the site's own .reveal helper; make sure it never hides content without JS */
+.halo .reveal:not(.in) { opacity: 0; transform: translateY(26px); }
+.halo .reveal.in { opacity: 1; transform: none; transition: opacity 0.8s cubic-bezier(.2, .6, .2, 1), transform 0.8s cubic-bezier(.2, .6, .2, 1); }
+
+/* ── no-WebGL: a still instead of the film ── */
+.halo.nogl .halo-track { height: calc(100svh - var(--halo-top)); }
+.halo.nogl .halo-cue { display: none; }
+.halo.nogl .halo-cap { display: none; }
+.halo.nogl .halo-cap.finale { display: block; opacity: 1; top: auto; bottom: 12vh; left: 7vw; transform: none; }
+
+@media (max-width: 800px) {
+  .halo-sec { padding: 11vh 6vw; }
+  .halo-split { grid-template-columns: minmax(0, 1fr); gap: 5vh; }
+  .halo-split.flip > :first-child { order: 0; }
+  .halo-gallery img { grid-column: span 12 !important; }
+  /* captions sit at the bottom so the product stays visible above them */
+  .halo-cap.left, .halo-cap.right { left: 6vw; right: 6vw; top: auto; bottom: 11vh; transform: none; text-align: left; }
+  .halo-cap.right p { margin-left: 0; }
+  .halo-cap p { max-width: 36ch; }
+  .halo-cue { bottom: 2.4vh; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .halo .reveal:not(.in) { opacity: 1; transform: none; }
+  .halo-cue::after, .halo-loader .bar i { animation: none; }
+}

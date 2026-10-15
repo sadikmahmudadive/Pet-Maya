@@ -22,6 +22,8 @@ import SignIn from './site/pages/SignIn.jsx';
 import NotFound from './site/pages/NotFound.jsx';
 
 const Admin = lazy(() => import('./admin/AdminApp.jsx'));
+// three.js + the 3D collar: loaded only when someone opens /halo
+const Halo = lazy(() => import('./site/pages/Halo.jsx'));
 
 const SITE_ROUTES = [
   ['/', Home, 'Pet Maya — Pet medicine, vets & care in one place'],
@@ -35,6 +37,7 @@ const SITE_ROUTES = [
   ['/specialists', Specialists, 'Book a vet'],
   ['/triage', Triage, 'AI symptom triage'],
   ['/gps', Gps, 'GPS radar'],
+  ['/halo', Halo, 'Maya Halo GPS collar'],
   ['/vault', Vault, 'Health vault'],
   ['/dashboard', PetDashboard, 'My dashboard'],
   ['/profile', Profile, 'Your profile'],
@@ -73,7 +76,9 @@ function Routes() {
   return (
     <SiteLayout minimal={opts.minimal}>
       <div key={path} className="page-enter">
-        <Comp params={params} />
+        <Suspense fallback={<div style={{ minHeight: '70vh' }} aria-busy="true" />}>
+          <Comp params={params} />
+        </Suspense>
       </div>
     </SiteLayout>
   );

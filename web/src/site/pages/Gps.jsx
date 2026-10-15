@@ -76,6 +76,7 @@ export default function Gps() {
         <div className="row gap-10" style={{ marginTop: 24 }}>
           {collar && <Button variant="dark" icon="bag" to={productPath(collar)} target="_blank">Get the collar</Button>}
           <Button variant="outline" icon="phoneDevice" to="/vault">Pair in the app</Button>
+          <Button variant="outline" icon="target" to="/halo">Explore Maya Halo</Button>
         </div>
         {collar && <div style={{ maxWidth: 320, marginTop: 32 }}><ProductCard p={collar} /></div>}
       </div>

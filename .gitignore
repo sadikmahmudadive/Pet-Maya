@@ -211,3 +211,6 @@ desktop.ini
 
 # Responsive audit screenshots (tests/responsive/audit-web.mjs --shots)
 tests/responsive/shots/
+
+# scroll-site: local test screenshots
+scroll-site/.shots/

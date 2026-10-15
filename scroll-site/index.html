@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Maya Halo — The GPS collar that doesn’t need a SIM</title>
+<meta name="description" content="Maya Halo: a GPS collar that talks LoRa instead of mobile data. No SIM card, no monthly fee, encrypted end to end.">
+<meta name="theme-color" content="#050607">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='9' fill='none' stroke='%235fe0d2' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300;1,9..144,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script type="importmap">
+{ "imports": { "three": "./vendor/three/build/three.module.js", "three/addons/": "./vendor/three/examples/jsm/" } }
+</script>
+</head>
+<body>
+
+<div id="loader" role="status" aria-live="polite">
+  <div class="mark">Maya Halo</div>
+  <div class="bar"><i id="loadbar"></i></div>
+</div>
+
+<div id="track">
+  <div id="stage">
+    <canvas id="film" aria-label="3D render of the Maya Halo collar assembling, lighting up and sending a radio signal"></canvas>
+    <img id="poster" src="img/hero.webp" alt="Maya Halo collar" hidden>
+    <div id="vignette"></div>
+
+    <!-- 1 · exploded → opening title -->
+    <div class="caption cap-left" data-in="-0.05" data-hold="0.015" data-out="0.085">
+      <h1>Maya <em>Halo</em></h1>
+      <p>The GPS collar that doesn’t need a SIM.</p>
+    </div>
+
+    <!-- 2 · assembly -->
+    <div class="caption cap-right" data-in="0.14" data-hold="0.19" data-out="0.265">
+      <h2><span data-parts>23</span> parts.<br><em>One halo.</em></h2>
+      <p>No SIM card. No monthly fee. A collar that simply knows where your pet is.</p>
+    </div>
+
+    <!-- 3 · ignition -->
+    <div class="caption cap-left" data-in="0.355" data-hold="0.40" data-out="0.46">
+      <h2>Light it <em>up.</em></h2>
+      <p>One ring of light. Always on, barely there.</p>
+    </div>
+
+    <!-- 4 · turntable -->
+    <div class="caption cap-left" data-in="0.52" data-hold="0.555" data-out="0.595">
+      <h2>Made to be<br>forgotten.</h2>
+      <p>A woven strap, titanium hardware, a module that sits flat against the neck.</p>
+    </div>
+    <div class="caption cap-right" data-in="0.605" data-hold="0.635" data-out="0.675">
+      <h2>Private<br><em>by design.</em></h2>
+      <p>Every report is AES-128 encrypted. Only you can read where your pet is.</p>
+    </div>
+
+    <!-- 5 · signal -->
+    <div class="caption cap-right" data-in="0.72" data-hold="0.75" data-out="0.80">
+      <h2>No SIM.<br><em>No signal bars.</em></h2>
+      <p>Maya Halo speaks LoRa on 433 MHz. 1–3 km across a city, up to 15 km with a clear line of sight.</p>
+    </div>
+    <div class="caption cap-left" data-in="0.815" data-hold="0.845" data-out="0.885">
+      <h2>A network that<br><em>grows with you.</em></h2>
+      <p>Every gateway, at a clinic, a shelter or a neighbour’s window, carries every collar.</p>
+    </div>
+
+    <!-- 6 · finale -->
+    <div class="caption cap-left cap-finale" data-in="0.93" data-hold="0.975" data-out="1.2">
+      <h1>Know they’re <em>home.</em></h1>
+      <p>Maya Halo, from Pet Maya.</p>
+      <a class="cta" href="#reserve">See how it works</a>
+    </div>
+
+    <div id="scroll-cue">Scroll</div>
+  </div>
+</div>
+
+<!-- ═════════════ the brand page ═════════════ -->
+<nav id="brandnav" aria-label="Page">
+  <span class="mark">Maya Halo</span>
+  <div class="links">
+    <a href="#story">Story</a><a href="#craft">Craft</a><a href="#specs">Specs</a><a href="#gallery">Gallery</a>
+  </div>
+  <a class="navcta" href="#reserve">How it works</a>
+</nav>
+
+<section class="bp bp-manifesto" id="story">
+  <div data-reveal>
+    <p class="kicker">Maya Halo</p>
+    <h2>Let them roam. <em>You’ll still know.</em></h2>
+  </div>
+</section>
+
+<section class="bp">
+  <div class="bp-split">
+    <div data-reveal>
+      <p class="kicker">Why no SIM</p>
+      <h2>Mobile data runs out where the park begins.</h2>
+      <p class="lead">Cheap GSM modules are unreliable. Good ones are expensive. And coverage fades exactly where pets like to wander. So we built the collar on LoRa: a radio that sips power and reaches for kilometres.</p>
+    </div>
+    <img data-reveal src="img/hero.webp" alt="The Maya Halo collar, lit" width="1600" height="1000" loading="lazy">
+  </div>
+</section>
+
+<section class="bp" id="craft">
+  <div class="bp-split flip">
+    <div data-reveal>
+      <p class="kicker">Craft — 01</p>
+      <h2>A very quiet radio.</h2>
+      <p class="lead">Each report is 41 bytes and about 185 ms of airtime. That is why a small cell lasts days, not hours, and why the collar can sleep between reports.</p>
+    </div>
+    <img data-reveal src="img/halo.webp" alt="Close-up of the glowing halo ring on the module" width="1600" height="1000" loading="lazy">
+  </div>
+</section>
+
+<section class="bp">
+  <div class="bp-split">
+    <div data-reveal>
+      <p class="kicker">Craft — 02</p>
+      <h2>Private by default.</h2>
+      <p class="lead">Every collar has its own AES-128 key. Gateways relay bytes they can’t read, change or forge. Replayed messages are rejected.</p>
+    </div>
+    <img data-reveal src="img/exploded.webp" alt="The collar exploded into its 23 parts" width="1600" height="1000" loading="lazy">
+  </div>
+</section>
+
+<section class="bp">
+  <div class="bp-split flip">
+    <div data-reveal>
+      <p class="kicker">Craft — 03</p>
+      <h2>Works with no internet at all.</h2>
+      <p class="lead">Hold a LoRa Finder and it hears the collar directly, then shows its position in the Pet Maya app over Bluetooth. It can ring the collar too.</p>
+    </div>
+    <img data-reveal src="img/signal.webp" alt="Radio pulses spreading from the collar to nearby gateways" width="1600" height="1000" loading="lazy">
+  </div>
+</section>
+
+<section class="bp"><div class="bp-stats">
+  <div data-reveal><div class="num">0</div><div class="lbl">SIM cards</div></div>
+  <div data-reveal><div class="num">20 s</div><div class="lbl">Fastest updates in lost mode</div></div>
+  <div data-reveal><div class="num">15 km</div><div class="lbl">Best case, clear line of sight</div></div>
+  <div data-reveal><div class="num">AES-128</div><div class="lbl">Per-collar encryption</div></div>
+</div></section>
+
+<section class="bp bp-specs" id="specs">
+  <div data-reveal>
+    <p class="kicker" style="text-align:center">Specifications</p>
+    <table>
+      <tr><td>Positioning</td><td>u-blox NEO-6M GPS</td></tr>
+      <tr><td>Radio</td><td>LoRa, 433 MHz (SX1278)</td></tr>
+      <tr><td>Security</td><td>AES-128-CCM, replay-protected</td></tr>
+      <tr><td>Reporting</td><td>20 s · 5 min · 30 min (set in the app)</td></tr>
+      <tr><td>Range</td><td>1–3 km city · 5–15 km line of sight</td></tr>
+      <tr><td>Battery</td><td>About 9–10 days at 2-min reports*</td></tr>
+      <tr><td>Alerts</td><td>Safe-zone exit · low battery · lost mode</td></tr>
+      <tr><td>Find it</td><td>30 s buzzer · offline LoRa Finder</td></tr>
+      <tr><td>Mobile data</td><td>None</td></tr>
+    </table>
+    <p class="fineprint">* Estimate for a 1000 mAh cell with a power-optimised build. Range depends on local regulations, antenna and terrain.</p>
+  </div>
+</section>
+
+<section class="bp bp-quote">
+  <div data-reveal>
+    <blockquote>Every gateway we install makes the network better for every pet.</blockquote>
+    <cite>The Pet Maya network</cite>
+  </div>
+</section>
+
+<section class="bp" id="gallery"><div class="bp-gallery">
+  <img class="g1" data-reveal src="img/hero.webp" alt="Maya Halo, front three-quarter" loading="lazy">
+  <img class="g2" data-reveal src="img/buckle.webp" alt="Titanium buckle and D-ring" loading="lazy">
+  <img class="g3" data-reveal src="img/weave.webp" alt="Woven strap with teal stitching" loading="lazy">
+  <img class="g4" data-reveal src="img/halo.webp" alt="The halo module" loading="lazy">
+</div></section>
+
+<section class="bp bp-ctaband" id="reserve">
+  <div data-reveal>
+    <h2>Know they’re <em>home.</em></h2><br>
+    <a class="cta" href="https://www.petmaya.app/gps" rel="noopener">See the GPS radar</a>
+  </div>
+</section>
+
+<footer class="bp-footer">
+  <div class="cols">
+    <div><span class="mark">Maya Halo</span><p class="lead">A GPS collar for the places mobile data forgets. From Pet Maya.</p></div>
+    <div><h4>Product</h4><a href="#story">Story</a><a href="#craft">Craft</a><a href="#specs">Specs</a></div>
+    <div><h4>Pet Maya</h4><a href="https://www.petmaya.app/" rel="noopener">Home</a><a href="https://www.petmaya.app/shop" rel="noopener">Shop</a><a href="https://www.petmaya.app/specialists" rel="noopener">Book a vet</a></div>
+    <div><h4>Legal</h4><a href="https://www.petmaya.app/privacy_policy.html" rel="noopener">Privacy</a><a href="https://www.petmaya.app/terms_of_service.html" rel="noopener">Terms</a></div>
+  </div>
+  <p class="fine">© 2026 Pet Maya · A concept render — everything you saw was drawn live in your browser</p>
+</footer>
+
+<script type="module" src="src/main.js"></script>
+</body>
+</html>

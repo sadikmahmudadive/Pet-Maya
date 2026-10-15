@@ -11,6 +11,14 @@
     <priority>1.0</priority>
   </url>
 
+  <!-- Maya Halo GPS collar -->
+  <url>
+    <loc>https://www.petmaya.app/halo</loc>
+    <lastmod>2026-10-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
   <!-- 2. Pet Shop & Pharmacy -->
   <url>
     <loc>https://www.petmaya.app/shop</loc>

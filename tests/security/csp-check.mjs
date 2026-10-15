@@ -34,8 +34,12 @@ const server = createServer(async (req, res) => {
 await new Promise((r) => server.listen(0, '127.0.0.1', r));
 const BASE = `http://127.0.0.1:${server.address().port}`;
 
-const PAGES = ['/', '/shop', '/journal', '/specialists', '/gps', '/sign-in', '/about.html', '/privacy-policy', '/admin'];
-const browser = await chromium.launch(process.env.PW_CHANNEL ? { channel: process.env.PW_CHANNEL } : {});
+const PAGES = ['/', '/shop', '/journal', '/specialists', '/gps', '/halo', '/sign-in', '/about.html', '/privacy-policy', '/admin'];
+// software WebGL so /halo (three.js) can render in headless runs
+const browser = await chromium.launch({
+  ...(process.env.PW_CHANNEL ? { channel: process.env.PW_CHANNEL } : {}),
+  args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'],
+});
 const problems = [];
 for (const path of PAGES) {
   const page = await browser.newPage();
@@ -54,6 +58,27 @@ for (const path of PAGES) {
     rendered: (document.getElementById('root')?.childElementCount ?? 1) > 0,
   })).catch(() => ({}));
   if (info.rendered === false) problems.push(`${path}: app did not render`);
+  if (path === '/') {
+    // the Maya Halo feature builds its 3D stage when scrolled near: it must start under the CSP too
+    await page.evaluate(() => document.querySelector('.hxf-track')?.scrollIntoView({ block: 'start' }));
+    await page.waitForSelector('.hxf-stage canvas, .hxf-poster', { timeout: 30000 }).catch(() => {});
+    await page.waitForTimeout(1500);
+    const hx = await page.evaluate(() => ({ canvas: !!document.querySelector('.hxf-stage canvas'), live: !!document.querySelector('.hxf.hxf-live'), poster: !!document.querySelector('.hxf-poster') }));
+    if (!hx.canvas && !hx.poster) problems.push('/: Maya Halo feature produced neither a 3D canvas nor the fallback still');
+    if (hx.canvas && !hx.live) problems.push('/: Maya Halo 3D stage was created but never went live');
+    console.log(`   / Maya Halo feature: canvas=${hx.canvas} live=${hx.live}`);
+  }
+  if (path === '/halo') {
+    // three.js must start under the production Content-Security-Policy: canvas present and loader dismissed
+    const gl = await page.evaluate(() => ({
+      canvas: !!document.querySelector('.halo-stage canvas'),
+      loaderDone: !!document.querySelector('.halo-loader.done'),
+      poster: !!document.querySelector('.halo-poster'),
+    }));
+    if (!gl.canvas && !gl.poster) problems.push('/halo: neither the 3D canvas nor the fallback still appeared');
+    if (gl.canvas && !gl.loaderDone) problems.push('/halo: 3D scene created but never finished loading');
+    console.log(`   /halo 3D: canvas=${gl.canvas} loaderDone=${gl.loaderDone}`);
+  }
   console.log(`${path.padEnd(16)} status=${res?.status?.() ?? '-'} theme=${info.theme} rendered=${info.rendered}`);
   await page.close();
 }

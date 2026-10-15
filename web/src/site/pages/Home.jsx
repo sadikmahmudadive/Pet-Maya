@@ -4,6 +4,7 @@ import { useStore } from '../../lib/store.jsx';
 import { useBlogs } from '../../data/hooks.js';
 import { Icon, Button, Ph, Avatar, StarRow, Pill } from '../../ui/index.jsx';
 import ProductCard from '../ProductCard.jsx';
+import HaloBreakdown from '../HaloBreakdown.jsx';
 import { money, cx } from '../../lib/format.js';
 import { Reveal, Count, useSpotlight } from '../../lib/motion.jsx';
 import { CATEGORIES, CONCERNS, BRANDS, PROMOS, DELIVERY, TRUST } from '../../data/content.js';
@@ -136,6 +137,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Maya Halo — Pet Maya's exclusive collar: a full-screen, scroll-driven product breakdown */}
+      <div className="hxf-bleed"><HaloBreakdown /></div>
 
       {/* Best sellers */}
       <section className="section">
