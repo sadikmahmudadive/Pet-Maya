@@ -10,6 +10,8 @@ import BagDrawer from './BagDrawer.jsx';
 import AccountButton from './AccountButton.jsx';
 import NotificationBell from './NotificationBell.jsx';
 import Toasts from './Toasts.jsx';
+import ConsentBar from './ConsentBar.jsx';
+import { trackPageView } from '../lib/analytics.js';
 import { useApp } from '../context/AppContext.jsx';
 // ~240 KB of modal code and animation library: fetched the first time any modal opens
 const ModalRoot = lazy(() => import('../components/Modals/ModalRoot.jsx'));
@@ -228,8 +230,11 @@ function MinimalHeader() {
 }
 
 export default function SiteLayout({ minimal, children }) {
-  const { query } = useRouter();
+  const { path, query } = useRouter();
   const { setBagOpen } = useStore();
+  // One page_view per URL change (the SPA never reloads, so GTM's own page view would fire only once).
+  const search = query.toString();
+  useEffect(() => { const t = setTimeout(() => trackPageView(path, search), 120); return () => clearTimeout(t); }, [path, search]);
   useEffect(() => { if (query.get('bag') === '1') setBagOpen(true); }, [query, setBagOpen]);
 
   return (
@@ -241,6 +246,7 @@ export default function SiteLayout({ minimal, children }) {
       <BagDrawer />
       <Modals />
       <Toasts />
+      <ConsentBar />
     </div>
   );
 }

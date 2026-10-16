@@ -506,3 +506,10 @@ details.faq p { padding-bottom: 18px; color: var(--muted); font-size: 14.5px; }
 @media (max-width: 560px) {
   .pcard-brand { font-size: 11px; }
 }
+
+/* ── Cookie / measurement consent ── */
+.consent-bar { position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 70; max-width: 720px; margin: 0 auto; display: flex; align-items: center; gap: 16px; padding: 14px 16px; border-radius: 16px; background: var(--card, #fff); color: var(--ink); border: 1px solid var(--line); box-shadow: var(--shadow-lg); animation: rise .25s ease; }
+.consent-bar p { margin: 0; font-size: 13px; line-height: 1.5; color: var(--ink-2, inherit); flex: 1; }
+.consent-bar a { text-decoration: underline; }
+.consent-actions { display: flex; gap: 8px; flex: none; }
+@media (max-width: 560px) { .consent-bar { flex-direction: column; align-items: stretch; gap: 10px; } .consent-actions { justify-content: flex-end; } }

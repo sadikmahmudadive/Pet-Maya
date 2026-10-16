@@ -5,6 +5,7 @@ import { useMyPets, useProducts, useMyOrders, useVets } from '../data/hooks.js';
 import { addDocument, useDoc } from '../data/firestore.js';
 import { decrementStock, awardPoints, notify, syncWishlist, isRealUser } from '../data/actions.js';
 import { DELIVERY, PROMOS } from '../data/content.js';
+import { track, toItem, trackContext } from './analytics.js';
 
 const StoreCtx = createContext(null);
 
@@ -57,6 +58,7 @@ export function StoreProvider({ children }) {
         image: p.image || '', isRx: !!p.isRx, coldChain: !!p.coldChain, subscribe: !!p.subscribe, variant, qty,
       }];
     });
+    track('add_to_cart', { value: (Number(p.price) || 0) * qty, items: [toItem(p, qty)] });
     if (open) setBagOpen(true);
     if (!silent) toast(`${p.name} added to your care bag`, { undo: () => setCart(prev) });
   }, [toast]);
@@ -124,7 +126,9 @@ export function StoreProvider({ children }) {
       date: new Date().toISOString().split('T')[0],
     };
     if (isRealUser(user)) {
-      await addDocument('orders', order);
+      // _track lets the server record the purchase (GA4 / Meta CAPI) with this browser's identifiers.
+      await addDocument('orders', { ...order, _track: trackContext() });
+      track('purchase', { transaction_id: id, value: order.total, shipping: order.shipping, items: order.items.map((l) => toItem(l)) }, `purchase_${id}`);
       // Follow-up writes: none of these should block the confirmation.
       const points = Math.max(5, Math.round(order.total / 100));
       Promise.all([

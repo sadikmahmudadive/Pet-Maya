@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { track } from '../lib/analytics.js';
 import { 
   auth, 
   db, 
@@ -132,6 +133,7 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('pm_signed_out');
     localStorage.removeItem('pm_demo_user');
     const cred = await createUserWithEmailAndPassword(auth, email, password);
+    track('sign_up', { method: 'email' });
     await updateProfile(cred.user, { displayName: name });
     
     const userDocRef = doc(db, 'users', cred.user.uid);
@@ -169,6 +171,7 @@ export function AuthProvider({ children }) {
     const snap = await getDoc(userDocRef);
 
     if (!snap.exists()) {
+      track('sign_up', { method: 'google' });
       await setDoc(userDocRef, {
         uid: result.user.uid,
         name: result.user.displayName || 'Pet Parent',

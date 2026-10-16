@@ -7,6 +7,9 @@ import './styles/motion.css';
 import './styles/site.css';
 import './styles/admin.css';
 import App from './App.jsx';
+import { initAnalytics } from './lib/analytics.js';
+
+initAnalytics();
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { track, toItem } from '../../lib/analytics.js';
 import { Link, useRouter } from '../../lib/router.jsx';
 import { useStore } from '../../lib/store.jsx';
 import { useCollection } from '../../data/firestore.js';
@@ -54,6 +55,7 @@ export default function Product({ params }) {
 
   useEffect(() => { setVariant(matchVariant || p?.variants?.[0] || ''); setQty(1); setCourse(1); setImg(0); }, [p?.id, matchVariant]);
   useEffect(() => { if (p) document.title = `${p.name} · Pet Maya`; }, [p]);
+  useEffect(() => { if (p?.id) track('view_item', { value: Number(p.price) || 0, items: [toItem(p, 1)] }); }, [p?.id]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     const onScroll = () => setShowSticky(window.scrollY > 900);
     window.addEventListener('scroll', onScroll, { passive: true });

@@ -6,6 +6,7 @@ import { Icon, Button, Ph, Pill, Field, Empty } from '../../ui/index.jsx';
 import { money, cx } from '../../lib/format.js';
 import { DELIVERY } from '../../data/content.js';
 import { validateUpload, ownUploadPath } from '../../lib/security.js';
+import { track, toItem } from '../../lib/analytics.js';
 
 const PAYMENTS = [
   { k: 'bKash', icon: 'phoneDevice', sub: 'Mobile payment' },
@@ -34,6 +35,7 @@ export default function Checkout() {
     if (user) setF((x) => ({ ...x, email: x.email || user.email || '', name: x.name || user.name || '', phone: x.phone || user.phone || '', address: x.address || user.address || '' }));
   }, [user]);
   useEffect(() => { if (totals.needsRx && pay === 'Cash on delivery') setPay('bKash'); }, [totals.needsRx, pay]);
+  useEffect(() => { if (cart.length) track('begin_checkout', { value: totals.subtotal, items: cart.map((l) => toItem(l)) }); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (cart.length === 0) {
     return (

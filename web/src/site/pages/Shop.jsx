@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect } from 'react';
+import { track } from '../../lib/analytics.js';
 import { Link, useRouter } from '../../lib/router.jsx';
 import { useStore } from '../../lib/store.jsx';
 import { Icon, Pill, Empty } from '../../ui/index.jsx';
@@ -56,6 +57,7 @@ export default function Shop({ params }) {
   const { products, wishlist } = useStore();
   const cat = params.category || '';
   const q = (query.get('q') || '').toLowerCase();
+  useEffect(() => { if (q.length >= 2) { const t = setTimeout(() => track('search', { search_term: q }), 800); return () => clearTimeout(t); } }, [q]);
   const savedOnly = query.get('saved') === '1';
   const subOnly = query.get('subscribe') === '1';
   const dealsOnly = query.get('deals') === '1';
