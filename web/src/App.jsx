@@ -6,21 +6,22 @@ import { RouterProvider, useRouter, match } from './lib/router.jsx';
 import { StoreProvider } from './lib/store.jsx';
 import SiteLayout from './site/SiteLayout.jsx';
 import Home from './site/pages/Home.jsx';
-import Shop from './site/pages/Shop.jsx';
-import Product from './site/pages/Product.jsx';
-import Checkout from './site/pages/Checkout.jsx';
-import OrderTracking from './site/pages/OrderTracking.jsx';
-import Specialists from './site/pages/Specialists.jsx';
-import Triage from './site/pages/Triage.jsx';
-import Gps from './site/pages/Gps.jsx';
-import Vault from './site/pages/Vault.jsx';
-import PetDashboard from './site/pages/PetDashboard.jsx';
-import Profile from './site/pages/Profile.jsx';
-import Community from './site/pages/Community.jsx';
-import Journal from './site/pages/Journal.jsx';
-import SignIn from './site/pages/SignIn.jsx';
-import NotFound from './site/pages/NotFound.jsx';
 
+// Pages load on demand (Home is the usual landing page, so it ships in the entry).
+const Shop = lazy(() => import('./site/pages/Shop.jsx'));
+const Product = lazy(() => import('./site/pages/Product.jsx'));
+const Checkout = lazy(() => import('./site/pages/Checkout.jsx'));
+const OrderTracking = lazy(() => import('./site/pages/OrderTracking.jsx'));
+const Specialists = lazy(() => import('./site/pages/Specialists.jsx'));
+const Triage = lazy(() => import('./site/pages/Triage.jsx'));
+const Gps = lazy(() => import('./site/pages/Gps.jsx'));
+const Vault = lazy(() => import('./site/pages/Vault.jsx'));
+const PetDashboard = lazy(() => import('./site/pages/PetDashboard.jsx'));
+const Profile = lazy(() => import('./site/pages/Profile.jsx'));
+const Community = lazy(() => import('./site/pages/Community.jsx'));
+const Journal = lazy(() => import('./site/pages/Journal.jsx'));
+const SignIn = lazy(() => import('./site/pages/SignIn.jsx'));
+const NotFound = lazy(() => import('./site/pages/NotFound.jsx'));
 const Admin = lazy(() => import('./admin/AdminApp.jsx'));
 // three.js + the 3D collar: loaded only when someone opens /halo
 const Halo = lazy(() => import('./site/pages/Halo.jsx'));
@@ -84,7 +85,17 @@ function Routes() {
   );
 }
 
+// After first paint, fetch the most visited pages in the background (idle time only).
+const warmRoutes = () => {
+  const run = () => ['Shop', 'Product', 'Specialists'].forEach((n) => import(`./site/pages/${n}.jsx`));
+  if ('requestIdleCallback' in window) window.requestIdleCallback(run, { timeout: 6000 }); else setTimeout(run, 4000);
+};
+
 export default function App() {
+  useEffect(() => {
+    if (document.readyState === 'complete') warmRoutes();
+    else window.addEventListener('load', warmRoutes, { once: true });
+  }, []);
   return (
     <ThemeProvider>
       <AuthProvider>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { Link, useRouter } from '../lib/router.jsx';
 import { useStore } from '../lib/store.jsx';
 import { Icon, Button, ThemeToggle } from '../ui/index.jsx';
@@ -10,7 +10,13 @@ import BagDrawer from './BagDrawer.jsx';
 import AccountButton from './AccountButton.jsx';
 import NotificationBell from './NotificationBell.jsx';
 import Toasts from './Toasts.jsx';
-import ModalRoot from '../components/Modals/ModalRoot.jsx';
+import { useApp } from '../context/AppContext.jsx';
+// ~240 KB of modal code and animation library: fetched the first time any modal opens
+const ModalRoot = lazy(() => import('../components/Modals/ModalRoot.jsx'));
+function Modals() {
+  const { activeModal } = useApp();
+  return activeModal ? <Suspense fallback={null}><ModalRoot /></Suspense> : null;
+}
 
 const NAV = [
   { to: '/shop', label: 'Care Shop', match: (p) => p === '/shop' },
@@ -233,7 +239,7 @@ export default function SiteLayout({ minimal, children }) {
       <main className="site-main">{children}</main>
       <Footer />
       <BagDrawer />
-      <ModalRoot />
+      <Modals />
       <Toasts />
     </div>
   );

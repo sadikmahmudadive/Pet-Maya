@@ -36,7 +36,8 @@ html { scroll-behavior: smooth; }
 
 /* ── Page transition ───────────────────────────────────────── */
 .page-enter { animation: page-in .5s var(--ease-out) both; }
-@keyframes page-in { from { opacity: 0; transform: translateY(10px); } }
+/* transform only: an opacity fade would hide the hero text from the browser's LCP measurement until it finished */
+@keyframes page-in { from { transform: translateY(8px); } }
 
 /* ── Sticky header, condensing + glass ─────────────────────── */
 .site-header {
@@ -107,7 +108,8 @@ html { scroll-behavior: smooth; }
 .orb {
   position: absolute;
   border-radius: 50%;
-  filter: blur(64px);
+  /* no blur filter: the orbs are already radial gradients that fade to transparent, and a 64px blur on a
+     continuously animated layer made the first paint several times slower on phones */
   pointer-events: none;
   will-change: transform;
   animation: orb-float 16s ease-in-out infinite;

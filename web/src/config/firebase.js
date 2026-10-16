@@ -1,9 +1,12 @@
 import { initializeApp } from 'firebase/app';
 import { 
-  getAuth, 
+  initializeAuth,
+  indexedDBLocalPersistence,
+  browserLocalPersistence,
+  browserPopupRedirectResolver,
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
-  signInWithPopup, 
+  signInWithPopup as firebaseSignInWithPopup, 
   GoogleAuthProvider, 
   signOut, 
   updateProfile,
@@ -63,7 +66,11 @@ if (appCheckKey) {
     console.warn('[Firebase] App Check not started:', e);
   }
 }
-export const auth = getAuth(app);
+// initializeAuth without a popup/redirect resolver: getAuth() would load Google's gapi script and a
+// hidden auth iframe (~130 KB) on every page view, even for visitors who never sign in. The resolver is
+// passed only when someone actually clicks "Continue with Google" (see signInWithPopup below).
+export const auth = initializeAuth(app, { persistence: [indexedDBLocalPersistence, browserLocalPersistence] });
+export const signInWithPopup = (authInstance, provider) => firebaseSignInWithPopup(authInstance, provider, browserPopupRedirectResolver);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 export const functions = getFunctions(app, 'us-central1');
@@ -73,7 +80,6 @@ export {
   httpsCallable,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  signInWithPopup,
   signOut,
   updateProfile,
   sendPasswordResetEmail,
