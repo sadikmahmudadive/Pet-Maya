@@ -22,11 +22,17 @@ import {
 } from "./tracking";
 
 const GA4_API_SECRET = defineSecret("GA4_API_SECRET");
-const META_CAPI_TOKEN = defineSecret("META_CAPI_TOKEN");
 const GA4_MEASUREMENT_ID = defineString("GA4_MEASUREMENT_ID", { default: "G-WSN2ZQE4PF" });
 const META_PIXEL_ID = defineString("META_PIXEL_ID", { default: "" });
 const GA4_SERVER_EVENTS = defineString("GA4_SERVER_EVENTS", { default: "purchase" });
 const META_TEST_EVENT_CODE = defineString("META_TEST_EVENT_CODE", { default: "" });
+
+// Meta is opt-in: the CAPI token secret is bound (and required at deploy) only once META_PIXEL_ID is set in
+// functions/.env. Until then the functions deploy and run with GA4 only.
+const META_ENABLED = !!(process.env.META_PIXEL_ID || "").trim();
+// defineSecret registers the secret with the deploy tool, so it must not even be declared while Meta is off.
+const META_CAPI_TOKEN = META_ENABLED ? defineSecret("META_CAPI_TOKEN") : null;
+const SECRETS = META_CAPI_TOKEN ? [GA4_API_SECRET, META_CAPI_TOKEN] : [GA4_API_SECRET];
 
 const limiter = new IpLimiter(120, 60_000);
 
@@ -54,8 +60,8 @@ export async function forward(e: CleanEvent, u: UserHints): Promise<{ ga4: boole
     jobs.push(postJson(`${base}?measurement_id=${encodeURIComponent(mid)}&api_secret=${encodeURIComponent(apiSecret)}`, buildGa4Body(e, u), "ga4"));
   }
 
-  const token = META_CAPI_TOKEN.value();
   const pixel = META_PIXEL_ID.value();
+  const token = META_CAPI_TOKEN && pixel ? META_CAPI_TOKEN.value() : "";
   if (token && pixel && e.consent.ads) {
     sent.meta = true;
     jobs.push(postJson(
@@ -69,7 +75,7 @@ export async function forward(e: CleanEvent, u: UserHints): Promise<{ ga4: boole
 }
 
 export const collect = onRequest(
-  { secrets: [GA4_API_SECRET, META_CAPI_TOKEN], maxInstances: 10, timeoutSeconds: 15, memory: "256MiB", cors: false },
+  { secrets: SECRETS, maxInstances: 10, timeoutSeconds: 15, memory: "256MiB", cors: false },
   async (req, res) => {
     res.set("Cache-Control", "no-store");
     if (req.method !== "POST") { res.status(405).end(); return; }
@@ -95,7 +101,7 @@ export const collect = onRequest(
 
 /** Authoritative purchase event, straight from the new order document. */
 export const track_purchase = onDocumentCreated(
-  { document: "orders/{orderId}", secrets: [GA4_API_SECRET, META_CAPI_TOKEN], memory: "256MiB", timeoutSeconds: 30 },
+  { document: "orders/{orderId}", secrets: SECRETS, memory: "256MiB", timeoutSeconds: 30 },
   async (event) => {
     const o = event.data?.data();
     if (!o) return;
