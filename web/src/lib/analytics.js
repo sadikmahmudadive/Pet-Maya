@@ -78,12 +78,18 @@ const newEventId = (name) => `${name}_${Date.now().toString(36)}${Math.random().
 
 /** Browser context stored on an order so the server can attribute the purchase after the fact. */
 export function trackContext() {
-  const c = getConsent();
-  return {
-    cid: clientId(), sid: sessionId(), fbp: cookie('_fbp') || undefined, fbc: metaClickId(),
-    ua: safe(() => navigator.userAgent.slice(0, 300)), url: safe(() => location.href.split('#')[0]),
-    consent: { analytics: c.analytics, ads: c.ads },
-  };
+  try {
+    const c = getConsent();
+    const ctx = {
+      cid: clientId(), sid: sessionId(), fbp: cookie('_fbp') || undefined, fbc: metaClickId(),
+      ua: safe(() => navigator.userAgent.slice(0, 300)), url: safe(() => location.href.split('#')[0]),
+      consent: { analytics: c.analytics, ads: c.ads },
+    };
+    // Firestore rejects `undefined` values, which would fail the whole order: keep only real values.
+    return Object.fromEntries(Object.entries(ctx).filter(([, v]) => v !== undefined && v !== ''));
+  } catch {
+    return {};
+  }
 }
 
 // ── GTM loader ─────────────────────────────────────────────────────────────────────────────────────
