@@ -2,7 +2,6 @@ import { useMemo } from 'react';
 import { Link, useRouter } from '../../lib/router.jsx';
 import { useStore } from '../../lib/store.jsx';
 import { normOrder } from '../../data/firestore.js';
-import { SAMPLES } from '../../data/hooks.js';
 import { Icon, Button, Ph, Pill, Empty, Avatar } from '../../ui/index.jsx';
 import { money, cx, timeOfDay, shortDate } from '../../lib/format.js';
 import GoogleMapView from '../../components/Common/GoogleMapView.jsx';
@@ -38,8 +37,7 @@ function useAllMyOrders() {
 export default function OrderTracking({ params }) {
   const orders = useAllMyOrders();
   if (!params.id) return <OrderList orders={orders} />;
-  const order = orders.find((o) => o.id === params.id || o.docId === params.id)
-    || SAMPLES.orders.find((o) => o.id === params.id);
+  const order = orders.find((o) => o.id === params.id || o.docId === params.id);
   return order ? <OrderDetail order={order} /> : (
     <div className="container" style={{ paddingTop: 48 }}>
       <div className="card"><Empty icon="bag" title="We couldn’t find that order">Sign in with the account you ordered from, or <Link to="/account/orders" className="link">see all orders</Link>.</Empty></div>

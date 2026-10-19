@@ -3,7 +3,7 @@ import { useStore } from '../lib/store.jsx';
 import { saveDoc, useCollection, useDoc, normProduct, normOrder, normVet, normUser, normEvent, normPet } from '../data/firestore.js';
 import { DEFAULT_SETTINGS } from './erp.js';
 import { SAMPLES } from '../data/hooks.js';
-import { SAMPLE_CUSTOMERS, SAMPLE_APPOINTMENTS, SAMPLE_REQUESTS, SAMPLE_RX, SAMPLE_COUPONS } from '../data/sample.js';
+import { SAMPLE_CUSTOMERS, SAMPLE_APPOINTMENTS, SAMPLE_REQUESTS, SAMPLE_COUPONS } from '../data/sample.js';
 
 const Ctx = createContext(null);
 
@@ -29,7 +29,7 @@ const sampleEvents = SAMPLE_APPOINTMENTS.map((a) => {
 }).concat(SAMPLE_REQUESTS.map((r) => ({ ...normEvent(r.id, {}), ...r, start: Date.now() + 3600e3, status: 'Pending', doctor: '', vetId: '', requestedAt: Date.now() - r.waitingMin * 60000 })));
 
 export function AdminDataProvider({ children }) {
-  const orders = useCollection('orders', { map: normOrder, sample: SAMPLES.orders });
+  const orders = useCollection('orders', { map: normOrder, sample: [], sampleWhenEmpty: false });
   const products = useCollection('products', { map: normProduct, sample: SAMPLES.products });
   const vets = useCollection('vets', { map: normVet, sample: SAMPLES.vets });
   const users = useCollection('users', { map: normUser, sample: sampleUsers });
@@ -53,16 +53,14 @@ export function AdminDataProvider({ children }) {
 
   const value = useMemo(() => {
     const ordersSorted = [...orders.items].sort((a, b) => b.placedAt - a.placedAt);
-    // Prescriptions = orders waiting on Rx review (sample details merged when in sample mode).
-    const rxQueue = orders.live
-      ? ordersSorted.filter((o) => o.status === 'Rx review').map((o) => ({
-        id: `RX-${o.id.replace(/\D/g, '').slice(-5) || o.docId.slice(0, 5)}`,
-        orderId: o.id, docId: o.docId, order: o, pet: o.pet || 'Pet', breed: '', drug: o.items.find((i) => i.isRx)?.name || o.items[0]?.name || '—',
-        uploadedBy: o.customer, uploadedAt: o.placedAt, waitingMin: Math.round((Date.now() - o.placedAt) / 60000),
-        prescriber: o.prescriber || '', licence: o.prescriberLicence || '', weightKg: null, dose: '', issuedDaysAgo: null, validDays: null,
-        imageUrl: o.prescriptionUrl || '',
-      }))
-      : SAMPLE_RX.map((r) => ({ ...r, order: ordersSorted.find((o) => o.id === r.orderId) || null, docId: r.orderId || r.id }));
+    // Prescriptions = orders waiting on Rx review.
+    const rxQueue = ordersSorted.filter((o) => o.status === 'Rx review').map((o) => ({
+      id: `RX-${o.id.replace(/\D/g, '').slice(-5) || o.docId.slice(0, 5)}`,
+      orderId: o.id, docId: o.docId, order: o, pet: o.pet || 'Pet', breed: '', drug: o.items.find((i) => i.isRx)?.name || o.items[0]?.name || '—',
+      uploadedBy: o.customer, uploadedAt: o.placedAt, waitingMin: Math.round((Date.now() - o.placedAt) / 60000),
+      prescriber: o.prescriber || '', licence: o.prescriberLicence || '', weightKg: null, dose: '', issuedDaysAgo: null, validDays: null,
+      imageUrl: o.prescriptionUrl || '',
+    }));
 
     const ordersByUser = {};
     ordersSorted.forEach((o) => { (ordersByUser[o.userId] ||= []).push(o); });

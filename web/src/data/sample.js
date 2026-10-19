@@ -62,35 +62,7 @@ export const SAMPLE_PETS = [
   { id: 'p-cleo', name: 'Cleo', species: 'Cat', breed: 'Persian', age: '4 yrs', weight: '4.1 kg', gender: 'Female', neutered: true, microchip: '985-0044-CL', nextVaccine: '' },
 ];
 
-const items = (...rows) => rows.map(([id, qty = 1, price]) => {
-  const p = SAMPLE_PRODUCTS.find((x) => x.id === id);
-  return { id, name: p.name, brand: p.brand, price: price ?? p.price, qty, isRx: !!p.isRx, coldChain: !!p.coldChain };
-});
-
-export const SAMPLE_ORDERS = [
-  { id: 'PM-88902', customer: 'Nusrat Jahan', userId: 'u-nusrat', pet: 'Milo', area: 'Gulshan 2', address: 'House 14, Road 8, Gulshan 2, Dhaka 1212', phone: '+880 1711-000214', items: items(['nexgard-spectra', 1, 1650], ['synoquin-efa', 1, 2100], ['calming-probiotic', 1, 0]), discount: 375, coupon: 'PETMAYA10', shipping: 0, status: 'In transit', payment: 'bKash', placedAt: at(9, 12), courier: 'Rakib Hasan', notes: [{ by: 'Dr. Vance', text: 'Confirmed dose for 22.4 kg. OK to dispatch.' }] },
-  { id: 'PM-88901', customer: 'Tanvir Hasan', userId: 'u-tanvir', pet: 'Bruno', area: 'Dhanmondi', items: items(['apoquel-16', 1, 1890]), shipping: 0, status: 'Rx review', payment: 'Card', placedAt: at(9, 36) },
-  { id: 'PM-88900', customer: 'Farzana Akter', userId: 'u-farzana', pet: 'Luna', area: 'Banani', items: items(['nexgard-spectra'], ['rc-gastro-lowfat'], ['omega3-oil', 1, 225], ['deworm-dog', 1, 0], ['ear-cleaner', 1, 0]).map((i, k) => k > 2 ? { ...i, price: 0 } : i), shipping: 0, status: 'Packing', payment: 'COD', placedAt: at(9, 30), totalOverride: 6240 },
-  { id: 'PM-88899', customer: 'Imran Chowdhury', userId: 'u-imran', pet: 'Coco', area: 'Uttara', items: items(['deworm-dog', 1, 420], ['ear-cleaner', 1, 560]), shipping: 0, status: 'Delivered', payment: 'Nagad', placedAt: at(9, 12) },
-  { id: 'PM-88898', customer: 'Sadia Rahman', userId: 'u-sadia', pet: 'Simba', area: 'Mirpur 10', items: items(['calming-probiotic', 1, 1150], ['flea-spot-on', 1, 1300]), shipping: 0, status: 'Packing', payment: 'bKash', placedAt: at(9, 5) },
-  { id: 'PM-88897', customer: 'Mahbub Alam', userId: 'u-mahbub', pet: 'Kitty', area: 'Bashundhara', items: items(['apoquel-16']), shipping: 0, status: 'In transit', payment: 'Card', placedAt: at(8, 58) },
-  { id: 'PM-88896', customer: 'Rumana Islam', userId: 'u-rumana', pet: 'Bella', area: 'Mohakhali', items: items(['nexgard-spectra', 1, 1568], ['synoquin-efa', 1, 2100], ['deworm-dog', 1, 802], ['ear-cleaner']), shipping: 0, status: 'Rx review', payment: 'bKash', placedAt: at(8, 44) },
-  { id: 'PM-88895', customer: 'Arif Hossain', userId: 'u-arif', pet: 'Max', area: 'Lalmatia', items: items(['nobivac-rabies']), shipping: 0, status: 'Return', payment: 'COD', placedAt: at(8, 31) },
-  { id: 'PM-88894', customer: 'Maliha Karim', userId: 'u-maliha', pet: 'Oreo', area: 'Gulshan 1', items: items(['hills-cd', 1, 2450], ['deworm-dog', 1, 520], ['ear-cleaner', 1, 0]), shipping: 0, status: 'Delivered', payment: 'Card', placedAt: at(8, 20) },
-  { id: 'PM-88893', customer: 'Shafiq Anwar', userId: 'u-shafiq', pet: 'Rocky', area: 'Uttara', items: items(['flea-spot-on', 1, 890], ['ear-cleaner', 1, 750]), shipping: 0, status: 'Delivered', payment: 'Nagad', placedAt: at(8, 2) },
-];
-
 // Prescription details attached to orders that are waiting for review.
-export const SAMPLE_RX = [
-  { id: 'RX-20931', orderId: 'PM-88901', pet: 'Bruno', breed: 'Golden Retriever', drug: 'Apoquel 16mg', uploadedBy: 'Tanvir Hasan', uploadedAt: at(9, 36), waitingMin: 14, prescriber: 'Dr. Sabrina Karim', licence: 'BVC-20481', weightKg: 28.2, dose: '16 mg · 0.5 mg/kg · 1 tablet/day', issuedDaysAgo: 27, validDays: 30 },
-  { id: 'RX-20932', orderId: 'PM-88896', pet: 'Bella', breed: 'Beagle', drug: 'Cerenia 24mg', uploadedBy: 'Rumana Islam', uploadedAt: at(9, 39), waitingMin: 11, prescriber: 'Dr. Tariq Rahman', licence: 'BVC-18210', weightKg: 12.6, dose: '24 mg · 2 mg/kg · once daily', issuedDaysAgo: 3, validDays: 30 },
-  { id: 'RX-20933', pet: 'Coco', breed: 'Persian', drug: 'Insulin Caninsulin', uploadedBy: 'Imran Chowdhury', uploadedAt: at(9, 41), waitingMin: 9, prescriber: 'Dr. Tariq Rahman', licence: 'BVC-18210', weightKg: 4.4, dose: '1 IU twice daily', issuedDaysAgo: 8, validDays: 90 },
-  { id: 'RX-20934', pet: 'Luna', breed: 'Husky', drug: 'NexGard Spectra L', uploadedBy: 'Farzana Akter', uploadedAt: at(9, 44), waitingMin: 6, prescriber: 'Dr. Nadia Vance', licence: 'BVC-21007', weightKg: 23.0, dose: '1 chew monthly · 15.1–30 kg band', issuedDaysAgo: 40, validDays: 365 },
-  { id: 'RX-20935', pet: 'Simba', breed: 'Tabby', drug: 'Onsior 6mg', uploadedBy: 'Sadia Rahman', uploadedAt: at(9, 46), waitingMin: 4, prescriber: 'Dr. Ananya Roy', licence: 'BVC-19932', weightKg: 4.8, dose: '6 mg · once daily · 6 days', issuedDaysAgo: 1, validDays: 30 },
-  { id: 'RX-20936', pet: 'Max', breed: 'Pug', drug: 'Rimadyl 75mg', uploadedBy: 'Arif Hossain', uploadedAt: at(9, 47), waitingMin: 3, prescriber: 'Dr. Nazmul Hoda', licence: 'BVC-17550', weightKg: 9.1, dose: '75 mg · 4 mg/kg · once daily', issuedDaysAgo: 2, validDays: 30, flag: 'Dose above range' },
-  { id: 'RX-20937', pet: 'Kitty', breed: 'Siamese', drug: 'Convenia 10ml', uploadedBy: 'Mahbub Alam', uploadedAt: at(9, 49), waitingMin: 1, prescriber: 'Dr. Ananya Roy', licence: 'BVC-19932', weightKg: 3.9, dose: '8 mg/kg · single injection', issuedDaysAgo: 0, validDays: 14 },
-];
-
 export const SAMPLE_CUSTOMERS = [
   { id: 'u-nusrat', name: 'Nusrat Jahan', area: 'Gulshan', city: 'Dhaka', phone: '+880 1711-000214', email: 'nusrat@example.com', since: 'Mar 2025', pets: ['Milo · Labrador'], orders: 12, lifetime: 41200, subscription: { name: 'Synoquin EFA', every: 30, next: '12 Oct' } },
   { id: 'u-tanvir', name: 'Tanvir Hasan', area: 'Dhanmondi', city: 'Dhaka', phone: '+880 1712-000388', email: 'tanvir@example.com', since: 'Jan 2025', pets: ['Bruno · Retriever'], orders: 8, lifetime: 28640 },

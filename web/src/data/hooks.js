@@ -4,13 +4,12 @@ import {
   useCollection, normProduct, normOrder, normVet, normPet, normPost, normBlog, normUser, normEvent,
 } from './firestore.js';
 import {
-  SAMPLE_PRODUCTS, SAMPLE_ORDERS, SAMPLE_VETS, SAMPLE_PETS, SAMPLE_POSTS, SAMPLE_BLOGS,
+  SAMPLE_PRODUCTS, SAMPLE_VETS, SAMPLE_PETS, SAMPLE_POSTS, SAMPLE_BLOGS,
 } from './sample.js';
 import { safeInternalPath } from '../lib/security.js';
 
 const S = {
   products: SAMPLE_PRODUCTS.map((p) => normProduct(p.id, p)),
-  orders: SAMPLE_ORDERS.map((o) => normOrder(o.id, o)),
   vets: SAMPLE_VETS.map((v) => normVet(v.id, v)),
   pets: SAMPLE_PETS.map((p) => normPet(p.id, p)),
   posts: SAMPLE_POSTS.map((p) => normPost(p.id, p)),
@@ -23,7 +22,7 @@ export const useVets = () => useCollection('vets', { map: normVet, sample: S.vet
 export const usePosts = () => useCollection('community_posts', { map: normPost, sample: S.posts });
 export const useBlogs = () => useCollection('blogs', { map: normBlog, sample: S.blogs });
 export const useUsers = () => useCollection('users', { map: normUser, sample: [] });
-export const useAllOrders = () => useCollection('orders', { map: normOrder, sample: S.orders });
+export const useAllOrders = () => useCollection('orders', { map: normOrder, sample: [], sampleWhenEmpty: false });
 export const useAllEvents = () => useCollection('events', { map: normEvent, sample: [] });
 export const useAllPets = () => useCollection('pets', { map: normPet, sample: [] });
 

@@ -3,7 +3,6 @@ import { Link } from '../../lib/router.jsx';
 import { useStore } from '../../lib/store.jsx';
 import { useMyEvents } from '../../data/hooks.js';
 import { useCollection, normOrder } from '../../data/firestore.js';
-import { SAMPLES } from '../../data/hooks.js';
 import { normDevice, SAMPLE_DEVICE, metersBetween } from './Gps.jsx';
 import { Icon, Button, Pill, Avatar, Stat, Empty, Ph } from '../../ui/index.jsx';
 import { money, cx, greeting, shortDate, timeOfDay, ago } from '../../lib/format.js';
@@ -38,7 +37,7 @@ export default function PetDashboard() {
   const pet = activePet;
 
   const orders = useMemo(() => {
-    if (!real) return SAMPLES.orders.filter((o) => ['PM-88902', 'PM-88899'].includes(o.id));
+    if (!real) return [];
     const local = (localOrders || []).map((o) => normOrder(o.id || o.orderId, o));
     return [...myOrders.items, ...local].sort((a, b) => b.placedAt - a.placedAt);
   }, [real, myOrders.items, localOrders]);
