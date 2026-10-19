@@ -9,6 +9,10 @@
       "destination": "https://us-central1-pet-maya.cloudfunctions.net/collect"
     },
     {
+      "source": "/feeds/:channel.xml",
+      "destination": "https://us-central1-pet-maya.cloudfunctions.net/feed/feeds/:channel.xml"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

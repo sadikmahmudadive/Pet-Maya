@@ -421,3 +421,4 @@ export {
   apply_referral, backfill_security_data, check_order_prices, stamp_record_owner, sync_public_profile,
 } from "./integrity";
 export { collect, track_purchase } from "./analytics";
+export { feed } from "./feed";

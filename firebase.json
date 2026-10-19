@@ -24,6 +24,10 @@
         "function": "collect"
       },
       {
+        "source": "/feeds/*.xml",
+        "function": "feed"
+      },
+      {
         "source": "/privacy-policy",
         "destination": "/privacy_policy.html"
       },
