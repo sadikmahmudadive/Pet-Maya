@@ -156,6 +156,30 @@ export function buildGa4Body(e: CleanEvent, u: UserHints) {
   };
 }
 
+/**
+ * Measurement Protocol body for a *server* GTM container (its GA4 client accepts /mp/collect). On top of the
+ * GA4 body it carries what the server tags need: the shared event_id (Meta de-duplication), fbp/fbc, the
+ * visitor's IP and user agent, hashed contact data, and ads_consent so a Meta/Ads tag can be told not to fire.
+ */
+export function buildSgtmBody(e: CleanEvent, u: UserHints) {
+  const body = buildGa4Body(e, u);
+  const em = e.consent.ads ? hashEmail(u.email) : undefined;
+  const ph = e.consent.ads ? hashPhone(u.phone) : undefined;
+  const extra = {
+    event_id: e.eventId,
+    ads_consent: e.consent.ads ? "granted" : "denied",
+    ...(e.fbp ? { fbp: e.fbp } : {}),
+    ...(e.fbc ? { fbc: e.fbc } : {}),
+    ...(u.ip ? { ip_override: u.ip } : {}),
+    ...(u.ua ? { user_agent: u.ua } : {}),
+  };
+  return {
+    ...body,
+    ...(em || ph ? { user_data: { ...(em ? { sha256_email_address: [em] } : {}), ...(ph ? { sha256_phone_number: [ph] } : {}) } } : {}),
+    events: [{ name: e.name, params: { ...body.events[0].params, ...extra } }],
+  };
+}
+
 /** Meta Conversions API body (one event). Only called with ad consent. */
 export function buildMetaBody(e: CleanEvent, u: UserHints, testCode?: string) {
   const userData: Record<string, unknown> = {

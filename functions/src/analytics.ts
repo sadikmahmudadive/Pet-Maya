@@ -9,15 +9,18 @@
  *                      whatever a browser claims. Uses the same event_id (the order id) as the browser's
  *                      dataLayer push, so Meta and GA4 de-duplicate it.
  *
+ * With SGTM_URL set (a GTM *server* container), events and purchases go to that container instead and its tags
+ * (GA4, Meta CAPI, Ads…) do the forwarding; the direct GA4/Meta calls below are then skipped.
+ *
  * Secrets:  firebase functions:secrets:set GA4_API_SECRET   (GA4 → Admin → Data streams → Measurement Protocol)
  *           firebase functions:secrets:set META_CAPI_TOKEN  (Events Manager → Settings → Conversions API)
- * Config:   functions/.env  →  GA4_MEASUREMENT_ID, META_PIXEL_ID, GA4_SERVER_EVENTS, META_TEST_EVENT_CODE
+ * Config:   functions/.env  →  GA4_MEASUREMENT_ID, META_PIXEL_ID, GA4_SERVER_EVENTS, META_TEST_EVENT_CODE, SGTM_URL
  */
 import { onRequest } from "firebase-functions/v2/https";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import { defineSecret, defineString } from "firebase-functions/params";
 import {
-  CleanEvent, IpLimiter, buildGa4Body, buildMetaBody, cleanEvent, cleanItems, clientIp, isAllowedOrigin,
+  CleanEvent, IpLimiter, buildGa4Body, buildMetaBody, buildSgtmBody, cleanEvent, cleanItems, clientIp, isAllowedOrigin,
   parseEventList, sha256, shouldSendToGa4, UserHints,
 } from "./tracking";
 
@@ -26,6 +29,7 @@ const GA4_MEASUREMENT_ID = defineString("GA4_MEASUREMENT_ID", { default: "G-WSN2
 const META_PIXEL_ID = defineString("META_PIXEL_ID", { default: "" });
 const GA4_SERVER_EVENTS = defineString("GA4_SERVER_EVENTS", { default: "purchase" });
 const META_TEST_EVENT_CODE = defineString("META_TEST_EVENT_CODE", { default: "" });
+const SGTM_URL = defineString("SGTM_URL", { default: "" });
 
 // Meta is opt-in: the CAPI token secret is bound (and required at deploy) only once META_PIXEL_ID is set in
 // functions/.env. Until then the functions deploy and run with GA4 only.
@@ -48,9 +52,20 @@ async function postJson(url: string, body: unknown, label: string): Promise<void
 }
 
 /** Sends one validated event to every destination the visitor's consent and our config allow. */
-export async function forward(e: CleanEvent, u: UserHints): Promise<{ ga4: boolean; meta: boolean }> {
-  const sent = { ga4: false, meta: false };
+export async function forward(e: CleanEvent, u: UserHints): Promise<{ ga4: boolean; meta: boolean; sgtm: boolean }> {
+  const sent = { ga4: false, meta: false, sgtm: false };
   const jobs: Promise<void>[] = [];
+
+  // Server GTM container: it owns every vendor tag, so hand it the event once and stop.
+  const sgtm = SGTM_URL.value().trim().replace(/\/+$/, "");
+  if (sgtm) {
+    if (/^https:\/\/[a-z0-9.-]+(:\d+)?(\/[\w./-]*)?$/i.test(sgtm) && e.consent.analytics) {
+      sent.sgtm = true;
+      const mid = GA4_MEASUREMENT_ID.value() || "G-WSN2ZQE4PF";
+      await postJson(`${sgtm}/mp/collect?measurement_id=${encodeURIComponent(mid)}`, buildSgtmBody(e, u), "sgtm");
+    }
+    return sent;
+  }
 
   const apiSecret = GA4_API_SECRET.value();
   const mid = GA4_MEASUREMENT_ID.value() || "G-WSN2ZQE4PF";

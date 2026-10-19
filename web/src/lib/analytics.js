@@ -7,7 +7,11 @@
 //
 // Config (web/.env):  VITE_GTM_ID=GTM-XXXXXXX         — leave empty to disable the browser side
 //                     VITE_META_PIXEL_ID=…            — Meta Pixel id (public); set 0 to disable the browser pixel
-//                     VITE_SERVER_TRACKING=0|1        — default: on in production builds
+//                     VITE_SGTM_URL=https://sgtm.…    — your GTM *server* container. When set, the web container's tags
+//                                                       send to it (set server_container_url in the Google tag) and
+//                                                       the server's tags fire GA4 / Meta CAPI, so /collect is off.
+//                     VITE_SERVER_TRACKING=0|1        — /collect fallback; default: on in production builds unless
+//                                                       VITE_SGTM_URL is set
 // The Meta Pixel is loaded here, so do NOT also add a Meta Pixel tag in GTM (it would count events twice).
 //
 // Consent: ads (marketing) is OFF until the visitor accepts; analytics follows Do-Not-Track. Global Privacy
@@ -15,7 +19,9 @@
 
 const GTM_ID = String(import.meta.env.VITE_GTM_ID || '').trim();
 const META_PIXEL_ID = String(import.meta.env.VITE_META_PIXEL_ID ?? '1423036852741048').trim();
-const SERVER_ON = import.meta.env.VITE_SERVER_TRACKING === '1' || (import.meta.env.PROD && import.meta.env.VITE_SERVER_TRACKING !== '0');
+const SGTM_URL = String(import.meta.env.VITE_SGTM_URL || '').trim();
+// With a server GTM container the browser must not also feed /collect: Meta and GA4 would receive every event twice.
+const SERVER_ON = !SGTM_URL && (import.meta.env.VITE_SERVER_TRACKING === '1' || (import.meta.env.PROD && import.meta.env.VITE_SERVER_TRACKING !== '0'));
 const CONSENT_KEY = 'pm_consent';
 const CID_KEY = 'pm_cid';
 

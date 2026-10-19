@@ -101,3 +101,19 @@ test("origin allow-list and per-IP limiter", () => {
   assert.ok(lim.allow("a", 1500));
   assert.strictEqual(t.clientIp("9.9.9.9, 10.0.0.1", "x"), "9.9.9.9");
 });
+
+test("server GTM body carries event_id, consent, IP/UA and hashed contact data (only with ad consent)", () => {
+  const e = t.cleanEvent(good, 1_700_000_000_000);
+  const body = t.buildSgtmBody(e, { ip: "203.0.113.9", ua: "UA/1", email: " A@B.com ", phone: "01712345678" });
+  const p = body.events[0].params;
+  assert.strictEqual(p.event_id, "evt_1234abcd");
+  assert.strictEqual(p.ads_consent, "granted");
+  assert.strictEqual(p.ip_override, "203.0.113.9");
+  assert.strictEqual(p.fbp, "fb.1.1700000000000.123456789");
+  assert.deepStrictEqual(body.user_data.sha256_email_address, [t.sha256("a@b.com")]);
+  assert.deepStrictEqual(body.user_data.sha256_phone_number, [t.sha256("8801712345678")]);
+
+  const denied = t.buildSgtmBody({ ...e, consent: { analytics: true, ads: false } }, { email: "a@b.com" });
+  assert.strictEqual(denied.events[0].params.ads_consent, "denied");
+  assert.strictEqual(denied.user_data, undefined);
+});
