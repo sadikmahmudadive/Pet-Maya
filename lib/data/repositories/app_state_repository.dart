@@ -28,6 +28,7 @@ import '../services/realtime_database_service.dart';
 import '../models/pet_device_model.dart';
 import '../services/firebase_service.dart';
 import '../services/local_cache_service.dart';
+import '../../core/services/analytics_service.dart';
 import '../../core/services/notification_service.dart';
 import '../../core/services/native_bridge_service.dart';
 import '../../main.dart';
@@ -1595,6 +1596,8 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
     _cartItems.clear();
     notifyListeners();
     await _firebase.placeOrder(order);
+    // Only after the order is saved, so an order that failed to save never counts as a conversion.
+    unawaited(AnalyticsService.logPurchase(order));
     return order;
   }
 

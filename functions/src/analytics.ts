@@ -12,6 +12,8 @@
  * With SGTM_URL set (a GTM *server* container), events and purchases go to that container instead and its tags
  * (GA4, Meta CAPI, Ads…) do the forwarding; the direct GA4/Meta calls below are then skipped.
  *
+ * App orders (no `_track`) are skipped by track_purchase: the Flutter app logs its own GA4 purchase.
+ *
  * Secrets:  firebase functions:secrets:set GA4_API_SECRET   (GA4 → Admin → Data streams → Measurement Protocol)
  *           firebase functions:secrets:set META_CAPI_TOKEN  (Events Manager → Settings → Conversions API)
  * Config:   functions/.env  →  GA4_MEASUREMENT_ID, META_PIXEL_ID, GA4_SERVER_EVENTS, META_TEST_EVENT_CODE, SGTM_URL
@@ -120,7 +122,10 @@ export const track_purchase = onDocumentCreated(
   async (event) => {
     const o = event.data?.data();
     if (!o) return;
-    const t = o._track && typeof o._track === "object" ? o._track : {};
+    // Only the website writes `_track`. App orders log their own `purchase` through the Firebase SDK (same order
+    // id as transaction_id), and a second, server-made one with an invented client id would double-count it.
+    if (!o._track || typeof o._track !== "object") return;
+    const t = o._track;
     const orderId = String(o.orderId || event.params.orderId).slice(0, 64);
 
     const clean = cleanEvent({
