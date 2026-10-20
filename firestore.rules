@@ -209,19 +209,30 @@ service cloud.firestore {
     function orderServerFields() {
       return ['stockDeducted', 'priceCheck', 'verifiedTotal', 'paidAt', 'refundedAt'];
     }
+    function validGuestOrderCreate() {
+      return request.resource.data.userId == 'guest'
+        && shortString(request.resource.data.get('customer', ''), 120)
+        && shortString(request.resource.data.get('phone', ''), 30)
+        && shortString(request.resource.data.get('address', ''), 400)
+        && request.resource.data.get('items', []) is list
+        && request.resource.data.get('items', []).size() > 0
+        && request.resource.data.get('items', []).size() <= 50;
+    }
     match /orders/{orderId} {
       allow read: if (signedIn() && resource.data.userId == request.auth.uid)
         || isAdmin() || canSeeAllOrders();
-      allow create: if signedIn() && notSuspended()
-        && request.resource.data.userId == request.auth.uid
+      allow create: if ((signedIn() && notSuspended() && request.resource.data.userId == request.auth.uid)
+                        || validGuestOrderCreate())
         && !request.resource.data.keys().hasAny(orderServerFields())
         && request.resource.data.get('total', 0) is number
         && request.resource.data.get('total', 0) >= 0;
-      // Customers may only cancel their own order; fulfilment is staff-side.
+      // Customers may cancel their unshipped order or request a return on delivered orders.
       allow update: if isAdmin() || canSeeAllOrders()
         || (signedIn() && resource.data.userId == request.auth.uid
-            && changed().hasOnly(['status', 'cancelReason', 'cancelledAt', 'updatedAt'])
-            && request.resource.data.status in ['Cancelled', 'cancelled', 'Canceled']);
+            && ((changed().hasOnly(['status', 'cancelReason', 'cancelledAt', 'updatedAt'])
+                 && request.resource.data.status in ['Cancelled', 'cancelled', 'Canceled'])
+                || (changed().hasOnly(['status', 'returnRequest', 'updatedAt'])
+                    && request.resource.data.status == 'Return')));
       allow delete: if isAdmin() || (signedIn() && resource.data.userId == request.auth.uid);
     }
 
@@ -406,7 +417,10 @@ service cloud.firestore {
 
     match /coupons/{couponCode} {
       allow read: if true;
-      allow write: if isAdmin() || hasStaffRole(['Manager']);
+      allow create, delete: if isAdmin() || hasStaffRole(['Manager']);
+      allow update: if isAdmin() || hasStaffRole(['Manager'])
+        || (changed().hasOnly(['usageCount', 'updatedAt'])
+            && request.resource.data.get('usageCount', 0) == resource.data.get('usageCount', 0) + 1);
     }
 
     match /promos/{promoId} {

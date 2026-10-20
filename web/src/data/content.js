@@ -14,14 +14,37 @@ export const BRAND = {
 
 export const DELIVERY = {
   freeOver: 2500,              // free delivery threshold (BDT)
-  standardFee: 60,
+  standardFee: 60,             // Inside Dhaka standard (BDT)
+  insideDhakaFee: 60,
+  insideDhakaExpressFee: 120,
+  outsideDhakaFee: 130,        // Outside Dhaka nationwide courier (BDT)
   coldExpressFee: 0,
   coldExpressLabel: 'Cold express (same day)',
   coldStandardLabel: 'Standard cold-chain (next day)',
   coldStandardFee: 150,
   coldRange: '2°C – 8°C',
+  coldDistricts: ['Dhaka', 'Gazipur', 'Narayanganj'],
   returnsDays: 7,
 };
+
+export const BD_DISTRICTS = [
+  'Dhaka', 'Chattogram', 'Sylhet', 'Rajshahi', 'Khulna', 'Barishal', 'Rangpur', 'Mymensingh',
+  'Gazipur', 'Narayanganj', 'Cumilla', 'Bogura', 'Cox’s Bazar', 'Jashore', 'Dinajpur', 'Tangail',
+  'Brahmanbaria', 'Noakhali', 'Feni', 'Pabna', 'Kushtia', 'Faridpur', 'Narsingdi', 'Manikganj',
+  'Munshiganj', 'Kishoreganj', 'Moulvibazar', 'Habiganj', 'Sunamganj', 'Sirajganj', 'Natore',
+  'Naogaon', 'Chapainawabganj', 'Joypurhat', 'Satkhira', 'Bagerhat', 'Jhenaidah', 'Magura',
+  'Narail', 'Chuadanga', 'Meherpur', 'Patuakhali', 'Bhola', 'Pirojpur', 'Jhalokati', 'Barguna',
+  'Jamalpur', 'Sherpur', 'Netrokona', 'Kurigram', 'Gaibandha', 'Nilphamari', 'Lalmonirhat',
+  'Thakurgaon', 'Panchagarh', 'Gopalganj', 'Madaripur', 'Shariatpur', 'Rajbari', 'Lakshmipur',
+  'Chandpur', 'Rangamati', 'Khagrachhari', 'Bandarban',
+];
+
+export const DHAKA_AREAS = [
+  'Gulshan 1', 'Gulshan 2', 'Banani', 'Baridhara', 'Bashundhara R/A', 'Dhanmondi', 'Uttara',
+  'Mirpur', 'Mohammadpur', 'Lalmatia', 'Badda', 'Niketan', 'Mohakhali', 'Tejgaon', 'Rampura',
+  'Khilgaon', 'Banasree', 'Motijheel', 'Paltan', 'Shahbagh', 'Wari', 'Old Dhaka', 'Cantonment',
+  'Savar', 'Keraniganj',
+];
 
 export const PROMOS = {
   firstOrderCode: 'PETMAYA10',
@@ -49,6 +72,8 @@ export const CATEGORIES = [
   { slug: 'food', label: 'Food & diets', sub: 'Clinical & daily', icon: 'pulse', tone: '' },
   { slug: 'supplements', label: 'Supplements', sub: 'Joints, skin, calm', icon: 'heart', tone: 'teal' },
   { slug: 'grooming', label: 'Grooming & dental', sub: 'Coats, teeth, ears', icon: 'scissors', tone: '' },
+  { slug: 'toys', label: 'Toys & enrichment', sub: 'Chews, puzzles, play', icon: 'smile', tone: '' },
+  { slug: 'accessories', label: 'Accessories & travel', sub: 'Harnesses, beds, carriers', icon: 'bag', tone: '' },
   { slug: 'smart-gear', label: 'Smart gear', sub: 'GPS collars & more', icon: 'target', tone: '' },
   { slug: 'vet', label: 'Vet care', sub: 'Book in minutes', icon: 'stethoscope', tone: 'yellow', to: '/specialists' },
 ];

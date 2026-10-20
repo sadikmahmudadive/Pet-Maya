@@ -24,7 +24,7 @@ const normReview = (id, d) => ({
 });
 
 export default function Product({ params }) {
-  const { products, addToCart, activePet, totals, wishlist, toggleWish, toast } = useStore();
+  const { products, addToCart, activePet, totals, wishlist, toggleWish } = useStore();
   const { path, navigate } = useRouter();
   const p = products.items.find((x) => x.id === params.id);
 
@@ -72,13 +72,20 @@ export default function Product({ params }) {
     );
   }
 
+  // Variant-level price, compareAt, SKU & stock (backward-compatible with string variants)
+  const selectedVariantOpt = (p.variantOptions || []).find((vo) => vo.label === variant) || null;
+  const activePrice = selectedVariantOpt?.price > 0 ? selectedVariantOpt.price : p.price;
+  const activeCompareAt = selectedVariantOpt?.compareAt > 0 ? selectedVariantOpt.compareAt : p.compareAt;
+  const activeSku = selectedVariantOpt?.sku || p.sku;
+  const activeStock = selectedVariantOpt?.stockCount != null ? selectedVariantOpt.stockCount : p.stockCount;
+
   const courses = p.subscribe || p.isRx
     ? [{ n: 1, label: 'Single', note: '1 pack', save: 0 }, { n: 3, label: 'Quarterly', note: '3 packs', save: 3 }, { n: 6, label: 'Bi-annual', note: '6 packs', save: 5 }]
     : null;
   const c = courses?.find((x) => x.n === course) || { n: 1, save: 0 };
-  const unit = Math.round(p.price * (1 - c.save / 100) * (refill ? 0.95 : 1));
+  const unit = Math.round(activePrice * (1 - c.save / 100) * (refill ? 0.95 : 1));
   const lineTotal = unit * c.n * qty;
-  const save = p.compareAt > p.price ? p.compareAt - p.price : 0;
+  const save = activeCompareAt > activePrice ? activeCompareAt - activePrice : 0;
   const toFree = Math.max(0, DELIVERY.freeOver - totals.subtotal - lineTotal);
   const images = [p.image, ...(p.images || [])].filter(Boolean);
   const gallery = images.length ? images : [''];
@@ -86,9 +93,44 @@ export default function Product({ params }) {
   const bundle = [p, ...related.slice(0, 2)];
   const bundleTotal = bundle.reduce((a, x) => a + x.price, 0);
   const avg = reviews.items.length ? reviews.items.reduce((a, r) => a + r.stars, 0) / reviews.items.length : p.rating;
-  const soldOut = p.stockCount === 0 || !p.inStock;
+  const soldOut = activeStock <= 0 || !p.inStock;
 
-  const add = () => addToCart({ ...p, price: unit * c.n, subscribe: refill || p.subscribe }, { qty, variant: [variant, c.n > 1 ? `${c.n} packs` : '', refill ? 'Auto-refill' : ''].filter(Boolean).join(' · ') });
+  const add = () => addToCart(
+    { ...p, price: unit * c.n, compareAt: activeCompareAt ? activeCompareAt * c.n : null, subscribe: refill || p.subscribe, sku: activeSku },
+    {
+      qty,
+      variant: [variant, c.n > 1 ? `${c.n} packs` : '', refill ? 'Auto-refill' : ''].filter(Boolean).join(' · '),
+      variantLabel: variant,
+      coursePacks: c.n,
+      courseSavePct: c.save,
+      basePrice: activePrice,
+      sku: activeSku,
+    },
+  );
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: p.name,
+    sku: activeSku,
+    description: p.description || p.shortDescription,
+    brand: { '@type': 'Brand', name: p.brand },
+    ...(images.length ? { image: images } : {}),
+    offers: {
+      '@type': 'Offer',
+      priceCurrency: 'BDT',
+      price: activePrice,
+      availability: soldOut ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock',
+      url: typeof window !== 'undefined' ? window.location.origin + productPath(p) : productPath(p),
+    },
+    ...(p.ratingCount > 0 || reviews.items.length > 0 ? {
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: Number(avg.toFixed(1)),
+        reviewCount: Math.max(p.ratingCount || 0, reviews.items.length || 1),
+      },
+    } : {}),
+  };
 
   const TABS = [
     ['overview', 'Overview'],
@@ -99,6 +141,8 @@ export default function Product({ params }) {
 
   return (
     <div className="container">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+
       <nav className="crumbs" aria-label="Breadcrumb">
         <Link to="/">Home</Link><span>/</span><Link to="/shop">Care Shop</Link><span>/</span>
         <Link to={`/shop/${p.pet === 'cat' ? 'cats' : 'dogs'}`}>{p.pet === 'cat' ? 'Cats' : 'Dogs'}</Link><span>/</span>
@@ -122,7 +166,7 @@ export default function Product({ params }) {
             </div>
           )}
           <div className="card flat row" style={{ marginTop: 14, justifyContent: 'space-around', textAlign: 'center' }}>
-            {[['Stock', soldOut ? 'Sold out' : p.stockCount > 20 ? 'In stock' : `${p.stockCount} left`], ['SKU', p.sku], ['Dispatch', p.isRx ? 'After vet check' : 'Same day']].map(([k, v]) => (
+            {[['Stock', soldOut ? 'Sold out' : activeStock > 20 ? 'In stock' : `${activeStock} left`], ['SKU', activeSku], ['Dispatch', p.isRx ? 'After vet check' : 'Same day']].map(([k, v]) => (
               <div key={k}><div className="stat-label">{k}</div><div className="mono" style={{ fontSize: 16, marginTop: 6 }}>{v}</div></div>
             ))}
           </div>
@@ -133,6 +177,7 @@ export default function Product({ params }) {
             <span className="eyebrow">{p.brand}</span>
             {p.isRx && <Pill tone="yellow" sm>Rx — vet approval</Pill>}
             {p.coldChain && <Pill tone="teal" sm icon="cold">Cold-chain</Pill>}
+            <Pill sm>{p.pet === 'cat' ? 'For Cats' : p.pet === 'dog' ? 'For Dogs' : 'Dogs & Cats'} · {p.suitableAge}</Pill>
           </div>
           <h1 className="display-1" style={{ marginTop: 14 }}>{p.name}</h1>
           <p className="lead" style={{ marginTop: 14 }}>{p.shortDescription || p.description}</p>
@@ -144,8 +189,8 @@ export default function Product({ params }) {
 
           <div className="card" style={{ marginTop: 22, padding: 22, borderRadius: 28 }}>
             <div className="row gap-10 wrap" style={{ alignItems: 'baseline' }}>
-              <span style={{ fontSize: 38, fontWeight: 600, letterSpacing: '-0.03em' }}>{money(p.price)}</span>
-              {save > 0 && <><s className="subtle" style={{ fontSize: 16 }}>{money(p.compareAt)}</s><Pill tone="red" sm>Save {money(save)}</Pill></>}
+              <span style={{ fontSize: 38, fontWeight: 600, letterSpacing: '-0.03em' }}>{money(activePrice)}</span>
+              {save > 0 && <><s className="subtle" style={{ fontSize: 16 }}>{money(activeCompareAt)}</s><Pill tone="red" sm>Save {money(save)}</Pill></>}
               <span className="sub">VAT included</span>
             </div>
 
@@ -170,15 +215,21 @@ export default function Product({ params }) {
 
             {p.variants?.length > 0 && (
               <div style={{ marginTop: 20 }}>
-                <div className="row between" style={{ marginBottom: 10 }}><b style={{ fontSize: 14 }}>{BANDS[p.variants[0]] ? 'Weight tier' : 'Size'}</b>{BANDS[p.variants[0]] && <a href="#details" onClick={() => setTab('dosing')} className="link-plain" style={{ fontSize: 13 }}>Dosage guide</a>}</div>
+                <div className="row between" style={{ marginBottom: 10 }}><b style={{ fontSize: 14 }}>{BANDS[p.variants[0]] ? 'Weight tier' : 'Size / Option'}</b>{BANDS[p.variants[0]] && <a href="#details" onClick={() => setTab('dosing')} className="link-plain" style={{ fontSize: 13 }}>Dosage guide</a>}</div>
                 <div className="opt-grid">
-                  {p.variants.map((v) => (
-                    <button key={v} className={cx('opt', v === variant && 'on')} onClick={() => setVariant(v)}>
-                      <b>{v}</b>
-                      {BANDS[v] && <small>{BANDS[v][0]} – {BANDS[v][1]} kg{v === matchVariant && activePet ? ` · ${activePet.name}’s size` : ''}</small>}
-                      {v === matchVariant && <span className="pill solid-teal mono sm tagr">Match</span>}
-                    </button>
-                  ))}
+                  {p.variants.map((v) => {
+                    const vo = (p.variantOptions || []).find((x) => x.label === v);
+                    const vOut = vo?.stockCount != null && vo.stockCount <= 0;
+                    return (
+                      <button key={v} className={cx('opt', v === variant && 'on')} onClick={() => setVariant(v)} style={vOut ? { opacity: 0.55 } : undefined}>
+                        <b>{v}</b>
+                        {BANDS[v] && <small>{BANDS[v][0]} – {BANDS[v][1]} kg{v === matchVariant && activePet ? ` · ${activePet.name}’s size` : ''}</small>}
+                        {vo?.price > 0 && vo.price !== p.price && <small className="mono">{money(vo.price)}</small>}
+                        {vOut && <small className="red">Sold out</small>}
+                        {v === matchVariant && <span className="pill solid-teal mono sm tagr">Match</span>}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -190,7 +241,7 @@ export default function Product({ params }) {
                   {courses.map((x) => (
                     <button key={x.n} className={cx('opt', x.n === course && 'on')} onClick={() => setCourse(x.n)}>
                       <b>{x.label}</b><small>{x.note}</small>
-                      <div style={{ fontWeight: 600, marginTop: 6 }}>{money(Math.round(p.price * (1 - x.save / 100)) * x.n)}</div>
+                      <div style={{ fontWeight: 600, marginTop: 6 }}>{money(Math.round(activePrice * (1 - x.save / 100)) * x.n)}</div>
                       {x.save > 0 && <span className="pill yellow sm" style={{ marginTop: 4 }}>Save {x.save}%</span>}
                     </button>
                   ))}
@@ -220,7 +271,7 @@ export default function Product({ params }) {
             )}
             <div className="row gap-8 wrap" style={{ marginTop: 12 }}>
               {p.coldChain && <span className="panel row gap-8" style={{ padding: '10px 14px', fontSize: 13 }}><Icon name="cold" size={15} className="teal" /> Insulated pack, temperature-tagged</span>}
-              <span className="panel row gap-8" style={{ padding: '10px 14px', fontSize: 13 }}><Icon name="clock" size={15} className="teal" /> Order by 4 PM for same-day in Dhaka</span>
+              <span className="panel row gap-8" style={{ padding: '10px 14px', fontSize: 13 }}><Icon name="clock" size={15} className="teal" /> Same-day Dhaka · {money(DELIVERY.outsideDhakaFee)} Outside Dhaka</span>
             </div>
           </div>
         </div>
@@ -232,10 +283,20 @@ export default function Product({ params }) {
           {TABS.map(([k, l]) => <button key={k} className={cx('tab', tab === k && 'active')} style={{ height: 40, padding: '0 20px' }} onClick={() => setTab(k)}>{l}</button>)}
         </div>
         <div className="card" style={{ marginTop: 18, padding: 28 }}>
-          {tab === 'overview' && <p style={{ maxWidth: '75ch', lineHeight: 1.7 }}>{p.description || p.shortDescription}</p>}
+          {tab === 'overview' && (
+            <div className="stack gap-12" style={{ maxWidth: '75ch', lineHeight: 1.7 }}>
+              <p>{p.description || p.shortDescription}</p>
+              {p.ingredients && <p><b>Ingredients / Composition:</b> {p.ingredients}</p>}
+              <div className="row gap-12 wrap sub" style={{ marginTop: 6 }}>
+                <span><b>Suitable for:</b> {p.pet === 'cat' ? 'Cats' : p.pet === 'dog' ? 'Dogs' : 'Dogs & Cats'} ({p.suitableAge})</span>
+                <span><b>Unit:</b> {p.unit || 'pc'}</span>
+                <span><b>SKU:</b> {activeSku}</span>
+              </div>
+            </div>
+          )}
           {tab === 'dosing' && (
             <div className="stack gap-12" style={{ maxWidth: '75ch' }}>
-              <p>Always follow the dose on your vet’s prescription or the product label.</p>
+              <p>{p.usageInstructions || 'Always follow the dose on your vet’s prescription or the product label.'}</p>
               {BANDS[p.variants?.[0]] && (
                 <div className="list">
                   {p.variants.map((v) => BANDS[v] && <div key={v} className="list-row between"><span>{v}</span><span className="mono teal">{BANDS[v][0]} – {BANDS[v][1]} kg</span></div>)}
@@ -247,7 +308,8 @@ export default function Product({ params }) {
           {tab === 'storage' && (
             <div className="stack gap-12" style={{ maxWidth: '75ch' }}>
               <p>{p.coldChain ? `Keep refrigerated at ${DELIVERY.coldRange}. We pack it in an insulated box with a temperature tag; if the tag shows it got too warm, don’t accept it and we’ll replace it free.` : 'Store in a cool, dry place out of direct sunlight and away from children and pets.'}</p>
-              <p className="muted">Free delivery over {money(DELIVERY.freeOver)}. Unopened, non-prescription items can be returned within {DELIVERY.returnsDays} days.</p>
+              <p className="muted">Inside Dhaka delivery: {money(DELIVERY.insideDhakaFee)} (same day before 4 PM). Outside Dhaka courier: {money(DELIVERY.outsideDhakaFee)} (2–4 business days). Free delivery over {money(DELIVERY.freeOver)}.</p>
+              <p className="muted"><b>Returns:</b> {p.isRx || p.coldChain ? 'Prescription and cold-chain items are eligible for instant replacement if damaged or temperature-compromised on arrival.' : `Unopened items can be returned within ${DELIVERY.returnsDays} days of delivery.`}</p>
             </div>
           )}
           {tab === 'safety' && (

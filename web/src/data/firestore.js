@@ -12,15 +12,42 @@ import { toMillis } from '../lib/format.js';
 const n = (v, d = 0) => (typeof v === 'number' ? v : (parseFloat(v) || d));
 const bool = (v) => v === true || v === 'true' || v === 1;
 
+export function normVariantOption(v, fallbackPrice = 0, fallbackStock = null) {
+  if (!v) return null;
+  if (typeof v === 'string') {
+    const label = v.trim();
+    return label ? { label, sku: '', price: null, compareAt: null, stockCount: null } : null;
+  }
+  if (typeof v === 'object') {
+    const label = String(v.label || v.name || v.size || v.value || '').trim();
+    if (!label) return null;
+    return {
+      label,
+      sku: String(v.sku || ''),
+      price: v.price != null && v.price !== '' ? n(v.price, fallbackPrice) : null,
+      compareAt: v.compareAt != null && v.compareAt !== '' ? n(v.compareAt, 0) : null,
+      stockCount: v.stockCount != null && v.stockCount !== '' ? n(v.stockCount, fallbackStock ?? 0) : null,
+    };
+  }
+  return null;
+}
+
 export function normProduct(id, d = {}) {
-  const variants = Array.isArray(d.variants) ? d.variants : (Array.isArray(d.sizes) ? d.sizes : []);
+  const rawVariants = Array.isArray(d.variantOptions) && d.variantOptions.length
+    ? d.variantOptions
+    : (Array.isArray(d.variants) ? d.variants : (Array.isArray(d.sizes) ? d.sizes : []));
+  const basePrice = n(d.price);
+  const baseStock = n(d.stockCount, 0);
+  const variantOptions = rawVariants.map((v) => normVariantOption(v, basePrice, baseStock)).filter(Boolean);
+  const variants = variantOptions.map((vo) => vo.label);
+
   return {
     id,
     name: d.name || 'Product',
     brand: d.brand || 'Pet Maya',
     category: String(d.category || 'supplies').toLowerCase(),
     pet: String(d.pet || d.petType || d.species || 'both').toLowerCase(),
-    price: n(d.price),
+    price: basePrice,
     compareAt: n(d.compareAt || d.originalPrice || d.mrp, 0) || null,
     rating: n(d.rating, 4.8),
     ratingCount: n(d.ratingCount || d.reviewsCount, 0),
@@ -28,14 +55,17 @@ export function normProduct(id, d = {}) {
     images: Array.isArray(d.images) ? d.images : [],
     shortDescription: d.shortDescription || d.shortDesc || (d.description ? String(d.description).slice(0, 110) : ''),
     description: d.longDescription || d.description || d.shortDescription || '',
+    ingredients: d.ingredients || d.composition || '',
+    usageInstructions: d.usageInstructions || d.dosingGuide || '',
+    suitableAge: d.suitableAge || d.lifeStage || 'All life stages',
     isRx: bool(d.isRx) || bool(d.requiresPrescription),
     coldChain: bool(d.coldChain) || bool(d.isColdChain),
     showOnStorefront: d.showOnStorefront !== false,
     autoRefill: bool(d.autoRefill),
     subscribe: bool(d.subscribe) || bool(d.autoRefill),
     inStock: d.inStock !== false && d.inStock !== 'false',
-    stockCount: n(d.stockCount, 0),
-    stockTarget: n(d.stockTarget, 0) || Math.max(100, n(d.stockCount, 0)),
+    stockCount: baseStock,
+    stockTarget: n(d.stockTarget, 0) || Math.max(100, baseStock),
     reorderPoint: n(d.reorderPoint, 20),
     sku: d.sku || `PM-${String(id).slice(0, 5).toUpperCase()}`,
     barcode: String(d.barcode || ''),
@@ -45,6 +75,7 @@ export function normProduct(id, d = {}) {
     expiresInDays: d.expiresInDays != null ? n(d.expiresInDays) : null,
     badge: d.badge || '',
     variants,
+    variantOptions,
   };
 }
 
@@ -65,18 +96,27 @@ export function normOrder(id, d = {}) {
     id: i.id || i.productId || '',
     name: i.name || 'Item',
     brand: i.brand || '',
+    sku: i.sku || '',
     price: n(i.price),
+    basePrice: i.basePrice != null ? n(i.basePrice) : n(i.price),
     qty: n(i.qty || i.quantity, 1),
     image: i.image || i.imageUrl || '',
     isRx: bool(i.isRx),
     coldChain: bool(i.coldChain),
+    subscribe: bool(i.subscribe),
+    coursePacks: n(i.coursePacks, 1),
     variant: i.variant || i.specBadge || '',
+    variantLabel: i.variantLabel || '',
   }));
   const subtotal = d.subtotal != null ? n(d.subtotal) : items.reduce((a, i) => a + i.price * i.qty, 0);
   const discount = n(d.discount);
   const shipping = n(d.shipping ?? d.shippingCharges);
   const placedAt = toMillis(d.placedAt || d.timestamp || d.createdAt || d.date);
   const patient = String(d.patient || '');
+  const payment = d.payment || d.paymentMethod || '—';
+  const status = normStatus(d.status);
+  const isCod = /cash|cod/i.test(payment);
+  const paymentStatus = d.paymentStatus || (status === 'Cancelled' ? 'cancelled' : status === 'Return' ? 'refund_pending' : status === 'Delivered' ? 'paid' : isCod ? 'cod_pending' : 'paid');
   return {
     id: d.orderId || id,
     docId: id,
@@ -85,6 +125,8 @@ export function normOrder(id, d = {}) {
     phone: d.phone || '',
     email: d.email || '',
     pet: d.pet || patient.split(' (')[0] || '',
+    district: d.district || d.city || 'Dhaka',
+    deliveryZone: d.deliveryZone || ((d.district || d.city || 'Dhaka') === 'Dhaka' ? 'Inside Dhaka' : 'Outside Dhaka'),
     area: d.area || (d.deliveryAddress ? String(d.deliveryAddress).split(',').slice(-2, -1)[0]?.trim() : '') || '',
     address: d.address || d.deliveryAddress || '',
     items,
@@ -93,13 +135,20 @@ export function normOrder(id, d = {}) {
     coupon: d.coupon || d.couponCode || '',
     shipping,
     total: d.total != null ? n(d.total) : Math.max(0, subtotal - discount + shipping),
-    status: normStatus(d.status),
+    status,
     rawStatus: d.status || '',
     rxStatus: d.rxStatus || '',
-    payment: d.payment || d.paymentMethod || '—',
+    payment,
+    paymentStatus,
     placedAt,
     courier: d.courier || '',
+    delivery: d.delivery || 'Standard',
     deliveryNote: d.deliveryNote || '',
+    cancelReason: d.cancelReason || '',
+    cancelledAt: toMillis(d.cancelledAt),
+    returnRequest: d.returnRequest || null,
+    priceCheck: d.priceCheck || '',
+    priceCheckNotes: Array.isArray(d.priceCheckNotes) ? d.priceCheckNotes : [],
     notes: Array.isArray(d.notes) ? d.notes : [],
     timeline: Array.isArray(d.timeline) ? d.timeline : [],
     prescriptionUrl: d.prescriptionUrl || '',

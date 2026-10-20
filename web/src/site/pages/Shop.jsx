@@ -13,8 +13,11 @@ const TITLES = {
   medicine: ['Medicine', 'Medicine & preventives'],
   prescription: ['Prescription', 'Prescription medicine'],
   food: ['Food & diets', 'Food & veterinary diets'],
-  supplements: ['Supplements', 'Supplements'],
+  supplements: ['Supplements', 'Supplements & wellness'],
   grooming: ['Grooming & dental', 'Grooming & dental care'],
+  toys: ['Toys & enrichment', 'Toys, chews & enrichment'],
+  accessories: ['Accessories & travel', 'Harnesses, beds, carriers & travel'],
+  travel: ['Travel', 'Carriers, crates & travel gear'],
   'smart-gear': ['Smart gear', 'Smart gear & GPS collars'],
   skin: ['Skin & allergy', 'Skin, coat & allergy'],
   joint: ['Joints', 'Joints & mobility'],
@@ -32,6 +35,7 @@ function inCategory(p, cat) {
   if (cat === 'cats') return p.pet === 'cat' || p.pet === 'both';
   if (cat === 'prescription') return p.isRx;
   if (cat === 'medicine') return p.isRx || MEDICINE_CATS.includes(p.category);
+  if (cat === 'accessories') return p.category === 'accessories' || p.category === 'travel' || p.category === 'supplies';
   return p.category === cat;
 }
 

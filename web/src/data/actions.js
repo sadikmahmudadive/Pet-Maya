@@ -24,7 +24,11 @@ export const isRealUser = (u) => !!(u && u.uid && !String(u.uid).startsWith('dem
 /** Reduces stockCount for each ordered line. Runs after the order is written. */
 export async function decrementStock(items = []) {
   const byId = {};
-  items.forEach((i) => { if (i.id) byId[i.id] = (byId[i.id] || 0) + (Number(i.qty) || 1); });
+  items.forEach((i) => {
+    const packs = Math.max(1, Number(i.coursePacks) || 1);
+    const units = (Number(i.qty) || 1) * packs;
+    if (i.id) byId[i.id] = (byId[i.id] || 0) + units;
+  });
   const ids = Object.keys(byId);
   if (!ids.length) return ok;
   try {
@@ -33,6 +37,49 @@ export async function decrementStock(items = []) {
       unitsSold: increment(byId[id]),
       updatedAt: Date.now(),
     })));
+    return ok;
+  } catch (e) { return fail(e); }
+}
+
+export async function incrementCouponUsage(couponId) {
+  if (!couponId) return ok;
+  try {
+    await updateDoc(doc(db, 'coupons', couponId), {
+      usageCount: increment(1),
+      updatedAt: Date.now(),
+    });
+    return ok;
+  } catch (e) { return fail(e); }
+}
+
+/* ── Order self-service (cancel & return requests) ─────────── */
+
+export async function cancelCustomerOrder(docId, reason = 'Cancelled by customer') {
+  if (!docId) return { ok: false, reason: 'missing' };
+  try {
+    await updateDoc(doc(db, 'orders', docId), {
+      status: 'Cancelled',
+      cancelReason: String(reason).slice(0, 300),
+      cancelledAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+    return ok;
+  } catch (e) { return fail(e); }
+}
+
+export async function requestOrderReturn(docId, { reason = 'Damaged / incorrect item', details = '' } = {}) {
+  if (!docId) return { ok: false, reason: 'missing' };
+  try {
+    await updateDoc(doc(db, 'orders', docId), {
+      status: 'Return',
+      returnRequest: {
+        reason: String(reason).slice(0, 120),
+        details: String(details).slice(0, 600),
+        requestedAt: Date.now(),
+        status: 'pending',
+      },
+      updatedAt: Date.now(),
+    });
     return ok;
   } catch (e) { return fail(e); }
 }

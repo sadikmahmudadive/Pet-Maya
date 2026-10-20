@@ -39,9 +39,31 @@ export default function OrderDetail({ params, user }) {
   const nowIdx = steps.findIndex((st) => !isDone(st));
 
   const advance = async () => {
-    if (await write('orders', o.docId, statusUpdate(next[0], user?.name), `${o.id} → ${next[0]}`)) await syncOrderStock(o, next[0], user?.name, live);
+    const patch = {
+      ...statusUpdate(next[0], user?.name),
+      ...(next[0] === 'Delivered' ? { paymentStatus: 'paid', paidAt: Date.now() } : {}),
+    };
+    if (await write('orders', o.docId, patch, `${o.id} → ${next[0]}`)) await syncOrderStock(o, next[0], user?.name, live);
   };
-  const refund = () => { if (window.confirm(`Mark ${o.id} as returned/refunded?`)) write('orders', o.docId, statusUpdate('Return', user?.name), 'Marked for refund'); };
+  const refund = () => {
+    if (window.confirm(`Mark ${o.id} as returned/refunded?`)) {
+      write('orders', o.docId, {
+        ...statusUpdate('Return', user?.name),
+        paymentStatus: 'refunded',
+        refundedAt: Date.now(),
+        ...(o.returnRequest ? { returnRequest: { ...o.returnRequest, status: 'approved', resolvedBy: user?.name || 'Admin', resolvedAt: Date.now() } } : {}),
+      }, 'Marked as returned & refunded');
+    }
+  };
+  const cancelOrder = () => {
+    if (window.confirm(`Cancel order ${o.id}?`)) {
+      write('orders', o.docId, {
+        ...statusUpdate('Cancelled', user?.name),
+        cancelReason: 'Cancelled by staff',
+        cancelledAt: Date.now(),
+      }, 'Order cancelled');
+    }
+  };
   const saveNote = async () => {
     if (!note.trim()) return;
     const n = { by: user?.name || 'Admin', text: note.trim(), at: Date.now() };
@@ -54,7 +76,7 @@ export default function OrderDetail({ params, user }) {
     // Order fields come from the customer: escape every one (stored XSS).
     const e = escapeHtml;
     const n = (v) => (Number(v) || 0).toLocaleString();
-    openPrintWindow(`<title>${e(o.id)}</title><style>body{font-family:system-ui;margin:32px}td{padding:6px 0}table{width:100%;border-collapse:collapse}tr+tr td{border-top:1px solid #eee}</style><h2>Pet Maya · ${e(o.id)}</h2><p>${e(o.customer)}<br>${e(o.phone || '')}<br>${e(o.address || o.area)}</p><table>${o.items.map((i) => `<tr><td>${e(i.name)}${i.variant ? ` (${e(i.variant)})` : ''}</td><td>× ${n(i.qty)}</td><td style="text-align:right">৳${n(i.price * i.qty)}</td></tr>`).join('')}<tr><td><b>Total</b></td><td></td><td style="text-align:right"><b>৳${n(o.total)}</b></td></tr></table>${o.hasCold ? '<p><b>KEEP COLD 2–8°C</b></p>' : ''}`);
+    openPrintWindow(`<title>${e(o.id)}</title><style>body{font-family:system-ui;margin:32px}td{padding:6px 0}table{width:100%;border-collapse:collapse}tr+tr td{border-top:1px solid #eee}</style><h2>Pet Maya · ${e(o.id)}</h2><p>${e(o.customer)}<br>${e(o.phone || '')}<br>${e(o.address || o.area)} (${e(o.deliveryZone || 'Inside Dhaka')})</p><table>${o.items.map((i) => `<tr><td>${e(i.name)}${i.variant ? ` (${e(i.variant)})` : ''}</td><td>× ${n(i.qty)}</td><td style="text-align:right">৳${n(i.price * i.qty)}</td></tr>`).join('')}<tr><td><b>Total (${e(o.payment)})</b></td><td></td><td style="text-align:right"><b>৳${n(o.total)}</b></td></tr></table>${o.hasCold ? '<p><b>KEEP COLD 2–8°C</b></p>' : ''}`);
   };
 
   return (
@@ -67,15 +89,43 @@ export default function OrderDetail({ params, user }) {
         </div>
         <div className="row gap-8 wrap">
           <Button variant="outline" icon="printer" onClick={printSlip}>Print slip</Button>
-          {o.status !== 'Return' && o.status !== 'Cancelled' && <Button variant="danger" onClick={refund}>Refund</Button>}
+          {o.status !== 'Cancelled' && o.status !== 'Delivered' && o.status !== 'Return' && <Button variant="outline" onClick={cancelOrder}>Cancel</Button>}
+          {o.status !== 'Return' && o.status !== 'Cancelled' && <Button variant="danger" onClick={refund}>Refund / Return</Button>}
           {next && <Button variant="dark" icon="check" onClick={advance}>{next[1]}</Button>}
         </div>
       </div>
       <div className="row gap-8 wrap" style={{ margin: '14px 0 20px' }}>
         <StatusPill s={o.status} />
-        <Pill tone="teal">{o.status === 'Delivered' || o.payment !== 'COD' ? 'Paid' : 'Due'} · {o.payment}</Pill>
+        <Pill tone={o.paymentStatus === 'paid' || o.status === 'Delivered' ? 'teal' : 'yellow'}>
+          {o.paymentStatus === 'paid' || o.status === 'Delivered' ? 'Paid' : o.paymentStatus === 'refunded' ? 'Refunded' : 'COD Due'} · {o.payment}
+        </Pill>
+        <Pill>{o.deliveryZone || 'Inside Dhaka'} ({o.district || 'Dhaka'})</Pill>
+        {o.priceCheck === 'ok' && <Pill tone="teal" icon="check" sm>Catalogue price verified</Pill>}
+        {o.priceCheck === 'mismatch' && <Pill tone="red" sm>Price check warning</Pill>}
         <Pill>Placed {timeOfDay(o.placedAt)}, {shortDate(o.placedAt)}</Pill>
       </div>
+
+      {o.returnRequest && (
+        <div className="card" style={{ marginBottom: 16, borderColor: 'var(--yellow)' }}>
+          <div className="row between wrap gap-12">
+            <div>
+              <div className="eyebrow">Customer Return / Replacement Request</div>
+              <b style={{ fontSize: 15 }}>{o.returnRequest.reason}</b>
+              {o.returnRequest.details && <div className="sub" style={{ marginTop: 4 }}>{o.returnRequest.details}</div>}
+            </div>
+            <div className="row gap-8">
+              <Pill tone={o.returnRequest.status === 'approved' ? 'teal' : 'yellow'}>{o.returnRequest.status || 'pending'}</Pill>
+              {o.returnRequest.status !== 'approved' && <Button variant="dark" size="sm" onClick={refund}>Approve & Refund</Button>}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {o.cancelReason && (
+        <div className="card" style={{ marginBottom: 16, borderColor: 'var(--red)' }}>
+          <b>Cancellation reason:</b> <span className="muted">{o.cancelReason}</span>
+        </div>
+      )}
 
       <div className="adm-grid-side wide">
         <div className="stack gap-16">
@@ -87,7 +137,7 @@ export default function OrderDetail({ params, user }) {
                   <Ph src={i.image} label=" " style={{ width: 52, height: 52, minHeight: 0, borderRadius: 12 }} />
                   <div className="grow">
                     <div className="row gap-8 wrap"><b style={{ fontSize: 14 }}>{i.name}</b>{i.isRx && <Pill tone="yellow" sm icon="file">{o.status === 'Rx review' ? 'Rx pending' : 'Rx verified'}</Pill>}{i.coldChain && <Pill tone="teal" sm icon="cold">Cold</Pill>}</div>
-                    <div className="sub" style={{ fontSize: 12 }}>{[i.brand, i.variant].filter(Boolean).join(' · ')}</div>
+                    <div className="sub" style={{ fontSize: 12 }}>{[i.brand, i.sku, i.variant].filter(Boolean).join(' · ')}</div>
                   </div>
                   <span className="sub">× {i.qty}</span>
                   <b style={{ minWidth: 70, textAlign: 'right' }}>{i.price ? money(i.price * i.qty) : 'Free'}</b>
@@ -97,7 +147,7 @@ export default function OrderDetail({ params, user }) {
             <div style={{ marginLeft: 'auto', maxWidth: 300, marginTop: 10 }}>
               <div className="kv"><span>Subtotal</span><span>{money(o.subtotal)}</span></div>
               {o.discount > 0 && <div className="kv"><span>{o.coupon || 'Discount'}</span><span className="teal">−{money(o.discount)}</span></div>}
-              <div className="kv"><span>Delivery</span><span className="teal">{o.shipping ? money(o.shipping) : 'Free'}</span></div>
+              <div className="kv"><span>Delivery ({o.deliveryZone})</span><span className="teal">{o.shipping ? money(o.shipping) : 'Free'}</span></div>
               <div className="kv" style={{ borderTop: '1px solid var(--line)', paddingTop: 10, marginTop: 4 }}><b style={{ color: 'var(--ink)' }}>Total</b><b style={{ fontSize: 22 }}>{money(o.total)}</b></div>
             </div>
           </div>
@@ -131,8 +181,11 @@ export default function OrderDetail({ params, user }) {
 
         <div className="stack gap-16">
           <div className="card">
-            <h2 className="h-card" style={{ marginBottom: 14 }}>Customer</h2>
-            <div className="row gap-12"><Avatar name={o.customer} tone="teal" size="lg" /><div><b>{o.customer}</b><div className="sub" style={{ fontSize: 12 }}>{[o.phone, cust && `${cust.orders} orders`].filter(Boolean).join(' · ')}</div></div></div>
+            <div className="row between" style={{ marginBottom: 14 }}>
+              <h2 className="h-card">Customer</h2>
+              {o.userId === 'guest' && <Pill sm>Guest checkout</Pill>}
+            </div>
+            <div className="row gap-12"><Avatar name={o.customer} tone="teal" size="lg" /><div><b>{o.customer}</b><div className="sub" style={{ fontSize: 12 }}>{[o.phone, o.email, cust && `${cust.orders} orders`].filter(Boolean).join(' · ')}</div></div></div>
             {o.pet && <div className="panel row gap-10" style={{ marginTop: 14 }}><Icon name="paw" size={16} className="teal" /><div><b style={{ fontSize: 13 }}>{o.pet}{pet ? ` · ${pet.breed} · ${pet.weight}` : ''}</b><div className="sub" style={{ fontSize: 11 }}>{pet ? 'From Health Vault' : 'Pet on order'}</div></div></div>}
             {o.address && <div className="row gap-8 sub" style={{ marginTop: 12, fontSize: 13 }}><Icon name="pin" size={14} /> {o.address}</div>}
             {o.deliveryNote && <div className="sub" style={{ marginTop: 8, fontSize: 12 }}>Note: {o.deliveryNote}</div>}

@@ -4,7 +4,7 @@ import { useStore } from '../../lib/store.jsx';
 import { storage, ref, uploadBytesResumable, getDownloadURL } from '../../config/firebase';
 import { Icon, Button, Ph, Pill, Field, Empty } from '../../ui/index.jsx';
 import { money, cx } from '../../lib/format.js';
-import { DELIVERY } from '../../data/content.js';
+import { DELIVERY, BD_DISTRICTS, DHAKA_AREAS } from '../../data/content.js';
 import { validateUpload, ownUploadPath } from '../../lib/security.js';
 import { track, toItem } from '../../lib/analytics.js';
 
@@ -20,10 +20,15 @@ export default function Checkout() {
   const { navigate, query } = useRouter();
 
   const [f, setF] = useState({
-    email: user?.email || '', phone: user?.phone || '', name: user?.name || '',
-    address: user?.address || '', area: '', city: 'Dhaka', note: '',
+    email: user?.email || '',
+    phone: user?.phone || '',
+    name: user?.name || '',
+    address: user?.address || '',
+    area: user?.area || '',
+    district: user?.city || 'Dhaka',
+    note: '',
   });
-  const [delivery, setDelivery] = useState('express');
+  const [delivery, setDelivery] = useState('standard');
   const [sms, setSms] = useState(true);
   const [pay, setPay] = useState(query.get('pay') || 'bKash');
   const [code, setCode] = useState('');
@@ -32,9 +37,20 @@ export default function Checkout() {
   const [err, setErr] = useState('');
 
   useEffect(() => {
-    if (user) setF((x) => ({ ...x, email: x.email || user.email || '', name: x.name || user.name || '', phone: x.phone || user.phone || '', address: x.address || user.address || '' }));
+    if (user) {
+      setF((x) => ({
+        ...x,
+        email: x.email || user.email || '',
+        name: x.name || user.name || '',
+        phone: x.phone || user.phone || '',
+        address: x.address || user.address || '',
+        area: x.area || user.area || '',
+        district: x.district || user.city || 'Dhaka',
+      }));
+    }
   }, [user]);
   useEffect(() => { if (totals.needsRx && pay === 'Cash on delivery') setPay('bKash'); }, [totals.needsRx, pay]);
+  useEffect(() => { if (totals.needsCold) setDelivery('express'); }, [totals.needsCold]);
   useEffect(() => { if (cart.length) track('begin_checkout', { value: totals.subtotal, items: cart.map((l) => toItem(l)) }); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (cart.length === 0) {
@@ -46,35 +62,70 @@ export default function Checkout() {
   }
 
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
-  const shipping = totals.needsCold
-    ? (delivery === 'express' ? (totals.freeShip ? 0 : DELIVERY.coldExpressFee) : DELIVERY.coldStandardFee)
-    : totals.shipping;
-  const total = totals.subtotal - totals.discount + shipping;
+  const isInsideDhaka = f.district === 'Dhaka';
+  const coldEligible = !totals.needsCold || (DELIVERY.coldDistricts || ['Dhaka']).includes(f.district);
+
+  let shipping = 0;
+  let deliveryLabel = 'Standard (Inside Dhaka)';
+  if (totals.needsCold) {
+    if (delivery === 'express') {
+      shipping = totals.freeShip ? 0 : DELIVERY.coldExpressFee;
+      deliveryLabel = DELIVERY.coldExpressLabel;
+    } else {
+      shipping = DELIVERY.coldStandardFee;
+      deliveryLabel = DELIVERY.coldStandardLabel;
+    }
+  } else if (isInsideDhaka) {
+    if (delivery === 'express') {
+      shipping = DELIVERY.insideDhakaExpressFee;
+      deliveryLabel = 'Express Dhaka (3–4 hours)';
+    } else {
+      shipping = totals.freeShip ? 0 : DELIVERY.insideDhakaFee;
+      deliveryLabel = 'Inside Dhaka (Same day)';
+    }
+  } else {
+    shipping = totals.freeShip ? 0 : DELIVERY.outsideDhakaFee;
+    deliveryLabel = `Outside Dhaka Courier (${f.district})`;
+  }
+
+  const total = Math.max(0, totals.subtotal - totals.discount + shipping);
 
   const submit = async (e) => {
     e.preventDefault();
     setErr('');
-    if (!f.phone || !f.address || !f.name) { setErr('Please add your name, phone and delivery address.'); return; }
+    if (!f.phone.trim() || !f.address.trim() || !f.name.trim()) {
+      setErr('Please enter your full name, mobile number, and delivery address.');
+      return;
+    }
+    const cleanPhone = f.phone.replace(/[\s()-]/g, '');
+    if (!/^(\+?8801|01)[3-9]\d{8}$/.test(cleanPhone) && cleanPhone.length < 8) {
+      setErr('Please enter a valid Bangladesh mobile number (e.g. 017XXXXXXXX or +88017XXXXXXXX).');
+      return;
+    }
+    if (!coldEligible) {
+      setErr(`Cold-chain medicines (${DELIVERY.coldRange}) can only be delivered to ${(DELIVERY.coldDistricts || ['Dhaka']).join(', ')} to guarantee temperature safety.`);
+      return;
+    }
     setBusy(true);
     try {
       let rxUrl = '';
       if (rxFile && storage && user?.uid && !String(user.uid).startsWith('demo_guest')) {
         try {
-          // Prescriptions are private medical documents: PDF/photo only, ≤ 15 MB,
-          // in the customer's own folder (readable by them and pharmacy staff).
           const type = await validateUpload(rxFile, 'document');
           const r = ref(storage, ownUploadPath('prescriptions', user.uid, type.ext));
           await uploadBytesResumable(r, rxFile, { contentType: type.contentType });
           rxUrl = await getDownloadURL(r);
         } catch (uploadErr) {
-          // Order still goes through; pharmacy will ask for it.
           if (uploadErr?.message && !uploadErr.code) setErr(uploadErr.message);
         }
       }
       const id = await placeOrder({
         ...f,
-        address: [f.address, f.area, f.city].filter(Boolean).join(', '),
-        delivery: totals.needsCold ? (delivery === 'express' ? DELIVERY.coldExpressLabel : DELIVERY.coldStandardLabel) : 'Standard',
+        city: f.district,
+        district: f.district,
+        deliveryZone: isInsideDhaka ? 'Inside Dhaka' : 'Outside Dhaka',
+        address: [f.address, f.area, f.district].filter(Boolean).join(', '),
+        delivery: deliveryLabel,
         shipping,
         payment: pay,
         smsUpdates: sms,
@@ -82,7 +133,7 @@ export default function Checkout() {
       });
       navigate(`/account/orders/${id}?placed=1`);
     } catch (ex) {
-      setErr('We couldn’t place your order. Please check your connection and try again.');
+      setErr(ex?.message || 'We couldn’t place your order. Please check your connection and try again.');
       toast('Order failed — please try again', { tone: 'error' });
     } finally {
       setBusy(false);
@@ -112,35 +163,73 @@ export default function Checkout() {
           </div>
 
           <div className="card">
-            <div className="card-head"><h2 className="h-card" style={{ fontSize: 19 }}>Contact</h2>{!user && <Link to="/signin" className="link-plain" style={{ fontSize: 13 }}>Sign in</Link>}</div>
+            <div className="card-head">
+              <div>
+                <h2 className="h-card" style={{ fontSize: 19 }}>Contact</h2>
+                {!user && <div className="sub" style={{ fontSize: 12, marginTop: 2 }}>Checking out as a guest · <Link to="/signin" className="link">Sign in</Link> to earn loyalty points</div>}
+              </div>
+              {user && <Pill tone="teal" sm>Signed in</Pill>}
+            </div>
             <div className="fields">
               <Field label="Email" type="email" value={f.email} onChange={set('email')} placeholder="you@example.com" autoComplete="email" />
-              <Field label="Mobile" type="tel" required value={f.phone} onChange={set('phone')} placeholder="+880 1XXX-XXXXXX" autoComplete="tel" />
+              <Field label="Mobile (Bangladesh)" type="tel" required value={f.phone} onChange={set('phone')} placeholder="017XX-XXXXXX" autoComplete="tel" />
             </div>
           </div>
 
           <div className="card">
-            <div className="card-head"><h2 className="h-card" style={{ fontSize: 19 }}>Delivery address</h2>{activePet && totals.needsRx && <Pill tone="teal" sm>For {activePet.name}</Pill>}</div>
+            <div className="card-head">
+              <h2 className="h-card" style={{ fontSize: 19 }}>Delivery address</h2>
+              <div className="row gap-6">
+                <Pill tone={isInsideDhaka ? 'teal' : ''} sm>{isInsideDhaka ? 'Inside Dhaka' : 'Outside Dhaka'}</Pill>
+                {activePet && totals.needsRx && <Pill tone="yellow" sm>For {activePet.name}</Pill>}
+              </div>
+            </div>
             <div className="fields">
               <Field className="full" label="Full name" required value={f.name} onChange={set('name')} autoComplete="name" />
-              <Field className="full" label="Address" required value={f.address} onChange={set('address')} placeholder="House, road, block" autoComplete="street-address" />
-              <Field label="Area" value={f.area} onChange={set('area')} placeholder="e.g. Banani" />
-              <Field label="City / postcode" value={f.city} onChange={set('city')} />
-              <Field className="full" label="Note for the courier" hint="optional">
-                <input className="input" value={f.note} onChange={set('note')} placeholder="e.g. Ring the gate bell; hand the box to me directly" />
+              <Field label="District" required>
+                <select className="select" value={f.district} onChange={set('district')} aria-label="District">
+                  {BD_DISTRICTS.map((d) => <option key={d} value={d}>{d}</option>)}
+                </select>
+              </Field>
+              <Field label={isInsideDhaka ? 'Area / Thana' : 'Upazila / Area'} required>
+                <input
+                  className="input"
+                  list={isInsideDhaka ? 'dhaka-areas-list' : undefined}
+                  value={f.area}
+                  onChange={set('area')}
+                  placeholder={isInsideDhaka ? 'e.g. Gulshan 2, Banani, Dhanmondi' : 'e.g. Agrabad, Zindabazar'}
+                  required
+                />
+                {isInsideDhaka && (
+                  <datalist id="dhaka-areas-list">
+                    {DHAKA_AREAS.map((a) => <option key={a} value={a} />)}
+                  </datalist>
+                )}
+              </Field>
+              <Field className="full" label="Full street address" required value={f.address} onChange={set('address')} placeholder="House #, Road #, Block/Sector, Flat/Floor" autoComplete="street-address" />
+              <Field className="full" label="Delivery instructions for the courier" hint="optional">
+                <input className="input" value={f.note} onChange={set('note')} placeholder="e.g. Ring the gate bell; call before arriving" />
               </Field>
             </div>
           </div>
 
           <div className="card">
             <h2 className="h-card" style={{ fontSize: 19, marginBottom: 16 }}>Delivery method</h2>
+            {!coldEligible && (
+              <div className="rx-note" style={{ marginBottom: 14, background: 'rgba(217, 72, 65, 0.1)', color: 'var(--red)', borderColor: 'var(--red)' }}>
+                <Icon name="thermo" size={16} />
+                <span>
+                  <b>Cold-chain zone notice:</b> Your bag contains temperature-sensitive items ({DELIVERY.coldRange}) which can only be delivered within {(DELIVERY.coldDistricts || ['Dhaka']).join(', ')}. Please select a supported district or remove cold-chain items.
+                </span>
+              </div>
+            )}
             {totals.needsCold ? (
               <div className="stack gap-10">
                 <label className={cx('ship-opt', delivery === 'express' && 'on')}>
                   <input type="radio" className="radio" name="ship" checked={delivery === 'express'} onChange={() => setDelivery('express')} />
                   <div className="grow">
                     <div className="row gap-8"><b style={{ fontSize: 15 }}>{DELIVERY.coldExpressLabel}</b><Pill tone="solid-teal" mono sm>{DELIVERY.coldRange.replace(/ /g, '')}</Pill></div>
-                    <div className="sub">Insulated box with temperature tag · today</div>
+                    <div className="sub">Insulated box with temperature tag · same day in Dhaka</div>
                   </div>
                   <b>{totals.freeShip || !DELIVERY.coldExpressFee ? 'Free' : money(DELIVERY.coldExpressFee)}</b>
                 </label>
@@ -150,11 +239,33 @@ export default function Checkout() {
                   <b>{money(DELIVERY.coldStandardFee)}</b>
                 </label>
               </div>
+            ) : isInsideDhaka ? (
+              <div className="stack gap-10">
+                <label className={cx('ship-opt', delivery === 'standard' && 'on')}>
+                  <input type="radio" className="radio" name="ship" checked={delivery === 'standard'} onChange={() => setDelivery('standard')} />
+                  <div className="grow">
+                    <b style={{ fontSize: 15 }}>Inside Dhaka Standard</b>
+                    <div className="sub">Same day inside Dhaka for orders placed before 4 PM (free over {money(DELIVERY.freeOver)})</div>
+                  </div>
+                  <b>{totals.freeShip ? 'Free' : money(DELIVERY.insideDhakaFee)}</b>
+                </label>
+                <label className={cx('ship-opt', delivery === 'express' && 'on')}>
+                  <input type="radio" className="radio" name="ship" checked={delivery === 'express'} onChange={() => setDelivery('express')} />
+                  <div className="grow">
+                    <div className="row gap-8"><b style={{ fontSize: 15 }}>Express Dhaka Dispatch</b><Pill tone="teal" sm>3–4 hrs</Pill></div>
+                    <div className="sub">Priority rider from our Gulshan 2 central pharmacy</div>
+                  </div>
+                  <b>{money(DELIVERY.insideDhakaExpressFee)}</b>
+                </label>
+              </div>
             ) : (
               <div className="ship-opt on">
                 <Icon name="truck" size={20} className="teal" />
-                <div className="grow"><b style={{ fontSize: 15 }}>Standard delivery</b><div className="sub">Same day inside Dhaka for orders before 4 PM</div></div>
-                <b>{totals.shipping ? money(totals.shipping) : 'Free'}</b>
+                <div className="grow">
+                  <b style={{ fontSize: 15 }}>Outside Dhaka Nationwide Courier ({f.district})</b>
+                  <div className="sub">2–4 business days via tracked doorstep courier (free over {money(DELIVERY.freeOver)})</div>
+                </div>
+                <b>{totals.freeShip ? 'Free' : money(DELIVERY.outsideDhakaFee)}</b>
               </div>
             )}
             <label className="row gap-10" style={{ marginTop: 14, fontSize: 13, cursor: 'pointer' }}>
@@ -222,14 +333,14 @@ export default function Checkout() {
               <div className="coupon-applied" style={{ marginTop: 16 }}><Icon name="check" size={14} /><span className="mono grow">{coupon.code}</span><button type="button" className="link" onClick={removeCoupon}>Remove</button></div>
             ) : (
               <div className="row gap-8" style={{ marginTop: 16 }}>
-                <input className="input" value={code} onChange={(e) => setCode(e.target.value)} placeholder="Promo code" aria-label="Promo code" />
+                <input className="input" value={code} onChange={(e) => setCode(e.target.value)} placeholder="Promo code (e.g. PETMAYA10)" aria-label="Promo code" />
                 <button type="button" className="btn btn-soft" onClick={() => { if (!applyCoupon(code)) toast('That code isn’t valid', { tone: 'error' }); }}>Apply</button>
               </div>
             )}
             <hr className="divider" style={{ margin: '16px 0 8px' }} />
             <div className="kv"><span>Subtotal</span><span>{money(totals.subtotal)}</span></div>
             {totals.discount > 0 && <div className="kv"><span>Voucher {coupon?.code}</span><span className="teal">−{money(totals.discount)}</span></div>}
-            <div className="kv"><span>Delivery</span><span className="teal">{shipping ? money(shipping) : 'Free'}</span></div>
+            <div className="kv"><span>Delivery ({isInsideDhaka ? 'Inside Dhaka' : f.district})</span><span className="teal">{shipping ? money(shipping) : 'Free'}</span></div>
             {totals.needsRx && <div className="kv"><span>Vet prescription check</span><span className="teal">Included</span></div>}
             <hr className="divider" style={{ margin: '8px 0 14px' }} />
             <div className="row between" style={{ alignItems: 'baseline' }}>
@@ -237,7 +348,7 @@ export default function Checkout() {
               <div style={{ textAlign: 'right' }}><div style={{ fontSize: 32, fontWeight: 600, letterSpacing: '-0.03em' }}>{money(total)}</div><div className="sub" style={{ fontSize: 11 }}>BDT · includes VAT</div></div>
             </div>
             {err && <div className="red" style={{ fontSize: 13, marginTop: 10 }}>{err}</div>}
-            <Button type="submit" variant="dark" size="lg" block icon="lock" style={{ marginTop: 16 }} disabled={busy}>
+            <Button type="submit" variant="dark" size="lg" block icon="lock" style={{ marginTop: 16 }} disabled={busy || !coldEligible}>
               {busy ? 'Placing order…' : `Place order · ${money(total)}`}
             </Button>
             {totals.needsCold && (

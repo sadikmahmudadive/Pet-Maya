@@ -54,3 +54,20 @@ test("public profile never leaks private fields", () => {
   const p = integ.publicProfileOf({ name: "Ana", email: "a@x.com", phone: "123", address: "Dhaka", photoUrl: "u", role: "petOwner", fcmTokens: ["t"] });
   assert.deepStrictEqual(Object.keys(p).sort(), ["isVerified", "name", "photoUrl", "role"]);
 });
+
+test("computeCatalogueUnitPrice handles variant options, course packs, and auto-refill discounts", () => {
+  const prod = {
+    price: 1000,
+    subscribe: true,
+    variantOptions: [
+      { label: "Small", price: 1000 },
+      { label: "Large", price: 1500 },
+    ],
+  };
+  assert.strictEqual(integ.computeCatalogueUnitPrice(prod, { variant: "Small" }), 1000);
+  assert.strictEqual(integ.computeCatalogueUnitPrice(prod, { variant: "Large" }), 1500);
+  // 3-pack course (3% off) on Large (1500 * 0.97 = 1455 * 3 = 4365)
+  assert.strictEqual(integ.computeCatalogueUnitPrice(prod, { variant: "Large · 3 packs", coursePacks: 3 }), 4365);
+  // Auto-refill (5% off) on Small (1000 * 0.95 = 950)
+  assert.strictEqual(integ.computeCatalogueUnitPrice(prod, { variant: "Small · Auto-refill", subscribe: true }), 950);
+});

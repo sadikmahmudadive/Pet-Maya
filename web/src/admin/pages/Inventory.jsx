@@ -15,7 +15,12 @@ const statusOf = (p) => {
   return ['Healthy', 'teal', 'check'];
 };
 
-const BLANK = { id: '', name: '', brand: '', category: 'medicine', sku: '', barcode: '', cost: 0, unit: 'pc', supplier: '', price: 0, stockCount: 0, reorderPoint: 20, stockTarget: 100, isRx: false, coldChain: false, showOnStorefront: true, autoRefill: false, image: '', shortDescription: '', variants: [] };
+const BLANK = {
+  id: '', name: '', brand: '', category: 'medicine', pet: 'both', sku: '', barcode: '', cost: 0, unit: 'pc', supplier: '',
+  price: 0, compareAt: '', stockCount: 0, reorderPoint: 20, stockTarget: 100, isRx: false, coldChain: false,
+  showOnStorefront: true, autoRefill: false, image: '', shortDescription: '', description: '', ingredients: '',
+  variants: [], variantOptions: [],
+};
 const slug = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || `p-${Date.now()}`;
 
 function parseCsv(text) {
@@ -70,26 +75,60 @@ export default function Inventory() {
   const selected = products.find((p) => p.id === editId) || (editId === null ? list[0] : null);
   useEffect(() => {
     if (editId === '__new') { setForm({ ...BLANK }); setDirty(false); return; }
-    if (selected) { setForm({ ...selected }); setDirty(false); }
+    if (selected) {
+      setForm({
+        ...selected,
+        variantOptions: Array.isArray(selected.variantOptions) && selected.variantOptions.length
+          ? selected.variantOptions.map((vo) => ({ ...vo }))
+          : (selected.variants || []).map((v) => ({ label: String(v), sku: '', price: '', stockCount: '' })),
+      });
+      setDirty(false);
+    }
   }, [editId, selected?.id]); // eslint-disable-line
 
   const stockValue = products.reduce((a, p) => a + p.price * Math.max(0, p.stockCount), 0);
   const low = products.filter((p) => p.stockCount <= p.reorderPoint);
   const reorder = low.map((p) => ({ p, qty: Math.max(p.reorderPoint, p.stockTarget - p.stockCount) })).sort((a, b) => a.p.stockCount - b.p.stockCount);
-  const cats = [...new Set(products.map((p) => p.category))].sort();
+  const cats = [...new Set(['medicine', 'preventives', 'vaccines', 'food', 'supplements', 'grooming', 'toys', 'accessories', 'travel', 'smart-gear', 'skin', 'joint', 'antiparasitics', 'calming', ...products.map((p) => p.category)])].sort();
   const brands = [...new Set(products.map((p) => p.brand))].sort();
 
   const set = (k, v) => { setForm((f) => ({ ...f, [k]: v })); setDirty(true); };
+
+  const addVariantRow = () => {
+    set('variantOptions', [...(form.variantOptions || []), { label: '', sku: '', price: '', stockCount: '' }]);
+  };
+  const updateVariantRow = (idx, field, val) => {
+    const next = (form.variantOptions || []).map((vo, i) => (i === idx ? { ...vo, [field]: val } : vo));
+    set('variantOptions', next);
+  };
+  const removeVariantRow = (idx) => {
+    set('variantOptions', (form.variantOptions || []).filter((_, i) => i !== idx));
+  };
+
   const save = async () => {
     if (!form.name.trim()) { toast('Give the product a name', { tone: 'error' }); return; }
     const id = form.id || slug(form.name);
+    const cleanVariants = (form.variantOptions || [])
+      .filter((vo) => String(vo.label || '').trim())
+      .map((vo) => ({
+        label: String(vo.label).trim(),
+        sku: String(vo.sku || '').trim(),
+        price: vo.price !== '' && vo.price != null ? Number(vo.price) : null,
+        stockCount: vo.stockCount !== '' && vo.stockCount != null ? Number(vo.stockCount) : null,
+      }));
     const data = {
-      name: form.name, brand: form.brand, category: form.category, sku: form.sku, price: Number(form.price) || 0,
+      name: form.name, brand: form.brand, category: form.category, pet: form.pet || 'both', sku: form.sku, price: Number(form.price) || 0,
       barcode: String(form.barcode || '').trim(), cost: Number(form.cost) || 0, unit: form.unit || 'pc', supplier: form.supplier || form.brand || '',
-      ...(form.compareAt ? { compareAt: Number(form.compareAt) || null } : {}),
+      ...(form.compareAt ? { compareAt: Number(form.compareAt) || null } : { compareAt: null }),
       stockCount: Number(form.stockCount) || 0, reorderPoint: Number(form.reorderPoint) || 0, stockTarget: Number(form.stockTarget) || 0,
       inStock: Number(form.stockCount) > 0, isRx: !!form.isRx, coldChain: !!form.coldChain, showOnStorefront: !!form.showOnStorefront,
-      autoRefill: !!form.autoRefill, image: form.image || '', imageUrl: form.image || '', shortDescription: form.shortDescription || '',
+      autoRefill: !!form.autoRefill, subscribe: !!form.autoRefill,
+      image: form.image || '', imageUrl: form.image || '',
+      shortDescription: form.shortDescription || '',
+      description: form.description || form.shortDescription || '',
+      ingredients: form.ingredients || '',
+      variants: cleanVariants.map((v) => v.label),
+      variantOptions: cleanVariants,
       ...(form.id ? {} : { rating: 4.8, ratingCount: 0, createdAt: Date.now() }),
     };
     if (await write('products', id, data, form.id ? 'Product saved' : 'Product added')) { setDirty(false); setEditId(id); }
@@ -161,8 +200,8 @@ export default function Inventory() {
                       const ratio = Math.min(1, p.stockCount / Math.max(1, p.stockTarget));
                       return (
                         <tr key={p.id} className={cx('clickable', (form?.id === p.id) && 'selected')} onClick={() => setEditId(p.id)}>
-                          <td><div className="row gap-10"><Ph src={p.image} label=" " style={{ width: 38, height: 38, minHeight: 0, borderRadius: 10, flex: 'none' }} /><div><div className="cell-title">{p.name}</div><div className="cell-sub">{p.brand}</div></div></div></td>
-                          <td className="mono muted" style={{ fontSize: 12, whiteSpace: "nowrap" }}>{p.sku}</td>
+                          <td><div className="row gap-10"><Ph src={p.image} label=" " style={{ width: 38, height: 38, minHeight: 0, borderRadius: 10, flex: 'none' }} /><div><div className="cell-title">{p.name}</div><div className="cell-sub">{p.brand}{p.variants?.length ? ` · ${p.variants.length} variants` : ''}</div></div></div></td>
+                          <td className="mono muted" style={{ fontSize: 12, whiteSpace: 'nowrap' }}>{p.sku}</td>
                           <td>
                             <div className="row between" style={{ fontSize: 13 }}><b>{p.stockCount}</b><span className="subtle">/ {p.stockTarget}</span></div>
                             <div className={cx('meter', tone === 'red' ? 'red' : tone === 'yellow' ? 'amber' : '')} style={{ marginTop: 6, height: 5 }}><span style={{ width: `${Math.max(2, ratio * 100)}%` }} /></div>
@@ -229,7 +268,40 @@ export default function Inventory() {
                 <input className="input" list="cats" value={form.category} onChange={(e) => set('category', e.target.value.toLowerCase())} />
                 <datalist id="cats">{cats.map((c) => <option key={c} value={c} />)}</datalist>
               </Field>
+              <Field label="Pet type">
+                <select className="select" value={form.pet || 'both'} onChange={(e) => set('pet', e.target.value)}>
+                  <option value="both">Dogs & Cats</option>
+                  <option value="dog">Dogs</option>
+                  <option value="cat">Cats</option>
+                </select>
+              </Field>
+              <Field className="full" label="Short summary" value={form.shortDescription || ''} onChange={(e) => set('shortDescription', e.target.value)} placeholder="1-line summary shown on cards" />
+              <Field className="full" label="Full description">
+                <textarea className="textarea" rows={2} value={form.description || ''} onChange={(e) => set('description', e.target.value)} placeholder="Detailed product description, dosing & benefits…" />
+              </Field>
             </div>
+
+            <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px solid var(--line)' }}>
+              <div className="row between" style={{ marginBottom: 8 }}>
+                <b style={{ fontSize: 13 }}>Variants (Size / Weight / Pack)</b>
+                <button type="button" className="link" style={{ fontSize: 12 }} onClick={addVariantRow}>+ Add variant</button>
+              </div>
+              {(form.variantOptions || []).length === 0 ? (
+                <div className="sub" style={{ fontSize: 12 }}>Single variant product. Click "+ Add variant" for size/weight options with independent prices & stock.</div>
+              ) : (
+                <div className="stack gap-6">
+                  {(form.variantOptions || []).map((vo, idx) => (
+                    <div key={idx} className="row gap-6" style={{ alignItems: 'center' }}>
+                      <input className="input" style={{ height: 34, fontSize: 12, flex: 1.3 }} placeholder="Label (e.g. Small)" value={vo.label || ''} onChange={(e) => updateVariantRow(idx, 'label', e.target.value)} />
+                      <input className="input" type="number" style={{ height: 34, fontSize: 12, width: 78 }} placeholder="৳ Price" value={vo.price ?? ''} onChange={(e) => updateVariantRow(idx, 'price', e.target.value)} />
+                      <input className="input" type="number" style={{ height: 34, fontSize: 12, width: 64 }} placeholder="Stock" value={vo.stockCount ?? ''} onChange={(e) => updateVariantRow(idx, 'stockCount', e.target.value)} />
+                      <button type="button" className="btn btn-ghost btn-square btn-sm" onClick={() => removeVariantRow(idx)} aria-label="Remove variant"><Icon name="x" size={13} /></button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <div style={{ marginTop: 12 }}>
               {[['isRx', 'Requires prescription'], ['coldChain', 'Cold-chain 2–8°C'], ['showOnStorefront', 'Show on storefront'], ['autoRefill', 'Allow auto-refill']].map(([k, l]) => (
                 <div key={k} className="toggle-row"><span>{l}</span><Toggle checked={!!form[k]} onChange={(v) => set(k, v)} label={l} /></div>

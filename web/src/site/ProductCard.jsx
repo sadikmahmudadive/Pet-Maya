@@ -17,9 +17,14 @@ export function productBadge(p) {
 export default function ProductCard({ p }) {
   const { addToCart, wishlist, toggleWish } = useStore();
   const [variant, setVariant] = useState(p.variants?.[0] || '');
+  const selectedVariantOpt = (p.variantOptions || []).find((vo) => vo.label === variant) || null;
+  const activePrice = selectedVariantOpt?.price > 0 ? selectedVariantOpt.price : p.price;
+  const activeCompareAt = selectedVariantOpt?.compareAt > 0 ? selectedVariantOpt.compareAt : p.compareAt;
+  const activeSku = selectedVariantOpt?.sku || p.sku;
+  const activeStock = selectedVariantOpt?.stockCount != null ? selectedVariantOpt.stockCount : p.stockCount;
   const badge = productBadge(p);
   const fav = wishlist.includes(p.id);
-  const soldOut = p.stockCount === 0 || !p.inStock;
+  const soldOut = activeStock <= 0 || !p.inStock;
 
   return (
     <article className="pcard">
@@ -48,8 +53,12 @@ export default function ProductCard({ p }) {
         {!p.coldChain && p.isRx && <span className="teal" style={{ fontSize: 11.5, marginTop: 6 }}>Vet approval required</span>}
         {!p.coldChain && !p.isRx && p.subscribe && <span className="teal" style={{ fontSize: 11.5, marginTop: 6 }}>Subscribe & save 5%</span>}
         <div className="pcard-foot">
-          <span className="pcard-price">{money(p.price)}{p.compareAt > p.price && <s>{money(p.compareAt)}</s>}</span>
-          <button className="btn btn-dark btn-sm" disabled={soldOut} onClick={() => addToCart(p, { variant })}>
+          <span className="pcard-price">{money(activePrice)}{activeCompareAt > activePrice && <s>{money(activeCompareAt)}</s>}</span>
+          <button
+            className="btn btn-dark btn-sm"
+            disabled={soldOut}
+            onClick={() => addToCart({ ...p, price: activePrice, compareAt: activeCompareAt, sku: activeSku }, { variant, variantLabel: variant, basePrice: activePrice, sku: activeSku })}
+          >
             {soldOut ? 'Sold out' : <><Icon name="plus" size={14} /> Add</>}
           </button>
         </div>
