@@ -222,7 +222,9 @@
 .opt b { display: block; font-size: 14px; }
 .opt small { color: var(--muted); font-size: 12px; }
 .opt .tagr { position: absolute; top: 10px; right: 10px; }
-.sticky-buy { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 30; display: flex; align-items: center; gap: 16px; padding: 8px 8px 8px 12px; border-radius: 999px; background: var(--dark-card-bg, var(--ink)); color: var(--announce-ink, #fff); box-shadow: var(--shadow-lg); width: min(760px, calc(100vw - 24px)); animation: rise .25s ease; border: 1px solid var(--dark-card-border, transparent); }
+/* sticky, not fixed: it floats at the bottom of the screen while the product page scrolls, then comes to rest at the
+   end of the page content, above the footer, instead of riding over it. */
+.sticky-buy { position: sticky; bottom: 18px; margin: 28px auto 0; z-index: 30; display: flex; align-items: center; gap: 16px; padding: 8px 8px 8px 12px; border-radius: 999px; background: var(--dark-card-bg, var(--ink)); color: var(--announce-ink, #fff); box-shadow: var(--shadow-lg); width: min(760px, calc(100vw - 24px)); animation: rise .25s ease; border: 1px solid var(--dark-card-border, transparent); }
 /* While the cookie banner is open, float the buy bar above it instead of underneath. */
 body:has(.consent-bar) .sticky-buy { bottom: 112px; }
 @media (max-width: 900px) { .pdp { grid-template-columns: minmax(0, 1fr); gap: 24px; } }
