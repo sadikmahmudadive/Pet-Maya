@@ -35,7 +35,9 @@ html { scroll-behavior: smooth; }
 .reveal-stagger.in > *:nth-child(n+9) { transition-delay: .42s; }
 
 /* ── Page transition ───────────────────────────────────────── */
-.page-enter { animation: page-in .5s var(--ease-out) both; }
+/* `backwards`, not `both`: a held transform would make this wrapper the containing block of every
+   position: fixed child (sticky buy bar, toasts), pinning them to the page bottom instead of the screen. */
+.page-enter { animation: page-in .5s var(--ease-out) backwards; }
 /* transform only: an opacity fade would hide the hero text from the browser's LCP measurement until it finished */
 @keyframes page-in { from { transform: translateY(8px); } }
 
