@@ -3,16 +3,17 @@ import { Link } from '../../lib/router.jsx';
 import { useStore } from '../../lib/store.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useMyRecords, useMyEvents } from '../../data/hooks.js';
-import { savePet, notify } from '../../data/actions.js';
-import { Icon, Button, Pill, Avatar, Field, Empty, Tabs, Portal } from '../../ui/index.jsx';
+import { savePet } from '../../data/actions.js';
+import { BD_DISTRICTS, DHAKA_AREAS } from '../../data/content.js';
+import { Icon, Button, Pill, Avatar, Field, Empty, Tabs, Portal, Ph } from '../../ui/index.jsx';
 import { money, cx, toMillis, shortDate, timeOfDay } from '../../lib/format.js';
 
 const dAt = (days, h, m = 0) => { const d = new Date(); d.setDate(d.getDate() + days); d.setHours(h, m, 0, 0); return d.getTime(); };
 const SAMPLE_RECORDS = [
-  { id: 'r1', kind: 'visit', date: dAt(3, 10, 30), title: 'Wellness check & stool test', serviceType: 'Consultation', doctor: 'Dr. Tariq Rahman', status: 'Scheduled', note: 'Routine tummy check after last month’s upset; bring a fresh stool sample.' },
+  { id: 'r1', kind: 'visit', date: dAt(3, 10, 30), title: 'Wellness check & stool test', serviceType: 'Consultation', doctor: 'Dr. Tariq Rahman', status: 'Scheduled', note: 'Routine tummy check after last month’s upset; bring a fresh stool sample. Continue daily probiotic.' },
   { id: 'r2', kind: 'lab', date: dAt(-20, 14, 15), title: 'Blood test (14 values)', serviceType: 'Lab', doctor: 'Pet Maya lab', note: 'Kidney, liver and blood sugar all within normal range.', values: [['ALT (liver)', '42', 'Normal'], ['Creatinine', '1.1', 'Normal'], ['Glucose', '92 mg/dL', 'Normal'], ['Protein', '6.4 g/dL', 'Normal']] },
   { id: 'r3', kind: 'order', date: dAt(-28, 11, 10), title: 'Monthly preventive delivered', serviceType: 'Pharmacy', doctor: 'Approved by Dr. Vance', note: 'NexGard Spectra · Synoquin EFA · probiotic.' },
-  { id: 'r4', kind: 'surgery', date: dAt(-80, 9, 0), title: 'Dental scale & polish', serviceType: 'Dental', doctor: 'Dr. Tariq Rahman', note: 'Full scale and polish under anaesthetic. No tooth loss.' },
+  { id: 'r4', kind: 'surgery', date: dAt(-80, 9, 0), title: 'Dental scale & polish', serviceType: 'Dental', doctor: 'Dr. Tariq Rahman', note: 'Full scale and polish under anaesthetic. No tooth loss. Maintain with daily enzymatic dental gel.' },
 ];
 
 const KIND_ICON = { visit: 'calendar', lab: 'flask', order: 'bag', surgery: 'smile', vaccine: 'shield', Consultation: 'calendar' };
@@ -22,8 +23,31 @@ const TABS = [
   { value: 'records', label: 'Health records' },
   { value: 'orders', label: 'Orders & refills' },
   { value: 'visits', label: 'Consultations' },
-  { value: 'account', label: 'Account' },
+  { value: 'account', label: 'Account & addresses' },
 ];
+
+function matchRecordProducts(rec, products = [], pet = null) {
+  const text = `${rec.title || ''} ${rec.note || ''} ${rec.serviceType || ''}`.toLowerCase();
+  if (!text.trim() || !products.length) return [];
+  const sp = pet ? (String(pet.species || 'dog').toLowerCase().includes('cat') ? 'cat' : 'dog') : null;
+  const matched = [];
+  for (const p of products) {
+    if (p.showOnStorefront === false || p.inStock === false) continue;
+    const pName = String(p.name || '').toLowerCase();
+    const firstWord = pName.split(/\s+/)[0];
+    const directHit = (pName && text.includes(pName)) || (firstWord && firstWord.length >= 5 && text.includes(firstWord));
+    const keywordHit =
+      (text.includes('probiotic') && (pName.includes('probiotic') || pName.includes('fortiflora'))) ||
+      (text.includes('dental') && (p.category === 'grooming' || pName.includes('dental') || pName.includes('orozym'))) ||
+      (text.includes('preventive') && p.category === 'preventives' && (!sp || p.pet === sp || p.pet === 'both')) ||
+      (text.includes('joint') && p.category === 'joint');
+    if (directHit || keywordHit) {
+      matched.push(p);
+    }
+    if (matched.length >= 3) break;
+  }
+  return matched;
+}
 
 function AddPet({ onClose }) {
   const { user, toast } = useStore();
@@ -58,7 +82,7 @@ function AddPet({ onClose }) {
 }
 
 export default function Vault() {
-  const { user, pets, activePet, setPetId, myOrders, localOrders, vets } = useStore();
+  const { user, pets, activePet, setPetId, myOrders, localOrders, vets, products, addToCart, toast } = useStore();
   const { logout, updateUserProfile } = useAuth() || {};
   const real = user && !String(user.uid).startsWith('demo_guest');
   const records = useMyRecords(user);
@@ -84,8 +108,67 @@ export default function Vault() {
   const shown = filter === 'all' ? timeline : timeline.filter((t) => t.kind === filter);
   const upcoming = timeline.filter((t) => t.date > Date.now()).sort((a, b) => a.date - b.date)[0];
   const lastVisit = timeline.find((t) => t.date <= Date.now());
-  const orders = real ? myOrders.items : (localOrders || []);
+  const orders = useMemo(() => {
+    const map = new Map();
+    (myOrders?.items || []).forEach((o) => map.set(o.id || o.orderId, o));
+    (localOrders || []).forEach((o) => {
+      const k = o.id || o.orderId;
+      if (!map.has(k)) map.set(k, o);
+    });
+    return Array.from(map.values()).sort((a, b) => toMillis(b.placedAt) - toMillis(a.placedAt));
+  }, [myOrders?.items, localOrders]);
+
+  const refillItems = useMemo(() => {
+    const seen = new Map();
+    for (const o of orders) {
+      if (o.status === 'Cancelled') continue;
+      const placedMs = toMillis(o.placedAt) || Date.now();
+      for (const item of (o.items || [])) {
+        const key = item.id || item.name;
+        if (!key || seen.has(key)) continue;
+        const catalogProduct = (products.items || []).find((p) => p.id === item.id || p.name === item.name);
+        if (!catalogProduct && !item.price) continue;
+        const daysAgo = Math.max(0, Math.floor((Date.now() - placedMs) / 864e5));
+        const cycleDays = 30;
+        const dueInDays = cycleDays - daysAgo;
+        seen.set(key, {
+          product: catalogProduct || item,
+          variant: item.variant || catalogProduct?.variants?.[0] || '',
+          lastOrderedAt: placedMs,
+          daysAgo,
+          dueInDays,
+        });
+      }
+    }
+    if (seen.size > 0) return Array.from(seen.values()).slice(0, 4);
+    // Fallback to pet-matched monthly preventives/consumables if no order history yet
+    const sp = pet ? (String(pet.species || 'dog').toLowerCase().includes('cat') ? 'cat' : 'dog') : 'dog';
+    return (products.items || [])
+      .filter((p) => p.showOnStorefront !== false && p.inStock !== false && p.subscribe && (p.pet === sp || p.pet === 'both'))
+      .slice(0, 3)
+      .map((p, idx) => ({
+        product: p,
+        variant: p.variants?.[0] || '',
+        lastOrderedAt: dAt(-26 - idx * 2, 11, 0),
+        daysAgo: 26 + idx * 2,
+        dueInDays: Math.max(0, 30 - (26 + idx * 2)),
+      }));
+  }, [orders, products.items, pet]);
+
   const emergency = vets.items.find((v) => v.emergency);
+
+  const reorderOrder = (order) => {
+    const lines = order.items || [];
+    let count = 0;
+    lines.forEach((line) => {
+      const catProd = (products.items || []).find((p) => p.id === line.id || p.name === line.name) || line;
+      if (catProd) {
+        addToCart(catProd, line.qty || 1, line.variant);
+        count += line.qty || 1;
+      }
+    });
+    if (count > 0) toast(`Added ${count} item${count > 1 ? 's' : ''} from ${order.id || order.orderId} to your bag`);
+  };
 
   return (
     <div className="container" style={{ paddingTop: 24 }}>
@@ -112,7 +195,7 @@ export default function Vault() {
           </div>
           <div className="panel row between" style={{ marginTop: 14, padding: '10px 14px' }}>
             <span className="mono" style={{ fontSize: 11 }}>● {(pets.items || []).length} PETS</span>
-            <button className="link-plain" style={{ fontSize: 12 }} onClick={() => setTab('account')}>Edit profile →</button>
+            <button className="link-plain" style={{ fontSize: 12 }} onClick={() => setTab('account')}>Edit profile & addresses →</button>
           </div>
         </div>
         {(pets.items || []).map((p) => (
@@ -161,30 +244,57 @@ export default function Vault() {
             </div>
             {shown.length === 0 ? (
               <div className="card"><Empty icon="file" title="No records yet">Visits, lab results and vaccines added by your vet will show up here.</Empty></div>
-            ) : shown.map((r) => (
-              <div key={r.id} className="card ledger-card">
-                <span className={cx('well', KIND_TONE[r.kind])}><Icon name={KIND_ICON[r.kind] || 'file'} /></span>
-                <div>
-                  <div className="row gap-8 wrap"><span className="mono subtle" style={{ fontSize: 11 }}>{shortDate(r.date).toUpperCase()} · {timeOfDay(r.date)}</span><Pill tone={r.date > Date.now() ? 'teal' : ''} mono sm>{r.status || r.serviceType}</Pill></div>
-                  <div className="row between wrap gap-8" style={{ marginTop: 8 }}>
-                    <h3 className="serif" style={{ fontSize: 21 }}>{r.title}</h3>
-                    {r.doctor && <span className="pill outline">{r.doctor}</span>}
+            ) : shown.map((r) => {
+              const rxProducts = matchRecordProducts(r, products.items || [], pet);
+              return (
+                <div key={r.id} className="card ledger-card">
+                  <span className={cx('well', KIND_TONE[r.kind])}><Icon name={KIND_ICON[r.kind] || 'file'} /></span>
+                  <div>
+                    <div className="row gap-8 wrap"><span className="mono subtle" style={{ fontSize: 11 }}>{shortDate(r.date).toUpperCase()} · {timeOfDay(r.date)}</span><Pill tone={r.date > Date.now() ? 'teal' : ''} mono sm>{r.status || r.serviceType}</Pill></div>
+                    <div className="row between wrap gap-8" style={{ marginTop: 8 }}>
+                      <h3 className="serif" style={{ fontSize: 21 }}>{r.title}</h3>
+                      {r.doctor && <span className="pill outline">{r.doctor}</span>}
+                    </div>
+                    {r.note && <p className="muted" style={{ fontSize: 14, marginTop: 6 }}>{r.note}</p>}
+                    {r.values && (
+                      <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit,minmax(min(110px, 100%), 1fr))', gap: 8, marginTop: 12 }}>
+                        {r.values.map(([k, v, s]) => <div key={k} className="mini-stat" style={{ padding: '8px 12px' }}><div className="k">{k}</div><div className="v" style={{ fontSize: 16 }}>{v}</div><div className="s">{s}</div></div>)}
+                      </div>
+                    )}
+                    {rxProducts.length > 0 && (
+                      <div className="panel stack gap-8" style={{ marginTop: 12, padding: '10px 14px' }}>
+                        <div className="row between wrap gap-6">
+                          <span className="mono teal" style={{ fontSize: 11 }}>VET-LINKED PHARMACY ITEMS</span>
+                          <span className="sub" style={{ fontSize: 11 }}>1-tap prescription & care refill</span>
+                        </div>
+                        <div className="row gap-8 wrap">
+                          {rxProducts.map((prod) => (
+                            <div key={prod.id} className="row gap-8" style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 12, padding: '6px 10px' }}>
+                              <Link to={`/product/${prod.id}`} style={{ fontWeight: 600, fontSize: 13 }}>{prod.name}</Link>
+                              <span className="sub" style={{ fontSize: 12 }}>{money(prod.price)}</span>
+                              <button
+                                type="button"
+                                className="btn btn-teal btn-sm"
+                                style={{ height: 26, padding: '0 10px', fontSize: 12 }}
+                                onClick={() => addToCart(prod, 1, prod.variants?.[0])}
+                              >
+                                <Icon name="plus" size={12} /> Add
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {r.date > Date.now() && (
+                      <div className="panel row between wrap gap-8" style={{ marginTop: 12, padding: '8px 8px 8px 14px' }}>
+                        <span className="sub row gap-6"><Icon name="calendar" size={14} /> Arrive 10 minutes early for check-in</span>
+                        <div className="row gap-6 wrap"><Button variant="outline" size="sm" to="/specialists">Reschedule</Button><Button variant="teal" size="sm" to="/triage">Add symptoms</Button></div>
+                      </div>
+                    )}
                   </div>
-                  {r.note && <p className="muted" style={{ fontSize: 14, marginTop: 6 }}>{r.note}</p>}
-                  {r.values && (
-                    <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit,minmax(min(110px, 100%), 1fr))', gap: 8, marginTop: 12 }}>
-                      {r.values.map(([k, v, s]) => <div key={k} className="mini-stat" style={{ padding: '8px 12px' }}><div className="k">{k}</div><div className="v" style={{ fontSize: 16 }}>{v}</div><div className="s">{s}</div></div>)}
-                    </div>
-                  )}
-                  {r.date > Date.now() && (
-                    <div className="panel row between wrap gap-8" style={{ marginTop: 12, padding: '8px 8px 8px 14px' }}>
-                      <span className="sub row gap-6"><Icon name="calendar" size={14} /> Arrive 10 minutes early for check-in</span>
-                      <div className="row gap-6 wrap"><Button variant="outline" size="sm" to="/specialists">Reschedule</Button><Button variant="teal" size="sm" to="/triage">Add symptoms</Button></div>
-                    </div>
-                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           <aside className="stack gap-12">
@@ -211,17 +321,73 @@ export default function Vault() {
       )}
 
       {tab === 'orders' && (
-        <div className="card flush" style={{ marginTop: 18 }}>
-          {orders.length === 0 ? <Empty icon="bag" title="No orders yet"><Link to="/shop" className="link">Visit the shop</Link></Empty> : (
-            <div className="table-wrap">
-              <table className="table">
-                <thead><tr><th>Order</th><th>Date</th><th>Items</th><th>Total</th><th>Status</th></tr></thead>
-                <tbody>{orders.map((o) => (
-                  <tr key={o.id || o.orderId}><td><Link to={`/account/orders/${o.id || o.orderId}`} className="mono link-plain">{o.id || o.orderId}</Link></td><td>{shortDate(o.placedAt)}</td><td>{(o.items || []).length}</td><td><b>{money(o.total)}</b></td><td><Pill>{o.status}</Pill></td></tr>
-                ))}</tbody>
-              </table>
+        <div className="stack gap-16" style={{ marginTop: 18 }}>
+          {refillItems.length > 0 && (
+            <div className="card">
+              <div className="row between wrap gap-8" style={{ marginBottom: 14 }}>
+                <div>
+                  <span className="eyebrow"><span className="dot" /> 1-Tap Refill Reminders</span>
+                  <h2 className="serif" style={{ fontSize: 24, marginTop: 4 }}>Monthly essentials for {pet?.name || 'your pet'}</h2>
+                </div>
+                <Pill tone="teal" sm>Save 5% on monthly refills</Pill>
+              </div>
+              <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 12 }}>
+                {refillItems.map(({ product: p, variant, daysAgo, dueInDays }) => (
+                  <div key={p.id || p.name} className="panel row gap-12" style={{ padding: 12, background: 'var(--surface)' }}>
+                    <Ph src={p.image} label=" " style={{ width: 54, height: 54, minHeight: 0, borderRadius: 12 }} />
+                    <div className="grow">
+                      <Link to={`/product/${p.id}`} style={{ fontWeight: 600, fontSize: 14 }}>{p.name}</Link>
+                      <div className="sub" style={{ fontSize: 12 }}>
+                        {variant ? `${variant} · ` : ''}{money(p.price)}
+                      </div>
+                      <div className="row gap-6" style={{ marginTop: 4 }}>
+                        <Pill tone={dueInDays <= 5 ? 'yellow' : 'teal'} sm>
+                          {dueInDays <= 0 ? 'Refill due now' : `Due in ${dueInDays}d (ordered ${daysAgo}d ago)`}
+                        </Pill>
+                      </div>
+                    </div>
+                    <Button
+                      variant="dark"
+                      size="sm"
+                      icon="repeat"
+                      onClick={() => addToCart(p, 1, variant, { refill: true })}
+                    >
+                      Refill
+                    </Button>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
+
+          <div className="card flush">
+            {orders.length === 0 ? <Empty icon="bag" title="No orders yet"><Link to="/shop" className="link">Visit the shop</Link></Empty> : (
+              <div className="table-wrap">
+                <table className="table">
+                  <thead><tr><th>Order</th><th>Date</th><th>Items</th><th>Payment</th><th>Total</th><th>Status</th><th>Action</th></tr></thead>
+                  <tbody>{orders.map((o) => {
+                    const oid = o.id || o.orderId;
+                    return (
+                      <tr key={oid}>
+                        <td><Link to={`/account/orders/${oid}`} className="mono link-plain">{oid}</Link></td>
+                        <td>{shortDate(o.placedAt)}</td>
+                        <td>{(o.items || []).length}</td>
+                        <td><span className="sub" style={{ fontSize: 12 }}>{o.payment || 'Cash on delivery'}</span></td>
+                        <td><b>{money(o.total)}</b></td>
+                        <td><Pill tone={o.status === 'Cancelled' || o.status === 'Return' ? 'yellow' : 'teal'}>{o.status}</Pill></td>
+                        <td>
+                          <div className="row gap-6">
+                            <Button variant="outline" size="sm" to={`/account/orders/${oid}`}>Track</Button>
+                            <Button variant="soft" size="sm" icon="repeat" onClick={() => reorderOrder(o)}>Reorder</Button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}</tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -243,21 +409,143 @@ export default function Vault() {
 }
 
 function Account({ user, real, save, logout }) {
-  const { toast } = useStore();
+  const { toast, savedAddresses, saveAddress, removeAddress, setDefaultAddress } = useStore();
   const [f, setF] = useState({ name: user?.name || '', phone: user?.phone || '', address: user?.address || '' });
-  if (!real) return <div className="card" style={{ marginTop: 18 }}><Empty icon="user" title="Sign in to manage your account"><Link to="/signin" className="link">Sign in</Link></Empty></div>;
+  const [addingAddr, setAddingAddr] = useState(false);
+  const [af, setAf] = useState({
+    label: 'Home',
+    name: user?.name || '',
+    phone: user?.phone || '',
+    district: 'Dhaka',
+    area: '',
+    address: '',
+    note: '',
+  });
+  const setA = (k) => (e) => setAf({ ...af, [k]: e.target.value });
+
+  const submitAddr = (e) => {
+    e.preventDefault();
+    if (!af.address.trim() || !af.phone.trim()) {
+      toast('Please enter phone and street address', { tone: 'error' });
+      return;
+    }
+    saveAddress({
+      ...af,
+      isDefault: !(savedAddresses && savedAddresses.length > 0),
+    });
+    setAddingAddr(false);
+    setAf({ label: 'Home', name: user?.name || '', phone: user?.phone || '', district: 'Dhaka', area: '', address: '', note: '' });
+  };
+
   return (
-    <form className="card" style={{ marginTop: 18, maxWidth: 640 }} onSubmit={async (e) => { e.preventDefault(); try { await save?.(f); toast('Profile saved'); } catch { toast('Couldn’t save', { tone: 'error' }); } }}>
-      <div className="fields">
-        <Field className="full" label="Name" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} />
-        <Field label="Phone" value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} />
-        <Field label="Email" value={user.email || ''} disabled />
-        <Field className="full" label="Delivery address" value={f.address} onChange={(e) => setF({ ...f, address: e.target.value })} />
+    <div className="split" style={{ marginTop: 18 }}>
+      <div>
+        {!real ? (
+          <div className="card">
+            <Empty icon="user" title="Sign in to sync your profile across devices">
+              <Link to="/signin" className="link">Sign in</Link>
+            </Empty>
+          </div>
+        ) : (
+          <form className="card" onSubmit={async (e) => { e.preventDefault(); try { await save?.(f); toast('Profile saved'); } catch { toast('Couldn’t save', { tone: 'error' }); } }}>
+            <h3 className="serif" style={{ fontSize: 22, marginBottom: 14 }}>Profile details</h3>
+            <div className="fields">
+              <Field className="full" label="Name" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} />
+              <Field label="Phone" value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} />
+              <Field label="Email" value={user.email || ''} disabled />
+              <Field className="full" label="Primary address" value={f.address} onChange={(e) => setF({ ...f, address: e.target.value })} />
+            </div>
+            <div className="row gap-8" style={{ marginTop: 20 }}>
+              <Button type="submit" variant="dark">Save changes</Button>
+              <Button variant="outline" icon="logout" onClick={() => logout?.()}>Sign out</Button>
+            </div>
+          </form>
+        )}
       </div>
-      <div className="row gap-8" style={{ marginTop: 20 }}>
-        <Button type="submit" variant="dark">Save changes</Button>
-        <Button variant="outline" icon="logout" onClick={() => logout?.()}>Sign out</Button>
+
+      <div className="card">
+        <div className="row between wrap gap-8" style={{ marginBottom: 14 }}>
+          <div>
+            <h3 className="serif" style={{ fontSize: 22 }}>Saved delivery addresses</h3>
+            <div className="sub" style={{ fontSize: 12 }}>Used for 1-click autofill at checkout</div>
+          </div>
+          <Button variant="outline" size="sm" icon="plus" onClick={() => setAddingAddr((v) => !v)}>
+            {addingAddr ? 'Cancel' : 'Add address'}
+          </Button>
+        </div>
+
+        {addingAddr && (
+          <form className="panel stack gap-12" onSubmit={submitAddr} style={{ marginBottom: 16 }}>
+            <div className="row gap-6">
+              {['Home', 'Office', 'Clinic', 'Other'].map((lbl) => (
+                <button
+                  type="button"
+                  key={lbl}
+                  className={cx('pill', af.label === lbl ? 'solid-teal' : 'outline')}
+                  style={{ height: 28, padding: '0 12px', fontSize: 12, cursor: 'pointer' }}
+                  onClick={() => setAf({ ...af, label: lbl })}
+                >
+                  {lbl}
+                </button>
+              ))}
+            </div>
+            <div className="fields">
+              <Field label="Recipient name" required value={af.name} onChange={setA('name')} />
+              <Field label="Mobile number" required value={af.phone} onChange={setA('phone')} placeholder="017XX-XXXXXX" />
+              <Field label="District">
+                <select className="select" value={af.district} onChange={setA('district')}>
+                  {BD_DISTRICTS.map((d) => <option key={d} value={d}>{d}</option>)}
+                </select>
+              </Field>
+              <Field label={af.district === 'Dhaka' ? 'Area / Thana' : 'Upazila / Area'} required>
+                <input
+                  className="input"
+                  list={af.district === 'Dhaka' ? 'vault-dhaka-areas' : undefined}
+                  value={af.area}
+                  onChange={setA('area')}
+                  placeholder={af.district === 'Dhaka' ? 'e.g. Gulshan 2, Banani' : 'e.g. Agrabad'}
+                  required
+                />
+                {af.district === 'Dhaka' && (
+                  <datalist id="vault-dhaka-areas">
+                    {DHAKA_AREAS.map((a) => <option key={a} value={a} />)}
+                  </datalist>
+                )}
+              </Field>
+              <Field className="full" label="Street address" required value={af.address} onChange={setA('address')} placeholder="House #, Road #, Flat/Floor" />
+            </div>
+            <Button type="submit" variant="dark" size="sm">Save address</Button>
+          </form>
+        )}
+
+        {(savedAddresses || []).length === 0 ? (
+          <Empty icon="pin" title="No saved addresses yet">Save your home or office address for faster checkout.</Empty>
+        ) : (
+          <div className="stack gap-10">
+            {savedAddresses.map((a) => (
+              <div key={a.id} className="panel row between wrap gap-10" style={{ background: 'var(--surface)' }}>
+                <div>
+                  <div className="row gap-6">
+                    <b>{a.label || 'Address'}</b>
+                    {a.isDefault && <Pill tone="teal" sm>Default</Pill>}
+                    <Pill sm>{a.district || 'Dhaka'}</Pill>
+                  </div>
+                  <div style={{ fontSize: 13.5, marginTop: 4 }}>{[a.address, a.area, a.district].filter(Boolean).join(', ')}</div>
+                  <div className="sub" style={{ fontSize: 12, marginTop: 2 }}>{[a.name, a.phone].filter(Boolean).join(' · ')}</div>
+                </div>
+                <div className="row gap-6">
+                  {!a.isDefault && (
+                    <button type="button" className="btn btn-outline btn-sm" onClick={() => setDefaultAddress(a.id)}>Set default</button>
+                  )}
+                  <button type="button" className="btn btn-outline btn-sm" onClick={() => removeAddress(a.id)} aria-label="Remove address">
+                    <Icon name="x" size={13} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
-    </form>
+    </div>
   );
 }

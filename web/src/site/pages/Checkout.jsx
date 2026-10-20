@@ -15,18 +15,22 @@ const PAYMENTS = [
 ];
 
 export default function Checkout() {
-  const { cart, totals, coupon, applyCoupon, removeCoupon, placeOrder, user, activePet, toast } = useStore();
+  const { cart, totals, coupon, applyCoupon, removeCoupon, placeOrder, user, activePet, savedAddresses, saveAddress, toast } = useStore();
   const { navigate, query } = useRouter();
+  const defaultAddr = (savedAddresses || []).find((a) => a.isDefault) || (savedAddresses || [])[0] || null;
 
   const [f, setF] = useState({
     email: user?.email || '',
-    phone: user?.phone || '',
-    name: user?.name || '',
-    address: user?.address || '',
-    area: user?.area || '',
-    district: user?.city || 'Dhaka',
-    note: '',
+    phone: defaultAddr?.phone || user?.phone || '',
+    name: defaultAddr?.name || user?.name || '',
+    address: defaultAddr?.address || user?.address || '',
+    area: defaultAddr?.area || user?.area || '',
+    district: defaultAddr?.district || user?.city || 'Dhaka',
+    note: defaultAddr?.note || '',
   });
+  const [selectedAddrId, setSelectedAddrId] = useState(defaultAddr?.id || '');
+  const [saveAddrNextTime, setSaveAddrNextTime] = useState(!(savedAddresses && savedAddresses.length > 0));
+  const [addrLabel, setAddrLabel] = useState('Home');
   const [delivery, setDelivery] = useState('standard');
   const [sms, setSms] = useState(true);
   const [pay, setPay] = useState(query.get('pay') || 'Cash on delivery');
@@ -125,6 +129,19 @@ export default function Checkout() {
           if (uploadErr?.message && !uploadErr.code) setErr(uploadErr.message);
         }
       }
+      if (saveAddrNextTime) {
+        saveAddress({
+          id: selectedAddrId || undefined,
+          label: addrLabel || 'Home',
+          name: f.name.trim(),
+          phone: f.phone.trim(),
+          district: f.district,
+          area: f.area.trim(),
+          address: f.address.trim(),
+          note: f.note.trim(),
+          isDefault: !(savedAddresses && savedAddresses.length > 0),
+        });
+      }
       const id = await placeOrder({
         ...f,
         city: f.district,
@@ -182,6 +199,52 @@ export default function Checkout() {
                 {activePet && totals.needsRx && <Pill tone="yellow" sm>For {activePet.name}</Pill>}
               </div>
             </div>
+            {(savedAddresses || []).length > 0 && (
+              <div className="stack gap-8" style={{ marginBottom: 16 }}>
+                <div className="sub" style={{ fontSize: 12 }}>Saved addresses — tap to autofill</div>
+                <div className="row gap-8 wrap">
+                  {savedAddresses.map((addr) => {
+                    const active = selectedAddrId === addr.id;
+                    return (
+                      <button
+                        type="button"
+                        key={addr.id}
+                        className={cx('pill', active ? 'solid-teal' : 'outline')}
+                        style={{ height: 34, padding: '0 14px', cursor: 'pointer' }}
+                        onClick={() => {
+                          setSelectedAddrId(addr.id);
+                          setAddrLabel(addr.label || 'Home');
+                          setF((prev) => ({
+                            ...prev,
+                            name: addr.name || prev.name,
+                            phone: addr.phone || prev.phone,
+                            district: addr.district || 'Dhaka',
+                            area: addr.area || '',
+                            address: addr.address || '',
+                            note: addr.note || '',
+                          }));
+                        }}
+                      >
+                        <Icon name="pin" size={12} /> {addr.label || 'Address'} · {addr.area || addr.district}
+                      </button>
+                    );
+                  })}
+                  <button
+                    type="button"
+                    className="pill outline"
+                    style={{ height: 34, padding: '0 12px', cursor: 'pointer' }}
+                    onClick={() => {
+                      setSelectedAddrId('');
+                      setAddrLabel('Home');
+                      setSaveAddrNextTime(true);
+                      setF((prev) => ({ ...prev, address: '', area: '', note: '' }));
+                    }}
+                  >
+                    + New address
+                  </button>
+                </div>
+              </div>
+            )}
             <div className="fields">
               <Field className="full" label="Full name" required value={f.name} onChange={set('name')} autoComplete="name" />
               <Field label="District" required>
@@ -208,6 +271,27 @@ export default function Checkout() {
               <Field className="full" label="Delivery instructions for the courier" hint="optional">
                 <input className="input" value={f.note} onChange={set('note')} placeholder="e.g. Ring the gate bell; call before arriving" />
               </Field>
+            </div>
+            <div className="row between wrap gap-10" style={{ marginTop: 14, paddingTop: 12, borderTop: '1px solid var(--line)' }}>
+              <label className="row gap-8" style={{ fontSize: 13, cursor: 'pointer' }}>
+                <input type="checkbox" className="check" checked={saveAddrNextTime} onChange={(e) => setSaveAddrNextTime(e.target.checked)} />
+                Save this address for future orders
+              </label>
+              {saveAddrNextTime && (
+                <div className="row gap-6">
+                  {['Home', 'Office', 'Clinic', 'Other'].map((lbl) => (
+                    <button
+                      type="button"
+                      key={lbl}
+                      className={cx('pill', addrLabel === lbl ? 'solid-teal' : 'outline')}
+                      style={{ height: 26, padding: '0 10px', fontSize: 11, cursor: 'pointer' }}
+                      onClick={() => setAddrLabel(lbl)}
+                    >
+                      {lbl}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 

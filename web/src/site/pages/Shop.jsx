@@ -58,7 +58,7 @@ function Check({ checked, onChange, label, count }) {
 
 export default function Shop({ params }) {
   const { query } = useRouter();
-  const { products, wishlist } = useStore();
+  const { products, wishlist, activePet } = useStore();
   const cat = params.category || '';
   const q = (query.get('q') || '').toLowerCase();
   useEffect(() => { if (q.length >= 2) { const t = setTimeout(() => track('search', { search_term: q }), 800); return () => clearTimeout(t); } }, [q]);
@@ -72,6 +72,7 @@ export default function Shop({ params }) {
   const [minRating, setMinRating] = useState(0);
   const [cold, setCold] = useState(false);
   const [sub, setSub] = useState(subOnly);
+  const [petMatch, setPetMatch] = useState(false);
   const [maxPrice, setMaxPrice] = useState(null);
   const [sort, setSort] = useState('best');
   const [shown, setShown] = useState(9);
@@ -90,6 +91,10 @@ export default function Shop({ params }) {
     if (q) l = l.filter((p) => `${p.name} ${p.brand} ${p.category} ${p.shortDescription}`.toLowerCase().includes(q));
     if (savedOnly) l = l.filter((p) => wishlist.includes(p.id));
     if (dealsOnly) l = l.filter((p) => p.compareAt > p.price);
+    if (petMatch && activePet) {
+      const sp = String(activePet.species || 'dog').toLowerCase().includes('cat') ? 'cat' : 'dog';
+      l = l.filter((p) => p.pet === sp || p.pet === 'both');
+    }
     if (types.length) l = l.filter((p) => types.includes(p.category));
     if (rx === 'rx') l = l.filter((p) => p.isRx);
     if (rx === 'otc') l = l.filter((p) => !p.isRx);
@@ -99,11 +104,12 @@ export default function Shop({ params }) {
     if (sub) l = l.filter((p) => p.subscribe);
     if (maxPrice != null) l = l.filter((p) => p.price <= maxPrice);
     return [...l].sort(SORTS[sort][1]);
-  }, [base, q, savedOnly, dealsOnly, types, rx, brands, minRating, cold, sub, maxPrice, sort, wishlist]);
+  }, [base, q, savedOnly, dealsOnly, petMatch, activePet, types, rx, brands, minRating, cold, sub, maxPrice, sort, wishlist]);
 
   const [crumb, title] = TITLES[cat] || ['All products', 'Care shop'];
   const heading = q ? `Results for “${query.get('q')}”` : savedOnly ? 'Saved items' : dealsOnly ? 'Deals' : title;
   const active = [
+    petMatch && activePet && { k: 'pet', l: `For ${activePet.name} (${activePet.species})`, clear: () => setPetMatch(false) },
     ...types.map((t) => ({ k: `t-${t}`, l: label(t), clear: () => setTypes(types.filter((x) => x !== t)) })),
     rx && { k: 'rx', l: rx === 'rx' ? 'Rx — vet approval' : 'No prescription', clear: () => setRx(null) },
     ...brands.map((b) => ({ k: `b-${b}`, l: b, clear: () => setBrands(brands.filter((x) => x !== b)) })),
@@ -112,7 +118,7 @@ export default function Shop({ params }) {
     sub && { k: 's', l: 'Subscribe & save', clear: () => setSub(false) },
     maxPrice != null && { k: 'p', l: `Up to ${money(maxPrice)}`, clear: () => setMaxPrice(null) },
   ].filter(Boolean);
-  const clearAll = () => { setTypes([]); setRx(null); setBrands([]); setMinRating(0); setCold(false); setSub(false); setMaxPrice(null); };
+  const clearAll = () => { setPetMatch(false); setTypes([]); setRx(null); setBrands([]); setMinRating(0); setCold(false); setSub(false); setMaxPrice(null); };
 
   return (
     <div className="container">
@@ -129,6 +135,16 @@ export default function Shop({ params }) {
           </p>
         </div>
         <div className="row gap-8 wrap">
+          {activePet && (
+            <button
+              type="button"
+              className={cx('pill', petMatch ? 'solid-teal' : 'outline')}
+              style={{ height: 34, padding: '0 14px', cursor: 'pointer', background: petMatch ? undefined : 'var(--surface)' }}
+              onClick={() => setPetMatch((v) => !v)}
+            >
+              <Icon name="paw" size={14} /> For {activePet.name} ({activePet.species})
+            </button>
+          )}
           <Pill className="outline" icon="cold" style={{ height: 34, padding: '0 14px', background: 'var(--surface)' }}>Delivered at 2°C – 8°C</Pill>
           <Pill className="outline" icon="shield" style={{ height: 34, padding: '0 14px', background: 'var(--surface)' }}>100% genuine</Pill>
         </div>
@@ -140,6 +156,16 @@ export default function Shop({ params }) {
             <b style={{ fontSize: 16 }}>Filters</b>
             <button className="link" style={{ fontSize: 13 }} onClick={clearAll}>Clear all</button>
           </div>
+          {activePet && (
+            <section>
+              <h4>My Pet</h4>
+              <Check
+                label={`Suitability for ${activePet.name} (${activePet.species})`}
+                checked={petMatch}
+                onChange={setPetMatch}
+              />
+            </section>
+          )}
           {Object.keys(typeOpts).length > 1 && (
             <section>
               <h4>Category</h4>

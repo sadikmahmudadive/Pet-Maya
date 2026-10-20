@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useTheme } from '../context/ThemeContext.jsx';
 import { useMyPets, useProducts, useMyOrders, useVets, useCoupons } from '../data/hooks.js';
 import { addDocument, useDoc } from '../data/firestore.js';
-import { decrementStock, incrementCouponUsage, awardPoints, notify, syncWishlist, isRealUser } from '../data/actions.js';
+import { decrementStock, incrementCouponUsage, awardPoints, notify, syncWishlist, syncSavedAddresses, isRealUser } from '../data/actions.js';
 import { DELIVERY, PROMOS } from '../data/content.js';
 import { track, toItem, trackContext } from './analytics.js';
 import { functions, httpsCallable } from '../config/firebase';
@@ -32,6 +32,7 @@ export function StoreProvider({ children }) {
   const [wishlist, setWishlist] = useState(() => read('pm_wishlist', []));
   const [petId, setPetId] = useState(() => read('pm_active_pet', null));
   const [localOrders, setLocalOrders] = useState(() => read('pm_orders_v2', []));
+  const [savedAddresses, setSavedAddresses] = useState(() => read('pm_addresses', []));
   const [toasts, setToasts] = useState([]);
   const toastId = useRef(0);
 
@@ -40,6 +41,7 @@ export function StoreProvider({ children }) {
   useEffect(() => write('pm_wishlist', wishlist), [wishlist]);
   useEffect(() => write('pm_active_pet', petId), [petId]);
   useEffect(() => write('pm_orders_v2', localOrders), [localOrders]);
+  useEffect(() => write('pm_addresses', savedAddresses), [savedAddresses]);
 
   const toast = useCallback((message, opts = {}) => {
     const id = ++toastId.current;
@@ -277,6 +279,53 @@ export function StoreProvider({ children }) {
     });
   }, [savedList]);
 
+  const remoteAddresses = profile.data?.savedAddresses;
+  useEffect(() => {
+    if (!Array.isArray(remoteAddresses) || !remoteAddresses.length) return;
+    setSavedAddresses((local) => {
+      const byId = new Map(local.map((a) => [a.id, a]));
+      remoteAddresses.forEach((a) => { if (a?.id) byId.set(a.id, a); });
+      return Array.from(byId.values());
+    });
+  }, [remoteAddresses]);
+
+  const saveAddress = useCallback((addr) => {
+    const clean = {
+      id: addr.id || `addr_${Date.now()}`,
+      label: String(addr.label || 'Home').trim(),
+      name: String(addr.name || '').trim(),
+      phone: String(addr.phone || '').trim(),
+      district: String(addr.district || 'Dhaka').trim(),
+      area: String(addr.area || '').trim(),
+      address: String(addr.address || '').trim(),
+      note: String(addr.note || '').trim(),
+      isDefault: Boolean(addr.isDefault),
+    };
+    setSavedAddresses((list) => {
+      const exists = list.some((x) => x.id === clean.id);
+      const base = clean.isDefault ? list.map((x) => ({ ...x, isDefault: false })) : list;
+      const next = exists ? base.map((x) => (x.id === clean.id ? clean : x)) : [{ ...clean, isDefault: list.length === 0 || clean.isDefault }, ...base];
+      syncSavedAddresses(currentUser, next);
+      return next;
+    });
+  }, [currentUser]);
+
+  const removeAddress = useCallback((id) => {
+    setSavedAddresses((list) => {
+      const next = list.filter((x) => x.id !== id);
+      syncSavedAddresses(currentUser, next);
+      return next;
+    });
+  }, [currentUser]);
+
+  const setDefaultAddress = useCallback((id) => {
+    setSavedAddresses((list) => {
+      const next = list.map((x) => ({ ...x, isDefault: x.id === id }));
+      syncSavedAddresses(currentUser, next);
+      return next;
+    });
+  }, [currentUser]);
+
   const value = {
     user: currentUser,
     profile: profile.data,
@@ -285,6 +334,7 @@ export function StoreProvider({ children }) {
     coupon, applyCoupon, removeCoupon: () => setCoupon(null),
     totals, bagOpen, setBagOpen,
     wishlist, toggleWish,
+    savedAddresses, saveAddress, removeAddress, setDefaultAddress,
     activePet, setPetId,
     placeOrder, updateLocalOrder,
     toasts, toast, dismissToast,

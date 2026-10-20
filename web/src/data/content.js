@@ -95,4 +95,40 @@ export const CONCERNS = [
   { label: 'Senior care', icon: 'clock', cat: 'food' },
 ];
 
+export const CARE_KITS = [
+  {
+    id: 'kit-parasite-shield',
+    title: 'Monthly Flea, Tick & Worm Shield',
+    eyebrow: 'Preventive Kit · Save 8%',
+    pet: 'dog',
+    tone: 'teal',
+    savePct: 8,
+    description: 'Complete monthly internal and external parasite protection recommended for Bangladesh’s climate.',
+    productIds: ['nexgard-spectra', 'deworm-dog', 'flea-spot-on'],
+    categories: ['preventives', 'antiparasitics'],
+  },
+  {
+    id: 'kit-skin-coat',
+    title: 'Monsoon Skin, Ear & Coat Routine',
+    eyebrow: 'Dermatology Kit · Save 8%',
+    pet: 'both',
+    tone: '',
+    savePct: 8,
+    description: 'Soothes seasonal itching, supports skin barrier recovery and keeps ears clean during humid months.',
+    productIds: ['omega3-oil', 'ear-cleaner', 'calming-probiotic'],
+    categories: ['skin', 'supplements'],
+  },
+  {
+    id: 'kit-gi-recovery',
+    title: 'Sensitive Tummy & GI Care Kit',
+    eyebrow: 'Digestive Kit · Save 8%',
+    pet: 'both',
+    tone: 'yellow',
+    savePct: 8,
+    description: 'Gentle clinical nutrition paired with daily probiotics for pets recovering from digestive upsets.',
+    productIds: ['rc-gastro-lowfat', 'calming-probiotic'],
+    categories: ['food', 'supplements'],
+  },
+];
+
 export const BRANDS = ['Boehringer Ingelheim', 'Zoetis', 'MSD Animal Health', 'Royal Canin', "Hill's Prescription", 'VetPlus'];

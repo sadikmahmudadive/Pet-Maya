@@ -139,6 +139,17 @@ export async function syncWishlist(user, productId, add) {
   } catch (e) { return fail(e); }
 }
 
+export async function syncSavedAddresses(user, addresses = []) {
+  if (!isRealUser(user)) return ok;
+  try {
+    await setDoc(doc(db, 'users', user.uid), {
+      savedAddresses: addresses.slice(0, 10),
+      updatedAt: Date.now(),
+    }, { merge: true });
+    return ok;
+  } catch (e) { return fail(e); }
+}
+
 /* ── Reviews ───────────────────────────────────────────────── */
 
 export async function saveReview({ user, product, rating, title, text }) {

@@ -5,9 +5,9 @@ import { useBlogs } from '../../data/hooks.js';
 import { Icon, Button, Ph, Avatar, StarRow, Pill } from '../../ui/index.jsx';
 import ProductCard from '../ProductCard.jsx';
 import HaloBreakdown from '../HaloBreakdown.jsx';
-import { money, cx } from '../../lib/format.js';
+import { money, cx, productPath } from '../../lib/format.js';
 import { Reveal, Count, useSpotlight } from '../../lib/motion.jsx';
-import { CATEGORIES, CONCERNS, BRANDS, PROMOS, DELIVERY, TRUST } from '../../data/content.js';
+import { CATEGORIES, CONCERNS, CARE_KITS, BRANDS, PROMOS, DELIVERY, TRUST } from '../../data/content.js';
 import { SAMPLE_REVIEWS } from '../../data/sample.js';
 
 const FILTERS = [
@@ -28,14 +28,14 @@ function SectionHead({ eyebrow, title, link, to }) {
 }
 
 export default function Home() {
-  const { products, vets } = useStore();
+  const { products, vets, pets, activePet, setPetId, addToCart, toast } = useStore();
   const blogs = useBlogs();
   const [filter, setFilter] = useState('all');
   const spot = useSpotlight();
 
-  const all = products.items;
+  const all = products.items.filter((p) => p.showOnStorefront !== false);
   const best = useMemo(() => {
-    const list = all.filter((p) => p.showOnStorefront !== false).filter((p) => {
+    const list = all.filter((p) => {
       if (filter === 'all') return true;
       if (filter === 'rx') return p.isRx;
       if (filter === 'dog' || filter === 'cat') return p.pet === filter || p.pet === 'both';
@@ -43,6 +43,38 @@ export default function Home() {
     });
     return [...list].sort((a, b) => b.ratingCount - a.ratingCount).slice(0, 4);
   }, [all, filter]);
+
+  // Personalized recommendations based on activePet's species & profile
+  const petRecommendations = useMemo(() => {
+    if (!activePet) return [];
+    const sp = String(activePet.species || 'dog').toLowerCase().includes('cat') ? 'cat' : 'dog';
+    return all
+      .filter((p) => (p.pet === sp || p.pet === 'both') && p.stockCount > 0)
+      .sort((a, b) => (b.rating * 10 + (b.subscribe ? 3 : 0)) - (a.rating * 10 + (a.subscribe ? 3 : 0)))
+      .slice(0, 4);
+  }, [all, activePet]);
+
+  // Resolve Curated Care Kits against live catalog products
+  const resolvedKits = useMemo(() => CARE_KITS.map((kit) => {
+    let items = (kit.productIds || []).map((id) => all.find((p) => p.id === id)).filter(Boolean);
+    if (items.length < 2) {
+      items = all.filter((p) => (kit.categories || []).includes(p.category) && p.stockCount > 0).slice(0, 3);
+    }
+    const regularTotal = items.reduce((a, p) => a + p.price, 0);
+    const kitTotal = Math.round(regularTotal * (1 - (kit.savePct || 8) / 100));
+    return { ...kit, items, regularTotal, kitTotal, savings: regularTotal - kitTotal };
+  }).filter((k) => k.items.length >= 2), [all]);
+
+  const addKitToBag = (kit) => {
+    kit.items.forEach((p, idx) => {
+      const discounted = Math.round(p.price * (1 - (kit.savePct || 8) / 100));
+      addToCart(
+        { ...p, price: discounted, compareAt: p.price },
+        { qty: 1, variant: `${kit.title.split(' ')[0]} Kit (−${kit.savePct}%)`, basePrice: p.price, open: idx === kit.items.length - 1, silent: idx < kit.items.length - 1 },
+      );
+    });
+    toast(`${kit.title} added to your care bag (saved ${money(kit.savings)})`);
+  };
 
   const reviewCount = all.reduce((a, p) => a + (p.ratingCount || 0), 0);
   const avgRating = all.length ? all.reduce((a, p) => a + p.rating * (p.ratingCount || 1), 0) / Math.max(1, all.reduce((a, p) => a + (p.ratingCount || 1), 0)) : 4.9;
@@ -120,7 +152,7 @@ export default function Home() {
         </Reveal>
         <div className="card trust-inline" style={{ marginTop: 28 }}>
           <div className="trust-row" style={{ border: 0, padding: 0 }}>
-            {[TRUST[0], TRUST[1], TRUST[2], { icon: 'check', title: 'Pay your way', text: 'bKash · Nagad · Card · COD' }].map((t) => (
+            {[TRUST[0], TRUST[1], TRUST[2], { icon: 'check', title: 'Pay your way', text: 'Cash on Delivery · bKash · Nagad' }].map((t) => (
               <div key={t.title} className="row gap-12">
                 <Icon name={t.icon} size={18} className="teal" />
                 <div>
@@ -138,6 +170,40 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Recommended for your pet */}
+      {activePet && petRecommendations.length > 0 && (
+        <section className="section">
+          <div className="row between wrap gap-12" style={{ marginBottom: 20, alignItems: 'flex-end' }}>
+            <div>
+              <div className="eyebrow">Personalised for your pet</div>
+              <h2 className="display-2" style={{ marginTop: 6 }}>Recommended for {activePet.name}.</h2>
+              <p className="muted" style={{ marginTop: 6, fontSize: 14 }}>
+                Matched to {[activePet.species, activePet.breed, activePet.weight, activePet.age].filter(Boolean).join(' · ')}
+              </p>
+            </div>
+            <div className="row gap-8 wrap">
+              {(pets.items || []).map((petItem) => (
+                <button
+                  key={petItem.id}
+                  type="button"
+                  className={cx('chip', petItem.id === activePet.id && 'active')}
+                  onClick={() => setPetId(petItem.id)}
+                >
+                  <Avatar name={petItem.name} src={petItem.photo} size="sm" />
+                  <span>{petItem.name}</span>
+                </button>
+              ))}
+              <Link to={`/shop/${String(activePet.species || '').toLowerCase().includes('cat') ? 'cats' : 'dogs'}`} className="btn btn-outline btn-sm">
+                See all for {activePet.name} <Icon name="arrowRight" size={13} />
+              </Link>
+            </div>
+          </div>
+          <Reveal className="product-grid" stagger key={activePet.id}>
+            {petRecommendations.map((p) => <ProductCard key={p.id} p={p} />)}
+          </Reveal>
+        </section>
+      )}
+
       {/* Maya Halo — Pet Maya's exclusive collar: a full-screen, scroll-driven product breakdown */}
       <div className="hxf-bleed"><HaloBreakdown /></div>
 
@@ -154,13 +220,59 @@ export default function Home() {
         </Reveal>
       </section>
 
+      {/* Curated Care Kits */}
+      {resolvedKits.length > 0 && (
+        <section className="section">
+          <SectionHead eyebrow="Vet-curated bundles" title="Complete Care Kits — save 8%." link="Explore all products" to="/shop" />
+          <Reveal className="trio" stagger>
+            {resolvedKits.map((kit) => (
+              <div key={kit.id} className="card stack gap-14" style={{ justifyContent: 'space-between' }}>
+                <div>
+                  <div className="row between">
+                    <Pill tone={kit.tone || 'teal'} sm>{kit.eyebrow}</Pill>
+                    <span className="sub">{kit.items.length} products</span>
+                  </div>
+                  <h3 className="serif" style={{ fontSize: 23, marginTop: 12 }}>{kit.title}</h3>
+                  <p className="muted" style={{ fontSize: 13.5, marginTop: 6 }}>{kit.description}</p>
+                  <div className="stack gap-8" style={{ marginTop: 14 }}>
+                    {kit.items.map((item) => (
+                      <Link key={item.id} to={productPath(item)} className="panel row gap-10" style={{ padding: '8px 12px' }}>
+                        <Ph src={item.image} label=" " style={{ width: 38, height: 38, minHeight: 0, borderRadius: 8, flex: 'none' }} />
+                        <div className="grow" style={{ minWidth: 0 }}>
+                          <div style={{ fontWeight: 600, fontSize: 13 }} className="ellipsis">{item.name}</div>
+                          <div className="sub" style={{ fontSize: 11 }}>{item.brand}</div>
+                        </div>
+                        <span className="mono" style={{ fontSize: 12.5 }}>{money(item.price)}</span>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+                <div style={{ borderTop: '1px solid var(--line)', paddingTop: 14 }}>
+                  <div className="row between" style={{ alignItems: 'baseline', marginBottom: 12 }}>
+                    <div>
+                      <div className="stat-label">Kit price</div>
+                      <div className="row gap-8" style={{ alignItems: 'baseline', marginTop: 2 }}>
+                        <b style={{ fontSize: 24 }}>{money(kit.kitTotal)}</b>
+                        <s className="subtle" style={{ fontSize: 13 }}>{money(kit.regularTotal)}</s>
+                      </div>
+                    </div>
+                    <Pill tone="teal" sm>Save {money(kit.savings)}</Pill>
+                  </div>
+                  <Button variant="dark" block icon="bag" onClick={() => addKitToBag(kit)}>Add kit to Care Bag</Button>
+                </div>
+              </div>
+            ))}
+          </Reveal>
+        </section>
+      )}
+
       {/* Promos */}
       <Reveal as="section" className="section promo-pair" stagger>
         <div className="promo" style={{ background: 'var(--sunk-2)' }}>
           <div>
             <div className="eyebrow muted">Not sure what they need?</div>
             <h3>Ask a vet before you buy.</h3>
-            <p className="muted" style={{ marginTop: 14, maxWidth: 42 + 'ch' }}>Describe symptoms, share photos and get a clear plan from a licensed vet — then order exactly what they prescribe.</p>
+            <p className="muted" style={{ marginTop: 14, maxWidth: '42ch' }}>Describe symptoms, share photos and get a clear plan from a licensed vet — then order exactly what they prescribe.</p>
           </div>
           <div><Button variant="dark" icon="arrowRight" to="/specialists">Book a consult</Button></div>
         </div>
