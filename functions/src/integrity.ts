@@ -218,11 +218,9 @@ export const create_order = onCall(async (request) => {
       );
     }
 
-    const payment = clip(data.payment ?? data.paymentMethod, 40) || "bKash";
-    const isCod = /cash|cod/i.test(payment);
-    if (needsRx && isCod) {
-      throw new HttpsError("failed-precondition", "Prescription orders require digital payment (bKash, Nagad, or Card).");
-    }
+    const payment = clip(data.payment ?? data.paymentMethod, 40) || "Cash on delivery";
+    const paymentTrxId = clip(data.paymentTrxId, 40).toUpperCase();
+    const paymentSender = clip(data.paymentSender, 30);
 
     // Coupon discount calculation
     let discount = 0;
@@ -300,7 +298,9 @@ export const create_order = onCall(async (request) => {
       total,
       payment,
       paymentMethod: payment,
-      paymentStatus: isCod ? "cod_pending" : "paid",
+      paymentStatus: paymentTrxId ? "verification_pending" : "cod_pending",
+      paymentTrxId,
+      paymentSender,
       smsUpdates: data.smsUpdates !== false,
       prescriptionUrl: clip(data.prescriptionUrl, 500),
       pet: clip(data.pet, 60),

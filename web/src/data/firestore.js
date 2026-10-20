@@ -113,10 +113,20 @@ export function normOrder(id, d = {}) {
   const shipping = n(d.shipping ?? d.shippingCharges);
   const placedAt = toMillis(d.placedAt || d.timestamp || d.createdAt || d.date);
   const patient = String(d.patient || '');
-  const payment = d.payment || d.paymentMethod || '—';
+  const payment = d.payment || d.paymentMethod || 'Cash on delivery';
+  const paymentTrxId = String(d.paymentTrxId || d.trxId || '').trim();
+  const paymentSender = String(d.paymentSender || '').trim();
   const status = normStatus(d.status);
-  const isCod = /cash|cod/i.test(payment);
-  const paymentStatus = d.paymentStatus || (status === 'Cancelled' ? 'cancelled' : status === 'Return' ? 'refund_pending' : status === 'Delivered' ? 'paid' : isCod ? 'cod_pending' : 'paid');
+  const paymentStatus = d.paymentStatus
+    || (status === 'Cancelled'
+      ? 'cancelled'
+      : status === 'Return'
+        ? 'refund_pending'
+        : status === 'Delivered'
+          ? 'paid'
+          : paymentTrxId
+            ? 'verification_pending'
+            : 'cod_pending');
   return {
     id: d.orderId || id,
     docId: id,
@@ -140,6 +150,10 @@ export function normOrder(id, d = {}) {
     rxStatus: d.rxStatus || '',
     payment,
     paymentStatus,
+    paymentTrxId,
+    paymentSender,
+    paidAt: toMillis(d.paidAt),
+    paidVerifiedBy: d.paidVerifiedBy || '',
     placedAt,
     courier: d.courier || '',
     delivery: d.delivery || 'Standard',

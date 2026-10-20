@@ -292,7 +292,11 @@ export default function Orders({ user }) {
                     <td className="muted">{o.items.length} {o.items.length === 1 ? 'item' : 'items'}</td>
                     <td><b>{money(o.total)}</b></td>
                     <td><StatusPill s={o.status} /></td>
-                    <td><span className="pill">{o.payment}</span></td>
+                    <td>
+                      <span className={cx('pill', o.paymentStatus === 'paid' ? 'teal' : o.paymentStatus === 'verification_pending' ? 'yellow' : '')}>
+                        {o.payment}{o.paymentStatus === 'paid' ? ' · Paid' : o.paymentStatus === 'verification_pending' ? ' · Verify TrxID' : ''}
+                      </span>
+                    </td>
                     <td className="muted" title={shortDate(o.placedAt)}>{timeOfDay(o.placedAt)}</td>
                     <td><Icon name="arrowRight" size={16} /></td>
                   </tr>

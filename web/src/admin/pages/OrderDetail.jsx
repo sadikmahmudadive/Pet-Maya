@@ -64,6 +64,18 @@ export default function OrderDetail({ params, user }) {
       }, 'Order cancelled');
     }
   };
+  const markPaid = () => {
+    write('orders', o.docId, {
+      paymentStatus: 'paid',
+      paidAt: Date.now(),
+      paidVerifiedBy: user?.name || 'Admin',
+      notes: arrayUnion({
+        by: user?.name || 'Admin',
+        text: `Payment marked as paid (${o.payment}${o.paymentTrxId ? ` · TrxID ${o.paymentTrxId}` : ''})`,
+        at: Date.now(),
+      }),
+    }, 'Order marked as paid');
+  };
   const saveNote = async () => {
     if (!note.trim()) return;
     const n = { by: user?.name || 'Admin', text: note.trim(), at: Date.now() };
@@ -89,6 +101,11 @@ export default function OrderDetail({ params, user }) {
         </div>
         <div className="row gap-8 wrap">
           <Button variant="outline" icon="printer" onClick={printSlip}>Print slip</Button>
+          {o.paymentStatus !== 'paid' && o.status !== 'Cancelled' && o.status !== 'Return' && (
+            <Button variant="teal" icon="check" onClick={markPaid}>
+              {o.paymentTrxId ? 'Verify TrxID & Mark Paid' : 'Mark Paid'}
+            </Button>
+          )}
           {o.status !== 'Cancelled' && o.status !== 'Delivered' && o.status !== 'Return' && <Button variant="outline" onClick={cancelOrder}>Cancel</Button>}
           {o.status !== 'Return' && o.status !== 'Cancelled' && <Button variant="danger" onClick={refund}>Refund / Return</Button>}
           {next && <Button variant="dark" icon="check" onClick={advance}>{next[1]}</Button>}
@@ -97,13 +114,35 @@ export default function OrderDetail({ params, user }) {
       <div className="row gap-8 wrap" style={{ margin: '14px 0 20px' }}>
         <StatusPill s={o.status} />
         <Pill tone={o.paymentStatus === 'paid' || o.status === 'Delivered' ? 'teal' : 'yellow'}>
-          {o.paymentStatus === 'paid' || o.status === 'Delivered' ? 'Paid' : o.paymentStatus === 'refunded' ? 'Refunded' : 'COD Due'} · {o.payment}
+          {o.paymentStatus === 'paid' || o.status === 'Delivered'
+            ? 'Paid'
+            : o.paymentStatus === 'verification_pending'
+              ? 'Verify TrxID'
+              : o.paymentStatus === 'refunded'
+                ? 'Refunded'
+                : 'Pay on Delivery'} · {o.payment}
         </Pill>
+        {o.paymentTrxId && <Pill mono sm>TrxID: {o.paymentTrxId}</Pill>}
         <Pill>{o.deliveryZone || 'Inside Dhaka'} ({o.district || 'Dhaka'})</Pill>
         {o.priceCheck === 'ok' && <Pill tone="teal" icon="check" sm>Catalogue price verified</Pill>}
         {o.priceCheck === 'mismatch' && <Pill tone="red" sm>Price check warning</Pill>}
         <Pill>Placed {timeOfDay(o.placedAt)}, {shortDate(o.placedAt)}</Pill>
       </div>
+
+      {o.paymentTrxId && o.paymentStatus !== 'paid' && (
+        <div className="card" style={{ marginBottom: 16, borderColor: 'var(--yellow)' }}>
+          <div className="row between wrap gap-12">
+            <div>
+              <div className="eyebrow">{o.payment} Transaction Verification</div>
+              <b style={{ fontSize: 15 }}>TrxID: <span className="mono">{o.paymentTrxId}</span></b>
+              <div className="sub" style={{ marginTop: 4 }}>
+                Sender wallet: <b>{o.paymentSender || o.phone || '—'}</b> · Amount expected: <b>{money(o.total)}</b>
+              </div>
+            </div>
+            <Button variant="teal" size="sm" icon="check" onClick={markPaid}>Verify & Mark Paid</Button>
+          </div>
+        </div>
+      )}
 
       {o.returnRequest && (
         <div className="card" style={{ marginBottom: 16, borderColor: 'var(--yellow)' }}>

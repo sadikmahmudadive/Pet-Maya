@@ -307,8 +307,14 @@ function OrderDetail({ order: o }) {
         <div className="card">
           <div className="row between" style={{ alignItems: 'center' }}>
             <div className="eyebrow muted">Payment</div>
-            <Pill tone={o.paymentStatus === 'paid' ? 'teal' : o.paymentStatus === 'cod_pending' ? 'yellow' : ''} sm>
-              {o.paymentStatus === 'paid' ? 'Paid' : o.paymentStatus === 'cod_pending' ? 'COD · Pay on delivery' : o.paymentStatus}
+            <Pill tone={o.paymentStatus === 'paid' ? 'teal' : o.paymentStatus === 'verification_pending' || o.paymentStatus === 'cod_pending' ? 'yellow' : ''} sm>
+              {o.paymentStatus === 'paid'
+                ? 'Paid'
+                : o.paymentStatus === 'verification_pending'
+                  ? 'TrxID · Pending verification'
+                  : o.paymentStatus === 'cod_pending'
+                    ? 'Pay on delivery'
+                    : o.paymentStatus}
             </Pill>
           </div>
           <h2 className="display-3" style={{ fontSize: 26, margin: '6px 0 12px' }}>Payment summary</h2>
@@ -316,10 +322,14 @@ function OrderDetail({ order: o }) {
           {o.discount > 0 && <div className="kv"><span>Voucher {o.coupon}</span><span className="teal">−{money(o.discount)}</span></div>}
           <div className="kv"><span>Delivery ({o.deliveryZone})</span><span className="teal">{o.shipping ? money(o.shipping) : 'Free'}</span></div>
           <div className="panel row between" style={{ marginTop: 12, padding: '18px 20px' }}>
-            <b>Total {o.status === 'Delivered' || !/cash|cod/i.test(o.payment) ? 'paid' : 'due'}</b>
+            <b>Total {o.paymentStatus === 'paid' || o.status === 'Delivered' ? 'paid' : 'due'}</b>
             <span style={{ fontSize: 30, fontWeight: 600, letterSpacing: '-0.03em' }}>{money(o.total)}</span>
           </div>
-          <div className="sub" style={{ marginTop: 8 }}>Method: {o.payment}</div>
+          <div className="sub" style={{ marginTop: 8 }}>
+            Method: {o.payment}
+            {o.paymentTrxId ? ` · TrxID: ${o.paymentTrxId}` : ''}
+            {o.paymentSender ? ` (${o.paymentSender})` : ''}
+          </div>
         </div>
       </div>
 

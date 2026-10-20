@@ -27,6 +27,13 @@ export const DELIVERY = {
   returnsDays: 7,
 };
 
+export const PAYMENT_CONFIG = {
+  gatewayEnabled: false,       // Set true once SSLCOMMERZ / bKash API gateway is connected
+  bkashNumber: '01700-000000', // Update with your official Pet Maya bKash number
+  nagadNumber: '01700-000000', // Update with your official Pet Maya Nagad number
+  instructions: 'Send Money or Merchant Payment to our number below and enter your Transaction ID (TrxID), or leave it blank to pay the courier on arrival.',
+};
+
 export const BD_DISTRICTS = [
   'Dhaka', 'Chattogram', 'Sylhet', 'Rajshahi', 'Khulna', 'Barishal', 'Rangpur', 'Mymensingh',
   'Gazipur', 'Narayanganj', 'Cumilla', 'Bogura', 'Cox’s Bazar', 'Jashore', 'Dinajpur', 'Tangail',

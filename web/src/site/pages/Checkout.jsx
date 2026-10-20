@@ -4,15 +4,14 @@ import { useStore } from '../../lib/store.jsx';
 import { storage, ref, uploadBytesResumable, getDownloadURL } from '../../config/firebase';
 import { Icon, Button, Ph, Pill, Field, Empty } from '../../ui/index.jsx';
 import { money, cx } from '../../lib/format.js';
-import { DELIVERY, BD_DISTRICTS, DHAKA_AREAS } from '../../data/content.js';
+import { DELIVERY, PAYMENT_CONFIG, BD_DISTRICTS, DHAKA_AREAS } from '../../data/content.js';
 import { validateUpload, ownUploadPath } from '../../lib/security.js';
 import { track, toItem } from '../../lib/analytics.js';
 
 const PAYMENTS = [
-  { k: 'bKash', icon: 'phoneDevice', sub: 'Mobile payment' },
-  { k: 'Nagad', icon: 'phoneDevice', sub: 'Mobile payment' },
-  { k: 'Card', icon: 'card', sub: 'Visa · Mastercard · Amex' },
-  { k: 'Cash on delivery', icon: 'cash', sub: 'Non-Rx orders only' },
+  { k: 'Cash on delivery', icon: 'cash', sub: 'Pay cash or mobile wallet on arrival' },
+  { k: 'bKash', icon: 'phoneDevice', sub: 'Send Money · TrxID or pay on delivery' },
+  { k: 'Nagad', icon: 'phoneDevice', sub: 'Send Money · TrxID or pay on delivery' },
 ];
 
 export default function Checkout() {
@@ -30,7 +29,9 @@ export default function Checkout() {
   });
   const [delivery, setDelivery] = useState('standard');
   const [sms, setSms] = useState(true);
-  const [pay, setPay] = useState(query.get('pay') || 'bKash');
+  const [pay, setPay] = useState(query.get('pay') || 'Cash on delivery');
+  const [trxId, setTrxId] = useState('');
+  const [senderPhone, setSenderPhone] = useState('');
   const [code, setCode] = useState('');
   const [rxFile, setRxFile] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -49,7 +50,6 @@ export default function Checkout() {
       }));
     }
   }, [user]);
-  useEffect(() => { if (totals.needsRx && pay === 'Cash on delivery') setPay('bKash'); }, [totals.needsRx, pay]);
   useEffect(() => { if (totals.needsCold) setDelivery('express'); }, [totals.needsCold]);
   useEffect(() => { if (cart.length) track('begin_checkout', { value: totals.subtotal, items: cart.map((l) => toItem(l)) }); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -89,6 +89,12 @@ export default function Checkout() {
   }
 
   const total = Math.max(0, totals.subtotal - totals.discount + shipping);
+  const walletNumber = pay === 'bKash' ? PAYMENT_CONFIG.bkashNumber : PAYMENT_CONFIG.nagadNumber;
+
+  const copyWalletNumber = () => {
+    navigator.clipboard?.writeText(walletNumber);
+    toast(`Copied ${pay} number ${walletNumber}`);
+  };
 
   const submit = async (e) => {
     e.preventDefault();
@@ -128,6 +134,8 @@ export default function Checkout() {
         delivery: deliveryLabel,
         shipping,
         payment: pay,
+        paymentTrxId: (pay === 'bKash' || pay === 'Nagad') ? trxId.trim().toUpperCase() : '',
+        paymentSender: (pay === 'bKash' || pay === 'Nagad') ? (senderPhone.trim() || f.phone.trim()) : '',
         smsUpdates: sms,
         prescriptionUrl: rxUrl,
       });
@@ -152,16 +160,6 @@ export default function Checkout() {
 
       <div className="split wide-right" style={{ marginTop: 24 }}>
         <div className="stack gap-16">
-          <div className="card">
-            <div className="eyebrow muted" style={{ textAlign: 'center', marginBottom: 14 }}>Express checkout</div>
-            <div className="row gap-10">
-              {['bKash', 'Nagad'].map((k) => (
-                <button type="button" key={k} className="btn btn-outline grow" style={{ height: 50, borderColor: k === 'bKash' ? '#E2136E' : '#EC1C24', color: k === 'bKash' ? '#E2136E' : '#EC1C24', fontWeight: 600 }} onClick={() => setPay(k)}>{k}</button>
-              ))}
-              <button type="button" className="btn btn-outline grow" style={{ height: 50 }} onClick={() => setPay('Card')}><Icon name="lock" size={15} /> Card</button>
-            </div>
-          </div>
-
           <div className="card">
             <div className="card-head">
               <div>
@@ -294,23 +292,65 @@ export default function Checkout() {
           )}
 
           <div className="card">
-            <div className="card-head"><h2 className="h-card" style={{ fontSize: 19 }}>Payment</h2><span className="row gap-6 sub"><Icon name="lock" size={13} /> Encrypted</span></div>
+            <div className="card-head">
+              <h2 className="h-card" style={{ fontSize: 19 }}>Payment method</h2>
+              <Pill tone="teal" sm>Pay on delivery or Send Money</Pill>
+            </div>
             <div className="pay-grid">
-              {PAYMENTS.map((p) => {
-                const disabled = p.k === 'Cash on delivery' && totals.needsRx;
-                return (
-                  <button type="button" key={p.k} disabled={disabled} className={cx('pay-tile', pay === p.k && 'on')} onClick={() => setPay(p.k)} style={disabled ? { opacity: 0.45 } : undefined}>
-                    <Icon name={p.icon} size={17} />
-                    <div><b style={{ fontSize: 14 }}>{p.k}</b><div className="sub" style={{ fontSize: 11 }}>{p.sub}</div></div>
-                  </button>
-                );
-              })}
+              {PAYMENTS.map((p) => (
+                <button
+                  type="button"
+                  key={p.k}
+                  className={cx('pay-tile', pay === p.k && 'on')}
+                  onClick={() => setPay(p.k)}
+                >
+                  <Icon name={p.icon} size={17} />
+                  <div>
+                    <b style={{ fontSize: 14 }}>{p.k}</b>
+                    <div className="sub" style={{ fontSize: 11 }}>{p.sub}</div>
+                  </div>
+                </button>
+              ))}
             </div>
-            <div className="panel" style={{ marginTop: 14, fontSize: 13.5 }}>
-              {pay === 'Cash on delivery'
-                ? 'Pay the courier in cash or by mobile payment when your order arrives.'
-                : `After you place the order you’ll complete payment securely with ${pay}. We never store your card or wallet PIN.`}
-            </div>
+
+            {pay === 'Cash on delivery' ? (
+              <div className="panel" style={{ marginTop: 14, fontSize: 13.5 }}>
+                Pay <b>{money(total)}</b> in cash (or via bKash/Nagad to the rider) when your order arrives at your doorstep.
+                {totals.needsRx && ' Prescription items will be dispatched as soon as our vet approves your prescription.'}
+              </div>
+            ) : (
+              <div className="panel stack gap-12" style={{ marginTop: 14 }}>
+                <div className="row between wrap gap-8">
+                  <div style={{ fontSize: 13.5 }}>
+                    <b>{pay} Send Money / Payment:</b> <span className="mono">{walletNumber}</span>
+                    <div className="sub" style={{ fontSize: 12, marginTop: 2 }}>
+                      Send <b>{money(total)}</b> to the number above and enter the Transaction ID below — or leave it blank to pay by {pay} on delivery.
+                    </div>
+                  </div>
+                  <button type="button" className="btn btn-outline btn-sm" onClick={copyWalletNumber}>Copy number</button>
+                </div>
+                <div className="fields">
+                  <Field label={`${pay} Transaction ID (TrxID)`} hint="optional">
+                    <input
+                      className="input mono"
+                      style={{ textTransform: 'uppercase' }}
+                      value={trxId}
+                      onChange={(e) => setTrxId(e.target.value)}
+                      placeholder="e.g. BKA9281XYZ (or leave blank to pay on delivery)"
+                    />
+                  </Field>
+                  <Field label={`Your ${pay} number`} hint="optional">
+                    <input
+                      className="input"
+                      type="tel"
+                      value={senderPhone}
+                      onChange={(e) => setSenderPhone(e.target.value)}
+                      placeholder={f.phone || '017XX-XXXXXX'}
+                    />
+                  </Field>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -348,8 +388,8 @@ export default function Checkout() {
               <div style={{ textAlign: 'right' }}><div style={{ fontSize: 32, fontWeight: 600, letterSpacing: '-0.03em' }}>{money(total)}</div><div className="sub" style={{ fontSize: 11 }}>BDT · includes VAT</div></div>
             </div>
             {err && <div className="red" style={{ fontSize: 13, marginTop: 10 }}>{err}</div>}
-            <Button type="submit" variant="dark" size="lg" block icon="lock" style={{ marginTop: 16 }} disabled={busy || !coldEligible}>
-              {busy ? 'Placing order…' : `Place order · ${money(total)}`}
+            <Button type="submit" variant="dark" size="lg" block icon="check" style={{ marginTop: 16 }} disabled={busy || !coldEligible}>
+              {busy ? 'Placing order…' : `Confirm order · ${money(total)}`}
             </Button>
             {totals.needsCold && (
               <div className="rx-note" style={{ alignItems: 'flex-start' }}>

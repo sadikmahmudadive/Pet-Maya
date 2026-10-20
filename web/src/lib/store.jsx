@@ -162,7 +162,8 @@ export function StoreProvider({ children }) {
     const shippingFee = details.shipping ?? totals.shipping;
     const district = details.district || details.city || 'Dhaka';
     const deliveryZone = details.deliveryZone || (district === 'Dhaka' ? 'Inside Dhaka' : 'Outside Dhaka');
-    const isCod = /cash|cod/i.test(details.payment || '');
+    const paymentTrxId = String(details.paymentTrxId || '').trim().toUpperCase();
+    const paymentSender = String(details.paymentSender || '').trim();
     const order = {
       orderId: id,
       userId: realUser ? user.uid : 'guest',
@@ -186,9 +187,11 @@ export function StoreProvider({ children }) {
       coupon: coupon?.code || '',
       shipping: shippingFee,
       total: Math.max(0, totals.subtotal - totals.discount + shippingFee),
-      payment: details.payment,
-      paymentMethod: details.payment,
-      paymentStatus: isCod ? 'cod_pending' : 'paid',
+      payment: details.payment || 'Cash on delivery',
+      paymentMethod: details.payment || 'Cash on delivery',
+      paymentStatus: paymentTrxId ? 'verification_pending' : 'cod_pending',
+      paymentTrxId,
+      paymentSender,
       smsUpdates: details.smsUpdates !== false,
       prescriptionUrl: details.prescriptionUrl || '',
       pet: activePet?.name || '',
