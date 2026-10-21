@@ -27,6 +27,14 @@ const INSIDE_DHAKA_EXPRESS_FEE = 120;
 const OUTSIDE_DHAKA_FEE = 130;
 const COLD_STANDARD_FEE = 150;
 const COLD_DISTRICTS = ["Dhaka", "Gazipur", "Narayanganj"];
+export const COMMERCE_CONFIG = {
+  FREE_DELIVERY_OVER,
+  INSIDE_DHAKA_FEE,
+  INSIDE_DHAKA_EXPRESS_FEE,
+  OUTSIDE_DHAKA_FEE,
+  COLD_STANDARD_FEE,
+  COLD_DISTRICTS,
+};
 
 export const apply_referral = onCall(async (request) => {
   const { uid } = await requireUser(request);
