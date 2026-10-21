@@ -5,6 +5,7 @@ import { storage, ref, uploadBytesResumable, getDownloadURL } from '../../config
 import { Icon, Button, Ph, Pill, Field, Empty } from '../../ui/index.jsx';
 import { money, cx } from '../../lib/format.js';
 import { DELIVERY, PAYMENT_CONFIG, BD_DISTRICTS, DHAKA_AREAS } from '../../data/content.js';
+import { useDoc } from '../../data/firestore.js';
 import { validateUpload, ownUploadPath } from '../../lib/security.js';
 import { track, toItem } from '../../lib/analytics.js';
 
@@ -17,6 +18,7 @@ const PAYMENTS = [
 export default function Checkout() {
   const { cart, totals, coupon, applyCoupon, removeCoupon, placeOrder, user, activePet, savedAddresses, saveAddress, toast } = useStore();
   const { navigate, query } = useRouter();
+  const storeSettings = useDoc('settings', 'erp')?.data || null;
   const defaultAddr = (savedAddresses || []).find((a) => a.isDefault) || (savedAddresses || [])[0] || null;
 
   const [f, setF] = useState({
@@ -67,13 +69,23 @@ export default function Checkout() {
 
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
   const isInsideDhaka = f.district === 'Dhaka';
-  const coldEligible = !totals.needsCold || (DELIVERY.coldDistricts || ['Dhaka']).includes(f.district);
+  const coldDistrictsList = Array.isArray(storeSettings?.coldDistricts) && storeSettings.coldDistricts.length
+    ? storeSettings.coldDistricts
+    : (DELIVERY.coldDistricts || ['Dhaka']);
+  const coldEligible = !totals.needsCold || coldDistrictsList.includes(f.district);
+  const freeOverThreshold = storeSettings?.freeDeliveryOver != null ? Number(storeSettings.freeDeliveryOver) : DELIVERY.freeOver;
+  const isFreeShip = coupon?.freeShip || (freeOverThreshold > 0 && totals.subtotal >= freeOverThreshold);
+  const insideFee = storeSettings?.insideDhakaFee != null ? Number(storeSettings.insideDhakaFee) : DELIVERY.insideDhakaFee;
+  const insideExpressFee = storeSettings?.insideDhakaExpressFee != null ? Number(storeSettings.insideDhakaExpressFee) : DELIVERY.insideDhakaExpressFee;
+  const outsideFee = storeSettings?.outsideDhakaFee != null ? Number(storeSettings.outsideDhakaFee) : DELIVERY.outsideDhakaFee;
+  const coldExpFee = storeSettings?.coldExpressFee != null ? Number(storeSettings.coldExpressFee) : DELIVERY.coldExpressFee;
+  const minOrderVal = storeSettings?.minOrderValue != null ? Number(storeSettings.minOrderValue) : 0;
 
   let shipping = 0;
   let deliveryLabel = 'Standard (Inside Dhaka)';
   if (totals.needsCold) {
     if (delivery === 'express') {
-      shipping = totals.freeShip ? 0 : DELIVERY.coldExpressFee;
+      shipping = isFreeShip ? 0 : coldExpFee;
       deliveryLabel = DELIVERY.coldExpressLabel;
     } else {
       shipping = DELIVERY.coldStandardFee;
@@ -81,19 +93,21 @@ export default function Checkout() {
     }
   } else if (isInsideDhaka) {
     if (delivery === 'express') {
-      shipping = DELIVERY.insideDhakaExpressFee;
+      shipping = insideExpressFee;
       deliveryLabel = 'Express Dhaka (3–4 hours)';
     } else {
-      shipping = totals.freeShip ? 0 : DELIVERY.insideDhakaFee;
+      shipping = isFreeShip ? 0 : insideFee;
       deliveryLabel = 'Inside Dhaka (Same day)';
     }
   } else {
-    shipping = totals.freeShip ? 0 : DELIVERY.outsideDhakaFee;
+    shipping = isFreeShip ? 0 : outsideFee;
     deliveryLabel = `Outside Dhaka Courier (${f.district})`;
   }
 
   const total = Math.max(0, totals.subtotal - totals.discount + shipping);
-  const walletNumber = pay === 'bKash' ? PAYMENT_CONFIG.bkashNumber : PAYMENT_CONFIG.nagadNumber;
+  const walletNumber = pay === 'bKash'
+    ? (storeSettings?.bkashMerchantNumber || PAYMENT_CONFIG.bkashNumber)
+    : (storeSettings?.nagadMerchantNumber || PAYMENT_CONFIG.nagadNumber);
 
   const copyWalletNumber = () => {
     navigator.clipboard?.writeText(walletNumber);
@@ -112,8 +126,12 @@ export default function Checkout() {
       setErr('Please enter a valid Bangladesh mobile number (e.g. 017XXXXXXXX or +88017XXXXXXXX).');
       return;
     }
+    if (minOrderVal > 0 && totals.subtotal < minOrderVal) {
+      setErr(`Minimum order value is ${money(minOrderVal)}. Please add ${money(minOrderVal - totals.subtotal)} more to your bag.`);
+      return;
+    }
     if (!coldEligible) {
-      setErr(`Cold-chain medicines (${DELIVERY.coldRange}) can only be delivered to ${(DELIVERY.coldDistricts || ['Dhaka']).join(', ')} to guarantee temperature safety.`);
+      setErr(`Cold-chain medicines (${DELIVERY.coldRange}) can only be delivered to ${coldDistrictsList.join(', ')} to guarantee temperature safety.`);
       return;
     }
     setBusy(true);
@@ -301,7 +319,7 @@ export default function Checkout() {
               <div className="rx-note" style={{ marginBottom: 14, background: 'rgba(217, 72, 65, 0.1)', color: 'var(--red)', borderColor: 'var(--red)' }}>
                 <Icon name="thermo" size={16} />
                 <span>
-                  <b>Cold-chain zone notice:</b> Your bag contains temperature-sensitive items ({DELIVERY.coldRange}) which can only be delivered within {(DELIVERY.coldDistricts || ['Dhaka']).join(', ')}. Please select a supported district or remove cold-chain items.
+                  <b>Cold-chain zone notice:</b> Your bag contains temperature-sensitive items ({DELIVERY.coldRange}) which can only be delivered within {coldDistrictsList.join(', ')}. Please select a supported district or remove cold-chain items.
                 </span>
               </div>
             )}
@@ -313,7 +331,7 @@ export default function Checkout() {
                     <div className="row gap-8"><b style={{ fontSize: 15 }}>{DELIVERY.coldExpressLabel}</b><Pill tone="solid-teal" mono sm>{DELIVERY.coldRange.replace(/ /g, '')}</Pill></div>
                     <div className="sub">Insulated box with temperature tag · same day in Dhaka</div>
                   </div>
-                  <b>{totals.freeShip || !DELIVERY.coldExpressFee ? 'Free' : money(DELIVERY.coldExpressFee)}</b>
+                  <b>{isFreeShip || !coldExpFee ? 'Free' : money(coldExpFee)}</b>
                 </label>
                 <label className={cx('ship-opt', delivery === 'standard' && 'on')}>
                   <input type="radio" className="radio" name="ship" checked={delivery === 'standard'} onChange={() => setDelivery('standard')} />
@@ -327,9 +345,9 @@ export default function Checkout() {
                   <input type="radio" className="radio" name="ship" checked={delivery === 'standard'} onChange={() => setDelivery('standard')} />
                   <div className="grow">
                     <b style={{ fontSize: 15 }}>Inside Dhaka Standard</b>
-                    <div className="sub">Same day inside Dhaka for orders placed before 4 PM (free over {money(DELIVERY.freeOver)})</div>
+                    <div className="sub">Same day inside Dhaka for orders placed before 4 PM (free over {money(freeOverThreshold)})</div>
                   </div>
-                  <b>{totals.freeShip ? 'Free' : money(DELIVERY.insideDhakaFee)}</b>
+                  <b>{isFreeShip ? 'Free' : money(insideFee)}</b>
                 </label>
                 <label className={cx('ship-opt', delivery === 'express' && 'on')}>
                   <input type="radio" className="radio" name="ship" checked={delivery === 'express'} onChange={() => setDelivery('express')} />
@@ -337,7 +355,7 @@ export default function Checkout() {
                     <div className="row gap-8"><b style={{ fontSize: 15 }}>Express Dhaka Dispatch</b><Pill tone="teal" sm>3–4 hrs</Pill></div>
                     <div className="sub">Priority rider from our Gulshan 2 central pharmacy</div>
                   </div>
-                  <b>{money(DELIVERY.insideDhakaExpressFee)}</b>
+                  <b>{money(insideExpressFee)}</b>
                 </label>
               </div>
             ) : (
@@ -345,9 +363,9 @@ export default function Checkout() {
                 <Icon name="truck" size={20} className="teal" />
                 <div className="grow">
                   <b style={{ fontSize: 15 }}>Outside Dhaka Nationwide Courier ({f.district})</b>
-                  <div className="sub">2–4 business days via tracked doorstep courier (free over {money(DELIVERY.freeOver)})</div>
+                  <div className="sub">2–4 business days via tracked doorstep courier (free over {money(freeOverThreshold)})</div>
                 </div>
-                <b>{totals.freeShip ? 'Free' : money(DELIVERY.outsideDhakaFee)}</b>
+                <b>{isFreeShip ? 'Free' : money(outsideFee)}</b>
               </div>
             )}
             <label className="row gap-10" style={{ marginTop: 14, fontSize: 13, cursor: 'pointer' }}>

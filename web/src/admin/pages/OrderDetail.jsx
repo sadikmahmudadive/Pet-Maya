@@ -3,14 +3,14 @@ import { Link } from '../../lib/router.jsx';
 import { arrayUnion } from '../../config/firebase';
 import { useAdmin, useAdminWrite } from '../data.jsx';
 import { StatusPill, statusUpdate, syncOrderStock } from './Orders.jsx';
-import { Icon, Button, Pill, Avatar, Ph, Empty, Field } from '../../ui/index.jsx';
+import { printOrderInvoice, printPackingSlip } from '../erp.js';
+import { Icon, Button, Pill, Avatar, Ph, Empty, Field, Portal } from '../../ui/index.jsx';
 import { money, timeOfDay, shortDate, cx, tipSide } from '../../lib/format.js';
-import { escapeHtml, openPrintWindow } from '../../lib/security.js';
 
 const NEXT = { 'Rx review': ['Packing', 'Approve Rx'], Packing: ['In transit', 'Send out'], 'In transit': ['Delivered', 'Mark delivered'] };
 
 export default function OrderDetail({ params, user }) {
-  const { orders, customers, pets, live } = useAdmin();
+  const { orders, customers, pets, live, settings } = useAdmin();
   const write = useAdminWrite();
   const id = decodeURIComponent(params.id);
   const o = orders.find((x) => x.docId === id || x.id === id);
@@ -18,6 +18,13 @@ export default function OrderDetail({ params, user }) {
   const [courier, setCourier] = useState('');
   const [editCourier, setEditCourier] = useState(false);
   const [localNotes, setLocalNotes] = useState([]);
+  const [showRefundModal, setShowRefundModal] = useState(false);
+  const [rf, setRf] = useState({
+    amount: o?.total || 0,
+    method: o?.payment === 'bKash' || o?.payment === 'Nagad' ? o.payment : 'bKash',
+    ref: '',
+    reason: o?.returnRequest?.reason || 'Customer return / refund',
+  });
 
   if (!o) return <div className="card"><Empty icon="bag" title="Order not found"><Link to="/admin/orders" className="link">Back to orders</Link></Empty></div>;
 
@@ -39,57 +46,119 @@ export default function OrderDetail({ params, user }) {
   const nowIdx = steps.findIndex((st) => !isDone(st));
 
   const advance = async () => {
+    const actor = user?.name || 'Admin';
     const patch = {
-      ...statusUpdate(next[0], user?.name),
+      ...statusUpdate(next[0], actor),
       ...(next[0] === 'Delivered' ? { paymentStatus: 'paid', paidAt: Date.now() } : {}),
+      auditLog: arrayUnion({
+        action: `Status changed to ${next[0]}`,
+        by: actor,
+        at: Date.now(),
+      }),
     };
-    if (await write('orders', o.docId, patch, `${o.id} → ${next[0]}`)) await syncOrderStock(o, next[0], user?.name, live);
+    if (await write('orders', o.docId, patch, `${o.id} → ${next[0]}`)) await syncOrderStock(o, next[0], actor, live);
   };
-  const refund = () => {
-    if (window.confirm(`Mark ${o.id} as returned/refunded?`)) {
-      write('orders', o.docId, {
-        ...statusUpdate('Return', user?.name),
-        paymentStatus: 'refunded',
-        refundedAt: Date.now(),
-        ...(o.returnRequest ? { returnRequest: { ...o.returnRequest, status: 'approved', resolvedBy: user?.name || 'Admin', resolvedAt: Date.now() } } : {}),
-      }, 'Marked as returned & refunded');
-    }
+
+  const openRefund = () => {
+    setRf({
+      amount: o.total || 0,
+      method: o.payment === 'bKash' || o.payment === 'Nagad' ? o.payment : 'bKash',
+      ref: '',
+      reason: o.returnRequest?.reason || 'Customer return / refund',
+    });
+    setShowRefundModal(true);
   };
+
+  const submitRefund = async (e) => {
+    e.preventDefault();
+    const actor = user?.name || 'Admin';
+    const nowMs = Date.now();
+    const refundRecord = {
+      amount: Number(rf.amount) || o.total || 0,
+      method: rf.method || 'bKash',
+      ref: rf.ref.trim(),
+      reason: rf.reason.trim() || 'Refunded',
+      by: actor,
+      at: nowMs,
+    };
+    await write('orders', o.docId, {
+      ...statusUpdate('Return', actor),
+      paymentStatus: 'refunded',
+      refundedAt: nowMs,
+      refundRecord,
+      ...(o.returnRequest ? { returnRequest: { ...o.returnRequest, status: 'approved', resolvedBy: actor, resolvedAt: nowMs } } : {}),
+      auditLog: arrayUnion({
+        action: `Refunded ${money(refundRecord.amount)} via ${refundRecord.method}${refundRecord.ref ? ` (Ref: ${refundRecord.ref})` : ''}`,
+        by: actor,
+        at: nowMs,
+      }),
+      notes: arrayUnion({
+        by: actor,
+        text: `Refunded ${money(refundRecord.amount)} via ${refundRecord.method}${refundRecord.ref ? ` · Ref ${refundRecord.ref}` : ''} — ${refundRecord.reason}`,
+        at: nowMs,
+      }),
+    }, 'Order marked as returned & refunded');
+    setShowRefundModal(false);
+  };
+
   const cancelOrder = () => {
     if (window.confirm(`Cancel order ${o.id}?`)) {
+      const actor = user?.name || 'Admin';
+      const nowMs = Date.now();
       write('orders', o.docId, {
-        ...statusUpdate('Cancelled', user?.name),
+        ...statusUpdate('Cancelled', actor),
         cancelReason: 'Cancelled by staff',
-        cancelledAt: Date.now(),
+        cancelledAt: nowMs,
+        auditLog: arrayUnion({
+          action: 'Order cancelled by staff',
+          by: actor,
+          at: nowMs,
+        }),
       }, 'Order cancelled');
     }
   };
+
   const markPaid = () => {
+    const actor = user?.name || 'Admin';
+    const nowMs = Date.now();
     write('orders', o.docId, {
       paymentStatus: 'paid',
-      paidAt: Date.now(),
-      paidVerifiedBy: user?.name || 'Admin',
+      paidAt: nowMs,
+      paidVerifiedBy: actor,
+      auditLog: arrayUnion({
+        action: `Payment verified & marked paid (${o.payment}${o.paymentTrxId ? ` · TrxID ${o.paymentTrxId}` : ''})`,
+        by: actor,
+        at: nowMs,
+      }),
       notes: arrayUnion({
-        by: user?.name || 'Admin',
+        by: actor,
         text: `Payment marked as paid (${o.payment}${o.paymentTrxId ? ` · TrxID ${o.paymentTrxId}` : ''})`,
-        at: Date.now(),
+        at: nowMs,
       }),
     }, 'Order marked as paid');
   };
+
   const saveNote = async () => {
     if (!note.trim()) return;
     const n = { by: user?.name || 'Admin', text: note.trim(), at: Date.now() };
     if (await write('orders', o.docId, { notes: arrayUnion(n) }, 'Note saved')) { setLocalNotes((l) => [...l, n]); setNote(''); }
   };
+
   const saveCourier = async () => {
-    if (await write('orders', o.docId, { courier }, 'Courier assigned')) setEditCourier(false);
+    const actor = user?.name || 'Admin';
+    if (await write('orders', o.docId, {
+      courier,
+      auditLog: arrayUnion({ action: `Courier assigned: ${courier}`, by: actor, at: Date.now() }),
+    }, 'Courier assigned')) setEditCourier(false);
   };
-  const printSlip = () => {
-    // Order fields come from the customer: escape every one (stored XSS).
-    const e = escapeHtml;
-    const n = (v) => (Number(v) || 0).toLocaleString();
-    openPrintWindow(`<title>${e(o.id)}</title><style>body{font-family:system-ui;margin:32px}td{padding:6px 0}table{width:100%;border-collapse:collapse}tr+tr td{border-top:1px solid #eee}</style><h2>Pet Maya · ${e(o.id)}</h2><p>${e(o.customer)}<br>${e(o.phone || '')}<br>${e(o.address || o.area)} (${e(o.deliveryZone || 'Inside Dhaka')})</p><table>${o.items.map((i) => `<tr><td>${e(i.name)}${i.variant ? ` (${e(i.variant)})` : ''}</td><td>× ${n(i.qty)}</td><td style="text-align:right">৳${n(i.price * i.qty)}</td></tr>`).join('')}<tr><td><b>Total (${e(o.payment)})</b></td><td></td><td style="text-align:right"><b>৳${n(o.total)}</b></td></tr></table>${o.hasCold ? '<p><b>KEEP COLD 2–8°C</b></p>' : ''}`);
-  };
+
+  const auditEvents = [
+    { at: o.placedAt, by: o.customer || 'Customer', action: `Order placed (${o.payment}${o.paymentTrxId ? ` · TrxID ${o.paymentTrxId}` : ''})` },
+    ...(o.timeline || []).map((t) => ({ at: t.at, by: t.by || 'Staff', action: `Fulfilment status → ${t.status}` })),
+    ...(o.auditLog || []),
+    ...(o.paidAt ? [{ at: o.paidAt, by: o.paidVerifiedBy || 'Staff', action: `Payment reconciled (${money(o.total)})` }] : []),
+    ...(o.refundRecord ? [{ at: o.refundRecord.at || o.refundedAt, by: o.refundRecord.by || 'Staff', action: `Refund processed: ${money(o.refundRecord.amount)} via ${o.refundRecord.method}` }] : []),
+  ].filter((x) => x.at).sort((a, b) => b.at - a.at);
 
   return (
     <>
@@ -100,20 +169,21 @@ export default function OrderDetail({ params, user }) {
           <div className="crumbs" style={{ paddingTop: 10 }}><Link to="/admin/orders">Orders</Link><span>/</span><span style={{ color: 'var(--ink)' }}>{o.id}</span></div>
         </div>
         <div className="row gap-8 wrap">
-          <Button variant="outline" icon="printer" onClick={printSlip}>Print slip</Button>
+          <Button variant="outline" icon="file" onClick={() => printOrderInvoice(o, settings)}>Tax invoice</Button>
+          <Button variant="outline" icon="printer" onClick={() => printPackingSlip(o, settings)}>Packing slip</Button>
           {o.paymentStatus !== 'paid' && o.status !== 'Cancelled' && o.status !== 'Return' && (
             <Button variant="teal" icon="check" onClick={markPaid}>
               {o.paymentTrxId ? 'Verify TrxID & Mark Paid' : 'Mark Paid'}
             </Button>
           )}
           {o.status !== 'Cancelled' && o.status !== 'Delivered' && o.status !== 'Return' && <Button variant="outline" onClick={cancelOrder}>Cancel</Button>}
-          {o.status !== 'Return' && o.status !== 'Cancelled' && <Button variant="danger" onClick={refund}>Refund / Return</Button>}
+          {o.status !== 'Return' && o.status !== 'Cancelled' && <Button variant="danger" onClick={openRefund}>Refund / Return</Button>}
           {next && <Button variant="dark" icon="check" onClick={advance}>{next[1]}</Button>}
         </div>
       </div>
       <div className="row gap-8 wrap" style={{ margin: '14px 0 20px' }}>
         <StatusPill s={o.status} />
-        <Pill tone={o.paymentStatus === 'paid' || o.status === 'Delivered' ? 'teal' : 'yellow'}>
+        <Pill tone={o.paymentStatus === 'paid' || o.status === 'Delivered' ? 'teal' : o.paymentStatus === 'refunded' ? 'red' : 'yellow'}>
           {o.paymentStatus === 'paid' || o.status === 'Delivered'
             ? 'Paid'
             : o.paymentStatus === 'verification_pending'
@@ -129,7 +199,7 @@ export default function OrderDetail({ params, user }) {
         <Pill>Placed {timeOfDay(o.placedAt)}, {shortDate(o.placedAt)}</Pill>
       </div>
 
-      {o.paymentTrxId && o.paymentStatus !== 'paid' && (
+      {o.paymentTrxId && o.paymentStatus !== 'paid' && o.paymentStatus !== 'refunded' && (
         <div className="card" style={{ marginBottom: 16, borderColor: 'var(--yellow)' }}>
           <div className="row between wrap gap-12">
             <div>
@@ -154,8 +224,23 @@ export default function OrderDetail({ params, user }) {
             </div>
             <div className="row gap-8">
               <Pill tone={o.returnRequest.status === 'approved' ? 'teal' : 'yellow'}>{o.returnRequest.status || 'pending'}</Pill>
-              {o.returnRequest.status !== 'approved' && <Button variant="dark" size="sm" onClick={refund}>Approve & Refund</Button>}
+              {o.returnRequest.status !== 'approved' && <Button variant="dark" size="sm" onClick={openRefund}>Approve & Refund</Button>}
             </div>
+          </div>
+        </div>
+      )}
+
+      {o.refundRecord && (
+        <div className="card" style={{ marginBottom: 16, borderColor: 'var(--teal)' }}>
+          <div className="row between wrap gap-12">
+            <div>
+              <div className="eyebrow">Refund Processed</div>
+              <b style={{ fontSize: 15 }}>{money(o.refundRecord.amount)} refunded via {o.refundRecord.method}</b>
+              <div className="sub" style={{ marginTop: 4 }}>
+                {o.refundRecord.ref ? `Ref: ${o.refundRecord.ref} · ` : ''}{o.refundRecord.reason} · By {o.refundRecord.by}
+              </div>
+            </div>
+            <Pill tone="teal">Refunded</Pill>
           </div>
         </div>
       )}
@@ -216,6 +301,27 @@ export default function OrderDetail({ params, user }) {
               ))}
             </div>
           </div>
+
+          <div className="card">
+            <div className="card-head">
+              <div>
+                <h2 className="h-card">Audit log & payment reconciliation</h2>
+                <div className="sub">Chronological record of order & payment actions</div>
+              </div>
+              <Pill mono sm>{auditEvents.length} events</Pill>
+            </div>
+            <div className="list">
+              {auditEvents.map((ev, idx) => (
+                <div key={idx} className="list-row" style={{ padding: '10px 0', fontSize: 13 }}>
+                  <div className="grow">
+                    <b>{ev.action}</b>
+                    <div className="sub" style={{ fontSize: 11 }}>By {ev.by}</div>
+                  </div>
+                  <span className="mono sub" style={{ fontSize: 11 }}>{shortDate(ev.at)} · {timeOfDay(ev.at)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
         <div className="stack gap-16">
@@ -257,6 +363,42 @@ export default function OrderDetail({ params, user }) {
           </div>
         </div>
       </div>
+
+      {showRefundModal && (
+        <Portal>
+          <div className="scrim" onClick={() => setShowRefundModal(false)} />
+          <form className="modal" onSubmit={submitRefund} role="dialog" aria-modal="true" aria-label="Process refund">
+            <div className="row between">
+              <h2 className="serif" style={{ fontSize: 24 }}>Process Return & Refund</h2>
+              <button type="button" className="btn btn-outline btn-square btn-sm" onClick={() => setShowRefundModal(false)} aria-label="Close"><Icon name="x" size={15} /></button>
+            </div>
+            <p className="sub" style={{ marginTop: 4 }}>Record refund payout details for order <b>{o.id}</b> ({o.customer}).</p>
+            <div className="fields" style={{ marginTop: 16 }}>
+              <Field label="Refund amount (BDT)">
+                <input className="input" type="number" min="0" required value={rf.amount} onChange={(e) => setRf({ ...rf, amount: e.target.value })} />
+              </Field>
+              <Field label="Refund method">
+                <select className="select" value={rf.method} onChange={(e) => setRf({ ...rf, method: e.target.value })}>
+                  <option value="bKash">bKash Send Money</option>
+                  <option value="Nagad">Nagad Send Money</option>
+                  <option value="Cash">Cash</option>
+                  <option value="Store credit">Store credit / Replacement</option>
+                </select>
+              </Field>
+              <Field className="full" label="Refund TrxID / Reference" hint="optional">
+                <input className="input mono" value={rf.ref} onChange={(e) => setRf({ ...rf, ref: e.target.value })} placeholder="e.g. BKA99123REF" />
+              </Field>
+              <Field className="full" label="Reason / resolution note" required>
+                <input className="input" required value={rf.reason} onChange={(e) => setRf({ ...rf, reason: e.target.value })} />
+              </Field>
+            </div>
+            <div className="row gap-8" style={{ marginTop: 20 }}>
+              <Button type="button" variant="outline" className="grow" onClick={() => setShowRefundModal(false)}>Cancel</Button>
+              <Button type="submit" variant="danger" className="grow" icon="check">Confirm Refund</Button>
+            </div>
+          </form>
+        </Portal>
+      )}
     </>
   );
 }

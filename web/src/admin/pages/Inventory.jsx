@@ -145,18 +145,75 @@ export default function Inventory() {
       set('image', await getDownloadURL(r));
     } catch (e) { toast(e?.message && !e.code ? e.message : 'Photo upload failed', { tone: 'error' }); }
   };
+  const exportCatalogCsv = () => {
+    const header = [
+      'id', 'name', 'sku', 'barcode', 'brand', 'supplier', 'category', 'pet', 'unit',
+      'price', 'compareAt', 'cost', 'stockCount', 'reorderPoint', 'stockTarget',
+      'isRx', 'coldChain', 'showOnStorefront', 'autoRefill', 'variants', 'shortDescription', 'image',
+    ];
+    const rows = list.map((p) => {
+      const varStr = Array.isArray(p.variantOptions) && p.variantOptions.length
+        ? p.variantOptions.map((vo) => `${vo.label}:${vo.price ?? p.price}:${vo.stockCount ?? p.stockCount}`).join('|')
+        : (p.variants || []).join('|');
+      return [
+        p.id, p.name, p.sku || '', p.barcode || '', p.brand || '', p.supplier || p.brand || '',
+        p.category || 'medicine', p.pet || 'both', p.unit || 'pc',
+        p.price || 0, p.compareAt || '', p.cost || 0, p.stockCount || 0, p.reorderPoint || 20, p.stockTarget || 100,
+        p.isRx ? 'true' : 'false', p.coldChain ? 'true' : 'false',
+        p.showOnStorefront !== false ? 'true' : 'false', p.autoRefill ? 'true' : 'false',
+        varStr, p.shortDescription || '', p.image || '',
+      ];
+    });
+    downloadCsv(`pet-maya-products-${new Date().toISOString().slice(0, 10)}.csv`, [header, ...rows]);
+    toast(`Exported ${rows.length} products to CSV`);
+  };
+
   const importCsv = async (file) => {
     if (!file) return;
     const rows = parseCsv(await file.text());
-    if (!rows.length) { toast('No rows found. Columns: name, sku, barcode, brand, supplier, category, price, cost, stockCount, reorderPoint, isRx, coldChain', { tone: 'error', duration: 7000 }); return; }
+    if (!rows.length) { toast('No rows found. Columns: name, sku, barcode, brand, supplier, category, pet, price, compareAt, cost, stockCount, reorderPoint, isRx, coldChain, variants', { tone: 'error', duration: 7000 }); return; }
     let n = 0;
     for (const r of rows) {
       if (!r.name) continue;
+      const rawVars = String(r.variants || '').trim();
+      const parsedVariantOptions = rawVars
+        ? rawVars.split('|').map((chunk) => {
+          const [lbl, pr, st] = chunk.split(':').map((s) => s.trim());
+          return lbl ? {
+            label: lbl,
+            sku: '',
+            price: pr !== undefined && pr !== '' ? Number(pr) : null,
+            stockCount: st !== undefined && st !== '' ? Number(st) : null,
+          } : null;
+        }).filter(Boolean)
+        : [];
+      const stockNum = Number(r.stockCount ?? r.stock) || 0;
       const ok = await write('products', r.id || slug(r.sku || r.name), {
-        name: r.name, sku: r.sku || '', brand: r.brand || 'Pet Maya', category: (r.category || 'supplies').toLowerCase(), price: Number(r.price) || 0,
-        ...(r.cost ? { cost: Number(r.cost) || 0 } : {}), ...(r.barcode ? { barcode: r.barcode } : {}), ...(r.supplier ? { supplier: r.supplier } : {}),
-        stockCount: Number(r.stockCount ?? r.stock) || 0, reorderPoint: Number(r.reorderPoint) || 20, isRx: /^(1|true|yes)$/i.test(r.isRx || ''),
-        coldChain: /^(1|true|yes)$/i.test(r.coldChain || ''), inStock: (Number(r.stockCount ?? r.stock) || 0) > 0,
+        name: r.name,
+        sku: r.sku || '',
+        brand: r.brand || 'Pet Maya',
+        category: (r.category || 'supplies').toLowerCase(),
+        pet: (r.pet || 'both').toLowerCase(),
+        unit: r.unit || 'pc',
+        price: Number(r.price) || 0,
+        ...(r.compareAt ? { compareAt: Number(r.compareAt) || null } : {}),
+        ...(r.cost ? { cost: Number(r.cost) || 0 } : {}),
+        ...(r.barcode ? { barcode: r.barcode } : {}),
+        ...(r.supplier ? { supplier: r.supplier } : {}),
+        ...(r.shortDescription ? { shortDescription: r.shortDescription } : {}),
+        ...(r.image ? { image: r.image, imageUrl: r.image } : {}),
+        ...(parsedVariantOptions.length ? {
+          variants: parsedVariantOptions.map((v) => v.label),
+          variantOptions: parsedVariantOptions,
+        } : {}),
+        stockCount: stockNum,
+        reorderPoint: Number(r.reorderPoint) || 20,
+        stockTarget: Number(r.stockTarget) || 100,
+        isRx: /^(1|true|yes)$/i.test(r.isRx || ''),
+        coldChain: /^(1|true|yes)$/i.test(r.coldChain || ''),
+        showOnStorefront: r.showOnStorefront !== undefined && r.showOnStorefront !== '' ? /^(1|true|yes)$/i.test(r.showOnStorefront) : true,
+        autoRefill: /^(1|true|yes)$/i.test(r.autoRefill || ''),
+        inStock: stockNum > 0,
       });
       if (ok) n++;
     }
@@ -167,7 +224,8 @@ export default function Inventory() {
     <>
       <PageHead eyebrow="Catalogue & stock" title="Inventory">
         <input ref={csvRef} type="file" accept=".csv,text/csv" hidden onChange={(e) => { importCsv(e.target.files?.[0]); e.target.value = ''; }} />
-        <Button variant="outline" icon="download" onClick={() => csvRef.current?.click()}>Import CSV</Button>
+        <Button variant="outline" icon="upload" onClick={() => csvRef.current?.click()}>Import CSV</Button>
+        <Button variant="outline" icon="download" onClick={exportCatalogCsv}>Export CSV</Button>
         <Button variant="outline" icon="layers" to="/admin/stock">Stock control</Button>
         <Button variant="dark" icon="plus" onClick={() => setEditId('__new')}>Add product</Button>
       </PageHead>

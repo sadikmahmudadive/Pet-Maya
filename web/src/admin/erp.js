@@ -25,9 +25,9 @@ import { escapeHtml, openPrintWindow } from '../lib/security.js';
 export const DEFAULT_SETTINGS = {
   businessName: 'Pet Maya',
   branch: 'Main branch',
-  address: '',
-  phone: '',
-  email: '',
+  address: 'House 24, Road 113/A, Gulshan 2, Dhaka 1212',
+  phone: '+880 1711-000000',
+  email: 'care@petmaya.com',
   bin: '',                     // VAT registration (BIN)
   vatRate: 0,                  // % — set to your applicable rate
   pricesIncludeVat: true,
@@ -37,6 +37,15 @@ export const DEFAULT_SETTINGS = {
   paymentMethods: ['Cash', 'bKash', 'Nagad', 'Card'],
   expenseCategories: ['Rent', 'Salaries', 'Utilities', 'Marketing', 'Delivery', 'Supplies', 'Maintenance', 'Bank charges', 'Other'],
   receiptWidthMm: 80,
+  insideDhakaFee: 60,
+  insideDhakaExpressFee: 120,
+  outsideDhakaFee: 130,
+  coldExpressFee: 150,
+  freeDeliveryOver: 2000,
+  minOrderValue: 0,
+  bkashMerchantNumber: '01700-000000',
+  nagadMerchantNumber: '01800-000000',
+  coldDistricts: ['Dhaka', 'Gazipur', 'Narayanganj'],
 };
 
 export const STAFF_ROLES = ['Manager', 'Cashier', 'Pharmacist', 'Accountant', 'Storekeeper'];
@@ -45,8 +54,8 @@ export const STAFF_ROLES = ['Manager', 'Cashier', 'Pharmacist', 'Accountant', 'S
 export const ROLE_ACCESS = {
   Manager: ['*'],
   Cashier: ['/admin/pos', '/admin/sales', '/admin/customers'],
-  Pharmacist: ['/admin', '/admin/orders', '/admin/prescriptions', '/admin/inventory', '/admin/pos', '/admin/sales', '/admin/stock'],
-  Accountant: ['/admin', '/admin/finance', '/admin/reports', '/admin/purchasing', '/admin/sales', '/admin/orders'],
+  Pharmacist: ['/admin', '/admin/orders', '/admin/prescriptions', '/admin/inventory', '/admin/promotions', '/admin/pos', '/admin/sales', '/admin/stock'],
+  Accountant: ['/admin', '/admin/finance', '/admin/reports', '/admin/purchasing', '/admin/sales', '/admin/orders', '/admin/promotions'],
   Storekeeper: ['/admin/inventory', '/admin/stock', '/admin/purchasing'],
 };
 
@@ -419,4 +428,166 @@ export function printDocument(title, html) {
     .r{text-align:right}.muted{color:#6c6862}.tot td{font-weight:700;border-top:2px solid #1a1917}
   </style>${html}`, { features: 'width=900,height=1000' });
 }
+
+/** Printable A4/Letter Tax Invoice for an e-commerce order. */
+export function printOrderInvoice(order, settings = DEFAULT_SETTINGS) {
+  const s = { ...DEFAULT_SETTINGS, ...(settings || {}) };
+  const dateStr = order.placedAt ? new Date(order.placedAt).toLocaleString('en-GB') : new Date().toLocaleString('en-GB');
+  const paidBadge = order.paymentStatus === 'paid' || order.status === 'Delivered'
+    ? 'PAID & VERIFIED'
+    : order.paymentStatus === 'refunded'
+      ? 'REFUNDED'
+      : order.paymentStatus === 'verification_pending'
+        ? 'TRXID VERIFICATION PENDING'
+        : 'CASH ON DELIVERY (COD)';
+  const rows = (order.items || []).map((i, idx) => `
+    <tr>
+      <td>${idx + 1}</td>
+      <td>
+        <b>${esc(i.name)}</b>
+        ${i.variant ? `<div class="muted">${esc(i.variant)}</div>` : ''}
+        ${i.sku ? `<div class="muted">SKU: ${esc(i.sku)}</div>` : ''}
+      </td>
+      <td>${i.isRx ? 'Rx' : 'OTC'}${i.coldChain ? ' · 2–8°C' : ''}</td>
+      <td class="r">${Number(i.qty) || 1}</td>
+      <td class="r">${tk(i.price)}</td>
+      <td class="r"><b>${tk((Number(i.price) || 0) * (Number(i.qty) || 1))}</b></td>
+    </tr>
+  `).join('');
+
+  printDocument(`Invoice-${order.id}`, `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #1a1917;padding-bottom:16px">
+      <div>
+        <h1>${esc(s.businessName || 'Pet Maya')}</h1>
+        <div class="muted">${esc(s.branch || 'Central Veterinary Pharmacy & Store')}</div>
+        ${s.address ? `<div class="muted">${esc(s.address)}</div>` : ''}
+        ${s.phone ? `<div class="muted">Tel: ${esc(s.phone)} · ${esc(s.email || '')}</div>` : ''}
+        ${s.bin ? `<div class="muted">BIN / VAT Reg: ${esc(s.bin)}</div>` : ''}
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:20px;font-weight:700;letter-spacing:.04em">TAX INVOICE</div>
+        <div><b>Invoice #:</b> INV-${esc(order.id)}</div>
+        <div><b>Order ID:</b> ${esc(order.id)}</div>
+        <div><b>Date:</b> ${esc(dateStr)}</div>
+        <div style="margin-top:6px;display:inline-block;padding:3px 8px;border:1px solid #1a1917;font-weight:700;font-size:11px">${esc(paidBadge)}</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:18px 0">
+      <div>
+        <div class="muted" style="font-size:11px;text-transform:uppercase;letter-spacing:.05em">Bill & Ship To</div>
+        <div style="font-size:15px;font-weight:700;margin-top:4px">${esc(order.customer)}</div>
+        ${order.phone ? `<div>Mobile: ${esc(order.phone)}</div>` : ''}
+        ${order.email ? `<div>Email: ${esc(order.email)}</div>` : ''}
+        <div>${esc(order.address || order.area || '')}</div>
+        <div class="muted">Zone: ${esc(order.deliveryZone || 'Inside Dhaka')} (${esc(order.district || 'Dhaka')})</div>
+      </div>
+      <div>
+        <div class="muted" style="font-size:11px;text-transform:uppercase;letter-spacing:.05em">Payment & Care Details</div>
+        <div style="margin-top:4px"><b>Method:</b> ${esc(order.payment || 'Cash on delivery')}</div>
+        ${order.paymentTrxId ? `<div><b>Transaction ID (TrxID):</b> ${esc(order.paymentTrxId)}</div>` : ''}
+        ${order.pet ? `<div><b>Patient / Pet:</b> ${esc(order.pet)}</div>` : ''}
+        ${order.courier ? `<div><b>Assigned Courier:</b> ${esc(order.courier)}</div>` : ''}
+        ${order.deliveryNote ? `<div><b>Courier Note:</b> ${esc(order.deliveryNote)}</div>` : ''}
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width:36px">#</th>
+          <th>Product / Variant</th>
+          <th>Handling</th>
+          <th class="r">Qty</th>
+          <th class="r">Unit Price</th>
+          <th class="r">Line Total</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+      <tfoot>
+        <tr><td colspan="5" class="r">Subtotal</td><td class="r">${tk(order.subtotal)}</td></tr>
+        ${order.discount > 0 ? `<tr><td colspan="5" class="r">Discount ${order.coupon ? `(${esc(order.coupon)})` : ''}</td><td class="r">−${tk(order.discount)}</td></tr>` : ''}
+        <tr><td colspan="5" class="r">Delivery (${esc(order.deliveryZone || 'Inside Dhaka')})</td><td class="r">${order.shipping ? tk(order.shipping) : 'Free'}</td></tr>
+        <tr class="tot"><td colspan="5" class="r">Grand Total (BDT)</td><td class="r">${tk(order.total)}</td></tr>
+      </tfoot>
+    </table>
+
+    <div style="margin-top:28px;font-size:12px" class="muted">
+      ${esc(s.receiptFooter || 'Thank you for caring for your pet with Pet Maya 🐾')}
+      <br>Prices are in Bangladeshi Taka (৳ BDT) and include applicable VAT. Genuine batch-verified veterinary products.
+    </div>
+  `);
+}
+
+/** Printable Warehouse Packing Slip & Cold-Chain / Rx Dispatch Checklist. */
+export function printPackingSlip(order, settings = DEFAULT_SETTINGS) {
+  const s = { ...DEFAULT_SETTINGS, ...(settings || {}) };
+  const dateStr = order.placedAt ? new Date(order.placedAt).toLocaleString('en-GB') : new Date().toLocaleString('en-GB');
+  const collectCod = order.paymentStatus !== 'paid' && order.status !== 'Cancelled' && order.status !== 'Return';
+  const rows = (order.items || []).map((i) => `
+    <tr>
+      <td style="width:36px;font-size:16px">☐</td>
+      <td><b>${esc(i.sku || '—')}</b></td>
+      <td>
+        <b>${esc(i.name)}</b>
+        ${i.variant ? `<div>Variant: <b>${esc(i.variant)}</b></div>` : ''}
+      </td>
+      <td>${i.coldChain ? '<b>❄ KEEP COLD 2–8°C</b>' : 'Ambient'}${i.isRx ? ' · <b>Rx Check</b>' : ''}</td>
+      <td class="r" style="font-size:15px"><b>× ${Number(i.qty) || 1}</b></td>
+    </tr>
+  `).join('');
+
+  printDocument(`PackingSlip-${order.id}`, `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #1a1917;padding-bottom:14px">
+      <div>
+        <h1>PACKING SLIP · ${esc(order.id)}</h1>
+        <div class="muted">${esc(s.businessName || 'Pet Maya')} Fulfilment Bench · Placed ${esc(dateStr)}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:16px;font-weight:700">${esc(order.deliveryZone || 'Inside Dhaka')} · ${esc(order.district || 'Dhaka')}</div>
+        <div style="margin-top:4px;font-size:14px"><b>${collectCod ? `COLLECT ON DELIVERY: ${tk(order.total)}` : `PREPAID (${esc(order.payment)}) — DO NOT COLLECT`}</b></div>
+      </div>
+    </div>
+
+    ${order.hasCold ? `<div style="margin-top:14px;padding:10px 14px;border:2px solid #1a1917;font-weight:700">❄ COLD-CHAIN DISPATCH (2°C – 8°C): Pack in insulated box with conditioned gel packs + temperature indicator tag.</div>` : ''}
+    ${order.hasRx ? `<div style="margin-top:10px;padding:10px 14px;border:1px dashed #1a1917"><b>Rx PRESCRIPTION ITEMS:</b> Verify vet approval before sealing parcel.</div>` : ''}
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:16px 0">
+      <div>
+        <div class="muted" style="font-size:11px;text-transform:uppercase">Deliver To</div>
+        <div style="font-size:16px;font-weight:700;margin-top:2px">${esc(order.customer)}</div>
+        <div style="font-size:14px"><b>Phone: ${esc(order.phone || '—')}</b></div>
+        <div>${esc(order.address || order.area || '')}</div>
+        ${order.deliveryNote ? `<div style="margin-top:4px"><b>Instructions:</b> ${esc(order.deliveryNote)}</div>` : ''}
+      </div>
+      <div>
+        <div class="muted" style="font-size:11px;text-transform:uppercase">Fulfilment Info</div>
+        <div style="margin-top:2px"><b>Service:</b> ${esc(order.delivery || 'Standard')}</div>
+        <div><b>Courier:</b> ${esc(order.courier || 'Unassigned')}</div>
+        <div><b>Patient:</b> ${esc(order.pet || '—')}</div>
+        <div><b>Total Units:</b> ${(order.items || []).reduce((a, i) => a + (Number(i.qty) || 1), 0)}</div>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Pick</th>
+          <th>SKU</th>
+          <th>Item & Variant</th>
+          <th>Storage / Rx</th>
+          <th class="r">Qty</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:32px;padding-top:16px;border-top:1px solid #ccc;font-size:12px">
+      <div>Picked by: ___________________</div>
+      <div>Packed & checked by: ___________________</div>
+      <div>Courier signature: ___________________</div>
+    </div>
+  `);
+}
+
 export { esc as escapeHtml, tk as takaText };

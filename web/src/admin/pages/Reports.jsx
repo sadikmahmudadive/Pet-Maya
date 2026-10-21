@@ -51,7 +51,9 @@ export default function Reports() {
 
   const r = useMemo(() => {
     const prod = Object.fromEntries(products.map((p) => [p.id, p]));
-    const online = orders.filter((o) => o.placedAt >= from && o.status !== 'Cancelled' && o.status !== 'Return');
+    const periodOrders = orders.filter((o) => o.placedAt >= from);
+    const online = periodOrders.filter((o) => o.status !== 'Cancelled' && o.status !== 'Return');
+    const returnedOrCancelled = periodOrders.filter((o) => o.status === 'Cancelled' || o.status === 'Return');
     const pos = sales.filter((s) => s.createdAt >= from);
 
     // Normalise both channels into line records
@@ -78,6 +80,14 @@ export default function Reports() {
     const byProduct = group((l) => l.name);
     const byCategory = group((l) => prod[l.id]?.category || 'other');
 
+    const byDistrict = {};
+    online.forEach((o) => {
+      const dist = o.district || 'Dhaka';
+      byDistrict[dist] ||= { orders: 0, revenue: 0, zone: o.deliveryZone || (dist === 'Dhaka' ? 'Inside Dhaka' : 'Outside Dhaka') };
+      byDistrict[dist].orders += 1;
+      byDistrict[dist].revenue += o.total || 0;
+    });
+
     const pay = {};
     online.forEach((o) => { pay[o.payment] = (pay[o.payment] || 0) + o.total; });
     pos.forEach((s) => (s.payments || []).forEach((p) => { pay[p.method] = (pay[p.method] || 0) + p.amount - (p.method === 'Cash' ? s.change || 0 : 0); }));
@@ -93,7 +103,27 @@ export default function Reports() {
     const storeRev = pos.reduce((a, s) => a + s.total - (s.refundedTotal || 0), 0);
     const revenue = lines.reduce((a, l) => a + l.revenue, 0);
     const cost = lines.reduce((a, l) => a + l.cost, 0);
-    return { series, byProduct, byCategory, pay: Object.entries(pay).sort((a, b) => b[1] - a[1]), hours, slow, onlineRev, storeRev, onlineN: online.length, storeN: pos.length, revenue, cost };
+    const aov = online.length ? Math.round(onlineRev / online.length) : 0;
+    const returnRate = periodOrders.length ? Math.round((returnedOrCancelled.length / periodOrders.length) * 100) : 0;
+
+    return {
+      series,
+      byProduct,
+      byCategory,
+      byDistrict: Object.entries(byDistrict).sort((a, b) => b[1].revenue - a[1].revenue),
+      pay: Object.entries(pay).sort((a, b) => b[1] - a[1]),
+      hours,
+      slow,
+      onlineRev,
+      storeRev,
+      onlineN: online.length,
+      storeN: pos.length,
+      revenue,
+      cost,
+      aov,
+      returnRate,
+      returnedCount: returnedOrCancelled.length,
+    };
   }, [orders, sales, products, from, days]);
 
   const total = r.onlineRev + r.storeRev;
@@ -102,7 +132,7 @@ export default function Reports() {
 
   return (
     <>
-      <PageHead eyebrow="Analytics" title="Reports">
+      <PageHead eyebrow="Analytics & E-Commerce Performance" title="Reports">
         <select className="filter-select" value={days} onChange={(e) => setDays(Number(e.target.value))} aria-label="Period">
           <option value={7}>Last 7 days</option><option value={30}>Last 30 days</option><option value={90}>Last 90 days</option><option value={365}>Last 12 months</option>
         </select>
@@ -110,9 +140,9 @@ export default function Reports() {
 
       <div className="stat-grid">
         <Stat label="Total sales" value={money(total, { compact: true })} icon="trend" note={`${r.onlineN + r.storeN} transactions`} />
-        <Stat label="Online" value={money(r.onlineRev, { compact: true })} icon="bag" delta={total ? `${Math.round((r.onlineRev / total) * 100)}%` : null} note={`${r.onlineN} orders`} />
-        <Stat label="In store" value={money(r.storeRev, { compact: true })} icon="cash" delta={total ? `${Math.round((r.storeRev / total) * 100)}%` : null} note={`${r.storeN} receipts`} />
-        <Stat label="Gross margin" value={r.revenue ? `${Math.round(((r.revenue - r.cost) / r.revenue) * 100)}%` : '—'} icon="pulse" note={money(r.revenue - r.cost, { compact: true }) + ' gross profit'} />
+        <Stat label="Online store" value={money(r.onlineRev, { compact: true })} icon="bag" delta={total ? `${Math.round((r.onlineRev / total) * 100)}%` : null} note={`${r.onlineN} orders · AOV ${money(r.aov)}`} />
+        <Stat label="In store (POS)" value={money(r.storeRev, { compact: true })} icon="cash" delta={total ? `${Math.round((r.storeRev / total) * 100)}%` : null} note={`${r.storeN} receipts`} />
+        <Stat label="Gross margin" value={r.revenue ? `${Math.round(((r.revenue - r.cost) / r.revenue) * 100)}%` : '—'} icon="pulse" note={`${money(r.revenue - r.cost, { compact: true })} profit · ${r.returnRate}% return/cancel`} />
       </div>
 
       <div className="card" style={{ marginTop: 16 }}>
@@ -131,21 +161,23 @@ export default function Reports() {
           rows={r.pay.map(([k, v]) => [k, money(v), pctCell(v, total)])} />
       </div>
 
+      <div className="adm-grid-2 even" style={{ marginTop: 16 }}>
+        <Table title="Online orders by district" sub="Inside Dhaka vs Outside Dhaka courier volume" file="sales-by-district.csv" head={['District', 'Zone', 'Orders', 'Revenue', 'Share']}
+          rows={r.byDistrict.map(([dist, v]) => [dist, v.zone, v.orders, money(v.revenue), pctCell(v.revenue, r.onlineRev)])} />
+        <Table title="Slow movers" sub="In stock, no sales in 30 days — consider a promotion" file="slow-movers.csv" head={['Product', 'Stock', 'Tied-up value']}
+          rows={r.slow.map((p) => [p.name, p.stockCount, money(p.stockCount * (p.cost || p.price))])} />
+      </div>
+
       <div style={{ marginTop: 16 }}>
         <Table title="Top products" sub="Both channels, ranked by revenue" file="top-products.csv" head={['Product', 'Units', 'Revenue', 'Cost', 'Gross profit', 'Margin']}
           rows={r.byProduct.map(([k, v]) => [k, Math.round(v.qty), money(v.revenue), money(v.cost), money(v.revenue - v.cost), pctCell(v.revenue - v.cost, v.revenue)])} />
       </div>
 
-      <div className="adm-grid-2" style={{ marginTop: 16 }}>
-        <div className="card">
-          <div className="card-head"><div><h2 className="h-card">Busiest hours</h2><div className="sub">{peak?.n ? `Peak at ${String(peak.h).padStart(2, '0')}:00 — staff the till then` : 'No transactions yet'}</div></div></div>
-          <Bars height={150} fmt={(v) => String(Math.round(v))} series={r.hours.slice(7, 23).map((h) => ({ value: h.n, label: `${String(h.h).padStart(2, '0')}:00 · ${h.n} sales` }))} />
-          <div className="bar-labels" style={{ paddingLeft: 44 }}>{r.hours.slice(7, 23).map((h) => <span key={h.h}>{h.h}</span>)}</div>
-        </div>
-        <Table title="Slow movers" sub="In stock, no sales in 30 days — consider a promotion" file="slow-movers.csv" head={['Product', 'Stock', 'Tied-up value']}
-          rows={r.slow.map((p) => [p.name, p.stockCount, money(p.stockCount * (p.cost || p.price))])} />
+      <div className="card" style={{ marginTop: 16 }}>
+        <div className="card-head"><div><h2 className="h-card">Busiest hours</h2><div className="sub">{peak?.n ? `Peak at ${String(peak.h).padStart(2, '0')}:00 — staff the till & fulfilment bench then` : 'No transactions yet'}</div></div></div>
+        <Bars height={150} fmt={(v) => String(Math.round(v))} series={r.hours.slice(7, 23).map((h) => ({ value: h.n, label: `${String(h.h).padStart(2, '0')}:00 · ${h.n} sales` }))} />
+        <div className="bar-labels" style={{ paddingLeft: 44 }}>{r.hours.slice(7, 23).map((h) => <span key={h.h}>{h.h}</span>)}</div>
       </div>
     </>
   );
 }
-

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAdmin } from '../data.jsx';
 import { PageHead } from '../AdminApp.jsx';
-import { saveRecord, printReceipt, DEFAULT_SETTINGS } from '../erp.js';
+import { saveRecord, printReceipt, DEFAULT_SETTINGS, ROLE_ACCESS } from '../erp.js';
 import { Button, Field, Toggle, Pill } from '../../ui/index.jsx';
 import { useStore } from '../../lib/store.jsx';
 import { functions, httpsCallable } from '../../config/firebase';
@@ -36,7 +36,17 @@ export default function Settings() {
 
   const save = async () => {
     try {
-      await saveRecord('settings', 'erp', { ...f, vatRate: Number(f.vatRate) || 0, receiptWidthMm: Number(f.receiptWidthMm) || 80 });
+      await saveRecord('settings', 'erp', {
+        ...f,
+        vatRate: Number(f.vatRate) || 0,
+        receiptWidthMm: Number(f.receiptWidthMm) || 80,
+        insideDhakaFee: Number(f.insideDhakaFee) || 0,
+        insideDhakaExpressFee: Number(f.insideDhakaExpressFee) || 0,
+        outsideDhakaFee: Number(f.outsideDhakaFee) || 0,
+        coldExpressFee: Number(f.coldExpressFee) || 0,
+        freeDeliveryOver: Number(f.freeDeliveryOver) || 0,
+        minOrderValue: Number(f.minOrderValue) || 0,
+      });
       setDirty(false);
       toast('Settings saved');
     } catch { toast('Couldn’t save — only admins can change settings', { tone: 'error' }); }
@@ -73,7 +83,7 @@ export default function Settings() {
       <div className="adm-grid-2 even">
         <div className="card">
           <h2 className="h-card">Business</h2>
-          <div className="sub" style={{ marginBottom: 14 }}>Printed on receipts, purchase orders and reports.</div>
+          <div className="sub" style={{ marginBottom: 14 }}>Printed on receipts, tax invoices, purchase orders and reports.</div>
           <div className="fields">
             <Field className="full" label="Business name" {...inp('businessName')} />
             <Field label="Branch / outlet" {...inp('branch')} />
@@ -81,6 +91,29 @@ export default function Settings() {
             <Field className="full" label="Address" {...inp('address')} />
             <Field label="Email" type="email" {...inp('email')} />
             <Field label="VAT registration (BIN)" {...inp('bin')} />
+          </div>
+        </div>
+
+        <div className="card">
+          <h2 className="h-card">Online Store & Bangladesh Delivery</h2>
+          <div className="sub" style={{ marginBottom: 14 }}>Configurable delivery charges, thresholds, cold-chain districts and mobile wallets.</div>
+          <div className="fields">
+            <Field label="Inside Dhaka Fee (৳)" type="number" min="0" {...inp('insideDhakaFee')} />
+            <Field label="Express Dhaka Fee (৳)" type="number" min="0" {...inp('insideDhakaExpressFee')} />
+            <Field label="Outside Dhaka Courier (৳)" type="number" min="0" {...inp('outsideDhakaFee')} />
+            <Field label="Cold-Chain Express (৳)" type="number" min="0" {...inp('coldExpressFee')} />
+            <Field label="Free delivery over (৳)" type="number" min="0" {...inp('freeDeliveryOver')} />
+            <Field label="Minimum order value (৳)" type="number" min="0" {...inp('minOrderValue')} />
+            <Field label="bKash Send Money #" {...inp('bkashMerchantNumber')} />
+            <Field label="Nagad Send Money #" {...inp('nagadMerchantNumber')} />
+          </div>
+          <div style={{ marginTop: 14 }}>
+            <ListEditor
+              label="Cold-chain supported districts (2°C–8°C)"
+              items={f.coldDistricts || DEFAULT_SETTINGS.coldDistricts}
+              onChange={(v) => set('coldDistricts', v.length ? v : ['Dhaka'])}
+              placeholder="e.g. Chattogram"
+            />
           </div>
         </div>
 
@@ -112,6 +145,23 @@ export default function Settings() {
           <h2 className="h-card">Accounting</h2>
           <div style={{ marginTop: 10 }}>
             <ListEditor label="Expense categories" items={f.expenseCategories || []} onChange={(v) => set('expenseCategories', v.length ? v : DEFAULT_SETTINGS.expenseCategories)} placeholder="e.g. Veterinary consumables" />
+          </div>
+        </div>
+
+        <div className="card">
+          <h2 className="h-card">Role-Based Access Control</h2>
+          <div className="sub" style={{ marginBottom: 12 }}>Staff roles assigned under Staff automatically enforce these console permissions.</div>
+          <div className="list">
+            {Object.entries(ROLE_ACCESS).map(([roleName, routes]) => (
+              <div key={roleName} className="list-row" style={{ padding: '8px 0', fontSize: 13 }}>
+                <b style={{ minWidth: 110 }}>{roleName}</b>
+                <div className="row gap-6 wrap">
+                  {routes.map((rt) => (
+                    <Pill key={rt} mono sm>{rt === '*' ? 'Full console access' : rt.replace('/admin/', '') || 'dashboard'}</Pill>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 

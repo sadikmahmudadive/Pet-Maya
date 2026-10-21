@@ -3,6 +3,7 @@ import { Link, useRouter } from '../../lib/router.jsx';
 import { useStore } from '../../lib/store.jsx';
 import { normOrder } from '../../data/firestore.js';
 import { cancelCustomerOrder, requestOrderReturn } from '../../data/actions.js';
+import { printOrderInvoice } from '../../admin/erp.js';
 import { Icon, Button, Ph, Pill, Empty, Avatar, Field, Portal } from '../../ui/index.jsx';
 import { money, cx, timeOfDay, shortDate } from '../../lib/format.js';
 import GoogleMapView from '../../components/Common/GoogleMapView.jsx';
@@ -193,7 +194,7 @@ function OrderDetail({ order: o }) {
           </p>
         </div>
         <div className="row gap-8 wrap">
-          <Button variant="outline" icon="download" onClick={() => window.print()}>Download invoice</Button>
+          <Button variant="outline" icon="download" onClick={() => printOrderInvoice(o)}>Download invoice</Button>
           {canCancel && <Button variant="outline" icon="x" onClick={() => setShowCancel(true)}>Cancel order</Button>}
           {canReturn && <Button variant="outline" icon="arrowRight" onClick={() => setShowReturn(true)}>Request return</Button>}
           <Button variant="dark" icon="message" to="mailto:support@petmaya.app">Help with this order</Button>
