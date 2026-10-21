@@ -118,12 +118,13 @@
 .pcard-price s { font-weight: 400; font-size: 12px; color: var(--subtle); margin-left: 6px; }
 .pcard-btns { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 .pcard-btn-add { height: 32px; padding: 0 10px; font-size: 12.5px; border-radius: 999px; }
-.pcard-btn-buy { height: 32px; padding: 0 12px; font-size: 12.5px; font-weight: 600; border-radius: 999px; background: var(--ink); color: #fff; display: inline-flex; align-items: center; gap: 4px; border: 1px solid transparent; }
-.pcard-btn-buy:hover { background: var(--teal); color: #fff; }
+.pcard-btn-buy { height: 32px; padding: 0 12px; font-size: 12.5px; font-weight: 600; border-radius: 999px; background: var(--btn-dark-bg, var(--ink)); color: var(--btn-dark-ink, #ffffff); display: inline-flex; align-items: center; gap: 4px; border: 1px solid transparent; }
+.pcard-btn-buy svg { color: inherit; stroke: currentColor; }
+.pcard-btn-buy:hover { background: var(--teal); color: var(--on-teal, #ffffff); }
 .pcard-btn-buy:active { transform: scale(0.97); }
 .variant-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
-.vchip { height: 26px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--line-2); font-size: 11.5px; background: var(--surface); }
-.vchip.on { background: var(--sunk-2); border-color: var(--sunk-2); font-weight: 600; }
+.vchip { height: 26px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--line-2); font-size: 11.5px; background: var(--surface); color: var(--ink); }
+.vchip.on { background: var(--sunk-2); border-color: var(--sunk-2); font-weight: 600; color: var(--ink); }
 @media (max-width: 520px) {
   .pcard-actions { top: 12px; right: 12px; gap: 4px; }
   .pcard-fav { width: 30px; height: 30px; }
