@@ -1,4 +1,7 @@
 /* ── Admin console ─────────────────────────────────────── */
+/* The console fills the screen next to the sidebar (no fixed maximum width, so there is no empty strip on wide
+   monitors); the side gutters grow gently with the screen instead. */
+.adm { --adm-gutter: clamp(28px, 2.4vw, 64px); }
 .adm { display: grid; grid-template-columns: 236px minmax(0, 1fr); min-height: 100vh; background: linear-gradient(90deg, var(--teal-deep) 236px, var(--bg) 236px); }
 @media (max-width: 960px) { .adm { background: var(--bg); } }
 .adm-side { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; padding: 26px 14px 16px; background: var(--teal-deep); color: rgba(255,255,255,.85); overflow-y: auto; z-index: 62; }
@@ -12,9 +15,9 @@
 .adm-user { display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 16px; background: rgba(255,255,255,.08); }
 .adm-user .avatar { background: var(--surface); color: var(--teal); }
 .adm-main { min-width: 0; display: flex; flex-direction: column; }
-.adm-top { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; gap: 14px; padding: 10px 28px; background: var(--adm-top-bg, rgba(252,248,245,.92)); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+.adm-top { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; gap: 14px; padding: 10px var(--adm-gutter); background: var(--adm-top-bg, rgba(252,248,245,.92)); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
 .adm-menu { display: none; }
-.adm-content { padding: 26px 28px 60px; width: 100%; max-width: 1360px; }
+.adm-content { padding: 26px var(--adm-gutter) 60px; width: 100%; }
 .adm-title { font: 400 clamp(32px, 3.4vw, 42px)/1.1 var(--serif); letter-spacing: -0.025em; margin-top: 8px; }
 .adm-gate { min-height: 100vh; display: grid; place-items: center; padding: 24px; background: var(--bg); }
 .ellipsis { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
