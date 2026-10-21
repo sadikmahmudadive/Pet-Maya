@@ -54,7 +54,42 @@ export default function Product({ params }) {
   const [reviewing, setReviewing] = useState(false);
 
   useEffect(() => { setVariant(matchVariant || p?.variants?.[0] || ''); setQty(1); setCourse(1); setImg(0); }, [p?.id, matchVariant]);
-  useEffect(() => { if (p) document.title = `${p.name} · Pet Maya`; }, [p]);
+  useEffect(() => {
+    if (!p) return;
+    document.title = `${p.name} · Pet Maya Shop`;
+
+    const setMeta = (attr, key, val) => {
+      if (!val) return;
+      let el = document.querySelector(`meta[${attr}="${key}"]`);
+      if (!el) {
+        el = document.createElement('meta');
+        el.setAttribute(attr, key);
+        document.head.appendChild(el);
+      }
+      el.setAttribute('content', val);
+    };
+
+    const desc = p.description || p.shortDescription || `Buy ${p.name} on Pet Maya Shop. Authentic pet healthcare and essentials with fast delivery across Bangladesh.`;
+    setMeta('name', 'description', desc);
+    setMeta('property', 'og:title', `${p.name} · Pet Maya Shop`);
+    setMeta('property', 'og:description', desc);
+    setMeta('property', 'og:image', p.image || '');
+    setMeta('property', 'og:type', 'product');
+    setMeta('property', 'og:url', typeof window !== 'undefined' ? window.location.href : '');
+    setMeta('property', 'product:price:amount', String(activePrice || p.price || 0));
+    setMeta('property', 'product:price:currency', 'BDT');
+    setMeta('property', 'product:availability', soldOut ? 'out of stock' : 'in stock');
+
+    if (typeof window !== 'undefined') {
+      let canonical = document.querySelector('link[rel="canonical"]');
+      if (!canonical) {
+        canonical = document.createElement('link');
+        canonical.setAttribute('rel', 'canonical');
+        document.head.appendChild(canonical);
+      }
+      canonical.setAttribute('href', window.location.origin + productPath(p));
+    }
+  }, [p, activePrice, soldOut]);
   useEffect(() => { if (p?.id) track('view_item', { value: Number(p.price) || 0, items: [toItem(p, 1)] }); }, [p?.id]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     const onScroll = () => setShowSticky(window.scrollY > 900);

@@ -463,6 +463,10 @@ service cloud.firestore {
       allow read, create, update: if isStaff();
       allow delete: if false;
     }
+    match /inventoryMovements/{id} {
+      allow read: if isStaff() || isAdmin();
+      allow write: if false;              // append-only via server Cloud Functions
+    }
     match /stock_moves/{id} {
       allow read: if isStaff();
       allow create: if isStaff();

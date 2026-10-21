@@ -155,6 +155,15 @@ export const create_order = onCall(async (request) => {
     : `PM-${Math.floor(10000 + Math.random() * 89999)}`;
   const couponCode = clip(data.coupon, 30).toUpperCase();
 
+  // Idempotency: return existing order if this orderId has already been committed
+  if (data.orderId) {
+    const existing = await db.collection("orders").where("orderId", "==", String(data.orderId)).limit(1).get();
+    if (!existing.empty) {
+      const doc = existing.docs[0];
+      return { ok: true, orderId: String(data.orderId), docId: doc.id, idempotent: true };
+    }
+  }
+
   // Look up coupon before transaction if provided
   let couponSnap: admin.firestore.QueryDocumentSnapshot | null = null;
   if (couponCode && !["PETMAYA10", "MAYA10", "FREESHIP"].includes(couponCode)) {
@@ -266,12 +275,28 @@ export const create_order = onCall(async (request) => {
     const now = Date.now();
     const orderDocRef = db.collection("orders").doc();
 
-    // Deduct stock atomically
+    // Deduct stock atomically and record inventory movement audit ledger
     stockDeductions.forEach((units, prodId) => {
       tx.update(db.collection("products").doc(prodId), {
         stockCount: admin.firestore.FieldValue.increment(-units),
         unitsSold: admin.firestore.FieldValue.increment(units),
         updatedAt: now,
+      });
+
+      const movementRef = db.collection("inventoryMovements").doc();
+      const vi = verifiedItems.find((item) => item.id === prodId);
+      tx.set(movementRef, {
+        orderId,
+        orderDocId: orderDocRef.id,
+        productId: prodId,
+        productName: vi?.name || prodId,
+        sku: vi?.sku || "",
+        quantityChange: -units,
+        reason: "order_placed",
+        actor: uid,
+        customer,
+        timestamp: now,
+        createdAt: new Date(now).toISOString(),
       });
     });
 
@@ -432,4 +457,66 @@ export const backfill_security_data = onCall({ timeoutSeconds: 540, memory: "512
   }
   if (pending) await batch.commit();
   return { profiles, records };
+});
+
+/**
+ * Automatically restocks inventory and writes an audit ledger entry when
+ * an order is cancelled or a return is approved.
+ */
+export const handle_order_status_change = onDocumentWritten("orders/{orderId}", async (event) => {
+  const after = event.data?.after?.data();
+  if (!after) return; // Order was deleted
+
+  const afterStatus = String(after.status || "").toLowerCase();
+  const isCancelled = ["cancelled", "canceled"].includes(afterStatus);
+  const isReturned = (afterStatus === "return" || afterStatus === "returned") && after.returnApproved === true;
+
+  if ((isCancelled || isReturned) && after.stockDeducted === true && !after.stockRestored) {
+    const db = admin.firestore();
+    const items: any[] = Array.isArray(after.items) ? after.items : [];
+    if (!items.length) return;
+
+    const now = Date.now();
+    await db.runTransaction(async (tx) => {
+      const orderRef = event.data?.after?.ref;
+      if (!orderRef) return;
+      const currentDoc = await tx.get(orderRef);
+      const currData = currentDoc.data();
+      if (!currData || currData.stockRestored) return;
+
+      for (const item of items) {
+        if (!item.id) continue;
+        const packs = Math.max(1, Number(item.coursePacks) || 1);
+        const units = Math.max(1, Number(item.qty) || 1) * (packs === 3 || packs === 6 ? packs : 1);
+        const prodRef = db.collection("products").doc(item.id);
+
+        tx.update(prodRef, {
+          stockCount: admin.firestore.FieldValue.increment(units),
+          unitsSold: admin.firestore.FieldValue.increment(-units),
+          updatedAt: now,
+        });
+
+        const movementRef = db.collection("inventoryMovements").doc();
+        tx.set(movementRef, {
+          orderId: after.orderId || event.params.orderId,
+          orderDocId: orderRef.id,
+          productId: item.id,
+          productName: item.name || item.id,
+          sku: item.sku || "",
+          quantityChange: units,
+          reason: isCancelled ? "order_cancelled" : "order_returned",
+          actor: after.cancelledBy || after.updatedBy || "system",
+          customer: after.customer || "",
+          timestamp: now,
+          createdAt: new Date(now).toISOString(),
+        });
+      }
+
+      tx.update(orderRef, {
+        stockRestored: true,
+        stockRestoredAt: now,
+        updatedAt: now,
+      });
+    });
+  }
 });
