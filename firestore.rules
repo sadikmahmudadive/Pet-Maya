@@ -432,7 +432,8 @@ service cloud.firestore {
     // Global settings (banner, maintenance mode, AI switch, shipping fee …).
     match /settings/{settingId} {
       allow read: if true;
-      allow write: if isAdmin() || (settingId == 'erp' && hasStaffRole(['Manager']));
+      // The announcement bar (settings/announcement) is also editable by managers, like the ERP settings.
+      allow write: if isAdmin() || (settingId in ['erp', 'announcement'] && hasStaffRole(['Manager']));
     }
 
     // Admin broadcast history (sending itself goes through send_broadcast).

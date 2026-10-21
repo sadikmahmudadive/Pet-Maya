@@ -31,6 +31,7 @@ const USERS = {
   shop: { name: 'Shop', role: 'petShop', isVerified: true },
   admin: { name: 'Admin', role: 'admin' },
   cashier: { name: 'Cashier', role: 'petOwner', staffRole: 'Cashier' },
+  manager: { name: 'Manager', role: 'petOwner', staffRole: 'Manager' },
 };
 
 beforeEach(async () => {
@@ -297,4 +298,16 @@ test('coupons: usage counters cannot be bumped by customers or anonymous visitor
   await assertFails(updateDoc(doc(as('alice'), 'coupons', 'SAVE5'), { usageCount: 2, updatedAt: 1 }));
   await assertSucceeds(getDoc(doc(as(null), 'coupons', 'SAVE5')));
   await assertSucceeds(updateDoc(doc(as('admin'), 'coupons', 'SAVE5'), { active: false }));
+});
+
+test('announcement bar: public to read; only admins and managers can change it', async () => {
+  const bar = { enabled: true, messages: [{ id: 'm1', text: 'Hello', active: true }], rotateSeconds: 6 };
+  await assertSucceeds(setDoc(doc(as('admin'), 'settings', 'announcement'), bar));
+  await assertSucceeds(setDoc(doc(as('manager'), 'settings', 'announcement'), { ...bar, enabled: false }));
+  await assertFails(setDoc(doc(as('cashier'), 'settings', 'announcement'), bar));
+  await assertFails(setDoc(doc(as('alice'), 'settings', 'announcement'), bar));
+  await assertFails(setDoc(doc(as(null), 'settings', 'announcement'), bar));
+  await assertSucceeds(getDoc(doc(as(null), 'settings', 'announcement')));
+  // a manager still cannot touch the other global settings
+  await assertFails(setDoc(doc(as('manager'), 'settings', 'global'), { maintenance_mode: true }));
 });

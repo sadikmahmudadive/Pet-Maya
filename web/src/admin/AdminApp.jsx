@@ -21,6 +21,8 @@ import Finance from './pages/Finance.jsx';
 import Reports from './pages/Reports.jsx';
 import Staff from './pages/Staff.jsx';
 import Settings from './pages/Settings.jsx';
+import Announcement from './pages/Announcement.jsx';
+import { storefrontUrl } from '../lib/hosts.js';
 import { STAFF_ROLES, canAccess, homeFor } from './erp.js';
 
 const ADMIN_ROLES = /^(admin|super ?admin|superadmin)$/i;
@@ -34,6 +36,7 @@ const ROUTES = [
   ['/admin/prescriptions', Prescriptions, 'Prescriptions'],
   ['/admin/inventory', Inventory, 'Inventory'],
   ['/admin/promotions', Promotions, 'Promotions'],
+  ['/admin/announcement', Announcement, 'Announcement bar'],
   ['/admin/appointments', Appointments, 'Appointments'],
   ['/admin/customers', Customers, 'Customers'],
   ['/admin/pos', POS, 'Point of sale'],
@@ -48,6 +51,7 @@ const ROUTES = [
 
 function Sidebar({ open, onClose, user }) {
   const { path } = useRouter();
+  const storeHref = storefrontUrl();
   const { orders, rxQueue, coupons = [], products, purchases = [], shifts = [] } = useAdmin();
   const openOrders = orders.filter((o) => o.status === 'Packing' || o.status === 'Rx review' || o.status === 'In transit').length;
   const activeCoupons = coupons.filter((c) => c.active && (!c.expiresAt || c.expiresAt > Date.now())).length;
@@ -60,6 +64,7 @@ function Sidebar({ open, onClose, user }) {
       ['/admin/orders', 'Orders', 'bag', openOrders],
       ['/admin/prescriptions', 'Prescriptions', 'file', rxQueue.length],
       ['/admin/promotions', 'Promotions', 'tag', activeCoupons],
+      ['/admin/announcement', 'Announcement bar', 'bell'],
     ]],
     ['Store', [
       ['/admin/pos', 'Point of sale', 'cash', openShifts],
@@ -106,7 +111,7 @@ function Sidebar({ open, onClose, user }) {
           ))}
         </nav>
         <div style={{ marginTop: 'auto' }} className="stack gap-12">
-          <Link to="/" className="adm-link"><Icon name="arrowUpRight" size={16} /> View storefront</Link>
+          <Link to={storeHref} className="adm-link" target={storeHref === '/' ? undefined : '_blank'}><Icon name="arrowUpRight" size={16} /> View storefront</Link>
           <div className="adm-user">
             <Avatar name={user?.name || 'Admin'} src={user?.photoUrl} />
             <div style={{ minWidth: 0 }}><div style={{ fontWeight: 600, fontSize: 14, color: '#fff' }} className="ellipsis">{user?.name || 'Admin'}</div><div style={{ fontSize: 12, color: '#9FD0CF' }}>{user?.role || 'Preview'}</div></div>

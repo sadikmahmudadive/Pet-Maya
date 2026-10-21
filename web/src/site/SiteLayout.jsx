@@ -5,7 +5,8 @@ import { Icon, Button, ThemeToggle, Ph, Pill } from '../ui/index.jsx';
 import { money, cx, productPath } from '../lib/format.js';
 import { useScrolled, useBump, Reveal } from '../lib/motion.jsx';
 import { subscribeNewsletter } from '../data/actions.js';
-import { ANNOUNCEMENTS, TRUST, BRAND } from '../data/content.js';
+import { TRUST, BRAND } from '../data/content.js';
+import AnnouncementBar, { useAnnouncementConfig } from './AnnouncementBar.jsx';
 import BagDrawer from './BagDrawer.jsx';
 import CompareDrawer from './CompareDrawer.jsx';
 import AiShoppingAssistant from './AiShoppingAssistant.jsx';
@@ -238,20 +239,10 @@ function Header() {
   );
 }
 
+// Editable from the admin console (Announcement bar); see lib/announcement.js for the defaults.
 function Announcement() {
-  const [i, setI] = useState(0);
-  useEffect(() => {
-    const t = setInterval(() => setI((x) => (x + 1) % ANNOUNCEMENTS.length), 6000);
-    return () => clearInterval(t);
-  }, []);
-  return (
-    <div className="announce">
-      <div className="container row between">
-        <span key={i} className="announce-text">{ANNOUNCEMENTS[i]}</span>
-        <Link to="/account/orders" className="announce-text">Track order →</Link>
-      </div>
-    </div>
-  );
+  const config = useAnnouncementConfig();
+  return <AnnouncementBar config={config} />;
 }
 
 export function TrustRow() {
