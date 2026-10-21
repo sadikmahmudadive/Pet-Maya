@@ -101,10 +101,14 @@
 .pcard { position: relative; display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 10px 10px 14px; transition: box-shadow .2s, transform .2s; }
 .pcard:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
 .pcard .ph { aspect-ratio: 1 / .9; border-radius: var(--r-md); }
-.pcard-badge { position: absolute; top: 20px; left: 20px; z-index: 1; }
-.pcard-fav { position: absolute; top: 18px; right: 18px; z-index: 1; width: 34px; height: 34px; border-radius: 50%; background: var(--fav-bg, rgba(255,255,255,.92)); display: grid; place-items: center; border: 1px solid var(--line); }
+.pcard-badge { position: absolute; top: 18px; left: 18px; z-index: 1; }
+.pcard-actions { position: absolute; top: 16px; right: 16px; z-index: 2; display: flex; align-items: center; gap: 6px; }
+.pcard-actions .pcard-fav { position: relative; top: auto; right: auto; }
+.pcard-fav { position: absolute; top: 18px; right: 18px; z-index: 1; width: 34px; height: 34px; border-radius: 50%; background: var(--fav-bg, rgba(255,255,255,.92)); display: grid; place-items: center; border: 1px solid var(--line); color: var(--ink); cursor: pointer; }
 .pcard-fav.on { color: var(--red); }
 .pcard-fav.on svg { fill: currentColor; }
+.pcard-btn-compare.on { color: var(--teal); background: rgba(30, 123, 110, 0.12); border-color: var(--teal); }
+.pcard-btn-compare.on svg { fill: none; }
 .pcard-body { padding: 12px 6px 0; display: flex; flex-direction: column; gap: 4px; flex: 1; }
 .pcard-brand { font: 500 10px/1.2 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--teal); }
 .pcard-name { font-weight: 600; font-size: 15px; line-height: 1.3; }
@@ -116,6 +120,8 @@
 .vchip { height: 26px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--line-2); font-size: 11.5px; background: var(--surface); }
 .vchip.on { background: var(--sunk-2); border-color: var(--sunk-2); font-weight: 600; }
 @media (max-width: 520px) {
+  .pcard-actions { top: 12px; right: 12px; gap: 4px; }
+  .pcard-fav { width: 30px; height: 30px; }
   .pcard-name { font-size: 13.5px; }
   .pcard-price { font-size: 15px; }
   .pcard .btn-sm { padding: 0 10px; }

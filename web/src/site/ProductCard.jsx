@@ -30,20 +30,27 @@ export default function ProductCard({ p }) {
   return (
     <article className="pcard">
       {badge && <span className={cx('pill sm pcard-badge', BADGE_TONE[badge] || (badge === 'Sold out' ? 'red' : ''))}>{badge}</span>}
-      <button className={cx('pcard-fav', fav && 'on')} onClick={() => toggleWish(p.id)} aria-label={fav ? 'Remove from saved' : 'Save'} aria-pressed={fav}>
-        <Icon name="heart" size={15} />
-      </button>
-      <button
-        type="button"
-        className={cx('pcard-fav', inCompare && 'on')}
-        style={{ right: 48 }}
-        onClick={() => toggleCompare(p.id)}
-        title={inCompare ? 'Remove from comparison' : 'Compare product'}
-        aria-label={inCompare ? 'Remove from comparison' : 'Compare product'}
-        aria-pressed={inCompare}
-      >
-        <Icon name="layers" size={14} />
-      </button>
+      <div className="pcard-actions">
+        <button
+          type="button"
+          className={cx('pcard-fav pcard-btn-compare', inCompare && 'on')}
+          onClick={() => toggleCompare(p.id)}
+          title={inCompare ? 'Remove from comparison' : 'Compare product'}
+          aria-label={inCompare ? 'Remove from comparison' : 'Compare product'}
+          aria-pressed={inCompare}
+        >
+          <Icon name="layers" size={14} />
+        </button>
+        <button
+          type="button"
+          className={cx('pcard-fav', fav && 'on')}
+          onClick={() => toggleWish(p.id)}
+          aria-label={fav ? 'Remove from saved' : 'Save'}
+          aria-pressed={fav}
+        >
+          <Icon name="heart" size={15} />
+        </button>
+      </div>
       <Link to={productPath(p)} target="_blank" aria-label={`${p.name} (opens in a new tab)`}>
         <Ph src={p.image} tone={p.coldChain ? 'teal' : ''} label={p.category === 'vaccines' ? 'vial' : 'product'} />
       </Link>
