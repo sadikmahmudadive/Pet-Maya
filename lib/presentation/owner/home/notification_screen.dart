@@ -11,6 +11,7 @@ import '../../../data/repositories/app_state_repository.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
 import '../../common_widgets/empty_state.dart';
+import '../../common_widgets/premium_toast.dart';
 
 class NotificationScreen extends StatelessWidget {
   const NotificationScreen({super.key});
@@ -34,6 +35,12 @@ class NotificationScreen extends StatelessWidget {
               BatteryOptimizationHelper.showOptimizationGuideModal(context);
             },
           ),
+          if (notifications.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.delete_sweep_rounded, color: AppColors.dangerRed),
+              tooltip: 'Clear all notifications',
+              onPressed: () => _confirmClearAll(context, repo, notifications.length),
+            ),
           if (notifications.isNotEmpty)
             TextButton(
               onPressed: () {
@@ -182,6 +189,39 @@ class NotificationScreen extends StatelessWidget {
       case NotificationType.order: return AppColors.accentAmber;
       case NotificationType.system: return AppColors.tertiary;
     }
+  }
+
+  /// One tap on the bin asks once ("Clear all"), then removes every notification in one go.
+  Future<void> _confirmClearAll(BuildContext context, AppStateRepository repo, int count) async {
+    HapticFeedback.mediumImpact();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        title: const Text('Clear all notifications?', style: TextStyle(fontWeight: FontWeight.w700)),
+        content: Text(
+          count == 1
+              ? 'This removes your notification. It cannot be undone.'
+              : 'This removes all $count notifications. It cannot be undone.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('CANCEL')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.dangerRed, foregroundColor: Colors.white),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('CLEAR ALL'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+    final ok = await repo.clearNotifications();
+    if (!context.mounted) return;
+    repo.showToast(
+      ok ? 'All notifications cleared' : 'Could not clear notifications. Check your connection and try again.',
+      type: ok ? ToastType.success : ToastType.error,
+      context: context,
+    );
   }
 
   Widget _buildDismissBackground(bool isStart) {

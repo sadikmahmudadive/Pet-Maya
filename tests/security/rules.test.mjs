@@ -3,12 +3,13 @@
 // emulators:exec sets FIRESTORE_EMULATOR_HOST / FIREBASE_STORAGE_EMULATOR_HOST)
 import { test, before, after, beforeEach } from 'node:test';
 import { readFileSync } from 'node:fs';
+import assert from 'node:assert/strict';
 import {
   initializeTestEnvironment, assertSucceeds, assertFails,
 } from '@firebase/rules-unit-testing';
 import {
   doc, getDoc, setDoc, updateDoc, deleteDoc, addDoc, collection, getDocs, query, where,
-  increment, arrayUnion, deleteField,
+  increment, arrayUnion, deleteField, writeBatch, limit,
 } from 'firebase/firestore';
 import { ref, uploadBytes, getBytes } from 'firebase/storage';
 
@@ -194,6 +195,41 @@ test('notifications: only safe internal links, owner-only reads', async () => {
   await assertSucceeds(getDocs(items('alice')));
   await assertSucceeds(updateDoc(doc(as('alice'), 'notifications', 'alice', 'items', 'n1'), { isRead: true }));
   await assertFails(updateDoc(doc(as('alice'), 'notifications', 'alice', 'items', 'n1'), { title: 'changed' }));
+});
+
+test('notifications: "Clear all" - owners delete all of their own in batches; nobody else can', async () => {
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    const db = ctx.firestore();
+    const b = writeBatch(db);
+    for (let i = 0; i < 450; i++) b.set(doc(db, 'notifications', 'alice', 'items', `n_${i}`), { title: 'Order placed', message: 'x', timestamp: i });
+    b.set(doc(db, 'notifications', 'bob', 'items', 'keep'), { title: 'Bob only', message: 'x', timestamp: 1 });
+    await b.commit();
+  });
+  const aliceDb = as('alice');
+  const bobDb = as('bob');
+  const mine = collection(aliceDb, 'notifications', 'alice', 'items');
+  // others cannot delete Alice's notifications, one by one or in a batch
+  await assertFails(deleteDoc(doc(bobDb, 'notifications', 'alice', 'items', 'n_0')));
+  const sneaky = writeBatch(bobDb);
+  sneaky.delete(doc(bobDb, 'notifications', 'alice', 'items', 'n_1'));
+  await assertFails(sneaky.commit());
+  // Alice cannot delete Bob's
+  await assertFails(deleteDoc(doc(aliceDb, 'notifications', 'bob', 'items', 'keep')));
+  // the app's loop: batches of up to 400 until none are left
+  let rounds = 0;
+  for (;;) {
+    const snap = await getDocs(query(mine, limit(400)));
+    if (snap.empty) break;
+    const batch = writeBatch(aliceDb);
+    snap.docs.forEach((d) => batch.delete(d.ref));
+    await assertSucceeds(batch.commit());
+    rounds += 1;
+  }
+  assert.strictEqual(rounds, 2); // 400 + 50
+  assert.strictEqual((await getDocs(mine)).size, 0);
+  let bobsLeft = -1;
+  await env.withSecurityRulesDisabled(async (ctx) => { bobsLeft = (await getDocs(collection(ctx.firestore(), 'notifications', 'bob', 'items'))).size; });
+  assert.strictEqual(bobsLeft, 1); // someone else's notification was untouched
 });
 
 // ── Devices (live location) ─────────────────────────────────────────────────

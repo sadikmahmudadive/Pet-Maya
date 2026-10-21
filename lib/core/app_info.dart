@@ -5,13 +5,13 @@ import 'package:package_info_plus/package_info_plus.dart';
 class AppInfo {
   AppInfo._();
 
-  static String version = '1.1.0';
-  static String buildNumber = '23';
+  static String version = '1.2.0';
+  static String buildNumber = '25';
 
-  /// e.g. "v1.1.0 (Build 23)"
+  /// e.g. "v1.2.0 (Build 25)"
   static String get label => 'v$version (Build $buildNumber)';
 
-  /// e.g. "v1.1.0+23"
+  /// e.g. "v1.2.0+25"
   static String get short => 'v$version+$buildNumber';
 
   static Future<void> load() async {

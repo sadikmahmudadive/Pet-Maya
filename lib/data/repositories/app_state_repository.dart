@@ -780,9 +780,12 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
     });
   }
 
+  bool _clearingNotifications = false;
+
   void _listenToNotifications(String userId) {
     _notificationsSub?.cancel();
     _notificationsSub = _firebase.streamNotifications(userId).listen((fetched) {
+      if (_clearingNotifications) return; // "Clear all" is deleting: do not bring the old ones back for a moment
       _notifications
         ..clear()
         ..addAll(fetched);
@@ -1968,11 +1971,22 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
     }
   }
 
-  void clearNotifications() async {
+  /// Removes every notification of the signed-in user. The list empties at once; returns false (and reloads the
+  /// real list) if the delete did not go through.
+  Future<bool> clearNotifications() async {
+    final user = _currentUser;
+    _clearingNotifications = true; // ignore live updates while the documents are being deleted
     _notifications.clear();
     notifyListeners();
-    if (_currentUser != null) {
-      await _firebase.clearAllNotifications(_currentUser!.uid);
+    try {
+      if (user != null) await _firebase.clearAllNotifications(user.uid);
+      return true;
+    } catch (e) {
+      debugPrint('[Notifications] clear all failed: $e');
+      if (user != null) _listenToNotifications(user.uid); // fetch what is really still there
+      return false;
+    } finally {
+      _clearingNotifications = false;
     }
   }
 

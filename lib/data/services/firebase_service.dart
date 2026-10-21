@@ -812,10 +812,19 @@ class FirebaseService {
     await _notificationsCol.doc(userId).collection('items').doc(id).delete();
   }
 
+  /// Deletes every notification of [userId]. Works through them in batches of 400 (a batch holds at most 500
+  /// writes), so even thousands of notifications are removed in a few round trips instead of one request each.
   Future<void> clearAllNotifications(String userId) async {
-    final snap = await _notificationsCol.doc(userId).collection('items').get();
-    for (var doc in snap.docs) {
-      await doc.reference.delete();
+    final items = _notificationsCol.doc(userId).collection('items');
+    while (true) {
+      final snap = await items.limit(400).get();
+      if (snap.docs.isEmpty) return;
+      final batch = _db.batch();
+      for (final doc in snap.docs) {
+        batch.delete(doc.reference);
+      }
+      await batch.commit();
+      if (snap.docs.length < 400) return;
     }
   }
 
