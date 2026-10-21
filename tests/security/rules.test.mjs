@@ -43,6 +43,9 @@ beforeEach(async () => {
     await setDoc(doc(db, 'service_records', 'rec_a'), { petId: 'pet_a', ownerId: 'alice', providerId: 'vet', diagnosis: 'ok' });
     await setDoc(doc(db, 'service_records', 'rec_b'), { petId: 'pet_b', ownerId: 'bob', providerId: 'vet', diagnosis: 'private' });
     await setDoc(doc(db, 'orders', 'o1'), { userId: 'alice', total: 500, status: 'Pending', address: 'Dhaka' });
+    await setDoc(doc(db, 'orders', 'o2'), { userId: 'alice', total: 700, status: 'Delivered', address: 'Dhaka' });
+    await setDoc(doc(db, 'orders', 'o3'), { userId: 'alice', total: 900, status: 'In transit', address: 'Dhaka' });
+    await setDoc(doc(db, 'coupons', 'SAVE5'), { code: 'SAVE5', usageCount: 1, maxUsage: 5, active: true });
     await setDoc(doc(db, 'products', 'p1'), { name: 'Food', price: 100, stockCount: 10, unitsSold: 0, rating: 4, ratingCount: 1 });
     await setDoc(doc(db, 'community_posts', 'post1'), {
       userId: 'bob', content: 'hello', likesCount: 0, likedByUserIds: [], userReactions: {}, comments: [],
@@ -267,4 +270,31 @@ test('storage: medical files are private to owner and care team', async () => {
   await assertFails(getBytes(ref(st('bob'), 'prescriptions/alice/rx.pdf')));
   await assertSucceeds(getBytes(ref(st('cashier'), 'prescriptions/alice/rx.pdf')));
   await assertFails(uploadBytes(ref(st('alice'), 'prescriptions/guest/rx.pdf'), img(), { contentType: 'application/pdf' }));
+});
+
+// ── Orders & coupons: server-owned checkout ────────────────────────────────
+test('orders: guests cannot write directly, and a new order must start in an opening state', async () => {
+  await assertFails(addDoc(collection(as(null), 'orders'), { userId: 'guest', customer: 'X', phone: '017', address: 'Dhaka', items: [{ id: 'p1' }], total: 1 }));
+  await assertFails(addDoc(collection(as('bob'), 'orders'), { userId: 'bob', total: 200, status: 'Delivered' }));
+  await assertSucceeds(addDoc(collection(as('bob'), 'orders'), { userId: 'bob', total: 200, status: 'Rx review' }));
+});
+
+test('orders: customers cancel only before shipping and request a return only after delivery', async () => {
+  await assertFails(updateDoc(doc(as('alice'), 'orders', 'o2'), { status: 'Cancelled' }));   // already delivered
+  await assertFails(updateDoc(doc(as('alice'), 'orders', 'o3'), { status: 'Cancelled' }));   // already shipped
+  await assertSucceeds(updateDoc(doc(as('alice'), 'orders', 'o1'), { status: 'Cancelled' })); // still pending
+  await assertSucceeds(updateDoc(doc(as('alice'), 'orders', 'o2'), { status: 'Return', returnRequest: { reason: 'Damaged', status: 'pending' } }));
+  await assertFails(updateDoc(doc(as('alice'), 'orders', 'o3'), { status: 'Return', returnRequest: { reason: 'x' } }));
+  await assertFails(updateDoc(doc(as('bob'), 'orders', 'o2'), { status: 'Return', returnRequest: { reason: 'x' } })); // not their order
+});
+
+test('orders: a customer cannot approve their own return', async () => {
+  await assertFails(updateDoc(doc(as('alice'), 'orders', 'o2'), { status: 'Return', returnApproved: true }));
+});
+
+test('coupons: usage counters cannot be bumped by customers or anonymous visitors', async () => {
+  await assertFails(updateDoc(doc(as(null), 'coupons', 'SAVE5'), { usageCount: 2, updatedAt: 1 }));
+  await assertFails(updateDoc(doc(as('alice'), 'coupons', 'SAVE5'), { usageCount: 2, updatedAt: 1 }));
+  await assertSucceeds(getDoc(doc(as(null), 'coupons', 'SAVE5')));
+  await assertSucceeds(updateDoc(doc(as('admin'), 'coupons', 'SAVE5'), { active: false }));
 });

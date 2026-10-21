@@ -135,6 +135,18 @@ export function computeCatalogueUnitPrice(product: Record<string, any>, rawItem:
   return unit * packs;
 }
 
+/** Codes that may be used once per customer (matched by account, and by phone number for guests). */
+export const FIRST_ORDER_CODES = ["PETMAYA10", "MAYA10"];
+
+/** "PM-" + a random number with the given digit count (5 digits: PM-10000 … PM-99999). */
+export function newOrderId(rand: () => number = Math.random, digits = 5): string {
+  const lo = 10 ** (digits - 1);
+  return `PM-${Math.floor(lo + rand() * 9 * lo)}`;
+}
+
+/** Client-made random key that makes a retried checkout return the same order instead of a second one. */
+export const isValidRequestId = (v: unknown): v is string => typeof v === "string" && /^[A-Za-z0-9_-]{16,64}$/.test(v);
+
 export const create_order = onCall(async (request) => {
   const uid = request.auth?.uid || "guest";
   const callerKey = request.auth?.uid
@@ -158,19 +170,11 @@ export const create_order = onCall(async (request) => {
   }
 
   const db = admin.firestore();
-  const orderId = /^PM-\d{5}$/.test(String(data.orderId || ""))
-    ? String(data.orderId)
-    : `PM-${Math.floor(10000 + Math.random() * 89999)}`;
   const couponCode = clip(data.coupon, 30).toUpperCase();
-
-  // Idempotency: return existing order if this orderId has already been committed
-  if (data.orderId) {
-    const existing = await db.collection("orders").where("orderId", "==", String(data.orderId)).limit(1).get();
-    if (!existing.empty) {
-      const doc = existing.docs[0];
-      return { ok: true, orderId: String(data.orderId), docId: doc.id, idempotent: true };
-    }
-  }
+  // Order numbers are made here, never taken from the browser. A separate random request id (not the order
+  // number) is what makes a retry idempotent, so two customers can never be handed the same order.
+  const requestId = isValidRequestId(data.requestId) ? data.requestId : "";
+  const requestRef = requestId ? db.collection("order_requests").doc(requestId) : null;
 
   // Look up coupon before transaction if provided
   let couponSnap: admin.firestore.QueryDocumentSnapshot | null = null;
@@ -179,7 +183,25 @@ export const create_order = onCall(async (request) => {
     if (!q.empty) couponSnap = q.docs[0];
   }
 
+  // First-order codes work once: refuse when this account or phone number already has a (non-cancelled) order.
+  if (FIRST_ORDER_CODES.includes(couponCode)) {
+    const col = db.collection("orders");
+    const lookups = [col.where("phone", "==", phone).limit(5).get()];
+    if (uid !== "guest") lookups.push(col.where("userId", "==", uid).limit(5).get());
+    const used = (await Promise.all(lookups)).some((snap) => snap.docs.some((d) => !/^cancel/i.test(String(d.data().status || ""))));
+    if (used) throw new HttpsError("failed-precondition", "The first-order coupon has already been used. Please remove it to continue.");
+  }
+
   const result = await db.runTransaction(async (tx) => {
+    // A retry of an order that already went through returns that order (and only to whoever created it).
+    if (requestRef) {
+      const prev = await tx.get(requestRef);
+      if (prev.exists) {
+        const d = prev.data() as Record<string, any>;
+        if (d.owner !== uid) throw new HttpsError("already-exists", "This checkout request was already used.");
+        return { ok: true, orderId: String(d.orderId), docId: String(d.docId), ...(d.summary || {}), idempotent: true };
+      }
+    }
     const prodRefs = lines.map((l) => db.collection("products").doc(l.id));
     const prodSnaps = await tx.getAll(...prodRefs);
 
@@ -242,6 +264,7 @@ export const create_order = onCall(async (request) => {
     // Coupon discount calculation
     let discount = 0;
     let freeShippingCoupon = false;
+    let couponToBump: admin.firestore.DocumentReference | null = null;
     if (couponSnap) {
       const cDoc = await tx.get(couponSnap.ref);
       const c = cDoc.data();
@@ -256,10 +279,7 @@ export const create_order = onCall(async (request) => {
           discount = Math.min(subtotal, Math.round(Number(c.value) || 0));
         }
         if (couponCode === "FREESHIP") freeShippingCoupon = true;
-        tx.update(couponSnap.ref, {
-          usageCount: admin.firestore.FieldValue.increment(1),
-          updatedAt: Date.now(),
-        });
+        couponToBump = couponSnap.ref; // written below, after every read of the transaction
       }
     } else if (couponCode === "PETMAYA10" || couponCode === "MAYA10") {
       discount = Math.round(subtotal * 0.10);
@@ -282,6 +302,27 @@ export const create_order = onCall(async (request) => {
     const total = Math.max(0, subtotal - discount + shipping);
     const now = Date.now();
     const orderDocRef = db.collection("orders").doc();
+
+    // Reserve a free order number (all reads happen before the first write). order_ids covers every order made
+    // here; the orders query also covers older orders that were written straight from the browser.
+    let orderId = "";
+    let orderIdRef: admin.firestore.DocumentReference | null = null;
+    for (let attempt = 0; attempt < 10 && !orderId; attempt++) {
+      const candidate = newOrderId(Math.random, attempt < 6 ? 5 : 6);
+      const ref = db.collection("order_ids").doc(candidate);
+      const [taken, legacy] = await Promise.all([
+        tx.get(ref),
+        tx.get(db.collection("orders").where("orderId", "==", candidate).limit(1)),
+      ]);
+      if (!taken.exists && legacy.empty) { orderId = candidate; orderIdRef = ref; }
+    }
+    if (!orderId || !orderIdRef) throw new HttpsError("unavailable", "We couldn't allocate an order number. Please try again.");
+
+    tx.set(orderIdRef, { createdAt: now });
+    // What the customer was actually charged, handed back so the browser shows the real amounts.
+    const summary = { subtotal, discount, shipping, total, status: needsRx ? "Rx review" : "Packing" };
+    if (requestRef) tx.set(requestRef, { owner: uid, orderId, docId: orderDocRef.id, summary, createdAt: now });
+    if (couponToBump) tx.update(couponToBump, { usageCount: admin.firestore.FieldValue.increment(1), updatedAt: now });
 
     // Deduct stock atomically and record inventory movement audit ledger
     stockDeductions.forEach((units, prodId) => {
@@ -378,7 +419,7 @@ export const create_order = onCall(async (request) => {
       });
     }
 
-    return { ok: true, orderId, docId: orderDocRef.id };
+    return { ok: true, orderId, docId: orderDocRef.id, ...summary };
   });
 
   return result;

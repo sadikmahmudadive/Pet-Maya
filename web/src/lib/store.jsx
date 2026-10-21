@@ -2,8 +2,8 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { useAuth } from '../context/AuthContext.jsx';
 import { useTheme } from '../context/ThemeContext.jsx';
 import { useMyPets, useProducts, useMyOrders, useVets, useCoupons } from '../data/hooks.js';
-import { addDocument, useDoc } from '../data/firestore.js';
-import { decrementStock, incrementCouponUsage, awardPoints, notify, syncWishlist, syncSavedAddresses, isRealUser } from '../data/actions.js';
+import { useDoc } from '../data/firestore.js';
+import { syncWishlist, syncSavedAddresses, isRealUser } from '../data/actions.js';
 import { DELIVERY, PROMOS } from '../data/content.js';
 import { track, toItem, trackContext } from './analytics.js';
 import { functions, httpsCallable } from '../config/firebase';
@@ -14,6 +14,20 @@ const read = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); re
 const write = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* private mode */ } };
 
 const lineKey = (id, variant) => `${id}::${variant || ''}`;
+
+const newRequestId = () => {
+  try { return crypto.randomUUID(); } catch { return `${Date.now().toString(36)}${Math.random().toString(36).slice(2)}${Math.random().toString(36).slice(2)}`; }
+};
+const pickTotals = (t = {}) => Object.fromEntries(['subtotal', 'discount', 'shipping', 'total', 'status'].filter((k) => t[k] !== undefined).map((k) => [k, t[k]]));
+/** Server messages (out of stock, cold-chain area, coupon used…) are written for customers; anything else is generic. */
+const orderError = (e) => {
+  const code = String(e?.code || '');
+  const msg = String(e?.message || '');
+  if (!msg || /^(internal|unknown|unavailable)$/i.test(msg) || /internal|unavailable|deadline|unknown|network/.test(code)) {
+    return new Error('We couldn’t place your order. Please check your connection and try again.');
+  }
+  return e;
+};
 
 export function StoreProvider({ children }) {
   const { currentUser } = useAuth() || {};
@@ -162,8 +176,11 @@ export function StoreProvider({ children }) {
     return list.find((p) => p.id === petId) || list[0] || null;
   }, [pets.items, petId]);
 
+  // One random key per checkout attempt. It stays the same while an attempt is retried, so the server can hand
+  // back the order it already created instead of making a second one. (Order numbers are made by the server.)
+  const requestIdRef = useRef('');
+
   const placeOrder = useCallback(async (details) => {
-    const id = `PM-${Math.floor(10000 + Math.random() * 89999)}`;
     const user = currentUser;
     const realUser = isRealUser(user);
     const shippingFee = details.shipping ?? totals.shipping;
@@ -171,8 +188,7 @@ export function StoreProvider({ children }) {
     const deliveryZone = details.deliveryZone || (district === 'Dhaka' ? 'Inside Dhaka' : 'Outside Dhaka');
     const paymentTrxId = String(details.paymentTrxId || '').trim().toUpperCase();
     const paymentSender = String(details.paymentSender || '').trim();
-    const order = {
-      orderId: id,
+    const payload = {
       userId: realUser ? user.uid : 'guest',
       isGuest: !realUser,
       customer: details.name || user?.name || 'Guest',
@@ -210,54 +226,27 @@ export function StoreProvider({ children }) {
       timeline: [{ status: 'Placed', at: Date.now(), by: details.name || user?.name || 'Customer' }],
     };
 
-    let docId = id;
-    let handledByCallable = false;
-
-    // 1. Try server-authoritative create_order callable first (atomic stock + coupon + guest/user support)
-    if (functions) {
-      try {
-        const callCreateOrder = httpsCallable(functions, 'create_order');
-        const res = await callCreateOrder({ ...order, _track: trackContext() });
-        if (res?.data?.orderId) {
-          docId = res.data.docId || res.data.orderId;
-          handledByCallable = true;
-        }
-      } catch (callableErr) {
-        const msg = String(callableErr?.message || '');
-        // Surface real business validation errors (e.g. out of stock, cold chain outside Dhaka)
-        if (/out of stock|insufficient stock|cold-chain|prescription/i.test(msg)) {
-          throw callableErr;
-        }
-        // Otherwise fall back to direct Firestore write below (e.g. when functions are not yet deployed)
-      }
+    // Orders are created only by the create_order Cloud Function: it prices from the catalogue, checks and reserves
+    // stock in one transaction, validates the coupon, and works for guests. There is deliberately no fallback that
+    // writes the order straight from the browser, because that would skip all of those checks.
+    if (!functions) throw new Error('Ordering is temporarily unavailable. Please try again in a moment.');
+    if (!requestIdRef.current) requestIdRef.current = newRequestId();
+    let res;
+    try {
+      res = await httpsCallable(functions, 'create_order')({ ...payload, requestId: requestIdRef.current, _track: trackContext() });
+    } catch (e) {
+      throw orderError(e); // the request id is kept, so pressing "Place order" again is safe
     }
+    const { orderId: id, docId = id, ...serverTotals } = res?.data || {};
+    if (!id) throw orderError(null);
+    requestIdRef.current = '';
 
-    // 2. Fallback direct Firestore write (works for both signed-in users and guests via updated firestore.rules)
-    if (!handledByCallable) {
-      try {
-        docId = await addDocument('orders', { ...order, _track: trackContext() });
-      } catch (writeErr) {
-        if (realUser) throw writeErr;
-      }
-      const points = Math.max(5, Math.round(order.total / 100));
-      Promise.all([
-        decrementStock(order.items),
-        coupon?.id ? incrementCouponUsage(coupon.id) : Promise.resolve(),
-        realUser ? awardPoints(user, points, `Order ${id}`) : Promise.resolve(),
-        realUser ? notify(user, {
-          title: 'Order placed',
-          body: totals.needsRx
-            ? `${id} is with our vet for a prescription check. We'll message you once it's approved.`
-            : `${id} is being packed. You'll get an update when it's on the way.`,
-          category: 'order',
-          url: `/account/orders/${id}`,
-        }) : Promise.resolve(),
-      ]).catch(() => { /* already confirmed to the customer */ });
-    }
+    // What the server actually charged replaces the browser's estimate.
+    const order = { ...payload, orderId: id, ...pickTotals(serverTotals) };
 
     track('purchase', { transaction_id: id, value: order.total, shipping: order.shipping, items: order.items.map((l) => toItem(l)) }, `purchase_${id}`);
 
-    // Always keep a local copy so guests (and immediate redirects) can track their order in this browser session
+    // Keep a copy so guests (and the redirect to the order page) can show the order in this browser.
     setLocalOrders((o) => [{ ...order, id, docId }, ...o.filter((x) => x.id !== id)]);
 
     // Register any auto-refill subscription items from this order

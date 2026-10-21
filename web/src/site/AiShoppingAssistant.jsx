@@ -102,11 +102,9 @@ export default function AiShoppingAssistant() {
       try {
         const catalogContext = matches.map((m) => `${m.name} (BDT ${m.price}, ${m.isRx ? 'Rx' : 'OTC'}, ${m.shortDescription || ''})`).join('; ');
         const petContext = activePet ? `Pet: ${activePet.name}, ${activePet.species}, ${activePet.breed || ''}, ${activePet.weight || ''}.` : '';
-        const callAi = httpsCallable(functions, 'ai_proxy');
-        const res = await callAi({
-          prompt: `You are the Pet Maya Pharmacy & Shopping Assistant in Bangladesh. Answer concisely in 2-3 sentences using ONLY these verified catalog items: ${catalogContext}. ${petContext} Customer question: ${text}`,
-        });
-        const aiText = res?.data?.text || res?.data?.response;
+        const callAi = httpsCallable(functions, 'openai_proxy');
+        const res = await callAi({ method: 'shopping_assistant', question: text, catalogue: catalogContext, pet: petContext });
+        const aiText = res?.data?.text;
         if (aiText && typeof aiText === 'string') {
           setMessages((prev) => prev.map((m) => (m.id === botId ? { ...m, text: aiText.trim() } : m)));
         }

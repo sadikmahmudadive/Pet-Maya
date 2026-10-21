@@ -19,39 +19,6 @@ const fail = (e) => ({
 
 export const isRealUser = (u) => !!(u && u.uid && !String(u.uid).startsWith('demo_guest'));
 
-/* ── Stock ─────────────────────────────────────────────────── */
-
-/** Reduces stockCount for each ordered line. Runs after the order is written. */
-export async function decrementStock(items = []) {
-  const byId = {};
-  items.forEach((i) => {
-    const packs = Math.max(1, Number(i.coursePacks) || 1);
-    const units = (Number(i.qty) || 1) * packs;
-    if (i.id) byId[i.id] = (byId[i.id] || 0) + units;
-  });
-  const ids = Object.keys(byId);
-  if (!ids.length) return ok;
-  try {
-    await Promise.all(ids.map((id) => updateDoc(doc(db, 'products', id), {
-      stockCount: increment(-byId[id]),
-      unitsSold: increment(byId[id]),
-      updatedAt: Date.now(),
-    })));
-    return ok;
-  } catch (e) { return fail(e); }
-}
-
-export async function incrementCouponUsage(couponId) {
-  if (!couponId) return ok;
-  try {
-    await updateDoc(doc(db, 'coupons', couponId), {
-      usageCount: increment(1),
-      updatedAt: Date.now(),
-    });
-    return ok;
-  } catch (e) { return fail(e); }
-}
-
 /* ── Order self-service (cancel & return requests) ─────────── */
 
 export async function cancelCustomerOrder(docId, reason = 'Cancelled by customer') {

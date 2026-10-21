@@ -13,7 +13,7 @@ import {
 
 admin.initializeApp();
 
-const AI_METHODS = ["health_diagnosis", "nutrition_schedule", "nutrition_recommendation", "breed_finder"];
+const AI_METHODS = ["health_diagnosis", "nutrition_schedule", "nutrition_recommendation", "breed_finder", "shopping_assistant"];
 
 /**
  * All AI features go through here so the OpenAI key never leaves the server.
@@ -47,6 +47,8 @@ export const openai_proxy = onCall(
           return await handleNutritionSchedule(openai, payload);
         case "nutrition_recommendation":
           return await handleNutritionRecommendation(openai, payload);
+        case "shopping_assistant":
+          return await handleShoppingAssistant(openai, payload);
         default:
           return await handleBreedFinder(openai, payload);
       }
@@ -394,6 +396,34 @@ async function handleNutritionRecommendation(openai: OpenAI, data: any) {
 
   const recommendation = parseModelJson(response.choices[0].message.content, {});
   return { recommendation: recommendation && typeof recommendation === "object" ? recommendation : {} };
+}
+
+/**
+ * Storefront assistant. The browser sends a short question plus the catalogue items it found for it, and the model
+ * may only talk about those. It never gets tools, prices to change, or anything beyond plain text back.
+ */
+async function handleShoppingAssistant(openai: OpenAI, data: any) {
+  const question = clip(data.question, 400);
+  const catalogue = clip(data.catalogue, 3000);
+  const pet = clip(data.pet, 200);
+  if (!question) throw new HttpsError("invalid-argument", "Ask a question first.");
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o",
+    messages: [
+      {
+        role: "system",
+        content: "You are the Pet Maya pharmacy and shopping assistant in Bangladesh. Answer in 2-3 short sentences using ONLY "
+          + "the catalogue items provided. Never invent products or prices. For prescription (Rx) items say a vet's approval is "
+          + "needed. For symptoms or emergencies, advise seeing a vet. If no item fits, say so.",
+      },
+      { role: "user", content: `${pet ? `${pet}
+` : ""}Catalogue: ${catalogue || "(none)"}
+Question: ${question}` },
+    ],
+    temperature: 0.3,
+    max_tokens: 220,
+  });
+  return { text: clip(response.choices[0].message.content, 800) };
 }
 
 async function handleBreedFinder(openai: OpenAI, data: any) {

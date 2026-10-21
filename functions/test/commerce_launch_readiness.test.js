@@ -159,3 +159,25 @@ test("Launch Readiness 7: Inventory deduction and restoration arithmetic", () =>
   assert.strictEqual(soldAfterCancel, initialSold);
 });
 
+
+test("Order numbers: server-made, right shape, never outside the digit range", () => {
+  assert.strictEqual(integ.newOrderId(() => 0), "PM-10000");
+  assert.strictEqual(integ.newOrderId(() => 0.999999999), "PM-99999");
+  assert.strictEqual(integ.newOrderId(() => 0, 6), "PM-100000");
+  assert.strictEqual(integ.newOrderId(() => 0.999999999, 6), "PM-999999");
+  for (let i = 0; i < 500; i++) assert.match(integ.newOrderId(), /^PM-\d{5}$/);
+});
+
+test("Request ids: only long random-looking keys make a checkout retry-safe", () => {
+  assert.ok(integ.isValidRequestId("3f1c2a9e-7b1d-4c55-9e0a-1d2c3b4a5f60"));
+  assert.ok(integ.isValidRequestId("abcdEFGH_12345678"));
+  assert.ok(!integ.isValidRequestId("PM-12345"));       // an order number is not a request id
+  assert.ok(!integ.isValidRequestId("short"));
+  assert.ok(!integ.isValidRequestId("has spaces and !! chars ......."));
+  assert.ok(!integ.isValidRequestId(undefined));
+  assert.ok(!integ.isValidRequestId(12345678901234567));
+});
+
+test("First-order codes are the ones that may only be used once", () => {
+  assert.deepStrictEqual(integ.FIRST_ORDER_CODES.sort(), ["MAYA10", "PETMAYA10"]);
+});

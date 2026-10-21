@@ -209,29 +209,32 @@ service cloud.firestore {
     function orderServerFields() {
       return ['stockDeducted', 'priceCheck', 'verifiedTotal', 'paidAt', 'refundedAt'];
     }
-    function validGuestOrderCreate() {
-      return request.resource.data.userId == 'guest'
-        && shortString(request.resource.data.get('customer', ''), 120)
-        && shortString(request.resource.data.get('phone', ''), 30)
-        && shortString(request.resource.data.get('address', ''), 400)
-        && request.resource.data.get('items', []) is list
-        && request.resource.data.get('items', []).size() > 0
-        && request.resource.data.get('items', []).size() <= 50;
+    // Guests have no direct write access: their orders go through the create_order Cloud Function, which prices,
+    // checks stock and validates coupons on the server. Signed-in direct writes (the mobile app) may only start
+    // an order in an opening state; fulfilment states are set by staff.
+    function openingOrderStatus() {
+      return request.resource.data.get('status', 'Pending') in ['Pending', 'Processing', 'Rx review', 'Packing', 'pending', 'processing'];
+    }
+    // A customer can cancel only until the order ships.
+    function cancellableOrder() {
+      return resource.data.get('status', '') in ['Pending', 'Processing', 'Rx review', 'Packing', 'pending', 'processing'];
     }
     match /orders/{orderId} {
       allow read: if (signedIn() && resource.data.userId == request.auth.uid)
         || isAdmin() || canSeeAllOrders();
-      allow create: if ((signedIn() && notSuspended() && request.resource.data.userId == request.auth.uid)
-                        || validGuestOrderCreate())
+      allow create: if signedIn() && notSuspended() && request.resource.data.userId == request.auth.uid
+        && openingOrderStatus()
         && !request.resource.data.keys().hasAny(orderServerFields())
         && request.resource.data.get('total', 0) is number
         && request.resource.data.get('total', 0) >= 0;
-      // Customers may cancel their unshipped order or request a return on delivered orders.
+      // Customers may cancel an order that has not shipped, or request a return on a delivered one.
       allow update: if isAdmin() || canSeeAllOrders()
         || (signedIn() && resource.data.userId == request.auth.uid
-            && ((changed().hasOnly(['status', 'cancelReason', 'cancelledAt', 'updatedAt'])
+            && ((cancellableOrder()
+                 && changed().hasOnly(['status', 'cancelReason', 'cancelledAt', 'updatedAt'])
                  && request.resource.data.status in ['Cancelled', 'cancelled', 'Canceled'])
-                || (changed().hasOnly(['status', 'returnRequest', 'updatedAt'])
+                || (resource.data.get('status', '') == 'Delivered'
+                    && changed().hasOnly(['status', 'returnRequest', 'updatedAt'])
                     && request.resource.data.status == 'Return')));
       allow delete: if isAdmin() || (signedIn() && resource.data.userId == request.auth.uid);
     }
@@ -417,10 +420,8 @@ service cloud.firestore {
 
     match /coupons/{couponCode} {
       allow read: if true;
-      allow create, delete: if isAdmin() || hasStaffRole(['Manager']);
-      allow update: if isAdmin() || hasStaffRole(['Manager'])
-        || (changed().hasOnly(['usageCount', 'updatedAt'])
-            && request.resource.data.get('usageCount', 0) == resource.data.get('usageCount', 0) + 1);
+      // usageCount is counted by the create_order function; nobody else may touch it.
+      allow write: if isAdmin() || hasStaffRole(['Manager']);
     }
 
     match /promos/{promoId} {
