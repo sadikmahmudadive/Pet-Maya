@@ -66,6 +66,8 @@
   --table-hover: #FDFBF8;
   --scrim: rgba(26, 25, 23, .38);
   --adm-top-bg: rgba(252, 248, 245, 0.92);
+  --header-glass: rgba(252, 248, 245, 0.78);
+  --header-shadow: 0 1px 0 rgba(26, 25, 23, 0.05), 0 18px 40px -34px rgba(26, 25, 23, 0.55);
   --bag-count-bg: #ffffff;
   --bag-count-ink: var(--ink);
   --nav-active-bg: var(--ink);
@@ -131,6 +133,8 @@
     --table-hover: rgba(255, 255, 255, 0.03);
     --scrim: rgba(0, 0, 0, .68);
     --adm-top-bg: rgba(15, 17, 21, 0.92);
+    --header-glass: rgba(15, 17, 21, 0.78);
+    --header-shadow: 0 1px 0 rgba(255, 255, 255, 0.06), 0 18px 40px -34px rgba(0, 0, 0, 0.9);
     --bag-count-bg: #181A20;
     --bag-count-ink: #F5F4F0;
     --nav-active-bg: #F5F4F0;
@@ -190,6 +194,8 @@
   --table-hover: rgba(255, 255, 255, 0.03);
   --scrim: rgba(0, 0, 0, .68);
   --adm-top-bg: rgba(15, 17, 21, 0.92);
+  --header-glass: rgba(15, 17, 21, 0.78);
+  --header-shadow: 0 1px 0 rgba(255, 255, 255, 0.06), 0 18px 40px -34px rgba(0, 0, 0, 0.9);
   --bag-count-bg: #181A20;
   --bag-count-ink: #F5F4F0;
   --nav-active-bg: #F5F4F0;

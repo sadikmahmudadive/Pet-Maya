@@ -46,11 +46,11 @@ html { scroll-behavior: smooth; }
   transition: background .35s ease, box-shadow .35s ease, border-color .35s ease;
 }
 .site-header.scrolled {
-  background: rgba(252, 248, 245, .78);
+  background: var(--header-glass, var(--bg));   /* themed: a light glass in light mode, a dark one in dark mode */
   -webkit-backdrop-filter: saturate(1.5) blur(16px);
   backdrop-filter: saturate(1.5) blur(16px);
   border-bottom-color: transparent;
-  box-shadow: 0 1px 0 rgba(26, 25, 23, .05), 0 18px 40px -34px rgba(26, 25, 23, .55);
+  box-shadow: var(--header-shadow, none);
 }
 .site-header .hdr-row,
 .site-header .hdr-nav { transition: padding .35s var(--ease-out); }
