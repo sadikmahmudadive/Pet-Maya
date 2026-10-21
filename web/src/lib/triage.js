@@ -59,7 +59,7 @@ export async function runTriage(input) {
     try {
       const call = httpsCallable(functions, 'openai_proxy');
       const prompt = [
-        `Species: ${input.species || 'pet'}. Area: ${region?.label || 'general'}.`,
+        `Species: ${input.speciesName || input.species || 'pet'}. Area: ${region?.label || 'general'}.`,
         `Duration: ${input.duration}. Gum refill: ${input.gums}. Resting breaths/min: ${input.rate}.`,
         `Owner says: ${input.text || 'no description'}.`,
         'Reply in 2–3 short plain-English sentences: what this might be and what to watch for. Do not diagnose definitively or name prescription drugs.',

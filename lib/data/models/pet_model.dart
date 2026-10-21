@@ -59,34 +59,36 @@ class PetModel {
 
   String get species => resolvedSpecies;
 
+  // The stored `type` is often just the old default "Dog" (a Maine Coon or a Ring-necked Dove were saved that way), so
+  // the breed is read too. Whole-word matching, so "rat" cannot match "Rottweiler". Kept in step with
+  // web/src/lib/species.js, which does the same on the website.
+  static final RegExp _bird = RegExp(r'\b(?:birds?|doves?|pigeons?|parrots?|parakeets?|conures?|lorikeets?|canar(?:y|ies)|finch(?:es)?|cockatiels?|cockatoos?|budgies?|budgerigars?|lovebirds?|macaws?|sparrows?|myn(?:a|ah)s?|ducks?|ducklings?|chickens?|hens?|roosters?|cockerels?|owls?|falcons?|eagles?|hawks?|peacocks?|quails?|geese|goose)\b');
+  static final RegExp _rabbit = RegExp(r'\b(?:rabbits?|bunn(?:y|ies)|hares?|lionheads?|lops?|netherland dwarf|flemish giant)\b');
+  static final RegExp _fish = RegExp(r'\b(?:fish|goldfish|bett?as?|tetras?|guppy|guppies|koi|mollys?|mollies|angelfish|cichlids?|arowanas?)\b');
+  static final RegExp _rodent = RegExp(r'\b(?:hamsters?|guinea pigs?|mice|mouse|rats?|gerbils?|chinchillas?|squirrels?)\b');
+  // Specific dog breeds are tested before the cat words, so "Longhaired Dachshund" stays a dog.
+  static final RegExp _dog = RegExp(r'\b(?:dogs?|puppy|puppies|canine|retrievers?|labradors?|shepherds?|huskies|husky|poodles?|bulldogs?|hounds?|terriers?|corgis?|pugs?|beagles?|rottweilers?|dachshunds?|chihuahuas?|pomeranians?|dobermann?s?|boxers?|spitz|mastiffs?|collies?|spaniels?|dalmatians?|shih tzu|lhasa|maltese|akita|samoyed|schnauzers?|pit ?bulls?|great danes?|saint bernards?|st\.? bernards?|pointers?|setters?|whippets?|greyhounds?|malamutes?|basenji)\b');
+  static final RegExp _cat = RegExp(r'\b(?:cats?|kittens?|felines?|persians?|siamese|bengals?|ragdolls?|(?:short|long|medium)[- ]?hair(?:ed)?|maine coon|calico|tabby|tortoiseshell|tortie|ragamuffin|sphynx|birman|burmese|abyssinian|british short\w*|scottish fold|russian blue|himalayan|angora|norwegian forest|munchkin|savannah|oriental|domestic)\b');
+
   String get resolvedSpecies {
     final b = breed.toLowerCase();
-    final t = type.toLowerCase();
-    if (t.contains('bird') || b.contains('dove') || b.contains('pigeon') || b.contains('bird') || b.contains('parrot') || b.contains('canary') || b.contains('finch') || b.contains('cockatiel') || b.contains('duck') || b.contains('owl')) {
-      return 'Bird';
+    final t = type.toLowerCase().trim();
+    final hint = '$t $b';
+    if (_bird.hasMatch(hint)) return 'Bird';
+    if (_rabbit.hasMatch(hint)) return 'Rabbit';
+    if (_fish.hasMatch(hint)) return 'Fish';
+    if (_rodent.hasMatch(hint)) return 'Rodent';
+    if (_dog.hasMatch(b)) return 'Dog';
+    if (_cat.hasMatch(hint)) return 'Cat';
+    if (t.isNotEmpty && t != 'pet') {
+      if (t == 'dog') return 'Dog';
+      return type
+          .trim()
+          .split(RegExp(r'[\s-]+'))
+          .map((w) => w.isEmpty ? w : '${w[0].toUpperCase()}${w.substring(1).toLowerCase()}')
+          .join(' ');
     }
-    if (t.contains('cat') || b.contains('cat') || b.contains('persian') || b.contains('siamese') || b.contains('bengal') || b.contains('ragdoll') || b.contains('shorthair') || b.contains('maine coon')) {
-      return 'Cat';
-    }
-    if (t.contains('rabbit') || b.contains('rabbit') || b.contains('bunny') || b.contains('hare')) {
-      return 'Rabbit';
-    }
-    if (t.contains('fish') || b.contains('goldfish') || b.contains('betta') || b.contains('tetra')) {
-      return 'Fish';
-    }
-    if (t.contains('hamster') || b.contains('guinea pig') || b.contains('mouse') || b.contains('rat')) {
-      return 'Rodent';
-    }
-    if (type.isNotEmpty && type != 'Dog') {
-      return type;
-    }
-    if (b.contains('dog') || b.contains('retriever') || b.contains('shepherd') || b.contains('husky') || b.contains('poodle') || b.contains('bulldog') || b.contains('hound') || b.contains('terrier') || b.contains('corgi') || b.contains('pug')) {
-      return 'Dog';
-    }
-    if (type == 'Dog' && breed.isNotEmpty) {
-      return breed;
-    }
-    return type.isNotEmpty ? type : 'Pet';
+    return 'Pet';
   }
 
   Map<String, dynamic> toMap() {

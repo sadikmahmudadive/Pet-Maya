@@ -6,6 +6,7 @@ import { Icon, Button, Ph, Avatar, StarRow, Pill } from '../../ui/index.jsx';
 import ProductCard from '../ProductCard.jsx';
 import HaloBreakdown from '../HaloBreakdown.jsx';
 import RefillArt from '../RefillArt.jsx';
+import { speciesKind, productFitsPet, speciesShopPath } from '../../lib/species.js';
 import { money, cx, productPath } from '../../lib/format.js';
 import { Reveal, Count, useSpotlight } from '../../lib/motion.jsx';
 import { CATEGORIES, CONCERNS, CARE_KITS, BRANDS, PROMOS, DELIVERY, TRUST } from '../../data/content.js';
@@ -48,9 +49,9 @@ export default function Home() {
   // Personalized recommendations based on activePet's species & profile
   const petRecommendations = useMemo(() => {
     if (!activePet) return [];
-    const sp = String(activePet.species || 'dog').toLowerCase().includes('cat') ? 'cat' : 'dog';
+    const kind = speciesKind(activePet);
     return all
-      .filter((p) => (p.pet === sp || p.pet === 'both') && p.stockCount > 0)
+      .filter((p) => productFitsPet(p.pet, kind) && p.stockCount > 0)
       .sort((a, b) => (b.rating * 10 + (b.subscribe ? 3 : 0)) - (a.rating * 10 + (a.subscribe ? 3 : 0)))
       .slice(0, 4);
   }, [all, activePet]);
@@ -194,7 +195,7 @@ export default function Home() {
                   <span>{petItem.name}</span>
                 </button>
               ))}
-              <Link to={`/shop/${String(activePet.species || '').toLowerCase().includes('cat') ? 'cats' : 'dogs'}`} className="btn btn-outline btn-sm">
+              <Link to={speciesShopPath(speciesKind(activePet))} className="btn btn-outline btn-sm">
                 See all for {activePet.name} <Icon name="arrowRight" size={13} />
               </Link>
             </div>

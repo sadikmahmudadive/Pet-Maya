@@ -18,6 +18,7 @@ const Gps = lazy(() => import('./site/pages/Gps.jsx'));
 const Vault = lazy(() => import('./site/pages/Vault.jsx'));
 const PetDashboard = lazy(() => import('./site/pages/PetDashboard.jsx'));
 const Profile = lazy(() => import('./site/pages/Profile.jsx'));
+const PetProfile = lazy(() => import('./site/pages/PetProfile.jsx'));
 const Community = lazy(() => import('./site/pages/Community.jsx'));
 const Journal = lazy(() => import('./site/pages/Journal.jsx'));
 const SignIn = lazy(() => import('./site/pages/SignIn.jsx'));
@@ -41,6 +42,7 @@ const SITE_ROUTES = [
   ['/halo', Halo, 'Maya Halo GPS collar'],
   ['/vault', Vault, 'Health vault'],
   ['/dashboard', PetDashboard, 'My dashboard'],
+  ['/pets/:id', PetProfile, 'Pet profile'],
   ['/profile', Profile, 'Your profile'],
   ['/community', Community, 'Community'],
   ['/journal', Journal, 'Journal'],

@@ -4,6 +4,7 @@ import { useStore } from '../../lib/store.jsx';
 import { Icon, Button, Pill, Avatar } from '../../ui/index.jsx';
 import { runTriage, REGIONS, DURATIONS, GUMS, TIERS } from '../../lib/triage.js';
 import { money, cx } from '../../lib/format.js';
+import { speciesKind } from '../../lib/species.js';
 import BookingModal from '../BookingModal.jsx';
 import { saveTriageRecord, notify, isRealUser } from '../../data/actions.js';
 import { Reveal } from '../../lib/motion.jsx';
@@ -17,7 +18,7 @@ const FAQ = [
 export default function Triage() {
   const { user, pets, activePet, setPetId, vets, products, addToCart, toast } = useStore();
   const pet = activePet;
-  const species = /cat|feline/i.test(pet?.species || '') ? 'cat' : 'dog';
+  const species = speciesKind(pet) === 'cat' ? 'cat' : 'dog'; // vital-sign ranges exist for cats and dogs only
   const [region, setRegion] = useState('gi');
   const [text, setText] = useState('');
   const [duration, setDuration] = useState(DURATIONS[1]);
@@ -32,7 +33,7 @@ export default function Triage() {
     setBusy(true);
     let imageBase64;
     if (photo) imageBase64 = await new Promise((r) => { const fr = new FileReader(); fr.onload = () => r(String(fr.result).split(',')[1]); fr.onerror = () => r(undefined); fr.readAsDataURL(photo); });
-    const out = await runTriage({ region, text, duration, gums, rate, species, petName: pet?.name, imageBase64 });
+    const out = await runTriage({ region, text, duration, gums, rate, species, speciesName: pet?.species, petName: pet?.name, imageBase64 });
     setRes(out);
     setBusy(false);
 

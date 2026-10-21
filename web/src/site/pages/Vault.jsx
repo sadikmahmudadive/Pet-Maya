@@ -7,6 +7,7 @@ import { savePet } from '../../data/actions.js';
 import { BD_DISTRICTS, DHAKA_AREAS } from '../../data/content.js';
 import { Icon, Button, Pill, Avatar, Field, Empty, Tabs, Portal, Ph } from '../../ui/index.jsx';
 import { money, cx, toMillis, shortDate, timeOfDay } from '../../lib/format.js';
+import { speciesKind, productFitsPet, resolveSpecies, SPECIES_OPTIONS } from '../../lib/species.js';
 
 const dAt = (days, h, m = 0) => { const d = new Date(); d.setDate(d.getDate() + days); d.setHours(h, m, 0, 0); return d.getTime(); };
 const SAMPLE_RECORDS = [
@@ -29,7 +30,7 @@ const TABS = [
 function matchRecordProducts(rec, products = [], pet = null) {
   const text = `${rec.title || ''} ${rec.note || ''} ${rec.serviceType || ''}`.toLowerCase();
   if (!text.trim() || !products.length) return [];
-  const sp = pet ? (String(pet.species || 'dog').toLowerCase().includes('cat') ? 'cat' : 'dog') : null;
+  const kind = pet ? speciesKind(pet) : null;
   const matched = [];
   for (const p of products) {
     if (p.showOnStorefront === false || p.inStock === false) continue;
@@ -39,7 +40,7 @@ function matchRecordProducts(rec, products = [], pet = null) {
     const keywordHit =
       (text.includes('probiotic') && (pName.includes('probiotic') || pName.includes('fortiflora'))) ||
       (text.includes('dental') && (p.category === 'grooming' || pName.includes('dental') || pName.includes('orozym'))) ||
-      (text.includes('preventive') && p.category === 'preventives' && (!sp || p.pet === sp || p.pet === 'both')) ||
+      (text.includes('preventive') && p.category === 'preventives' && (!kind || productFitsPet(p.pet, kind))) ||
       (text.includes('joint') && p.category === 'joint');
     if (directHit || keywordHit) {
       matched.push(p);
@@ -52,8 +53,14 @@ function matchRecordProducts(rec, products = [], pet = null) {
 function AddPet({ onClose }) {
   const { user, toast } = useStore();
   const [f, setF] = useState({ name: '', species: 'Dog', breed: '', age: '', weight: '', gender: 'Male' });
+  const [pickedSpecies, setPickedSpecies] = useState(false); // once the owner chooses, the breed no longer changes it
   const [busy, setBusy] = useState(false);
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
+  const setBreed = (e) => {
+    const breed = e.target.value;
+    const guess = resolveSpecies({ type: '', breed });
+    setF({ ...f, breed, ...(!pickedSpecies && SPECIES_OPTIONS.includes(guess) ? { species: guess } : {}) });
+  };
   const save = async (e) => {
     e.preventDefault();
     setBusy(true);
@@ -70,8 +77,8 @@ function AddPet({ onClose }) {
         <div className="row between"><h2 className="serif" style={{ fontSize: 26 }}>Add a pet</h2><button type="button" className="btn btn-outline btn-square btn-sm" onClick={onClose} aria-label="Close"><Icon name="x" size={15} /></button></div>
         <div className="fields" style={{ marginTop: 20 }}>
           <Field className="full" label="Name" required value={f.name} onChange={set('name')} />
-          <Field label="Species"><select className="select" value={f.species} onChange={set('species')}><option>Dog</option><option>Cat</option><option>Bird</option><option>Rabbit</option><option>Other</option></select></Field>
-          <Field label="Breed" value={f.breed} onChange={set('breed')} />
+          <Field label="Species"><select className="select" value={f.species} onChange={(e) => { setPickedSpecies(true); set('species')(e); }}>{SPECIES_OPTIONS.map((s) => <option key={s}>{s}</option>)}</select></Field>
+          <Field label="Breed" value={f.breed} onChange={setBreed} placeholder="e.g. Persian, Labrador, Budgie" />
           <Field label="Age" value={f.age} onChange={set('age')} placeholder="e.g. 3 yrs" />
           <Field label="Weight" value={f.weight} onChange={set('weight')} placeholder="e.g. 12.5 kg" />
         </div>
@@ -145,9 +152,9 @@ export default function Vault() {
     }
     if (seen.size > 0) return Array.from(seen.values()).slice(0, 4);
     // Fallback to pet-matched monthly preventives/consumables if no order history yet
-    const sp = pet ? (String(pet.species || 'dog').toLowerCase().includes('cat') ? 'cat' : 'dog') : 'dog';
+    const kind = pet ? speciesKind(pet) : 'dog';
     return (products.items || [])
-      .filter((p) => p.showOnStorefront !== false && p.inStock !== false && p.subscribe && (p.pet === sp || p.pet === 'both'))
+      .filter((p) => p.showOnStorefront !== false && p.inStock !== false && p.subscribe && productFitsPet(p.pet, kind))
       .slice(0, 3)
       .map((p, idx) => ({
         product: p,

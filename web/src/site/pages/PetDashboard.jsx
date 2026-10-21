@@ -8,6 +8,7 @@ import { Icon, Button, Pill, Avatar, Stat, Empty, Ph } from '../../ui/index.jsx'
 import { money, cx, greeting, shortDate, timeOfDay, ago } from '../../lib/format.js';
 import { Reveal } from '../../lib/motion.jsx';
 import { useApp } from '../../context/AppContext.jsx';
+import { withUnit } from '../../lib/species.js';
 
 const STATUS_STEP = { 'Rx review': 1, Packing: 2, 'In transit': 3, Delivered: 4 };
 const STATUS_TONE = { 'Rx review': 'yellow', Packing: '', 'In transit': 'teal', Delivered: '', Return: 'red', Cancelled: 'red' };
@@ -114,13 +115,14 @@ export default function PetDashboard() {
       {/* Pets */}
       <Reveal className="dash-pets" stagger style={{ marginTop: 22 }}>
         {(pets.items || []).map((p) => (
-          <button key={p.id} className={cx('card dash-pet', p.id === pet?.id && 'on')} onClick={() => setPetId(p.id)} aria-pressed={p.id === pet?.id}>
+          <Link key={p.id} to={`/pets/${encodeURIComponent(p.id)}`} className={cx('card dash-pet', p.id === pet?.id && 'on')} onClick={() => setPetId(p.id)} aria-label={`Open ${p.name}’s profile`}>
             <Avatar name={p.name} src={p.photo} size="lg" />
             <div style={{ textAlign: 'left', minWidth: 0 }}>
               <div className="row gap-6"><span className="serif" style={{ fontSize: 22 }}>{p.name}</span><Pill mono sm>{p.species}</Pill></div>
-              <div className="sub ellipsis" style={{ fontSize: 12 }}>{[p.breed, p.age, p.weight].filter(Boolean).join(' · ')}</div>
+              <div className="sub ellipsis" style={{ fontSize: 12 }}>{[p.breed, p.age, withUnit(p.weight, 'kg')].filter(Boolean).join(' · ')}</div>
             </div>
-          </button>
+            <Icon name="chevronRight" size={16} style={{ marginLeft: 'auto', flex: 'none', opacity: 0.55 }} />
+          </Link>
         ))}
         <Link to="/vault" className="card dash-pet add"><span className="well round"><Icon name="plus" /></span><b style={{ fontSize: 14 }}>Add a pet</b></Link>
       </Reveal>

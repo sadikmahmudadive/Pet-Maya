@@ -3,6 +3,7 @@ import {
   db, collection, doc, query, where, onSnapshot, setDoc, addDoc, updateDoc,
 } from '../config/firebase';
 import { toMillis } from '../lib/format.js';
+import { resolveSpecies } from '../lib/species.js';
 
 /* ───────────────────────────────────────────────────────────
    Normalisers — accept every field name the Flutter app and
@@ -201,19 +202,34 @@ export function normVet(id, d = {}) {
 }
 
 export function normPet(id, d = {}) {
+  const list = (v) => (Array.isArray(v) ? v.map(String).filter(Boolean) : []);
   return {
     id,
     ownerID: d.ownerID || d.ownerId || '',
     name: d.name || 'Pet',
-    species: d.species || d.type || 'Pet',
+    // The stored type is often just the old default "Dog": read the breed too (lib/species.js), like the mobile app does.
+    species: resolveSpecies({ type: d.type, species: d.species, breed: d.breed }),
     breed: d.breed || '',
     age: d.age || '',
+    dob: d.dob || '',
     weight: d.weight || '',
+    height: d.height || '',
+    color: d.color || '',
     gender: d.gender || '',
     neutered: bool(d.neutered) || bool(d.isNeutered),
     photo: d.photoUrl || d.photo || '',
     microchip: d.microchip || d.microchipId || '',
     nextVaccine: d.nextVaccine || '',
+    bio: d.description || '',
+    mood: d.mood || '',
+    sound: d.sound || '',
+    healthIndex: Number.isFinite(Number(d.healthIndex)) && d.healthIndex !== null ? Number(d.healthIndex) : null,
+    allergies: Array.isArray(d.allergies) ? list(d.allergies).join(', ') : String(d.allergies || ''),
+    foodName: d.currentFoodName || '',
+    foodType: d.foodType || '',
+    calorieGoal: Number(d.dailyCalorieGoal) || 0,
+    feedingTimes: list(d.feedingTimes),
+    vaccination: typeof d.vaccinationDetails === 'string' ? d.vaccinationDetails : '',
   };
 }
 

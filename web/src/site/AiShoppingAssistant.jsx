@@ -3,13 +3,14 @@ import { Link } from '../lib/router.jsx';
 import { useStore } from '../lib/store.jsx';
 import { Icon, Button, Pill, Ph, Portal } from '../ui/index.jsx';
 import { money, productPath } from '../lib/format.js';
+import { speciesKind, productFitsPet } from '../lib/species.js';
 import { DELIVERY, PAYMENT_CONFIG } from '../data/content.js';
 import { functions, httpsCallable } from '../config/firebase';
 import { isRealUser } from '../data/actions.js';
 
 function searchCatalog(query, products = [], activePet = null) {
   const q = String(query || '').toLowerCase();
-  const petSp = activePet ? (String(activePet.species || 'dog').toLowerCase().includes('cat') ? 'cat' : 'dog') : null;
+  const petKind = activePet ? speciesKind(activePet) : null;
   const activeList = products.filter((p) => p.showOnStorefront !== false && p.inStock !== false);
 
   const scored = activeList.map((p) => {
@@ -31,10 +32,10 @@ function searchCatalog(query, products = [], activePet = null) {
     if (/gps|collar|halo|track/.test(q) && p.category === 'smart-gear') score += 6;
     if (/dog|puppy|canine/.test(q) && (p.pet === 'dog' || p.pet === 'both')) score += 3;
     if (/cat|kitten|feline/.test(q) && (p.pet === 'cat' || p.pet === 'both')) score += 3;
-    if (/recommend|essential|best|for my pet/.test(q) && petSp && (p.pet === petSp || p.pet === 'both')) {
+    if (/recommend|essential|best|for my pet/.test(q) && petKind && productFitsPet(p.pet, petKind)) {
       score += 4 + (p.ratingCount || 0) / 100;
     }
-    if (petSp && (p.pet === petSp || p.pet === 'both')) score += 1;
+    if (petKind && productFitsPet(p.pet, petKind)) score += 1;
     return { p, score };
   });
 

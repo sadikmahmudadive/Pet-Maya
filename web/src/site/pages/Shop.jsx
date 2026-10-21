@@ -5,6 +5,7 @@ import { useStore } from '../../lib/store.jsx';
 import { Icon, Pill, Empty } from '../../ui/index.jsx';
 import ProductCard from '../ProductCard.jsx';
 import { money, cx } from '../../lib/format.js';
+import { speciesKind, productFitsPet } from '../../lib/species.js';
 import { Reveal } from '../../lib/motion.jsx';
 
 const TITLES = {
@@ -92,8 +93,8 @@ export default function Shop({ params }) {
     if (savedOnly) l = l.filter((p) => wishlist.includes(p.id));
     if (dealsOnly) l = l.filter((p) => p.compareAt > p.price);
     if (petMatch && activePet) {
-      const sp = String(activePet.species || 'dog').toLowerCase().includes('cat') ? 'cat' : 'dog';
-      l = l.filter((p) => p.pet === sp || p.pet === 'both');
+      const kind = speciesKind(activePet);
+      l = l.filter((p) => productFitsPet(p.pet, kind));
     }
     if (types.length) l = l.filter((p) => types.includes(p.category));
     if (rx === 'rx') l = l.filter((p) => p.isRx);

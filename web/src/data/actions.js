@@ -1,6 +1,7 @@
 import {
-  db, doc, collection, addDoc, setDoc, updateDoc, increment, arrayUnion, arrayRemove,
+  db, doc, collection, addDoc, setDoc, updateDoc, deleteDoc, increment, arrayUnion, arrayRemove,
 } from '../config/firebase';
+import { resolveSpecies } from '../lib/species.js';
 
 /* ───────────────────────────────────────────────────────────
    Every Firestore write the storefront makes lives here, so
@@ -211,14 +212,27 @@ export async function subscribeNewsletter(email, source = 'footer') {
 
 /* ── Pets ──────────────────────────────────────────────────── */
 
+/** Removes a pet profile (the owner only; the rules enforce that). Its health records stay in the vault. */
+export async function deletePet(user, id) {
+  if (!isRealUser(user) || !id) return { ok: false, reason: 'signin' };
+  try {
+    await deleteDoc(doc(db, 'pets', id));
+    return ok;
+  } catch (e) { return fail(e); }
+}
+
 export async function savePet(user, pet) {
   if (!isRealUser(user)) return { ok: false, reason: 'signin' };
   try {
     const id = pet.id || `pet_${Date.now()}`;
+    // Store the real species (the breed corrects a wrong pick), in both fields the apps read, never a blind "Dog".
+    const species = resolveSpecies({ species: pet.species, type: pet.type, breed: pet.breed });
     await setDoc(doc(db, 'pets', id), {
       ...pet,
       id,
-      type: pet.species,
+      petID: id,
+      type: species,
+      species,
       ownerID: user.uid,
       updatedAt: Date.now(),
       ...(pet.id ? {} : { createdAt: new Date().toISOString() }),
