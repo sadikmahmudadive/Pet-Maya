@@ -24,7 +24,7 @@ const normReview = (id, d) => ({
 });
 
 export default function Product({ params }) {
-  const { products, addToCart, activePet, totals, wishlist, toggleWish } = useStore();
+  const { products, addToCart, activePet, totals, wishlist, toggleWish, setBagOpen } = useStore();
   const { path, navigate } = useRouter();
   const p = products.items.find((x) => x.id === params.id);
 
@@ -107,6 +107,26 @@ export default function Product({ params }) {
       sku: activeSku,
     },
   );
+
+  const buyNow = () => {
+    if (soldOut) return;
+    addToCart(
+      { ...p, price: unit * c.n, compareAt: activeCompareAt ? activeCompareAt * c.n : null, subscribe: refill || p.subscribe, sku: activeSku },
+      {
+        qty,
+        variant: [variant, c.n > 1 ? `${c.n} packs` : '', refill ? 'Auto-refill' : ''].filter(Boolean).join(' · '),
+        variantLabel: variant,
+        coursePacks: c.n,
+        courseSavePct: c.save,
+        basePrice: activePrice,
+        sku: activeSku,
+        open: false,
+        silent: true,
+      },
+    );
+    if (setBagOpen) setBagOpen(false);
+    navigate('/checkout');
+  };
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -260,10 +280,13 @@ export default function Product({ params }) {
               </button>
             )}
 
-            <div className="row gap-10" style={{ marginTop: 18 }}>
+            <div className="row gap-10 wrap" style={{ marginTop: 18 }}>
               <Stepper value={qty} onChange={setQty} min={1} />
-              <Button variant="dark" size="lg" icon="bag" className="grow" disabled={soldOut} onClick={add}>
-                {soldOut ? 'Sold out' : `Add to Care Bag · ${money(lineTotal)}`}
+              <Button variant="outline" size="lg" icon="bag" className="grow" disabled={soldOut} onClick={add}>
+                {soldOut ? 'Sold out' : 'Add to Care Bag'}
+              </Button>
+              <Button variant="dark" size="lg" icon="zap" className="grow" disabled={soldOut} onClick={buyNow}>
+                Buy now · {money(lineTotal)}
               </Button>
             </div>
             {p.isRx && (
@@ -387,7 +410,8 @@ export default function Product({ params }) {
             <div style={{ fontSize: 12, opacity: 0.7 }}>{p.coldChain ? 'Cold-chain' : 'Same-day in Dhaka'}</div>
           </div>
           <b style={{ fontSize: 18 }}>{money(lineTotal)}</b>
-          <button className="btn btn-on-dark" onClick={add}><Icon name="bag" size={16} /> Add to Care Bag</button>
+          <button className="btn btn-outline" style={{ background: 'var(--surface)', color: 'var(--ink)' }} onClick={add}><Icon name="bag" size={15} /> Add</button>
+          <button className="btn btn-on-dark" onClick={buyNow}><Icon name="zap" size={15} /> Buy now</button>
         </div>
       )}
     </div>

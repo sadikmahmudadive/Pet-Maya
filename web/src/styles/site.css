@@ -114,8 +114,13 @@
 .pcard-name { font-weight: 600; font-size: 15px; line-height: 1.3; }
 .pcard-meta { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
 .pcard-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; padding-top: 12px; }
-.pcard-price { font-weight: 700; font-size: 18px; letter-spacing: -0.01em; }
+.pcard-price { font-weight: 700; font-size: 18px; letter-spacing: -0.01em; white-space: nowrap; }
 .pcard-price s { font-weight: 400; font-size: 12px; color: var(--subtle); margin-left: 6px; }
+.pcard-btns { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.pcard-btn-add { height: 32px; padding: 0 10px; font-size: 12.5px; border-radius: 999px; }
+.pcard-btn-buy { height: 32px; padding: 0 12px; font-size: 12.5px; font-weight: 600; border-radius: 999px; background: var(--ink); color: #fff; display: inline-flex; align-items: center; gap: 4px; border: 1px solid transparent; }
+.pcard-btn-buy:hover { background: var(--teal); color: #fff; }
+.pcard-btn-buy:active { transform: scale(0.97); }
 .variant-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
 .vchip { height: 26px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--line-2); font-size: 11.5px; background: var(--surface); }
 .vchip.on { background: var(--sunk-2); border-color: var(--sunk-2); font-weight: 600; }
@@ -124,7 +129,9 @@
   .pcard-fav { width: 30px; height: 30px; }
   .pcard-name { font-size: 13.5px; }
   .pcard-price { font-size: 15px; }
-  .pcard .btn-sm { padding: 0 10px; }
+  .pcard-foot { flex-wrap: wrap; gap: 8px; }
+  .pcard-btns { width: 100%; display: grid; grid-template-columns: 1fr 1.15fr; gap: 6px; }
+  .pcard-btns .btn { width: 100%; padding: 0 6px; font-size: 11.5px; justify-content: center; height: 30px; }
 }
 /* Very narrow cards: price and Add button stack instead of colliding. */
 @media (max-width: 380px) {

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from '../lib/router.jsx';
+import { Link, useRouter } from '../lib/router.jsx';
 import { useStore } from '../lib/store.jsx';
 import { Icon, Ph } from '../ui/index.jsx';
 import { money, cx, productPath } from '../lib/format.js';
@@ -15,7 +15,8 @@ export function productBadge(p) {
 }
 
 export default function ProductCard({ p }) {
-  const { addToCart, wishlist, toggleWish, compareIds = [], toggleCompare } = useStore();
+  const { addToCart, wishlist, toggleWish, compareIds = [], toggleCompare, setBagOpen } = useStore();
+  const { navigate } = useRouter();
   const [variant, setVariant] = useState(p.variants?.[0] || '');
   const selectedVariantOpt = (p.variantOptions || []).find((vo) => vo.label === variant) || null;
   const activePrice = selectedVariantOpt?.price > 0 ? selectedVariantOpt.price : p.price;
@@ -26,6 +27,25 @@ export default function ProductCard({ p }) {
   const fav = wishlist.includes(p.id);
   const inCompare = compareIds.includes(p.id);
   const soldOut = activeStock <= 0 || !p.inStock;
+
+  const handleAdd = (e) => {
+    e?.stopPropagation?.();
+    addToCart(
+      { ...p, price: activePrice, compareAt: activeCompareAt, sku: activeSku },
+      { variant, variantLabel: variant, basePrice: activePrice, sku: activeSku }
+    );
+  };
+
+  const handleBuyNow = (e) => {
+    e?.stopPropagation?.();
+    if (soldOut) return;
+    addToCart(
+      { ...p, price: activePrice, compareAt: activeCompareAt, sku: activeSku },
+      { variant, variantLabel: variant, basePrice: activePrice, sku: activeSku, open: false, silent: true }
+    );
+    if (setBagOpen) setBagOpen(false);
+    navigate('/checkout');
+  };
 
   return (
     <article className="pcard">
@@ -72,14 +92,33 @@ export default function ProductCard({ p }) {
         {!p.coldChain && p.isRx && <span className="teal" style={{ fontSize: 11.5, marginTop: 6 }}>Vet approval required</span>}
         {!p.coldChain && !p.isRx && p.subscribe && <span className="teal" style={{ fontSize: 11.5, marginTop: 6 }}>Subscribe & save 5%</span>}
         <div className="pcard-foot">
-          <span className="pcard-price">{money(activePrice)}{activeCompareAt > activePrice && <s>{money(activeCompareAt)}</s>}</span>
-          <button
-            className="btn btn-dark btn-sm"
-            disabled={soldOut}
-            onClick={() => addToCart({ ...p, price: activePrice, compareAt: activeCompareAt, sku: activeSku }, { variant, variantLabel: variant, basePrice: activePrice, sku: activeSku })}
-          >
-            {soldOut ? 'Sold out' : <><Icon name="plus" size={14} /> Add</>}
-          </button>
+          <span className="pcard-price">
+            {money(activePrice)}
+            {activeCompareAt > activePrice && <s>{money(activeCompareAt)}</s>}
+          </span>
+          <div className="pcard-btns">
+            <button
+              type="button"
+              className="btn btn-outline btn-sm pcard-btn-add"
+              disabled={soldOut}
+              onClick={handleAdd}
+              title={soldOut ? 'Sold out' : 'Add to care bag'}
+              aria-label={soldOut ? 'Sold out' : 'Add to care bag'}
+            >
+              {soldOut ? 'Sold out' : <><Icon name="plus" size={13} /> Add</>}
+            </button>
+            {!soldOut && (
+              <button
+                type="button"
+                className="btn btn-dark btn-sm pcard-btn-buy"
+                onClick={handleBuyNow}
+                title="Buy now — Proceed directly to checkout"
+                aria-label="Buy now"
+              >
+                <Icon name="zap" size={13} /> Buy now
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </article>
