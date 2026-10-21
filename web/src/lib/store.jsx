@@ -30,6 +30,9 @@ export function StoreProvider({ children }) {
   const [coupon, setCoupon] = useState(() => read('pm_coupon', null));
   const [bagOpen, setBagOpen] = useState(false);
   const [wishlist, setWishlist] = useState(() => read('pm_wishlist', []));
+  const [compareIds, setCompareIds] = useState(() => read('pm_compare', []));
+  const [compareOpen, setCompareOpen] = useState(false);
+  const [subscriptions, setSubscriptions] = useState(() => read('pm_subscriptions', []));
   const [petId, setPetId] = useState(() => read('pm_active_pet', null));
   const [localOrders, setLocalOrders] = useState(() => read('pm_orders_v2', []));
   const [savedAddresses, setSavedAddresses] = useState(() => read('pm_addresses', []));
@@ -39,6 +42,8 @@ export function StoreProvider({ children }) {
   useEffect(() => write('pm_cart', cart), [cart]);
   useEffect(() => write('pm_coupon', coupon), [coupon]);
   useEffect(() => write('pm_wishlist', wishlist), [wishlist]);
+  useEffect(() => write('pm_compare', compareIds), [compareIds]);
+  useEffect(() => write('pm_subscriptions', subscriptions), [subscriptions]);
   useEffect(() => write('pm_active_pet', petId), [petId]);
   useEffect(() => write('pm_orders_v2', localOrders), [localOrders]);
   useEffect(() => write('pm_addresses', savedAddresses), [savedAddresses]);
@@ -254,6 +259,36 @@ export function StoreProvider({ children }) {
 
     // Always keep a local copy so guests (and immediate redirects) can track their order in this browser session
     setLocalOrders((o) => [{ ...order, id, docId }, ...o.filter((x) => x.id !== id)]);
+
+    // Register any auto-refill subscription items from this order
+    const subLines = order.items.filter((i) => i.subscribe || /auto-refill/i.test(i.variant));
+    if (subLines.length) {
+      setSubscriptions((prev) => {
+        const next = [...prev];
+        subLines.forEach((line) => {
+          const idx = next.findIndex((s) => s.productId === line.id && s.variant === line.variant);
+          const entry = {
+            id: idx >= 0 ? next[idx].id : `sub_${line.id}_${Date.now()}`,
+            productId: line.id,
+            name: line.name,
+            brand: line.brand || '',
+            image: line.image || '',
+            variant: line.variant || '',
+            price: line.price,
+            qty: line.qty || 1,
+            frequencyDays: idx >= 0 ? next[idx].frequencyDays : 30,
+            status: 'active',
+            petName: activePet?.name || '',
+            nextDeliveryAt: Date.now() + 30 * 864e5,
+            createdAt: idx >= 0 ? next[idx].createdAt : Date.now(),
+          };
+          if (idx >= 0) next[idx] = entry;
+          else next.unshift(entry);
+        });
+        return next;
+      });
+    }
+
     setCart([]);
     setCoupon(null);
     return id;
@@ -262,6 +297,57 @@ export function StoreProvider({ children }) {
   const updateLocalOrder = useCallback((orderId, patch) => {
     setLocalOrders((list) => list.map((o) => ((o.id === orderId || o.orderId === orderId || o.docId === orderId) ? { ...o, ...patch } : o)));
   }, []);
+
+  const toggleCompare = useCallback((id) => {
+    setCompareIds((list) => {
+      if (list.includes(id)) return list.filter((x) => x !== id);
+      if (list.length >= 4) {
+        toast('You can compare up to 4 products at a time', { tone: 'error' });
+        return list;
+      }
+      return [...list, id];
+    });
+  }, [toast]);
+
+  const clearCompare = useCallback(() => {
+    setCompareIds([]);
+    setCompareOpen(false);
+  }, []);
+
+  const addSubscription = useCallback((p, { frequencyDays = 30, variant = '', qty = 1 } = {}) => {
+    const unitPrice = Math.round((Number(p.price) || 0) * 0.95);
+    setSubscriptions((prev) => {
+      const existing = prev.find((s) => s.productId === p.id && s.variant === variant);
+      if (existing) {
+        return prev.map((s) => (s.id === existing.id ? { ...s, status: 'active', frequencyDays, qty } : s));
+      }
+      return [{
+        id: `sub_${p.id}_${Date.now()}`,
+        productId: p.id,
+        name: p.name,
+        brand: p.brand || '',
+        image: p.image || '',
+        variant: variant || p.variants?.[0] || '',
+        price: unitPrice,
+        qty,
+        frequencyDays,
+        status: 'active',
+        petName: activePet?.name || '',
+        nextDeliveryAt: Date.now() + frequencyDays * 864e5,
+        createdAt: Date.now(),
+      }, ...prev];
+    });
+    toast(`Subscribed to ${p.name} (every ${frequencyDays} days · 5% off)`);
+  }, [activePet, toast]);
+
+  const updateSubscription = useCallback((id, patch) => {
+    setSubscriptions((prev) => prev.map((s) => (s.id === id ? { ...s, ...patch } : s)));
+  }, []);
+
+  const removeSubscription = useCallback((id) => {
+    setSubscriptions((prev) => prev.filter((s) => s.id !== id));
+    toast('Subscription cancelled');
+  }, [toast]);
 
   const toggleWish = useCallback((id) => {
     let adding;
@@ -334,6 +420,8 @@ export function StoreProvider({ children }) {
     coupon, applyCoupon, removeCoupon: () => setCoupon(null),
     totals, bagOpen, setBagOpen,
     wishlist, toggleWish,
+    compareIds, compareOpen, setCompareOpen, toggleCompare, clearCompare,
+    subscriptions, addSubscription, updateSubscription, removeSubscription,
     savedAddresses, saveAddress, removeAddress, setDefaultAddress,
     activePet, setPetId,
     placeOrder, updateLocalOrder,

@@ -82,7 +82,10 @@ function AddPet({ onClose }) {
 }
 
 export default function Vault() {
-  const { user, pets, activePet, setPetId, myOrders, localOrders, vets, products, addToCart, toast } = useStore();
+  const {
+    user, pets, activePet, setPetId, myOrders, localOrders, vets, products, addToCart,
+    subscriptions = [], addSubscription, updateSubscription, removeSubscription, toast,
+  } = useStore();
   const { logout, updateUserProfile } = useAuth() || {};
   const real = user && !String(user.uid).startsWith('demo_guest');
   const records = useMyRecords(user);
@@ -163,7 +166,7 @@ export default function Vault() {
     lines.forEach((line) => {
       const catProd = (products.items || []).find((p) => p.id === line.id || p.name === line.name) || line;
       if (catProd) {
-        addToCart(catProd, line.qty || 1, line.variant);
+        addToCart(catProd, { qty: line.qty || 1, variant: line.variant || '' });
         count += line.qty || 1;
       }
     });
@@ -276,7 +279,7 @@ export default function Vault() {
                                 type="button"
                                 className="btn btn-teal btn-sm"
                                 style={{ height: 26, padding: '0 10px', fontSize: 12 }}
-                                onClick={() => addToCart(prod, 1, prod.variants?.[0])}
+                                onClick={() => addToCart(prod, { qty: 1, variant: prod.variants?.[0] || '' })}
                               >
                                 <Icon name="plus" size={12} /> Add
                               </button>
@@ -322,6 +325,108 @@ export default function Vault() {
 
       {tab === 'orders' && (
         <div className="stack gap-16" style={{ marginTop: 18 }}>
+          <div className="card">
+            <div className="row between wrap gap-8" style={{ marginBottom: 14 }}>
+              <div>
+                <span className="eyebrow"><span className="dot" /> Scheduled Deliveries & Auto-Refills</span>
+                <h2 className="serif" style={{ fontSize: 24, marginTop: 4 }}>Active subscriptions</h2>
+              </div>
+              <Pill tone="teal" sm>5% subscriber discount · Cancel anytime</Pill>
+            </div>
+            {subscriptions.length === 0 ? (
+              <div className="panel row between wrap gap-12" style={{ background: 'var(--surface)' }}>
+                <div>
+                  <b>No active scheduled deliveries yet</b>
+                  <div className="sub" style={{ fontSize: 13, marginTop: 2 }}>
+                    Turn on “Subscribe & save 5%” on any preventive or diet product—or click “Subscribe” on an essential below.
+                  </div>
+                </div>
+                <Button variant="outline" size="sm" to="/shop?subscribe=1">Browse eligible items</Button>
+              </div>
+            ) : (
+              <div className="stack gap-10">
+                {subscriptions.map((sub) => (
+                  <div key={sub.id} className="panel row between wrap gap-12" style={{ background: 'var(--surface)', padding: 14 }}>
+                    <div className="row gap-12">
+                      <Ph src={sub.image} label=" " style={{ width: 52, height: 52, minHeight: 0, borderRadius: 12 }} />
+                      <div>
+                        <div className="row gap-6 wrap">
+                          <Link to={`/product/${sub.productId}`} style={{ fontWeight: 600, fontSize: 14.5 }}>{sub.name}</Link>
+                          <Pill tone={sub.status === 'active' ? 'teal' : 'yellow'} sm>{sub.status === 'active' ? 'Active' : 'Paused'}</Pill>
+                        </div>
+                        <div className="sub" style={{ fontSize: 12, marginTop: 2 }}>
+                          {[sub.variant, `${money(sub.price)} / delivery`, sub.petName && `For ${sub.petName}`].filter(Boolean).join(' · ')}
+                        </div>
+                        <div className="sub" style={{ fontSize: 12, marginTop: 2 }}>
+                          Next scheduled dispatch: <b>{shortDate(sub.nextDeliveryAt)}</b> (every {sub.frequencyDays} days)
+                        </div>
+                      </div>
+                    </div>
+                    <div className="row gap-6 wrap">
+                      <select
+                        className="select"
+                        style={{ height: 32, width: 'auto', fontSize: 12, borderRadius: 999 }}
+                        value={sub.frequencyDays}
+                        onChange={(e) => {
+                          const days = Number(e.target.value);
+                          updateSubscription(sub.id, { frequencyDays: days, nextDeliveryAt: Date.now() + days * 864e5 });
+                          toast(`Updated schedule to every ${days} days`);
+                        }}
+                        aria-label="Delivery frequency"
+                      >
+                        <option value={30}>Every 30 days</option>
+                        <option value={45}>Every 45 days</option>
+                        <option value={60}>Every 60 days</option>
+                      </select>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const nextAt = (sub.nextDeliveryAt || Date.now()) + (sub.frequencyDays || 30) * 864e5;
+                          updateSubscription(sub.id, { nextDeliveryAt: nextAt });
+                          toast(`Skipped next delivery — rescheduled for ${shortDate(nextAt)}`);
+                        }}
+                      >
+                        Skip next
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const nextStatus = sub.status === 'active' ? 'paused' : 'active';
+                          updateSubscription(sub.id, { status: nextStatus });
+                          toast(nextStatus === 'paused' ? 'Subscription paused' : 'Subscription resumed');
+                        }}
+                      >
+                        {sub.status === 'active' ? 'Pause' : 'Resume'}
+                      </Button>
+                      <Button
+                        variant="dark"
+                        size="sm"
+                        icon="bag"
+                        onClick={() => {
+                          const catProd = (products.items || []).find((p) => p.id === sub.productId) || sub;
+                          addToCart({ ...catProd, price: sub.price, subscribe: true }, { qty: sub.qty || 1, variant: sub.variant || '' });
+                        }}
+                      >
+                        Send now
+                      </Button>
+                      <button
+                        type="button"
+                        className="btn btn-ghost btn-square btn-sm"
+                        onClick={() => removeSubscription(sub.id)}
+                        title="Cancel subscription"
+                        aria-label="Cancel subscription"
+                      >
+                        <Icon name="x" size={14} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           {refillItems.length > 0 && (
             <div className="card">
               <div className="row between wrap gap-8" style={{ marginBottom: 14 }}>
@@ -332,30 +437,43 @@ export default function Vault() {
                 <Pill tone="teal" sm>Save 5% on monthly refills</Pill>
               </div>
               <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 12 }}>
-                {refillItems.map(({ product: p, variant, daysAgo, dueInDays }) => (
-                  <div key={p.id || p.name} className="panel row gap-12" style={{ padding: 12, background: 'var(--surface)' }}>
-                    <Ph src={p.image} label=" " style={{ width: 54, height: 54, minHeight: 0, borderRadius: 12 }} />
-                    <div className="grow">
-                      <Link to={`/product/${p.id}`} style={{ fontWeight: 600, fontSize: 14 }}>{p.name}</Link>
-                      <div className="sub" style={{ fontSize: 12 }}>
-                        {variant ? `${variant} · ` : ''}{money(p.price)}
+                {refillItems.map(({ product: p, variant, daysAgo, dueInDays }) => {
+                  const refPrice = Math.round((Number(p.price) || 0) * 0.95);
+                  return (
+                    <div key={p.id || p.name} className="panel row gap-12" style={{ padding: 12, background: 'var(--surface)' }}>
+                      <Ph src={p.image} label=" " style={{ width: 54, height: 54, minHeight: 0, borderRadius: 12 }} />
+                      <div className="grow">
+                        <Link to={`/product/${p.id}`} style={{ fontWeight: 600, fontSize: 14 }}>{p.name}</Link>
+                        <div className="sub" style={{ fontSize: 12 }}>
+                          {variant ? `${variant} · ` : ''}{money(refPrice)} <s style={{ opacity: 0.6 }}>{money(p.price)}</s>
+                        </div>
+                        <div className="row gap-6" style={{ marginTop: 4 }}>
+                          <Pill tone={dueInDays <= 5 ? 'yellow' : 'teal'} sm>
+                            {dueInDays <= 0 ? 'Refill due now' : `Due in ${dueInDays}d (ordered ${daysAgo}d ago)`}
+                          </Pill>
+                        </div>
                       </div>
-                      <div className="row gap-6" style={{ marginTop: 4 }}>
-                        <Pill tone={dueInDays <= 5 ? 'yellow' : 'teal'} sm>
-                          {dueInDays <= 0 ? 'Refill due now' : `Due in ${dueInDays}d (ordered ${daysAgo}d ago)`}
-                        </Pill>
+                      <div className="stack gap-6">
+                        <Button
+                          variant="dark"
+                          size="sm"
+                          icon="repeat"
+                          onClick={() => addToCart({ ...p, price: refPrice, basePrice: p.price, subscribe: true }, { qty: 1, variant: `${variant || 'Standard'} · Auto-refill` })}
+                        >
+                          Refill
+                        </Button>
+                        <button
+                          type="button"
+                          className="link"
+                          style={{ fontSize: 11, textAlign: 'center' }}
+                          onClick={() => addSubscription(p, { frequencyDays: 30, variant })}
+                        >
+                          + Auto-schedule
+                        </button>
                       </div>
                     </div>
-                    <Button
-                      variant="dark"
-                      size="sm"
-                      icon="repeat"
-                      onClick={() => addToCart(p, 1, variant, { refill: true })}
-                    >
-                      Refill
-                    </Button>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}

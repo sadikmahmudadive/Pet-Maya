@@ -15,7 +15,7 @@ export function productBadge(p) {
 }
 
 export default function ProductCard({ p }) {
-  const { addToCart, wishlist, toggleWish } = useStore();
+  const { addToCart, wishlist, toggleWish, compareIds = [], toggleCompare } = useStore();
   const [variant, setVariant] = useState(p.variants?.[0] || '');
   const selectedVariantOpt = (p.variantOptions || []).find((vo) => vo.label === variant) || null;
   const activePrice = selectedVariantOpt?.price > 0 ? selectedVariantOpt.price : p.price;
@@ -24,6 +24,7 @@ export default function ProductCard({ p }) {
   const activeStock = selectedVariantOpt?.stockCount != null ? selectedVariantOpt.stockCount : p.stockCount;
   const badge = productBadge(p);
   const fav = wishlist.includes(p.id);
+  const inCompare = compareIds.includes(p.id);
   const soldOut = activeStock <= 0 || !p.inStock;
 
   return (
@@ -31,6 +32,17 @@ export default function ProductCard({ p }) {
       {badge && <span className={cx('pill sm pcard-badge', BADGE_TONE[badge] || (badge === 'Sold out' ? 'red' : ''))}>{badge}</span>}
       <button className={cx('pcard-fav', fav && 'on')} onClick={() => toggleWish(p.id)} aria-label={fav ? 'Remove from saved' : 'Save'} aria-pressed={fav}>
         <Icon name="heart" size={15} />
+      </button>
+      <button
+        type="button"
+        className={cx('pcard-fav', inCompare && 'on')}
+        style={{ right: 48 }}
+        onClick={() => toggleCompare(p.id)}
+        title={inCompare ? 'Remove from comparison' : 'Compare product'}
+        aria-label={inCompare ? 'Remove from comparison' : 'Compare product'}
+        aria-pressed={inCompare}
+      >
+        <Icon name="layers" size={14} />
       </button>
       <Link to={productPath(p)} target="_blank" aria-label={`${p.name} (opens in a new tab)`}>
         <Ph src={p.image} tone={p.coldChain ? 'teal' : ''} label={p.category === 'vaccines' ? 'vial' : 'product'} />

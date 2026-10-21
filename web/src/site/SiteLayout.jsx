@@ -1,18 +1,21 @@
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { Link, useRouter } from '../lib/router.jsx';
 import { useStore } from '../lib/store.jsx';
-import { Icon, Button, ThemeToggle } from '../ui/index.jsx';
-import { money, cx } from '../lib/format.js';
+import { Icon, Button, ThemeToggle, Ph, Pill } from '../ui/index.jsx';
+import { money, cx, productPath } from '../lib/format.js';
 import { useScrolled, useBump, Reveal } from '../lib/motion.jsx';
 import { subscribeNewsletter } from '../data/actions.js';
 import { ANNOUNCEMENTS, TRUST, BRAND } from '../data/content.js';
 import BagDrawer from './BagDrawer.jsx';
+import CompareDrawer from './CompareDrawer.jsx';
+import AiShoppingAssistant from './AiShoppingAssistant.jsx';
 import AccountButton from './AccountButton.jsx';
 import NotificationBell from './NotificationBell.jsx';
 import Toasts from './Toasts.jsx';
 import ConsentBar from './ConsentBar.jsx';
 import { trackPageView } from '../lib/analytics.js';
 import { useApp } from '../context/AppContext.jsx';
+
 // ~240 KB of modal code and animation library: fetched the first time any modal opens
 const ModalRoot = lazy(() => import('../components/Modals/ModalRoot.jsx'));
 function Modals() {
@@ -34,6 +37,15 @@ const NAV = [
   { to: '/dashboard', label: 'Dashboard' },
 ];
 
+const QUICK_CATS = [
+  { label: 'Dogs', to: '/shop/dogs' },
+  { label: 'Cats', to: '/shop/cats' },
+  { label: 'Medicine', to: '/shop/medicine' },
+  { label: 'Food & Diets', to: '/shop/food' },
+  { label: 'Toys', to: '/shop/toys' },
+  { label: 'Accessories', to: '/shop/accessories' },
+];
+
 export function Logo({ sub = true }) {
   return (
     <Link to="/" className="logo" aria-label="Pet Maya home">
@@ -45,26 +57,39 @@ export function Logo({ sub = true }) {
 
 function Header() {
   const { path, navigate } = useRouter();
-  const { totals, setBagOpen } = useStore();
+  const { totals, setBagOpen, products, addToCart } = useStore();
   const [menu, setMenu] = useState(false);
   const [q, setQ] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
   const scrolled = useScrolled(10);
   const bump = useBump(totals.count);
 
-  useEffect(() => setMenu(false), [path]);
+  useEffect(() => { setMenu(false); setSearchOpen(false); }, [path]);
   useEffect(() => {
     const onKey = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         document.getElementById('site-search')?.focus();
+        setSearchOpen(true);
+      } else if (e.key === 'Escape') {
+        setSearchOpen(false);
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
+  const suggestions = useMemo(() => {
+    const term = q.trim().toLowerCase();
+    if (term.length < 2) return [];
+    return (products?.items || [])
+      .filter((p) => p.showOnStorefront !== false && `${p.name} ${p.brand} ${p.category} ${p.sku || ''} ${p.shortDescription || ''}`.toLowerCase().includes(term))
+      .slice(0, 5);
+  }, [q, products?.items]);
+
   const submit = (e) => {
     e.preventDefault();
+    setSearchOpen(false);
     navigate(`/shop?q=${encodeURIComponent(q.trim())}`);
   };
 
@@ -76,11 +101,107 @@ function Header() {
             <Icon name={menu ? 'x' : 'menu'} size={20} />
           </button>
           <Logo />
-          <form className="searchbar hdr-search hide-sm" onSubmit={submit} role="search">
-            <Icon name="search" size={17} />
-            <input id="site-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search medicine, food, brands or vets…" aria-label="Search" />
-            <span className="kbd">⌘K</span>
-          </form>
+          <div className="hdr-search hide-sm" style={{ position: 'relative', flex: 1, maxWidth: 480 }}>
+            <form className="searchbar" onSubmit={submit} role="search" style={{ width: '100%' }}>
+              <Icon name="search" size={17} />
+              <input
+                id="site-search"
+                value={q}
+                onFocus={() => setSearchOpen(true)}
+                onBlur={() => setTimeout(() => setSearchOpen(false), 180)}
+                onChange={(e) => { setQ(e.target.value); setSearchOpen(true); }}
+                placeholder="Search medicine, food, brands, SKUs or vets…"
+                aria-label="Search"
+              />
+              {q && (
+                <button type="button" className="link" style={{ fontSize: 12 }} onClick={() => setQ('')} aria-label="Clear search">
+                  <Icon name="x" size={13} />
+                </button>
+              )}
+              <span className="kbd">⌘K</span>
+            </form>
+
+            {searchOpen && (q.trim().length >= 2 || QUICK_CATS.length > 0) && (
+              <div
+                className="card stack gap-10"
+                style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 8px)',
+                  left: 0,
+                  right: 0,
+                  zIndex: 95,
+                  padding: 14,
+                  borderRadius: 18,
+                  boxShadow: '0 16px 40px rgba(0,0,0,0.16)',
+                }}
+                onMouseDown={(e) => e.preventDefault()}
+              >
+                {q.trim().length >= 2 ? (
+                  suggestions.length > 0 ? (
+                    <>
+                      <div className="row between">
+                        <span className="eyebrow muted" style={{ fontSize: 10 }}>Instant Catalog Matches</span>
+                        <button type="button" className="link" style={{ fontSize: 12 }} onClick={submit}>
+                          See all results for “{q.trim()}” →
+                        </button>
+                      </div>
+                      <div className="stack gap-6">
+                        {suggestions.map((p) => (
+                          <div key={p.id} className="row gap-10" style={{ padding: '6px 8px', borderRadius: 12, background: 'var(--sunk-2)' }}>
+                            <Ph src={p.image} label=" " style={{ width: 40, height: 40, minHeight: 0, borderRadius: 10 }} />
+                            <div className="grow" style={{ minWidth: 0 }}>
+                              <Link
+                                to={productPath(p)}
+                                onClick={() => setSearchOpen(false)}
+                                style={{ fontWeight: 600, fontSize: 13.5, display: 'block' }}
+                                className="ellipsis"
+                              >
+                                {p.name}
+                              </Link>
+                              <div className="sub" style={{ fontSize: 11.5 }}>
+                                {p.brand} · <b>{money(p.price)}</b>
+                                {p.isRx ? ' · Rx' : ''}
+                                {p.coldChain ? ' · Cold 2–8°C' : ''}
+                              </div>
+                            </div>
+                            <Button
+                              variant="dark"
+                              size="sm"
+                              icon="plus"
+                              disabled={p.stockCount <= 0 || !p.inStock}
+                              onClick={() => { addToCart(p, { variant: p.variants?.[0] || '' }); setSearchOpen(false); }}
+                            >
+                              Add
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="sub" style={{ fontSize: 13, padding: '6px 4px' }}>
+                      No instant matches for “{q.trim()}”. Press Enter to search all categories.
+                    </div>
+                  )
+                ) : (
+                  <div>
+                    <div className="eyebrow muted" style={{ fontSize: 10, marginBottom: 8 }}>Popular Categories</div>
+                    <div className="row gap-6 wrap">
+                      {QUICK_CATS.map((c) => (
+                        <Link
+                          key={c.to}
+                          to={c.to}
+                          className="pill outline sm"
+                          onClick={() => setSearchOpen(false)}
+                        >
+                          {c.label}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
           <div className="row gap-4 hdr-actions">
             <Link to="/shop?saved=1" className="btn btn-ghost btn-square hide-sm" aria-label="Saved items"><Icon name="heart" /></Link>
             <NotificationBell />
@@ -244,6 +365,8 @@ export default function SiteLayout({ minimal, children }) {
       <main className="site-main">{children}</main>
       <Footer />
       <BagDrawer />
+      {!minimal && <CompareDrawer />}
+      {!minimal && <AiShoppingAssistant />}
       <Modals />
       <Toasts />
       <ConsentBar />

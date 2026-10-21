@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
-import { useRouter } from '../../lib/router.jsx';
-import { functions, httpsCallable } from '../../config/firebase';
-import { useAdmin, downloadCsv, ADMIN_CONFIG } from '../data.jsx';
+import { Link, useRouter } from '../../lib/router.jsx';
+import { functions, httpsCallable, arrayUnion } from '../../config/firebase';
+import { useAdmin, useAdminWrite, downloadCsv, ADMIN_CONFIG } from '../data.jsx';
 import { PageHead } from '../AdminApp.jsx';
 import { Icon, Button, Pill, Stat, Tabs, Avatar, Empty, Field, Portal } from '../../ui/index.jsx';
 import { money, cx, shortDate } from '../../lib/format.js';
@@ -42,8 +42,9 @@ function Campaign({ onClose, count }) {
   );
 }
 
-export default function Customers() {
+export default function Customers({ user }) {
   const { customers } = useAdmin();
+  const write = useAdminWrite();
   const { query, navigate } = useRouter();
   const [tab, setTab] = useState('all');
   const [q, setQ] = useState('');
@@ -52,6 +53,8 @@ export default function Customers() {
   const [pet, setPet] = useState('');
   const [selId, setSelId] = useState(query.get('id'));
   const [campaign, setCampaign] = useState(false);
+  const [supportText, setSupportText] = useState('');
+  const [localSupport, setLocalSupport] = useState({});
 
   const TABS = [
     ['all', 'All', () => true], ['subs', 'Subscribers', (c) => c.subscriber], ['risk', 'At risk', (c) => c.atRisk], ['new', 'New this week', (c) => c.isNew], ['vip', 'VIP', (c) => c.tier === 'Platinum'],
@@ -159,6 +162,61 @@ export default function Customers() {
                 <div className="coupon-applied" style={{ marginTop: 8 }}><span className="grow">{sel.subscription.name} · every {sel.subscription.every} d</span><span>Next {sel.subscription.next}</span></div>
               </>
             )}
+
+            {(sel.orderList || []).length > 0 && (
+              <>
+                <hr className="divider" style={{ margin: '16px 0' }} />
+                <div className="row between" style={{ marginBottom: 8 }}>
+                  <b style={{ fontSize: 13 }}>Recent purchase history</b>
+                  <span className="sub" style={{ fontSize: 11 }}>{sel.orderList.length} orders</span>
+                </div>
+                <div className="stack gap-6">
+                  {sel.orderList.slice(0, 4).map((o) => (
+                    <div key={o.docId || o.id} className="row between" style={{ fontSize: 12.5, padding: '6px 10px', background: 'var(--sunk-2)', borderRadius: 10 }}>
+                      <Link to={`/admin/orders/${encodeURIComponent(o.docId || o.id)}`} className="mono link-plain">{o.id}</Link>
+                      <span className="sub">{shortDate(o.placedAt)}</span>
+                      <b>{money(o.total)}</b>
+                      <Pill sm>{o.status}</Pill>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
+            <hr className="divider" style={{ margin: '16px 0' }} />
+            <b style={{ fontSize: 13 }}>Support cases & notes</b>
+            <div className="stack gap-6" style={{ marginTop: 8 }}>
+              {[...(sel.supportNotes || []), ...(localSupport[sel.id] || [])].map((n, idx) => (
+                <div key={idx} className="note-yellow" style={{ fontSize: 12.5 }}>
+                  <b>{n.by}:</b> {n.text} <span className="sub" style={{ fontSize: 11 }}>({shortDate(n.at)})</span>
+                </div>
+              ))}
+            </div>
+            <div className="row gap-6" style={{ marginTop: 8 }}>
+              <input
+                className="input grow"
+                style={{ height: 34, fontSize: 12.5 }}
+                value={supportText}
+                onChange={(e) => setSupportText(e.target.value)}
+                placeholder="Log support case or customer note…"
+                aria-label="Support note"
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={!supportText.trim()}
+                onClick={async () => {
+                  const entry = { by: user?.name || 'Admin', text: supportText.trim(), at: Date.now() };
+                  if (await write('users', sel.uid || sel.id, { supportNotes: arrayUnion(entry) }, 'Support note logged')) {
+                    setLocalSupport((prev) => ({ ...prev, [sel.id]: [...(prev[sel.id] || []), entry] }));
+                    setSupportText('');
+                  }
+                }}
+              >
+                Log
+              </Button>
+            </div>
+
             <div className="row gap-8" style={{ marginTop: 18 }}>
               <Button variant="dark" icon="message" className="grow" to={sel.email ? `mailto:${sel.email}` : `tel:${sel.phone}`}>Message</Button>
               <Button variant="outline" onClick={() => navigate(`/admin/orders?q=${encodeURIComponent(sel.name)}`)}>View orders</Button>
