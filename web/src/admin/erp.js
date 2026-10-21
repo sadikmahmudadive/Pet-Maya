@@ -54,9 +54,9 @@ export const STAFF_ROLES = ['Manager', 'Cashier', 'Pharmacist', 'Accountant', 'S
 export const ROLE_ACCESS = {
   Manager: ['*'],
   Cashier: ['/admin/pos', '/admin/sales', '/admin/customers'],
-  Pharmacist: ['/admin', '/admin/orders', '/admin/prescriptions', '/admin/inventory', '/admin/promotions', '/admin/pos', '/admin/sales', '/admin/stock'],
+  Pharmacist: ['/admin', '/admin/orders', '/admin/prescriptions', '/admin/inventory', '/admin/products', '/admin/promotions', '/admin/pos', '/admin/sales', '/admin/stock'],
   Accountant: ['/admin', '/admin/finance', '/admin/reports', '/admin/purchasing', '/admin/sales', '/admin/orders', '/admin/promotions'],
-  Storekeeper: ['/admin/inventory', '/admin/stock', '/admin/purchasing'],
+  Storekeeper: ['/admin/inventory', '/admin/products', '/admin/stock', '/admin/purchasing'],
 };
 
 export function canAccess(role, path) {

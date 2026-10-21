@@ -22,6 +22,7 @@ import Reports from './pages/Reports.jsx';
 import Staff from './pages/Staff.jsx';
 import Settings from './pages/Settings.jsx';
 import Announcement from './pages/Announcement.jsx';
+import AddProduct from './pages/AddProduct.jsx';
 import { storefrontUrl } from '../lib/hosts.js';
 import { STAFF_ROLES, canAccess, homeFor } from './erp.js';
 
@@ -35,6 +36,7 @@ const ROUTES = [
   ['/admin/orders/:id', OrderDetail, 'Order'],
   ['/admin/prescriptions', Prescriptions, 'Prescriptions'],
   ['/admin/inventory', Inventory, 'Inventory'],
+  ['/admin/products/new', AddProduct, 'Add product'],
   ['/admin/promotions', Promotions, 'Promotions'],
   ['/admin/announcement', Announcement, 'Announcement bar'],
   ['/admin/appointments', Appointments, 'Appointments'],
@@ -72,6 +74,7 @@ function Sidebar({ open, onClose, user }) {
     ]],
     ['Supply chain', [
       ['/admin/inventory', 'Inventory', 'flask', lowStock],
+      ['/admin/products/new', 'Add product', 'plus'],
       ['/admin/stock', 'Stock control', 'layers'],
       ['/admin/purchasing', 'Purchasing', 'truck', toReceive],
     ]],

@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from '../../lib/router.jsx';
-import { auth, storage, ref, uploadBytesResumable, getDownloadURL } from '../../config/firebase';
 import { useAdmin, useAdminWrite, downloadCsv, ADMIN_CONFIG } from '../data.jsx';
 import { PageHead } from '../AdminApp.jsx';
 import { Icon, Button, Pill, Stat, Tabs, Ph, Toggle, Field, Empty } from '../../ui/index.jsx';
 import { money, cx, productPath } from '../../lib/format.js';
 import { useStore } from '../../lib/store.jsx';
-import { validateUpload, ownUploadPath } from '../../lib/security.js';
+import ProductPhotos from '../ProductPhotos.jsx';
+import { CATEGORIES, UNITS, buildProductData, formFromProduct, validateProduct, cleanPhotoUrl, MAX_PHOTOS } from '../productForm.js';
 
 const statusOf = (p) => {
   if (p.stockCount <= 0) return ['Out of stock', 'red', 'x'];
@@ -15,12 +15,6 @@ const statusOf = (p) => {
   return ['Healthy', 'teal', 'check'];
 };
 
-const BLANK = {
-  id: '', name: '', brand: '', category: 'medicine', pet: 'both', sku: '', barcode: '', cost: 0, unit: 'pc', supplier: '',
-  price: 0, compareAt: '', stockCount: 0, reorderPoint: 20, stockTarget: 100, isRx: false, coldChain: false,
-  showOnStorefront: true, autoRefill: false, image: '', shortDescription: '', description: '', ingredients: '',
-  variants: [], variantOptions: [],
-};
 const slug = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || `p-${Date.now()}`;
 
 function parseCsv(text) {
@@ -50,10 +44,11 @@ export default function Inventory() {
   const [cat, setCat] = useState('');
   const [brand, setBrand] = useState('');
   const [storageF, setStorageF] = useState('');
-  const [editId, setEditId] = useState(null);
+  const [editId, setEditId] = useState(query.get('edit') || null);
   const [form, setForm] = useState(null);
   const [dirty, setDirty] = useState(false);
-  const fileRef = useRef(null);
+  const [photosBusy, setPhotosBusy] = useState(false);
+  const [photoFailed, setPhotoFailed] = useState(0);
   const csvRef = useRef(null);
 
   const isLow = (p) => p.stockCount > 0 && p.stockCount <= p.reorderPoint;
@@ -74,22 +69,13 @@ export default function Inventory() {
 
   const selected = products.find((p) => p.id === editId) || (editId === null ? list[0] : null);
   useEffect(() => {
-    if (editId === '__new') { setForm({ ...BLANK }); setDirty(false); return; }
-    if (selected) {
-      setForm({
-        ...selected,
-        variantOptions: Array.isArray(selected.variantOptions) && selected.variantOptions.length
-          ? selected.variantOptions.map((vo) => ({ ...vo }))
-          : (selected.variants || []).map((v) => ({ label: String(v), sku: '', price: '', stockCount: '' })),
-      });
-      setDirty(false);
-    }
+    if (selected) { setForm(formFromProduct(selected)); setDirty(false); }
   }, [editId, selected?.id]); // eslint-disable-line
 
   const stockValue = products.reduce((a, p) => a + p.price * Math.max(0, p.stockCount), 0);
   const low = products.filter((p) => p.stockCount <= p.reorderPoint);
   const reorder = low.map((p) => ({ p, qty: Math.max(p.reorderPoint, p.stockTarget - p.stockCount) })).sort((a, b) => a.p.stockCount - b.p.stockCount);
-  const cats = [...new Set(['medicine', 'preventives', 'vaccines', 'food', 'supplements', 'grooming', 'toys', 'accessories', 'travel', 'smart-gear', 'skin', 'joint', 'antiparasitics', 'calming', ...products.map((p) => p.category)])].sort();
+  const cats = [...new Set([...CATEGORIES, ...products.map((p) => p.category)])].filter(Boolean).sort();
   const brands = [...new Set(products.map((p) => p.brand))].sort();
 
   const set = (k, v) => { setForm((f) => ({ ...f, [k]: v })); setDirty(true); };
@@ -105,51 +91,26 @@ export default function Inventory() {
     set('variantOptions', (form.variantOptions || []).filter((_, i) => i !== idx));
   };
 
-  const save = async () => {
-    if (!form.name.trim()) { toast('Give the product a name', { tone: 'error' }); return; }
-    const id = form.id || slug(form.name);
-    const cleanVariants = (form.variantOptions || [])
-      .filter((vo) => String(vo.label || '').trim())
-      .map((vo) => ({
-        label: String(vo.label).trim(),
-        sku: String(vo.sku || '').trim(),
-        price: vo.price !== '' && vo.price != null ? Number(vo.price) : null,
-        stockCount: vo.stockCount !== '' && vo.stockCount != null ? Number(vo.stockCount) : null,
-      }));
-    const data = {
-      name: form.name, brand: form.brand, category: form.category, pet: form.pet || 'both', sku: form.sku, price: Number(form.price) || 0,
-      barcode: String(form.barcode || '').trim(), cost: Number(form.cost) || 0, unit: form.unit || 'pc', supplier: form.supplier || form.brand || '',
-      ...(form.compareAt ? { compareAt: Number(form.compareAt) || null } : { compareAt: null }),
-      stockCount: Number(form.stockCount) || 0, reorderPoint: Number(form.reorderPoint) || 0, stockTarget: Number(form.stockTarget) || 0,
-      inStock: Number(form.stockCount) > 0, isRx: !!form.isRx, coldChain: !!form.coldChain, showOnStorefront: !!form.showOnStorefront,
-      autoRefill: !!form.autoRefill, subscribe: !!form.autoRefill,
-      image: form.image || '', imageUrl: form.image || '',
-      shortDescription: form.shortDescription || '',
-      description: form.description || form.shortDescription || '',
-      ingredients: form.ingredients || '',
-      variants: cleanVariants.map((v) => v.label),
-      variantOptions: cleanVariants,
-      ...(form.id ? {} : { rating: 4.8, ratingCount: 0, createdAt: Date.now() }),
-    };
-    if (await write('products', id, data, form.id ? 'Product saved' : 'Product added')) { setDirty(false); setEditId(id); }
+  const onPhotos = (urls, isBusy, failed = 0) => {
+    setPhotosBusy(isBusy);
+    setPhotoFailed(failed);
+    setForm((f) => {
+      if (!f || (f.photos.length === urls.length && f.photos.every((u, i) => u === urls[i]))) return f;
+      setDirty(true);
+      return { ...f, photos: urls };
+    });
   };
-  const uploadPhoto = async (file) => {
-    if (!file) return;
-    if (!storage) { set('image', URL.createObjectURL(file)); return; }
-    try {
-      const type = await validateUpload(file, 'image');
-      const uid = auth.currentUser?.uid;
-      if (!uid) { toast('Sign in again to upload photos', { tone: 'error' }); return; }
-      const r = ref(storage, ownUploadPath('shop_products', uid, type.ext));
-      await uploadBytesResumable(r, file, { contentType: type.contentType });
-      set('image', await getDownloadURL(r));
-    } catch (e) { toast(e?.message && !e.code ? e.message : 'Photo upload failed', { tone: 'error' }); }
+
+  const save = async () => {
+    const { errors } = validateProduct(form, products, { editingId: form.id, uploading: photosBusy });
+    if (errors.length) { toast(errors[0].message, { tone: 'error' }); return; }
+    if (await write('products', form.id, buildProductData(form), 'Product saved')) setDirty(false);
   };
   const exportCatalogCsv = () => {
     const header = [
       'id', 'name', 'sku', 'barcode', 'brand', 'supplier', 'category', 'pet', 'unit',
       'price', 'compareAt', 'cost', 'stockCount', 'reorderPoint', 'stockTarget',
-      'isRx', 'coldChain', 'showOnStorefront', 'autoRefill', 'variants', 'shortDescription', 'image',
+      'isRx', 'coldChain', 'showOnStorefront', 'autoRefill', 'variants', 'shortDescription', 'image', 'images',
     ];
     const rows = list.map((p) => {
       const varStr = Array.isArray(p.variantOptions) && p.variantOptions.length
@@ -161,7 +122,7 @@ export default function Inventory() {
         p.price || 0, p.compareAt || '', p.cost || 0, p.stockCount || 0, p.reorderPoint || 20, p.stockTarget || 100,
         p.isRx ? 'true' : 'false', p.coldChain ? 'true' : 'false',
         p.showOnStorefront !== false ? 'true' : 'false', p.autoRefill ? 'true' : 'false',
-        varStr, p.shortDescription || '', p.image || '',
+        varStr, p.shortDescription || '', p.image || '', (p.images || []).join('|'),
       ];
     });
     downloadCsv(`pet-maya-products-${new Date().toISOString().slice(0, 10)}.csv`, [header, ...rows]);
@@ -201,7 +162,12 @@ export default function Inventory() {
         ...(r.barcode ? { barcode: r.barcode } : {}),
         ...(r.supplier ? { supplier: r.supplier } : {}),
         ...(r.shortDescription ? { shortDescription: r.shortDescription } : {}),
-        ...(r.image ? { image: r.image, imageUrl: r.image } : {}),
+        ...(() => {
+          const cover = cleanPhotoUrl(r.image) || (r.image ? r.image.trim() : '');
+          const more = String(r.images || '').split('|').map(cleanPhotoUrl).filter(Boolean).filter((u) => u !== cover);
+          const all = [cover, ...more].filter(Boolean).slice(0, MAX_PHOTOS);
+          return all.length ? { image: all[0], imageUrl: all[0], images: all.slice(1), imageGallery: all } : {};
+        })(),
         ...(parsedVariantOptions.length ? {
           variants: parsedVariantOptions.map((v) => v.label),
           variantOptions: parsedVariantOptions,
@@ -227,7 +193,7 @@ export default function Inventory() {
         <Button variant="outline" icon="upload" onClick={() => csvRef.current?.click()}>Import CSV</Button>
         <Button variant="outline" icon="download" onClick={exportCatalogCsv}>Export CSV</Button>
         <Button variant="outline" icon="layers" to="/admin/stock">Stock control</Button>
-        <Button variant="dark" icon="plus" onClick={() => setEditId('__new')}>Add product</Button>
+        <Button variant="dark" icon="plus" to="/admin/products/new">Add product</Button>
       </PageHead>
 
       <div className="stat-grid">
@@ -296,9 +262,8 @@ export default function Inventory() {
 
         {form && (
           <div className="card" style={{ position: 'sticky', top: 84 }}>
-            <div className="card-head"><div><h2 className="h-card">{form.id ? 'Edit product' : 'New product'}</h2><div className="sub ellipsis" style={{ maxWidth: 240 }}>{form.name || 'Untitled'}</div></div>{dirty && <Pill sm>Unsaved</Pill>}</div>
-            <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => uploadPhoto(e.target.files?.[0])} />
-            <button className="edit-drop" style={{ width: '100%' }} onClick={() => fileRef.current?.click()}>{form.image ? <img src={form.image} alt="" /> : '[ click to add photo ]'}</button>
+            <div className="card-head"><div><h2 className="h-card">Edit product</h2><div className="sub ellipsis" style={{ maxWidth: 240 }}>{form.name || 'Untitled'}</div></div>{dirty && <Pill sm>Unsaved</Pill>}</div>
+            <div style={{ marginTop: 12 }}><ProductPhotos key={form.id} value={form.photos} onChange={onPhotos} toast={toast} />{photoFailed > 0 && <span className="field-err" role="alert">{photoFailed} photo{photoFailed > 1 ? 's' : ''} failed to upload and will not be saved.</span>}</div>
             <div className="fields" style={{ marginTop: 16 }}>
               <Field className="full" label="Name" value={form.name} onChange={(e) => set('name', e.target.value)} />
               <Field label="SKU" value={form.sku} onChange={(e) => set('sku', e.target.value)} />
@@ -320,7 +285,7 @@ export default function Inventory() {
               <Field label="Brand" value={form.brand} onChange={(e) => set('brand', e.target.value)} />
               <Field label="Supplier" value={form.supplier || ''} onChange={(e) => set('supplier', e.target.value)} placeholder={form.brand} />
               <Field label="Unit">
-                <select className="select" value={form.unit || 'pc'} onChange={(e) => set('unit', e.target.value)}>{['pc', 'box', 'strip', 'bottle', 'vial', 'pack', 'kg', 'g', 'ml', 'l'].map((u) => <option key={u}>{u}</option>)}</select>
+                <select className="select" value={form.unit || 'pc'} onChange={(e) => set('unit', e.target.value)}>{UNITS.map((u) => <option key={u}>{u}</option>)}</select>
               </Field>
               <Field label="Category">
                 <input className="input" list="cats" value={form.category} onChange={(e) => set('category', e.target.value.toLowerCase())} />
@@ -366,7 +331,7 @@ export default function Inventory() {
               ))}
             </div>
             <div className="row gap-8" style={{ marginTop: 14 }}>
-              <Button variant="dark" icon="check" className="grow" onClick={save} disabled={!dirty}>Save changes</Button>
+              <Button variant="dark" icon="check" className="grow" onClick={save} disabled={!dirty || photosBusy}>{photosBusy ? 'Uploading photos…' : 'Save changes'}</Button>
               {form.id && <Button variant="outline" icon="eye" to={productPath(form)} target="_blank">Preview</Button>}
             </div>
           </div>
