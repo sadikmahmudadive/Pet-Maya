@@ -8,7 +8,7 @@ import { Stepper } from '../BagDrawer.jsx';
 import ProductCard from '../ProductCard.jsx';
 import ReviewModal from '../ReviewModal.jsx';
 import { Reveal } from '../../lib/motion.jsx';
-import { money, cx, ago, toMillis, productPath } from '../../lib/format.js';
+import { money, cx, ago, toMillis, productPath, slugify } from '../../lib/format.js';
 import { DELIVERY } from '../../data/content.js';
 import { SAMPLE_REVIEWS } from '../../data/sample.js';
 
@@ -26,7 +26,11 @@ const normReview = (id, d) => ({
 export default function Product({ params }) {
   const { products, addToCart, activePet, totals, wishlist, toggleWish, setBagOpen } = useStore();
   const { path, navigate } = useRouter();
-  const p = products.items.find((x) => x.id === params.id);
+  const p = products.items.find((x) =>
+    x.id === params.id ||
+    x.sku === params.id ||
+    (params.slug && slugify(x.name) === params.slug)
+  );
 
   // Old links (/product/<id>) or a renamed product: show the current name in the address bar.
   useEffect(() => {
@@ -52,6 +56,14 @@ export default function Product({ params }) {
   const [tab, setTab] = useState('overview');
   const [showSticky, setShowSticky] = useState(false);
   const [reviewing, setReviewing] = useState(false);
+
+  // Variant-level price, compareAt, SKU & stock (backward-compatible with string variants)
+  const selectedVariantOpt = (p?.variantOptions || []).find((vo) => vo.label === variant) || null;
+  const activePrice = selectedVariantOpt?.price > 0 ? selectedVariantOpt.price : (p?.price || 0);
+  const activeCompareAt = selectedVariantOpt?.compareAt > 0 ? selectedVariantOpt.compareAt : (p?.compareAt || null);
+  const activeSku = selectedVariantOpt?.sku || p?.sku || '';
+  const activeStock = selectedVariantOpt?.stockCount != null ? selectedVariantOpt.stockCount : (p?.stockCount ?? 0);
+  const soldOut = activeStock <= 0 || !p?.inStock;
 
   useEffect(() => { setVariant(matchVariant || p?.variants?.[0] || ''); setQty(1); setCourse(1); setImg(0); }, [p?.id, matchVariant]);
   useEffect(() => {
@@ -90,7 +102,7 @@ export default function Product({ params }) {
       canonical.setAttribute('href', window.location.origin + productPath(p));
     }
   }, [p, activePrice, soldOut]);
-  useEffect(() => { if (p?.id) track('view_item', { value: Number(p.price) || 0, items: [toItem(p, 1)] }); }, [p?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (p?.id) track('view_item', { value: Number(p?.price || 0), items: [toItem(p, 1)] }); }, [p?.id]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     const onScroll = () => setShowSticky(window.scrollY > 900);
     window.addEventListener('scroll', onScroll, { passive: true });
@@ -107,13 +119,6 @@ export default function Product({ params }) {
     );
   }
 
-  // Variant-level price, compareAt, SKU & stock (backward-compatible with string variants)
-  const selectedVariantOpt = (p.variantOptions || []).find((vo) => vo.label === variant) || null;
-  const activePrice = selectedVariantOpt?.price > 0 ? selectedVariantOpt.price : p.price;
-  const activeCompareAt = selectedVariantOpt?.compareAt > 0 ? selectedVariantOpt.compareAt : p.compareAt;
-  const activeSku = selectedVariantOpt?.sku || p.sku;
-  const activeStock = selectedVariantOpt?.stockCount != null ? selectedVariantOpt.stockCount : p.stockCount;
-
   const courses = p.subscribe || p.isRx
     ? [{ n: 1, label: 'Single', note: '1 pack', save: 0 }, { n: 3, label: 'Quarterly', note: '3 packs', save: 3 }, { n: 6, label: 'Bi-annual', note: '6 packs', save: 5 }]
     : null;
@@ -128,7 +133,6 @@ export default function Product({ params }) {
   const bundle = [p, ...related.slice(0, 2)];
   const bundleTotal = bundle.reduce((a, x) => a + x.price, 0);
   const avg = reviews.items.length ? reviews.items.reduce((a, r) => a + r.stars, 0) / reviews.items.length : p.rating;
-  const soldOut = activeStock <= 0 || !p.inStock;
 
   const add = () => addToCart(
     { ...p, price: unit * c.n, compareAt: activeCompareAt ? activeCompareAt * c.n : null, subscribe: refill || p.subscribe, sku: activeSku },
