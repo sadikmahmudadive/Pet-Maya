@@ -8,7 +8,7 @@ import {
   DEVICE_MASTER_SECRET, MAX_CLOCK_SKEW_S, deviceAlerts, intervalFromMode, newDeviceDefaults, num, safeZoneOf,
 } from "./iot_common";
 import {
-  clip, isAdminRole, rateLimit, requireUser, safeInternalLink, validateBase64Image,
+  clip, isAdminRole, isRepeatNotification, NotificationRef, rateLimit, requireUser, safeInternalLink, validateBase64Image,
 } from "./security";
 
 admin.initializeApp();
@@ -144,6 +144,16 @@ export const push_on_notification = onDocumentCreated(
     const data = event.data?.data();
     if (!data || data.push === false) return;
     const { uid, id } = event.params;
+
+    // Loop guard: if this user was already notified of exactly this a moment ago, do not push it again.
+    const selfSnap = event.data!;
+    const recentSnap = await admin.firestore().collection("notifications").doc(uid).collection("items")
+      .orderBy("timestamp", "desc").limit(30).get();
+    const asRef = (d: FirebaseFirestore.QueryDocumentSnapshot): NotificationRef => ({ id: d.id, createdMs: d.createTime.toMillis(), data: d.data() });
+    if (isRepeatNotification(recentSnap.docs.map(asRef), asRef(selfSnap as FirebaseFirestore.QueryDocumentSnapshot))) {
+      console.warn(`push_on_notification: skipped a repeat of "${clip(data.title, 60)}" for ${uid.slice(0, 6)}…`);
+      return;
+    }
 
     const userRef = admin.firestore().collection("users").doc(uid);
     const user = (await userRef.get()).data();

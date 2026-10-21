@@ -71,3 +71,26 @@ test("computeCatalogueUnitPrice handles variant options, course packs, and auto-
   // Auto-refill (5% off) on Small (1000 * 0.95 = 950)
   assert.strictEqual(integ.computeCatalogueUnitPrice(prod, { variant: "Small · Auto-refill", subscribe: true }), 950);
 });
+
+test("repeat notifications: a copy of what was just sent is recognised, the original is not", () => {
+  const A = { id: "a", createdMs: 1_000_000, data: { title: "Order placed", body: "PM-1 is being packed." } };
+  const mirror = { id: "b", createdMs: 1_000_900, data: { title: "Order placed", message: "PM-1 is being packed.", type: "system" } }; // app format
+  assert.strictEqual(sec.isRepeatNotification([A, mirror], mirror), true);   // the copy repeats the original
+  assert.strictEqual(sec.isRepeatNotification([A, mirror], A), false);       // the original is never a repeat of its own copy
+});
+
+test("repeat notifications: different text, an old match, or another user's wording are all still pushed", () => {
+  const base = { id: "a", createdMs: 1_000_000, data: { title: "Order placed", body: "PM-1 is being packed." } };
+  const other = { id: "b", createdMs: 1_000_500, data: { title: "Order placed", body: "PM-2 is being packed." } };
+  const later = { id: "c", createdMs: 1_000_000 + 121_000, data: base.data };
+  assert.strictEqual(sec.isRepeatNotification([base, other], other), false);        // different order number
+  assert.strictEqual(sec.isRepeatNotification([base, later], later), false);        // outside the 2-minute window
+  assert.strictEqual(sec.isRepeatNotification([base], base), false);                // alone
+});
+
+test("repeat notifications: two identical ones at the same instant still get exactly one push", () => {
+  const x = { id: "a", createdMs: 5, data: { title: "T", body: "B" } };
+  const y = { id: "b", createdMs: 5, data: { title: "T", body: "B" } };
+  assert.strictEqual(sec.isRepeatNotification([x, y], x), false);
+  assert.strictEqual(sec.isRepeatNotification([x, y], y), true);
+});

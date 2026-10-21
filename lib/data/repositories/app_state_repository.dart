@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -383,7 +382,6 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
     _hydrateFromLocalCache();
     _loadSavedThemeMode();
     _restoreExistingSession();
-    _setupNotificationListener();
   }
 
   void _hydrateFromLocalCache() {
@@ -515,25 +513,11 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
     await setThemeMode(isDark ? ThemeMode.light : ThemeMode.dark);
   }
 
-  void _setupNotificationListener() {
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      if (message.notification != null) {
-        NotificationType type = NotificationType.system;
-        final data = message.data;
-        if (data.containsKey('type')) {
-          type = NotificationType.values.firstWhere(
-            (e) => e.name == data['type'],
-            orElse: () => NotificationType.system,
-          );
-        }
-        addNotification(
-          title: message.notification!.title ?? 'New Alert',
-          message: message.notification!.body ?? '',
-          type: type,
-        );
-      }
-    });
-  }
+  // Incoming pushes are NOT copied into Firestore here. Every push the server sends is made from a notification
+  // document that already exists (that is how push_on_notification works), and the in-app list is filled from
+  // those documents. Saving a second copy from this listener created a new document, which made the server push
+  // again, which made this listener save again: an endless loop of identical notifications. The foreground
+  // heads-up is shown by NotificationService.handleRemoteMessage.
 
   Future<void> _restoreExistingSession() async {
     final fUser = _firebase.currentFirebaseUser;
