@@ -547,3 +547,11 @@ details.faq p { padding-bottom: 18px; color: var(--muted); font-size: 14.5px; }
   .ai-fab { bottom: calc(22px + var(--consent-space, 0px)); }
   .ai-fab.up { bottom: calc(var(--compare-space, 70px) + 12px + var(--consent-space, 0px)); }
 }
+
+/* Auto-refill promo illustration (site/RefillArt.jsx): a slow refresh-arrow turn and a gently bobbing bottle. */
+@media (prefers-reduced-motion: no-preference) {
+  .refill-art .refill-spin { transform-box: fill-box; transform-origin: center; animation: refill-spin 16s linear infinite; }
+  .refill-art .refill-bob { animation: refill-bob 4.5s ease-in-out infinite; }
+}
+@keyframes refill-spin { to { transform: rotate(360deg); } }
+@keyframes refill-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }

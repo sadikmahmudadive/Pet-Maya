@@ -5,6 +5,7 @@ import { useBlogs } from '../../data/hooks.js';
 import { Icon, Button, Ph, Avatar, StarRow, Pill } from '../../ui/index.jsx';
 import ProductCard from '../ProductCard.jsx';
 import HaloBreakdown from '../HaloBreakdown.jsx';
+import RefillArt from '../RefillArt.jsx';
 import { money, cx, productPath } from '../../lib/format.js';
 import { Reveal, Count, useSpotlight } from '../../lib/motion.jsx';
 import { CATEGORIES, CONCERNS, CARE_KITS, BRANDS, PROMOS, DELIVERY, TRUST } from '../../data/content.js';
@@ -130,7 +131,7 @@ export default function Home() {
                 <h3>Auto-refill. 5% off. Never run out.</h3>
                 <Link to="/shop?subscribe=1" className="row gap-6" style={{ marginTop: 14, fontSize: 14, fontWeight: 600, color: 'var(--yellow-ink)' }}>See refill plans <Icon name="arrowRight" size={14} /></Link>
               </div>
-              <Ph label="refill box" style={{ width: 130, height: 110, flex: 'none' }} className="hide-sm" />
+              <RefillArt className="hide-sm" />
             </div>
           </div>
         </div>
