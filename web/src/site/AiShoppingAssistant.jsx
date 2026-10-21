@@ -120,19 +120,8 @@ export default function AiShoppingAssistant() {
     <>
       <button
         type="button"
-        className="btn btn-dark"
+        className={`btn btn-dark ai-fab${compareIds.length > 0 ? ' up' : ''}`}
         onClick={() => setOpen(true)}
-        style={{
-          position: 'fixed',
-          right: 22,
-          bottom: compareIds.length > 0 ? 82 : 22,
-          zIndex: 75,
-          height: 46,
-          padding: '0 18px',
-          borderRadius: 999,
-          boxShadow: '0 10px 28px rgba(0,0,0,0.22)',
-          gap: 8,
-        }}
         aria-label="Open AI Shopping Assistant"
       >
         <Icon name="sparkles" size={16} />

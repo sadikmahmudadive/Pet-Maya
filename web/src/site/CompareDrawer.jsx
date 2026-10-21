@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef } from 'react';
 import { Link } from '../lib/router.jsx';
 import { useStore } from '../lib/store.jsx';
 import { Icon, Button, Pill, Ph, Portal } from '../ui/index.jsx';
@@ -5,21 +6,36 @@ import { money, productPath } from '../lib/format.js';
 
 export default function CompareDrawer() {
   const { compareIds = [], compareOpen, setCompareOpen, toggleCompare, clearCompare, products, addToCart } = useStore();
-  if (!compareIds.length) return null;
-
   const items = compareIds
     .map((id) => (products?.items || []).find((p) => p.id === id))
     .filter(Boolean);
+  const showing = compareIds.length > 0 && items.length > 0;
 
+  // Publish the bar's height (+ its 20px offset) as --compare-space so "Ask Maya AI" can sit above it. The bar wraps
+  // onto more lines on narrow phones, so a fixed number is not enough.
+  const barRef = useRef(null);
+  useLayoutEffect(() => {
+    const el = barRef.current;
+    if (!showing || !el) return undefined;
+    const root = document.documentElement;
+    const publish = () => root.style.setProperty('--compare-space', `${Math.ceil(el.getBoundingClientRect().height) + 20}px`);
+    publish();
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(publish) : null;
+    ro?.observe(el);
+    return () => { ro?.disconnect(); root.style.removeProperty('--compare-space'); };
+  }, [showing]);
+
+  if (!compareIds.length) return null;
   if (!items.length) return null;
 
   return (
     <>
       <div
+        ref={barRef}
         className="card row between wrap gap-12"
         style={{
           position: 'fixed',
-          bottom: 20,
+          bottom: 'calc(20px + var(--consent-space, 0px))',
           left: '50%',
           transform: 'translateX(-50%)',
           zIndex: 80,

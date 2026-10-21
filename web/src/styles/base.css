@@ -344,7 +344,7 @@ em.accent { font-style: italic; color: var(--teal); }
   box-shadow: var(--shadow-lg);
   border: 1px solid var(--line);
 }
-.toasts { position: fixed; left: 24px; bottom: 24px; z-index: 80; display: flex; flex-direction: column; gap: 10px; }
+.toasts { position: fixed; left: 24px; bottom: calc(24px + var(--consent-space, 0px)); z-index: 80; display: flex; flex-direction: column; gap: 10px; }
 .toast {
   display: flex; align-items: center; gap: 12px;
   padding: 10px 10px 10px 14px; border-radius: 999px;
