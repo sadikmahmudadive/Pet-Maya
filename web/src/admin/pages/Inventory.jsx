@@ -216,8 +216,7 @@ export default function Inventory() {
         <select className="filter-select" value={storageF} onChange={(e) => setStorageF(e.target.value)} aria-label="Storage"><option value="">Storage</option><option value="cold">Cold-chain</option><option value="ambient">Ambient</option></select>
       </div>
 
-      <div className="adm-grid-side wide">
-        <div className="stack gap-16">
+      <div className="stack gap-16">
           <div className="card flush">
             <div className="card-tabs"><Tabs items={TABS.map(([v, l, fn]) => ({ value: v, label: l, count: filtered.filter(fn).length }))} value={tab} onChange={setTab} /></div>
             {list.length === 0 ? <Empty icon="flask" title="Nothing here" /> : (
@@ -229,7 +228,7 @@ export default function Inventory() {
                       const [label, tone, icon] = statusOf(p);
                       const ratio = Math.min(1, p.stockCount / Math.max(1, p.stockTarget));
                       return (
-                        <tr key={p.id} className={cx('clickable', (form?.id === p.id) && 'selected')} onClick={() => setEditId(p.id)}>
+                        <tr key={p.id} className={cx('clickable', (form?.id === p.id) && 'selected')} onClick={() => { setEditId(p.id); setTimeout(() => document.getElementById('inv-editor')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60); }}>
                           <td><div className="row gap-10"><Ph src={p.image} label=" " style={{ width: 38, height: 38, minHeight: 0, borderRadius: 10, flex: 'none' }} /><div><div className="cell-title">{p.name}</div><div className="cell-sub">{p.brand}{p.variants?.length ? ` · ${p.variants.length} variants` : ''}</div></div></div></td>
                           <td className="mono muted" style={{ fontSize: 12, whiteSpace: 'nowrap' }}>{p.sku}</td>
                           <td>
@@ -247,28 +246,9 @@ export default function Inventory() {
             )}
           </div>
 
-          <div className="card">
-            <h2 className="h-card">Reorder suggestions</h2>
-            <div className="sub" style={{ marginBottom: 10 }}>Brings each low item back to its target stock</div>
-            {reorder.length === 0 ? <div className="sub">Everything is above its reorder point.</div> : (
-              <>
-                <div className="list">
-                  {reorder.slice(0, 6).map(({ p, qty }) => (
-                    <div key={p.id} className="list-row"><div className="grow"><b style={{ fontSize: 14 }}>{p.name}</b><div className="sub" style={{ fontSize: 12 }}>{p.brand} · {p.stockCount <= 0 ? 'Out of stock' : `${p.stockCount} left`}</div></div><b>+{qty}</b></div>
-                  ))}
-                </div>
-                <Button variant="dark" block icon="truck" style={{ marginTop: 14 }} to="/admin/purchasing">Create purchase order</Button>
-                <Button variant="outline" block icon="download" style={{ marginTop: 8 }} onClick={() => downloadCsv(`purchase-orders-${new Date().toISOString().slice(0, 10)}.csv`, [['Supplier', 'SKU', 'Product', 'Order qty', 'Current stock'], ...reorder.map(({ p, qty }) => [p.supplier || p.brand, p.sku, p.name, qty, p.stockCount])])}>
-                  Download reorder list (CSV)
-                </Button>
-              </>
-            )}
-          </div>
-        </div>
-
         {form && (
-          <div className="card" style={{ position: 'sticky', top: 84 }}>
-            <div className="card-head"><div><h2 className="h-card">Edit product</h2><div className="sub ellipsis" style={{ maxWidth: 240 }}>{form.name || 'Untitled'}</div></div>{dirty && <Pill sm>Unsaved</Pill>}</div>
+          <div className="card" id="inv-editor" style={{ scrollMarginTop: 84 }}>
+            <div className="card-head"><div><h2 className="h-card">Edit product</h2><div className="sub ellipsis" style={{ maxWidth: 520 }}>{form.name || 'Untitled'}</div></div>{dirty && <Pill sm>Unsaved</Pill>}</div>
             <div style={{ marginTop: 12 }}><ProductPhotos key={form.id} value={form.photos} onChange={onPhotos} toast={toast} />{photoFailed > 0 && <span className="field-err" role="alert">{photoFailed} photo{photoFailed > 1 ? 's' : ''} failed to upload and will not be saved.</span>}</div>
             <div className="fields" style={{ marginTop: 16 }}>
               <Field className="full" label="Name" value={form.name} onChange={(e) => set('name', e.target.value)} />
@@ -348,6 +328,24 @@ export default function Inventory() {
             </div>
           </div>
         )}
+
+          <div className="card">
+            <h2 className="h-card">Reorder suggestions</h2>
+            <div className="sub" style={{ marginBottom: 10 }}>Brings each low item back to its target stock</div>
+            {reorder.length === 0 ? <div className="sub">Everything is above its reorder point.</div> : (
+              <>
+                <div className="list">
+                  {reorder.slice(0, 6).map(({ p, qty }) => (
+                    <div key={p.id} className="list-row"><div className="grow"><b style={{ fontSize: 14 }}>{p.name}</b><div className="sub" style={{ fontSize: 12 }}>{p.brand} · {p.stockCount <= 0 ? 'Out of stock' : `${p.stockCount} left`}</div></div><b>+{qty}</b></div>
+                  ))}
+                </div>
+                <Button variant="dark" block icon="truck" style={{ marginTop: 14 }} to="/admin/purchasing">Create purchase order</Button>
+                <Button variant="outline" block icon="download" style={{ marginTop: 8 }} onClick={() => downloadCsv(`purchase-orders-${new Date().toISOString().slice(0, 10)}.csv`, [['Supplier', 'SKU', 'Product', 'Order qty', 'Current stock'], ...reorder.map(({ p, qty }) => [p.supplier || p.brand, p.sku, p.name, qty, p.stockCount])])}>
+                  Download reorder list (CSV)
+                </Button>
+              </>
+            )}
+          </div>
       </div>
     </>
   );
