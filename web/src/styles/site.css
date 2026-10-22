@@ -146,11 +146,14 @@
   .pcard-foot { flex-wrap: wrap; }
   .pcard-foot .btn { flex: 1 1 auto; justify-content: center; }
 }
-/* Narrowest phones: two cards per row leave ~120px each, so the two buttons stack. */
+/* Phones: two cards per row leave only ~120-190px each, too narrow for two buttons side by side, so they stack. */
+@media (max-width: 440px) {
+  .pcard-btns { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .pcard-btns .btn { height: 38px; font-size: 13px; overflow: visible; text-overflow: clip; }
+}
 @media (max-width: 340px) {
   .pcard { padding: 8px 8px 12px; }
   .pcard-body { padding: 10px 2px 0; }
-  .pcard-btns { grid-template-columns: minmax(0, 1fr); }
   .variant-chips { gap: 4px; }
 }
 
