@@ -6,6 +6,7 @@ import { Icon, Button, Pill, Toggle, Field, Ph } from '../../ui/index.jsx';
 import { money } from '../../lib/format.js';
 import { useStore } from '../../lib/store.jsx';
 import ProductPhotos from '../ProductPhotos.jsx';
+import CategoryPicker from '../CategoryPicker.jsx';
 import {
   BLANK_PRODUCT, CATEGORIES, UNITS, MAX_PHOTOS, buildProductData, newProductId, suggestSku, validateProduct,
 } from '../productForm.js';
@@ -15,13 +16,13 @@ const sameList = (a, b) => a.length === b.length && a.every((x, i) => x === b[i]
 /** Settings that usually stay the same from one product to the next when adding several in a row. */
 const carryOver = (f) => ({
   ...BLANK_PRODUCT, photos: [], variantOptions: [],
-  brand: f.brand, supplier: f.supplier, category: f.category, pet: f.pet, unit: f.unit,
+  brand: f.brand, supplier: f.supplier, category: f.category, categoryId: f.categoryId, pet: f.pet, unit: f.unit,
   isRx: f.isRx, coldChain: f.coldChain, showOnStorefront: f.showOnStorefront, autoRefill: f.autoRefill,
   reorderPoint: f.reorderPoint, stockTarget: f.stockTarget,
 });
 
 export default function AddProduct() {
-  const { products } = useAdmin();
+  const { products, categories } = useAdmin();
   const write = useAdminWrite();
   const { toast } = useStore();
   const { navigate } = useRouter();
@@ -48,7 +49,7 @@ export default function AddProduct() {
     });
   };
 
-  const { errors, warnings } = useMemo(() => validateProduct(form, products, { uploading }), [form, products, uploading]);
+  const { errors, warnings } = useMemo(() => validateProduct(form, products, { uploading, categories }), [form, products, uploading, categories]);
   const errAt = (field) => (showProblems ? errors.find((e) => e.field === field)?.message : '');
   const warnAt = (field) => warnings.find((w) => w.field === field)?.message;
   const hint = (field) => {
@@ -77,7 +78,7 @@ export default function AddProduct() {
     ['Name', !!form.name.trim()],
     ['Sale price', price > 0],
     ['At least one photo', form.photos.length > 0],
-    ['Category', !!String(form.category).trim()],
+    ['Category', categories.length ? !!form.categoryId : !!String(form.category).trim()],
     ['SKU', !!String(form.sku).trim()],
     ['In stock', Number(form.stockCount) > 0],
   ];
@@ -100,7 +101,7 @@ export default function AddProduct() {
     }
     setBusy(true);
     const id = newProductId(products.map((p) => p.id));
-    const ok = await write('products', id, buildProductData(form, { isNew: true }));
+    const ok = await write('products', id, buildProductData(form, { isNew: true, categories }));
     setBusy(false);
     if (!ok) return;
     setDirty(false);
@@ -156,8 +157,14 @@ export default function AddProduct() {
                 <datalist id="brands">{brands.map((b) => <option key={b} value={b} />)}</datalist>
               </Field>
               <Field label="Category" hint="required">
-                <input className="input" list="cats" aria-invalid={bad('category')} value={form.category} onChange={(e) => set('category', e.target.value.toLowerCase())} />
-                <datalist id="cats">{cats.map((c) => <option key={c} value={c} />)}</datalist>
+                {categories.length ? (
+                  <CategoryPicker value={form.categoryId} categories={categories} invalid={!!errAt('category')} onChange={(id) => set('categoryId', id)} />
+                ) : (
+                  <>
+                    <input className="input" list="cats" aria-invalid={bad('category')} value={form.category} onChange={(e) => set('category', e.target.value.toLowerCase())} />
+                    <datalist id="cats">{cats.map((c) => <option key={c} value={c} />)}</datalist>
+                  </>
+                )}
                 {hint('category')}
               </Field>
               <Field label="Pet type">

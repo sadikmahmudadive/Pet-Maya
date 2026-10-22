@@ -90,3 +90,17 @@ test("product paths match the website's slug rules", () => {
   assert.strictEqual(f.productPath({ id: "x1", title: "Café Crème — 2 kg!" }), "/product/cafe-creme-2-kg/x1");
   assert.strictEqual(f.productPath({ id: "x 1", title: "খাবার" }), "/product/x%201");
 });
+
+test("product_type follows the category tree (Food > Cat food > Dry food) when the product is placed in it", () => {
+  const names = new Map([["food", "Food"], ["cat", "Cat food"], ["dry", "Dry food"]]);
+  const x = f.buildItem(f.toFeedProduct("rc-1", { ...base, category: "food", categoryId: "dry", categoryPath: ["food", "cat", "dry"] }, names), "google", SITE);
+  assert.match(x, /<g:product_type>Pet Supplies &gt; Dogs &gt; Food &gt; Cat food &gt; Dry food<\/g:product_type>/);
+  assert.match(x, /<g:custom_label_1>food<\/g:custom_label_1>/);
+});
+
+test("products outside the tree (or whose category was removed) keep the plain category in product_type", () => {
+  const x = item({ ...base, category: "Food" });
+  assert.match(x, /<g:product_type>Pet Supplies &gt; Dogs &gt; food<\/g:product_type>/);
+  const y = f.buildItem(f.toFeedProduct("rc-1", { ...base, category: "food", categoryPath: ["gone"] }, new Map()), "google", SITE);
+  assert.match(y, /<g:product_type>Pet Supplies &gt; Dogs &gt; food<\/g:product_type>/);
+});

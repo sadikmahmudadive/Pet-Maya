@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import { track, toItem } from '../../lib/analytics.js';
 import { Link, useRouter } from '../../lib/router.jsx';
 import { useStore } from '../../lib/store.jsx';
@@ -8,6 +8,7 @@ import { Stepper } from '../BagDrawer.jsx';
 import ProductCard from '../ProductCard.jsx';
 import ReviewModal from '../ReviewModal.jsx';
 import { Reveal } from '../../lib/motion.jsx';
+import { makeResolver, pathOf } from '../../lib/categories.js';
 import { money, cx, ago, toMillis, productPath, slugify } from '../../lib/format.js';
 import { DELIVERY } from '../../data/content.js';
 import { SAMPLE_REVIEWS } from '../../data/sample.js';
@@ -24,7 +25,7 @@ const normReview = (id, d) => ({
 });
 
 export default function Product({ params }) {
-  const { products, addToCart, activePet, totals, wishlist, toggleWish, setBagOpen } = useStore();
+  const { products, categories, addToCart, activePet, totals, wishlist, toggleWish, setBagOpen } = useStore();
   const { path, navigate } = useRouter();
   const p = products.items.find((x) =>
     x.id === params.id ||
@@ -131,6 +132,12 @@ export default function Product({ params }) {
   const gallery = images.length ? images : [''];
   const related = products.items.filter((x) => x.id !== p.id && (x.category === p.category || x.pet === p.pet)).slice(0, 3);
   const bundle = [p, ...related.slice(0, 2)];
+  // Where the product sits in the category tree, for the breadcrumb (empty for products not placed yet).
+  const trail = (() => {
+    const r = categories?.items?.length ? makeResolver(categories.items) : null;
+    const n = r?.nodeOf(p);
+    return n ? pathOf(n.id, r.byId) : [];
+  })();
   const bundleTotal = bundle.reduce((a, x) => a + x.price, 0);
   const avg = reviews.items.length ? reviews.items.reduce((a, r) => a + r.stars, 0) / reviews.items.length : p.rating;
 
@@ -204,7 +211,9 @@ export default function Product({ params }) {
 
       <nav className="crumbs" aria-label="Breadcrumb">
         <Link to="/">Home</Link><span>/</span><Link to="/shop">Care Shop</Link><span>/</span>
-        <Link to={`/shop/${p.pet === 'cat' ? 'cats' : 'dogs'}`}>{p.pet === 'cat' ? 'Cats' : 'Dogs'}</Link><span>/</span>
+        {trail.length
+          ? trail.map((c) => <Fragment key={c.id}><Link to={`/shop/${c.slug}`}>{c.name}</Link><span>/</span></Fragment>)
+          : <><Link to={`/shop/${p.pet === 'cat' ? 'cats' : 'dogs'}`}>{p.pet === 'cat' ? 'Cats' : 'Dogs'}</Link><span>/</span></>}
         <span style={{ color: 'var(--ink)' }}>{p.name}</span>
       </nav>
 

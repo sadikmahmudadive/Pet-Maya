@@ -162,6 +162,25 @@ test('products: shoppers only make bounded checkout/review changes', async () =>
   await assertSucceeds(getDoc(doc(as(null), 'products', 'p1')));
 });
 
+// ── Product categories: public to read, admins and managers shape the tree ──
+test('categories: anyone reads, only admins and managers write', async () => {
+  const cat = { name: 'Dry food', parentId: 'cat', slug: 'dry-food', order: 10, active: true };
+  await assertSucceeds(setDoc(doc(as('admin'), 'categories', 'c1'), cat));
+  await assertSucceeds(setDoc(doc(as('manager'), 'categories', 'c2'), { ...cat, name: 'Wet food' }));
+  await assertSucceeds(getDoc(doc(as(null), 'categories', 'c1')));
+  await assertSucceeds(getDocs(collection(as('alice'), 'categories')));
+  await assertSucceeds(updateDoc(doc(as('manager'), 'categories', 'c1'), { parentId: '', order: 20 }));
+  for (const who of ['cashier', 'alice', 'shop', 'vet', null]) {
+    await assertFails(setDoc(doc(as(who), 'categories', 'c9'), cat));
+    await assertFails(updateDoc(doc(as(who), 'categories', 'c1'), { name: 'Hacked' }));
+    await assertFails(deleteDoc(doc(as(who), 'categories', 'c1')));
+  }
+  await assertFails(setDoc(doc(as('admin'), 'categories', 'c3'), { ...cat, name: '' }));
+  await assertFails(setDoc(doc(as('admin'), 'categories', 'c3'), { ...cat, name: 'x'.repeat(61) }));
+  await assertFails(setDoc(doc(as('admin'), 'categories', 'c3'), { ...cat, parentId: 5 }));
+  await assertSucceeds(deleteDoc(doc(as('admin'), 'categories', 'c1')));
+});
+
 // ── Community: reactions can only touch the caller's own entry ─────────────
 test('community: likes/comments are limited to my own entry', async () => {
   const db = as('alice');

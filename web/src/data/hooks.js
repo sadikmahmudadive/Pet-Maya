@@ -7,6 +7,7 @@ import {
   SAMPLE_PRODUCTS, SAMPLE_VETS, SAMPLE_PETS, SAMPLE_POSTS, SAMPLE_BLOGS, SAMPLE_COUPONS,
 } from './sample.js';
 import { safeInternalPath } from '../lib/security.js';
+import { normCategory } from '../lib/categories.js';
 
 const S = {
   products: SAMPLE_PRODUCTS.map((p) => normProduct(p.id, p)),
@@ -19,6 +20,7 @@ const S = {
 export const SAMPLES = S;
 
 export const useProducts = () => useCollection('products', { map: normProduct, sample: S.products });
+export const useCategories = () => useCollection('categories', { map: normCategory, sample: [], sampleWhenEmpty: false });
 export const useVets = () => useCollection('vets', { map: normVet, sample: S.vets });
 export const usePosts = () => useCollection('community_posts', { map: normPost, sample: S.posts });
 export const useBlogs = () => useCollection('blogs', { map: normBlog, sample: S.blogs });

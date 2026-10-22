@@ -121,3 +121,42 @@ test('variants: duplicate labels, orphan values and bad numbers are caught', () 
 test('uploads in progress block saving', () => {
   assert.ok(fields(validateProduct(ok(), [], { uploading: true })).includes('photos'));
 });
+
+// ── Category tree ──────────────────────────────────────────────────────────
+const TREE = [
+  { id: 'food', name: 'Food', slug: 'food', parentId: '', order: 10, active: true },
+  { id: 'cat', name: 'Cat food', slug: 'cat-food', parentId: 'food', order: 10, active: true },
+  { id: 'dry', name: 'Dry food', slug: 'dry-food', parentId: 'cat', order: 10, active: true },
+];
+
+test('picking a subcategory saves the main category plus the whole path', () => {
+  const d = buildProductData(ok({ category: 'whatever', categoryId: 'dry' }), { categories: TREE });
+  assert.equal(d.category, 'food');
+  assert.equal(d.categoryId, 'dry');
+  assert.deepEqual(d.categoryPath, ['food', 'cat', 'dry']);
+  assert.deepEqual(d.categorySlugs, ['food', 'cat-food', 'dry-food']);
+});
+
+test('without a tree (or a pick) the typed category is saved as before and no path fields are written', () => {
+  for (const d of [buildProductData(ok({ category: ' Toys ' })), buildProductData(ok({ category: ' Toys ', categoryId: '' }), { categories: TREE })]) {
+    assert.equal(d.category, 'toys');
+    assert.ok(!('categoryId' in d) && !('categoryPath' in d));
+  }
+});
+
+test('editing an old product finds its place in the tree from the plain category', () => {
+  assert.equal(formFromProduct({ id: 'p', name: 'x', category: 'food' }, TREE).categoryId, 'food');
+  assert.equal(formFromProduct({ id: 'p', name: 'x', category: 'food', categoryId: 'dry' }, TREE).categoryId, 'dry');
+  assert.equal(formFromProduct({ id: 'p', name: 'x', category: 'mystery' }, TREE).categoryId, '');
+  assert.equal(formFromProduct({ id: 'p', name: 'x', category: 'food' }).categoryId, '');
+});
+
+test('with a tree, new products must pick a category; existing ones only get a nudge', () => {
+  assert.ok(fields(validateProduct(ok({ categoryId: '' }), [], { categories: TREE })).includes('category'));
+  assert.ok(fields(validateProduct(ok({ categoryId: 'ghost' }), [], { categories: TREE })).includes('category'));
+  assert.ok(!fields(validateProduct(ok({ categoryId: 'dry' }), [], { categories: TREE })).includes('category'));
+  const edit = validateProduct(ok({ categoryId: '', category: 'mystery' }), [], { categories: TREE, editingId: 'p1' });
+  assert.ok(!fields(edit).includes('category'));
+  assert.ok(fields(edit, 'warnings').includes('category'));
+  assert.ok(!fields(validateProduct(ok({ category: 'anything' }), [])).includes('category')); // no tree yet: free text
+});

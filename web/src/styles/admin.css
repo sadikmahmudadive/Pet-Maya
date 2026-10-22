@@ -208,3 +208,15 @@
 .pp-tile:has(.pp-prog) img { opacity: .55; }
 .pp-err { position: absolute; inset: 0; display: grid; align-content: center; justify-items: center; gap: 8px; padding: 8px; text-align: center; font-size: 11.5px; line-height: 1.3; background: rgba(255,255,255,.93); color: var(--red, #c0392b); }
 .pp-err button { padding: 4px 10px; border-radius: 999px; border: 1px solid currentColor; font-size: 11.5px; }
+
+/* Category tree (admin > Categories) */
+.cat-row { display: flex; align-items: center; gap: 8px; padding: 6px 12px 6px 12px; border-bottom: 1px solid var(--line); min-height: 46px; }
+.cat-row:last-child { border-bottom: 0; }
+.cat-row.selected { background: var(--teal-tint); }
+.cat-row.is-hidden .cat-name { opacity: .6; }
+.cat-caret { flex: none; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; border: 0; background: none; color: var(--muted, inherit); padding: 0; border-radius: 6px; }
+button.cat-caret:hover { background: var(--line); }
+.cat-name { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; border: 0; background: none; padding: 6px 0; font: inherit; font-weight: 600; color: var(--ink); text-align: left; cursor: pointer; }
+.cat-tools { flex: none; opacity: .55; transition: opacity .15s; }
+.cat-row:hover .cat-tools, .cat-row:focus-within .cat-tools, .cat-row.selected .cat-tools { opacity: 1; }
+@media (hover: none) { .cat-tools { opacity: 1; } }

@@ -41,6 +41,8 @@ export interface FeedProduct {
   description: string;
   brand: string;
   category: string;
+  /** Names from the main category down to the product's own category (the admin's category tree). */
+  categoryTrail: string[];
   pet: string;
   price: number;
   compareAt: number | null;
@@ -117,19 +119,25 @@ export function googleCategory(p: Pick<FeedProduct, "pet">): number {
 }
 
 // ── Firestore document → product ──────────────────────────────────────────────────────────────────
-export function toFeedProduct(id: string, d: Record<string, any> = {}): FeedProduct {
+/** Category ids → names, from the `categories` collection. */
+export type CategoryNames = Map<string, string>;
+
+export function toFeedProduct(id: string, d: Record<string, any> = {}, names: CategoryNames = new Map()): FeedProduct {
   const stockKnown = d.stockCount !== undefined && d.stockCount !== null;
   const stock = num(d.stockCount, 0);
   const gallery = [
     ...(Array.isArray(d.images) ? d.images : []),
     ...(Array.isArray(d.imageGallery) ? d.imageGallery : []),
   ].map(String);
+  const category = String(d.category || "supplies").toLowerCase();
+  const trail = (Array.isArray(d.categoryPath) ? d.categoryPath : []).map((c: unknown) => names.get(String(c)) || "").filter(Boolean);
   return {
     id,
     title: plainText(d.name || d.title, 500),
     description: plainText(d.longDescription || d.description || d.shortDescription || d.shortDesc || d.name, 10000),
     brand: String(d.brand || "Pet Maya").trim(),
-    category: String(d.category || "supplies").toLowerCase(),
+    category,
+    categoryTrail: trail.length ? trail : [category],
     pet: String(d.pet || d.petType || d.species || "both").toLowerCase(),
     price: num(d.price),
     compareAt: num(d.compareAt || d.originalPrice || d.mrp || d.oldPrice, 0) || null,
@@ -175,7 +183,7 @@ export function buildItem(p: FeedProduct, channel: Channel, site: string): strin
     ...(mpn ? [["g:mpn", mpn] as [string, unknown]] : []),
     ...(!gtin && !mpn ? [["g:identifier_exists", "no"] as [string, unknown]] : []),
     ["g:google_product_category", googleCategory(p)],
-    ["g:product_type", `Pet Supplies > ${p.pet === "dog" ? "Dogs" : p.pet === "cat" ? "Cats" : "Dogs & Cats"} > ${p.category}`],
+    ["g:product_type", `Pet Supplies > ${p.pet === "dog" ? "Dogs" : p.pet === "cat" ? "Cats" : "Dogs & Cats"} > ${p.categoryTrail.join(" > ")}`],
     ["g:custom_label_0", p.pet],
     ["g:custom_label_1", p.category],
     ["g:adult", "no"],
@@ -217,8 +225,12 @@ export const feed = onRequest(
     let hit = cache.get(channel);
     if (!hit || Date.now() - hit.at > CACHE_MS) {
       try {
-        const snap = await admin.firestore().collection("products").limit(MAX_PRODUCTS).get();
-        const built = buildFeed(channel, snap.docs.map((d) => toFeedProduct(d.id, d.data())), { site: SITE_URL.value() });
+        const [snap, cats] = await Promise.all([
+          admin.firestore().collection("products").limit(MAX_PRODUCTS).get(),
+          admin.firestore().collection("categories").limit(2000).get(),
+        ]);
+        const names: CategoryNames = new Map(cats.docs.map((c) => [c.id, String(c.data().name || "").trim()]));
+        const built = buildFeed(channel, snap.docs.map((d) => toFeedProduct(d.id, d.data(), names)), { site: SITE_URL.value() });
         console.log(`[feed] ${channel}: ${built.items} items, ${built.skipped} skipped`);
         hit = { at: Date.now(), xml: built.xml };
         cache.set(channel, hit);

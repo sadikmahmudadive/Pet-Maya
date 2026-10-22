@@ -6,6 +6,8 @@ import { Icon, Button, Pill, Stat, Tabs, Ph, Toggle, Field, Empty } from '../../
 import { money, cx, productPath } from '../../lib/format.js';
 import { useStore } from '../../lib/store.jsx';
 import ProductPhotos from '../ProductPhotos.jsx';
+import CategoryPicker from '../CategoryPicker.jsx';
+import { makeResolver, flatten, buildTree, productFields } from '../../lib/categories.js';
 import { CATEGORIES, UNITS, buildProductData, formFromProduct, validateProduct, cleanPhotoUrl, MAX_PHOTOS } from '../productForm.js';
 
 const statusOf = (p) => {
@@ -35,7 +37,7 @@ function parseCsv(text) {
 }
 
 export default function Inventory() {
-  const { products } = useAdmin();
+  const { products, categories } = useAdmin();
   const write = useAdminWrite();
   const { toast } = useStore();
   const { query } = useRouter();
@@ -54,14 +56,15 @@ export default function Inventory() {
   const isLow = (p) => p.stockCount > 0 && p.stockCount <= p.reorderPoint;
   const isExp = (p) => p.expiresInDays != null && p.expiresInDays <= ADMIN_CONFIG.expiringDays;
 
+  const tree = useMemo(() => (categories.length ? makeResolver(categories) : null), [categories]);
   const filtered = useMemo(() => products.filter((p) => {
     if (q && !`${p.name} ${p.sku} ${p.brand} ${p.barcode}`.toLowerCase().includes(q.toLowerCase())) return false;
-    if (cat && p.category !== cat) return false;
+    if (cat && !(tree ? tree.inNode(p, cat) : p.category === cat)) return false;
     if (brand && p.brand !== brand) return false;
     if (storageF === 'cold' && !p.coldChain) return false;
     if (storageF === 'ambient' && p.coldChain) return false;
     return true;
-  }), [products, q, cat, brand, storageF]);
+  }), [products, q, cat, brand, storageF, tree]);
   const TABS = [
     ['all', 'All SKUs', () => true], ['low', 'Low stock', isLow], ['cold', 'Cold-chain', (p) => p.coldChain], ['exp', `Expiring ${ADMIN_CONFIG.expiringDays}d`, isExp], ['out', 'Out of stock', (p) => p.stockCount <= 0],
   ];
@@ -69,7 +72,7 @@ export default function Inventory() {
 
   const selected = products.find((p) => p.id === editId) || (editId === null ? list[0] : null);
   useEffect(() => {
-    if (selected) { setForm(formFromProduct(selected)); setDirty(false); }
+    if (selected) { setForm(formFromProduct(selected, categories)); setDirty(false); }
   }, [editId, selected?.id]); // eslint-disable-line
 
   const stockValue = products.reduce((a, p) => a + p.price * Math.max(0, p.stockCount), 0);
@@ -77,6 +80,7 @@ export default function Inventory() {
   const reorder = low.map((p) => ({ p, qty: Math.max(p.reorderPoint, p.stockTarget - p.stockCount) })).sort((a, b) => a.p.stockCount - b.p.stockCount);
   const cats = [...new Set([...CATEGORIES, ...products.map((p) => p.category)])].filter(Boolean).sort();
   const brands = [...new Set(products.map((p) => p.brand))].sort();
+  const catOptions = useMemo(() => flatten(buildTree(categories).roots), [categories]);
 
   const set = (k, v) => { setForm((f) => ({ ...f, [k]: v })); setDirty(true); };
 
@@ -102,9 +106,9 @@ export default function Inventory() {
   };
 
   const save = async () => {
-    const { errors } = validateProduct(form, products, { editingId: form.id, uploading: photosBusy });
+    const { errors } = validateProduct(form, products, { editingId: form.id, uploading: photosBusy, categories });
     if (errors.length) { toast(errors[0].message, { tone: 'error' }); return; }
-    if (await write('products', form.id, buildProductData(form), 'Product saved')) setDirty(false);
+    if (await write('products', form.id, buildProductData(form, { categories }), 'Product saved')) setDirty(false);
   };
   const exportCatalogCsv = () => {
     const header = [
@@ -118,7 +122,7 @@ export default function Inventory() {
         : (p.variants || []).join('|');
       return [
         p.id, p.name, p.sku || '', p.barcode || '', p.brand || '', p.supplier || p.brand || '',
-        p.category || 'medicine', p.pet || 'both', p.unit || 'pc',
+        (p.categorySlugs || []).at(-1) || p.category || 'medicine', p.pet || 'both', p.unit || 'pc',
         p.price || 0, p.compareAt || '', p.cost || 0, p.stockCount || 0, p.reorderPoint || 20, p.stockTarget || 100,
         p.isRx ? 'true' : 'false', p.coldChain ? 'true' : 'false',
         p.showOnStorefront !== false ? 'true' : 'false', p.autoRefill ? 'true' : 'false',
@@ -134,6 +138,7 @@ export default function Inventory() {
     const rows = parseCsv(await file.text());
     if (!rows.length) { toast('No rows found. Columns: name, sku, barcode, brand, supplier, category, pet, price, compareAt, cost, stockCount, reorderPoint, isRx, coldChain, variants', { tone: 'error', duration: 7000 }); return; }
     let n = 0;
+    const resolver = categories.length ? makeResolver(categories) : null;
     for (const r of rows) {
       if (!r.name) continue;
       const rawVars = String(r.variants || '').trim();
@@ -153,7 +158,8 @@ export default function Inventory() {
         name: r.name,
         sku: r.sku || '',
         brand: r.brand || 'Pet Maya',
-        category: (r.category || 'supplies').toLowerCase(),
+        // A category name that matches the tree (any level) is placed there; anything else keeps the plain label.
+        ...((node) => (node ? productFields(node.id, categories) : { category: (r.category || 'supplies').toLowerCase() }))(resolver?.nodeBySlug((r.category || '').trim().toLowerCase())),
         pet: (r.pet || 'both').toLowerCase(),
         unit: r.unit || 'pc',
         price: Number(r.price) || 0,
@@ -205,7 +211,7 @@ export default function Inventory() {
 
       <div className="filter-row" style={{ marginTop: 16 }}>
         <div className="searchbar"><Icon name="filter" size={15} /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filter by name, SKU or brand" aria-label="Filter products" /></div>
-        <select className="filter-select" value={cat} onChange={(e) => setCat(e.target.value)} aria-label="Category"><option value="">Category</option>{cats.map((c) => <option key={c}>{c}</option>)}</select>
+        <select className="filter-select" value={cat} onChange={(e) => setCat(e.target.value)} aria-label="Category"><option value="">Category</option>{tree ? catOptions.map((n) => <option key={n.id} value={n.id}>{'  '.repeat(n.depth)}{n.name}</option>) : cats.map((c) => <option key={c}>{c}</option>)}</select>
         <select className="filter-select" value={brand} onChange={(e) => setBrand(e.target.value)} aria-label="Supplier"><option value="">Supplier</option>{brands.map((c) => <option key={c}>{c}</option>)}</select>
         <select className="filter-select" value={storageF} onChange={(e) => setStorageF(e.target.value)} aria-label="Storage"><option value="">Storage</option><option value="cold">Cold-chain</option><option value="ambient">Ambient</option></select>
       </div>
@@ -287,9 +293,15 @@ export default function Inventory() {
               <Field label="Unit">
                 <select className="select" value={form.unit || 'pc'} onChange={(e) => set('unit', e.target.value)}>{UNITS.map((u) => <option key={u}>{u}</option>)}</select>
               </Field>
-              <Field label="Category">
-                <input className="input" list="cats" value={form.category} onChange={(e) => set('category', e.target.value.toLowerCase())} />
-                <datalist id="cats">{cats.map((c) => <option key={c} value={c} />)}</datalist>
+              <Field className={categories.length ? 'full' : undefined} label="Category">
+                {categories.length ? (
+                  <CategoryPicker value={form.categoryId} categories={categories} legacyLabel={form.category} onChange={(id) => set('categoryId', id)} />
+                ) : (
+                  <>
+                    <input className="input" list="cats" value={form.category} onChange={(e) => set('category', e.target.value.toLowerCase())} />
+                    <datalist id="cats">{cats.map((c) => <option key={c} value={c} />)}</datalist>
+                  </>
+                )}
               </Field>
               <Field label="Pet type">
                 <select className="select" value={form.pet || 'both'} onChange={(e) => set('pet', e.target.value)}>

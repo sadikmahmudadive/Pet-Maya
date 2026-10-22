@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react';
+import { Fragment, useMemo, useState, useEffect } from 'react';
 import { track } from '../../lib/analytics.js';
 import { Link, useRouter } from '../../lib/router.jsx';
 import { useStore } from '../../lib/store.jsx';
@@ -7,6 +7,7 @@ import ProductCard from '../ProductCard.jsx';
 import { money, cx } from '../../lib/format.js';
 import { speciesKind, productFitsPet } from '../../lib/species.js';
 import { Reveal } from '../../lib/motion.jsx';
+import { makeResolver, pathOf } from '../../lib/categories.js';
 
 const TITLES = {
   dogs: ['Dogs', 'Dog medicine, food & gear'],
@@ -30,13 +31,18 @@ const TITLES = {
 
 const MEDICINE_CATS = ['preventives', 'antiparasitics', 'skin', 'joint', 'calming', 'vaccines', 'medicine'];
 
-function inCategory(p, cat) {
+// Slugs with their own rules keep working exactly as before; any other slug is looked up in the category tree.
+const SPECIAL = new Set(['dogs', 'cats', 'prescription', 'medicine', 'accessories']);
+
+function inCategory(p, cat, tree) {
   if (!cat) return true;
   if (cat === 'dogs') return p.pet === 'dog' || p.pet === 'both';
   if (cat === 'cats') return p.pet === 'cat' || p.pet === 'both';
   if (cat === 'prescription') return p.isRx;
   if (cat === 'medicine') return p.isRx || MEDICINE_CATS.includes(p.category);
   if (cat === 'accessories') return p.category === 'accessories' || p.category === 'travel' || p.category === 'supplies';
+  const node = tree?.nodeBySlug(cat);
+  if (node) return tree.inNode(p, node.id);
   return p.category === cat;
 }
 
@@ -59,7 +65,7 @@ function Check({ checked, onChange, label, count }) {
 
 export default function Shop({ params }) {
   const { query } = useRouter();
-  const { products, wishlist, activePet } = useStore();
+  const { products, categories, wishlist, activePet } = useStore();
   const cat = params.category || '';
   const q = (query.get('q') || '').toLowerCase();
   useEffect(() => { if (q.length >= 2) { const t = setTimeout(() => track('search', { search_term: q }), 800); return () => clearTimeout(t); } }, [q]);
@@ -82,21 +88,33 @@ export default function Shop({ params }) {
   useEffect(() => { setTypes([]); setBrands([]); setShown(9); }, [cat]);
   useEffect(() => setSub(subOnly), [subOnly]);
 
-  const base = useMemo(() => products.items.filter((p) => p.showOnStorefront !== false && inCategory(p, cat)), [products.items, cat]);
+  const tree = useMemo(() => (categories?.items?.length ? makeResolver(categories.items) : null), [categories?.items]);
+  const node = !SPECIAL.has(cat) ? tree?.nodeBySlug(cat) || null : null;
+  const base = useMemo(() => products.items.filter((p) => p.showOnStorefront !== false && inCategory(p, cat, tree)), [products.items, cat, tree]);
   const priceCeil = useMemo(() => Math.max(500, ...base.map((p) => p.price)), [base]);
-  const typeOpts = useMemo(() => countBy(base, (p) => p.category), [base]);
+  // Category facet: the subcategories of the page you are on (or the main categories), else the plain category values.
+  const typeOpts = useMemo(() => {
+    if (!tree) return Object.entries(countBy(base, (p) => p.category)).map(([key, count]) => ({ key, label: label(key), count }));
+    const parentId = node ? node.id : '';
+    const parentOf = (c) => (c.parentId && tree.byId.has(c.parentId) ? c.parentId : '');
+    return [...tree.byId.values()]
+      .filter((c) => parentOf(c) === parentId && c.active !== false)
+      .sort((a, b) => a.order - b.order || a.name.localeCompare(b.name))
+      .map((c) => ({ key: c.id, label: c.name, count: base.filter((p) => tree.inNode(p, c.id)).length }))
+      .filter((o) => o.count > 0);
+  }, [base, tree, node]);
   const brandOpts = useMemo(() => countBy(base, (p) => p.brand), [base]);
 
   const list = useMemo(() => {
     let l = base;
-    if (q) l = l.filter((p) => `${p.name} ${p.brand} ${p.category} ${p.shortDescription}`.toLowerCase().includes(q));
+    if (q) l = l.filter((p) => `${p.name} ${p.brand} ${tree ? tree.label(p) || p.category : p.category} ${p.shortDescription}`.toLowerCase().includes(q));
     if (savedOnly) l = l.filter((p) => wishlist.includes(p.id));
     if (dealsOnly) l = l.filter((p) => p.compareAt > p.price);
     if (petMatch && activePet) {
       const kind = speciesKind(activePet);
       l = l.filter((p) => productFitsPet(p.pet, kind));
     }
-    if (types.length) l = l.filter((p) => types.includes(p.category));
+    if (types.length) l = l.filter((p) => types.some((t) => (tree ? tree.inNode(p, t) : p.category === t)));
     if (rx === 'rx') l = l.filter((p) => p.isRx);
     if (rx === 'otc') l = l.filter((p) => !p.isRx);
     if (brands.length) l = l.filter((p) => brands.includes(p.brand));
@@ -105,13 +123,14 @@ export default function Shop({ params }) {
     if (sub) l = l.filter((p) => p.subscribe);
     if (maxPrice != null) l = l.filter((p) => p.price <= maxPrice);
     return [...l].sort(SORTS[sort][1]);
-  }, [base, q, savedOnly, dealsOnly, petMatch, activePet, types, rx, brands, minRating, cold, sub, maxPrice, sort, wishlist]);
+  }, [base, tree, q, savedOnly, dealsOnly, petMatch, activePet, types, rx, brands, minRating, cold, sub, maxPrice, sort, wishlist]);
 
-  const [crumb, title] = TITLES[cat] || ['All products', 'Care shop'];
+  const [crumb, title] = node ? [node.name, node.name] : TITLES[cat] || (cat && tree ? [label(cat), label(cat)] : ['All products', 'Care shop']);
+  const trail = node ? pathOf(node.id, tree.byId).slice(0, -1) : [];
   const heading = q ? `Results for “${query.get('q')}”` : savedOnly ? 'Saved items' : dealsOnly ? 'Deals' : title;
   const active = [
     petMatch && activePet && { k: 'pet', l: `For ${activePet.name} (${activePet.species})`, clear: () => setPetMatch(false) },
-    ...types.map((t) => ({ k: `t-${t}`, l: label(t), clear: () => setTypes(types.filter((x) => x !== t)) })),
+    ...types.map((t) => ({ k: `t-${t}`, l: typeOpts.find((o) => o.key === t)?.label || label(t), clear: () => setTypes(types.filter((x) => x !== t)) })),
     rx && { k: 'rx', l: rx === 'rx' ? 'Rx — vet approval' : 'No prescription', clear: () => setRx(null) },
     ...brands.map((b) => ({ k: `b-${b}`, l: b, clear: () => setBrands(brands.filter((x) => x !== b)) })),
     minRating && { k: 'r', l: `${minRating}★ & up`, clear: () => setMinRating(0) },
@@ -125,6 +144,7 @@ export default function Shop({ params }) {
     <div className="container">
       <nav className="crumbs" aria-label="Breadcrumb">
         <Link to="/">Home</Link><span>/</span><Link to="/shop">Care Shop</Link>
+        {trail.map((c) => <Fragment key={c.id}><span>/</span><Link to={`/shop/${c.slug}`}>{c.name}</Link></Fragment>)}
         {cat && <><span>/</span><span style={{ color: 'var(--ink)' }}>{crumb}</span></>}
       </nav>
 
@@ -167,11 +187,11 @@ export default function Shop({ params }) {
               />
             </section>
           )}
-          {Object.keys(typeOpts).length > 1 && (
+          {typeOpts.length > (tree ? 0 : 1) && (
             <section>
-              <h4>Category</h4>
-              {Object.entries(typeOpts).map(([t, c]) => (
-                <Check key={t} label={label(t)} count={c} checked={types.includes(t)} onChange={(on) => setTypes(on ? [...types, t] : types.filter((x) => x !== t))} />
+              <h4>{node ? 'Subcategory' : 'Category'}</h4>
+              {typeOpts.map((o) => (
+                <Check key={o.key} label={o.label} count={o.count} checked={types.includes(o.key)} onChange={(on) => setTypes(on ? [...types, o.key] : types.filter((x) => x !== o.key))} />
               ))}
             </section>
           )}

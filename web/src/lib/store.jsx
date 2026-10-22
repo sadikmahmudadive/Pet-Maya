@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useTheme } from '../context/ThemeContext.jsx';
-import { useMyPets, useProducts, useMyOrders, useVets, useCoupons } from '../data/hooks.js';
+import { useMyPets, useProducts, useCategories, useMyOrders, useVets, useCoupons } from '../data/hooks.js';
 import { useDoc } from '../data/firestore.js';
 import { syncWishlist, syncSavedAddresses, isRealUser } from '../data/actions.js';
 import { DELIVERY, PROMOS } from '../data/content.js';
@@ -33,6 +33,7 @@ export function StoreProvider({ children }) {
   const { currentUser } = useAuth() || {};
   const themeCtx = useTheme();
   const products = useProducts();
+  const categories = useCategories();
   const vets = useVets();
   const coupons = useCoupons();
   const pets = useMyPets(currentUser);
@@ -404,7 +405,7 @@ export function StoreProvider({ children }) {
   const value = {
     user: currentUser,
     profile: profile.data,
-    products, vets, coupons, pets, myOrders, localOrders,
+    products, categories, vets, coupons, pets, myOrders, localOrders,
     cart, addToCart, setQty, removeLine, clearCart,
     coupon, applyCoupon, removeCoupon: () => setCoupon(null),
     totals, bagOpen, setBagOpen,

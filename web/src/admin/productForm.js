@@ -1,5 +1,6 @@
 // Product form rules shared by "Add product" and the Inventory edit panel: defaults, ids, the saved shape,
 // and validation. Pure (no React, no Firebase) so it can be unit-tested.
+import { makeResolver, productFields } from '../lib/categories.js';
 
 export const MAX_PHOTOS = 8;
 export const MAX_NAME = 150;
@@ -11,7 +12,7 @@ export const CATEGORIES = [
 export const UNITS = ['pc', 'box', 'strip', 'bottle', 'vial', 'pack', 'kg', 'g', 'ml', 'l'];
 
 export const BLANK_PRODUCT = Object.freeze({
-  id: '', name: '', brand: '', category: 'food', pet: 'both', sku: '', barcode: '', cost: '', unit: 'pc', supplier: '',
+  id: '', name: '', brand: '', category: 'food', categoryId: '', pet: 'both', sku: '', barcode: '', cost: '', unit: 'pc', supplier: '',
   price: '', compareAt: '', stockCount: 0, reorderPoint: 20, stockTarget: 100, expiresInDays: '',
   isRx: false, coldChain: false, showOnStorefront: true, autoRefill: false,
   photos: [], shortDescription: '', description: '', ingredients: '', variantOptions: [],
@@ -65,13 +66,16 @@ export function photosFromProduct(p = {}) {
 }
 
 /** Stored product → the editable form. */
-export function formFromProduct(p) {
+export function formFromProduct(p, categories = []) {
   const variants = Array.isArray(p.variantOptions) && p.variantOptions.length
     ? p.variantOptions.map((vo) => ({ label: vo.label || '', sku: vo.sku || '', price: vo.price ?? '', stockCount: vo.stockCount ?? '' }))
     : (p.variants || []).map((v) => ({ label: String(v), sku: '', price: '', stockCount: '' }));
+  // Which node of the category tree the product sits in (old products only have a plain `category`).
+  const node = categories.length ? makeResolver(categories).nodeOf(p) : null;
   return {
     ...BLANK_PRODUCT,
     ...p,
+    categoryId: node ? node.id : '',
     compareAt: p.compareAt || '',
     cost: p.cost || '',
     expiresInDays: p.expiresInDays ?? '',
@@ -85,7 +89,7 @@ export function formFromProduct(p) {
  *   image / imageUrl = cover · images = the other photos (the storefront shows [image, ...images])
  *   imageGallery = all photos, cover first (the mobile app).
  */
-export function buildProductData(form, { isNew = false, now = Date.now() } = {}) {
+export function buildProductData(form, { isNew = false, now = Date.now(), categories = [] } = {}) {
   const photos = [...new Set((form.photos || []).filter(Boolean))].slice(0, MAX_PHOTOS);
   const cover = photos[0] || '';
   const variants = (form.variantOptions || [])
@@ -98,10 +102,12 @@ export function buildProductData(form, { isNew = false, now = Date.now() } = {})
     }));
   const stock = Math.max(0, Math.floor(Number(form.stockCount) || 0));
   const expires = num(form.expiresInDays);
+  // A pick from the category tree sets the main category (`category`) plus the full path; without one the typed value is kept.
+  const placed = form.categoryId && categories.length ? productFields(form.categoryId, categories) : null;
   return {
     name: String(form.name).trim().slice(0, MAX_NAME),
     brand: String(form.brand || '').trim(),
-    category: norm(form.category) || 'supplies',
+    ...(placed || { category: norm(form.category) || 'supplies' }),
     pet: form.pet || 'both',
     sku: String(form.sku || '').trim(),
     barcode: String(form.barcode || '').replace(/\s+/g, ''),
@@ -137,7 +143,7 @@ export function buildProductData(form, { isNew = false, now = Date.now() } = {})
  * Problems that must be fixed (errors) and things worth a second look (warnings).
  * `products` = the existing catalogue; `editingId` = the product being edited (so it doesn't clash with itself).
  */
-export function validateProduct(form, products = [], { editingId = '', uploading = false } = {}) {
+export function validateProduct(form, products = [], { editingId = '', uploading = false, categories = [] } = {}) {
   const errors = [];
   const warnings = [];
   const err = (field, message) => errors.push({ field, message });
@@ -146,7 +152,14 @@ export function validateProduct(form, products = [], { editingId = '', uploading
 
   if (!String(form.name || '').trim()) err('name', 'Give the product a name.');
   if (String(form.name || '').length > MAX_NAME) err('name', `Keep the name under ${MAX_NAME} characters.`);
-  if (!norm(form.category)) err('category', 'Choose or type a category.');
+  if (categories.length) {
+    const placed = form.categoryId && categories.some((c) => c.id === form.categoryId);
+    if (!placed) {
+      // Existing products keep working with their old label; new ones must be placed in the tree.
+      if (editingId) warn('category', `This product is not in the category tree yet${norm(form.category) ? ` (old label “${norm(form.category)}”)` : ''}. Pick a category to place it.`);
+      else err('category', 'Choose a category.');
+    }
+  } else if (!norm(form.category)) err('category', 'Choose or type a category.');
 
   const price = num(form.price);
   if (!(price > 0)) err('price', 'Enter a sale price above 0.');

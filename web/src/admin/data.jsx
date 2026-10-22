@@ -1,5 +1,6 @@
 import { createContext, useContext, useMemo } from 'react';
 import { useStore } from '../lib/store.jsx';
+import { normCategory } from '../lib/categories.js';
 import { saveDoc, useCollection, useDoc, normProduct, normOrder, normVet, normUser, normEvent, normPet } from '../data/firestore.js';
 import { DEFAULT_SETTINGS } from './erp.js';
 import { SAMPLES } from '../data/hooks.js';
@@ -31,6 +32,7 @@ const sampleEvents = SAMPLE_APPOINTMENTS.map((a) => {
 export function AdminDataProvider({ children }) {
   const orders = useCollection('orders', { map: normOrder, sample: [], sampleWhenEmpty: false });
   const products = useCollection('products', { map: normProduct, sample: SAMPLES.products });
+  const categories = useCollection('categories', { map: normCategory, sample: [], sampleWhenEmpty: false });
   const vets = useCollection('vets', { map: normVet, sample: SAMPLES.vets });
   const users = useCollection('users', { map: normUser, sample: sampleUsers });
   const events = useCollection('events', { map: (id, d) => ({ ...normEvent(id, d), requestedAt: Number(d.timestamp) || Date.parse(d.createdAt) || 0 }), sample: sampleEvents });
@@ -97,12 +99,12 @@ export function AdminDataProvider({ children }) {
       settings: { ...DEFAULT_SETTINGS, ...(settingsDoc.data || {}) },
       erpLive: sales.live || shifts.live || suppliers.live,
       allUsers: users.items,
-      orders: ordersSorted, products: products.items, vets: vets.items, events: events.items, customers, rxQueue, pets: pets.items, coupons: coupons.items,
-      live: { orders: orders.live, products: products.live, vets: vets.live, users: users.live, events: events.live, coupons: coupons.live },
+      orders: ordersSorted, products: products.items, categories: categories.items, vets: vets.items, events: events.items, customers, rxQueue, pets: pets.items, coupons: coupons.items,
+      live: { orders: orders.live, products: products.live, categories: categories.live, vets: vets.live, users: users.live, events: events.live, coupons: coupons.live },
       anySample: !(orders.live && products.live && users.live),
       loading: orders.loading || products.loading,
     };
-  }, [orders, products, vets, users, events, pets, coupons, sales, shifts, moves, suppliers, purchases, supplierPayments, expenses, staff, attendance, payroll, settingsDoc.data]);
+  }, [orders, products, categories, vets, users, events, pets, coupons, sales, shifts, moves, suppliers, purchases, supplierPayments, expenses, staff, attendance, payroll, settingsDoc.data]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

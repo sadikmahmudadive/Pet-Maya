@@ -47,6 +47,10 @@ export function normProduct(id, d = {}) {
     name: d.name || 'Product',
     brand: d.brand || 'Pet Maya',
     category: String(d.category || 'supplies').toLowerCase(),
+    // Position in the category tree (see lib/categories.js). Old products only have `category`.
+    categoryId: typeof d.categoryId === 'string' ? d.categoryId : '',
+    categoryPath: Array.isArray(d.categoryPath) ? d.categoryPath.filter((x) => typeof x === 'string') : [],
+    categorySlugs: Array.isArray(d.categorySlugs) ? d.categorySlugs.filter((x) => typeof x === 'string') : [],
     pet: String(d.pet || d.petType || d.species || 'both').toLowerCase(),
     price: basePrice,
     compareAt: n(d.compareAt || d.originalPrice || d.mrp, 0) || null,
