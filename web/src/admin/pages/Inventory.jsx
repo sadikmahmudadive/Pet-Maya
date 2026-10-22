@@ -85,7 +85,7 @@ export default function Inventory() {
   const set = (k, v) => { setForm((f) => ({ ...f, [k]: v })); setDirty(true); };
 
   const addVariantRow = () => {
-    set('variantOptions', [...(form.variantOptions || []), { label: '', sku: '', price: '', stockCount: '' }]);
+    set('variantOptions', [...(form.variantOptions || []), { label: '', sku: '', price: '', compareAt: '', cost: '', stockCount: '' }]);
   };
   const updateVariantRow = (idx, field, val) => {
     const next = (form.variantOptions || []).map((vo, i) => (i === idx ? { ...vo, [field]: val } : vo));
@@ -304,15 +304,22 @@ export default function Inventory() {
               {(form.variantOptions || []).length === 0 ? (
                 <div className="sub" style={{ fontSize: 12 }}>Single variant product. Click "+ Add variant" for size/weight options with independent prices & stock.</div>
               ) : (
-                <div className="stack gap-6">
-                  {(form.variantOptions || []).map((vo, idx) => (
-                    <div key={idx} className="row gap-6" style={{ alignItems: 'center' }}>
-                      <input className="input" style={{ height: 34, fontSize: 12, flex: 1.3 }} placeholder="Label (e.g. Small)" value={vo.label || ''} onChange={(e) => updateVariantRow(idx, 'label', e.target.value)} />
-                      <input className="input" type="number" style={{ height: 34, fontSize: 12, width: 78 }} placeholder="৳ Price" value={vo.price ?? ''} onChange={(e) => updateVariantRow(idx, 'price', e.target.value)} />
-                      <input className="input" type="number" style={{ height: 34, fontSize: 12, width: 64 }} placeholder="Stock" value={vo.stockCount ?? ''} onChange={(e) => updateVariantRow(idx, 'stockCount', e.target.value)} />
-                      <button type="button" className="btn btn-ghost btn-square btn-sm" onClick={() => removeVariantRow(idx)} aria-label="Remove variant"><Icon name="x" size={13} /></button>
+                <div style={{ overflowX: 'auto' }}>
+                  <div className="stack gap-6" style={{ minWidth: 640 }}>
+                    <div className="variant-grid no-sku subtle" style={{ fontSize: 12 }} aria-hidden="true">
+                      <span>Label</span><span>Sale price</span><span>Regular price</span><span>Cost price</span><span>Stock</span><span />
                     </div>
-                  ))}
+                    {(form.variantOptions || []).map((vo, idx) => (
+                      <div key={idx} className="variant-grid no-sku">
+                        <input className="input" style={{ height: 34, fontSize: 13 }} placeholder="e.g. Small" aria-label={`Variant ${idx + 1} label`} value={vo.label || ''} onChange={(e) => updateVariantRow(idx, 'label', e.target.value)} />
+                        <input className="input" type="number" min="0" step="0.01" style={{ height: 34, fontSize: 13 }} placeholder="৳" aria-label={`Variant ${idx + 1} sale price`} value={vo.price ?? ''} onChange={(e) => updateVariantRow(idx, 'price', e.target.value)} />
+                        <input className="input" type="number" min="0" step="0.01" style={{ height: 34, fontSize: 13 }} placeholder="৳" aria-label={`Variant ${idx + 1} regular price`} value={vo.compareAt ?? ''} onChange={(e) => updateVariantRow(idx, 'compareAt', e.target.value)} />
+                        <input className="input" type="number" min="0" step="0.01" style={{ height: 34, fontSize: 13 }} placeholder="৳" aria-label={`Variant ${idx + 1} cost price`} value={vo.cost ?? ''} onChange={(e) => updateVariantRow(idx, 'cost', e.target.value)} />
+                        <input className="input" type="number" min="0" step="1" style={{ height: 34, fontSize: 13 }} placeholder="0" aria-label={`Variant ${idx + 1} stock`} value={vo.stockCount ?? ''} onChange={(e) => updateVariantRow(idx, 'stockCount', e.target.value)} />
+                        <button type="button" className="btn btn-ghost btn-square btn-sm" onClick={() => removeVariantRow(idx)} aria-label="Remove variant"><Icon name="x" size={13} /></button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>

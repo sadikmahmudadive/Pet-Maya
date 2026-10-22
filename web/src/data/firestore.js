@@ -17,7 +17,7 @@ export function normVariantOption(v, fallbackPrice = 0, fallbackStock = null) {
   if (!v) return null;
   if (typeof v === 'string') {
     const label = v.trim();
-    return label ? { label, sku: '', price: null, compareAt: null, stockCount: null } : null;
+    return label ? { label, sku: '', price: null, compareAt: null, cost: null, stockCount: null } : null;
   }
   if (typeof v === 'object') {
     const label = String(v.label || v.name || v.size || v.value || '').trim();
@@ -27,6 +27,7 @@ export function normVariantOption(v, fallbackPrice = 0, fallbackStock = null) {
       sku: String(v.sku || ''),
       price: v.price != null && v.price !== '' ? n(v.price, fallbackPrice) : null,
       compareAt: v.compareAt != null && v.compareAt !== '' ? n(v.compareAt, 0) : null,
+      cost: v.cost != null && v.cost !== '' ? n(v.cost, 0) : null,
       stockCount: v.stockCount != null && v.stockCount !== '' ? n(v.stockCount, fallbackStock ?? 0) : null,
     };
   }

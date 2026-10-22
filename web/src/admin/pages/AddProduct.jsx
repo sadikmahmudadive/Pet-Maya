@@ -83,7 +83,7 @@ export default function AddProduct() {
     ['In stock', Number(form.stockCount) > 0],
   ];
 
-  const addVariant = () => set('variantOptions', [...form.variantOptions, { label: '', sku: '', price: '', stockCount: '' }]);
+  const addVariant = () => set('variantOptions', [...form.variantOptions, { label: '', sku: '', price: '', compareAt: '', cost: '', stockCount: '' }]);
   const setVariant = (i, k, v) => set('variantOptions', form.variantOptions.map((vo, j) => (j === i ? { ...vo, [k]: v } : vo)));
   const dropVariant = (i) => set('variantOptions', form.variantOptions.filter((_, j) => j !== i));
 
@@ -256,19 +256,27 @@ export default function AddProduct() {
               <Button variant="outline" size="sm" icon="plus" onClick={addVariant}>Add variant</Button>
             </div>
             {form.variantOptions.length > 0 && (
-              <div className="stack gap-8" style={{ marginTop: 12 }}>
-                {form.variantOptions.map((vo, i) => (
-                  <div key={i}>
-                    <div className="row gap-6" style={{ alignItems: 'center' }}>
-                      <input className="input" style={{ flex: 1.4 }} placeholder="Label (e.g. 2 kg)" aria-label={`Variant ${i + 1} label`} aria-invalid={bad(`variant-${i}`)} value={vo.label} onChange={(e) => setVariant(i, 'label', e.target.value)} />
-                      <input className="input" style={{ flex: 1 }} placeholder="SKU" aria-label={`Variant ${i + 1} SKU`} value={vo.sku} onChange={(e) => setVariant(i, 'sku', e.target.value)} />
-                      <input className="input" type="number" min="0" style={{ width: 100 }} placeholder="৳ Price" aria-label={`Variant ${i + 1} price`} value={vo.price} onChange={(e) => setVariant(i, 'price', e.target.value)} />
-                      <input className="input" type="number" min="0" step="1" style={{ width: 84 }} placeholder="Stock" aria-label={`Variant ${i + 1} stock`} value={vo.stockCount} onChange={(e) => setVariant(i, 'stockCount', e.target.value)} />
-                      <button type="button" className="btn btn-ghost btn-square btn-sm" onClick={() => dropVariant(i)} aria-label={`Remove variant ${i + 1}`}><Icon name="x" size={14} /></button>
-                    </div>
-                    {errAt(`variant-${i}`) && <span className="field-err" role="alert">{errAt(`variant-${i}`)}</span>}
+              <div style={{ marginTop: 12, overflowX: 'auto' }}>
+                <div className="stack gap-8" style={{ minWidth: 760 }}>
+                  <div className="variant-grid subtle" style={{ fontSize: 12 }} aria-hidden="true">
+                    <span>Label</span><span>SKU</span><span>Sale price</span><span>Regular price</span><span>Cost price</span><span>Stock</span><span />
                   </div>
-                ))}
+                  {form.variantOptions.map((vo, i) => (
+                    <div key={i}>
+                      <div className="variant-grid">
+                        <input className="input" placeholder="e.g. 2 kg" aria-label={`Variant ${i + 1} label`} aria-invalid={bad(`variant-${i}`)} value={vo.label} onChange={(e) => setVariant(i, 'label', e.target.value)} />
+                        <input className="input" placeholder="SKU" aria-label={`Variant ${i + 1} SKU`} value={vo.sku} onChange={(e) => setVariant(i, 'sku', e.target.value)} />
+                        <input className="input" type="number" min="0" step="0.01" placeholder="৳" aria-label={`Variant ${i + 1} sale price`} value={vo.price} onChange={(e) => setVariant(i, 'price', e.target.value)} />
+                        <input className="input" type="number" min="0" step="0.01" placeholder="৳" aria-label={`Variant ${i + 1} regular price`} value={vo.compareAt ?? ''} onChange={(e) => setVariant(i, 'compareAt', e.target.value)} />
+                        <input className="input" type="number" min="0" step="0.01" placeholder="৳" aria-label={`Variant ${i + 1} cost price`} value={vo.cost ?? ''} onChange={(e) => setVariant(i, 'cost', e.target.value)} />
+                        <input className="input" type="number" min="0" step="1" placeholder="0" aria-label={`Variant ${i + 1} stock`} value={vo.stockCount} onChange={(e) => setVariant(i, 'stockCount', e.target.value)} />
+                        <button type="button" className="btn btn-ghost btn-square btn-sm" onClick={() => dropVariant(i)} aria-label={`Remove variant ${i + 1}`}><Icon name="x" size={14} /></button>
+                      </div>
+                      {errAt(`variant-${i}`) && <span className="field-err" role="alert">{errAt(`variant-${i}`)}</span>}
+                    </div>
+                  ))}
+                  <div className="sub" style={{ fontSize: 12 }}>Leave a price empty to use the product’s own. Cost price is only for your profit reports.</div>
+                </div>
               </div>
             )}
           </section>

@@ -74,8 +74,8 @@ test('the saved document is clean and typed', () => {
 test('variants: blank labels are dropped, numbers typed, labels mirrored into variants[]', () => {
   const d = buildProductData(ok({ variantOptions: [{ label: ' Small ', sku: 'S', price: '100', stockCount: '5' }, { label: '', price: '9' }, { label: 'Large', sku: '', price: '', stockCount: '' }] }));
   assert.deepEqual(d.variants, ['Small', 'Large']);
-  assert.deepEqual(d.variantOptions[0], { label: 'Small', sku: 'S', price: 100, stockCount: 5 });
-  assert.deepEqual(d.variantOptions[1], { label: 'Large', sku: '', price: null, stockCount: null });
+  assert.deepEqual(d.variantOptions[0], { label: 'Small', sku: 'S', price: 100, compareAt: null, cost: null, stockCount: 5 });
+  assert.deepEqual(d.variantOptions[1], { label: 'Large', sku: '', price: null, compareAt: null, cost: null, stockCount: null });
 });
 
 test('editing round-trips: form → data → form keeps photos and variants', () => {
@@ -159,4 +159,30 @@ test('with a tree, new products must pick a category; existing ones only get a n
   assert.ok(!fields(edit).includes('category'));
   assert.ok(fields(edit, 'warnings').includes('category'));
   assert.ok(!fields(validateProduct(ok({ category: 'anything' }), [])).includes('category')); // no tree yet: free text
+});
+
+// ── Variant prices ─────────────────────────────────────────────────────────
+test('each variant can carry its own sale, regular and cost price', () => {
+  const d = buildProductData(ok({ variantOptions: [
+    { label: ' 2 kg ', sku: 'A', price: '1020', compareAt: '1200', cost: '800', stockCount: '30' },
+    { label: '4 kg', sku: '', price: '', compareAt: '', cost: '', stockCount: '' },
+  ] }));
+  assert.deepEqual(d.variantOptions[0], { label: '2 kg', sku: 'A', price: 1020, compareAt: 1200, cost: 800, stockCount: 30 });
+  assert.deepEqual(d.variantOptions[1], { label: '4 kg', sku: '', price: null, compareAt: null, cost: null, stockCount: null });
+});
+
+test('editing loads the variant prices back into the form', () => {
+  const f = formFromProduct({ id: 'p', name: 'x', variantOptions: [{ label: '2 kg', sku: '', price: 1020, compareAt: 1200, cost: 800, stockCount: 30 }, { label: '4 kg', price: 2000, compareAt: null, cost: null, stockCount: null }] });
+  assert.deepEqual(f.variantOptions.map((v) => [v.price, v.compareAt, v.cost]), [[1020, 1200, 800], [2000, '', '']]);
+});
+
+test('variant price validation: no negatives; odd combinations are only warnings', () => {
+  const bad = validateProduct(ok({ variantOptions: [{ label: 'A', price: '10', compareAt: '-5', cost: '', stockCount: '' }, { label: 'B', price: '10', compareAt: '', cost: '-1', stockCount: '' }] }), []);
+  assert.equal(bad.errors.filter((e) => e.field.startsWith('variant-')).length, 2);
+  const odd = validateProduct(ok({ variantOptions: [{ label: 'A', price: '100', compareAt: '90', cost: '150', stockCount: '' }] }), []);
+  assert.deepEqual(odd.errors, []);
+  assert.equal(odd.warnings.filter((w) => w.field === 'variant-0').length, 2);
+  // old-style rows without the new fields are fine, and a blank row with only a cost is flagged
+  assert.deepEqual(validateProduct(ok({ variantOptions: [{ label: 'A', price: '', stockCount: '' }] }), []).errors, []);
+  assert.equal(validateProduct(ok({ variantOptions: [{ label: '', cost: '5' }] }), []).errors.length, 1);
 });

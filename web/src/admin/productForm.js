@@ -68,7 +68,7 @@ export function photosFromProduct(p = {}) {
 /** Stored product → the editable form. */
 export function formFromProduct(p, categories = []) {
   const variants = Array.isArray(p.variantOptions) && p.variantOptions.length
-    ? p.variantOptions.map((vo) => ({ label: vo.label || '', sku: vo.sku || '', price: vo.price ?? '', stockCount: vo.stockCount ?? '' }))
+    ? p.variantOptions.map((vo) => ({ label: vo.label || '', sku: vo.sku || '', price: vo.price ?? '', compareAt: vo.compareAt || '', cost: vo.cost ?? '', stockCount: vo.stockCount ?? '' }))
     : (p.variants || []).map((v) => ({ label: String(v), sku: '', price: '', stockCount: '' }));
   // Which node of the category tree the product sits in (old products only have a plain `category`).
   const node = categories.length ? makeResolver(categories).nodeOf(p) : null;
@@ -98,6 +98,8 @@ export function buildProductData(form, { isNew = false, now = Date.now(), catego
       label: String(vo.label).trim(),
       sku: String(vo.sku || '').trim(),
       price: vo.price !== '' && vo.price != null ? Number(vo.price) : null,
+      compareAt: Number(vo.compareAt) > 0 ? Number(vo.compareAt) : null,
+      cost: vo.cost !== '' && vo.cost != null ? Number(vo.cost) : null,
       stockCount: vo.stockCount !== '' && vo.stockCount != null ? Number(vo.stockCount) : null,
     }));
   const stock = Math.max(0, Math.floor(Number(form.stockCount) || 0));
@@ -190,10 +192,15 @@ export function validateProduct(form, products = [], { editingId = '', uploading
   const seen = new Set();
   (form.variantOptions || []).forEach((vo, i) => {
     const label = norm(vo.label);
-    if (!label) { if (vo.price !== '' || vo.stockCount !== '' || String(vo.sku || '').trim()) err(`variant-${i}`, `Variant ${i + 1} has a price, SKU or stock but no label.`); return; }
+    if (!label) { if ([vo.price, vo.compareAt, vo.cost, vo.stockCount].some((x) => x !== '' && x != null) || String(vo.sku || '').trim()) err(`variant-${i}`, `Variant ${i + 1} has a price, SKU or stock but no label.`); return; }
     if (seen.has(label)) err(`variant-${i}`, `Variant “${String(vo.label).trim()}” is listed twice.`);
     seen.add(label);
-    if (vo.price !== '' && vo.price != null && !(Number(vo.price) >= 0)) err(`variant-${i}`, `Variant “${vo.label}” has an invalid price.`);
+    if (vo.price !== '' && vo.price != null && !(Number(vo.price) >= 0)) err(`variant-${i}`, `Variant “${vo.label}” has an invalid sale price.`);
+    if (vo.compareAt !== '' && vo.compareAt != null && !(Number(vo.compareAt) >= 0)) err(`variant-${i}`, `Variant “${vo.label}” has an invalid regular price.`);
+    if (vo.cost !== '' && vo.cost != null && !(Number(vo.cost) >= 0)) err(`variant-${i}`, `Variant “${vo.label}” has an invalid cost price.`);
+    const vSale = vo.price !== '' && vo.price != null ? Number(vo.price) : price;
+    if (Number(vo.compareAt) > 0 && vSale > 0 && Number(vo.compareAt) <= vSale) warn(`variant-${i}`, `Variant “${vo.label}”: the regular price is not higher than its sale price, so no discount will show.`);
+    if (vo.cost !== '' && vo.cost != null && vSale > 0 && Number(vo.cost) > vSale) warn(`variant-${i}`, `Variant “${vo.label}”: cost is higher than its sale price.`);
     if (vo.stockCount !== '' && vo.stockCount != null && !(isInt(Number(vo.stockCount)) && Number(vo.stockCount) >= 0)) err(`variant-${i}`, `Variant “${vo.label}” needs a whole-number stock.`);
   });
 

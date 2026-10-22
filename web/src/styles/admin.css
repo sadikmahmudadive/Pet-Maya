@@ -220,3 +220,7 @@ button.cat-caret:hover { background: var(--line); }
 .cat-tools { flex: none; opacity: .55; transition: opacity .15s; }
 .cat-row:hover .cat-tools, .cat-row:focus-within .cat-tools, .cat-row.selected .cat-tools { opacity: 1; }
 @media (hover: none) { .cat-tools { opacity: 1; } }
+
+/* Variant rows: label, SKU, sale / regular / cost price, stock, remove */
+.variant-grid { display: grid; grid-template-columns: minmax(130px, 1.6fr) minmax(90px, 1fr) repeat(3, minmax(100px, 1fr)) minmax(80px, .8fr) 36px; gap: 8px; align-items: center; }
+.variant-grid.no-sku { grid-template-columns: minmax(130px, 1.6fr) repeat(3, minmax(100px, 1fr)) minmax(80px, .8fr) 36px; }
