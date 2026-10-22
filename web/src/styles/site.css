@@ -134,17 +134,24 @@
 .vchip.on { background: var(--sunk-2); border-color: var(--sunk-2); font-weight: 600; color: var(--ink); }
 @media (max-width: 520px) {
   .pcard-actions { top: 12px; right: 12px; gap: 4px; }
-  .pcard-fav { width: 30px; height: 30px; }
   .pcard-name { font-size: 13.5px; }
   .pcard-price { font-size: 15px; }
   .pcard-foot { flex-wrap: wrap; gap: 8px; }
-  .pcard-btns { width: 100%; display: grid; grid-template-columns: 1fr 1.15fr; gap: 6px; }
-  .pcard-btns .btn { width: 100%; padding: 0 6px; font-size: 11.5px; justify-content: center; height: 30px; }
+  .pcard-btns { width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 6px; }
+  .pcard-btns .btn { width: 100%; min-width: 0; padding: 0 6px; font-size: 11.5px; justify-content: center; height: 36px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pcard-fav { width: 34px; height: 34px; }
 }
 /* Very narrow cards: price and Add button stack instead of colliding. */
 @media (max-width: 380px) {
   .pcard-foot { flex-wrap: wrap; }
   .pcard-foot .btn { flex: 1 1 auto; justify-content: center; }
+}
+/* Narrowest phones: two cards per row leave ~120px each, so the two buttons stack. */
+@media (max-width: 340px) {
+  .pcard { padding: 8px 8px 12px; }
+  .pcard-body { padding: 10px 2px 0; }
+  .pcard-btns { grid-template-columns: minmax(0, 1fr); }
+  .variant-chips { gap: 4px; }
 }
 
 /* ── Sections ──────────────────────────────────────────── */
@@ -568,3 +575,14 @@ a.pet-tile:hover { border-color: var(--teal); }
 .pet-facts dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
 .pet-meals { margin: 8px 0 0; padding-left: 18px; display: grid; gap: 4px; font-size: 14px; color: var(--ink-2, inherit); }
 @media (max-width: 720px) { .pet-hero { grid-template-columns: minmax(0, 1fr); } .pet-hero .pet-hero-photo { max-width: 320px; } }
+
+/* Smallest phones: newsletter field stacks, cookie banner is more compact */
+@media (max-width: 360px) {
+  .newsletter { flex-direction: column; align-items: stretch; border-radius: 20px; padding: 6px; }
+  .newsletter .input { text-align: left; padding: 0 12px; }
+  .newsletter .btn { width: 100%; }
+  .consent-bar { left: 8px; right: 8px; bottom: 8px; padding: 10px 12px; gap: 8px; }
+  .consent-bar p { font-size: 12px; line-height: 1.4; }
+  .consent-actions .btn { flex: 1; padding: 0 10px; }
+}
+@media (pointer: coarse), (max-width: 600px) { .vchip { height: 32px; padding: 0 12px; } }

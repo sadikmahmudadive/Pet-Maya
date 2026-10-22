@@ -226,9 +226,9 @@ export default function Shop({ params }) {
         <div>
           <div className="row between gap-12 wrap" style={{ marginBottom: 12 }}>
             <div style={{ fontSize: 14 }}><b>{list.length} products</b> <span className="muted">{cat ? `· ${crumb}` : ''}</span></div>
-            <div className="row gap-8">
+            <div className="row gap-8 wrap">
               <button className="btn btn-outline btn-sm show-sm" onClick={() => setFiltersOpen((o) => !o)}><Icon name="filter" size={14} /> Filters</button>
-              <select className="select" value={sort} onChange={(e) => setSort(e.target.value)} style={{ height: 38, width: 'auto', borderRadius: 999, background: 'var(--surface)', border: '1px solid var(--line-2)', fontSize: 13 }} aria-label="Sort">
+              <select className="select" value={sort} onChange={(e) => setSort(e.target.value)} style={{ height: 38, width: 'auto', maxWidth: '100%', borderRadius: 999, background: 'var(--surface)', border: '1px solid var(--line-2)', fontSize: 13 }} aria-label="Sort">
                 {Object.entries(SORTS).map(([k, [l]]) => <option key={k} value={k}>{l}</option>)}
               </select>
             </div>

@@ -233,9 +233,9 @@ export default function Product({ params }) {
               ))}
             </div>
           )}
-          <div className="card flat row" style={{ marginTop: 14, justifyContent: 'space-around', textAlign: 'center' }}>
+          <div className="card flat row wrap" style={{ marginTop: 14, justifyContent: 'space-around', textAlign: 'center', gap: '12px 8px' }}>
             {[['Stock', soldOut ? 'Sold out' : activeStock > 20 ? 'In stock' : `${activeStock} left`], ['SKU', activeSku], ['Dispatch', p.isRx ? 'After vet check' : 'Same day']].map(([k, v]) => (
-              <div key={k}><div className="stat-label">{k}</div><div className="mono" style={{ fontSize: 16, marginTop: 6 }}>{v}</div></div>
+              <div key={k} style={{ flex: '1 1 84px', minWidth: 0 }}><div className="stat-label">{k}</div><div className="mono" style={{ fontSize: 15, marginTop: 6, overflowWrap: 'anywhere' }}>{v}</div></div>
             ))}
           </div>
         </div>

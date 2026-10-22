@@ -70,10 +70,10 @@ function OrderList({ orders }) {
           <div className="eyebrow">Account</div>
           <h1 className="display-2" style={{ marginTop: 10 }}>Your orders</h1>
         </div>
-        <form className="row gap-8" onSubmit={handleLookup}>
+        <form className="row gap-8 wrap" onSubmit={handleLookup}>
           <input
             className="input mono"
-            style={{ width: 210, height: 42 }}
+            style={{ width: 210, maxWidth: '100%', height: 42 }}
             placeholder="Track ID (e.g. PM-12345)"
             value={lookupId}
             onChange={(e) => setLookupId(e.target.value)}

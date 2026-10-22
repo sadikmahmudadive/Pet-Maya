@@ -141,7 +141,7 @@ export default function Categories() {
                     aria-selected={active}
                     aria-expanded={n.hasChildren ? open : undefined}
                     className={cx('cat-row', active && 'selected', n.active === false && 'is-hidden')}
-                    style={{ paddingLeft: 12 + n.depth * 22 }}
+                    style={{ '--d': n.depth }}
                   >
                     {n.hasChildren
                       ? <button type="button" className="cat-caret" onClick={() => toggle(n.id)} aria-label={`${open ? 'Collapse' : 'Expand'} ${n.name}`}><Icon name={open ? 'chevronDown' : 'chevronRight'} size={14} /></button>
@@ -150,7 +150,7 @@ export default function Categories() {
                       <span className="ellipsis">{n.name}</span>
                       {n.active === false && <Pill sm>Hidden</Pill>}
                     </button>
-                    <span className="subtle" style={{ fontSize: 12, whiteSpace: 'nowrap' }}>{counts.get(n.id) || 0} product{(counts.get(n.id) || 0) === 1 ? '' : 's'}</span>
+                    <span className="subtle cat-count" style={{ fontSize: 12, whiteSpace: 'nowrap' }}>{counts.get(n.id) || 0} product{(counts.get(n.id) || 0) === 1 ? '' : 's'}</span>
                     <span className="row gap-2 cat-tools">
                       <button type="button" className="btn btn-ghost btn-square btn-sm" onClick={() => shift(n.id, -1)} aria-label={`Move ${n.name} up`}><Icon name="chevronDown" size={14} style={{ transform: 'rotate(180deg)' }} /></button>
                       <button type="button" className="btn btn-ghost btn-square btn-sm" onClick={() => shift(n.id, 1)} aria-label={`Move ${n.name} down`}><Icon name="chevronDown" size={14} /></button>

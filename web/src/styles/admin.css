@@ -113,7 +113,9 @@
 .kv-grid > span { color: var(--muted); }
 .kv-grid > b { text-align: right; }
 .pl { display: flex; flex-direction: column; }
-.pl-row { display: flex; justify-content: space-between; gap: 16px; padding: 9px 0; font-size: 14px; border-top: 1px solid var(--line); white-space: pre; }
+.pl-row { display: flex; justify-content: space-between; gap: 16px; padding: 9px 0; font-size: 14px; border-top: 1px solid var(--line); white-space: pre-wrap; }
+.pl-row > span:first-child { min-width: 0; overflow-wrap: anywhere; }
+.pl-row > span:last-child { flex: none; }
 .pl-row:first-child { border-top: 0; }
 .pl-row.b { font-weight: 700; border-top: 1.5px solid var(--line-2); }
 .pl-row.bb { font-weight: 800; font-size: 17px; border-top: 2px solid var(--ink); padding-top: 12px; }
@@ -203,6 +205,7 @@
 @media (hover: none) { .pp-actions { opacity: 1; } }
 .pp-actions button { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 999px; background: rgba(255,255,255,.92); color: #111; }
 .pp-actions button:disabled { opacity: .35; cursor: default; }
+@media (pointer: coarse), (max-width: 600px) { .pp-actions button { width: 32px; height: 32px; } }
 .pp-prog { position: absolute; inset: auto 8px 8px 8px; height: 6px; border-radius: 999px; background: rgba(255,255,255,.6); overflow: hidden; }
 .pp-prog span { display: block; height: 100%; background: var(--teal); transition: width .2s; }
 .pp-tile:has(.pp-prog) img { opacity: .55; }
@@ -210,7 +213,7 @@
 .pp-err button { padding: 4px 10px; border-radius: 999px; border: 1px solid currentColor; font-size: 11.5px; }
 
 /* Category tree (admin > Categories) */
-.cat-row { display: flex; align-items: center; gap: 8px; padding: 6px 12px 6px 12px; border-bottom: 1px solid var(--line); min-height: 46px; }
+.cat-row { display: flex; align-items: center; gap: 8px; padding: 6px 12px 6px calc(12px + var(--d, 0) * 22px); border-bottom: 1px solid var(--line); min-height: 46px; }
 .cat-row:last-child { border-bottom: 0; }
 .cat-row.selected { background: var(--teal-tint); }
 .cat-row.is-hidden .cat-name { opacity: .6; }
@@ -224,3 +227,16 @@ button.cat-caret:hover { background: var(--line); }
 /* Variant rows: label, SKU, sale / regular / cost price, stock, remove */
 .variant-grid { display: grid; grid-template-columns: minmax(130px, 1.6fr) minmax(90px, 1fr) repeat(3, minmax(100px, 1fr)) minmax(80px, .8fr) 36px; gap: 8px; align-items: center; }
 .variant-grid.no-sku { grid-template-columns: minmax(130px, 1.6fr) repeat(3, minmax(100px, 1fr)) minmax(80px, .8fr) 36px; }
+
+@media (pointer: coarse), (max-width: 600px) {
+  .adm-brand { padding: 10px 0; }
+  .cat-caret { width: 32px; height: 32px; }
+}
+
+/* Category tree on phones: tighter indent, tools wrap under the name instead of squeezing it */
+@media (max-width: 600px) {
+  .cat-row { flex-wrap: wrap; gap: 4px 6px; padding-left: calc(6px + var(--d, 0) * 14px); padding-right: 8px; }
+  .cat-name { flex: 1 1 110px; }
+  .cat-count { order: 3; }
+  .cat-tools { order: 4; margin-left: auto; opacity: 1; }
+}

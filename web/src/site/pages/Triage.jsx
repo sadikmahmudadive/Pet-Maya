@@ -116,7 +116,7 @@ export default function Triage() {
             <div className="row between"><div className="row gap-10"><span className="step-num">3</span><h2 className="serif" style={{ fontSize: 24 }}>Quick checks</h2></div><span className="eyebrow">Step 3 of 3</span></div>
             <div style={{ marginTop: 18 }}>
               <div className="row between"><b style={{ fontSize: 14 }}>How long has this been going on?</b><span className="sub">{duration}</span></div>
-              <div className="grid" style={{ gridTemplateColumns: 'repeat(4,1fr)', gap: 8, marginTop: 10 }}>
+              <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(104px, 1fr))', gap: 8, marginTop: 10 }}>
                 {DURATIONS.map((d) => <button key={d} className={cx('chip', d === duration && 'active')} style={{ justifyContent: 'center', background: d === duration ? undefined : 'var(--sunk)', borderColor: 'transparent' }} onClick={() => setDuration(d)}>{d}</button>)}
               </div>
             </div>

@@ -15,14 +15,14 @@ const only = (process.argv.find((a) => a.startsWith('--only=')) || '').slice(7).
 const OUT = new URL('./shots/', import.meta.url);
 
 export const VIEWPORTS = [
-  ['phone-xs', 320, 640], ['phone-s', 360, 760], ['phone', 390, 844], ['phone-l', 430, 932],
+  ['phone-xxs', 280, 653], ['phone-xs', 320, 640], ['phone-s', 360, 760], ['phone', 390, 844], ['phone-l', 430, 932],
   ['phone-land', 844, 390], ['fold', 600, 900], ['tablet', 768, 1024], ['tablet-l', 820, 1180],
   ['tablet-land', 1024, 768], ['laptop', 1280, 800], ['desktop', 1440, 900], ['wide', 1920, 1080],
 ];
 
 const SITE = ['/', '/shop', '/product/p1', '/checkout', '/account/orders', '/specialists', '/triage', '/gps',
   '/vault', '/dashboard', '/profile', '/community', '/journal', '/halo', '/signin', '/nope'];
-const ADMIN = ['/admin', '/admin/orders', '/admin/prescriptions', '/admin/inventory', '/admin/promotions',
+const ADMIN = ['/admin', '/admin/orders', '/admin/prescriptions', '/admin/inventory', '/admin/products/new', '/admin/categories', '/admin/promotions', '/admin/announcement',
   '/admin/appointments', '/admin/customers', '/admin/pos', '/admin/sales', '/admin/stock', '/admin/purchasing',
   '/admin/finance', '/admin/reports', '/admin/staff', '/admin/settings'];
 const ROUTES = [...SITE, ...ADMIN].filter((r) => !only.length || only.some((o) => r === o || r.startsWith(o + '/')));

@@ -391,7 +391,7 @@ em.accent { font-style: italic; color: var(--teal); }
 }
 /* Finger-sized hit areas on touch screens (WCAG 2.5.8 / platform guidance). */
 .tap { display: inline-flex; align-items: center; justify-content: center; }
-@media (pointer: coarse) {
+@media (pointer: coarse), (max-width: 600px) {
   .tap { min-width: 40px; min-height: 40px; }
   .link-plain:not(p .link-plain, li .link-plain) { display: inline-flex; align-items: center; min-height: 40px; }
   .check { width: 22px; height: 22px; }
@@ -415,4 +415,28 @@ em.accent { font-style: italic; color: var(--teal); }
 @media (max-width: 560px) {
   .modal { width: calc(100vw - 24px); padding: 20px; border-radius: var(--r-lg); }
   .toasts { left: 12px; right: 12px; }
+}
+
+/* ── Smallest phones (≤ 380px, down to 280px) ──────────────── */
+@media (max-width: 380px) {
+  .stat { padding: 14px; gap: 10px; min-width: 0; }
+  .stat-value { font-size: 24px; overflow-wrap: anywhere; }
+  .stat-label { letter-spacing: .08em; overflow-wrap: anywhere; }
+  .stat-top { gap: 8px; }
+  .chip { max-width: 100%; white-space: nowrap; }
+}
+@media (max-width: 340px) {
+  .stat-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ── Touch targets: at least ~32px, or a larger invisible hit area ─ */
+@media (pointer: coarse), (max-width: 600px) {
+  .btn-sm { height: 36px; }
+  .btn-square.btn-sm { width: 36px; min-width: 36px; }
+  .vchip { height: 32px; }
+  button.pill { min-height: 32px; }
+  button.link { padding: 8px 4px; }
+  .toggle { position: relative; }
+  .toggle::before { content: ''; position: absolute; inset: -8px -4px; }
+  .avatar, .compass, .cal-hour { font-size: 11px; }
 }

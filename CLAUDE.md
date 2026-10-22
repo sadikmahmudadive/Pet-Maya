@@ -38,6 +38,10 @@ cd functions && npm run build    # tsc -> lib/ (functions load lib/index.js)
 node --test tests/unit/announcement.test.mjs
 node --test tests/unit/hosts.test.mjs tests/unit/product-form.test.mjs tests/unit/species.test.mjs tests/unit/categories.test.mjs tests/unit/pricing.test.mjs
 
+# Responsive audit (phones 280-430px, tablets, desktop; reports sideways overflow and small tap targets)
+cd web && npx vite --port 5173      # then, in another shell:
+AUDIT_BASE_URL=http://localhost:5173 node tests/responsive/audit-web.mjs --sizes=phone-xxs,phone-xs,phone-s --touch
+
 # Firestore/Storage rules tests (needs Java + Firebase CLI)
 cd tests/security && npm test
 

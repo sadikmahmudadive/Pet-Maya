@@ -279,13 +279,13 @@ export default function Vault() {
                         </div>
                         <div className="row gap-8 wrap">
                           {rxProducts.map((prod) => (
-                            <div key={prod.id} className="row gap-8" style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 12, padding: '6px 10px' }}>
-                              <Link to={`/product/${prod.id}`} style={{ fontWeight: 600, fontSize: 13 }}>{prod.name}</Link>
+                            <div key={prod.id} className="row gap-8 wrap" style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 12, padding: '6px 10px', maxWidth: '100%', minWidth: 0 }}>
+                              <Link to={`/product/${prod.id}`} style={{ fontWeight: 600, fontSize: 13, flex: '1 1 120px', minWidth: 0, overflowWrap: 'anywhere' }}>{prod.name}</Link>
                               <span className="sub" style={{ fontSize: 12 }}>{money(prod.price)}</span>
                               <button
                                 type="button"
                                 className="btn btn-teal btn-sm"
-                                style={{ height: 26, padding: '0 10px', fontSize: 12 }}
+                                style={{ height: 32, padding: '0 12px', fontSize: 12 }}
                                 onClick={() => addToCart(prod, { qty: 1, variant: prod.variants?.[0] || '' })}
                               >
                                 <Icon name="plus" size={12} /> Add
