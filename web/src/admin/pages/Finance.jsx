@@ -5,6 +5,7 @@ import { saveRecord, removeRecord, printDocument, escapeHtml as esc } from '../e
 import { Modal } from './POS.jsx';
 import { Icon, Button, Pill, Stat, Tabs, Empty, Field } from '../../ui/index.jsx';
 import { money, cx, shortDate } from '../../lib/format.js';
+import { orderLineCost } from '../../lib/pricing.js';
 import { useStore } from '../../lib/store.jsx';
 
 const monthKey = (ms) => new Date(ms).toISOString().slice(0, 7);
@@ -65,11 +66,11 @@ export default function Finance({ user }) {
   const inP = (t) => t >= from && t < to;
 
   const f = useMemo(() => {
-    const costOf = Object.fromEntries(products.map((p) => [p.id, p.cost || 0]));
+    const byId = Object.fromEntries(products.map((p) => [p.id, p]));
     const online = orders.filter((o) => inP(o.placedAt) && o.status !== 'Cancelled' && o.status !== 'Return');
     const onlineSales = online.reduce((a, o) => a + o.subtotal - (o.discount || 0), 0);
     const delivery = online.reduce((a, o) => a + (o.shipping || 0), 0);
-    const onlineCogs = online.reduce((a, o) => a + o.items.reduce((b, i) => b + (costOf[i.id] || 0) * i.qty, 0), 0);
+    const onlineCogs = online.reduce((a, o) => a + o.items.reduce((b, i) => b + orderLineCost(byId[i.id], i), 0), 0);
 
     const pos = sales.filter((s) => inP(s.createdAt));
     const posGross = pos.reduce((a, s) => a + (s.total || 0), 0);

@@ -8,7 +8,7 @@ import { useStore } from '../../lib/store.jsx';
 import ProductPhotos from '../ProductPhotos.jsx';
 import CategoryPicker from '../CategoryPicker.jsx';
 import { makeResolver, flatten, buildTree, productFields } from '../../lib/categories.js';
-import { CATEGORIES, UNITS, buildProductData, formFromProduct, validateProduct, cleanPhotoUrl, MAX_PHOTOS } from '../productForm.js';
+import { CATEGORIES, UNITS, buildProductData, formFromProduct, validateProduct, cleanPhotoUrl, MAX_PHOTOS, variantsToCsv, variantsFromCsv } from '../productForm.js';
 
 const statusOf = (p) => {
   if (p.stockCount <= 0) return ['Out of stock', 'red', 'x'];
@@ -117,9 +117,7 @@ export default function Inventory() {
       'isRx', 'coldChain', 'showOnStorefront', 'autoRefill', 'variants', 'shortDescription', 'image', 'images',
     ];
     const rows = list.map((p) => {
-      const varStr = Array.isArray(p.variantOptions) && p.variantOptions.length
-        ? p.variantOptions.map((vo) => `${vo.label}:${vo.price ?? p.price}:${vo.stockCount ?? p.stockCount}`).join('|')
-        : (p.variants || []).join('|');
+      const varStr = variantsToCsv(p);
       return [
         p.id, p.name, p.sku || '', p.barcode || '', p.brand || '', p.supplier || p.brand || '',
         (p.categorySlugs || []).at(-1) || p.category || 'medicine', p.pet || 'both', p.unit || 'pc',
@@ -136,23 +134,13 @@ export default function Inventory() {
   const importCsv = async (file) => {
     if (!file) return;
     const rows = parseCsv(await file.text());
-    if (!rows.length) { toast('No rows found. Columns: name, sku, barcode, brand, supplier, category, pet, price, compareAt, cost, stockCount, reorderPoint, isRx, coldChain, variants', { tone: 'error', duration: 7000 }); return; }
+    if (!rows.length) { toast('No rows found. Columns: name, sku, barcode, brand, supplier, category, pet, price, compareAt, cost, stockCount, reorderPoint, isRx, coldChain, variants (label:sale:stock:regular:cost|…)', { tone: 'error', duration: 7000 }); return; }
     let n = 0;
     const resolver = categories.length ? makeResolver(categories) : null;
     for (const r of rows) {
       if (!r.name) continue;
       const rawVars = String(r.variants || '').trim();
-      const parsedVariantOptions = rawVars
-        ? rawVars.split('|').map((chunk) => {
-          const [lbl, pr, st] = chunk.split(':').map((s) => s.trim());
-          return lbl ? {
-            label: lbl,
-            sku: '',
-            price: pr !== undefined && pr !== '' ? Number(pr) : null,
-            stockCount: st !== undefined && st !== '' ? Number(st) : null,
-          } : null;
-        }).filter(Boolean)
-        : [];
+      const parsedVariantOptions = variantsFromCsv(rawVars);
       const stockNum = Number(r.stockCount ?? r.stock) || 0;
       const ok = await write('products', r.id || slug(r.sku || r.name), {
         name: r.name,

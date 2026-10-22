@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   BLANK_PRODUCT, MAX_PHOTOS, buildProductData, cleanPhotoUrl, formFromProduct, newProductId, photosFromProduct,
-  suggestSku, validGtin, validateProduct,
+  suggestSku, validGtin, validateProduct, variantsFromCsv, variantsToCsv,
 } from '../../web/src/admin/productForm.js';
 
 const ok = (over = {}) => ({ ...BLANK_PRODUCT, name: 'Royal Canin Gastro', category: 'food', price: '3450', stockCount: 10, photos: ['https://x.test/a.jpg'], ...over });
@@ -185,4 +185,19 @@ test('variant price validation: no negatives; odd combinations are only warnings
   // old-style rows without the new fields are fine, and a blank row with only a cost is flagged
   assert.deepEqual(validateProduct(ok({ variantOptions: [{ label: 'A', price: '', stockCount: '' }] }), []).errors, []);
   assert.equal(validateProduct(ok({ variantOptions: [{ label: '', cost: '5' }] }), []).errors.length, 1);
+});
+
+test('CSV variants carry sale, stock, regular and cost price, and old files still import', () => {
+  assert.deepEqual(variantsFromCsv('2 kg:1020:30:1200:800|4 kg:2000:10'), [
+    { label: '2 kg', sku: '', price: 1020, compareAt: 1200, cost: 800, stockCount: 30 },
+    { label: '4 kg', sku: '', price: 2000, compareAt: null, cost: null, stockCount: 10 },
+  ]);
+  assert.deepEqual(variantsFromCsv('Small|Large').map((v) => [v.label, v.price, v.cost]), [['Small', null, null], ['Large', null, null]]);
+  assert.deepEqual(variantsFromCsv('A::: :|:5'), [{ label: 'A', sku: '', price: null, compareAt: null, cost: null, stockCount: null }]);
+  assert.deepEqual(variantsFromCsv('A:x:-3:0:abc')[0], { label: 'A', sku: '', price: null, compareAt: null, cost: null, stockCount: null });
+  assert.deepEqual(variantsFromCsv(''), []);
+  const p = { price: 500, stockCount: 7, variantOptions: [{ label: '2 kg', price: 1020, stockCount: 30, compareAt: 1200, cost: 800 }, { label: '4 kg', price: null, stockCount: null, compareAt: null, cost: null }] };
+  assert.equal(variantsToCsv(p), '2 kg:1020:30:1200:800|4 kg:500:7');
+  assert.deepEqual(variantsFromCsv(variantsToCsv(p)).map((v) => [v.label, v.price, v.compareAt, v.cost, v.stockCount]), [['2 kg', 1020, 1200, 800, 30], ['4 kg', 500, null, null, 7]]);
+  assert.equal(variantsToCsv({ variants: ['S', 'M'] }), 'S|M');
 });

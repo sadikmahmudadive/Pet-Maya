@@ -65,6 +65,28 @@ export function photosFromProduct(p = {}) {
   return [...new Set(all)].slice(0, MAX_PHOTOS);
 }
 
+/**
+ * Variants in the products CSV, one cell: `label:sale:stock:regular:cost|label:...`. Everything after the label is
+ * optional, so older files (`label:price:stock`, or just labels) still import.
+ */
+export function variantsToCsv(p = {}) {
+  if (Array.isArray(p.variantOptions) && p.variantOptions.length) {
+    return p.variantOptions.map((vo) => [vo.label, vo.price ?? p.price, vo.stockCount ?? p.stockCount, vo.compareAt ?? '', vo.cost ?? ''].join(':').replace(/:+$/, '')).join('|');
+  }
+  return (p.variants || []).join('|');
+}
+
+export function variantsFromCsv(cell) {
+  const raw = String(cell ?? '').trim();
+  if (!raw) return [];
+  const opt = (s) => (s !== undefined && s !== '' && Number.isFinite(Number(s)) && Number(s) >= 0 ? Number(s) : null);
+  return raw.split('|').map((chunk) => {
+    const [label, price, stock, compareAt, cost] = chunk.split(':').map((s) => s.trim());
+    if (!label) return null;
+    return { label, sku: '', price: opt(price), compareAt: opt(compareAt) > 0 ? opt(compareAt) : null, cost: opt(cost), stockCount: opt(stock) };
+  }).filter(Boolean);
+}
+
 /** Stored product → the editable form. */
 export function formFromProduct(p, categories = []) {
   const variants = Array.isArray(p.variantOptions) && p.variantOptions.length

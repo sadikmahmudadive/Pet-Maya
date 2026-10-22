@@ -36,7 +36,7 @@ cd functions && npm run build    # tsc -> lib/ (functions load lib/index.js)
 
 # Unit tests (pure JS, no browser). Node 25 needs the FILE path, not a directory
 node --test tests/unit/announcement.test.mjs
-node --test tests/unit/hosts.test.mjs tests/unit/product-form.test.mjs tests/unit/species.test.mjs tests/unit/categories.test.mjs
+node --test tests/unit/hosts.test.mjs tests/unit/product-form.test.mjs tests/unit/species.test.mjs tests/unit/categories.test.mjs tests/unit/pricing.test.mjs
 
 # Firestore/Storage rules tests (needs Java + Firebase CLI)
 cd tests/security && npm test
@@ -71,7 +71,7 @@ Notes: `firebase emulators:exec` on Windows often leaves a `java.exe` on port 80
 - `lib/store.jsx` is the storefront store (cart, coupon, wishlist, compare, `placeOrder`, active pet). Data hooks and normalisers live in `data/firestore.js` (`normProduct`, `normPet`, `normOrder`…); every write is in `data/actions.js`.
 - Legacy: `src/components/` + `context/AppContext.jsx` are the previous UI generation and are only partly live (`ModalRoot`, `GoogleMapView`, `useApp()` modals). Do not extend them; new work goes in `site/`, `admin/`, `lib/`.
 - Admin pages read through `useAdmin()` and write through `useAdminWrite()` (`admin/data.jsx`). Access by staff role is `ROLE_ACCESS` in `admin/erp.js` (Manager `*`, Cashier, Pharmacist, Accountant, Storekeeper; admins see everything). In the dev server only, `/admin?preview` opens the console with sample data without signing in.
-- Pure, unit-tested logic is kept free of browser imports: `lib/species.js`, `lib/announcement.js`, `lib/hosts.js`, `lib/categories.js`, `admin/productForm.js`. Keep new testable logic that way (`lib/security.js` imports DOMPurify and cannot be loaded under plain Node).
+- Pure, unit-tested logic is kept free of browser imports: `lib/species.js`, `lib/announcement.js`, `lib/hosts.js`, `lib/categories.js`, `lib/pricing.js`, `admin/productForm.js`. Keep new testable logic that way (`lib/security.js` imports DOMPurify and cannot be loaded under plain Node).
 
 ### Cloud Functions (`functions/src`)
 | Function | Purpose |

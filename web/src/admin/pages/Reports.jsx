@@ -3,6 +3,7 @@ import { useAdmin, downloadCsv } from '../data.jsx';
 import { PageHead } from '../AdminApp.jsx';
 import { Button, Pill, Stat, Empty } from '../../ui/index.jsx';
 import { money, tipSide } from '../../lib/format.js';
+import { orderLineCost } from '../../lib/pricing.js';
 
 const DAY = 864e5;
 const dayKey = (ms) => { const d = new Date(ms); d.setHours(0, 0, 0, 0); return d.getTime(); };
@@ -58,7 +59,7 @@ export default function Reports() {
 
     // Normalise both channels into line records
     const lines = [];
-    online.forEach((o) => o.items.forEach((i) => lines.push({ id: i.id, name: i.name, qty: i.qty, revenue: i.price * i.qty, cost: (prod[i.id]?.cost || 0) * i.qty, channel: 'Online', at: o.placedAt })));
+    online.forEach((o) => o.items.forEach((i) => lines.push({ id: i.id, name: i.name, qty: i.qty, revenue: i.price * i.qty, cost: orderLineCost(prod[i.id], i), channel: 'Online', at: o.placedAt })));
     pos.forEach((s) => {
       const keep = s.total ? 1 - (s.refundedTotal || 0) / s.total : 1;
       const ratio = (s.gross - (s.lineDiscount || 0)) > 0 ? s.total / (s.gross - (s.lineDiscount || 0)) : 1;
