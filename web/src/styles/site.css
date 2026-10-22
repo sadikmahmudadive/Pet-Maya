@@ -487,6 +487,7 @@ details.faq p { padding-bottom: 18px; color: var(--muted); font-size: 14.5px; }
   .hdr-row > *, .hdr-actions > * { flex: none; }
   .hdr-row > .logo { flex: 0 1 auto; min-width: 0; }
   .btn.show-sm { display: inline-flex !important; }
+  .searchbar.show-sm { display: flex !important; }
   /* The theme switch lives in the menu on phones. */
   .hdr-actions .theme-toggle-btn { display: none; }
 }
@@ -589,3 +590,6 @@ a.pet-tile:hover { border-color: var(--teal); }
   .consent-actions .btn { flex: 1; padding: 0 10px; }
 }
 @media (pointer: coarse), (max-width: 600px) { .vchip { height: 32px; padding: 0 12px; } }
+
+/* The open phone menu uses the whole screen: the floating AI button would sit on top of its bottom row. */
+@media (max-width: 760px) { body:has(.hdr-nav.open) .ai-fab { display: none; } }
