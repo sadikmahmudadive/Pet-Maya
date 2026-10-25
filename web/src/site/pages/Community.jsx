@@ -3,6 +3,7 @@ import { Link } from '../../lib/router.jsx';
 import { useStore } from '../../lib/store.jsx';
 import { usePosts } from '../../data/hooks.js';
 import { addDocument, patchDoc } from '../../data/firestore.js';
+import { submitPost, reportContent } from '../../data/actions.js';
 import { increment } from '../../config/firebase';
 import { Icon, Button, Pill, Avatar, Ph, Empty, Field, Portal } from '../../ui/index.jsx';
 import { cx, ago } from '../../lib/format.js';
@@ -23,6 +24,7 @@ export default function Community() {
   const [lostOpen, setLostOpen] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [openThread, setOpenThread] = useState(null);
+  const [reportingPost, setReportingPost] = useState(null);
   const real = user && !String(user.uid).startsWith('demo_guest');
 
   const sorted = useMemo(() => [...posts.items].sort((a, b) => b.time - a.time), [posts.items]);
@@ -38,14 +40,21 @@ export default function Community() {
     if (!real) { toast('Sign in to post'); return; }
     const pet = pets.items?.[0];
     try {
-      await addDocument('community_posts', {
+      const res = await submitPost({
         userId: user.uid, userName: user.name, userPhoto: user.photoUrl || '', author: user.name, authorId: user.uid,
         postType: 'MOMENT', category: cat === 'All posts' ? 'Moment' : cat, content: text.trim(), petTag: pet?.name || '',
         likesCount: 0, commentsCount: 0, sharesCount: 0, likedBy: {}, isAmberAlert: false,
       });
-      setText('');
-      toast('Posted to the community');
-    } catch { toast('Couldn’t post — try again', { tone: 'error' }); }
+      if (res.verdict === 'APPROVED') {
+        setText('');
+        toast('Posted to the community');
+      } else if (res.verdict === 'PENDING') {
+        setText('');
+        toast(res.message || 'Post submitted for community review', { tone: 'warn' });
+      } else {
+        toast(res.message || 'Post could not be approved', { tone: 'error' });
+      }
+    } catch (err) { toast(err.message || 'Couldn’t post — try again', { tone: 'error' }); }
   };
 
   const like = async (p) => {
@@ -182,6 +191,7 @@ export default function Community() {
                 <div className="row gap-8 sub">
                   <button className="tap" aria-label="Save"><Icon name="bookmark" size={15} /></button>
                   <button className="tap" aria-label="Share" onClick={() => { navigator.clipboard?.writeText(`${window.location.origin}/community#${p.id}`); toast('Link copied'); }}><Icon name="share" size={15} /></button>
+                  <button className="tap" aria-label="Report" title="Report post" onClick={() => (real ? setReportingPost(p) : toast('Sign in to report content'))}><Icon name="flag" size={15} /></button>
                 </div>
               </div>
               {openThread === p.id && <CommentThread post={p} onClose={() => setOpenThread(null)} />}
@@ -221,6 +231,7 @@ export default function Community() {
         </aside>
       </div>
       {lostOpen && <LostPetModal onClose={() => setLostOpen(false)} />}
+      {reportingPost && <ReportModal post={reportingPost} onClose={() => setReportingPost(null)} />}
     </div>
   );
 }
@@ -228,18 +239,31 @@ export default function Community() {
 function LostPetModal({ onClose }) {
   const { user, pets, toast } = useStore();
   const [f, setF] = useState({ petName: pets.items?.[0]?.name || '', petBreed: pets.items?.[0]?.breed || '', location: '', contactPhone: user?.phone || '' });
+  const [busy, setBusy] = useState(false);
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
   const submit = async (e) => {
     e.preventDefault();
+    setBusy(true);
     try {
-      await addDocument('community_posts', {
+      const res = await submitPost({
         ...f, userId: user.uid, userName: user.name, author: user.name, category: 'Lost & Found', postType: 'LOST_FOUND',
         isAmberAlert: true, isResolved: false, content: `${f.petName} is missing. Last seen: ${f.location}.`, likesCount: 0, commentsCount: 0,
         microchipId: pets.items?.[0]?.microchip || '',
       });
-      toast('Alert posted. We hope they’re home soon.');
-      onClose();
-    } catch { toast('Couldn’t post the alert', { tone: 'error' }); }
+      if (res.verdict === 'APPROVED') {
+        toast('Alert posted. We hope they’re home soon.');
+        onClose();
+      } else if (res.verdict === 'PENDING') {
+        toast(res.message || 'Alert submitted for community review', { tone: 'warn' });
+        onClose();
+      } else {
+        toast(res.message || 'Alert rejected by moderation', { tone: 'error' });
+      }
+    } catch (err) {
+      toast(err.message || 'Couldn’t post the alert', { tone: 'error' });
+    } finally {
+      setBusy(false);
+    }
   };
   return (
     <Portal>
@@ -253,7 +277,56 @@ function LostPetModal({ onClose }) {
           <Field className="full" label="Contact phone" value={f.contactPhone} onChange={set('contactPhone')} />
         </div>
         <div className="row gap-8" style={{ marginTop: 20 }}>
-          <Button type="submit" variant="red" icon="alert" className="grow">Post alert</Button>
+          <Button type="submit" variant="red" icon="alert" className="grow" disabled={busy}>{busy ? 'Posting…' : 'Post alert'}</Button>
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
+        </div>
+      </form>
+    </Portal>
+  );
+}
+
+function ReportModal({ post, onClose }) {
+  const { toast } = useStore();
+  const [reason, setReason] = useState('Harmful, hate speech or offensive language');
+  const [busy, setBusy] = useState(false);
+  const reasons = [
+    'Harmful, hate speech or offensive language',
+    'Not related to pets or animals (Off-topic)',
+    'Spam or selling unauthorized medicines',
+    'Animal cruelty or abuse',
+    'Other guideline violation',
+  ];
+
+  const submit = async (e) => {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      const res = await reportContent({ targetId: post.id, targetType: 'post', reason });
+      toast(res.message || 'Report submitted. Thank you for keeping the community safe.');
+      onClose();
+    } catch (err) {
+      toast(err.message || 'Could not submit report', { tone: 'error' });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Portal>
+      <div className="scrim" onClick={onClose} />
+      <form className="modal" onSubmit={submit} role="dialog" aria-modal="true" aria-label="Report post">
+        <h2 className="serif" style={{ fontSize: 24 }}>Report post</h2>
+        <p className="sub" style={{ fontSize: 13, marginTop: 4 }}>Help keep Pet Maya a safe, kind space for animal lovers.</p>
+        <div className="stack gap-8" style={{ marginTop: 16 }}>
+          {reasons.map((r) => (
+            <label key={r} className="row gap-10 card tight" style={{ cursor: 'pointer', padding: '10px 14px' }}>
+              <input type="radio" name="reportReason" checked={reason === r} onChange={() => setReason(r)} />
+              <span style={{ fontSize: 13.5 }}>{r}</span>
+            </label>
+          ))}
+        </div>
+        <div className="row gap-8" style={{ marginTop: 20 }}>
+          <Button type="submit" variant="red" icon="shield" className="grow" disabled={busy}>{busy ? 'Submitting…' : 'Submit report'}</Button>
           <Button variant="outline" onClick={onClose}>Cancel</Button>
         </div>
       </form>

@@ -182,8 +182,13 @@ test('categories: anyone reads, only admins and managers write', async () => {
 });
 
 // ── Community: reactions can only touch the caller's own entry ─────────────
-test('community: likes/comments are limited to my own entry', async () => {
+test('community: direct post/comment creates blocked (must use Cloud Functions); reactions strictly limited', async () => {
   const db = as('alice');
+  // Direct client create blocked
+  await assertFails(setDoc(doc(db, 'community_posts', 'post2'), { userId: 'alice', content: 'direct post' }));
+  await assertFails(setDoc(doc(db, 'community_posts', 'post1', 'comments', 'c1'), { userId: 'alice', text: 'direct comment' }));
+
+  // Like reaction within bounds succeeds
   await assertSucceeds(updateDoc(doc(db, 'community_posts', 'post1'), {
     likedByUserIds: arrayUnion('alice'), likesCount: increment(1), 'userReactions.alice': 'Like',
   }));
@@ -191,14 +196,19 @@ test('community: likes/comments are limited to my own entry', async () => {
   await assertFails(updateDoc(doc(db, 'community_posts', 'post1'), { likesCount: increment(1000) }));
   await assertFails(updateDoc(doc(db, 'community_posts', 'post1'), { 'userReactions.bob': 'Angry' }));
   await assertFails(updateDoc(doc(db, 'community_posts', 'post1'), { content: 'defaced' }));
-  await assertSucceeds(updateDoc(doc(db, 'community_posts', 'post1'), {
-    commentsCount: increment(1), comments: arrayUnion({ userId: 'alice', text: 'nice' }),
-  }));
-  await assertFails(updateDoc(doc(db, 'community_posts', 'post1'), { comments: [] }));
-  await assertFails(updateDoc(doc(db, 'community_posts', 'post1'), { comments: arrayUnion({ userId: 'bob', text: 'forged' }) }));
-  await assertSucceeds(updateDoc(doc(as('bob'), 'community_posts', 'post1'), { content: 'edited by author' }));
-  await assertFails(setDoc(doc(db, 'community_posts', 'post2'), { userId: 'bob', content: 'impersonation' }));
+
+  // Direct editing of content by author blocked to prevent bypassing scanner
+  await assertFails(updateDoc(doc(as('bob'), 'community_posts', 'post1'), { content: 'edited by author' }));
+  // Author can resolve lost-pet alert
+  await assertSucceeds(updateDoc(doc(as('bob'), 'community_posts', 'post1'), { isResolved: true, updatedAt: 1 }));
+
   await assertFails(deleteDoc(doc(db, 'community_posts', 'post1')));
+  await assertSucceeds(deleteDoc(doc(as('bob'), 'community_posts', 'post1')));
+
+  // Moderation collections access control
+  await assertFails(setDoc(doc(db, 'community_pending', 'pend1'), { text: 'hack' }));
+  await assertFails(setDoc(doc(db, 'settings', 'moderation'), { enableAiSafety: false }));
+  await assertSucceeds(setDoc(doc(as('admin'), 'settings', 'moderation'), { enableAiSafety: false }));
 });
 
 // ── Notifications (stored XSS / phishing links) ────────────────────────────

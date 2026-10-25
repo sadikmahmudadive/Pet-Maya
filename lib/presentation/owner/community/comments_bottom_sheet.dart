@@ -28,16 +28,30 @@ class _CommentsBottomSheetState extends State<CommentsBottomSheet> {
     });
   }
 
-  void _submitComment() {
+  void _submitComment() async {
     final text = _commentController.text.trim();
     if (text.isEmpty) return;
 
     HapticFeedback.lightImpact();
     final repo = context.read<AppStateRepository>();
-    repo.addComment(widget.post.postId, text);
+    final result = await repo.addComment(widget.post.postId, text);
+    if (!mounted) return;
+
+    if (!result.success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result.message),
+          backgroundColor: AppColors.dangerRed,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
     _commentController.clear();
-    // Keep focus for multiple comments if preferred, or unfocus
-    // FocusScope.of(context).unfocus();
+    if (result.verdict == 'pending') {
+      repo.showToast(result.message);
+    }
   }
 
   @override
@@ -91,8 +105,11 @@ class _CommentsBottomSheetState extends State<CommentsBottomSheet> {
                       String timeStr = 'Just now';
                       if (diff.inMinutes > 0 && diff.inMinutes < 60) {
                         timeStr = '${diff.inMinutes}m';
-                      } else if (diff.inHours > 0 && diff.inHours < 24) timeStr = '${diff.inHours}h';
-                      else if (diff.inDays > 0) timeStr = '${diff.inDays}d';
+                      } else if (diff.inHours > 0 && diff.inHours < 24) {
+                        timeStr = '${diff.inHours}h';
+                      } else if (diff.inDays > 0) {
+                        timeStr = '${diff.inDays}d';
+                      }
 
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 16),

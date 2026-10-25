@@ -358,7 +358,7 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
       _notifications.where((n) => !n.isRead).length;
 
   double get cartSubtotal =>
-      _cartItems.fold(0.0, (sum, item) => sum + item.totalPrice);
+      _cartItems.fold(0.0, (acc, item) => acc + item.totalPrice);
 
   double get cartShipping => _cartItems.isEmpty ? 0.0 : _baseShippingFee;
 
@@ -376,7 +376,7 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
   double get cartDiscount => cartPromoDiscount + cartCouponDiscount;
 
   double get cartTotal => cartSubtotal + cartShipping - cartDiscount;
-  int get cartCount => _cartItems.fold(0, (sum, item) => sum + item.quantity);
+  int get cartCount => _cartItems.fold(0, (total, item) => total + item.quantity);
 
   AppStateRepository._internal() {
     _hydrateFromLocalCache();
@@ -1627,15 +1627,37 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
     await _firebase.deleteProduct(productId);
   }
 
-  Future<void> addPost(FeedPostModel post) async {
-    _posts.removeWhere((p) => p.postId == post.postId);
-    _posts.insert(0, post);
-    _localCache.savePosts(_posts);
-    notifyListeners();
-    await _firebase.savePost(post);
+  Future<({bool success, String verdict, String message, String? id})> addPost(
+    FeedPostModel post, {
+    String? category,
+    bool isAmberAlert = false,
+    String? petName,
+    String? petBreed,
+    String? location,
+    String? contactPhone,
+    String? microchipId,
+  }) async {
+    final result = await _firebase.submitPost(
+      post,
+      category: category,
+      isAmberAlert: isAmberAlert,
+      petName: petName,
+      petBreed: petBreed,
+      location: location,
+      contactPhone: contactPhone,
+      microchipId: microchipId,
+    );
+
+    if (result.success && result.verdict == 'approve') {
+      _posts.removeWhere((p) => p.postId == post.postId);
+      _posts.insert(0, post);
+      _localCache.savePosts(_posts);
+      notifyListeners();
+    }
+    return result;
   }
 
-  Future<void> sharePost({
+  Future<({bool success, String verdict, String message, String? id})> sharePost({
     required FeedPostModel originalPost,
     String caption = '',
   }) async {
@@ -1650,12 +1672,17 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
       sharedPostId: originalPost.postId,
       sharedPostAuthor: originalPost.userName,
       sharedPostContent: originalPost.content,
+      sharedPostImageUrl: originalPost.imageUrl,
     );
-    _posts.insert(0, newPost);
-    originalPost.sharesCount += 1;
-    notifyListeners();
-    await _firebase.savePost(newPost);
-    await _firebase.incrementPostShares(originalPost.postId);
+
+    final result = await _firebase.submitPost(newPost);
+    if (result.success && result.verdict == 'approve') {
+      _posts.insert(0, newPost);
+      originalPost.sharesCount += 1;
+      notifyListeners();
+      await _firebase.incrementPostShares(originalPost.postId);
+    }
+    return result;
   }
 
   Future<void> incrementPostShares(String postId) async {
@@ -1725,7 +1752,10 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
   List<CommentModel> getCommentsForPost(String postId) =>
       _postComments[postId] ?? [];
 
-  Future<void> addComment(String postId, String text) async {
+  Future<({bool success, String verdict, String message, String? id})> addComment(
+    String postId,
+    String text,
+  ) async {
     final comment = CommentModel(
       commentId: 'cmt_${_uuid.v4().substring(0, 6)}',
       postId: postId,
@@ -1734,25 +1764,49 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
       text: text,
       timestamp: DateTime.now().millisecondsSinceEpoch,
     );
-    if (!_postComments.containsKey(postId)) _postComments[postId] = [];
-    _postComments[postId]!.add(comment);
-    final postIdx = _posts.indexWhere((p) => p.postId == postId);
-    if (postIdx != -1) {
-      _posts[postIdx].commentsCount += 1;
-      final post = _posts[postIdx];
 
-      // Trigger community notification for post author if commented by someone else
-      if (post.userId != comment.userId && post.userId.isNotEmpty) {
-        addNotification(
-          title: 'New Comment on your post! 💬',
-          message: '${comment.userName} commented: "${text.length > 50 ? "${text.substring(0, 50)}..." : text}"',
-          type: NotificationType.social,
-          targetUserId: post.userId,
-        );
+    final result = await _firebase.submitComment(
+      postId: postId,
+      text: text,
+      commentId: comment.commentId,
+    );
+
+    if (result.success && result.verdict == 'approve') {
+      if (!_postComments.containsKey(postId)) _postComments[postId] = [];
+      _postComments[postId]!.add(comment);
+      final postIdx = _posts.indexWhere((p) => p.postId == postId);
+      if (postIdx != -1) {
+        _posts[postIdx].commentsCount += 1;
+        final post = _posts[postIdx];
+
+        // Trigger community notification for post author if commented by someone else
+        if (post.userId != comment.userId && post.userId.isNotEmpty) {
+          addNotification(
+            title: 'New Comment on your post! 💬',
+            message:
+                '${comment.userName} commented: "${text.length > 50 ? "${text.substring(0, 50)}..." : text}"',
+            type: NotificationType.social,
+            targetUserId: post.userId,
+          );
+        }
       }
+      notifyListeners();
     }
-    notifyListeners();
-    await _firebase.addComment(postId, comment);
+    return result;
+  }
+
+  Future<({bool success, String message})> reportContent({
+    required String targetId,
+    String targetType = 'post',
+    String? commentId,
+    String reason = 'Inappropriate content',
+  }) async {
+    return await _firebase.reportContent(
+      targetId: targetId,
+      targetType: targetType,
+      commentId: commentId,
+      reason: reason,
+    );
   }
 
   Future<void> toggleUserSuspension(String userId) async {

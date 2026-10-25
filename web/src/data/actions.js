@@ -1,5 +1,5 @@
 import {
-  db, doc, collection, addDoc, setDoc, updateDoc, deleteDoc, increment, arrayUnion, arrayRemove,
+  db, doc, collection, addDoc, setDoc, updateDoc, deleteDoc, increment, arrayUnion, arrayRemove, functions, httpsCallable,
 } from '../config/firebase';
 import { resolveSpecies } from '../lib/species.js';
 
@@ -148,22 +148,64 @@ export async function saveReview({ user, product, rating, title, text }) {
   } catch (e) { return fail(e); }
 }
 
-/* ── Community comments ────────────────────────────────────── */
+/* ── Community moderation-backed writes ───────────────────── */
+
+export async function submitPost(payload, user) {
+  const u = user || { uid: payload?.userId || payload?.authorId };
+  if (!isRealUser(u)) return { ok: false, reason: 'signin', message: 'Please sign in to post' };
+  try {
+    const fn = httpsCallable(functions, 'submit_post');
+    const res = await fn(payload);
+    const data = res.data || {};
+    const verdict = String(data.verdict || (data.ok ? 'APPROVE' : 'REJECT')).toUpperCase();
+    return {
+      ok: data.ok !== false && verdict !== 'REJECT',
+      verdict,
+      message: data.message || (verdict === 'APPROVE' ? 'Posted to the community' : 'Post rejected'),
+      messageBn: data.messageBn,
+      postId: data.postId,
+    };
+  } catch (e) {
+    return { ok: false, reason: e.message || 'error', message: e.message || 'Failed to submit post' };
+  }
+}
 
 export async function addComment(postId, user, text) {
   if (!isRealUser(user)) return { ok: false, reason: 'signin' };
   try {
-    await addDoc(collection(db, 'community_posts', postId, 'comments'), {
-      userId: user.uid,
-      userName: user.name || 'Pet parent',
-      userPhoto: user.photoUrl || '',
-      text,
-      timestamp: Date.now(),
-      createdAt: new Date().toISOString(),
-    });
-    try { await updateDoc(doc(db, 'community_posts', postId), { commentsCount: increment(1) }); } catch { /* count is cosmetic */ }
-    return ok;
-  } catch (e) { return fail(e); }
+    const fn = httpsCallable(functions, 'submit_comment');
+    const res = await fn({ postId, text });
+    const data = res.data || {};
+    return {
+      ok: data.ok !== false,
+      verdict: data.verdict || (data.ok ? 'approve' : 'reject'),
+      message: data.message || (data.ok ? 'Comment added' : 'Comment rejected'),
+      messageBn: data.messageBn,
+      commentId: data.commentId,
+    };
+  } catch (e) {
+    return { ok: false, reason: e.message || 'error', message: e.message || 'Failed to add comment' };
+  }
+}
+
+export async function reportContent({ targetId, targetType = 'post', commentId, reason }) {
+  try {
+    const fn = httpsCallable(functions, 'report_content');
+    const res = await fn({ targetId, targetType, commentId, reason });
+    return { ok: res.data?.ok !== false, message: 'Thank you for reporting. Our moderation team will review this.' };
+  } catch (e) {
+    return { ok: false, message: 'Could not submit report.' };
+  }
+}
+
+export async function moderationDecide({ pendingId, action, reason }) {
+  try {
+    const fn = httpsCallable(functions, 'moderation_decide');
+    const res = await fn({ pendingId, action, reason });
+    return { ok: res.data?.ok !== false, message: res.data?.message || `Item ${action.toLowerCase()}d` };
+  } catch (e) {
+    return { ok: false, message: e.message || 'Moderation decision failed' };
+  }
 }
 
 /* ── Triage results ────────────────────────────────────────── */

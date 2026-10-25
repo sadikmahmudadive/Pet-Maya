@@ -462,3 +462,10 @@ export {
 } from "./integrity";
 export { collect, track_purchase } from "./analytics";
 export { feed } from "./feed";
+export {
+  backfill_moderation,
+  moderation_decide,
+  report_content,
+  submit_comment,
+  submit_post,
+} from "./moderation_handlers";

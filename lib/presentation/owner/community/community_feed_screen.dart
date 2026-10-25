@@ -29,6 +29,116 @@ class CommunityFeedScreen extends StatefulWidget {
 }
 
 class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
+  void _showPostOptionsMenu(FeedPostModel post) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
+            const SizedBox(height: 8),
+            ListTile(
+              leading: const Icon(Icons.flag_outlined, color: AppColors.dangerRed),
+              title: const Text('Report Post', style: TextStyle(fontWeight: FontWeight.w600)),
+              subtitle: const Text('Report spam, hate speech, or non-pet content'),
+              onTap: () {
+                Navigator.pop(ctx);
+                _showReportDialog(post);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showReportDialog(FeedPostModel post) {
+    String selectedReason = 'Harmful, hate speech or offensive language';
+    final reasons = [
+      'Harmful, hate speech or offensive language',
+      'Not related to pets or animals (Off-topic)',
+      'Spam or selling unauthorized medicines',
+      'Animal cruelty or abuse',
+      'Other guideline violation',
+    ];
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (dialogCtx, setDialogState) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          title: const Row(
+            children: [
+              Icon(Icons.shield_outlined, color: AppColors.primary),
+              SizedBox(width: 8),
+              Text('Report Post', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Why are you reporting this post?', style: TextStyle(fontSize: 13, color: Colors.grey)),
+              const SizedBox(height: 12),
+              ...reasons.map((r) => InkWell(
+                    onTap: () => setDialogState(() => selectedReason = r),
+                    borderRadius: BorderRadius.circular(10),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                      child: Row(
+                        children: [
+                          Icon(
+                            selectedReason == r ? Icons.radio_button_checked : Icons.radio_button_off,
+                            color: selectedReason == r ? AppColors.primary : Colors.grey,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(child: Text(r, style: const TextStyle(fontSize: 13))),
+                        ],
+                      ),
+                    ),
+                  )),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              onPressed: () async {
+                Navigator.pop(ctx);
+                final res = await context.read<AppStateRepository>().reportContent(
+                      targetId: post.postId,
+                      targetType: 'post',
+                      reason: selectedReason,
+                    );
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(res.message),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              },
+              child: const Text('Submit Report'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildSocialProofReactions(FeedPostModel post) {
     final reactions = post.userReactions.values.where((v) => v.isNotEmpty).toSet().toList();
     if (reactions.isEmpty && (post.likesCount > 0 || post.likedBy.isNotEmpty)) {
@@ -491,7 +601,7 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
                                                   ? Colors.white54
                                                   : Colors.grey[600],
                                             ),
-                                            onPressed: () {},
+                                            onPressed: () => _showPostOptionsMenu(post),
                                           ),
                                         ],
                                       ),

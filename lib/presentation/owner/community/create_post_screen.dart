@@ -108,18 +108,43 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       sharedPostImageUrl: widget.sharedPost?.imageUrl,
     );
 
-    if (widget.sharedPost != null) {
-      repo.sharePost(originalPost: widget.sharedPost!, caption: content);
-    } else {
-      repo.addPost(post);
-    }
-    HapticFeedback.mediumImpact();
-    repo.showToast(
-      widget.sharedPost != null
-          ? 'Post shared to community! 🚀'
-          : 'Community post published! 🐾',
-    );
+    final result = widget.sharedPost != null
+        ? await repo.sharePost(originalPost: widget.sharedPost!, caption: content)
+        : await repo.addPost(post);
+
     if (!mounted) return;
+    setState(() => _isPosting = false);
+
+    if (!result.success) {
+      HapticFeedback.heavyImpact();
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Row(
+            children: [
+              Icon(Icons.shield_outlined, color: AppColors.dangerRed),
+              SizedBox(width: 8),
+              Text('Post Not Approved', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            ],
+          ),
+          content: Text(
+            result.message,
+            style: const TextStyle(fontSize: 14, height: 1.4),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Edit Post', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    HapticFeedback.mediumImpact();
+    repo.showToast(result.message);
     Navigator.pop(context);
   }
 

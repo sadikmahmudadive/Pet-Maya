@@ -20,7 +20,6 @@ import '../models/blog_post_model.dart';
 import '../models/coupon_model.dart';
 import '../models/promo_model.dart';
 import '../models/user_model.dart' as app_models;
-import 'realtime_database_service.dart';
 
 /// FirebaseService handles all Firestore and Auth operations with offline-first persistence.
 class FirebaseService {
@@ -668,12 +667,101 @@ class FirebaseService {
     });
   }
 
-  Future<void> savePost(FeedPostModel post) async {
-    await _postsCol.doc(post.postId).set(post.toMap(), SetOptions(merge: true));
+  Future<({bool success, String verdict, String message, String? id})> submitPost(
+    FeedPostModel post, {
+    String? category,
+    bool isAmberAlert = false,
+    String? petName,
+    String? petBreed,
+    String? location,
+    String? contactPhone,
+    String? microchipId,
+  }) async {
     try {
-      await RealtimeDatabaseService().savePost(post);
+      final res = await FirebaseFunctions.instanceFor(region: 'us-central1')
+          .httpsCallable('submit_post')
+          .call({
+            'postId': post.postId,
+            'content': post.content,
+            'postType': post.postType,
+            'category': category ?? post.postType,
+            'imageUrl': post.imageUrl,
+            'sharedPostId': post.sharedPostId,
+            'sharedPostAuthor': post.sharedPostAuthor,
+            'sharedPostContent': post.sharedPostContent,
+            'sharedPostImageUrl': post.sharedPostImageUrl,
+            'isAmberAlert': isAmberAlert,
+            'petName': petName,
+            'petBreed': petBreed,
+            'location': location,
+            'contactPhone': contactPhone,
+            'microchipId': microchipId,
+          });
+      final data = Map<String, dynamic>.from(res.data as Map);
+      final ok = data['ok'] == true;
+      final verdict = (data['verdict'] ?? (ok ? 'approve' : 'reject')).toString();
+      final msg = (data['message'] ?? (ok ? 'Post published!' : 'Post rejected.')).toString();
+      return (success: ok, verdict: verdict, message: msg, id: data['postId']?.toString());
+    } on FirebaseFunctionsException catch (e) {
+      return (success: false, verdict: 'reject', message: e.message ?? 'Submission rejected.', id: null);
     } catch (e) {
-      debugPrint('[FirebaseService] RTDB savePost error: $e');
+      debugPrint('[FirebaseService] submitPost error: $e');
+      return (success: false, verdict: 'reject', message: 'Failed to submit post. Please try again.', id: null);
+    }
+  }
+
+  Future<void> savePost(FeedPostModel post) async {
+    await submitPost(post);
+  }
+
+  Future<({bool success, String verdict, String message, String? id})> submitComment({
+    required String postId,
+    required String text,
+    String? commentId,
+  }) async {
+    try {
+      final res = await FirebaseFunctions.instanceFor(region: 'us-central1')
+          .httpsCallable('submit_comment')
+          .call({
+            'postId': postId,
+            'text': text,
+            'commentId': commentId,
+          });
+      final data = Map<String, dynamic>.from(res.data as Map);
+      final ok = data['ok'] == true;
+      final verdict = (data['verdict'] ?? (ok ? 'approve' : 'reject')).toString();
+      final msg = (data['message'] ?? (ok ? 'Comment added!' : 'Comment rejected.')).toString();
+      return (success: ok, verdict: verdict, message: msg, id: data['commentId']?.toString());
+    } on FirebaseFunctionsException catch (e) {
+      return (success: false, verdict: 'reject', message: e.message ?? 'Comment rejected.', id: null);
+    } catch (e) {
+      debugPrint('[FirebaseService] submitComment error: $e');
+      return (success: false, verdict: 'reject', message: 'Failed to add comment. Please try again.', id: null);
+    }
+  }
+
+  Future<({bool success, String message})> reportContent({
+    required String targetId,
+    String targetType = 'post',
+    String? commentId,
+    String reason = 'Inappropriate content',
+  }) async {
+    try {
+      final res = await FirebaseFunctions.instanceFor(region: 'us-central1')
+          .httpsCallable('report_content')
+          .call({
+            'targetId': targetId,
+            'targetType': targetType,
+            'commentId': commentId,
+            'reason': reason,
+          });
+      final data = Map<String, dynamic>.from(res.data as Map);
+      return (
+        success: data['ok'] == true,
+        message: 'Report submitted. Thank you for keeping our community safe.',
+      );
+    } catch (e) {
+      return (success: false, message: 'Could not submit report.');
     }
   }
 
@@ -732,16 +820,11 @@ class FirebaseService {
   }
 
   Future<void> addComment(String postId, CommentModel comment) async {
-    final cMap = comment.toMap();
-    await _postsCol.doc(postId).set({
-      'commentsCount': FieldValue.increment(1),
-      'comments': FieldValue.arrayUnion([cMap]),
-    }, SetOptions(merge: true));
-    await _postsCol
-        .doc(postId)
-        .collection('comments')
-        .doc(comment.commentId)
-        .set(cMap, SetOptions(merge: true));
+    await submitComment(
+      postId: postId,
+      text: comment.text,
+      commentId: comment.commentId,
+    );
   }
 
   // ─── REVIEWS ─────────────────────────────────────────────────────────────

@@ -316,21 +316,21 @@ service cloud.firestore {
     }
     match /community_posts/{postId} {
       allow read: if true;
-      allow create: if signedIn() && notSuspended()
-        && request.resource.data.userId == request.auth.uid
-        && optShortString('content', 5000);
+      // Direct client creates blocked: all posts must go through submit_post Cloud Function
+      allow create: if false;
       allow update: if isAdmin()
-        || (signedIn() && resource.data.userId == request.auth.uid && unchanged('userId'))
+        // Author may mark amber alert as resolved
+        || (signedIn() && resource.data.userId == request.auth.uid
+            && changed().hasOnly(['isResolved', 'updatedAt']))
+        // Readers may like/react within strict validated limits
         || (signedIn() && notSuspended() && validReaction());
       allow delete: if isAdmin() || (signedIn() && resource.data.userId == request.auth.uid);
 
       match /comments/{commentId} {
         allow read: if true;
-        allow create: if signedIn() && notSuspended()
-          && request.resource.data.userId == request.auth.uid
-          && optShortString('text', 2000) && optShortString('content', 2000);
+        // Direct client creates blocked: all comments must go through submit_comment Cloud Function
+        allow create: if false;
         allow update: if isAdmin()
-          || (signedIn() && resource.data.userId == request.auth.uid && unchanged('userId'))
           || (signedIn() && notSuspended()
               && changed().hasOnly(['likesCount', 'likes', 'likedBy', 'likedByUserIds', 'userReactions'])
               && onlyMyEntry('likedBy') && onlyMyEntry('userReactions') && onlyMeInList('likedByUserIds'));
@@ -338,6 +338,34 @@ service cloud.firestore {
           || (signedIn() && resource.data.userId == request.auth.uid)
           || (signedIn() && get(/databases/$(database)/documents/community_posts/$(postId)).data.get('userId', '') == request.auth.uid);
       }
+    }
+
+    // ── Community Moderation Collections ────────────────────────────────────
+    match /community_pending/{id} {
+      allow read: if isAdmin() || hasStaffRole(['Manager']) || (signedIn() && resource.data.userId == request.auth.uid);
+      allow write: if false; // Server Cloud Functions only
+    }
+    match /community_reports/{id} {
+      allow read: if isAdmin() || hasStaffRole(['Manager']);
+      allow update: if isAdmin() || hasStaffRole(['Manager']); // For dismissing reports
+      allow create, delete: if false;
+    }
+    match /moderation_strikes/{id} {
+      allow read: if isAdmin() || hasStaffRole(['Manager']) || isSelf(id);
+      allow update: if isAdmin() || hasStaffRole(['Manager']); // For admins lifting strikes
+      allow create, delete: if false;
+    }
+    match /moderation_log/{id} {
+      allow read: if isAdmin() || hasStaffRole(['Manager']);
+      allow write: if false;
+    }
+    match /moderation_removed/{id} {
+      allow read: if isAdmin() || hasStaffRole(['Manager']);
+      allow write: if false;
+    }
+    match /settings/moderation {
+      allow read: if signedIn();
+      allow write: if isAdmin() || hasStaffRole(['Manager']);
     }
 
     // ── Reviews (vets & products) ─────────────────────────────────────────

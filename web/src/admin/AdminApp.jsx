@@ -24,6 +24,7 @@ import Settings from './pages/Settings.jsx';
 import Announcement from './pages/Announcement.jsx';
 import AddProduct from './pages/AddProduct.jsx';
 import Categories from './pages/Categories.jsx';
+import Moderation from './pages/Moderation.jsx';
 import { storefrontUrl } from '../lib/hosts.js';
 import { STAFF_ROLES, canAccess, homeFor } from './erp.js';
 
@@ -36,6 +37,7 @@ const ROUTES = [
   ['/admin/orders', Orders, 'Orders'],
   ['/admin/orders/:id', OrderDetail, 'Order'],
   ['/admin/prescriptions', Prescriptions, 'Prescriptions'],
+  ['/admin/moderation', Moderation, 'Moderation'],
   ['/admin/inventory', Inventory, 'Inventory'],
   ['/admin/products/new', AddProduct, 'Add product'],
   ['/admin/categories', Categories, 'Categories'],
@@ -84,6 +86,7 @@ function Sidebar({ open, onClose, user }) {
     ['Care', [
       ['/admin/appointments', 'Appointments', 'calendar'],
       ['/admin/customers', 'Customers', 'user'],
+      ['/admin/moderation', 'Moderation', 'shield'],
     ]],
     ['Back office', [
       ['/admin/finance', 'Finance', 'trend'],

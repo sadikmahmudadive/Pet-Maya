@@ -37,7 +37,7 @@ export default function CommentThread({ post, onClose }) {
       setText('');
       if (!res.live) setLocal((l) => [...l, { id: `l${Date.now()}`, name: user.name, photo: user.photoUrl, text: body, time: Date.now() }]);
     } else if (r.reason === 'signin') navigate('/signin?next=/community');
-    else toast('Couldn’t post your comment', { tone: 'error' });
+    else toast(r.message || 'Couldn’t post your comment', { tone: 'error' });
   };
 
   return (
