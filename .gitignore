@@ -97,6 +97,8 @@ linux/flutter/ephemeral/
 # ══════════════════════════════════════════════════════════════════════════════
 # Keep web/ source files; only ignore generated build output
 .web/
+dist/
+web/dist/
 
 # Always keep Google Site Verification & well-known (needed for hosting)
 !web/.well-known/
@@ -188,6 +190,15 @@ doc/api/
 *.bak
 *.swp
 *~
+
+# Microsoft Office temporary & lock files
+~$*
+~$*.doc*
+~$*.xls*
+~$*.ppt*
+
+# Document & export artifacts
+*.docx
 
 
 # ══════════════════════════════════════════════════════════════════════════════
