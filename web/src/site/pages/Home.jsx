@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 import { Link } from '../../lib/router.jsx';
 import { useStore } from '../../lib/store.jsx';
-import { useBlogs } from '../../data/hooks.js';
+import { useBlogFeed } from '../../data/blogs.js';
+import { blogPath } from '../../lib/blogs.js';
 import { Icon, Button, Ph, Avatar, StarRow, Pill } from '../../ui/index.jsx';
 import ProductCard from '../ProductCard.jsx';
 import HaloBreakdown from '../HaloBreakdown.jsx';
@@ -31,7 +32,7 @@ function SectionHead({ eyebrow, title, link, to }) {
 
 export default function Home() {
   const { products, vets, pets, activePet, setPetId, addToCart, toast } = useStore();
-  const blogs = useBlogs();
+  const blogs = useBlogFeed({ size: 3 });
   const [filter, setFilter] = useState('all');
   const spot = useSpotlight();
 
@@ -365,19 +366,21 @@ export default function Home() {
         </Reveal>
       </section>
 
-      {/* Journal */}
-      <section className="section">
-        <SectionHead eyebrow="The Pet Maya journal" title="Vet know-how, written for pet parents." link="Read the journal" to="/journal" />
-        <Reveal className="trio" stagger>
-          {blogs.items.filter((b) => !b.featured).slice(0, 3).map((b) => (
-            <Link key={b.id} to={`/journal/${b.id}`} className="card tight article-card">
-              <Ph src={b.image} tone="teal" label="photo" style={{ height: 180 }} />
-              <div className="eyebrow" style={{ fontSize: 10, marginTop: 4 }}>{b.category} · {b.readMin} min</div>
-              <h3>{b.title}</h3>
-            </Link>
-          ))}
-        </Reveal>
-      </section>
+      {/* Journal: only real, approved articles; the section is left out until there is one */}
+      {blogs.items.length > 0 && (
+        <section className="section">
+          <SectionHead eyebrow="The Pet Maya journal" title="Vet know-how, written for pet parents." link="Read the journal" to="/journal" />
+          <Reveal className="trio" stagger>
+            {blogs.items.slice(0, 3).map((b) => (
+              <Link key={b.id} to={blogPath(b.id)} className="card tight article-card">
+                <Ph src={b.image} tone="teal" label="photo" style={{ height: 180 }} />
+                <div className="eyebrow" style={{ fontSize: 10, marginTop: 4 }}>{b.category} · {b.readMin} min</div>
+                <h3>{b.title}</h3>
+              </Link>
+            ))}
+          </Reveal>
+        </section>
+      )}
 
       {/* App banner */}
       <section className="section">

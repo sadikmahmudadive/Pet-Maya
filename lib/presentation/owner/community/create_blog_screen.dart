@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
@@ -11,7 +10,6 @@ import '../../../data/models/blog_post_model.dart';
 import '../../../data/repositories/app_state_repository.dart';
 import '../../../core/services/firebase_storage_service.dart';
 import '../../common_widgets/glass_scaffold.dart';
-import '../../common_widgets/premium_card.dart';
 import '../../common_widgets/lottie_upload_icon.dart';
 
 class CreateBlogScreen extends StatefulWidget {
@@ -43,6 +41,10 @@ class _CreateBlogScreenState extends State<CreateBlogScreen> {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(
       source: ImageSource.gallery,
+      // A cover is shown at most ~800px wide; 1600px keeps it sharp on high-density screens without uploading a
+      // multi-megabyte camera original that every reader would then download.
+      maxWidth: 1600,
+      maxHeight: 1600,
       imageQuality: 80,
     );
     if (pickedFile != null) {
@@ -105,15 +107,15 @@ class _CreateBlogScreenState extends State<CreateBlogScreen> {
       // 2. Create blog model
       final blog = BlogPostModel(
         id: 'blog_${const Uuid().v4().substring(0, 8)}',
-        authorId: user.uid ?? 'guest',
-        authorName: user.name ?? 'Pet Lover',
+        authorId: user.uid,
+        authorName: user.name.trim().isEmpty ? 'Pet Lover' : user.name.trim(),
         authorPhoto: user.photoUrl,
         title: title,
         content: content,
         imageUrl: imageUrl,
         category: _selectedCategory,
         timestamp: DateTime.now().millisecondsSinceEpoch,
-        readTimeMinutes: (content.split(' ').length / 200).ceil().clamp(1, 60),
+        readTimeMinutes: (content.trim().split(RegExp(r'\s+')).length / 220).ceil().clamp(1, 60),
         tags: _tags,
         status: status,
         isApproved: isApproved,

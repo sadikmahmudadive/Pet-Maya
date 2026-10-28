@@ -913,8 +913,8 @@ class FirebaseService {
 
   // ─── BLOGS ──────────────────────────────────────────────────────────────
 
-  Future<List<BlogPostModel>> fetchBlogs() async {
-    final snap = await _blogsCol.get();
+  /// Articles are parsed newest first. Documents without a timestamp keep their place at the end.
+  List<BlogPostModel> _parseBlogs(QuerySnapshot<Object?> snap) {
     final list = snap.docs
         .map(
           (d) => BlogPostModel.fromMap(d.id, d.data()! as Map<String, dynamic>),
@@ -924,17 +924,35 @@ class FirebaseService {
     return list;
   }
 
-  Stream<List<BlogPostModel>> streamBlogs() {
-    return _blogsCol.snapshots().map((snap) {
-      final list = snap.docs
-          .map(
-            (d) =>
-                BlogPostModel.fromMap(d.id, d.data()! as Map<String, dynamic>),
-          )
-          .toList();
-      list.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-      return list;
-    });
+  /// The blog feed. Everyone except admins may only read approved articles (the security rules refuse any other
+  /// query), so this asks for exactly that: the newest [limit] approved posts. Admins stream everything so the
+  /// moderation screen can see pending and rejected posts.
+  ///
+  /// The approved query is ordered by time, which needs the composite index in firestore.indexes.json. If that has
+  /// not been deployed yet the ordered query fails with `failed-precondition`; the plain approved query is used
+  /// instead and sorted here, so the blog keeps working either way.
+  Stream<List<BlogPostModel>> streamBlogs({bool all = false, int limit = 50}) async* {
+    if (all) {
+      await for (final snap in _blogsCol.limit(500).snapshots()) {
+        yield _parseBlogs(snap);
+      }
+      return;
+    }
+    final approved = _blogsCol.where('isApproved', isEqualTo: true);
+    try {
+      await for (final snap in approved
+          .orderBy('timestamp', descending: true)
+          .limit(limit)
+          .snapshots()) {
+        yield _parseBlogs(snap);
+      }
+    } on FirebaseException catch (e) {
+      if (e.code != 'failed-precondition') rethrow;
+      debugPrint('[FirebaseService] blogs index missing, using unordered query');
+      await for (final snap in approved.limit(limit).snapshots()) {
+        yield _parseBlogs(snap);
+      }
+    }
   }
 
   Future<void> saveBlog(BlogPostModel blog) async {

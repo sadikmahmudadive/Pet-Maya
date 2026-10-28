@@ -445,15 +445,35 @@ service cloud.firestore {
     }
 
     // ── Content ────────────────────────────────────────────────────────────
+    // Articles. Only approved ones are public: readers (website and app) must query with isApproved == true, authors
+    // can also list their own posts (authorId == uid), admins everything. That query needs the composite index
+    // isApproved + timestamp in firestore.indexes.json.
     match /blogs/{blogId} {
-      allow read: if true;
-      allow create: if signedIn() && notSuspended()
+      function blogShape() {
+        let d = request.resource.data;
+        return shortString(d.get('title', ''), 200) && d.get('title', '') != ''
+          && shortString(d.get('content', ''), 100000)
+          && shortString(d.get('category', ''), 40)
+          && optShortString('authorName', 80)
+          && (!('tags' in d) || (d.tags is list && d.tags.size() <= 12))
+          && (!('imageUrl' in d) || d.imageUrl == null || d.imageUrl == ''
+              || (d.imageUrl is string && d.imageUrl.size() <= 600 && d.imageUrl.matches('https://.*')));
+      }
+
+      allow read: if resource.data.isApproved == true
+        || isAdmin()
+        || (signedIn() && resource.data.authorId == request.auth.uid);
+      allow create: if signedIn() && notSuspended() && blogShape()
         && (isAdmin() || (request.resource.data.authorId == request.auth.uid
             && request.resource.data.get('isApproved', false) == false
             && request.resource.data.get('status', 'PENDING').lower() in ['pending', 'draft']));
+      // An author may fix a post that is still in review. Once it is live only an admin can change it, otherwise an
+      // approved article could be rewritten without anyone looking at it again.
       allow update: if isAdmin()
         || (signedIn() && resource.data.authorId == request.auth.uid
-            && unchanged('authorId') && unchanged('isApproved') && unchanged('status'));
+            && resource.data.isApproved == false
+            && unchanged('authorId') && unchanged('isApproved') && unchanged('status')
+            && blogShape());
       allow delete: if isAdmin() || (signedIn() && resource.data.authorId == request.auth.uid);
     }
 

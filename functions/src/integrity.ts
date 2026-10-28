@@ -469,6 +469,25 @@ export const check_order_prices = onDocumentCreated("orders/{orderId}", async (e
   if (problems.length) console.warn(`Order ${event.params.orderId} price mismatch:`, problems);
 });
 
+/**
+ * Blog fields needed to stay visible under the approved-only read rule (isApproved: true) and in the newest-first
+ * feed (numeric timestamp). Returns null when the document is already fine. Posts from before moderation existed
+ * were shown to everyone, so they stay public; anything already marked pending or rejected stays hidden.
+ */
+export function blogBackfill(d: Record<string, any>, now = Date.now()): Record<string, any> | null {
+  const fix: Record<string, any> = {};
+  if (typeof d.isApproved !== "boolean") {
+    const status = String(d.status || "APPROVED").toUpperCase();
+    fix.isApproved = status === "APPROVED";
+    if (!d.status) fix.status = "APPROVED";
+  }
+  if (typeof d.timestamp !== "number") {
+    const iso = /^\d{4}-\d{2}-\d{2}/.test(String(d.createdAt ?? "")) ? Date.parse(String(d.createdAt)) : NaN;
+    fix.timestamp = typeof d.timestamp?.toMillis === "function" ? d.timestamp.toMillis() : (Number.isFinite(iso) ? iso : now);
+  }
+  return Object.keys(fix).length ? fix : null;
+}
+
 export const backfill_security_data = onCall({ timeoutSeconds: 540, memory: "512MiB" }, async (request) => {
   const { profile } = await requireUser(request);
   if (!isAdminRole(profile.role)) throw new HttpsError("permission-denied", "Admin only");
@@ -505,7 +524,20 @@ export const backfill_security_data = onCall({ timeoutSeconds: 540, memory: "512
     }
   }
   if (pending) await batch.commit();
-  return { profiles, records };
+
+  let blogs = 0;
+  const posts = await db.collection("blogs").get();
+  batch = db.batch();
+  pending = 0;
+  for (const b of posts.docs) {
+    const fix = blogBackfill(b.data());
+    if (!fix) continue;
+    batch.update(b.ref, fix);
+    blogs++;
+    if (++pending === 400) { await batch.commit(); batch = db.batch(); pending = 0; }
+  }
+  if (pending) await batch.commit();
+  return { profiles, records, blogs };
 });
 
 /**

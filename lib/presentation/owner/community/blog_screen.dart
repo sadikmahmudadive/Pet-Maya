@@ -31,7 +31,6 @@ class _BlogScreenState extends State<BlogScreen> {
       if (_selectedCategory == 'ALL') return true;
       return b.category.toUpperCase() == _selectedCategory;
     }).toList();
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final categories = ['ALL', 'HEALTH', 'NUTRITION', 'TRAINING', 'LIFESTYLE'];
 

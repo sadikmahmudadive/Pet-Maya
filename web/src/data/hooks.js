@@ -1,10 +1,10 @@
 import { useMemo } from 'react';
 import { toMillis } from '../lib/format.js';
 import {
-  useCollection, normProduct, normOrder, normVet, normPet, normPost, normBlog, normUser, normEvent,
+  useCollection, normProduct, normOrder, normVet, normPet, normPost, normUser, normEvent,
 } from './firestore.js';
 import {
-  SAMPLE_PRODUCTS, SAMPLE_VETS, SAMPLE_PETS, SAMPLE_POSTS, SAMPLE_BLOGS, SAMPLE_COUPONS,
+  SAMPLE_PRODUCTS, SAMPLE_VETS, SAMPLE_PETS, SAMPLE_POSTS, SAMPLE_COUPONS,
 } from './sample.js';
 import { safeInternalPath } from '../lib/security.js';
 import { normCategory } from '../lib/categories.js';
@@ -14,7 +14,6 @@ const S = {
   vets: SAMPLE_VETS.map((v) => normVet(v.id, v)),
   pets: SAMPLE_PETS.map((p) => normPet(p.id, p)),
   posts: SAMPLE_POSTS.map((p) => normPost(p.id, p)),
-  blogs: SAMPLE_BLOGS.map((b) => normBlog(b.id, b)),
   coupons: SAMPLE_COUPONS,
 };
 export const SAMPLES = S;
@@ -23,7 +22,6 @@ export const useProducts = () => useCollection('products', { map: normProduct, s
 export const useCategories = () => useCollection('categories', { map: normCategory, sample: [], sampleWhenEmpty: false });
 export const useVets = () => useCollection('vets', { map: normVet, sample: S.vets });
 export const usePosts = () => useCollection('community_posts', { map: normPost, sample: S.posts });
-export const useBlogs = () => useCollection('blogs', { map: normBlog, sample: S.blogs });
 export const useCoupons = () => useCollection('coupons', { sample: S.coupons });
 export const useUsers = () => useCollection('users', { map: normUser, sample: [] });
 export const useAllOrders = () => useCollection('orders', { map: normOrder, sample: [], sampleWhenEmpty: false });

@@ -8,7 +8,7 @@ import {
   initializeTestEnvironment, assertSucceeds, assertFails,
 } from '@firebase/rules-unit-testing';
 import {
-  doc, getDoc, setDoc, updateDoc, deleteDoc, addDoc, collection, getDocs, query, where,
+  doc, getDoc, setDoc, updateDoc, deleteDoc, addDoc, collection, getDocs, query, where, orderBy,
   increment, arrayUnion, deleteField, writeBatch, limit,
 } from 'firebase/firestore';
 import { ref, uploadBytes, getBytes } from 'firebase/storage';
@@ -307,6 +307,61 @@ test('blogs: authors cannot self-approve', async () => {
   await assertSucceeds(setDoc(doc(as('alice'), 'blogs', 'b1'), { authorId: 'alice', title: 't', status: 'PENDING', isApproved: false }));
   await assertFails(setDoc(doc(as('alice'), 'blogs', 'b2'), { authorId: 'alice', title: 't', status: 'APPROVED', isApproved: true }));
   await assertFails(setDoc(doc(as('alice'), 'blogs', 'b3'), { authorId: 'bob', title: 't', status: 'PENDING', isApproved: false }));
+});
+
+const seedBlogs = () => env.withSecurityRulesDisabled(async (ctx) => {
+  const db = ctx.firestore();
+  const base = { content: '<p>Body</p>', category: 'Health', imageUrl: 'https://x.test/c.jpg' };
+  await setDoc(doc(db, 'blogs', 'live'), { ...base, authorId: 'bob', title: 'Live', status: 'APPROVED', isApproved: true, timestamp: 3 });
+  await setDoc(doc(db, 'blogs', 'draft'), { ...base, authorId: 'alice', title: 'Draft', status: 'PENDING', isApproved: false, timestamp: 2 });
+  await setDoc(doc(db, 'blogs', 'rejected'), { ...base, authorId: 'alice', title: 'No', status: 'REJECTED', isApproved: false, timestamp: 1 });
+});
+
+test('blogs: the public reads approved articles only; authors see their own posts; admins see all', async () => {
+  await seedBlogs();
+  await assertSucceeds(getDoc(doc(as(null), 'blogs', 'live')));
+  await assertFails(getDoc(doc(as(null), 'blogs', 'draft')));
+  await assertFails(getDoc(doc(as('bob'), 'blogs', 'draft')));           // another signed-in user
+  await assertSucceeds(getDoc(doc(as('alice'), 'blogs', 'draft')));      // the author
+  await assertSucceeds(getDoc(doc(as('admin'), 'blogs', 'rejected')));
+  // queries must prove they only ask for what they may read
+  const published = (db) => query(collection(db, 'blogs'), where('isApproved', '==', true), orderBy('timestamp', 'desc'), limit(12));
+  assert.equal((await assertSucceeds(getDocs(published(as(null))))).size, 1);
+  await assertFails(getDocs(collection(as(null), 'blogs')));
+  await assertFails(getDocs(collection(as('bob'), 'blogs')));
+  await assertFails(getDocs(query(collection(as('alice'), 'blogs'), where('authorId', '==', 'bob'))));
+  assert.equal((await assertSucceeds(getDocs(query(collection(as('alice'), 'blogs'), where('authorId', '==', 'alice'))))).size, 2);
+  assert.equal((await assertSucceeds(getDocs(collection(as('admin'), 'blogs')))).size, 3);
+});
+
+test('blogs: a live article cannot be edited by its author; one in review can', async () => {
+  await seedBlogs();
+  await env.withSecurityRulesDisabled((ctx) => setDoc(doc(ctx.firestore(), 'blogs', 'aliceLive'), { authorId: 'alice', title: 'Mine', content: 'x', category: 'Health', status: 'APPROVED', isApproved: true, timestamp: 4 }));
+  await assertSucceeds(updateDoc(doc(as('alice'), 'blogs', 'draft'), { title: 'Better title', content: '<p>Edited</p>' }));
+  await assertFails(updateDoc(doc(as('alice'), 'blogs', 'draft'), { isApproved: true }));
+  await assertFails(updateDoc(doc(as('alice'), 'blogs', 'draft'), { status: 'APPROVED' }));
+  await assertFails(updateDoc(doc(as('alice'), 'blogs', 'draft'), { authorId: 'bob' }));
+  await assertFails(updateDoc(doc(as('bob'), 'blogs', 'draft'), { title: 'Not yours' }));
+  await assertFails(updateDoc(doc(as('alice'), 'blogs', 'aliceLive'), { content: 'sneaky rewrite after approval' }));
+  await assertSucceeds(updateDoc(doc(as('admin'), 'blogs', 'aliceLive'), { content: 'Admin correction' }));
+  await assertSucceeds(updateDoc(doc(as('admin'), 'blogs', 'draft'), { isApproved: true, status: 'APPROVED' }));
+  await assertFails(updateDoc(doc(as('alice'), 'blogs', 'draft'), { title: 'After approval' }));
+  await assertSucceeds(deleteDoc(doc(as('alice'), 'blogs', 'aliceLive')));  // authors may still withdraw their own article
+  await assertFails(deleteDoc(doc(as('bob'), 'blogs', 'rejected')));
+});
+
+test('blogs: size and shape limits on what an author submits', async () => {
+  const post = (over = {}) => ({ authorId: 'alice', title: 'Title', content: '<p>Body</p>', category: 'Health', status: 'PENDING', isApproved: false, tags: ['a'], imageUrl: 'https://x.test/c.jpg', ...over });
+  await assertSucceeds(setDoc(doc(as('alice'), 'blogs', 'ok1'), post()));
+  await assertSucceeds(setDoc(doc(as('alice'), 'blogs', 'ok2'), post({ imageUrl: '', tags: [] })));
+  await assertFails(setDoc(doc(as('alice'), 'blogs', 'bad1'), post({ title: '' })));
+  await assertFails(setDoc(doc(as('alice'), 'blogs', 'bad2'), post({ title: 'x'.repeat(201) })));
+  await assertFails(setDoc(doc(as('alice'), 'blogs', 'bad3'), post({ content: 'x'.repeat(100001) })));
+  await assertFails(setDoc(doc(as('alice'), 'blogs', 'bad4'), post({ imageUrl: 'javascript:alert(1)' })));
+  await assertFails(setDoc(doc(as('alice'), 'blogs', 'bad5'), post({ imageUrl: 'http://x.test/c.jpg' })));
+  await assertFails(setDoc(doc(as('alice'), 'blogs', 'bad6'), post({ tags: Array.from({ length: 13 }, (_, i) => `t${i}`) })));
+  await assertFails(setDoc(doc(as('alice'), 'blogs', 'bad7'), post({ category: 'c'.repeat(41) })));
+  await assertFails(setDoc(doc(as(null), 'blogs', 'bad8'), post()));
 });
 
 // ── Storage: file upload validation & ownership ─────────────────────────────

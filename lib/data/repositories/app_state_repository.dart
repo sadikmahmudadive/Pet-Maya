@@ -572,7 +572,9 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
       if (_currentUserSub == null) _listenToCurrentUser(user.uid);
       if (_globalSettingsSub == null) _listenToGlobalSettings();
       _loadCommunityPosts();
-      if (_blogsSub == null) _loadBlogs();
+      if (_blogsSub == null) {
+        _loadBlogs(admin: user.role == UserRole.admin || user.role == UserRole.superAdmin);
+      }
       if (_couponsSub == null) _loadCoupons();
       if (_promosSub == null) _loadPromos();
 
@@ -915,13 +917,16 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
     );
   }
 
-  Future<void> _loadBlogs() async {
+  Future<void> _loadBlogs({bool admin = false}) async {
     _blogsSub?.cancel();
-    _blogsSub = _firebase.streamBlogs().listen((fetchedBlogs) {
+    // Admins moderate, so they get every post; everyone else only the newest approved ones.
+    _blogsSub = _firebase.streamBlogs(all: admin).listen((fetchedBlogs) {
       _blogs
         ..clear()
         ..addAll(fetchedBlogs);
       _debouncedNotify();
+    }, onError: (Object e) {
+      debugPrint('[AppState] blogs stream error: $e');
     });
   }
 

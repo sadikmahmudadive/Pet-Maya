@@ -94,3 +94,20 @@ test("repeat notifications: two identical ones at the same instant still get exa
   assert.strictEqual(sec.isRepeatNotification([x, y], x), false);
   assert.strictEqual(sec.isRepeatNotification([x, y], y), true);
 });
+
+test("blog backfill keeps old posts public, keeps pending ones hidden, and gives every post a numeric timestamp", () => {
+  const now = 1_800_000_000_000;
+  // From before moderation existed: no flags at all → live
+  assert.deepStrictEqual(integ.blogBackfill({ title: "Old" }, now), { isApproved: true, status: "APPROVED", timestamp: now });
+  // Already moderated: only the missing pieces are added
+  assert.deepStrictEqual(integ.blogBackfill({ status: "PENDING", timestamp: 5 }, now), { isApproved: false });
+  assert.deepStrictEqual(integ.blogBackfill({ status: "REJECTED", timestamp: 5 }, now), { isApproved: false });
+  assert.deepStrictEqual(integ.blogBackfill({ status: "approved", timestamp: 5 }, now), { isApproved: true });
+  // Nothing to fix
+  assert.strictEqual(integ.blogBackfill({ isApproved: true, status: "APPROVED", timestamp: 5 }, now), null);
+  assert.strictEqual(integ.blogBackfill({ isApproved: false, status: "PENDING", timestamp: 5 }, now), null);
+  // Timestamp from a Firestore Timestamp or an ISO createdAt when there is one
+  assert.strictEqual(integ.blogBackfill({ isApproved: true, timestamp: { toMillis: () => 123 } }, now).timestamp, 123);
+  assert.strictEqual(integ.blogBackfill({ isApproved: true, createdAt: "2026-01-02T00:00:00.000Z" }, now).timestamp, Date.parse("2026-01-02T00:00:00.000Z"));
+  assert.strictEqual(integ.blogBackfill({ isApproved: true, createdAt: "last spring" }, now).timestamp, now);
+});

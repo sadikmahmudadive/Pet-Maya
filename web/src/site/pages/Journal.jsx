@@ -1,41 +1,99 @@
 import { useMemo, useState } from 'react';
 import { Link } from '../../lib/router.jsx';
 import { useStore } from '../../lib/store.jsx';
-import { useBlogs } from '../../data/hooks.js';
+import { useBlogFeed, useBlog } from '../../data/blogs.js';
 import { Icon, Button, Ph, Pill, Avatar, Empty } from '../../ui/index.jsx';
 import { cx } from '../../lib/format.js';
 import { subscribeNewsletter } from '../../data/actions.js';
 import { Reveal } from '../../lib/motion.jsx';
 import { sanitizeHtml } from '../../lib/security.js';
+import { articleJsonLd, blogPath, filterArticles, plainText, truncate } from '../../lib/blogs.js';
+import { usePageMeta } from '../../lib/seo.js';
 
 function Article({ post }) {
   const { toast } = useStore();
+  const more = useBlogFeed({ size: 4 });
   const body = post.content || post.excerpt;
   const isHtml = /<\/?[a-z][\s\S]*>/i.test(body);
+  const related = more.items.filter((b) => b.id !== post.id).slice(0, 3);
+
+  usePageMeta({
+    title: `${post.title} · Pet Maya Journal`,
+    description: truncate(post.excerpt || plainText(body), 160),
+    image: post.image,
+    type: 'article',
+    path: blogPath(post.id),
+    jsonLd: articleJsonLd(post, typeof window !== 'undefined' ? window.location.origin : ''),
+  });
+
+  const share = async () => {
+    const url = window.location.href;
+    try {
+      if (navigator.share) { await navigator.share({ title: post.title, url }); return; }
+      await navigator.clipboard.writeText(url);
+      toast('Link copied');
+    } catch { /* the share sheet was closed */ }
+  };
+
   return (
     <article className="container" style={{ paddingTop: 28 }}>
       <nav className="crumbs"><Link to="/journal">Journal</Link><span>/</span><span style={{ color: 'var(--ink)' }}>{post.category}</span></nav>
       <div style={{ maxWidth: 780, margin: '28px auto 0', textAlign: 'center' }}>
         <Pill mono sm>{post.category}</Pill>
         <h1 className="display-1" style={{ marginTop: 18 }}>{post.title}</h1>
-        <div className="row gap-10" style={{ justifyContent: 'center', marginTop: 20 }}>
-          <Avatar name={post.author} size="sm" /><span style={{ fontSize: 14 }}>{post.author}</span><span className="sub">· {post.readMin} min read{post.date ? ` · ${post.date}` : ''}</span>
+        <div className="row gap-10 wrap" style={{ justifyContent: 'center', marginTop: 20 }}>
+          <Avatar name={post.author} src={post.authorPhoto} size="sm" /><span style={{ fontSize: 14 }}>{post.author}</span><span className="sub">· {post.readMin} min read{post.date ? ` · ${post.date}` : ''}</span>
         </div>
       </div>
-      <Ph src={post.image} tone="teal" label="feature photo" style={{ height: 'clamp(220px,40vw,440px)', borderRadius: 28, margin: '32px 0 40px' }} />
+      {post.image && <Ph src={post.image} tone="teal" label="feature photo" style={{ height: 'clamp(220px,40vw,440px)', borderRadius: 28, margin: '32px 0 40px' }} />}
       {isHtml
         ? <div className="prose" dangerouslySetInnerHTML={{ __html: sanitizeHtml(body) }} />
         : <div className="prose">{String(body).split(/\n{2,}/).map((para, i) => <p key={i}>{para}</p>)}</div>}
-      <div className="prose row gap-8" style={{ marginTop: 32 }}>
-        <Button variant="outline" icon="share" onClick={() => { navigator.clipboard?.writeText(window.location.href); toast('Link copied'); }}>Share</Button>
+      {post.tags.length > 0 && (
+        <div className="prose row gap-6 wrap" style={{ marginTop: 24 }}>
+          {post.tags.map((t) => <Pill key={t} sm>#{t}</Pill>)}
+        </div>
+      )}
+      <div className="prose row gap-8 wrap" style={{ marginTop: 32 }}>
+        <Button variant="outline" icon="share" onClick={share}>Share</Button>
         <Button variant="teal" icon="stethoscope" to="/specialists">Questions? Ask a vet</Button>
       </div>
+      {related.length > 0 && (
+        <section style={{ marginTop: 56 }}>
+          <div className="section-head"><h2 className="display-3">Keep reading</h2><Link to="/journal" className="link-plain hide-sm">All articles →</Link></div>
+          <div className="trio">
+            {related.map((b) => (
+              <Link key={b.id} to={blogPath(b.id)} className="card tight article-card">
+                <Ph src={b.image} tone="teal" label="photo" style={{ height: 160 }} />
+                <div className="sub" style={{ fontSize: 12, marginTop: 4 }}>{b.category} · {b.readMin} min read</div>
+                <h3>{b.title}</h3>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
     </article>
   );
 }
 
+function ArticlePage({ id }) {
+  const { post, loading } = useBlog(id);
+  if (post) return <Article post={post} />;
+  return (
+    <div className="container" style={{ paddingTop: 60 }}>
+      {loading
+        ? <div className="skeleton" style={{ height: 400 }} />
+        : <div className="card"><Empty icon="book" title="Article not found"><Link to="/journal" className="link">Back to the journal</Link></Empty></div>}
+    </div>
+  );
+}
+
 export default function Journal({ params }) {
-  const blogs = useBlogs();
+  return params.id ? <ArticlePage id={params.id} /> : <JournalList />;
+}
+
+function JournalList() {
+  const blogs = useBlogFeed();
   const { toast } = useStore();
   const [q, setQ] = useState('');
   const [cat, setCat] = useState('all');
@@ -53,22 +111,24 @@ export default function Journal({ params }) {
     else toast('Couldn’t sign you up — please try again', { tone: 'error' });
   };
 
+  usePageMeta({
+    title: 'Journal · Pet Maya',
+    description: 'Vet know-how for pet parents: health, nutrition, training and care guides from Pet Maya.',
+    path: '/journal',
+  });
+
   const items = blogs.items;
   const feature = items.find((b) => b.featured) || items[0];
-  const rest = useMemo(() => items.filter((b) => b.id !== feature?.id).filter((b) => (cat === 'all' || b.category === cat) && (!q || `${b.title} ${b.excerpt} ${b.author}`.toLowerCase().includes(q.toLowerCase()))), [items, feature, cat, q]);
-  const cats = [...new Set(items.filter((b) => b.id !== feature?.id).map((b) => b.category))];
+  const others = useMemo(() => items.filter((b) => b.id !== feature?.id), [items, feature]);
+  const rest = useMemo(() => filterArticles(others, { query: q, category: cat }), [others, q, cat]);
+  const cats = [...new Set(others.map((b) => b.category))];
   const authors = [...new Set(items.map((b) => b.author))].filter((a) => /^Dr\.?/i.test(a)).slice(0, 4);
-
-  if (params.id) {
-    const post = items.find((b) => b.id === params.id);
-    if (post) return <Article post={post} />;
-    return <div className="container" style={{ paddingTop: 60 }}>{blogs.loading ? <div className="skeleton" style={{ height: 400 }} /> : <div className="card"><Empty icon="book" title="Article not found"><Link to="/journal" className="link">Back to the journal</Link></Empty></div>}</div>;
-  }
+  const count = `${items.length}${blogs.hasMore ? '+' : ''}`;
 
   return (
     <div className="container">
       {feature && (
-        <Link to={`/journal/${feature.id}`} className="feature-article">
+        <Link to={blogPath(feature.id)} className="feature-article">
           <div style={{ padding: 'clamp(24px,4vw,48px)', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 18 }}>
             <div className="row gap-8"><Pill mono sm>{feature.category}</Pill><span className="sub">{feature.readMin} min read{feature.date ? ` · ${feature.date}` : ''}</span></div>
             <h1 className="display-1" style={{ fontSize: 'clamp(34px,4.4vw,54px)' }}>{feature.title}</h1>
@@ -80,27 +140,39 @@ export default function Journal({ params }) {
         </Link>
       )}
 
+      {items.length > 0 && (
+        <>
       <div className="row between wrap gap-12" style={{ marginTop: 28 }}>
         <div className="searchbar" style={{ maxWidth: 420, flex: 1, height: 44 }}>
           <Icon name="search" size={15} /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search articles…" aria-label="Search articles" />
         </div>
-        <span className="eyebrow muted"><span className="dot" /> {items.length} articles</span>
+        <span className="eyebrow muted"><span className="dot" /> {count} articles</span>
       </div>
       <div className="row gap-8 wrap" style={{ marginTop: 14 }}>
-        <button className={cx('chip teal', cat === 'all' && 'active')} onClick={() => setCat('all')}>All articles ({items.length - 1})</button>
+        <button className={cx('chip teal', cat === 'all' && 'active')} onClick={() => setCat('all')}>All articles ({others.length})</button>
         {cats.map((c) => <button key={c} className={cx('chip teal', cat === c && 'active')} onClick={() => setCat(c)}>{c}</button>)}
       </div>
+        </>
+      )}
 
       <section style={{ marginTop: 36 }}>
-        <div className="section-head"><h2 className="display-3">Latest articles</h2><span className="eyebrow muted hide-sm">Written & reviewed by vets</span></div>
-        {rest.length === 0 ? <div className="card"><Empty icon="book" title="No articles match" /></div> : (
+        <div className="section-head"><h2 className="display-3">Latest articles</h2><span className="eyebrow muted hide-sm">Reviewed by the Pet Maya team</span></div>
+        {blogs.loading && items.length === 0 ? (
+          <div className="trio">{[0, 1, 2].map((i) => <div key={i} className="skeleton" style={{ height: 340, borderRadius: 24 }} />)}</div>
+        ) : blogs.error && items.length === 0 ? (
+          <div className="card"><Empty icon="alert" title="Couldn’t load the articles"><button type="button" className="link" onClick={blogs.retry}>Try again</button></Empty></div>
+        ) : items.length === 0 ? (
+          <div className="card"><Empty icon="book" title="No articles yet">New guides from our vets are on the way. <Link to="/shop" className="link">Browse the shop</Link> in the meantime.</Empty></div>
+        ) : rest.length === 0 ? (
+          <div className="card"><Empty icon="book" title="No articles match">{blogs.hasMore ? 'Try another word, or load more articles below.' : 'Try another word or category.'}</Empty></div>
+        ) : (
           <Reveal className="trio" stagger>
             {rest.map((b, i) => (
-              <Link key={b.id} to={`/journal/${b.id}`} className="card tight article-card">
+              <Link key={b.id} to={blogPath(b.id)} className="card tight article-card">
                 <Ph src={b.image} tone={b.tone === 'teal' || i % 2 ? 'teal' : ''} label="photo" style={{ height: 190 }}>
                   <span className="pill" style={{ position: 'absolute', top: 10, left: 10, background: 'var(--surface)', color: 'var(--ink)', border: '1px solid var(--line)' }}>{b.category}</span>
                 </Ph>
-                <div className="sub" style={{ fontSize: 12, marginTop: 4 }}>{b.readMin} min read · {b.author}</div>
+                <div className="sub" style={{ fontSize: 12, marginTop: 4 }}>{b.readMin} min read · {b.author}{b.date ? ` · ${b.date}` : ''}</div>
                 <h3>{b.title}</h3>
                 <p className="muted" style={{ fontSize: 13.5 }}>{b.excerpt}</p>
                 <div className="row between" style={{ marginTop: 'auto', paddingTop: 8 }}><span className="link-plain" style={{ fontSize: 13 }}>Read →</span><Icon name="bookmark" size={15} className="subtle" /></div>
@@ -108,6 +180,12 @@ export default function Journal({ params }) {
             ))}
           </Reveal>
         )}
+        {blogs.hasMore && (
+          <div className="row" style={{ justifyContent: 'center', marginTop: 28 }}>
+            <Button variant="outline" onClick={blogs.loadMore} disabled={blogs.loadingMore}>{blogs.loadingMore ? 'Loading…' : 'Load more articles'}</Button>
+          </div>
+        )}
+        {blogs.error && items.length > 0 && <div className="sub" role="alert" style={{ textAlign: 'center', marginTop: 12 }}>Couldn’t load more right now. <button type="button" className="link" onClick={blogs.loadMore}>Try again</button></div>}
       </section>
 
       <section className="section">
@@ -127,7 +205,7 @@ export default function Journal({ params }) {
         <section className="section">
           <div className="section-head">
             <div><div className="eyebrow">Who writes for us</div><h2 className="display-3">Our contributors</h2></div>
-            <p className="sub hide-sm" style={{ maxWidth: '44ch', textAlign: 'right' }}>Health articles are written or reviewed by practising vets before they’re published.</p>
+            <p className="sub hide-sm" style={{ maxWidth: '44ch', textAlign: 'right' }}>Every article is reviewed by the Pet Maya team before it is published.</p>
           </div>
           <div className="product-grid">
             {authors.map((a) => (

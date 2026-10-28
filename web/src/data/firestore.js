@@ -316,22 +316,7 @@ export function normPost(id, d = {}) {
   };
 }
 
-export function normBlog(id, d = {}) {
-  const body = d.content || d.body || '';
-  return {
-    id,
-    title: d.title || 'Untitled',
-    excerpt: d.excerpt || d.summary || String(body).replace(/<[^>]+>/g, '').slice(0, 160),
-    category: d.category || 'Pet care',
-    author: d.authorName || d.author || 'Pet Maya',
-    readMin: n(d.readMin || d.readTime, Math.max(3, Math.round(String(body).split(/\s+/).length / 220))),
-    date: d.date || '',
-    image: d.coverUrl || d.coverImage || d.imageUrl || d.image || '',
-    featured: bool(d.featured),
-    tone: d.tone || '',
-    content: body,
-  };
-}
+export { normBlog } from '../lib/blogs.js';
 
 /* ───────────────────────────────────────────────────────────
    Live collection hook with sample fallback

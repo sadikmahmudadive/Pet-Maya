@@ -44,7 +44,13 @@ class BlogDetailScreen extends StatelessWidget {
                 icon: const Icon(Icons.share_rounded, size: 18, color: Colors.white),
                 onPressed: () {
                   HapticFeedback.mediumImpact();
-                  Share.share('Check out this article on Pet Maya: ${blog.title}');
+                  // The article has a public page on the website, so the link works for people without the app.
+                  SharePlus.instance.share(
+                    ShareParams(
+                      text: '${blog.title}\nhttps://www.petmaya.app/journal/${Uri.encodeComponent(blog.id)}',
+                      subject: blog.title,
+                    ),
+                  );
                 },
               ),
             ),
