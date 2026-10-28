@@ -96,6 +96,10 @@ dependencies {
 }
 
 configurations.all {
+    // The SafetyNet attestation API is retired and Play flags play-services-safetynet. firebase_app_check still bundles its
+    // SafetyNet provider, but this app only ever activates the Play Integrity (release) and Debug providers (lib/main.dart).
+    exclude(group = "com.google.android.gms", module = "play-services-safetynet")
+    exclude(group = "com.google.firebase", module = "firebase-appcheck-safetynet")
     resolutionStrategy {
         force("androidx.browser:browser:1.8.0")
         force("androidx.activity:activity:1.9.3")

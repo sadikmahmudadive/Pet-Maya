@@ -1,24 +1,15 @@
-## Flutter wrapper & plugins
--keep class io.flutter.app.** { *; }
--keep class io.flutter.plugin.** { *; }
--keep class io.flutter.util.** { *; }
--keep class io.flutter.view.** { *; }
--keep class io.flutter.** { *; }
--keep class io.flutter.plugins.** { *; }
--dontwarn io.flutter.embedding.engine.deferredcomponents.**
+# R8 rules. Flutter, Firebase, Google Maps/Play services and WorkManager all ship their own consumer rules, so nothing
+# here keeps whole packages: blanket `-keep class pkg.** { *; }` rules stop R8 from shrinking and optimising that code.
 
-## Play Core (Suppresses missing optional deferred component classes)
+## Firebase finds its components by class name from the manifest and creates each registrar through its no-argument
+## constructor. The library rules keep the classes but not that constructor, so keep it (this replaces keeping all of
+## com.google.firebase.**).
+-keep class * implements com.google.firebase.components.ComponentRegistrar { <init>(); }
+
+## Play Core: the Flutter engine references the deferred-components classes, which this app does not use.
 -dontwarn com.google.android.play.core.**
 
-## Google Maps & Play Services
--keep class com.google.android.gms.maps.** { *; }
--keep interface com.google.android.gms.maps.** { *; }
--dontwarn com.google.android.gms.**
-
-## Firebase
--keep class com.google.firebase.** { *; }
--dontwarn com.google.firebase.**
-
-## AndroidX & WorkManager
--keep class androidx.work.** { *; }
--dontwarn androidx.work.**
+## firebase_app_check's SafetyNet provider is excluded from the build (see build.gradle.kts); only the plugin's own
+## reference to it remains and is never reached (the app activates Play Integrity / Debug only).
+-dontwarn com.google.firebase.appcheck.safetynet.**
+-dontwarn com.google.android.gms.safetynet.**
