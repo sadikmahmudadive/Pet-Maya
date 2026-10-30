@@ -9,6 +9,7 @@ export const BRAND = {
   footerBlurb: 'Genuine pet medicine, vet-reviewed food and smart gear — with a vet, symptom checker and GPS tracking in the same app.',
   supportPhone: '',            // e.g. '+880 1XXX-XXXXXX' — shown on emergency CTAs when set
   supportEmail: 'support@petmaya.app',
+  playStoreUrl: 'https://play.google.com/store/apps/details?id=com.vertexhand.petmaya&pcampaignid=web_share',
   copyright: `© ${new Date().getFullYear()} Pet Maya`,
 };
 

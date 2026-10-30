@@ -62,6 +62,14 @@ export async function awardPoints(user, points, note = '') {
   } catch (e) { return fail(e); }
 }
 
+/* Daily login reward: the claim_daily_points function gives +5 once per Bangladesh day (the server decides). */
+export async function claimDailyPoints() {
+  try {
+    const res = await httpsCallable(functions, 'claim_daily_points')();
+    return { awarded: res.data?.awarded === true, points: Number(res.data?.points) || 0, failed: false };
+  } catch (e) { return { awarded: false, points: 0, failed: true }; }
+}
+
 /* ── Notifications ─────────────────────────────────────────── */
 /* Stored at notifications/{uid}/items/{autoId} — the same path
    the mobile app's notification centre reads.                 */

@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useTheme } from '../context/ThemeContext.jsx';
 import { useMyPets, useProducts, useCategories, useMyOrders, useVets, useCoupons } from '../data/hooks.js';
 import { useDoc } from '../data/firestore.js';
-import { syncWishlist, syncSavedAddresses, isRealUser } from '../data/actions.js';
+import { syncWishlist, syncSavedAddresses, isRealUser, claimDailyPoints } from '../data/actions.js';
 import { DELIVERY, PROMOS } from '../data/content.js';
 import { track, toItem, trackContext } from './analytics.js';
 import { functions, httpsCallable } from '../config/firebase';
@@ -69,6 +69,20 @@ export function StoreProvider({ children }) {
     setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), opts.duration || 4200);
   }, []);
   const dismissToast = useCallback((id) => setToasts((t) => t.filter((x) => x.id !== id)), []);
+
+  // Daily login reward (+5 care points once per Bangladesh day). The server decides; the key only avoids repeat calls.
+  const dailyUid = isRealUser(currentUser) ? currentUser.uid : null;
+  useEffect(() => {
+    if (!dailyUid) return;
+    const day = new Date(Date.now() + 6 * 3600 * 1000).toISOString().slice(0, 10);
+    const key = `pm_daily:${dailyUid}`;
+    try { if (localStorage.getItem(key) === day) return; } catch { /* storage blocked: the server still limits it */ }
+    claimDailyPoints().then((res) => {
+      if (res.failed) return;
+      try { localStorage.setItem(key, day); } catch { /* ignore */ }
+      if (res.awarded) toast(`Daily reward: +${res.points} care points`);
+    });
+  }, [dailyUid, toast]);
 
   const addToCart = useCallback((p, { qty = 1, variant = '', variantLabel = '', coursePacks = 1, courseSavePct = 0, basePrice = null, sku = '', open = true, silent = false } = {}) => {
     const key = lineKey(p.id, variant);

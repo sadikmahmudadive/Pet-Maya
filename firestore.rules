@@ -102,7 +102,7 @@ service cloud.firestore {
     // Private: email, phone, address, push tokens. Other people's names and
     // photos come from public_profiles (kept in sync by a Cloud Function).
     function serverControlledUserFields() {
-      return ['isVerified', 'isSuspended', 'staffRole', 'referredBy', 'accountStatus'];
+      return ['isVerified', 'isSuspended', 'staffRole', 'referredBy', 'accountStatus', 'lastDailyRewardDate'];
     }
     function validNewUser(uid) {
       let d = request.resource.data;
@@ -111,6 +111,7 @@ service cloud.firestore {
         && d.get('isVerified', false) == false
         && d.get('isSuspended', false) == false
         && d.get('referredBy', null) == null
+        && d.get('lastDailyRewardDate', null) == null
         && d.get('points', 0) is number && d.get('points', 0) <= 25
         && d.get('uid', uid) == uid;
     }

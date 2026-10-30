@@ -623,6 +623,7 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
           break;
       }
       if (_notificationsSub == null) _listenToNotifications(user.uid);
+      unawaited(_maybeClaimDailyPoints(user.uid));
 
       if (user.latitude != null && user.longitude != null) {
         _calculateDynamicDistances(user.latitude!, user.longitude!);
@@ -638,6 +639,24 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
   void _setLoading(bool value) {
     _isLoading = value;
     notifyListeners();
+  }
+
+  /// "uid|yyyy-MM-dd" (Bangladesh time) of the last daily-reward check, so it runs once per user per day per session.
+  String? _dailyRewardCheckedFor;
+
+  /// Asks the server for the daily login reward (+5 points, once per Dhaka day). The server is the judge; this only
+  /// avoids repeating the call on every sync. Failures are silent: a missing reward must never get in the way of login.
+  Future<void> _maybeClaimDailyPoints(String uid) async {
+    final day = DateTime.now().toUtc().add(const Duration(hours: 6)).toIso8601String().substring(0, 10);
+    final key = '$uid|$day';
+    if (_dailyRewardCheckedFor == key) return;
+    _dailyRewardCheckedFor = key;
+    final res = await _firebase.claimDailyPoints();
+    if (res.awarded) {
+      showToast('Daily reward: +${res.points} points 🎁');
+    } else if (res.failed) {
+      _dailyRewardCheckedFor = null; // try again on the next sync
+    }
   }
 
   void _listenToPets(String ownerUID) {

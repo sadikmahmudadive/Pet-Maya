@@ -23,9 +23,9 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "com.vertexhand.petmaya"
-    // Google Play requires new releases to target Android 16 (API 36) or higher. These never go below 36, even if the
-    // installed Flutter's default is older; a newer Flutter default is still followed.
-    compileSdk = maxOf(flutter.compileSdkVersion, 36)
+    // The app targets Android 17 (API 37). These never go below 37, even if the installed Flutter's default is older;
+    // a newer Flutter default is still followed.
+    compileSdk = maxOf(flutter.compileSdkVersion, 37)
     ndkVersion = "28.2.13676358"
 
     compileOptions {
@@ -37,7 +37,7 @@ android {
     defaultConfig {
         applicationId = "com.vertexhand.petmaya"
         minSdk = flutter.minSdkVersion
-        targetSdk = maxOf(flutter.targetSdkVersion, 36)
+        targetSdk = maxOf(flutter.targetSdkVersion, 37)
         versionCode = flutter.versionCode
         versionName = flutter.versionName
         multiDexEnabled = true

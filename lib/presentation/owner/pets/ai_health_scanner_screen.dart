@@ -114,7 +114,9 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
     if (_issueController.text.trim().isEmpty && _selectedImageFile == null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Describe the issue or add a photo first')),
+          const SnackBar(
+            content: Text('Describe the issue or add a photo first'),
+          ),
         );
       }
       return;
@@ -277,7 +279,9 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    const Color(0xFF7C4DFF).withValues(alpha: isDark ? 0.22 : 0.10),
+                    const Color(
+                      0xFF7C4DFF,
+                    ).withValues(alpha: isDark ? 0.22 : 0.10),
                     Colors.transparent,
                   ],
                 ),
@@ -294,7 +298,9 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    const Color(0xFF00B4D8).withValues(alpha: isDark ? 0.20 : 0.08),
+                    const Color(
+                      0xFF00B4D8,
+                    ).withValues(alpha: isDark ? 0.20 : 0.08),
                     Colors.transparent,
                   ],
                 ),
@@ -313,7 +319,10 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
     );
   }
 
-  Widget _buildPortraitLayout(List<PetModel> pets, List<OtherAnimalModel> others) {
+  Widget _buildPortraitLayout(
+    List<PetModel> pets,
+    List<OtherAnimalModel> others,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -330,7 +339,10 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
     );
   }
 
-  Widget _buildLandscapeLayout(List<PetModel> pets, List<OtherAnimalModel> others) {
+  Widget _buildLandscapeLayout(
+    List<PetModel> pets,
+    List<OtherAnimalModel> others,
+  ) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -442,7 +454,9 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
                           const SizedBox(width: 10),
                           Text(
                             _selectedImageFile == null
-                                ? (_notMine ? 'Add Animal Photo' : 'Add Pet Photo')
+                                ? (_notMine
+                                      ? 'Add Animal Photo'
+                                      : 'Add Pet Photo')
                                 : 'Change Photo',
                             style: AppTypography.labelSmall.copyWith(
                               fontWeight: FontWeight.w600,
@@ -483,23 +497,37 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
       height: 20,
       decoration: BoxDecoration(
         border: Border(
-          top: corner < 2 ? const BorderSide(color: Color(0xFF00E5FF), width: 2.5) : BorderSide.none,
-          bottom: corner >= 2 ? const BorderSide(color: Color(0xFF00E5FF), width: 2.5) : BorderSide.none,
-          left: (corner == 0 || corner == 2) ? const BorderSide(color: Color(0xFF00E5FF), width: 2.5) : BorderSide.none,
-          right: (corner == 1 || corner == 3) ? const BorderSide(color: Color(0xFF00E5FF), width: 2.5) : BorderSide.none,
+          top: corner < 2
+              ? const BorderSide(color: Color(0xFF00E5FF), width: 2.5)
+              : BorderSide.none,
+          bottom: corner >= 2
+              ? const BorderSide(color: Color(0xFF00E5FF), width: 2.5)
+              : BorderSide.none,
+          left: (corner == 0 || corner == 2)
+              ? const BorderSide(color: Color(0xFF00E5FF), width: 2.5)
+              : BorderSide.none,
+          right: (corner == 1 || corner == 3)
+              ? const BorderSide(color: Color(0xFF00E5FF), width: 2.5)
+              : BorderSide.none,
         ),
       ),
     );
   }
 
   /// "My pet" / "Not my pet" switch, then whichever animal chooser belongs to the mode.
-  Widget _buildSubjectSection(List<PetModel> pets, List<OtherAnimalModel> others) {
+  Widget _buildSubjectSection(
+    List<PetModel> pets,
+    List<OtherAnimalModel> others,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildOwnershipToggle(),
         const SizedBox(height: 20),
-        if (_notMine) _buildOtherAnimalForm(others) else _buildPetSelector(pets),
+        if (_notMine)
+          _buildOtherAnimalForm(others)
+        else
+          _buildPetSelector(pets),
       ],
     );
   }
@@ -517,48 +545,55 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
           ? Colors.white
           : (isDark ? Colors.white : AppColors.textPrimary);
       return Expanded(
-        child: GestureDetector(
+        child: Semantics(
+          button: true,
+          selected: selected,
+          label: '$title. $hint',
+          excludeSemantics: true,
           onTap: onTap,
-          behavior: HitTestBehavior.opaque,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-            decoration: BoxDecoration(
-              color: selected ? AppColors.primary : Colors.transparent,
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: Row(
-              children: [
-                Icon(icon, size: 20, color: fg),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 13,
-                          color: fg,
+          child: GestureDetector(
+            onTap: onTap,
+            behavior: HitTestBehavior.opaque,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+              decoration: BoxDecoration(
+                color: selected ? AppColors.primary : Colors.transparent,
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: Row(
+                children: [
+                  Icon(icon, size: 20, color: fg),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 13,
+                            color: fg,
+                          ),
                         ),
-                      ),
-                      Text(
-                        hint,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          color: fg.withValues(alpha: 0.75),
+                        Text(
+                          hint,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: fg.withValues(alpha: 0.85),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -595,7 +630,11 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
     );
   }
 
-  Widget _otherField(TextEditingController controller, String hint, {int maxLength = 80}) {
+  Widget _otherField(
+    TextEditingController controller,
+    String hint, {
+    int maxLength = 80,
+  }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return PremiumCard(
       opacity: 0.15,
@@ -611,9 +650,14 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
         decoration: InputDecoration(
           hintText: hint,
           counterText: '',
-          hintStyle: TextStyle(color: Theme.of(context).hintColor.withValues(alpha: 0.5)),
+          hintStyle: TextStyle(
+            color: Theme.of(context).hintColor.withValues(alpha: 0.5),
+          ),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 16,
+          ),
         ),
       ),
     );
@@ -642,25 +686,42 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
-                    value: selected != null && saved.any((a) => a.id == selected.id) ? selected.id : 'new',
+                    value:
+                        selected != null &&
+                            saved.any((a) => a.id == selected.id)
+                        ? selected.id
+                        : 'new',
                     isExpanded: true,
-                    icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.primary),
+                    icon: const Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      color: AppColors.primary,
+                    ),
                     style: AppTypography.bodyLarge.copyWith(
                       fontWeight: FontWeight.w700,
                       color: isDark ? Colors.white : AppColors.textPrimary,
                     ),
-                    dropdownColor: isDark ? const Color(0xFF0D302D) : Colors.white,
+                    dropdownColor: isDark
+                        ? const Color(0xFF0D302D)
+                        : Colors.white,
                     items: [
-                      const DropdownMenuItem(value: 'new', child: Text('A new animal')),
+                      const DropdownMenuItem(
+                        value: 'new',
+                        child: Text('A new animal'),
+                      ),
                       ...saved.map(
                         (a) => DropdownMenuItem(
                           value: a.id,
-                          child: Text('${a.displayName} (${a.type})', overflow: TextOverflow.ellipsis),
+                          child: Text(
+                            '${a.displayName} (${a.type})',
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ),
                     ],
                     onChanged: (id) => setState(() {
-                      _selectedOther = id == null || id == 'new' ? null : saved.firstWhere((a) => a.id == id);
+                      _selectedOther = id == null || id == 'new'
+                          ? null
+                          : saved.firstWhere((a) => a.id == id);
                       _diagnosisResult = null;
                     }),
                   ),
@@ -675,7 +736,9 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
               child: Text(
                 '${selected.subtitle} · scanned ${selected.scanCount} time${selected.scanCount == 1 ? '' : 's'}'
                 '${selected.note.trim().isEmpty ? '' : ' · ${selected.note.trim()}'}',
-                style: AppTypography.bodySmall.copyWith(color: AppColors.textTertiary),
+                style: AppTypography.bodySmall.copyWith(
+                  color: AppColors.textTertiary,
+                ),
               ),
             )
           else ...[
@@ -693,11 +756,19 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
                   .toList(),
             ),
             const SizedBox(height: 12),
-            _otherField(_otherName, 'Name or nickname (optional)', maxLength: 60),
+            _otherField(
+              _otherName,
+              'Name or nickname (optional)',
+              maxLength: 60,
+            ),
             const SizedBox(height: 12),
             _otherField(_otherBreed, 'Breed or what it looks like (optional)'),
             const SizedBox(height: 12),
-            _otherField(_otherNote, 'Where did you see it? (optional)', maxLength: 200),
+            _otherField(
+              _otherNote,
+              'Where did you see it? (optional)',
+              maxLength: 200,
+            ),
           ],
         ],
       ),
@@ -761,7 +832,9 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
               padding: const EdgeInsets.only(top: 10, left: 4),
               child: Text(
                 "You haven't added a pet yet. Switch to 'Not my pet' to scan any animal.",
-                style: AppTypography.bodySmall.copyWith(color: AppColors.textTertiary),
+                style: AppTypography.bodySmall.copyWith(
+                  color: AppColors.textTertiary,
+                ),
               ),
             ),
         ],
@@ -798,7 +871,8 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
                     : AppColors.textPrimary,
               ),
               decoration: InputDecoration(
-                hintText: 'e.g. Mild redness and scratching behind left ear for 2 days.',
+                hintText:
+                    'e.g. Mild redness and scratching behind left ear for 2 days.',
                 hintStyle: AppTypography.bodyMedium.copyWith(
                   fontWeight: FontWeight.w400,
                   fontStyle: FontStyle.italic,
@@ -1094,7 +1168,11 @@ class _NotYourPetNote extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.travel_explore_rounded, color: AppColors.primary, size: 20),
+          const Icon(
+            Icons.travel_explore_rounded,
+            color: AppColors.primary,
+            size: 20,
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Text(

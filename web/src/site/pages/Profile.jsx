@@ -199,7 +199,7 @@ export default function Profile() {
                   }}
                 >Copy</button>
               </div>
-              <div className="sub" style={{ marginTop: 6 }}>They get 10% off their first order, you get care points.</div>
+              <div className="sub" style={{ marginTop: 6 }}>They get 10% off their first order, you get 100 care points. You also earn 5 care points every day you visit.</div>
             </div>
           )}
 

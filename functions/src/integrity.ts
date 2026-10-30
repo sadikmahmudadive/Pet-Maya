@@ -2,7 +2,8 @@
  * Server-side replacements for writes that clients used to make on other
  * people's documents, plus data the security rules rely on:
  *
- *  apply_referral         — credits a referrer (+5) once per user, transactionally.
+ *  apply_referral         — credits a referrer (+100) once per user, transactionally.
+ *  claim_daily_points     — +5 points once per Bangladesh calendar day for opening the app.
  *  sync_public_profile    — mirrors name/photo/role into public_profiles/{uid}, so
  *                           users/{uid} (email, phone, address) can stay private.
  *  stamp_record_owner     — stamps service_records.ownerId from the pet, which the
@@ -20,7 +21,8 @@ import * as crypto from "crypto";
 import * as admin from "firebase-admin";
 import { clip, isAdminRole, rateLimit, requireUser } from "./security";
 
-const REFERRAL_POINTS = 5;
+export const REFERRAL_POINTS = 100;
+export const DAILY_POINTS = 5;
 const FREE_DELIVERY_OVER = 2500;
 const INSIDE_DHAKA_FEE = 60;
 const INSIDE_DHAKA_EXPRESS_FEE = 120;
@@ -60,13 +62,39 @@ export const apply_referral = onCall(async (request) => {
     tx.set(meRef, { referredBy: code, referredAt: Date.now() }, { merge: true });
     tx.update(referrerRef, { points: admin.firestore.FieldValue.increment(REFERRAL_POINTS) });
     tx.set(db.collection("notifications").doc(referrerRef.id).collection("items").doc(), {
-      title: "🎉 +5 Referral Points Earned!",
+      title: `🎉 +${REFERRAL_POINTS} Referral Points Earned!`,
       message: `A friend just joined Pet Maya using your referral code ${code}. You received ${REFERRAL_POINTS} points!`,
       body: `A friend just joined Pet Maya using your referral code ${code}.`,
       type: "reward", category: "reward", timestamp: Date.now(), isRead: false, read: false,
     });
   });
   return { success: true };
+});
+
+/** The calendar day (YYYY-MM-DD) in Bangladesh time (UTC+6, no daylight saving) for a timestamp. */
+export function dhakaDayKey(ms: number): string {
+  return new Date(ms + 6 * 3600 * 1000).toISOString().slice(0, 10);
+}
+
+/**
+ * Daily login reward: +5 points the first time a signed-in user opens the app each Dhaka day. The day is stored in
+ * users/{uid}.lastDailyRewardDate, which clients cannot write (firestore.rules), so it can't be reset.
+ */
+export const claim_daily_points = onCall(async (request) => {
+  const { uid } = await requireUser(request);
+  await rateLimit("daily_points", uid, [{ limit: 20, seconds: 3600 }]);
+
+  const today = dhakaDayKey(Date.now());
+  const meRef = admin.firestore().collection("users").doc(uid);
+  return admin.firestore().runTransaction(async (tx) => {
+    const me = await tx.get(meRef);
+    if (!me.exists || me.data()?.lastDailyRewardDate === today) return { awarded: false, points: 0 };
+    tx.update(meRef, {
+      points: admin.firestore.FieldValue.increment(DAILY_POINTS),
+      lastDailyRewardDate: today,
+    });
+    return { awarded: true, points: DAILY_POINTS };
+  });
 });
 
 /** Fields anyone may see about a user (community author cards, reviews). */

@@ -279,7 +279,26 @@ class FirebaseService {
         .toList();
   }
 
-  /// Applies a referral code for the signed-in user. The referrer's +5 points
+  /// Daily login reward: the `claim_daily_points` function gives +5 points once per Bangladesh day. [failed] is true
+  /// when the call itself did not complete (offline, not signed in yet), so the caller can retry later.
+  Future<({bool awarded, int points, bool failed})> claimDailyPoints() async {
+    try {
+      final res = await FirebaseFunctions.instanceFor(region: 'us-central1')
+          .httpsCallable('claim_daily_points')
+          .call();
+      final data = Map<String, dynamic>.from(res.data as Map);
+      return (
+        awarded: data['awarded'] == true,
+        points: (data['points'] as num?)?.toInt() ?? 0,
+        failed: false,
+      );
+    } catch (e) {
+      debugPrint('[FirebaseService] claimDailyPoints error: $e');
+      return (awarded: false, points: 0, failed: true);
+    }
+  }
+
+  /// Applies a referral code for the signed-in user. The referrer's +100 points
   /// are credited by the `apply_referral` Cloud Function (clients can't write
   /// other users' documents), once per account.
   Future<({bool success, String? errorMessage})> applyReferralCode({

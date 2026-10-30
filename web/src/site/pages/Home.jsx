@@ -10,7 +10,7 @@ import RefillArt from '../RefillArt.jsx';
 import { speciesKind, productFitsPet, speciesShopPath } from '../../lib/species.js';
 import { money, cx, productPath } from '../../lib/format.js';
 import { Reveal, Count, useSpotlight } from '../../lib/motion.jsx';
-import { CATEGORIES, CONCERNS, CARE_KITS, BRANDS, PROMOS, DELIVERY, TRUST } from '../../data/content.js';
+import { CATEGORIES, CONCERNS, CARE_KITS, BRANDS, PROMOS, DELIVERY, TRUST, BRAND } from '../../data/content.js';
 import { SAMPLE_REVIEWS } from '../../data/sample.js';
 
 const FILTERS = [
@@ -390,7 +390,7 @@ export default function Home() {
             <p style={{ color: 'rgba(255,255,255,.75)', marginTop: 14, maxWidth: '46ch' }}>Order, track deliveries, talk to a vet and watch the GPS radar — one app, one pet profile.</p>
             <div className="row gap-10 wrap" style={{ marginTop: 24 }}>
               <Button className="btn-on-dark" icon="apple" to="https://apps.apple.com/">App Store</Button>
-              <Button className="btn-ghost-dark" variant="ghost" icon="playStore" to="https://play.google.com/store">Google Play</Button>
+              <Button className="btn-ghost-dark" variant="ghost" icon="playStore" to={BRAND.playStoreUrl} target="_blank" rel="noopener noreferrer">Get it on Google Play</Button>
             </div>
           </div>
           <div className="app-banner-visual">

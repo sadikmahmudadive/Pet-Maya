@@ -68,7 +68,7 @@ Notes: `firebase emulators:exec` on Windows often leaves a `java.exe` on port 80
 - `main.dart` boots: `.env` (flutter_dotenv) → Firebase → **App Check** (Play Integrity in release) → Crashlytics → home widgets → Workmanager. Navigation uses a global `TailWaggingApp.navigatorKey`; there is no named-route table.
 - Roles (`UserRole`): petOwner, veterinarian, grooming, boarding, shelter, petShop, admin. Login routes each role to its own home screen.
 - Pet species is **not trusted from storage**: `PetModel.resolvedSpecies` reads the breed (see Gotchas).
-- Reminders use native Android alarms via the MethodChannel `com.masa.petmaya/native_bridge` (`AlarmHelper.java`). Android 16: `targetSdk = max(flutter default, 36)`; native `PendingIntent`s are all `FLAG_IMMUTABLE`.
+- Reminders use native Android alarms via the MethodChannel `com.masa.petmaya/native_bridge` (`AlarmHelper.java`). Android 17: `targetSdk = max(flutter default, 37)`; native `PendingIntent`s are all `FLAG_IMMUTABLE`.
 
 ### Website
 - Custom router in `lib/router.jsx` (`match()` + `<Link>`; no react-router). Storefront routes are listed in `App.jsx` (`SITE_ROUTES`); the admin console is `src/admin/AdminApp.jsx`, shown when the path starts with `/admin` **or the host starts with `admin.`** (production admin is `admin.petmaya.app`, so `"/"` there is still the admin; see `lib/hosts.js`).
@@ -86,7 +86,8 @@ Notes: `firebase emulators:exec` on Windows often leaves a `java.exe` on port 80
 | `feed` (HTTP) | Product feeds `/feeds/meta.xml`, `google.xml`, `marketplace.xml`, built live from `products`; Rx products are excluded |
 | `openai_proxy` (callable) | All AI (health, nutrition, breed finder, shopping assistant). The OpenAI key is a Functions secret and never leaves the server |
 | `push_on_notification` | FCM push for each new `notifications/{uid}/items` doc, with a repeat guard (below) |
-| `send_broadcast`, `apply_referral`, `sync_public_profile`, `stamp_record_owner`, `backfill_security_data` | Admin broadcast, referral points, public profile mirror, record ownership, one-off backfill |
+| `claim_daily_points` (callable) | Daily login reward: +5 points once per **Bangladesh (UTC+6)** calendar day, stored in `users/{uid}.lastDailyRewardDate` (server-controlled in the rules, so clients can't reset it). Called by the app (`AppStateRepository._maybeClaimDailyPoints`, from `syncFromFirebase`) and the site (`lib/store.jsx`); no push notification, the client shows a toast |
+| `send_broadcast`, `apply_referral` (referrer gets **+100**), `sync_public_profile`, `stamp_record_owner`, `backfill_security_data` | Admin broadcast, referral points, public profile mirror, record ownership, one-off backfill |
 | `device_ingest`, `lora_ingest`, `get_tracker_key`, `mark_offline_devices`, `mark_offline_gateways` | IoT: collar/gateway telemetry (HMAC-signed), 5-minute offline sweeps |
 
 Config: `defineString` params with defaults plus `functions/.env.pet-maya` (git-ignored; copy from `functions/.env.example`). Secrets via `firebase functions:secrets:set` (`OPENAI_API_KEY`, `GA4_API_SECRET`, `META_CAPI_TOKEN`, `DEVICE_MASTER_SECRET`). Setting `META_PIXEL_ID` makes `META_CAPI_TOKEN` required at deploy.
@@ -125,4 +126,4 @@ App version = `pubspec.yaml` `version: x.y.z+build` (Android `versionName/versio
 
 ## Android / release notes
 
-AGP 9.1.1, Gradle 9.3.1, Kotlin 2.3.20, `compileSdk`/`targetSdk` ≥ 36, NDK 28 (16 KB page-size compliant; all native libs in the release APK were checked). Release signing reads `android/key.properties`; without it the build falls back to the debug key (fine for checks, not for upload). Package: `com.vertexhand.petmaya`.
+AGP 9.1.1, Gradle 9.3.1, Kotlin 2.3.20, `compileSdk`/`targetSdk` ≥ 37 (needs the SDK Platform `android-37.0` installed; the build downloaded it), NDK 28 (16 KB page-size compliant; all native libs in the release APK were checked). Release signing reads `android/key.properties`; without it the build falls back to the debug key (fine for checks, not for upload). Package: `com.vertexhand.petmaya`.

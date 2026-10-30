@@ -14,27 +14,34 @@ import '../../common_widgets/premium_toast.dart';
 import '../../common_widgets/resilient_network_image.dart';
 import 'ai_health_scanner_screen.dart';
 
-String _day(int millis) => millis <= 0 ? '' : DateTime.fromMillisecondsSinceEpoch(millis).toString().substring(0, 10);
+String _day(int millis) => millis <= 0
+    ? ''
+    : DateTime.fromMillisecondsSinceEpoch(millis).toString().substring(0, 10);
 
 /// The small "NOT YOUR PET" label used on the profile and in the lists.
 class NotYourPetBadge extends StatelessWidget {
   const NotYourPetBadge({super.key});
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    // Pale amber on a pale tint is unreadable in light mode, so use a darker shade there.
+    final textColor = isDark ? AppColors.accentAmber : const Color(0xFF8A5A00);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: AppColors.accentAmber.withValues(alpha: 0.14),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.accentAmber.withValues(alpha: 0.35)),
+        border: Border.all(
+          color: AppColors.accentAmber.withValues(alpha: 0.35),
+        ),
       ),
       child: Text(
         'NOT YOUR PET',
         style: TextStyle(
-          fontSize: 8.5,
+          fontSize: 10,
           fontWeight: FontWeight.w800,
           letterSpacing: 0.5,
-          color: AppColors.accentAmber.withValues(alpha: 0.95),
+          color: textColor,
         ),
       ),
     );
@@ -51,9 +58,15 @@ class OtherAnimalAvatar extends StatelessWidget {
     return CircleAvatar(
       radius: radius,
       backgroundColor: AppColors.accentAmber.withValues(alpha: 0.15),
-      backgroundImage: animal.photoUrl != null ? appImageProvider(animal.photoUrl!) : null,
+      backgroundImage: animal.photoUrl != null
+          ? appImageProvider(animal.photoUrl!)
+          : null,
       child: animal.photoUrl == null
-          ? Icon(Icons.pets_rounded, size: radius * 0.7, color: AppColors.accentAmber)
+          ? Icon(
+              Icons.pets_rounded,
+              size: radius * 0.7,
+              color: AppColors.accentAmber,
+            )
           : null,
     );
   }
@@ -62,7 +75,9 @@ class OtherAnimalAvatar extends StatelessWidget {
 void openScannerForNewAnimal(BuildContext context) {
   Navigator.push(
     context,
-    MaterialPageRoute(builder: (_) => const AiHealthScannerScreen(startAsNotMine: true)),
+    MaterialPageRoute(
+      builder: (_) => const AiHealthScannerScreen(startAsNotMine: true),
+    ),
   );
 }
 
@@ -82,14 +97,19 @@ class NotMyPetsScreen extends StatelessWidget {
         actions: [
           IconButton(
             tooltip: 'Scan an animal',
-            icon: const Icon(Icons.add_circle_rounded, color: AppColors.primary),
+            icon: const Icon(
+              Icons.add_circle_rounded,
+              color: AppColors.primary,
+            ),
             onPressed: () => openScannerForNewAnimal(context),
           ),
           const SizedBox(width: 8),
         ],
       ),
       body: CustomScrollView(
-        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
         slivers: [
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(20, 100, 20, 120),
@@ -131,7 +151,9 @@ class _AnimalTile extends StatelessWidget {
       child: PremiumCard(
         onTap: () => Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => OtherAnimalDetailScreen(animalId: animal.id)),
+          MaterialPageRoute(
+            builder: (_) => OtherAnimalDetailScreen(animalId: animal.id),
+          ),
         ),
         opacity: 0.3,
         borderRadius: 28,
@@ -149,14 +171,18 @@ class _AnimalTile extends StatelessWidget {
                       animal.displayName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.w800),
+                      style: AppTypography.titleMedium.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       animal.subtitle,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: AppTypography.bodySmall.copyWith(color: AppColors.textTertiary),
+                      style: AppTypography.bodySmall.copyWith(
+                        color: AppColors.textTertiary,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Wrap(
@@ -177,14 +203,20 @@ class _AnimalTile extends StatelessWidget {
                           ),
                         Text(
                           '${animal.scanCount} scan${animal.scanCount == 1 ? '' : 's'} · ${_day(animal.lastScanAt)}',
-                          style: AppTypography.labelSmall.copyWith(color: AppColors.textTertiary, fontSize: 10),
+                          style: AppTypography.labelSmall.copyWith(
+                            color: AppColors.textTertiary,
+                            fontSize: 10,
+                          ),
                         ),
                       ],
                     ),
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right_rounded, color: AppColors.textTertiary),
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: AppColors.textTertiary,
+              ),
             ],
           ),
         ),
@@ -199,7 +231,8 @@ class OtherAnimalDetailScreen extends StatefulWidget {
   const OtherAnimalDetailScreen({super.key, required this.animalId});
 
   @override
-  State<OtherAnimalDetailScreen> createState() => _OtherAnimalDetailScreenState();
+  State<OtherAnimalDetailScreen> createState() =>
+      _OtherAnimalDetailScreenState();
 }
 
 class _OtherAnimalDetailScreenState extends State<OtherAnimalDetailScreen> {
@@ -207,7 +240,9 @@ class _OtherAnimalDetailScreenState extends State<OtherAnimalDetailScreen> {
   int _loadedCount = -1;
 
   void _load() {
-    _scans = context.read<AppStateRepository>().fetchOtherAnimalScans(widget.animalId);
+    _scans = context.read<AppStateRepository>().fetchOtherAnimalScans(
+      widget.animalId,
+    );
   }
 
   Future<void> _delete(OtherAnimalModel animal) async {
@@ -216,9 +251,14 @@ class _OtherAnimalDetailScreenState extends State<OtherAnimalDetailScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text('Remove ${animal.displayName}?'),
-        content: const Text('This deletes the animal and all of its saved scan reports. It cannot be undone.'),
+        content: const Text(
+          'This deletes the animal and all of its saved scan reports. It cannot be undone.',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Keep')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Keep'),
+          ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: Text('Delete', style: TextStyle(color: AppColors.dangerRed)),
@@ -233,7 +273,11 @@ class _OtherAnimalDetailScreenState extends State<OtherAnimalDetailScreen> {
       if (mounted) Navigator.pop(context);
     } catch (_) {
       if (mounted) {
-        repo.showToast('Could not delete. Please try again.', type: ToastType.error, context: context);
+        repo.showToast(
+          'Could not delete. Please try again.',
+          type: ToastType.error,
+          context: context,
+        );
       }
     }
   }
@@ -241,11 +285,14 @@ class _OtherAnimalDetailScreenState extends State<OtherAnimalDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final animal = context.select(
-      (AppStateRepository s) => s.otherAnimals.where((a) => a.id == widget.animalId).firstOrNull,
+      (AppStateRepository s) =>
+          s.otherAnimals.where((a) => a.id == widget.animalId).firstOrNull,
     );
     if (animal == null) {
       // Deleted (or not loaded yet).
-      return const GlassScaffold(body: Center(child: CircularProgressIndicator()));
+      return const GlassScaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
     }
     // Reload the reports when a new scan is added from "Scan again".
     if (_scans == null || _loadedCount != animal.scanCount) {
@@ -261,7 +308,10 @@ class _OtherAnimalDetailScreenState extends State<OtherAnimalDetailScreen> {
         actions: [
           IconButton(
             tooltip: 'Remove',
-            icon: Icon(Icons.delete_outline_rounded, color: AppColors.dangerRed),
+            icon: Icon(
+              Icons.delete_outline_rounded,
+              color: AppColors.dangerRed,
+            ),
             onPressed: () => _delete(animal),
           ),
           const SizedBox(width: 8),
@@ -287,7 +337,12 @@ class _OtherAnimalDetailScreenState extends State<OtherAnimalDetailScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(animal.subtitle, style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.w800)),
+                            Text(
+                              animal.subtitle,
+                              style: AppTypography.titleMedium.copyWith(
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
                             const SizedBox(height: 6),
                             const NotYourPetBadge(),
                           ],
@@ -300,9 +355,18 @@ class _OtherAnimalDetailScreenState extends State<OtherAnimalDetailScreen> {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.place_outlined, size: 16, color: AppColors.textTertiary),
+                        const Icon(
+                          Icons.place_outlined,
+                          size: 16,
+                          color: AppColors.textTertiary,
+                        ),
                         const SizedBox(width: 8),
-                        Expanded(child: Text(animal.note.trim(), style: AppTypography.bodySmall)),
+                        Expanded(
+                          child: Text(
+                            animal.note.trim(),
+                            style: AppTypography.bodySmall,
+                          ),
+                        ),
                       ],
                     ),
                   ],
@@ -310,11 +374,23 @@ class _OtherAnimalDetailScreenState extends State<OtherAnimalDetailScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
-                      icon: const Icon(Icons.document_scanner_rounded, size: 18),
-                      label: const Text('SCAN AGAIN', style: TextStyle(fontWeight: FontWeight.w700, letterSpacing: 0.6)),
+                      icon: const Icon(
+                        Icons.document_scanner_rounded,
+                        size: 18,
+                      ),
+                      label: const Text(
+                        'SCAN AGAIN',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.6,
+                        ),
+                      ),
                       onPressed: () => Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => AiHealthScannerScreen(initialOtherAnimal: animal)),
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              AiHealthScannerScreen(initialOtherAnimal: animal),
+                        ),
                       ),
                     ),
                   ),
@@ -343,11 +419,21 @@ class _OtherAnimalDetailScreenState extends State<OtherAnimalDetailScreen> {
                 );
               }
               if (snap.hasError) {
-                return Text('Could not load the reports. Check your connection and try again.', style: AppTypography.bodySmall);
+                return Text(
+                  'Could not load the reports. Check your connection and try again.',
+                  style: AppTypography.bodySmall,
+                );
               }
               final scans = snap.data ?? const <OtherAnimalScan>[];
-              if (scans.isEmpty) return Text('No reports saved yet.', style: AppTypography.bodySmall);
-              return Column(children: scans.map((s) => _ScanTile(scan: s)).toList());
+              if (scans.isEmpty) {
+                return Text(
+                  'No reports saved yet.',
+                  style: AppTypography.bodySmall,
+                );
+              }
+              return Column(
+                children: scans.map((s) => _ScanTile(scan: s)).toList(),
+              );
             },
           ),
         ],
@@ -363,7 +449,9 @@ class _ScanTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = scan.urgent ? AppColors.dangerRed : AppColors.primary;
-    final thumb = scan.imageUrl != null ? appImageProvider(scan.imageUrl!) : null;
+    final thumb = scan.imageUrl != null
+        ? appImageProvider(scan.imageUrl!)
+        : null;
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: PremiumCard(
@@ -372,27 +460,44 @@ class _ScanTile extends StatelessWidget {
         child: Theme(
           data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
           child: ExpansionTile(
-            tilePadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 4),
+            tilePadding: const EdgeInsets.symmetric(
+              horizontal: 18,
+              vertical: 4,
+            ),
             childrenPadding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
             leading: thumb != null
                 ? ClipRRect(
                     borderRadius: BorderRadius.circular(10),
-                    child: Image(image: thumb, width: 44, height: 44, fit: BoxFit.cover),
+                    child: Image(
+                      image: thumb,
+                      width: 44,
+                      height: 44,
+                      fit: BoxFit.cover,
+                    ),
                   )
                 : Icon(Icons.auto_awesome_rounded, color: color),
             title: Text(
               _day(scan.timestamp),
-              style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.w800),
+              style: AppTypography.bodyMedium.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
             ),
             subtitle: Text(
               scan.issue.isEmpty ? 'Photo scan' : scan.issue,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: AppTypography.bodySmall.copyWith(color: AppColors.textTertiary),
+              style: AppTypography.bodySmall.copyWith(
+                color: AppColors.textTertiary,
+              ),
             ),
             trailing: Text(
               scan.urgent ? 'URGENT' : 'ADVISORY',
-              style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: 0.5, color: color),
+              style: TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.5,
+                color: color,
+              ),
             ),
             children: [FormattedAiReport(text: scan.diagnosis)],
           ),

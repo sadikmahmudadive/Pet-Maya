@@ -77,6 +77,7 @@ test('users: sign-up cannot self-grant admin, verification, staff access or poin
   await assertFails(setDoc(doc(db, 'users', 'newbie'), { ...base, staffRole: 'Manager' }));
   await assertFails(setDoc(doc(db, 'users', 'newbie'), { ...base, points: 100000 }));
   await assertFails(setDoc(doc(db, 'users', 'newbie'), { ...base, referredBy: 'PMXXXXXX' }));
+  await assertFails(setDoc(doc(db, 'users', 'newbie'), { ...base, lastDailyRewardDate: '2020-01-01' }));
   await assertFails(setDoc(doc(as('newbie'), 'users', 'someone_else'), base));
   await assertSucceeds(setDoc(doc(db, 'users', 'newbie'), { ...base, role: 'veterinarian' }));
 });
@@ -88,6 +89,8 @@ test('users: self-updates are limited to profile fields', async () => {
   await assertFails(updateDoc(doc(db, 'users', 'alice'), { points: increment(-5) }));
   await assertFails(updateDoc(doc(db, 'users', 'alice'), { points: increment(100000) }));
   await assertFails(updateDoc(doc(db, 'users', 'alice'), { isVerified: true }));
+  // the daily-reward day is written only by claim_daily_points, so it can't be reset to claim twice
+  await assertFails(updateDoc(doc(db, 'users', 'alice'), { lastDailyRewardDate: '2020-01-01' }));
   await assertFails(updateDoc(doc(db, 'users', 'alice'), { staffRole: 'Manager' }));
   await assertFails(updateDoc(doc(db, 'users', 'alice'), { role: 'Super Admin' }));
   await assertFails(updateDoc(doc(db, 'users', 'alice'), { isSuspended: false, referredBy: 'X' }));

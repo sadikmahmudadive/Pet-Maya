@@ -15,12 +15,12 @@ subprojects {
     afterEvaluate {
         if (plugins.hasPlugin("com.android.library")) {
             extensions.configure<com.android.build.api.dsl.LibraryExtension> {
-                compileSdk = 36
+                compileSdk = 37
             }
         }
         if (plugins.hasPlugin("com.android.application")) {
             extensions.configure<com.android.build.api.dsl.ApplicationExtension> {
-                compileSdk = 36
+                compileSdk = 37
             }
         }
     }

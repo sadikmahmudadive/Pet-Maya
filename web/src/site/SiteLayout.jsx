@@ -303,6 +303,7 @@ function Footer() {
               <div className="eyebrow muted">Care</div>
               <Link to="/specialists">Book a vet</Link><Link to="/triage">AI Triage</Link>
               <Link to="/gps">GPS Radar</Link><Link to="/halo">Maya Halo collar</Link><Link to="/vault">Health Vault</Link>
+              <Link to={BRAND.playStoreUrl} target="_blank" rel="noopener noreferrer">Android app on Google Play</Link>
             </div>
             <div>
               <div className="eyebrow muted">Help</div>

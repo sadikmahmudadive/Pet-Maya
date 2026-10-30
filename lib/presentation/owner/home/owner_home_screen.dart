@@ -1294,7 +1294,7 @@ class HomeDashboardFragment extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Earn +5 points for every friend who joins',
+                        'Earn +100 points for every friend who joins',
                         style: TextStyle(
                           fontSize: 12,
                           color: isDark ? Colors.white60 : Colors.grey[600],

@@ -1269,7 +1269,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'New users get 15 initial points. Earn +5 points for every friend who joins with your code!',
+                          'New users get 15 initial points. Earn +100 points for every friend who joins with your code, plus 5 points every day you open the app!',
                           style: TextStyle(
                             fontSize: 12,
                             color: isDark
@@ -1510,7 +1510,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Enter a friend\'s referral code to award them +5 reward points!',
+              'Enter a friend\'s referral code to award them +100 reward points!',
               style: TextStyle(fontSize: 13, height: 1.4),
             ),
             const SizedBox(height: 16),
