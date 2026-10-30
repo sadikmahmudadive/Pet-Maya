@@ -19,6 +19,7 @@ import '../models/notification_model.dart';
 import '../models/blog_post_model.dart';
 import '../models/coupon_model.dart';
 import '../models/promo_model.dart';
+import '../models/other_animal_model.dart';
 import '../models/user_model.dart' as app_models;
 
 /// FirebaseService handles all Firestore and Auth operations with offline-first persistence.
@@ -69,6 +70,7 @@ class FirebaseService {
   CollectionReference get _blogsCol => _db.collection('blogs');
   CollectionReference get _couponsCol => _db.collection('coupons');
   CollectionReference get _promosCol => _db.collection('promos');
+  CollectionReference get _otherAnimalsCol => _db.collection('other_animals');
 
   // ─── AUTH ────────────────────────────────────────────────────────────────
 
@@ -373,6 +375,56 @@ class FirebaseService {
 
   Future<void> deletePet(String petId) async {
     await _petsCol.doc(petId).delete();
+  }
+
+  // ─── NOT-MY-PET ANIMALS (strays, friends' pets scanned with the AI health scanner) ──────────────────
+
+  Stream<List<OtherAnimalModel>> streamOtherAnimals(String ownerUID) {
+    return _otherAnimalsCol.where('ownerID', isEqualTo: ownerUID).snapshots().map((snap) {
+      final list = snap.docs
+          .map((d) => OtherAnimalModel.fromMap(d.id, d.data()! as Map<String, dynamic>))
+          .toList();
+      list.sort((a, b) => b.lastScanAt.compareTo(a.lastScanAt));
+      return list;
+    });
+  }
+
+  /// Saves the animal and one new scan together, so an animal is never left without the scan it was saved for.
+  Future<void> saveOtherAnimalWithScan(OtherAnimalModel animal, OtherAnimalScan scan) async {
+    final animalRef = _otherAnimalsCol.doc(animal.id);
+    final batch = _db.batch();
+    batch.set(animalRef, animal.toMap(), SetOptions(merge: true));
+    batch.set(animalRef.collection('scans').doc(scan.id), scan.toMap());
+    await batch.commit();
+  }
+
+  Future<void> updateOtherAnimal(OtherAnimalModel animal) async {
+    await _otherAnimalsCol.doc(animal.id).set(animal.toMap(), SetOptions(merge: true));
+  }
+
+  Future<List<OtherAnimalScan>> fetchOtherAnimalScans(String animalId) async {
+    final snap = await _otherAnimalsCol
+        .doc(animalId)
+        .collection('scans')
+        .orderBy('timestamp', descending: true)
+        .limit(50)
+        .get();
+    return snap.docs.map((d) => OtherAnimalScan.fromMap(d.id, d.data())).toList();
+  }
+
+  /// Deletes the animal and its scans (Firestore does not remove a subcollection with its parent).
+  Future<void> deleteOtherAnimal(String animalId) async {
+    final ref = _otherAnimalsCol.doc(animalId);
+    while (true) {
+      final scans = await ref.collection('scans').limit(400).get();
+      if (scans.docs.isEmpty) break;
+      final batch = _db.batch();
+      for (final d in scans.docs) {
+        batch.delete(d.reference);
+      }
+      await batch.commit();
+    }
+    await ref.delete();
   }
 
   // ─── EVENTS / CALENDAR ───────────────────────────────────────────────────

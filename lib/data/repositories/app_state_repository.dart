@@ -23,6 +23,8 @@ import '../models/review_model.dart';
 import '../models/blog_post_model.dart';
 import '../models/coupon_model.dart';
 import '../models/promo_model.dart';
+import '../models/other_animal_model.dart';
+import '../../core/services/firebase_storage_service.dart';
 import '../services/realtime_database_service.dart';
 import '../models/pet_device_model.dart';
 import '../services/firebase_service.dart';
@@ -156,6 +158,8 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
   String? get syncError => _syncError;
 
   final List<PetModel> _pets = [];
+  // Animals scanned with the AI health scanner that are not the user's own pets (strays, friends' pets).
+  final List<OtherAnimalModel> _otherAnimals = [];
   final List<PetDeviceModel> _devices = [];
   final List<EventModel> _events = [];
   final List<ProductModel> _products = [];
@@ -186,6 +190,7 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
 
   // ─── Managed Stream Subscriptions (Prevents Memory & Listener Leaks) ───
   StreamSubscription? _petsSub;
+  StreamSubscription? _otherAnimalsSub;
   StreamSubscription? _vetsSub;
   StreamSubscription? _productsSub;
   StreamSubscription? _eventsSub;
@@ -203,6 +208,8 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
   void cancelAllSubscriptions() {
     _petsSub?.cancel();
     _petsSub = null;
+    _otherAnimalsSub?.cancel();
+    _otherAnimalsSub = null;
     _vetsSub?.cancel();
     _vetsSub = null;
     _productsSub?.cancel();
@@ -234,6 +241,7 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
   }
 
   List<PetModel> get pets => List.unmodifiable(_pets);
+  List<OtherAnimalModel> get otherAnimals => List.unmodifiable(_otherAnimals);
   List<PetDeviceModel> get devices => List.unmodifiable(_devices);
   List<BlogPostModel> get blogs => List.unmodifiable(_blogs);
   List<CouponModel> get coupons => List.unmodifiable(_coupons);
@@ -577,6 +585,7 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
       }
       if (_couponsSub == null) _loadCoupons();
       if (_promosSub == null) _loadPromos();
+      if (_otherAnimalsSub == null) _listenToOtherAnimals(user.uid);
 
       switch (user.role) {
         case UserRole.petOwner:
@@ -643,6 +652,19 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
       },
       onError: (e) =>
           debugPrint('[AppStateRepository] _listenToPets error: $e'),
+    );
+  }
+
+  void _listenToOtherAnimals(String ownerUID) {
+    _otherAnimalsSub?.cancel();
+    _otherAnimalsSub = _firebase.streamOtherAnimals(ownerUID).listen(
+      (fetched) {
+        _otherAnimals
+          ..clear()
+          ..addAll(fetched);
+        _debouncedNotify();
+      },
+      onError: (Object e) => debugPrint('[AppStateRepository] _listenToOtherAnimals error: $e'),
     );
   }
 
@@ -1213,6 +1235,7 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
     await _firebase.signOut();
     _currentUser = null;
     _pets.clear();
+    _otherAnimals.clear();
     _events.clear();
     _orders.clear();
     _serviceRecords.clear();
@@ -1378,25 +1401,129 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
     }
   }
 
+  /// [isOwned] false means the animal is not the user's pet (a stray, a neighbour's or a rescue). The report is then
+  /// written for a member of the public: no assumed history, and safe-handling advice. The context is sent both as
+  /// fields (for the server) and in the prompt text itself, so it also works with a server that predates the fields.
   Future<String> runAiHealthDiagnosis({
     required String petName,
     required String prompt,
     File? imageFile,
+    bool isOwned = true,
+    String? species,
+    String? breed,
+    String? where,
   }) async {
     try {
       String? base64Image;
       if (imageFile != null) {
         base64Image = base64Encode(await imageFile.readAsBytes());
       }
+      var fullPrompt = prompt;
+      if (!isOwned) {
+        final kind = (species == null || species.isEmpty) ? 'animal' : species.toLowerCase();
+        fullPrompt = 'IMPORTANT CONTEXT: this is NOT my pet. It is a $kind I came across'
+            '${(where != null && where.trim().isNotEmpty) ? ' (${where.trim()})' : ''}, so I do not know its history, '
+            'age or vaccinations and I cannot handle it freely. Give advice a member of the public can follow '
+            'safely: keep clear of bites and scratches, do not give human medicine or food, and say when to contact '
+            'a vet or an animal rescue.'
+            '${(breed != null && breed.trim().isNotEmpty) ? ' Looks like: ${breed.trim()}.' : ''}'
+            '\n\n$prompt';
+      }
       final result = await _callAiProxy('health_diagnosis', {
         'petName': petName,
-        'prompt': prompt,
+        'prompt': fullPrompt,
         'image': base64Image,
+        'isOwned': isOwned,
+        'species': ?species,
       });
       return result['response'].toString();
     } catch (e) {
       return "AI Error: $e";
     }
+  }
+
+  /// Saves a scan of an animal that is not the user's pet. A new animal is created from [existing] == null; with an
+  /// [existing] animal the scan is added to it. The photo (if any) is uploaded first and used as the animal's picture.
+  /// Returns the saved animal, or null when something failed (the error is in [lastOtherAnimalError]).
+  String? lastOtherAnimalError;
+
+  Future<OtherAnimalModel?> saveNotMyPetScan({
+    OtherAnimalModel? existing,
+    required String type,
+    String name = '',
+    String breed = '',
+    String note = '',
+    File? photo,
+    required String issue,
+    required String diagnosis,
+  }) async {
+    lastOtherAnimalError = null;
+    final uid = _currentUser?.uid;
+    if (uid == null) {
+      lastOtherAnimalError = 'Please sign in first.';
+      return null;
+    }
+    try {
+      String? photoUrl;
+      if (photo != null) {
+        final storage = FirebaseStorageService();
+        photoUrl = await storage.uploadImage(photo, 'pets');
+        if (photoUrl == null) {
+          lastOtherAnimalError = storage.lastError ?? 'The photo could not be uploaded.';
+          return null;
+        }
+      }
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final urgent = OtherAnimalScan.isUrgent(diagnosis);
+      final base = existing ??
+          OtherAnimalModel(
+            id: 'oa_${_uuid.v4().substring(0, 8)}',
+            ownerID: uid,
+            name: name,
+            type: type,
+            breed: breed,
+            note: note,
+            createdAt: now,
+            lastScanAt: now,
+          );
+      final animal = base.copyWith(
+        // A new photo becomes the picture; the first scan sets the details, later scans only add a photo.
+        photoUrl: photoUrl ?? base.photoUrl,
+        lastScanAt: now,
+        scanCount: base.scanCount + 1,
+        lastUrgent: urgent,
+      );
+      final scan = OtherAnimalScan(
+        id: 'scan_${_uuid.v4().substring(0, 8)}',
+        issue: issue,
+        diagnosis: diagnosis,
+        urgent: urgent,
+        imageUrl: photoUrl,
+        timestamp: now,
+      );
+      await _firebase.saveOtherAnimalWithScan(animal, scan);
+      final i = _otherAnimals.indexWhere((a) => a.id == animal.id);
+      if (i == -1) {
+        _otherAnimals.insert(0, animal);
+      } else {
+        _otherAnimals[i] = animal;
+      }
+      notifyListeners();
+      return animal;
+    } catch (e) {
+      debugPrint('[AppStateRepository] saveNotMyPetScan error: $e');
+      lastOtherAnimalError = 'Could not save this animal. Please try again.';
+      return null;
+    }
+  }
+
+  Future<List<OtherAnimalScan>> fetchOtherAnimalScans(String animalId) =>
+      _firebase.fetchOtherAnimalScans(animalId);
+
+  Future<void> deleteOtherAnimal(String animalId) async {
+    await _firebase.deleteOtherAnimal(animalId);
+    _otherAnimals.removeWhere((a) => a.id == animalId);
+    notifyListeners();
   }
 
   Future<void> saveAiDiagnosisToPetRecord({

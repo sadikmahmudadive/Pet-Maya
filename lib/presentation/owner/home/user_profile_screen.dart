@@ -8,6 +8,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../data/models/user_model.dart';
 import '../../../data/models/pet_model.dart';
+import '../../../data/models/other_animal_model.dart';
 import '../../../data/repositories/app_state_repository.dart';
 import '../../../core/services/firebase_storage_service.dart';
 import '../../common_widgets/premium_card.dart';
@@ -16,6 +17,7 @@ import '../services/favorite_vets_screen.dart';
 import '../services/my_appointments_screen.dart';
 import '../shop/orders_screen.dart';
 import '../pets/my_pets_screen.dart';
+import '../pets/not_my_pets_screen.dart';
 import '../devices/my_devices_screen.dart';
 import '../../common_widgets/tail_wagging_loader.dart';
 import '../../common_widgets/pet_refresh_indicator.dart';
@@ -89,6 +91,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   Widget build(BuildContext context) {
     final user = context.select((AppStateRepository s) => s.currentUser);
     final pets = context.select((AppStateRepository s) => s.pets);
+    final otherAnimals = context.select((AppStateRepository s) => s.otherAnimals);
     final state = context.read<AppStateRepository>();
 
     if (user == null) {
@@ -232,6 +235,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
                     // Pet Family Section
                     _buildPetFamilySection(context, pets),
+                    const SizedBox(height: 32),
+
+                    // Animals scanned that are not the user's own pets
+                    _buildNotMyPetsSection(context, otherAnimals),
                     const SizedBox(height: 32),
 
                     // Contact Card
@@ -597,6 +604,126 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       child: pet.photoUrl == null
                           ? const Icon(Icons.pets, size: 16)
                           : null,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+      ],
+    );
+  }
+
+  /// Strays and other people's pets saved from the AI Health Scanner, kept apart from Pet Family above.
+  Widget _buildNotMyPetsSection(BuildContext context, List<OtherAnimalModel> animals) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _buildSectionHeader('Not Your Pets'),
+            if (animals.isNotEmpty)
+              TextButton(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const NotMyPetsScreen()),
+                ),
+                child: const Text(
+                  'VIEW ALL',
+                  style: TextStyle(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 10,
+                  ),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        if (animals.isEmpty)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Animals you scan that aren't yours, like a stray or a friend's pet, are saved here.",
+                style: AppTypography.bodyMedium,
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: () => openScannerForNewAnimal(context),
+                icon: const Icon(Icons.travel_explore_rounded, size: 18),
+                label: const Text('Scan an animal'),
+              ),
+            ],
+          )
+        else
+          SizedBox(
+            height: 112,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              itemCount: animals.length + 1,
+              itemBuilder: (context, index) {
+                if (index == animals.length) {
+                  return GestureDetector(
+                    onTap: () => openScannerForNewAnimal(context),
+                    child: SizedBox(
+                      width: 76,
+                      child: Column(
+                        children: [
+                          Container(
+                            width: 68,
+                            height: 68,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(color: AppColors.borderLight, width: 2),
+                            ),
+                            child: const Icon(Icons.add_rounded, color: AppColors.primary),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            'Scan new',
+                            style: AppTypography.labelSmall.copyWith(fontSize: 10, fontWeight: FontWeight.w700),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+                final animal = animals[index];
+                return GestureDetector(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => OtherAnimalDetailScreen(animalId: animal.id)),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 12),
+                    child: SizedBox(
+                      width: 76,
+                      child: Column(
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: animal.lastUrgent ? AppColors.dangerRed : AppColors.accentAmber,
+                                width: 2,
+                              ),
+                            ),
+                            child: OtherAnimalAvatar(animal: animal, radius: 32),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            animal.displayName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTypography.labelSmall.copyWith(fontSize: 10, fontWeight: FontWeight.w700),
+                          ),
+                          const SizedBox(height: 2),
+                          const NotYourPetBadge(),
+                        ],
+                      ),
                     ),
                   ),
                 );

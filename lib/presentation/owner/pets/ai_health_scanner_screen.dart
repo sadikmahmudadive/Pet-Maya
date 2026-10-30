@@ -6,6 +6,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../data/repositories/app_state_repository.dart';
 import '../../../data/models/pet_model.dart';
+import '../../../data/models/other_animal_model.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
 import 'package:animate_do/animate_do.dart';
@@ -18,16 +19,35 @@ import '../services/pet_services_screen.dart';
 
 class AiHealthScannerScreen extends StatefulWidget {
   final PetModel? initialPet;
-  const AiHealthScannerScreen({super.key, this.initialPet});
+
+  /// Opens the scanner for an animal that is not the user's pet (for example "Scan again" from the profile).
+  final OtherAnimalModel? initialOtherAnimal;
+
+  /// Opens in "Not my pet" mode for a new animal.
+  final bool startAsNotMine;
+  const AiHealthScannerScreen({
+    super.key,
+    this.initialPet,
+    this.initialOtherAnimal,
+    this.startAsNotMine = false,
+  });
   @override
   State<AiHealthScannerScreen> createState() => _AiHealthScannerScreenState();
 }
 
 class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
-  final _issueController = TextEditingController(
-    text: 'Mild redness and scratching behind left ear for 2 days.',
-  );
+  final _issueController = TextEditingController();
   PetModel? _selectedPet;
+
+  // "Not my pet" mode: a stray, a neighbour's or a friend's animal. Saved separately from Pet Family.
+  bool _notMine = false;
+  OtherAnimalModel? _selectedOther; // null = a new animal
+  String _otherType = 'Dog';
+  final _otherName = TextEditingController();
+  final _otherBreed = TextEditingController();
+  final _otherNote = TextEditingController();
+  bool _isSaving = false;
+
   bool _isLoading = false;
   String? _diagnosisResult;
   File? _selectedImageFile;
@@ -37,11 +57,21 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
   void initState() {
     super.initState();
     final pets = context.read<AppStateRepository>().pets;
-    _selectedPet = widget.initialPet ?? (pets.isNotEmpty ? pets.first : null);
+    if (widget.initialOtherAnimal != null || widget.startAsNotMine) {
+      _notMine = true;
+      _selectedOther = widget.initialOtherAnimal;
+    } else {
+      _selectedPet = widget.initialPet ?? (pets.isNotEmpty ? pets.first : null);
+      // Someone with no pets of their own can still use the scanner, for any animal.
+      _notMine = _selectedPet == null;
+    }
   }
 
   @override
   void dispose() {
+    _otherName.dispose();
+    _otherBreed.dispose();
+    _otherNote.dispose();
     _issueController.dispose();
     super.dispose();
   }
@@ -73,10 +103,18 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
       }
       return;
     }
-    if (_selectedPet == null) {
+    if (!_notMine && _selectedPet == null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Please select a pet first')),
+        );
+      }
+      return;
+    }
+    if (_issueController.text.trim().isEmpty && _selectedImageFile == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Describe the issue or add a photo first')),
         );
       }
       return;
@@ -85,17 +123,79 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
       _isLoading = true;
       _diagnosisResult = null;
     });
-    final result = await repo.runAiHealthDiagnosis(
-      petName: _selectedPet!.name,
-      prompt: _issueController.text.trim(),
-      imageFile: _selectedImageFile,
-    );
+    final other = _selectedOther;
+    final result = _notMine
+        ? await repo.runAiHealthDiagnosis(
+            petName: _otherDisplayName,
+            prompt: _issueController.text.trim(),
+            imageFile: _selectedImageFile,
+            isOwned: false,
+            species: other?.type ?? _otherType,
+            breed: other?.breed ?? _otherBreed.text,
+            where: other?.note ?? _otherNote.text,
+          )
+        : await repo.runAiHealthDiagnosis(
+            petName: _selectedPet!.name,
+            prompt: _issueController.text.trim(),
+            imageFile: _selectedImageFile,
+          );
     if (mounted) {
       setState(() {
         _isLoading = false;
         _diagnosisResult = result;
       });
     }
+  }
+
+  String get _otherDisplayName {
+    final other = _selectedOther;
+    if (other != null) return other.displayName;
+    final name = _otherName.text.trim();
+    return name.isNotEmpty ? name : 'Unnamed ${_otherType.toLowerCase()}';
+  }
+
+  void _setNotMine(bool value) {
+    if (_notMine == value) return;
+    HapticFeedback.selectionClick();
+    setState(() {
+      _notMine = value;
+      // A report belongs to the animal it was made for, so it is not carried over to the other mode.
+      _diagnosisResult = null;
+    });
+  }
+
+  /// Saves the scan under "Not your pets" on the profile, creating the animal first when it is a new one.
+  Future<void> _saveNotMyPet() async {
+    if (_diagnosisResult == null || _isSaving) return;
+    final repo = context.read<AppStateRepository>();
+    HapticFeedback.mediumImpact();
+    setState(() => _isSaving = true);
+    final other = _selectedOther;
+    final animal = await repo.saveNotMyPetScan(
+      existing: other,
+      type: _otherType,
+      name: _otherName.text,
+      breed: _otherBreed.text,
+      note: _otherNote.text,
+      photo: _selectedImageFile,
+      issue: _issueController.text.trim(),
+      diagnosis: _diagnosisResult!,
+    );
+    if (!mounted) return;
+    setState(() => _isSaving = false);
+    if (animal == null) {
+      repo.showToast(
+        repo.lastOtherAnimalError ?? 'Could not save this animal.',
+        type: ToastType.error,
+        context: context,
+      );
+      return;
+    }
+    repo.showToast(
+      "Saved ${animal.displayName} under Not Your Pets ✅",
+      context: context,
+    );
+    Navigator.pop(context);
   }
 
   void _saveToMedicalRecords() async {
@@ -145,6 +245,7 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
   @override
   Widget build(BuildContext context) {
     final pets = context.watch<AppStateRepository>().pets;
+    final others = context.watch<AppStateRepository>().otherAnimals;
     final orientation = MediaQuery.of(context).orientation;
     final isLandscape = orientation == Orientation.landscape;
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -204,21 +305,21 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
             physics: const BouncingScrollPhysics(),
             padding: EdgeInsets.fromLTRB(20, topPadding, 20, 40),
             child: isLandscape
-                ? _buildLandscapeLayout(pets)
-                : _buildPortraitLayout(pets),
+                ? _buildLandscapeLayout(pets, others)
+                : _buildPortraitLayout(pets, others),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildPortraitLayout(List<PetModel> pets) {
+  Widget _buildPortraitLayout(List<PetModel> pets, List<OtherAnimalModel> others) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildImagePicker(),
         const SizedBox(height: 32),
-        _buildPetSelector(pets),
+        _buildSubjectSection(pets, others),
         const SizedBox(height: 24),
         _buildIssueDescription(),
         const SizedBox(height: 40),
@@ -229,7 +330,7 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
     );
   }
 
-  Widget _buildLandscapeLayout(List<PetModel> pets) {
+  Widget _buildLandscapeLayout(List<PetModel> pets, List<OtherAnimalModel> others) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -248,7 +349,7 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
           flex: 5,
           child: Column(
             children: [
-              _buildPetSelector(pets),
+              _buildSubjectSection(pets, others),
               const SizedBox(height: 24),
               _buildIssueDescription(),
               const SizedBox(height: 24),
@@ -341,7 +442,7 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
                           const SizedBox(width: 10),
                           Text(
                             _selectedImageFile == null
-                                ? 'Add Pet Photo'
+                                ? (_notMine ? 'Add Animal Photo' : 'Add Pet Photo')
                                 : 'Change Photo',
                             style: AppTypography.labelSmall.copyWith(
                               fontWeight: FontWeight.w600,
@@ -387,6 +488,218 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
           left: (corner == 0 || corner == 2) ? const BorderSide(color: Color(0xFF00E5FF), width: 2.5) : BorderSide.none,
           right: (corner == 1 || corner == 3) ? const BorderSide(color: Color(0xFF00E5FF), width: 2.5) : BorderSide.none,
         ),
+      ),
+    );
+  }
+
+  /// "My pet" / "Not my pet" switch, then whichever animal chooser belongs to the mode.
+  Widget _buildSubjectSection(List<PetModel> pets, List<OtherAnimalModel> others) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildOwnershipToggle(),
+        const SizedBox(height: 20),
+        if (_notMine) _buildOtherAnimalForm(others) else _buildPetSelector(pets),
+      ],
+    );
+  }
+
+  Widget _buildOwnershipToggle() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    Widget option({
+      required bool selected,
+      required IconData icon,
+      required String title,
+      required String hint,
+      required VoidCallback onTap,
+    }) {
+      final fg = selected
+          ? Colors.white
+          : (isDark ? Colors.white : AppColors.textPrimary);
+      return Expanded(
+        child: GestureDetector(
+          onTap: onTap,
+          behavior: HitTestBehavior.opaque,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+            decoration: BoxDecoration(
+              color: selected ? AppColors.primary : Colors.transparent,
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: Row(
+              children: [
+                Icon(icon, size: 20, color: fg),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 13,
+                          color: fg,
+                        ),
+                      ),
+                      Text(
+                        hint,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: fg.withValues(alpha: 0.75),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return FadeInUp(
+      child: PremiumCard(
+        opacity: 0.15,
+        borderRadius: 22,
+        child: Padding(
+          padding: const EdgeInsets.all(5),
+          child: Row(
+            children: [
+              option(
+                selected: !_notMine,
+                icon: Icons.pets_rounded,
+                title: 'My pet',
+                hint: 'Saved to its records',
+                onTap: () => _setNotMine(false),
+              ),
+              const SizedBox(width: 4),
+              option(
+                selected: _notMine,
+                icon: Icons.travel_explore_rounded,
+                title: 'Not my pet',
+                hint: "Stray or someone else's",
+                onTap: () => _setNotMine(true),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _otherField(TextEditingController controller, String hint, {int maxLength = 80}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return PremiumCard(
+      opacity: 0.15,
+      borderRadius: 20,
+      child: TextField(
+        controller: controller,
+        maxLength: maxLength,
+        textCapitalization: TextCapitalization.sentences,
+        style: AppTypography.bodyMedium.copyWith(
+          fontWeight: FontWeight.w600,
+          color: isDark ? Colors.white : AppColors.textPrimary,
+        ),
+        decoration: InputDecoration(
+          hintText: hint,
+          counterText: '',
+          hintStyle: TextStyle(color: Theme.of(context).hintColor.withValues(alpha: 0.5)),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOtherAnimalForm(List<OtherAnimalModel> saved) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final label = AppTypography.labelSmall.copyWith(
+      fontWeight: FontWeight.w700,
+      letterSpacing: 0.8,
+      color: AppColors.textTertiary,
+      fontSize: 10,
+    );
+    final selected = _selectedOther;
+    return FadeInUp(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('WHICH ANIMAL?', style: label),
+          const SizedBox(height: 12),
+          if (saved.isNotEmpty) ...[
+            PremiumCard(
+              opacity: 0.15,
+              borderRadius: 20,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: selected != null && saved.any((a) => a.id == selected.id) ? selected.id : 'new',
+                    isExpanded: true,
+                    icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.primary),
+                    style: AppTypography.bodyLarge.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: isDark ? Colors.white : AppColors.textPrimary,
+                    ),
+                    dropdownColor: isDark ? const Color(0xFF0D302D) : Colors.white,
+                    items: [
+                      const DropdownMenuItem(value: 'new', child: Text('A new animal')),
+                      ...saved.map(
+                        (a) => DropdownMenuItem(
+                          value: a.id,
+                          child: Text('${a.displayName} (${a.type})', overflow: TextOverflow.ellipsis),
+                        ),
+                      ),
+                    ],
+                    onChanged: (id) => setState(() {
+                      _selectedOther = id == null || id == 'new' ? null : saved.firstWhere((a) => a.id == id);
+                      _diagnosisResult = null;
+                    }),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
+          if (selected != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Text(
+                '${selected.subtitle} · scanned ${selected.scanCount} time${selected.scanCount == 1 ? '' : 's'}'
+                '${selected.note.trim().isEmpty ? '' : ' · ${selected.note.trim()}'}',
+                style: AppTypography.bodySmall.copyWith(color: AppColors.textTertiary),
+              ),
+            )
+          else ...[
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: OtherAnimalModel.types
+                  .map(
+                    (t) => ChoiceChip(
+                      label: Text(t),
+                      selected: _otherType == t,
+                      onSelected: (_) => setState(() => _otherType = t),
+                    ),
+                  )
+                  .toList(),
+            ),
+            const SizedBox(height: 12),
+            _otherField(_otherName, 'Name or nickname (optional)', maxLength: 60),
+            const SizedBox(height: 12),
+            _otherField(_otherBreed, 'Breed or what it looks like (optional)'),
+            const SizedBox(height: 12),
+            _otherField(_otherNote, 'Where did you see it? (optional)', maxLength: 200),
+          ],
+        ],
       ),
     );
   }
@@ -443,6 +756,14 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
               ),
             ),
           ),
+          if (pets.isEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 10, left: 4),
+              child: Text(
+                "You haven't added a pet yet. Switch to 'Not my pet' to scan any animal.",
+                style: AppTypography.bodySmall.copyWith(color: AppColors.textTertiary),
+              ),
+            ),
         ],
       ),
     );
@@ -477,9 +798,12 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
                     : AppColors.textPrimary,
               ),
               decoration: InputDecoration(
-                hintText: 'e.g. Redness, unusual itching...',
-                hintStyle: TextStyle(
-                  color: Theme.of(context).hintColor.withValues(alpha: 0.5),
+                hintText: 'e.g. Mild redness and scratching behind left ear for 2 days.',
+                hintStyle: AppTypography.bodyMedium.copyWith(
+                  fontWeight: FontWeight.w400,
+                  fontStyle: FontStyle.italic,
+                  height: 1.5,
+                  color: Theme.of(context).hintColor.withValues(alpha: 0.45),
                 ),
                 border: InputBorder.none,
                 contentPadding: const EdgeInsets.all(20),
@@ -571,12 +895,18 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
               FormattedAiReport(text: _diagnosisResult!),
               const SizedBox(height: 32),
               const _ExpertDisclaimer(),
+              if (_notMine) ...[
+                const SizedBox(height: 12),
+                const _NotYourPetNote(),
+              ],
               const SizedBox(height: 40),
               Row(
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: _saveToMedicalRecords,
+                      onPressed: _notMine
+                          ? (_isSaving ? null : _saveNotMyPet)
+                          : _saveToMedicalRecords,
                       style: OutlinedButton.styleFrom(
                         side: BorderSide(
                           color: AppColors.primary.withValues(alpha: 0.5),
@@ -586,13 +916,20 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
                         ),
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
-                      child: const Text(
-                        'SAVE RECORD',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 12,
-                        ),
-                      ),
+                      child: _isSaving
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : Text(
+                              _notMine ? 'SAVE AS NOT MY PET' : 'SAVE RECORD',
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 12,
+                              ),
+                            ),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -734,6 +1071,38 @@ class _ExpertDisclaimer extends StatelessWidget {
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
                 color: AppColors.accentAmber.withValues(alpha: 0.8),
+                height: 1.4,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NotYourPetNote extends StatelessWidget {
+  const _NotYourPetNote();
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.travel_explore_rounded, color: AppColors.primary, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              "This animal isn't yours. Saving it adds it under Not Your Pets on your profile, separate from your Pet Family. Keep your distance from an injured or frightened animal.",
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: AppColors.primary.withValues(alpha: 0.9),
                 height: 1.4,
               ),
             ),

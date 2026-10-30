@@ -364,6 +364,50 @@ test('blogs: size and shape limits on what an author submits', async () => {
   await assertFails(setDoc(doc(as(null), 'blogs', 'bad8'), post()));
 });
 
+// ── Animals scanned that are not the user's pets ────────────────────────────
+test('other animals: private to whoever saved them; a scan can only be added to your own animal', async () => {
+  const animal = (over = {}) => ({ id: 'oa1', ownerID: 'alice', name: 'Rocky', type: 'Dog', breed: 'Labrador mix', note: 'Near the market', photoUrl: 'https://x.test/a.jpg', createdAt: 1, lastScanAt: 1, scanCount: 1, lastUrgent: false, ...over });
+  const scan = (over = {}) => ({ id: 's1', issue: 'Limping', diagnosis: 'Routine check advised', urgent: false, imageUrl: 'https://x.test/s.jpg', timestamp: 1, ...over });
+  const save = (uid, a, s, animalId = 'oa1') => {
+    const db = as(uid);
+    const batch = writeBatch(db);
+    batch.set(doc(db, 'other_animals', animalId), a);
+    batch.set(doc(db, 'other_animals', animalId, 'scans', 's1'), s);
+    return batch.commit();
+  };
+  // creating an animal together with its first scan (what the app does)
+  await assertSucceeds(save('alice', animal(), scan()));
+  // cannot save an animal as someone else, or a scan under someone else's animal
+  await assertFails(save('alice', animal({ ownerID: 'bob' }), scan(), 'oa2'));
+  await assertFails(setDoc(doc(as('bob'), 'other_animals', 'oa1', 'scans', 'evil'), scan()));
+  await assertFails(setDoc(doc(as(null), 'other_animals', 'oa3'), animal({ ownerID: 'x' })));
+  // reading: owner and admins only
+  await assertSucceeds(getDoc(doc(as('alice'), 'other_animals', 'oa1')));
+  await assertSucceeds(getDoc(doc(as('admin'), 'other_animals', 'oa1')));
+  await assertFails(getDoc(doc(as('bob'), 'other_animals', 'oa1')));
+  await assertFails(getDoc(doc(as(null), 'other_animals', 'oa1')));
+  await assertSucceeds(getDocs(query(collection(as('alice'), 'other_animals'), where('ownerID', '==', 'alice'))));
+  await assertFails(getDocs(query(collection(as('bob'), 'other_animals'), where('ownerID', '==', 'alice'))));
+  await assertFails(getDocs(collection(as('bob'), 'other_animals')));
+  await assertSucceeds(getDocs(collection(as('alice'), 'other_animals', 'oa1', 'scans')));
+  await assertFails(getDocs(collection(as('bob'), 'other_animals', 'oa1', 'scans')));
+  // editing: the owner can, but cannot hand it to someone else; scans are never edited
+  await assertSucceeds(updateDoc(doc(as('alice'), 'other_animals', 'oa1'), { name: 'Rocky Jr' }));
+  await assertFails(updateDoc(doc(as('alice'), 'other_animals', 'oa1'), { ownerID: 'bob' }));
+  await assertFails(updateDoc(doc(as('bob'), 'other_animals', 'oa1'), { name: 'Hijack' }));
+  await assertFails(updateDoc(doc(as('alice'), 'other_animals', 'oa1', 'scans', 's1'), { diagnosis: 'edited' }));
+  // limits on what is stored
+  await assertFails(setDoc(doc(as('alice'), 'other_animals', 'big1'), animal({ id: 'big1', name: 'x'.repeat(61) })));
+  await assertFails(setDoc(doc(as('alice'), 'other_animals', 'big2'), animal({ id: 'big2', type: 'Dragon' })));
+  await assertFails(setDoc(doc(as('alice'), 'other_animals', 'big3'), animal({ id: 'big3', photoUrl: 'javascript:alert(1)' })));
+  await assertFails(save('alice', animal({ id: 'big4' }), scan({ diagnosis: 'x'.repeat(20001) }), 'big4'));
+  // deleting: owner removes the scans, then the animal; others cannot
+  await assertFails(deleteDoc(doc(as('bob'), 'other_animals', 'oa1', 'scans', 's1')));
+  await assertFails(deleteDoc(doc(as('bob'), 'other_animals', 'oa1')));
+  await assertSucceeds(deleteDoc(doc(as('alice'), 'other_animals', 'oa1', 'scans', 's1')));
+  await assertSucceeds(deleteDoc(doc(as('alice'), 'other_animals', 'oa1')));
+});
+
 // ── Storage: file upload validation & ownership ─────────────────────────────
 const img = (bytes = 1024) => new Uint8Array(bytes);
 const st = (uid) => (uid ? env.authenticatedContext(uid) : env.unauthenticatedContext()).storage();

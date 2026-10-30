@@ -168,6 +168,44 @@ service cloud.firestore {
       allow delete: if (signedIn() && resource.data.ownerID == request.auth.uid) || isAdmin();
     }
 
+    // ── Animals scanned with the AI health scanner that are not the user's own pets ──────────────────
+    // Strays, a neighbour's or a friend's pet. Private to the person who saved them (and admins), and kept apart from
+    // `pets` so they never reach Pet Family, reminders, bookings or the vet directory. Each scan is a document in the
+    // animal's `scans` subcollection.
+    match /other_animals/{animalId} {
+      function otherAnimalShape() {
+        let d = request.resource.data;
+        return shortString(d.get('name', ''), 60) && shortString(d.get('breed', ''), 80)
+          && shortString(d.get('note', ''), 300)
+          && d.get('type', '') in ['Dog', 'Cat', 'Bird', 'Rabbit', 'Other']
+          && (!('photoUrl' in d) || d.photoUrl == null || d.photoUrl == ''
+              || (d.photoUrl is string && d.photoUrl.size() <= 600 && d.photoUrl.matches('https://.*')));
+      }
+      allow read: if (signedIn() && resource.data.ownerID == request.auth.uid) || isAdmin();
+      allow create: if signedIn() && notSuspended()
+        && request.resource.data.ownerID == request.auth.uid && otherAnimalShape();
+      allow update: if signedIn() && resource.data.ownerID == request.auth.uid
+        && request.resource.data.ownerID == request.auth.uid && otherAnimalShape();
+      allow delete: if (signedIn() && resource.data.ownerID == request.auth.uid) || isAdmin();
+
+      match /scans/{scanId} {
+        // getAfter: a new animal and its first scan are written in one batch, so ownership is judged after the batch.
+        allow read: if (signedIn() && get(/databases/$(database)/documents/other_animals/$(animalId)).data.ownerID == request.auth.uid)
+          || isAdmin();
+        allow create: if signedIn() && notSuspended()
+          && getAfter(/databases/$(database)/documents/other_animals/$(animalId)).data.ownerID == request.auth.uid
+          && shortString(request.resource.data.get('issue', ''), 2000)
+          && shortString(request.resource.data.get('diagnosis', ''), 20000)
+          && (!('imageUrl' in request.resource.data) || request.resource.data.imageUrl == null
+              || request.resource.data.imageUrl == ''
+              || (request.resource.data.imageUrl is string && request.resource.data.imageUrl.size() <= 600
+                  && request.resource.data.imageUrl.matches('https://.*')));
+        allow update: if false;
+        allow delete: if (signedIn() && get(/databases/$(database)/documents/other_animals/$(animalId)).data.ownerID == request.auth.uid)
+          || isAdmin();
+      }
+    }
+
     // ── Calendar events & appointments ────────────────────────────────────
     function eventParty() {
       return signedIn() && (resource.data.get('userId', '') == request.auth.uid
