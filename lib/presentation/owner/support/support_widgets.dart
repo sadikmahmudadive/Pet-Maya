@@ -2,7 +2,20 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/support_models.dart';
 
-const _months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const _months = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+];
 
 /// "Today, 3:05 PM" / "Yesterday, 9:40 AM" / "12 Mar, 4:10 PM". Empty for an unknown time.
 String supportTime(int millis) {
@@ -12,7 +25,8 @@ String supportTime(int millis) {
   final today = DateTime(now.year, now.month, now.day);
   final day = DateTime(d.year, d.month, d.day);
   final hour12 = d.hour % 12 == 0 ? 12 : d.hour % 12;
-  final clock = '$hour12:${d.minute.toString().padLeft(2, '0')} ${d.hour < 12 ? 'AM' : 'PM'}';
+  final clock =
+      '$hour12:${d.minute.toString().padLeft(2, '0')} ${d.hour < 12 ? 'AM' : 'PM'}';
   final diff = today.difference(day).inDays;
   if (diff == 0) return 'Today, $clock';
   if (diff == 1) return 'Yesterday, $clock';
@@ -47,7 +61,9 @@ class SupportStatusChip extends StatelessWidget {
           fontSize: 11,
           fontWeight: FontWeight.w800,
           // The light-mode tint of these colours is too pale for text, so darken it there.
-          color: isDark ? color : Color.alphaBlend(Colors.black.withValues(alpha: 0.45), color),
+          color: isDark
+              ? color
+              : Color.alphaBlend(Colors.black.withValues(alpha: 0.45), color),
         ),
       ),
     );

@@ -452,6 +452,12 @@ test('support contact details: anyone reads, only admins and managers edit, and 
   await assertFails(setDoc(doc(as('alice'), 'settings', 'support'), good));
   await assertFails(setDoc(doc(as('cashier'), 'settings', 'support'), good));
   await assertFails(setDoc(doc(as(null), 'settings', 'support'), good));
+  // a second phone and a second WhatsApp number are allowed, with the same limits
+  await assertSucceeds(setDoc(doc(as('admin'), 'settings', 'support'), { ...good, phone2: '01800 111222', whatsapp2: '+880 1800 111222' }));
+  await assertSucceeds(setDoc(doc(as('manager'), 'settings', 'support'), { ...good, phone2: '', whatsapp2: '' }));
+  await assertFails(setDoc(doc(as('admin'), 'settings', 'support'), { ...good, phone2: '1'.repeat(31) }));
+  await assertFails(setDoc(doc(as('manager'), 'settings', 'support'), { ...good, whatsapp2: 99 }));
+  await assertFails(setDoc(doc(as('alice'), 'settings', 'support'), { ...good, phone2: '01800 111222' }));
   // unknown fields and oversized values are rejected, even for an admin
   await assertFails(setDoc(doc(as('admin'), 'settings', 'support'), { ...good, extra: 'x' }));
   await assertFails(setDoc(doc(as('admin'), 'settings', 'support'), { ...good, phone: '1'.repeat(31) }));

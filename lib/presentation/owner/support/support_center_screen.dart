@@ -54,6 +54,17 @@ class _SupportCenterScreenState extends State<SupportCenterScreen> {
     }
   }
 
+  /// Cards side by side; a single card keeps half the width so it lines up with the cards above.
+  Widget _contactRow(List<Widget> cards) => Row(
+    children: [
+      for (var i = 0; i < cards.length; i++) ...[
+        if (i > 0) const SizedBox(width: 12),
+        Expanded(child: cards[i]),
+      ],
+      if (cards.length == 1) const Spacer(),
+    ],
+  );
+
   Future<void> _email(String address) => _launch(
     Uri(
       scheme: 'mailto',
@@ -91,8 +102,8 @@ class _SupportCenterScreenState extends State<SupportCenterScreen> {
         builder: (context, snap) {
           final contact =
               snap.data ?? const SupportContact(email: AppInfo.supportEmail);
-          final callUri = contact.callUri;
-          final waUri = contact.whatsappUri(
+          final calls = contact.callNumbers;
+          final chats = contact.whatsappNumbers(
             'Hello Pet Maya, I need help with the app (${AppInfo.short}).',
           );
           final email = contact.email.isNotEmpty
@@ -164,38 +175,36 @@ class _SupportCenterScreenState extends State<SupportCenterScreen> {
                   ),
                 ],
               ),
-              if (callUri != null || waUri != null) ...[
+              // One row of up to two cards for the phone numbers, and one for the WhatsApp numbers.
+              if (calls.isNotEmpty) ...[
                 const SizedBox(height: 12),
-                Row(
-                  children: [
-                    if (callUri != null)
-                      Expanded(
-                        child: _ActionCard(
-                          icon: Icons.call_rounded,
-                          title: 'Call us',
-                          subtitle: contact.phone,
-                          onTap: () => _launch(
-                            callUri,
-                            'Could not open the phone app. Call ${contact.phone}',
-                          ),
-                        ),
+                _contactRow([
+                  for (final c in calls)
+                    _ActionCard(
+                      icon: Icons.call_rounded,
+                      title: 'Call us',
+                      subtitle: c.number,
+                      onTap: () => _launch(
+                        c.uri,
+                        'Could not open the phone app. Call ${c.number}',
                       ),
-                    if (callUri != null && waUri != null)
-                      const SizedBox(width: 12),
-                    if (waUri != null)
-                      Expanded(
-                        child: _ActionCard(
-                          icon: Icons.chat_rounded,
-                          title: 'WhatsApp',
-                          subtitle: contact.whatsapp,
-                          onTap: () => _launch(
-                            waUri,
-                            'Could not open WhatsApp. Message ${contact.whatsapp}',
-                          ),
-                        ),
+                    ),
+                ]),
+              ],
+              if (chats.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                _contactRow([
+                  for (final c in chats)
+                    _ActionCard(
+                      icon: Icons.chat_rounded,
+                      title: 'WhatsApp',
+                      subtitle: c.number,
+                      onTap: () => _launch(
+                        c.uri,
+                        'Could not open WhatsApp. Message ${c.number}',
                       ),
-                  ],
-                ),
+                    ),
+                ]),
               ],
               if (contact.hours.isNotEmpty)
                 Padding(

@@ -23,12 +23,15 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
   final _subject = TextEditingController();
   final _message = TextEditingController();
   final _order = TextEditingController();
-  late String _category = supportCategories.contains(widget.initialCategory) ? widget.initialCategory : 'Other';
+  late String _category = supportCategories.contains(widget.initialCategory)
+      ? widget.initialCategory
+      : 'Other';
   File? _photo;
   bool _sending = false;
   String? _error;
 
-  bool get _askOrder => const ['Order', 'Delivery', 'Payment'].contains(_category);
+  bool get _askOrder =>
+      const ['Order', 'Delivery', 'Payment'].contains(_category);
 
   @override
   void dispose() {
@@ -39,7 +42,10 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
   }
 
   Future<void> _pickPhoto() async {
-    final picked = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 70);
+    final picked = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 70,
+    );
     if (picked != null && mounted) setState(() => _photo = File(picked.path));
   }
 
@@ -51,7 +57,10 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
       return;
     }
     if (message.length < 10) {
-      setState(() => _error = 'Describe the problem in a little more detail (at least 10 characters).');
+      setState(
+        () => _error =
+            'Describe the problem in a little more detail (at least 10 characters).',
+      );
       return;
     }
     FocusScope.of(context).unfocus();
@@ -75,7 +84,11 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
       });
       return;
     }
-    repo.showToast('Ticket sent. We will reply here and notify you.', type: ToastType.success, context: context);
+    repo.showToast(
+      'Ticket sent. We will reply here and notify you.',
+      type: ToastType.success,
+      context: context,
+    );
     Navigator.pop(context, true);
   }
 
@@ -105,13 +118,20 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
     );
 
     return GlassScaffold(
-      appBar: AppBar(title: const Text('Contact support'), backgroundColor: Colors.transparent, elevation: 0),
+      appBar: AppBar(
+        title: const Text('Contact support'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 100, 20, 60),
         children: [
           Text(
             'Tell us what went wrong and we will reply here in the app. The more detail you give, the faster we can help.',
-            style: AppTypography.bodyMedium.copyWith(color: textColor.withValues(alpha: 0.8), height: 1.45),
+            style: AppTypography.bodyMedium.copyWith(
+              color: textColor.withValues(alpha: 0.8),
+              height: 1.45,
+            ),
           ),
           label('WHAT IS IT ABOUT?'),
           Wrap(
@@ -122,7 +142,9 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
                 ChoiceChip(
                   label: Text(c),
                   selected: _category == c,
-                  onSelected: _sending ? null : (_) => setState(() => _category = c),
+                  onSelected: _sending
+                      ? null
+                      : (_) => setState(() => _category = c),
                 ),
             ],
           ),
@@ -164,7 +186,9 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
               minLines: 5,
               maxLines: 10,
               textCapitalization: TextCapitalization.sentences,
-              decoration: deco('Describe the problem and what you expected to happen.'),
+              decoration: deco(
+                'Describe the problem and what you expected to happen.',
+              ),
             ),
           ),
           label('PHOTO OR SCREENSHOT (OPTIONAL)'),
@@ -173,7 +197,9 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
               onPressed: _sending ? null : _pickPhoto,
               icon: const Icon(Icons.add_photo_alternate_outlined),
               label: const Text('Attach a photo'),
-              style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(52)),
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size.fromHeight(52),
+              ),
             )
           else
             Stack(
@@ -181,11 +207,18 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(16),
-                  child: Image.file(_photo!, height: 180, width: double.infinity, fit: BoxFit.cover),
+                  child: Image.file(
+                    _photo!,
+                    height: 180,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
                 ),
                 IconButton.filled(
                   tooltip: 'Remove photo',
-                  onPressed: _sending ? null : () => setState(() => _photo = null),
+                  onPressed: _sending
+                      ? null
+                      : () => setState(() => _photo = null),
                   icon: const Icon(Icons.close_rounded),
                 ),
               ],
@@ -194,15 +227,27 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
             const SizedBox(height: 16),
             Semantics(
               liveRegion: true,
-              child: Text(_error!, style: AppTypography.bodySmall.copyWith(color: AppColors.dangerRed, fontWeight: FontWeight.w600)),
+              child: Text(
+                _error!,
+                style: AppTypography.bodySmall.copyWith(
+                  color: AppColors.dangerRed,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
           ],
           const SizedBox(height: 24),
           FilledButton(
             onPressed: _sending ? null : _submit,
-            style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(54)),
+            style: FilledButton.styleFrom(
+              minimumSize: const Size.fromHeight(54),
+            ),
             child: _sending
-                ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.5))
+                ? const SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(strokeWidth: 2.5),
+                  )
                 : const Text('SEND TO SUPPORT'),
           ),
         ],

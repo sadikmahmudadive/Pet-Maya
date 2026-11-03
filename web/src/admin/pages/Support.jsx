@@ -4,7 +4,7 @@ import { useSupportContact } from '../../data/support.js';
 import { PageHead } from '../AdminApp.jsx';
 import { Icon, Button, Pill, Stat, Empty, Avatar, Field } from '../../ui/index.jsx';
 import { cx, ago } from '../../lib/format.js';
-import { cleanContactForm, telHref, whatsappHref } from '../../lib/contact.js';
+import { cleanContactForm, contactNumbers } from '../../lib/contact.js';
 import { useStore } from '../../lib/store.jsx';
 import { supportReply, supportSetStatus, supportMarkRead } from '../../data/actions.js';
 
@@ -223,7 +223,7 @@ export default function Support() {
 function ContactDetails() {
   const { toast } = useStore();
   const saved = useSupportContact();
-  const [form, setForm] = useState({ phone: '', whatsapp: '', email: '', hours: '' });
+  const [form, setForm] = useState({ phone: '', phone2: '', whatsapp: '', whatsapp2: '', email: '', hours: '' });
   const [errors, setErrors] = useState({});
   const [busy, setBusy] = useState(false);
   const [loadedOnce, setLoadedOnce] = useState(false);
@@ -231,12 +231,13 @@ function ContactDetails() {
   // Fill the form once, when the saved values arrive; never overwrite what the admin is typing.
   useEffect(() => {
     if (saved.loading || loadedOnce) return;
-    setForm({ phone: saved.phone, whatsapp: saved.whatsapp, email: saved.email, hours: saved.hours });
+    setForm({ phone: saved.phone, phone2: saved.phone2, whatsapp: saved.whatsapp, whatsapp2: saved.whatsapp2, email: saved.email, hours: saved.hours });
     setLoadedOnce(true);
   }, [saved.loading, loadedOnce]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const set = (k) => (e) => { setForm((f) => ({ ...f, [k]: e.target.value })); setErrors((x) => ({ ...x, [k]: undefined })); };
   const preview = cleanContactForm(form).data;
+  const numbers = contactNumbers(preview);
 
   const save = async (e) => {
     e.preventDefault();
@@ -258,10 +259,17 @@ function ContactDetails() {
         <p className="muted" style={{ fontSize: 14 }}>
           Customers see these in the app under Help &amp; Support, and on the website. Leave a field empty to hide that button.
         </p>
-        <Field label="Phone number" hint="for the Call button" value={form.phone} onChange={set('phone')} placeholder="01712 345678" inputMode="tel" autoComplete="off" />
-        {errors.phone && <div className="red" style={{ fontSize: 13, marginTop: -10 }}>{errors.phone}</div>}
-        <Field label="WhatsApp number" hint="opens a WhatsApp chat" value={form.whatsapp} onChange={set('whatsapp')} placeholder="01712 345678 or +880 1712 345678" inputMode="tel" autoComplete="off" />
-        {errors.whatsapp && <div className="red" style={{ fontSize: 13, marginTop: -8 }}>{errors.whatsapp}</div>}
+        {[
+          ['phone', 'Phone number 1', 'for the Call button', '01712 345678'],
+          ['phone2', 'Phone number 2', 'optional second Call button', '01800 111222'],
+          ['whatsapp', 'WhatsApp number 1', 'opens a WhatsApp chat', '01712 345678 or +880 1712 345678'],
+          ['whatsapp2', 'WhatsApp number 2', 'optional second chat button', '01800 111222'],
+        ].map(([key, label, hint, placeholder]) => (
+          <div key={key} style={{ display: 'grid', gap: 6 }}>
+            <Field label={label} hint={hint} value={form[key]} onChange={set(key)} placeholder={placeholder} inputMode="tel" autoComplete="off" />
+            {errors[key] && <div className="red" style={{ fontSize: 13 }}>{errors[key]}</div>}
+          </div>
+        ))}
         <Field label="Support email" hint="defaults to support@petmaya.app" value={form.email} onChange={set('email')} placeholder="support@petmaya.app" inputMode="email" autoComplete="off" />
         {errors.email && <div className="red" style={{ fontSize: 13, marginTop: -8 }}>{errors.email}</div>}
         <Field label="Opening hours" hint="shown next to the buttons" value={form.hours} onChange={set('hours')} placeholder="Sat–Thu, 10am–8pm" maxLength={80} autoComplete="off" />
@@ -273,11 +281,11 @@ function ContactDetails() {
       <div className="card" style={{ padding: 16 }}>
         <div className="eyebrow">What customers will see</div>
         <div className="stack gap-10" style={{ marginTop: 12 }}>
-          {preview.phone ? <Button variant="outline" icon="phone" to={telHref(preview.phone)}>Call {preview.phone}</Button> : <span className="sub">No phone button</span>}
-          {preview.whatsapp
-            ? (whatsappHref(preview.whatsapp)
-              ? <Button variant="outline" icon="message" to={whatsappHref(preview.whatsapp)} target="_blank" rel="noopener noreferrer">WhatsApp {preview.whatsapp}</Button>
-              : <span className="red" style={{ fontSize: 13 }}>That WhatsApp number is too short to open a chat.</span>)
+          {numbers.calls.length
+            ? numbers.calls.map((c) => <Button key={c.href} variant="outline" icon="phone" to={c.href}>Call {c.number}</Button>)
+            : <span className="sub">No phone button</span>}
+          {numbers.chats.length
+            ? numbers.chats.map((c) => <Button key={c.href} variant="outline" icon="message" to={c.href} target="_blank" rel="noopener noreferrer">WhatsApp {c.number}</Button>)
             : <span className="sub">No WhatsApp button</span>}
           <Button variant="outline" icon="mail" to={`mailto:${preview.email || 'support@petmaya.app'}`}>{preview.email || 'support@petmaya.app'}</Button>
           {preview.hours && <div className="sub">{preview.hours}</div>}

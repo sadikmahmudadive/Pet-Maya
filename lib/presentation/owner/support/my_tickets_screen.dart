@@ -20,7 +20,10 @@ class MyTicketsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final tickets = context.select((AppStateRepository s) => s.supportTickets);
 
-    void newTicket() => Navigator.push(context, MaterialPageRoute(builder: (_) => const NewTicketScreen()));
+    void newTicket() => Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const NewTicketScreen()),
+    );
 
     return GlassScaffold(
       appBar: AppBar(
@@ -30,14 +33,19 @@ class MyTicketsScreen extends StatelessWidget {
         actions: [
           IconButton(
             tooltip: 'New ticket',
-            icon: const Icon(Icons.add_circle_rounded, color: AppColors.primary),
+            icon: const Icon(
+              Icons.add_circle_rounded,
+              color: AppColors.primary,
+            ),
             onPressed: newTicket,
           ),
           const SizedBox(width: 8),
         ],
       ),
       body: CustomScrollView(
-        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
         slivers: [
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(20, 100, 20, 120),
@@ -47,7 +55,8 @@ class MyTicketsScreen extends StatelessWidget {
                     child: EmptyState(
                       icon: Icons.support_agent_rounded,
                       title: 'No tickets yet',
-                      message: 'When you contact support, the conversation will be here. Replies also arrive as a notification.',
+                      message:
+                          'When you contact support, the conversation will be here. Replies also arrive as a notification.',
                       actionLabel: 'Contact support',
                       onAction: newTicket,
                     ),
@@ -76,12 +85,15 @@ class _TicketTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? Colors.white : AppColors.textPrimary;
-    final preview = ticket.lastMessageBy == 'staff' ? 'Support replied' : 'You: ${ticket.message}';
+    final preview = ticket.lastMessageBy == 'staff'
+        ? 'Support replied'
+        : 'You: ${ticket.message}';
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: Semantics(
         button: true,
-        label: '${ticket.subject}, ${ticket.status.label}${ticket.unreadForUser ? ', new reply from support' : ''}',
+        label:
+            '${ticket.subject}, ${ticket.status.label}${ticket.unreadForUser ? ', new reply from support' : ''}',
         excludeSemantics: true,
         onTap: () => _open(context),
         child: PremiumCard(
@@ -99,7 +111,10 @@ class _TicketTile extends StatelessWidget {
                       Container(
                         width: 10,
                         height: 10,
-                        decoration: const BoxDecoration(color: AppColors.dangerRed, shape: BoxShape.circle),
+                        decoration: const BoxDecoration(
+                          color: AppColors.dangerRed,
+                          shape: BoxShape.circle,
+                        ),
                       ),
                       const SizedBox(width: 8),
                     ],
@@ -109,7 +124,9 @@ class _TicketTile extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: AppTypography.titleSmall.copyWith(
-                          fontWeight: ticket.unreadForUser ? FontWeight.w800 : FontWeight.w700,
+                          fontWeight: ticket.unreadForUser
+                              ? FontWeight.w800
+                              : FontWeight.w700,
                           color: textColor,
                         ),
                       ),
@@ -123,12 +140,18 @@ class _TicketTile extends StatelessWidget {
                   preview,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: AppTypography.bodySmall.copyWith(color: textColor.withValues(alpha: 0.75), height: 1.4),
+                  style: AppTypography.bodySmall.copyWith(
+                    color: textColor.withValues(alpha: 0.75),
+                    height: 1.4,
+                  ),
                 ),
                 const SizedBox(height: 10),
                 Text(
                   '${ticket.category}${ticket.orderNumber.isNotEmpty ? ' · ${ticket.orderNumber}' : ''} · ${supportTime(ticket.lastMessageAt)}',
-                  style: AppTypography.labelSmall.copyWith(color: AppColors.textTertiary, fontSize: 11),
+                  style: AppTypography.labelSmall.copyWith(
+                    color: AppColors.textTertiary,
+                    fontSize: 11,
+                  ),
                 ),
               ],
             ),
@@ -138,6 +161,8 @@ class _TicketTile extends StatelessWidget {
     );
   }
 
-  void _open(BuildContext context) =>
-      Navigator.push(context, MaterialPageRoute(builder: (_) => TicketDetailScreen(ticketId: ticket.id)));
+  void _open(BuildContext context) => Navigator.push(
+    context,
+    MaterialPageRoute(builder: (_) => TicketDetailScreen(ticketId: ticket.id)),
+  );
 }

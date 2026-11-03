@@ -112,35 +112,75 @@ void contactTests() {
 
   test('buttons appear only for the details an admin filled in', () {
     const empty = SupportContact();
-    expect(empty.callUri, isNull);
-    expect(empty.whatsappUri(), isNull);
-    expect(
-      const SupportContact(whatsapp: '12').whatsappUri(),
-      isNull,
-    ); // too short to open a chat
+    expect(empty.callNumbers, isEmpty);
+    expect(empty.whatsappNumbers(), isEmpty);
+    // too short to open a chat
+    expect(const SupportContact(whatsapp: '12').whatsappNumbers(), isEmpty);
 
     const c = SupportContact(
       phone: '01712 345678',
       whatsapp: '01712345678',
       hours: 'Sat-Thu',
     );
-    expect(c.callUri.toString(), 'tel:01712345678');
-    expect(c.whatsappUri().toString(), 'https://wa.me/8801712345678');
+    expect(c.callNumbers.single.uri.toString(), 'tel:01712345678');
     expect(
-      c.whatsappUri('Hi there').toString(),
+      c.whatsappNumbers().single.uri.toString(),
+      'https://wa.me/8801712345678',
+    );
+    expect(
+      c.whatsappNumbers('Hi there').single.uri.toString(),
       'https://wa.me/8801712345678?text=Hi%20there',
     );
   });
+
+  test(
+    'two phone and two WhatsApp numbers each get a button; the second can stand alone and repeats are dropped',
+    () {
+      const both = SupportContact(
+        phone: '01712 345678',
+        phone2: '01800-111222',
+        whatsapp: '01712345678',
+        whatsapp2: '+880 1800 111222',
+      );
+      expect(both.callNumbers.map((c) => c.uri.toString()), [
+        'tel:01712345678',
+        'tel:01800111222',
+      ]);
+      expect(both.whatsappNumbers().map((c) => c.uri.toString()), [
+        'https://wa.me/8801712345678',
+        'https://wa.me/8801800111222',
+      ]);
+
+      const second = SupportContact(
+        phone2: '01800 111222',
+        whatsapp2: '01800111222',
+      );
+      expect(second.callNumbers.single.number, '01800 111222');
+      expect(second.whatsappNumbers().single.number, '01800111222');
+
+      const same = SupportContact(
+        phone: '01712 345678',
+        phone2: '+880 1712 345678',
+        whatsapp: '01712345678',
+        whatsapp2: '+8801712345678',
+      );
+      expect(same.callNumbers, hasLength(1));
+      expect(same.whatsappNumbers(), hasLength(1));
+    },
+  );
 
   test(
     'stored details are read defensively and the email falls back to the default',
     () {
       final c = SupportContact.fromMap({
         'phone': ' 01712 345678 ',
+        'phone2': ' 01800 111222 ',
         'email': '',
         'hours': null,
       }, defaultEmail: 'support@petmaya.app');
       expect(c.phone, '01712 345678');
+      expect(c.phone2, '01800 111222');
+      expect(c.whatsapp2, '');
       expect(c.email, 'support@petmaya.app');
       expect(c.hours, '');
       expect(

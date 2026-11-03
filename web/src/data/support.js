@@ -10,7 +10,9 @@ export function useSupportContact() {
   return {
     loading,
     phone: (data?.phone ?? BRAND.supportPhone ?? '').trim(),
+    phone2: (data?.phone2 ?? '').trim(),
     whatsapp: (data?.whatsapp ?? '').trim(),
+    whatsapp2: (data?.whatsapp2 ?? '').trim(),
     email: (data?.email || BRAND.supportEmail || '').trim(),
     hours: (data?.hours ?? '').trim(),
   };

@@ -11,7 +11,10 @@ import '../../../data/repositories/app_state_repository.dart';
 /// Opens the Play Store page of the app (used after good feedback and from the Support Center).
 Future<void> openPlayStore() async {
   try {
-    await launchUrl(Uri.parse(AppInfo.playStoreUrl), mode: LaunchMode.externalApplication);
+    await launchUrl(
+      Uri.parse(AppInfo.playStoreUrl),
+      mode: LaunchMode.externalApplication,
+    );
   } catch (e) {
     debugPrint('[Support] could not open Google Play: $e');
   }
@@ -58,7 +61,10 @@ class _FeedbackSheetState extends State<_FeedbackSheet> {
       return;
     }
     if (_rating <= 3 && message.length < 5) {
-      setState(() => _error = 'Please tell us briefly what went wrong so we can fix it.');
+      setState(
+        () =>
+            _error = 'Please tell us briefly what went wrong so we can fix it.',
+      );
       return;
     }
     FocusScope.of(context).unfocus();
@@ -97,16 +103,29 @@ class _FeedbackSheetState extends State<_FeedbackSheet> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Icon(Icons.favorite_rounded, size: 48, color: AppColors.dangerRed),
+        const Icon(
+          Icons.favorite_rounded,
+          size: 48,
+          color: AppColors.dangerRed,
+        ),
         const SizedBox(height: 12),
-        Text('Thank you!', style: AppTypography.headlineSmall.copyWith(fontWeight: FontWeight.w800, color: textColor)),
+        Text(
+          'Thank you!',
+          style: AppTypography.headlineSmall.copyWith(
+            fontWeight: FontWeight.w800,
+            color: textColor,
+          ),
+        ),
         const SizedBox(height: 8),
         Text(
           _rating >= 4
               ? 'We are glad you like Pet Maya. A rating on Google Play helps other pet parents find us.'
               : 'Your feedback reaches our team. We read every message and use it to improve the app.',
           textAlign: TextAlign.center,
-          style: AppTypography.bodyMedium.copyWith(color: textColor.withValues(alpha: 0.8), height: 1.45),
+          style: AppTypography.bodyMedium.copyWith(
+            color: textColor.withValues(alpha: 0.8),
+            height: 1.45,
+          ),
         ),
         const SizedBox(height: 20),
         if (_rating >= 4) ...[
@@ -117,13 +136,20 @@ class _FeedbackSheetState extends State<_FeedbackSheet> {
             },
             icon: const Icon(Icons.star_rounded),
             label: const Text('RATE US ON GOOGLE PLAY'),
-            style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
+            style: FilledButton.styleFrom(
+              minimumSize: const Size.fromHeight(52),
+            ),
           ),
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Not now')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Not now'),
+          ),
         ] else
           FilledButton(
             onPressed: () => Navigator.pop(context),
-            style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
+            style: FilledButton.styleFrom(
+              minimumSize: const Size.fromHeight(52),
+            ),
             child: const Text('DONE'),
           ),
       ],
@@ -135,7 +161,13 @@ class _FeedbackSheetState extends State<_FeedbackSheet> {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text('How is Pet Maya working for you?', style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w800, color: textColor)),
+        Text(
+          'How is Pet Maya working for you?',
+          style: AppTypography.titleLarge.copyWith(
+            fontWeight: FontWeight.w800,
+            color: textColor,
+          ),
+        ),
         const SizedBox(height: 16),
         Center(
           child: Row(
@@ -155,8 +187,12 @@ class _FeedbackSheetState extends State<_FeedbackSheet> {
                           });
                         },
                   icon: Icon(
-                    i <= _rating ? Icons.star_rounded : Icons.star_outline_rounded,
-                    color: i <= _rating ? AppColors.accentAmber : textColor.withValues(alpha: 0.45),
+                    i <= _rating
+                        ? Icons.star_rounded
+                        : Icons.star_outline_rounded,
+                    color: i <= _rating
+                        ? AppColors.accentAmber
+                        : textColor.withValues(alpha: 0.45),
                   ),
                 ),
             ],
@@ -165,7 +201,10 @@ class _FeedbackSheetState extends State<_FeedbackSheet> {
         Center(
           child: Text(
             _rating == 0 ? 'Tap a star' : _ratingWords[_rating - 1],
-            style: AppTypography.labelMedium.copyWith(fontWeight: FontWeight.w700, color: textColor.withValues(alpha: 0.8)),
+            style: AppTypography.labelMedium.copyWith(
+              fontWeight: FontWeight.w700,
+              color: textColor.withValues(alpha: 0.8),
+            ),
           ),
         ),
         const SizedBox(height: 20),
@@ -177,7 +216,9 @@ class _FeedbackSheetState extends State<_FeedbackSheet> {
               ChoiceChip(
                 label: Text(c),
                 selected: _category == c,
-                onSelected: _sending ? null : (_) => setState(() => _category = c),
+                onSelected: _sending
+                    ? null
+                    : (_) => setState(() => _category = c),
               ),
           ],
         ),
@@ -190,7 +231,9 @@ class _FeedbackSheetState extends State<_FeedbackSheet> {
           maxLength: 1000,
           textCapitalization: TextCapitalization.sentences,
           decoration: InputDecoration(
-            labelText: _rating > 0 && _rating <= 3 ? 'What went wrong?' : 'Tell us more (optional)',
+            labelText: _rating > 0 && _rating <= 3
+                ? 'What went wrong?'
+                : 'Tell us more (optional)',
             alignLabelWithHint: true,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
           ),
@@ -199,7 +242,13 @@ class _FeedbackSheetState extends State<_FeedbackSheet> {
           const SizedBox(height: 8),
           Semantics(
             liveRegion: true,
-            child: Text(_error!, style: AppTypography.bodySmall.copyWith(color: AppColors.dangerRed, fontWeight: FontWeight.w600)),
+            child: Text(
+              _error!,
+              style: AppTypography.bodySmall.copyWith(
+                color: AppColors.dangerRed,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ],
         const SizedBox(height: 16),
@@ -207,13 +256,20 @@ class _FeedbackSheetState extends State<_FeedbackSheet> {
           onPressed: _sending ? null : _submit,
           style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(54)),
           child: _sending
-              ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.5))
+              ? const SizedBox(
+                  width: 22,
+                  height: 22,
+                  child: CircularProgressIndicator(strokeWidth: 2.5),
+                )
               : const Text('SEND FEEDBACK'),
         ),
         const SizedBox(height: 6),
         Text(
           'Sent with app version ${AppInfo.short}. For a problem that needs an answer, use Contact support instead.',
-          style: AppTypography.labelSmall.copyWith(color: AppColors.textTertiary, fontSize: 11),
+          style: AppTypography.labelSmall.copyWith(
+            color: AppColors.textTertiary,
+            fontSize: 11,
+          ),
         ),
       ],
     );

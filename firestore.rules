@@ -558,8 +558,9 @@ service cloud.firestore {
     // Support contact details shown in the app and on the site (phone, WhatsApp, email, opening hours). Public to
     // read; admins and managers edit them in admin -> Support center -> Contact details.
     function validSupportContact() {
-      return request.resource.data.keys().hasOnly(['phone', 'whatsapp', 'email', 'hours', 'updatedAt'])
-        && optShortString('phone', 30) && optShortString('whatsapp', 30)
+      return request.resource.data.keys().hasOnly(['phone', 'phone2', 'whatsapp', 'whatsapp2', 'email', 'hours', 'updatedAt'])
+        && optShortString('phone', 30) && optShortString('phone2', 30)
+        && optShortString('whatsapp', 30) && optShortString('whatsapp2', 30)
         && optShortString('email', 120) && optShortString('hours', 80);
     }
     match /settings/support {

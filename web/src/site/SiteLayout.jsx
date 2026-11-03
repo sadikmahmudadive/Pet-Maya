@@ -6,7 +6,7 @@ import { money, cx, productPath } from '../lib/format.js';
 import { useScrolled, useBump, Reveal } from '../lib/motion.jsx';
 import { subscribeNewsletter } from '../data/actions.js';
 import { useSupportContact } from '../data/support.js';
-import { telHref, whatsappHref } from '../lib/contact.js';
+import { contactNumbers } from '../lib/contact.js';
 import { TRUST, BRAND } from '../data/content.js';
 import AnnouncementBar, { useAnnouncementConfig } from './AnnouncementBar.jsx';
 import BagDrawer from './BagDrawer.jsx';
@@ -266,6 +266,7 @@ export function TrustRow() {
 function Footer() {
   const { toast } = useStore();
   const contact = useSupportContact();
+  const numbers = contactNumbers(contact);
   const [email, setEmail] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -312,8 +313,8 @@ function Footer() {
               <div className="eyebrow muted">Help</div>
               <Link to="/account/orders">Track order</Link><Link to="/terms_of_service.html">Delivery & returns</Link>
               <Link to="/shop/prescription">Prescriptions</Link><Link to={`mailto:${contact.email}`}>Contact us</Link>
-              {telHref(contact.phone) && <Link to={telHref(contact.phone)}>Call {contact.phone}</Link>}
-              {whatsappHref(contact.whatsapp) && <Link to={whatsappHref(contact.whatsapp)} target="_blank" rel="noopener noreferrer">WhatsApp us</Link>}
+              {numbers.calls.map((c) => <Link key={c.href} to={c.href}>Call {c.number}</Link>)}
+              {numbers.chats.map((c, i) => <Link key={c.href} to={c.href} target="_blank" rel="noopener noreferrer">WhatsApp{numbers.chats.length > 1 ? ` ${c.number}` : ' us'}</Link>)}
               {contact.hours && <span className="sub" style={{ fontSize: 12 }}>{contact.hours}</span>}
             </div>
           </div>
