@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../core/responsive.dart';
+import 'soft_backdrop.dart';
 
 class GlassScaffold extends StatelessWidget {
   final Widget body;
@@ -47,7 +48,7 @@ class GlassScaffold extends StatelessWidget {
           children: [
             // Static, hardware-accelerated ambient glowing background (0% CPU / 0% GPU idle overhead)
             RepaintBoundary(
-              child: _buildStaticBackground(context, isDark),
+              child: const SoftBackdrop(),
             ),
             
             // Main Content (capped and centred on wide screens)
@@ -60,55 +61,6 @@ class GlassScaffold extends StatelessWidget {
         floatingActionButtonLocation: floatingActionButtonLocation,
         bottomNavigationBar: bottomNavigationBar,
       ),
-    );
-  }
-
-  Widget _buildStaticBackground(BuildContext context, bool isDark) {
-    final size = MediaQuery.of(context).size;
-    final width = size.width;
-
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        // Top-left soft ambient glow
-        Positioned(
-          top: -width * 0.25,
-          left: -width * 0.25,
-          child: Container(
-            width: width * 0.9,
-            height: width * 0.9,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: RadialGradient(
-                colors: [
-                  Theme.of(context).colorScheme.primary.withValues(alpha: isDark ? 0.12 : 0.08),
-                  Colors.transparent,
-                ],
-                stops: const [0.0, 0.7],
-              ),
-            ),
-          ),
-        ),
-        // Bottom-right soft ambient glow
-        Positioned(
-          bottom: -width * 0.35,
-          right: -width * 0.25,
-          child: Container(
-            width: width * 1.1,
-            height: width * 1.1,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: RadialGradient(
-                colors: [
-                  Theme.of(context).colorScheme.secondary.withValues(alpha: isDark ? 0.08 : 0.06),
-                  Colors.transparent,
-                ],
-                stops: const [0.0, 0.75],
-              ),
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

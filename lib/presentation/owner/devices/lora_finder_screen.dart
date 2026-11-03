@@ -169,7 +169,7 @@ class _LoraFinderScreenState extends State<LoraFinderScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w800)),
+                    Text(title, style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w800)),
                     const SizedBox(height: 2),
                     Text(subtitle, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
                   ],
@@ -206,7 +206,7 @@ class _LoraFinderScreenState extends State<LoraFinderScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Pair your trackers', style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w800)),
+          Text('Pair your trackers', style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w800)),
           const SizedBox(height: 6),
           const Text(
             'The finder needs your trackers\' keys once (requires internet for this step). '
@@ -321,7 +321,7 @@ class _LoraFinderScreenState extends State<LoraFinderScreen> {
               children: [
                 const Icon(Icons.pets_rounded, color: AppColors.primary),
                 const SizedBox(width: 8),
-                Expanded(child: Text(name, style: GoogleFonts.plusJakartaSans(fontSize: 17, fontWeight: FontWeight.w800))),
+                Expanded(child: Text(name, style: GoogleFonts.nunito(fontSize: 17, fontWeight: FontWeight.w800))),
                 Icon(Icons.signal_cellular_alt_rounded, size: 18, color: bars >= 3 ? AppColors.healthGreen : AppColors.accentAmber),
                 Text(' ${f.rssi} dBm', style: const TextStyle(fontSize: 11)),
               ],
@@ -339,7 +339,7 @@ class _LoraFinderScreenState extends State<LoraFinderScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(_distance(dist), style: GoogleFonts.plusJakartaSans(fontSize: 26, fontWeight: FontWeight.w900)),
+                        Text(_distance(dist), style: GoogleFonts.nunito(fontSize: 26, fontWeight: FontWeight.w900)),
                         Text('${_direction(bearing)} of you · arrow points relative to North',
                             style: TextStyle(fontSize: 11.5, color: Colors.grey.shade600)),
                       ],

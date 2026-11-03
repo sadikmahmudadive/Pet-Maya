@@ -47,7 +47,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       appBar: AppBar(
         title: Text(
           'Care Calendar',
-          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 18),
+          style: GoogleFonts.nunito(fontWeight: FontWeight.w800, fontSize: 18),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -67,7 +67,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         onPressed: () => _showEventModal(context, initialDate: _selectedDate),
         label: Text(
           'SCHEDULE CARE',
-          style: GoogleFonts.plusJakartaSans(
+          style: GoogleFonts.nunito(
             fontWeight: FontWeight.w700,
             letterSpacing: 0.8,
             fontSize: 12,
@@ -181,7 +181,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     children: [
                       Text(
                         monthStr,
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.nunito(
                           fontWeight: FontWeight.w800,
                           fontSize: 22,
                           letterSpacing: -0.5,
@@ -379,7 +379,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               ],
               Text(
                 label,
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.nunito(
                   color: isSelected
                       ? Colors.white
                       : (isDark ? Colors.white70 : Colors.black87),
@@ -466,7 +466,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     children: [
                       Text(
                         event.title,
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.nunito(
                           fontWeight: FontWeight.w700,
                           fontSize: 15,
                           decoration:

@@ -84,7 +84,7 @@ class BatteryOptimizationHelper {
                   Expanded(
                     child: Text(
                       'Unrestricted Background Alerts',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.nunito(
                         fontSize: 18,
                         fontWeight: FontWeight.w800,
                         color: isDark ? Colors.white : AppColors.textPrimary,

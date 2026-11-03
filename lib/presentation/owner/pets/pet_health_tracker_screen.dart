@@ -36,7 +36,7 @@ class PetHealthTrackerScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(
           '${pet.name}\'s Health Vault',
-          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800),
+          style: GoogleFonts.nunito(fontWeight: FontWeight.w800),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -63,7 +63,7 @@ class PetHealthTrackerScreen extends StatelessWidget {
                           children: [
                             Text(
                               'VITALITY & CLINICAL INDEX',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.nunito(
                                 fontWeight: FontWeight.w800,
                                 color: const Color(0xFF1AB680),
                                 letterSpacing: 1.2,
@@ -77,7 +77,7 @@ class PetHealthTrackerScreen extends StatelessWidget {
                               children: [
                                 Text(
                                   '$petHealthScore',
-                                  style: GoogleFonts.plusJakartaSans(
+                                  style: GoogleFonts.nunito(
                                     fontSize: 48,
                                     fontWeight: FontWeight.w900,
                                   ),
@@ -159,7 +159,7 @@ class PetHealthTrackerScreen extends StatelessWidget {
                         children: [
                           Text(
                             'Vaccination & Booster Hub',
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.nunito(
                               fontSize: 15,
                               fontWeight: FontWeight.w700,
                             ),
@@ -399,7 +399,7 @@ class PetHealthTrackerScreen extends StatelessWidget {
   Widget _buildSectionHeader(String title) {
     return Text(
       title,
-      style: GoogleFonts.plusJakartaSans(
+      style: GoogleFonts.nunito(
         fontWeight: FontWeight.w800,
         fontSize: 20,
         letterSpacing: -0.4,
@@ -444,7 +444,7 @@ class PetHealthTrackerScreen extends StatelessWidget {
             value.isEmpty ? 'N/A' : value,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.plusJakartaSans(
+            style: GoogleFonts.nunito(
               fontSize: 16,
               fontWeight: FontWeight.w800,
             ),

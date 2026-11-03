@@ -118,7 +118,7 @@ class _ReactionsListBottomSheetState extends State<ReactionsListBottomSheet> {
               children: [
                 Text(
                   'Reactions',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.nunito(
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
                   ),
@@ -135,7 +135,7 @@ class _ReactionsListBottomSheetState extends State<ReactionsListBottomSheet> {
                   ),
                   child: Text(
                     '${allUserIds.length}',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.nunito(
                       fontSize: 12,
                       fontWeight: FontWeight.w800,
                       color: AppColors.primary,
@@ -194,7 +194,7 @@ class _ReactionsListBottomSheetState extends State<ReactionsListBottomSheet> {
                       type == 'ALL'
                           ? 'All ($count)'
                           : '${config?.label} $count',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.nunito(
                         fontSize: 12,
                         fontWeight: isSelected
                             ? FontWeight.w800
@@ -369,7 +369,7 @@ class _ReactionsListBottomSheetState extends State<ReactionsListBottomSheet> {
               children: [
                 Text(
                   user.name.isNotEmpty ? user.name : 'Pet Lover',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.nunito(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
                     color: isDark ? Colors.white : AppColors.textPrimary,
@@ -403,7 +403,7 @@ class _ReactionsListBottomSheetState extends State<ReactionsListBottomSheet> {
             ),
             child: Text(
               config.label,
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.nunito(
                 fontSize: 11,
                 fontWeight: FontWeight.w800,
                 color: config.activeColor,
@@ -422,7 +422,7 @@ class _ReactionsListBottomSheetState extends State<ReactionsListBottomSheet> {
       child: Center(
         child: Text(
           initial,
-          style: GoogleFonts.plusJakartaSans(
+          style: GoogleFonts.nunito(
             fontWeight: FontWeight.w800,
             fontSize: 18,
             color: AppColors.primary,

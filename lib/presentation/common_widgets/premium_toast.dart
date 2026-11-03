@@ -125,7 +125,7 @@ class _PremiumToastState extends State<PremiumToast> {
                       Flexible(
                         child: Text(
                           widget.message,
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.nunito(
                             color: Colors.white,
                             fontWeight: FontWeight.w600,
                             fontSize: 13,

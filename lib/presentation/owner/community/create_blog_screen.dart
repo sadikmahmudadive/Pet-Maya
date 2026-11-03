@@ -232,7 +232,7 @@ class _CreateBlogScreenState extends State<CreateBlogScreen> {
                   // ─── TITLE ─────────────────────────────────────────────────
                   TextField(
                     controller: _titleController,
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.nunito(
                       fontSize: 24,
                       fontWeight: FontWeight.w800,
                     ),

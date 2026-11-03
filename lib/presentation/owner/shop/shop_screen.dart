@@ -124,7 +124,7 @@ class _ShopScreenState extends State<ShopScreen> {
                           duration: const Duration(milliseconds: 600),
                           child: Text(
                             'Pet Marketplace',
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.nunito(
                               color: Colors.white,
                               fontSize: 34,
                               fontWeight: FontWeight.w700,
@@ -178,7 +178,7 @@ class _ShopScreenState extends State<ShopScreen> {
                               setState(() => _selectedCategory = 'All'),
                           child: Text(
                             'RESET TO ALL',
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.nunito(
                               color: AppColors.primary,
                               fontWeight: FontWeight.w800,
                               fontSize: 10,
@@ -275,7 +275,7 @@ class _ShopScreenState extends State<ShopScreen> {
   Widget _buildSectionHeader(String title) {
     return Text(
       title,
-      style: GoogleFonts.plusJakartaSans(
+      style: GoogleFonts.nunito(
         fontWeight: FontWeight.w700,
         fontSize: 24,
         letterSpacing: -0.2,
@@ -291,7 +291,7 @@ class _ShopScreenState extends State<ShopScreen> {
       child: TextField(
         controller: _searchController,
         onChanged: (val) => setState(() => _searchQuery = val),
-        style: GoogleFonts.plusJakartaSans(
+        style: GoogleFonts.nunito(
           color: AppColors.primary,
           fontWeight: FontWeight.w600,
           fontSize: 15,
@@ -536,7 +536,7 @@ class _ShopScreenState extends State<ShopScreen> {
                       const SizedBox(height: 12),
                       Text(
                         item['label'] as String,
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.nunito(
                           fontSize: 13,
                           fontWeight: FontWeight.w800,
                         ),
@@ -644,7 +644,7 @@ class _ShopScreenState extends State<ShopScreen> {
                   const SizedBox(height: 4),
                   Text(
                     '100% Genuine Clinical Supplies',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.nunito(
                       fontSize: 14,
                       fontWeight: FontWeight.w800,
                     ),
@@ -741,7 +741,7 @@ class _ShopScreenState extends State<ShopScreen> {
                         ),
                         child: Text(
                           product.stockQuantity == 0 ? 'OUT OF STOCK' : 'LOW STOCK',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.nunito(
                             color: Colors.white,
                             fontSize: 8,
                             fontWeight: FontWeight.w800,
@@ -785,7 +785,7 @@ class _ShopScreenState extends State<ShopScreen> {
               children: [
                 Text(
                   product.name,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.nunito(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
                   ),
@@ -810,7 +810,7 @@ class _ShopScreenState extends State<ShopScreen> {
                       children: [
                         Text(
                           '৳${displayPrice.toStringAsFixed(0)}',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.nunito(
                             color: AppColors.primary,
                             fontSize: 17,
                             fontWeight: FontWeight.w800,

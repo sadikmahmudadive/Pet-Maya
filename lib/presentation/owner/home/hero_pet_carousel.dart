@@ -330,7 +330,7 @@ class _HeroPetCarouselState extends State<HeroPetCarousel> {
                           Expanded(
                             child: Text(
                               statusText,
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.nunito(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w800,
                                 color: statusColor,
@@ -346,7 +346,7 @@ class _HeroPetCarouselState extends State<HeroPetCarousel> {
                     ],
                     Text(
                       pet.name,
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.nunito(
                         fontSize: 22,
                         fontWeight: FontWeight.w800,
                         color: isDark ? Colors.white : AppColors.textPrimary,

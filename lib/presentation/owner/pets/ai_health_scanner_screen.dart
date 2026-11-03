@@ -257,7 +257,7 @@ class _AiHealthScannerScreenState extends State<AiHealthScannerScreen> {
       appBar: AppBar(
         title: Text(
           'AI Health Scanner',
-          style: GoogleFonts.plusJakartaSans(
+          style: GoogleFonts.nunito(
             fontWeight: FontWeight.w800,
             fontSize: 18,
           ),

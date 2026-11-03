@@ -200,7 +200,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
       appBar: AppBar(
         title: Text(
           isEditing ? 'Edit Profile' : 'Add New Pet',
-          style: GoogleFonts.plusJakartaSans(
+          style: GoogleFonts.nunito(
             fontWeight: FontWeight.w700,
             fontSize: 20,
           ),
@@ -232,7 +232,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Text(
                 'Your Pets',
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.nunito(
                   fontWeight: FontWeight.w600,
                   fontSize: 18,
                   color: isDark ? Colors.white : Colors.black87,

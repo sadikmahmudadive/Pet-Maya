@@ -5,13 +5,15 @@ import '../../data/repositories/app_state_repository.dart';
 import '../../data/models/user_model.dart';
 import '../common_widgets/glass_scaffold.dart';
 import '../common_widgets/premium_card.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'register_screen.dart';
 import '../owner/home/owner_home_screen.dart';
 import '../provider/vet_dashboard_screen.dart';
 import '../merchant/pet_shop_dashboard_screen.dart';
 import '../admin/admin_dashboard_screen.dart';
 import '../common_widgets/google_logo.dart';
+import '../common_widgets/illustrations/pet_illustrations.dart';
+import '../common_widgets/motion/soft_motion.dart';
+import '../../core/theme/app_typography.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -193,7 +195,7 @@ class _LoginScreenState extends State<LoginScreen> {
         SizedBox(height: size.height * 0.05),
         _buildHeader(size, isDark),
         SizedBox(height: size.height * 0.04),
-        _buildLoginForm(size),
+        Reveal(index: 3, child: _buildLoginForm(size)),
         SizedBox(height: size.height * 0.05),
       ],
     );
@@ -224,46 +226,27 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _buildHeader(Size size, bool isDark) {
+    final petSize = (size.height * 0.2).clamp(110.0, 170.0);
     return Column(
       children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.05),
-            shape: BoxShape.circle,
-          ),
-          child: ClipOval(
-            child: Image.asset(
-              'assets/images/tail_wagging_logo.png',
-              height: size.height * 0.07,
-              width: size.height * 0.07,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => Icon(
-                Icons.pets_rounded,
-                size: size.height * 0.06,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-            ),
-          ),
-        ),
-        SizedBox(height: size.height * 0.02),
-        Text(
-          'Welcome Back',
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 34,
-            fontWeight: FontWeight.w700,
-            color: isDark ? Colors.white : AppColors.primary,
-          ),
-        ),
+        Reveal(child: Floating(distance: 5, child: PetCharacter(kind: PetKind.cat, size: petSize))),
         const SizedBox(height: 12),
-        Text(
-          'Sign in to continue your journey with Pet Maya',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 15,
-            color: isDark ? Colors.white70 : Colors.grey[600],
-            height: 1.5,
-            fontWeight: FontWeight.w500,
+        Reveal(
+          index: 1,
+          child: Text(
+            'Welcome back',
+            style: AppTypography.displayMedium.copyWith(color: isDark ? Colors.white : AppColors.primaryDark),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Reveal(
+          index: 2,
+          child: Text(
+            'Sign in to see how your pets are doing today.',
+            textAlign: TextAlign.center,
+            style: AppTypography.bodyLarge.copyWith(
+              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+            ),
           ),
         ),
       ],
@@ -306,7 +289,7 @@ class _LoginScreenState extends State<LoginScreen> {
               'Forgot Password?',
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
                 fontWeight: FontWeight.w700,
-                fontSize: 12,
+                fontSize: 13,
               ),
             ),
           ),
@@ -340,25 +323,10 @@ class _LoginScreenState extends State<LoginScreen> {
         _buildSocialDivider(),
         const SizedBox(height: 24),
 
-        Row(
-          children: [
-            Expanded(
-              child: _buildSocialButton(
-                label: 'Google',
-                icon: 'https://cdn-icons-png.flaticon.com/128/300/300221.png',
-                onTap: _handleGoogleLogin,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildSocialButton(
-                label: 'Apple',
-                icon: 'apple_logo',
-                onTap: () {},
-                isApple: true,
-              ),
-            ),
-          ],
+        _buildSocialButton(
+          label: 'Continue with Google',
+          icon: '',
+          onTap: _handleGoogleLogin,
         ),
         SizedBox(height: bottomPadding > 0 ? 20 : 0),
       ],
@@ -374,7 +342,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return PremiumCard(
       onTap: onTap,
       opacity: 0.1,
-      borderRadius: 20,
+      borderRadius: AppRadius.md,
       child: Container(
         height: 60,
         alignment: Alignment.center,
@@ -404,7 +372,7 @@ class _LoginScreenState extends State<LoginScreen> {
         const Expanded(child: Divider(thickness: 1)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Text('OR CONTINUE WITH', style: Theme.of(context).textTheme.labelSmall?.copyWith(letterSpacing: 0.8, fontWeight: FontWeight.w600, fontSize: 10)),
+          child: Text('or', style: Theme.of(context).textTheme.labelMedium),
         ),
         const Expanded(child: Divider(thickness: 1)),
       ],
@@ -423,7 +391,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }) {
     return PremiumCard(
       opacity: 0.15,
-      borderRadius: 20,
+      borderRadius: AppRadius.md,
       child: TextField(
         controller: controller,
         focusNode: focusNode,
@@ -437,7 +405,7 @@ class _LoginScreenState extends State<LoginScreen> {
             icon, 
             color: focusNode.hasFocus 
               ? Theme.of(context).colorScheme.primary 
-              : AppColors.lemonGreen, 
+              : AppColors.textTertiary, 
             size: 22
           ),
           suffixIcon: isPassword
@@ -460,22 +428,16 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _buildLoginButton() {
     return PremiumCard(
       useGlass: false,
-      borderRadius: 20,
+      borderRadius: AppRadius.md,
       onTap: _signingIn ? null : _handleLogin,
       child: Container(
         width: double.infinity,
-        height: 64,
+        height: 60,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: const Color(0xFF1AB680),
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF1AB680).withValues(alpha: 0.3),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
-            ),
-          ],
+          color: AppColors.primaryStrong,
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          boxShadow: AppShadows.soft(Theme.of(context).brightness == Brightness.dark, tint: AppColors.primaryStrong),
         ),
         child: _signingIn
             ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
@@ -483,9 +445,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 'Sign In',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.5,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
       ),

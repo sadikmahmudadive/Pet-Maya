@@ -154,7 +154,7 @@ class _PetPassportScreenState extends State<PetPassportScreen> with SingleTicker
       appBar: AppBar(
         title: Text(
           'Digital Pet Passport',
-          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 18),
+          style: GoogleFonts.nunito(fontWeight: FontWeight.w800, fontSize: 18),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -461,7 +461,7 @@ class _PetPassportScreenState extends State<PetPassportScreen> with SingleTicker
                         children: [
                           Text(
                             pet.name,
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.nunito(
                               fontSize: 22,
                               fontWeight: FontWeight.w900,
                               letterSpacing: -0.5,
@@ -761,7 +761,7 @@ class _PetPassportScreenState extends State<PetPassportScreen> with SingleTicker
               const SizedBox(width: 8),
               Text(
                 'Biometric Health Ledger',
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.nunito(
                   fontWeight: FontWeight.w800,
                   fontSize: 16,
                   color: isDark ? Colors.white : Colors.black87,

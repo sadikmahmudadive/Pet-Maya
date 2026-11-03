@@ -407,7 +407,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> with Single
                 children: [
                   Text(
                     'Map details & layers',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.nunito(
                       fontSize: 18,
                       fontWeight: FontWeight.w800,
                       color: isDark ? Colors.white : Colors.black87,
@@ -448,7 +448,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> with Single
                       const SizedBox(width: 12),
                       Text(
                         'Live Traffic Flow',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.nunito(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
                           color: isDark ? Colors.white : Colors.black87,
@@ -485,7 +485,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> with Single
                       const SizedBox(width: 12),
                       Text(
                         '3D Buildings & Landmarks',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.nunito(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
                           color: isDark ? Colors.white : Colors.black87,
@@ -542,7 +542,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> with Single
           const SizedBox(height: 6),
           Text(
             name,
-            style: GoogleFonts.plusJakartaSans(
+            style: GoogleFonts.nunito(
               fontSize: 11,
               fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
               color: isSelected ? AppColors.primary : (isDark ? Colors.grey[300] : Colors.grey[700]),
@@ -656,7 +656,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> with Single
                                 _onSearchQueryChanged(val);
                               }
                             },
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.nunito(
                               fontWeight: FontWeight.w600,
                               fontSize: 15,
                               color: isDark ? Colors.white : Colors.black87,
@@ -667,7 +667,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> with Single
                               hoverColor: Colors.transparent,
                               focusColor: Colors.transparent,
                               hintText: 'Search here...',
-                              hintStyle: GoogleFonts.plusJakartaSans(
+                              hintStyle: GoogleFonts.nunito(
                                 color: isDark ? Colors.grey[400] : Colors.grey[500],
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
@@ -764,7 +764,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> with Single
                                 item.title,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.plusJakartaSans(
+                                style: GoogleFonts.nunito(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w700,
                                   color: isDark ? Colors.white : Colors.black87,
@@ -775,7 +775,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> with Single
                                       item.subtitle,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                      style: GoogleFonts.plusJakartaSans(
+                                      style: GoogleFonts.nunito(
                                         fontSize: 12,
                                         color: isDark ? Colors.grey[400] : Colors.grey[600],
                                       ),
@@ -814,7 +814,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> with Single
                     child: Center(
                       child: Text(
                         _is3D ? '3D' : '2D',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.nunito(
                           color: _is3D ? Colors.white : (isDark ? Colors.white : AppColors.primary),
                           fontWeight: FontWeight.w900,
                           fontSize: 13,
@@ -915,7 +915,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> with Single
                                 _placeName,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.plusJakartaSans(
+                                style: GoogleFonts.nunito(
                                   fontWeight: FontWeight.w800,
                                   fontSize: 17,
                                   color: isDark ? Colors.white : Colors.black87,
@@ -926,7 +926,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> with Single
                                 _address,
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.plusJakartaSans(
+                                style: GoogleFonts.nunito(
                                   fontWeight: FontWeight.w500,
                                   fontSize: 13,
                                   color: isDark ? Colors.grey[400] : Colors.grey[600],
@@ -1019,7 +1019,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> with Single
                             const SizedBox(width: 8),
                             Text(
                               'CONFIRM THIS ADDRESS',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.nunito(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w800,
                                 fontSize: 14,
@@ -1098,7 +1098,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> with Single
             const SizedBox(width: 6),
             Text(
               label,
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.nunito(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
                 color: isDark ? Colors.grey[200] : Colors.grey[800],

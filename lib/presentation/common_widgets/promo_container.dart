@@ -65,7 +65,7 @@ class PromoContainer extends StatelessWidget {
                       const SizedBox(height: 24),
                       Text(
                         promo.header,
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.nunito(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
                           color: Colors.white.withValues(alpha: 0.9),
@@ -75,7 +75,7 @@ class PromoContainer extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         '${promo.discountPercent}%',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.nunito(
                           fontSize: 84, // Giant percentage
                           fontWeight: FontWeight.w900,
                           color: const Color(0xFFF05A5A), // High contrast coral/red
@@ -87,7 +87,7 @@ class PromoContainer extends StatelessWidget {
                       Text(
                         promo.footer,
                         textAlign: TextAlign.center,
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.nunito(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                           color: Colors.white.withValues(alpha: 0.8),
@@ -127,7 +127,7 @@ class PromoContainer extends StatelessWidget {
                         onTap: () => state.dismissPromoForSession(),
                         child: Text(
                           'NO, THANKS',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.nunito(
                             fontSize: 11,
                             fontWeight: FontWeight.w900,
                             decoration: TextDecoration.underline,

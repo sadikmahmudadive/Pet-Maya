@@ -20,7 +20,7 @@ class GlassCard extends StatelessWidget {
     this.padding,
     this.blur = 0,
     this.opacity = 0.85,
-    this.borderRadius = 24,
+    this.borderRadius = AppRadius.lg,
     this.borderColor,
     this.borderSide,
     this.gradient,
@@ -31,32 +31,22 @@ class GlassCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final defaultGradient = isDark ? AppColors.glassGradientDark : AppColors.glassGradientLight;
-    
+    // Soft cards: a plain surface lifted by a warm, offset shadow. No frosted border; glow tints it when asked.
     Widget cardContent = Container(
       padding: padding,
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: gradient == null
-            ? (isDark ? AppColors.iosCardDark.withValues(alpha: opacity) : AppColors.iosCard.withValues(alpha: opacity))
+            ? (isDark ? AppColors.iosCardDark.withValues(alpha: opacity.clamp(0.0, 1.0) < 0.9 ? 0.92 : opacity) : AppColors.iosCard)
             : null,
-        gradient: gradient ?? defaultGradient,
+        gradient: gradient,
         borderRadius: BorderRadius.circular(borderRadius),
-        border: borderSide != null 
-          ? Border.fromBorderSide(borderSide!) 
-          : Border.all(
-              color: borderColor ?? (isDark ? Colors.white.withValues(alpha: 0.12) : Colors.white.withValues(alpha: 0.8)),
-              width: 1.0,
-            ),
-        boxShadow: [
-          BoxShadow(
-            color: glowColor != null
-                ? glowColor!.withValues(alpha: isDark ? 0.2 : 0.08)
-                : (isDark ? Colors.black.withValues(alpha: 0.35) : AppColors.cardShadow),
-            blurRadius: glowColor != null ? 20 : 16,
-            spreadRadius: 0,
-            offset: const Offset(0, 5),
-          ),
-        ],
+        border: borderSide != null
+            ? Border.fromBorderSide(borderSide!)
+            : (isDark
+                ? Border.all(color: borderColor ?? Colors.white.withValues(alpha: 0.08), width: 1.0)
+                : (borderColor != null ? Border.all(color: borderColor!, width: 1.0) : null)),
+        boxShadow: AppShadows.soft(isDark, tint: glowColor),
       ),
       child: child,
     );
@@ -74,11 +64,7 @@ class GlassCard extends StatelessWidget {
       );
     }
 
-    return RepaintBoundary(
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(borderRadius),
-        child: cardContent,
-      ),
-    );
+    // The container clips its own child to the rounded shape, so the shadow outside it stays visible.
+    return RepaintBoundary(child: cardContent);
   }
 }

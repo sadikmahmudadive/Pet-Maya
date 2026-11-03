@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../core/theme/app_colors.dart';
 
 /// A production-grade Bento container designed to build asymmetric,
 /// structured, and modular Bento grids with Apple HIG tactile feedback.
@@ -19,7 +20,7 @@ class BentoCard extends StatefulWidget {
     required this.child,
     this.onTap,
     this.padding = const EdgeInsets.all(18),
-    this.borderRadius = 24,
+    this.borderRadius = AppRadius.lg,
     this.backgroundColor,
     this.borderColor,
     this.gradient,
@@ -75,13 +76,7 @@ class _BentoCardState extends State<BentoCard> with SingleTickerProviderStateMix
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final defaultBg = isDark
-        ? const Color(0xFF0B2826).withValues(alpha: 0.88)
-        : Colors.white.withValues(alpha: 0.92);
-
-    final defaultBorder = isDark
-        ? const Color(0x2B1AB680)
-        : Colors.black.withValues(alpha: 0.06);
+    final defaultBg = isDark ? const Color(0xFF0B2826) : Colors.white;
 
     Widget card = Container(
       padding: widget.padding,
@@ -89,17 +84,11 @@ class _BentoCardState extends State<BentoCard> with SingleTickerProviderStateMix
         color: widget.gradient == null ? (widget.backgroundColor ?? defaultBg) : null,
         gradient: widget.gradient,
         borderRadius: BorderRadius.circular(widget.borderRadius),
-        border: Border.all(
-          color: widget.borderColor ?? defaultBorder,
-          width: 1.0,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.04),
-            blurRadius: 18,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        // Soft cards are lifted by shadow; only dark mode (or an explicit colour) gets an outline.
+        border: widget.borderColor != null
+            ? Border.all(color: widget.borderColor!, width: 1.0)
+            : (isDark ? Border.all(color: const Color(0x2B1AB680), width: 1.0) : null),
+        boxShadow: AppShadows.soft(isDark),
       ),
       child: widget.child,
     );

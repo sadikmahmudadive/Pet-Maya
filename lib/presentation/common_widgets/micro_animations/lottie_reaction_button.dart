@@ -260,7 +260,7 @@ class _ReactionItemState extends State<_ReactionItem> {
             const SizedBox(height: 3),
             AnimatedDefaultTextStyle(
               duration: const Duration(milliseconds: 150),
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.nunito(
                 fontSize: 9.5,
                 fontWeight: _isHovered ? FontWeight.w800 : FontWeight.w600,
                 color: _isHovered

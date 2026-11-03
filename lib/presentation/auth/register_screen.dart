@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../common_widgets/illustrations/pet_illustrations.dart';
+import '../common_widgets/motion/soft_motion.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/repositories/app_state_repository.dart';
@@ -139,25 +141,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
               FadeInDown(
                 child: Column(
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.05),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(Icons.person_add_rounded, size: size.height * 0.05, color: Theme.of(context).colorScheme.primary),
-                    ),
+                    Floating(distance: 5, child: PetCharacter(kind: PetKind.dog, size: (size.height * 0.17).clamp(100.0, 150.0))),
                     SizedBox(height: size.height * 0.02),
                     Text(
                       'Create Account',
                       style: Theme.of(context).textTheme.displayLarge?.copyWith(
                         fontSize: 28,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w900,
                       ),
                     ),
                     SizedBox(height: size.height * 0.01),
                     Text(
-                      'Start your premium pet care experience today',
+                      'Join Pet Maya and keep your pets happy and healthy.',
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         fontSize: 14,
@@ -280,7 +275,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       child: PremiumCard(
         onTap: () => setState(() => _selectedRole = role),
         opacity: isSelected ? 0.4 : 0.1,
-        borderRadius: 20,
+        borderRadius: AppRadius.md,
         child: Container(
           width: 80,
           padding: const EdgeInsets.symmetric(vertical: 16),
@@ -290,7 +285,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 icon,
                 color: isSelected 
                   ? Theme.of(context).colorScheme.primary 
-                  : AppColors.lemonGreen,
+                  : AppColors.textTertiary,
                 size: 26,
               ),
               const SizedBox(height: 8),
@@ -321,7 +316,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }) {
     return PremiumCard(
       opacity: 0.15,
-      borderRadius: 20,
+      borderRadius: AppRadius.md,
       child: TextField(
         controller: controller,
         focusNode: focusNode,
@@ -335,7 +330,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             icon, 
             color: focusNode.hasFocus 
               ? Theme.of(context).colorScheme.primary 
-              : AppColors.lemonGreen, 
+              : AppColors.textTertiary, 
             size: 22
           ),
           suffixIcon: isPassword
@@ -358,22 +353,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget _buildRegisterButton() {
     return PremiumCard(
       useGlass: false,
-      borderRadius: 20,
+      borderRadius: AppRadius.md,
       onTap: _isRegistering ? null : _handleRegister,
       child: Container(
         width: double.infinity,
-        height: 64,
+        height: 60,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: const Color(0xFF1AB680),
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF1AB680).withValues(alpha: 0.3),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
-            ),
-          ],
+          color: AppColors.primaryStrong,
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          boxShadow: AppShadows.soft(Theme.of(context).brightness == Brightness.dark, tint: AppColors.primaryStrong),
         ),
         child: _isRegistering
             ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
@@ -381,9 +370,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 'Create Account',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.5,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
       ),

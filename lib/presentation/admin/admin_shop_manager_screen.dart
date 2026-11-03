@@ -642,7 +642,7 @@ class _PromoManagerSheetState extends State<_PromoManagerSheet> {
             children: [
               Text(
                 'PROMO COMMAND',
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.nunito(
                   fontWeight: FontWeight.w900,
                   fontSize: 16,
                 ),
@@ -910,7 +910,7 @@ class _CouponManagerSheetState extends State<_CouponManagerSheet> {
             children: [
               Text(
                 'COUPON COMMAND',
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.nunito(
                   fontWeight: FontWeight.w900,
                   fontSize: 16,
                 ),

@@ -9,6 +9,8 @@ import '../../../data/repositories/app_state_repository.dart';
 import '../../../data/support_faq.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
+import '../../common_widgets/illustrations/pet_illustrations.dart';
+import '../../common_widgets/motion/soft_motion.dart';
 import 'feedback_sheet.dart';
 import 'my_tickets_screen.dart';
 import 'new_ticket_screen.dart';
@@ -112,19 +114,37 @@ class _SupportCenterScreenState extends State<SupportCenterScreen> {
           return ListView(
             padding: const EdgeInsets.fromLTRB(20, 100, 20, 60),
             children: [
-              Text(
-                'How can we help?',
-                style: AppTypography.headlineSmall.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: textColor,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                'Find a quick answer below, or talk to the Pet Maya team.',
-                style: AppTypography.bodyMedium.copyWith(
-                  color: textColor.withValues(alpha: 0.75),
-                ),
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'How can we help?',
+                          style: AppTypography.displaySmall.copyWith(
+                            color: textColor,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Find a quick answer below, or talk to the Pet Maya team.',
+                          style: AppTypography.bodyMedium.copyWith(
+                            color: textColor.withValues(alpha: 0.8),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Floating(
+                    distance: 4,
+                    child: SoftIllustration(
+                      scene: IllustrationScene.noTickets,
+                      size: 118,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 20),
               Row(

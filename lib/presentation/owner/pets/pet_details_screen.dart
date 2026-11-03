@@ -262,7 +262,7 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                                 children: [
                                   Text(
                                     pet.name,
-                                    style: GoogleFonts.plusJakartaSans(
+                                    style: GoogleFonts.nunito(
                                       fontWeight: FontWeight.w800,
                                       fontSize: 26,
                                       letterSpacing: -0.5,
@@ -288,7 +288,7 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                                       Expanded(
                                         child: Text(
                                           pet.breed,
-                                          style: GoogleFonts.plusJakartaSans(
+                                          style: GoogleFonts.nunito(
                                             color: AppColors.primary,
                                             fontWeight: FontWeight.w700,
                                             fontSize: 14,
@@ -431,7 +431,7 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                                     children: [
                                       Text(
                                         'DIGITAL PET PASSPORT',
-                                        style: GoogleFonts.plusJakartaSans(
+                                        style: GoogleFonts.nunito(
                                           color: Colors.white.withValues(
                                             alpha: 0.85,
                                           ),
@@ -466,7 +466,7 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                                   const SizedBox(height: 4),
                                   Text(
                                     'Biometric & Microchip ID',
-                                    style: GoogleFonts.plusJakartaSans(
+                                    style: GoogleFonts.nunito(
                                       color: Colors.white,
                                       fontSize: 16,
                                       fontWeight: FontWeight.w800,
@@ -514,7 +514,7 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                             const SizedBox(width: 8),
                             Text(
                               'About ${pet.name}',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.nunito(
                                 fontWeight: FontWeight.w800,
                                 fontSize: 18,
                                 letterSpacing: -0.3,
@@ -620,7 +620,7 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                             const SizedBox(width: 8),
                             Text(
                               '${pet.name}\'s Health & Care',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.nunito(
                                 fontWeight: FontWeight.w800,
                                 fontSize: 18,
                                 letterSpacing: -0.3,
@@ -733,7 +733,7 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                       children: [
                         Text(
                           'Care & Medical Records',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.nunito(
                             fontWeight: FontWeight.w800,
                             fontSize: 18,
                             letterSpacing: -0.3,

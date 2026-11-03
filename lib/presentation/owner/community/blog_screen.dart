@@ -201,7 +201,7 @@ class _BlogScreenState extends State<BlogScreen> {
                   const SizedBox(height: 12),
                   Text(
                     blog.title,
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.nunito(
                       fontSize: 18,
                       fontWeight: FontWeight.w800,
                       height: 1.3,

@@ -135,7 +135,7 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
       appBar: AppBar(
         title: Text(
           'My Appointments',
-          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 18),
+          style: GoogleFonts.nunito(fontWeight: FontWeight.w800, fontSize: 18),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -208,7 +208,7 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
             ? AppColors.primary
             : (isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.06)),
       ),
-      labelStyle: GoogleFonts.plusJakartaSans(
+      labelStyle: GoogleFonts.nunito(
         fontSize: 12,
         fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
         color: isSelected ? Colors.white : (isDark ? Colors.white70 : Colors.black87),
@@ -255,7 +255,7 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
                     const SizedBox(width: 6),
                     Text(
                       event.category.toUpperCase(),
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.nunito(
                         fontSize: 10,
                         fontWeight: FontWeight.w800,
                         color: _getCategoryColor(event.category),
@@ -295,7 +295,7 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
           // Title & Note
           Text(
             event.note.isNotEmpty ? event.note : 'Consultation Appointment',
-            style: GoogleFonts.plusJakartaSans(
+            style: GoogleFonts.nunito(
               fontSize: 16,
               fontWeight: FontWeight.w800,
               color: isDark ? Colors.white : AppColors.textPrimary,
@@ -323,7 +323,7 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
                 Expanded(
                   child: Text(
                     DateFormat('EEEE, MMM d, yyyy').format(event.date),
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.nunito(
                       fontSize: 12.5,
                       fontWeight: FontWeight.w700,
                       color: isDark ? Colors.white70 : Colors.black87,
@@ -335,7 +335,7 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
                 const SizedBox(width: 4),
                 Text(
                   event.fromTime,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.nunito(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
                     color: AppColors.secondary,
@@ -358,7 +358,7 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
               ),
               Text(
                 event.petName,
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.nunito(
                   fontSize: 12.5,
                   fontWeight: FontWeight.w800,
                   color: AppColors.primary,

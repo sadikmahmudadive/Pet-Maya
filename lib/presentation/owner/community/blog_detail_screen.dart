@@ -109,7 +109,7 @@ class BlogDetailScreen extends StatelessWidget {
                   const SizedBox(height: 20),
                   FadeInUp(
                     duration: const Duration(milliseconds: 500),
-                    child: Text(blog.title, style: GoogleFonts.plusJakartaSans(
+                    child: Text(blog.title, style: GoogleFonts.nunito(
                       fontSize: 26, fontWeight: FontWeight.w800, height: 1.2
                     )),
                   ),

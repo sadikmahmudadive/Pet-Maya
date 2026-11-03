@@ -248,7 +248,7 @@ class _PassportQrScannerModalState extends State<PassportQrScannerModal>
                       children: [
                         Text(
                           pet.name,
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.nunito(
                             fontSize: 22,
                             fontWeight: FontWeight.w900,
                             color: isDark ? Colors.white : Colors.black87,
@@ -459,7 +459,7 @@ class _PassportQrScannerModalState extends State<PassportQrScannerModal>
             children: [
               Text(
                 'Scan Passport QR Code',
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.nunito(
                   fontSize: 20,
                   fontWeight: FontWeight.w800,
                   color: isDark ? Colors.white : Colors.black87,

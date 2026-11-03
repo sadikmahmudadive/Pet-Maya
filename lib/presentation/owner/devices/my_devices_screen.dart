@@ -83,7 +83,7 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                   const SizedBox(height: 16),
                   Text(
                     'Beeping ${device.name}...',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.nunito(
                       fontSize: 20,
                       fontWeight: FontWeight.w800,
                     ),
@@ -169,7 +169,7 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                       children: [
                         Text(
                           'Device Settings',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.nunito(
                             fontSize: 20,
                             fontWeight: FontWeight.w800,
                           ),
@@ -401,7 +401,7 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                         children: [
                           Text(
                             'Pair New Device',
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.nunito(
                               fontSize: 22,
                               fontWeight: FontWeight.w800,
                             ),
@@ -514,7 +514,7 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                             const SizedBox(height: 10),
                             Text(
                               isScanDone ? 'Device Discovered!' : 'Searching for Hardware...',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.nunito(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w800,
                               ),
@@ -616,7 +616,7 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                       // STEP 2: CONFIGURE & ASSIGN
                       Text(
                         'Device Setup',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 22, fontWeight: FontWeight.w800),
+                        style: GoogleFonts.nunito(fontSize: 22, fontWeight: FontWeight.w800),
                       ),
                       const SizedBox(height: 4),
                       Text(
@@ -867,7 +867,7 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                           'Connected Hardware (${devices.length})',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.nunito(
                             fontSize: 17,
                             fontWeight: FontWeight.w800,
                             letterSpacing: -0.3,
@@ -1105,7 +1105,7 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
                     children: [
                       Text(
                         device.name,
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.nunito(
                           fontWeight: FontWeight.w800,
                           fontSize: 16,
                         ),
@@ -1318,7 +1318,7 @@ class _MyDevicesScreenState extends State<MyDevicesScreen> {
             const SizedBox(height: 24),
             Text(
               'No Trackers Paired Yet',
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.nunito(
                 fontSize: 22,
                 fontWeight: FontWeight.w800,
               ),

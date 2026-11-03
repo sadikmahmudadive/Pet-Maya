@@ -118,7 +118,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               pinned: true,
               stretch: true,
               automaticallyImplyLeading: false,
-              backgroundColor: AppColors.primary,
+              backgroundColor: AppColors.primaryStrong,
               systemOverlayStyle: SystemUiOverlayStyle.light,
               flexibleSpace: FlexibleSpaceBar(
                 stretchModes: const [StretchMode.zoomBackground],
@@ -131,7 +131,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         gradient: LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
-                          colors: [AppColors.primary, AppColors.primaryDark],
+                          colors: [AppColors.primaryStrong, AppColors.primaryDark],
                         ),
                       ),
                     ),
@@ -159,7 +159,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           FadeInDown(
                             child: Text(
                               user.name,
-                              style: GoogleFonts.plusJakartaSans(
+                              style: GoogleFonts.nunito(
                                 color: Colors.white,
                                 fontSize: 26,
                                 fontWeight: FontWeight.w700,
@@ -181,7 +181,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                 user.role.displayName.toUpperCase(),
                                 style: const TextStyle(
                                   color: Colors.white,
-                                  fontSize: 10,
+                                  fontSize: 11,
                                   fontWeight: FontWeight.w900,
                                   letterSpacing: 1,
                                 ),
@@ -540,7 +540,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               const SizedBox(height: 8),
               Text(
                 value,
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.nunito(
                   fontWeight: FontWeight.w700,
                   fontSize: 18,
                 ),
@@ -916,7 +916,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.nunito(
                     fontWeight: FontWeight.w600,
                     fontSize: 14,
                     color: isDark ? Colors.white : const Color(0xFF1A202C),
@@ -1022,7 +1022,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 const SizedBox(width: 8),
                 Text(
                   'Sign Out of Pet Maya',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.nunito(
                     color: AppColors.dangerRed,
                     fontWeight: FontWeight.w700,
                     fontSize: 14,
@@ -1065,7 +1065,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 const SizedBox(height: 20),
                 Text(
                   'Choose App Appearance',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.nunito(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
                     color: isDark ? Colors.white : AppColors.textPrimary,
@@ -1273,7 +1273,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         const SizedBox(height: 8),
                         Text(
                           'Invite Friends & Earn Points!',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.nunito(
                             fontWeight: FontWeight.w700,
                             fontSize: 16,
                             color: isDark
@@ -1512,7 +1512,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             const SizedBox(width: 10),
             Text(
               'Redeem Referral Code',
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.nunito(
                 fontWeight: FontWeight.w700,
                 fontSize: 18,
               ),
@@ -1596,7 +1596,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
         title: Text(
           'Sign Out',
-          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
+          style: GoogleFonts.nunito(fontWeight: FontWeight.w700),
         ),
         content: const Text(
           'Are you sure you want to exit your pet care portal?',

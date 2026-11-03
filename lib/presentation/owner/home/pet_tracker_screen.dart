@@ -291,7 +291,7 @@ class _PetTrackerScreenState extends State<PetTrackerScreen> with SingleTickerPr
               children: [
                 Text(
                   '${widget.pet.name}\'s Radar', 
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.nunito(
                     fontWeight: FontWeight.w800,
                     fontSize: 16,
                     color: isDark ? Colors.white : Colors.black87,
@@ -437,7 +437,7 @@ class _PetTrackerScreenState extends State<PetTrackerScreen> with SingleTickerPr
             child: Center(
               child: Text(
                 _is3D ? '3D' : '2D',
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.nunito(
                   color: _is3D ? Colors.white : AppColors.primary,
                   fontWeight: FontWeight.w900,
                   fontSize: 13,
@@ -626,7 +626,7 @@ class _PetTrackerScreenState extends State<PetTrackerScreen> with SingleTickerPr
                         const SizedBox(height: 2),
                         Text(
                           hasGpsDevice ? _currentActivity : 'GPS Tracker Not Active', 
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.nunito(
                             fontWeight: FontWeight.w800, 
                             fontSize: 16,
                             color: isDark ? Colors.white : Colors.black87,
@@ -673,7 +673,7 @@ class _PetTrackerScreenState extends State<PetTrackerScreen> with SingleTickerPr
                       ),
                       label: Text(
                         hasGpsDevice ? 'PLAY SOUND' : 'PAIR GPS TRACKER',
-                        style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 13, letterSpacing: 0.5),
+                        style: GoogleFonts.nunito(fontWeight: FontWeight.w800, fontSize: 13, letterSpacing: 0.5),
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: hasGpsDevice ? AppColors.primary : AppColors.accentAmber,

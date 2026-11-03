@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../data/repositories/app_state_repository.dart';
@@ -11,8 +10,9 @@ import '../owner/home/owner_home_screen.dart';
 import '../provider/vet_dashboard_screen.dart';
 import '../merchant/pet_shop_dashboard_screen.dart';
 import '../admin/admin_dashboard_screen.dart';
-import '../common_widgets/tail_wagging_loader.dart';
-import 'package:animate_do/animate_do.dart';
+import '../common_widgets/illustrations/pet_illustrations.dart';
+import '../common_widgets/motion/soft_motion.dart';
+import '../common_widgets/soft_backdrop.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -110,122 +110,76 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final ink = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
+      value: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
       child: Scaffold(
-        backgroundColor: AppColors.primary,
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              FadeInDown(
-                duration: const Duration(milliseconds: 1000),
-                from: 60,
-                child: ScaleTransition(
-                  scale: _scaleAnimation,
-                  child: Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.12),
-                          blurRadius: 40,
-                          offset: const Offset(0, 20),
-                        ),
-                      ],
-                    ),
-                    child: ClipOval(
-                      child: Image.asset(
-                        'assets/images/tail_wagging_logo.png',
-                        width: 90,
-                        height: 90,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => const TailWaggingLoader(size: 90, useBottomPosition: false),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        body: Stack(
+          children: [
+            const SoftBackdrop(),
+            SafeArea(
+              child: Column(
+                children: [
+                  Expanded(
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ScaleTransition(
+                            scale: _scaleAnimation,
+                            child: const PetCharacter(kind: PetKind.dog, size: 190),
+                          ),
+                          const SizedBox(height: 18),
+                          Reveal(
+                            delay: const Duration(milliseconds: 250),
+                            child: Text(
+                              'Pet Maya',
+                              style: AppTypography.displayLarge.copyWith(
+                                fontSize: 50,
+                                color: isDark ? ink : AppColors.primaryDark,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Reveal(
+                            delay: const Duration(milliseconds: 420),
+                            child: Text(
+                              'Loving care for your best friends',
+                              style: AppTypography.bodyLarge.copyWith(
+                                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                ),
+                  FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 28),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text('Supported by', style: AppTypography.labelMedium.copyWith(color: AppColors.textTertiary)),
+                          const SizedBox(height: 4),
+                          Text('VertexHand', style: AppTypography.titleMedium.copyWith(color: ink)),
+                          const SizedBox(height: 16),
+                          Text('Developed by', style: AppTypography.labelMedium.copyWith(color: AppColors.textTertiary)),
+                          const SizedBox(height: 8),
+                          Image.asset('assets/images/masa_logo.png', height: 44),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 40),
-              FadeInUp(
-                duration: const Duration(milliseconds: 800),
-                delay: const Duration(milliseconds: 200),
-                child: Text(
-                  'Pet Maya',
-                  style: GoogleFonts.plusJakartaSans(
-                    color: Colors.white,
-                    fontSize: 48,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.5,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              FadeInUp(
-                duration: const Duration(milliseconds: 800),
-                delay: const Duration(milliseconds: 400),
-                child: Text(
-                  'Professional Care for Your Best Friends',
-                  style: AppTypography.bodyMedium.copyWith(
-                    color: AppColors.primaryLight.withValues(alpha: 0.7),
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: 0.2,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        bottomNavigationBar: FadeTransition(
-          opacity: _fadeAnimation,
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: 40),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'SUPPORTED BY',
-                  style: AppTypography.labelSmall.copyWith(
-                    color: Colors.white.withValues(alpha: 0.6),
-                    fontSize: 10,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 2.0,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'VertexHand',
-                  style: GoogleFonts.plusJakartaSans(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  'DEVELOPED BY',
-                  style: AppTypography.labelSmall.copyWith(
-                    color: Colors.white.withValues(alpha: 0.6),
-                    fontSize: 10,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 2.0,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Image.asset(
-                  'assets/images/masa_logo.png',
-                  height: 60,
-                ),
-              ],
             ),
-          ),
+          ],
         ),
       ),
     );
   }
 }
-

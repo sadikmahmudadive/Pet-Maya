@@ -213,7 +213,7 @@ class VetConsoleHomeFragment extends StatelessWidget {
                 children: [
                   Text(
                     'Booking Details',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.nunito(
                       fontSize: 20,
                       fontWeight: FontWeight.w800,
                     ),
@@ -451,7 +451,7 @@ class VetConsoleHomeFragment extends StatelessWidget {
                   const SizedBox(width: 8),
                   Text(
                     'Practice Hours & Fee',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: GoogleFonts.nunito(
                       fontSize: 15,
                       fontWeight: FontWeight.w800,
                       color: isDark ? Colors.white : AppColors.textPrimary,

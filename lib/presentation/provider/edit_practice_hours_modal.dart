@@ -156,7 +156,7 @@ class _EditPracticeHoursModalState extends State<EditPracticeHoursModal> {
               children: [
                 Text(
                   'Set Practice Hours & Fees',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.nunito(
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
                     color: isDark ? Colors.white : AppColors.textPrimary,
@@ -292,7 +292,7 @@ class _EditPracticeHoursModalState extends State<EditPracticeHoursModal> {
                   Expanded(
                     child: Text(
                       _generateScheduleString(),
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.nunito(
                         fontSize: 12.5,
                         fontWeight: FontWeight.w800,
                         color: AppColors.primary,

@@ -18,7 +18,7 @@ class PremiumCard extends StatefulWidget {
     super.key,
     required this.child,
     this.onTap,
-    this.borderRadius = 22,
+    this.borderRadius = AppRadius.lg,
     this.useGlass = true,
     this.opacity = 0.85,
     this.backgroundColor,

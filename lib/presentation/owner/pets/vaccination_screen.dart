@@ -52,7 +52,7 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
       appBar: AppBar(
         title: Text(
           'Immunization & Vaccines',
-          style: GoogleFonts.plusJakartaSans(
+          style: GoogleFonts.nunito(
             fontWeight: FontWeight.w800,
             fontSize: 18,
           ),
@@ -250,7 +250,7 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
                           const SizedBox(height: 6),
                           Text(
                             '${_selectedPet?.name ?? "Pet"} Immunization Profile',
-                            style: GoogleFonts.plusJakartaSans(
+                            style: GoogleFonts.nunito(
                               fontSize: 16,
                               fontWeight: FontWeight.w800,
                               color: isDark ? Colors.white : Colors.black87,
@@ -286,7 +286,7 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
             // ─── BENTO SECTION: CLINICAL RECORDS ───
             Text(
               'Administered Vaccines & Clinical Logs',
-              style: GoogleFonts.plusJakartaSans(
+              style: GoogleFonts.nunito(
                 fontWeight: FontWeight.w800,
                 fontSize: 16,
                 letterSpacing: -0.3,
@@ -358,7 +358,7 @@ class _VaccinationScreenState extends State<VaccinationScreen> {
             children: [
               Text(
                 rec.title.isNotEmpty ? rec.title : rec.serviceType,
-                style: GoogleFonts.plusJakartaSans(
+                style: GoogleFonts.nunito(
                   fontWeight: FontWeight.w700,
                   fontSize: 14,
                   color: isDark ? Colors.white : Colors.black87,
