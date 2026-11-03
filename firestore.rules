@@ -398,6 +398,25 @@ service cloud.firestore {
       allow read: if isAdmin() || hasStaffRole(['Manager']);
       allow write: if false;
     }
+
+    // ── Support Center ─────────────────────────────────────────────────────
+    // Tickets and their messages are written only by the support_* callables (the sender's role is decided on the
+    // server). The owner reads their own tickets; admins and managers read all of them. Feedback is staff-only.
+    match /support_tickets/{ticketId} {
+      allow read: if isAdmin() || hasStaffRole(['Manager'])
+        || (signedIn() && resource.data.ownerID == request.auth.uid);
+      allow write: if false;
+      match /messages/{messageId} {
+        allow read: if isAdmin() || hasStaffRole(['Manager'])
+          || (signedIn()
+              && get(/databases/$(database)/documents/support_tickets/$(ticketId)).data.ownerID == request.auth.uid);
+        allow write: if false;
+      }
+    }
+    match /app_feedback/{id} {
+      allow read: if isAdmin() || hasStaffRole(['Manager']);
+      allow write: if false;
+    }
     match /moderation_removed/{id} {
       allow read: if isAdmin() || hasStaffRole(['Manager']);
       allow write: if false;
@@ -531,7 +550,21 @@ service cloud.firestore {
     match /settings/{settingId} {
       allow read: if true;
       // The announcement bar (settings/announcement) is also editable by managers, like the ERP settings.
-      allow write: if isAdmin() || (settingId in ['erp', 'announcement'] && hasStaffRole(['Manager']));
+      // settings/support has its own, stricter rule below.
+      allow write: if settingId != 'support'
+        && (isAdmin() || (settingId in ['erp', 'announcement'] && hasStaffRole(['Manager'])));
+    }
+
+    // Support contact details shown in the app and on the site (phone, WhatsApp, email, opening hours). Public to
+    // read; admins and managers edit them in admin -> Support center -> Contact details.
+    function validSupportContact() {
+      return request.resource.data.keys().hasOnly(['phone', 'whatsapp', 'email', 'hours', 'updatedAt'])
+        && optShortString('phone', 30) && optShortString('whatsapp', 30)
+        && optShortString('email', 120) && optShortString('hours', 80);
+    }
+    match /settings/support {
+      allow read: if true;
+      allow write: if (isAdmin() || hasStaffRole(['Manager'])) && validSupportContact();
     }
 
     // Admin broadcast history (sending itself goes through send_broadcast).

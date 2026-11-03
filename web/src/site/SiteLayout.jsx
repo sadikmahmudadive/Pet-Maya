@@ -5,6 +5,8 @@ import { Icon, Button, ThemeToggle, Ph, Pill } from '../ui/index.jsx';
 import { money, cx, productPath } from '../lib/format.js';
 import { useScrolled, useBump, Reveal } from '../lib/motion.jsx';
 import { subscribeNewsletter } from '../data/actions.js';
+import { useSupportContact } from '../data/support.js';
+import { telHref, whatsappHref } from '../lib/contact.js';
 import { TRUST, BRAND } from '../data/content.js';
 import AnnouncementBar, { useAnnouncementConfig } from './AnnouncementBar.jsx';
 import BagDrawer from './BagDrawer.jsx';
@@ -263,6 +265,7 @@ export function TrustRow() {
 
 function Footer() {
   const { toast } = useStore();
+  const contact = useSupportContact();
   const [email, setEmail] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -308,7 +311,10 @@ function Footer() {
             <div>
               <div className="eyebrow muted">Help</div>
               <Link to="/account/orders">Track order</Link><Link to="/terms_of_service.html">Delivery & returns</Link>
-              <Link to="/shop/prescription">Prescriptions</Link><Link to={`mailto:${BRAND.supportEmail}`}>Contact us</Link>
+              <Link to="/shop/prescription">Prescriptions</Link><Link to={`mailto:${contact.email}`}>Contact us</Link>
+              {telHref(contact.phone) && <Link to={telHref(contact.phone)}>Call {contact.phone}</Link>}
+              {whatsappHref(contact.whatsapp) && <Link to={whatsappHref(contact.whatsapp)} target="_blank" rel="noopener noreferrer">WhatsApp us</Link>}
+              {contact.hours && <span className="sub" style={{ fontSize: 12 }}>{contact.hours}</span>}
             </div>
           </div>
         </div>
@@ -318,7 +324,7 @@ function Footer() {
             {['bKash', 'Nagad', 'Visa', 'Mastercard', 'Cash on delivery'].map((p) => <span key={p} className="pay-pill">{p}</span>)}
           </div>
           <div className="sub">
-            {BRAND.copyright} · <Link to="/privacy_policy.html">Privacy</Link> · <Link to="/terms_of_service.html">Terms</Link>
+            {BRAND.copyright} · <Link to="/privacy_policy.html">Privacy</Link> · <Link to="/terms_of_service.html">Terms</Link> · Built by <Link to={BRAND.developerUrl} target="_blank" rel="noopener noreferrer">VertexHand</Link>
           </div>
         </div>
       </div>

@@ -411,6 +411,57 @@ test('other animals: private to whoever saved them; a scan can only be added to 
   await assertSucceeds(deleteDoc(doc(as('alice'), 'other_animals', 'oa1')));
 });
 
+test('support: tickets are written only by the server; owners and managers read, others cannot', async () => {
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    const db = ctx.firestore();
+    await setDoc(doc(db, 'support_tickets', 't1'), { ownerID: 'alice', subject: 'Late order', status: 'open' });
+    await setDoc(doc(db, 'support_tickets', 't1', 'messages', 'm1'), { senderRole: 'staff', text: 'Hi' });
+    await setDoc(doc(db, 'app_feedback', 'f1'), { ownerID: 'alice', rating: 5 });
+  });
+  // clients can never create or edit tickets, messages or feedback (so nobody can post as support)
+  await assertFails(setDoc(doc(as('alice'), 'support_tickets', 't2'), { ownerID: 'alice', subject: 'x', status: 'open' }));
+  await assertFails(updateDoc(doc(as('alice'), 'support_tickets', 't1'), { status: 'resolved' }));
+  await assertFails(updateDoc(doc(as('manager'), 'support_tickets', 't1'), { status: 'resolved' }));
+  await assertFails(setDoc(doc(as('alice'), 'support_tickets', 't1', 'messages', 'm2'), { senderRole: 'staff', text: 'fake' }));
+  await assertFails(deleteDoc(doc(as('alice'), 'support_tickets', 't1')));
+  await assertFails(setDoc(doc(as('alice'), 'app_feedback', 'f2'), { ownerID: 'alice', rating: 5 }));
+  // reading: the owner their own ticket and its messages; managers and admins everything; nobody else
+  await assertSucceeds(getDoc(doc(as('alice'), 'support_tickets', 't1')));
+  await assertSucceeds(getDocs(collection(as('alice'), 'support_tickets', 't1', 'messages')));
+  await assertSucceeds(getDocs(query(collection(as('alice'), 'support_tickets'), where('ownerID', '==', 'alice'))));
+  await assertFails(getDocs(collection(as('alice'), 'support_tickets')));
+  await assertFails(getDoc(doc(as('bob'), 'support_tickets', 't1')));
+  await assertFails(getDocs(collection(as('bob'), 'support_tickets', 't1', 'messages')));
+  await assertFails(getDoc(doc(as('cashier'), 'support_tickets', 't1')));
+  await assertFails(getDoc(doc(as(null), 'support_tickets', 't1')));
+  await assertSucceeds(getDoc(doc(as('manager'), 'support_tickets', 't1')));
+  await assertSucceeds(getDocs(collection(as('admin'), 'support_tickets')));
+  await assertSucceeds(getDocs(collection(as('manager'), 'support_tickets', 't1', 'messages')));
+  // feedback is for staff only
+  await assertFails(getDoc(doc(as('alice'), 'app_feedback', 'f1')));
+  await assertSucceeds(getDocs(collection(as('manager'), 'app_feedback')));
+});
+
+test('support contact details: anyone reads, only admins and managers edit, and only the known fields', async () => {
+  const good = { phone: '01712 345678', whatsapp: '+880 1712 345678', email: 'help@petmaya.app', hours: 'Sat-Thu 10am-8pm', updatedAt: 1 };
+  await assertSucceeds(setDoc(doc(as('admin'), 'settings', 'support'), good));
+  await assertSucceeds(setDoc(doc(as('manager'), 'settings', 'support'), { ...good, phone: '01800 000000' }, { merge: true }));
+  await assertSucceeds(getDoc(doc(as(null), 'settings', 'support')));
+  await assertSucceeds(getDoc(doc(as('alice'), 'settings', 'support')));
+  // customers, cashiers and visitors cannot change who the app tells people to call
+  await assertFails(setDoc(doc(as('alice'), 'settings', 'support'), good));
+  await assertFails(setDoc(doc(as('cashier'), 'settings', 'support'), good));
+  await assertFails(setDoc(doc(as(null), 'settings', 'support'), good));
+  // unknown fields and oversized values are rejected, even for an admin
+  await assertFails(setDoc(doc(as('admin'), 'settings', 'support'), { ...good, extra: 'x' }));
+  await assertFails(setDoc(doc(as('admin'), 'settings', 'support'), { ...good, phone: '1'.repeat(31) }));
+  await assertFails(setDoc(doc(as('admin'), 'settings', 'support'), { ...good, hours: 'x'.repeat(81) }));
+  await assertFails(setDoc(doc(as('manager'), 'settings', 'support'), { ...good, phone: 12345 }));
+  // other settings keep their rules: managers still cannot write arbitrary settings
+  await assertFails(setDoc(doc(as('manager'), 'settings', 'global'), { x: 1 }));
+  await assertSucceeds(setDoc(doc(as('manager'), 'settings', 'announcement'), { text: 'hi' }));
+});
+
 // ── Storage: file upload validation & ownership ─────────────────────────────
 const img = (bytes = 1024) => new Uint8Array(bytes);
 const st = (uid) => (uid ? env.authenticatedContext(uid) : env.unauthenticatedContext()).storage();
@@ -426,6 +477,16 @@ test('storage: uploads go to my own folder, as real images, under 5 MB', async (
   await assertFails(uploadBytes(ref(st('alice'), 'random/alice/x.jpg'), img(), { contentType: 'image/jpeg' }));
   await assertFails(uploadBytes(ref(st('alice'), 'shop_products/alice/p.jpg'), img(), { contentType: 'image/jpeg' }));
   await assertSucceeds(uploadBytes(ref(st('shop'), 'shop_products/shop/p.jpg'), img(), { contentType: 'image/jpeg' }));
+});
+
+test('storage: support photos go to my own folder; only I and managers can read them', async () => {
+  await assertSucceeds(uploadBytes(ref(st('alice'), 'support/alice/t.jpg'), img(), { contentType: 'image/jpeg' }));
+  await assertFails(uploadBytes(ref(st('bob'), 'support/alice/t2.jpg'), img(), { contentType: 'image/jpeg' }));
+  await assertFails(uploadBytes(ref(st('alice'), 'support/alice/t.pdf'), img(), { contentType: 'application/pdf' }));
+  await assertSucceeds(getBytes(ref(st('alice'), 'support/alice/t.jpg')));
+  await assertFails(getBytes(ref(st('bob'), 'support/alice/t.jpg')));
+  await assertFails(getBytes(ref(st('cashier'), 'support/alice/t.jpg')));
+  await assertSucceeds(getBytes(ref(st('manager'), 'support/alice/t.jpg')));
 });
 
 test('storage: medical files are private to owner and care team', async () => {

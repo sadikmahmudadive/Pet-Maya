@@ -18,6 +18,7 @@ import '../services/my_appointments_screen.dart';
 import '../shop/orders_screen.dart';
 import '../pets/my_pets_screen.dart';
 import '../pets/not_my_pets_screen.dart';
+import '../support/support_center_screen.dart';
 import '../devices/my_devices_screen.dart';
 import '../../common_widgets/tail_wagging_loader.dart';
 import '../../common_widgets/pet_refresh_indicator.dart';
@@ -323,6 +324,19 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     _buildGroupedCard(
                       children: [
                         _buildSettingsRow(
+                          icon: Icons.support_agent_rounded,
+                          iconColor: AppColors.primary,
+                          title: 'Help & Support',
+                          subtitle: context.select((AppStateRepository s) => s.unreadSupportCount) > 0
+                              ? '${context.select((AppStateRepository s) => s.unreadSupportCount)} new'
+                              : null,
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const SupportCenterScreen()),
+                          ),
+                        ),
+                        _buildDivider(isDark),
+                        _buildSettingsRow(
                           icon: Icons.shield_outlined,
                           iconColor: const Color(0xFF26A69A),
                           title: 'Privacy Policy & Terms',
@@ -386,7 +400,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               ),
               GestureDetector(
                 onTap: () async {
-                  final url = Uri.parse('https://vertexhand.vercel.app/');
+                  final url = Uri.parse('https://vertexhand-nine.vercel.app/');
                   try {
                     await launchUrl(url, mode: LaunchMode.externalApplication);
                   } catch (e) {

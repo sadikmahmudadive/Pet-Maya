@@ -5,6 +5,7 @@ import { Icon, Button, Avatar, Field, ThemeToggle } from '../ui/index.jsx';
 import { cx } from '../lib/format.js';
 import Toasts from '../site/Toasts.jsx';
 import { AdminDataProvider, useAdmin } from './data.jsx';
+import { useCollection } from '../data/firestore.js';
 import Dashboard from './pages/Dashboard.jsx';
 import Orders from './pages/Orders.jsx';
 import OrderDetail from './pages/OrderDetail.jsx';
@@ -25,6 +26,7 @@ import Announcement from './pages/Announcement.jsx';
 import AddProduct from './pages/AddProduct.jsx';
 import Categories from './pages/Categories.jsx';
 import Moderation from './pages/Moderation.jsx';
+import Support from './pages/Support.jsx';
 import { storefrontUrl } from '../lib/hosts.js';
 import { STAFF_ROLES, canAccess, homeFor } from './erp.js';
 
@@ -38,6 +40,7 @@ const ROUTES = [
   ['/admin/orders/:id', OrderDetail, 'Order'],
   ['/admin/prescriptions', Prescriptions, 'Prescriptions'],
   ['/admin/moderation', Moderation, 'Moderation'],
+  ['/admin/support', Support, 'Support center'],
   ['/admin/inventory', Inventory, 'Inventory'],
   ['/admin/products/new', AddProduct, 'Add product'],
   ['/admin/categories', Categories, 'Categories'],
@@ -64,6 +67,9 @@ function Sidebar({ open, onClose, user }) {
   const lowStock = products.filter((p) => p.stockCount <= p.reorderPoint).length;
   const toReceive = purchases.filter((p) => p.status === 'Ordered' || p.status === 'Partially received').length;
   const openShifts = shifts.filter((s) => s.status === 'open').length;
+  // Tickets are readable only by admins and managers; other roles don't subscribe (it would just be denied).
+  const supportTickets = useCollection('support_tickets', { enabled: canAccess(user?.role, '/admin/support') && !user?.preview, sampleWhenEmpty: false });
+  const supportWaiting = (supportTickets.items || []).filter((t) => t.unreadForStaff && t.status !== 'resolved').length;
   const nav = [
     ['Operations', [
       ['/admin', 'Dashboard', 'grid'],
@@ -87,6 +93,7 @@ function Sidebar({ open, onClose, user }) {
       ['/admin/appointments', 'Appointments', 'calendar'],
       ['/admin/customers', 'Customers', 'user'],
       ['/admin/moderation', 'Moderation', 'shield'],
+      ['/admin/support', 'Support center', 'message', supportWaiting],
     ]],
     ['Back office', [
       ['/admin/finance', 'Finance', 'trend'],

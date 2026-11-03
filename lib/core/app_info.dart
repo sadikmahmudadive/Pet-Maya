@@ -5,6 +5,13 @@ import 'package:package_info_plus/package_info_plus.dart';
 class AppInfo {
   AppInfo._();
 
+  /// Where customers reach the team (Support Center and the website footer use the same address).
+  static const String supportEmail = 'support@petmaya.app';
+
+  /// The app's Google Play page (same link as the website).
+  static const String playStoreUrl =
+      'https://play.google.com/store/apps/details?id=com.vertexhand.petmaya&pcampaignid=web_share';
+
   static String version = '1.3.2';
   static String buildNumber = '28';
 

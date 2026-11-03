@@ -24,6 +24,8 @@ import '../models/blog_post_model.dart';
 import '../models/coupon_model.dart';
 import '../models/promo_model.dart';
 import '../models/other_animal_model.dart';
+import '../models/support_models.dart';
+import '../../core/app_info.dart';
 import '../../core/services/firebase_storage_service.dart';
 import '../services/realtime_database_service.dart';
 import '../models/pet_device_model.dart';
@@ -160,6 +162,8 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
   final List<PetModel> _pets = [];
   // Animals scanned with the AI health scanner that are not the user's own pets (strays, friends' pets).
   final List<OtherAnimalModel> _otherAnimals = [];
+  // The signed-in user's Support Center tickets, newest activity first.
+  final List<SupportTicket> _supportTickets = [];
   final List<PetDeviceModel> _devices = [];
   final List<EventModel> _events = [];
   final List<ProductModel> _products = [];
@@ -191,6 +195,7 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
   // ─── Managed Stream Subscriptions (Prevents Memory & Listener Leaks) ───
   StreamSubscription? _petsSub;
   StreamSubscription? _otherAnimalsSub;
+  StreamSubscription? _supportSub;
   StreamSubscription? _vetsSub;
   StreamSubscription? _productsSub;
   StreamSubscription? _eventsSub;
@@ -210,6 +215,8 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
     _petsSub = null;
     _otherAnimalsSub?.cancel();
     _otherAnimalsSub = null;
+    _supportSub?.cancel();
+    _supportSub = null;
     _vetsSub?.cancel();
     _vetsSub = null;
     _productsSub?.cancel();
@@ -242,6 +249,8 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
 
   List<PetModel> get pets => List.unmodifiable(_pets);
   List<OtherAnimalModel> get otherAnimals => List.unmodifiable(_otherAnimals);
+  List<SupportTicket> get supportTickets => List.unmodifiable(_supportTickets);
+  int get unreadSupportCount => _supportTickets.where((t) => t.unreadForUser).length;
   List<PetDeviceModel> get devices => List.unmodifiable(_devices);
   List<BlogPostModel> get blogs => List.unmodifiable(_blogs);
   List<CouponModel> get coupons => List.unmodifiable(_coupons);
@@ -586,6 +595,7 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
       if (_couponsSub == null) _loadCoupons();
       if (_promosSub == null) _loadPromos();
       if (_otherAnimalsSub == null) _listenToOtherAnimals(user.uid);
+      if (_supportSub == null) _listenToSupportTickets(user.uid);
 
       switch (user.role) {
         case UserRole.petOwner:
@@ -686,6 +696,59 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
       onError: (Object e) => debugPrint('[AppStateRepository] _listenToOtherAnimals error: $e'),
     );
   }
+
+  void _listenToSupportTickets(String ownerUID) {
+    _supportSub?.cancel();
+    _supportSub = _firebase.streamSupportTickets(ownerUID).listen(
+      (fetched) {
+        _supportTickets
+          ..clear()
+          ..addAll(fetched);
+        _debouncedNotify();
+      },
+      onError: (Object e) => debugPrint('[AppStateRepository] _listenToSupportTickets error: $e'),
+    );
+  }
+
+  /// Opens a support ticket. The optional photo is uploaded first (the support folder in Storage). Returns null on success, or a
+  /// message to show the user.
+  Future<String?> submitSupportTicket({
+    required String subject,
+    required String category,
+    required String message,
+    String orderNumber = '',
+    File? photo,
+  }) async {
+    String? imageUrl;
+    if (photo != null) {
+      final storage = FirebaseStorageService();
+      imageUrl = await storage.uploadImage(photo, 'support');
+      if (imageUrl == null) return storage.lastError ?? 'The photo could not be uploaded.';
+    }
+    final res = await _firebase.submitSupportTicket(
+      subject: subject,
+      category: category,
+      message: message,
+      orderNumber: orderNumber,
+      imageUrl: imageUrl,
+      appVersion: AppInfo.short,
+    );
+    return res.error;
+  }
+
+  Stream<SupportContact> supportContact() => _firebase.streamSupportContact().map(
+    (m) => SupportContact.fromMap(m, defaultEmail: AppInfo.supportEmail),
+  );
+
+  Stream<List<SupportMessage>> supportMessages(String ticketId) => _firebase.streamSupportMessages(ticketId);
+
+  Future<String?> replyToSupportTicket(String ticketId, String text) => _firebase.supportReply(ticketId, text);
+
+  /// Clears the "support replied" dot on a ticket once the user has opened it.
+  Future<void> markSupportTicketRead(String ticketId) => _firebase.supportMarkRead(ticketId);
+
+  Future<String?> submitAppFeedback({required int rating, required String category, required String message}) =>
+      _firebase.submitAppFeedback(rating: rating, category: category, message: message, appVersion: AppInfo.short);
 
   void _listenToProducts() {
     _productsSub?.cancel();
@@ -1255,6 +1318,7 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
     _currentUser = null;
     _pets.clear();
     _otherAnimals.clear();
+    _supportTickets.clear();
     _events.clear();
     _orders.clear();
     _serviceRecords.clear();

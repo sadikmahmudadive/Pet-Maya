@@ -216,6 +216,18 @@ export async function moderationDecide({ pendingId, action, reason }) {
   }
 }
 
+/* ── Support Center (admin console). Tickets are written only by the support_* functions. ── */
+
+const supportCall = async (name, payload) => {
+  try {
+    const res = await httpsCallable(functions, name)(payload);
+    return { ok: res.data?.ok !== false };
+  } catch (e) { return { ok: false, message: e?.message || 'Something went wrong' }; }
+};
+export const supportReply = (ticketId, text) => supportCall('support_reply', { ticketId, text });
+export const supportSetStatus = (ticketId, status) => supportCall('support_set_status', { ticketId, status });
+export const supportMarkRead = (ticketId) => supportCall('support_mark_read', { ticketId });
+
 /* ── Triage results ────────────────────────────────────────── */
 /* Saved into service_records so the result shows up in the
    pet's Health Vault timeline and in the mobile app.          */

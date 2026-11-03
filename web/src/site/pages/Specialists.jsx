@@ -4,7 +4,8 @@ import { Icon, Button, Ph, Pill, Empty } from '../../ui/index.jsx';
 import BookingModal from '../BookingModal.jsx';
 import { money, cx } from '../../lib/format.js';
 import { Reveal, Count } from '../../lib/motion.jsx';
-import { BRAND } from '../../data/content.js';
+import { useSupportContact } from '../../data/support.js';
+import { telHref, whatsappHref } from '../../lib/contact.js';
 
 const SERVICES = [
   { k: 'Veterinarian', label: 'Veterinarian', sub: 'Clinic consults', icon: 'stethoscope', tag: 'Clinic visits' },
@@ -24,6 +25,7 @@ const matchService = (v, k) => {
 
 export default function Specialists() {
   const { vets } = useStore();
+  const contact = useSupportContact();
   const [svc, setSvc] = useState('Veterinarian');
   const [q, setQ] = useState('');
   const [spec, setSpec] = useState('all');
@@ -171,7 +173,8 @@ export default function Specialists() {
           <p style={{ marginTop: 12, color: 'rgba(255,255,255,.7)', maxWidth: '60ch' }}>Don’t wait for a booked slot. Call us or book the next urgent visit — we’ll tell you where to go and what to do on the way.</p>
           <div className="row gap-10 wrap" style={{ marginTop: 22 }}>
             {emergencyVet && <Button variant="red" icon="calendar" onClick={() => setBooking({ vet: emergencyVet })}>Book an urgent visit</Button>}
-            {BRAND.supportPhone && <Button className="btn-ghost-dark" variant="ghost" icon="phone" to={`tel:${BRAND.supportPhone.replace(/\s/g, '')}`}>{BRAND.supportPhone}</Button>}
+            {telHref(contact.phone) && <Button className="btn-ghost-dark" variant="ghost" icon="phone" to={telHref(contact.phone)}>{contact.phone}</Button>}
+            {whatsappHref(contact.whatsapp) && <Button className="btn-ghost-dark" variant="ghost" icon="message" to={whatsappHref(contact.whatsapp)} target="_blank" rel="noopener noreferrer">WhatsApp</Button>}
             <Button className="btn-ghost-dark" variant="ghost" icon="pulse" to="/triage">Check symptoms first</Button>
           </div>
         </div>

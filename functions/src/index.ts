@@ -468,6 +468,7 @@ export {
   apply_referral, backfill_security_data, check_order_prices, claim_daily_points, create_order, handle_order_status_change, stamp_record_owner, sync_public_profile,
 } from "./integrity";
 export { collect, track_purchase } from "./analytics";
+export { submit_app_feedback, support_mark_read, support_reply, support_set_status, support_submit_ticket } from "./support";
 export { feed } from "./feed";
 export {
   backfill_moderation,

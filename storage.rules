@@ -110,6 +110,12 @@ service firebase.storage {
         && (request.resource == null || validImage());
     }
 
+    // Photos attached to a support ticket: the customer and admins/managers (the ticket links carry a token anyway).
+    match /support/{uid}/{file} {
+      allow read: if isSelf(uid) || isAdmin() || (signedIn() && profile().get('staffRole', '') == 'Manager');
+      allow write: if canWriteOwn(uid);
+    }
+
     // ── Private medical files ──────────────────────────────────────────────
     // Clinical reports attached to a pet: the owner and verified providers.
     match /pets/{petId}/reports/{file} {

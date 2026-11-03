@@ -20,6 +20,7 @@ import '../models/blog_post_model.dart';
 import '../models/coupon_model.dart';
 import '../models/promo_model.dart';
 import '../models/other_animal_model.dart';
+import '../models/support_models.dart';
 import '../models/user_model.dart' as app_models;
 
 /// FirebaseService handles all Firestore and Auth operations with offline-first persistence.
@@ -394,6 +395,89 @@ class FirebaseService {
 
   Future<void> deletePet(String petId) async {
     await _petsCol.doc(petId).delete();
+  }
+
+  // ─── SUPPORT CENTER ──────────────────────────────────────────────────────────────────────────────
+  // Reads are direct (rules let an owner read their own tickets); every write is a `support_*` Cloud Function.
+
+  Stream<List<SupportTicket>> streamSupportTickets(String ownerUID) {
+    return _db.collection('support_tickets').where('ownerID', isEqualTo: ownerUID).snapshots().map((snap) {
+      final list = snap.docs.map((d) => SupportTicket.fromMap(d.id, d.data())).toList();
+      list.sort((a, b) => b.lastMessageAt.compareTo(a.lastMessageAt));
+      return list;
+    });
+  }
+
+  /// Phone / WhatsApp / email / hours that admins set in the web console (settings/support, public read).
+  Stream<Map<String, dynamic>?> streamSupportContact() =>
+      _db.collection('settings').doc('support').snapshots().map((d) => d.data());
+
+  Stream<List<SupportMessage>> streamSupportMessages(String ticketId) {
+    return _db
+        .collection('support_tickets')
+        .doc(ticketId)
+        .collection('messages')
+        .orderBy('createdAt')
+        .snapshots()
+        .map((snap) => snap.docs.map((d) => SupportMessage.fromMap(d.id, d.data())).toList());
+  }
+
+  /// Calls a support function. Returns null on success, or a message the user can read.
+  Future<({String? error, Map<String, dynamic> data})> _supportCall(String name, Map<String, dynamic> payload) async {
+    try {
+      final res = await FirebaseFunctions.instanceFor(region: 'us-central1').httpsCallable(name).call(payload);
+      final data = res.data is Map ? Map<String, dynamic>.from(res.data as Map) : <String, dynamic>{};
+      return (error: null, data: data);
+    } on FirebaseFunctionsException catch (e) {
+      return (error: e.message ?? 'Something went wrong. Please try again.', data: <String, dynamic>{});
+    } catch (e) {
+      debugPrint('[FirebaseService] $name error: $e');
+      return (error: 'Could not reach Pet Maya. Check your connection and try again.', data: <String, dynamic>{});
+    }
+  }
+
+  /// Opens a ticket. Returns (ticketId, null) or (null, message).
+  Future<({String? id, String? error})> submitSupportTicket({
+    required String subject,
+    required String category,
+    required String message,
+    String orderNumber = '',
+    String? imageUrl,
+    required String appVersion,
+  }) async {
+    final res = await _supportCall('support_submit_ticket', {
+      'subject': subject,
+      'category': category,
+      'message': message,
+      'orderNumber': orderNumber,
+      'imageUrl': ?imageUrl,
+      'appVersion': appVersion,
+      'platform': defaultTargetPlatform.name,
+    });
+    return (id: res.data['id'] as String?, error: res.error);
+  }
+
+  Future<String?> supportReply(String ticketId, String text) async =>
+      (await _supportCall('support_reply', {'ticketId': ticketId, 'text': text})).error;
+
+  Future<void> supportMarkRead(String ticketId) async {
+    await _supportCall('support_mark_read', {'ticketId': ticketId});
+  }
+
+  Future<String?> submitAppFeedback({
+    required int rating,
+    required String category,
+    required String message,
+    required String appVersion,
+  }) async {
+    final res = await _supportCall('submit_app_feedback', {
+      'rating': rating,
+      'category': category,
+      'message': message,
+      'appVersion': appVersion,
+      'platform': defaultTargetPlatform.name,
+    });
+    return res.error;
   }
 
   // ─── NOT-MY-PET ANIMALS (strays, friends' pets scanned with the AI health scanner) ──────────────────
