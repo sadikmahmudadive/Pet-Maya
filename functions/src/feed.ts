@@ -111,6 +111,12 @@ export function absoluteUrl(v: unknown, site: string): string {
   } catch { return ""; }
 }
 
+/** The pet group shown in `g:product_type` ("Dogs", "Birds", …); products for dogs and cats together are "Dogs & Cats". */
+export function petTypeLabel(pet: string): string {
+  const labels: Record<string, string> = { dog: "Dogs", cat: "Cats", both: "Dogs & Cats", bird: "Birds", rabbit: "Rabbits", rodent: "Small pets", fish: "Fish", other: "Other pets", all: "All pets" };
+  return labels[String(pet || "").toLowerCase()] ?? "Dogs & Cats";
+}
+
 /** Google Shopping taxonomy ids that always exist (Pet Supplies / Dog Supplies / Cat Supplies). */
 export function googleCategory(p: Pick<FeedProduct, "pet">): number {
   if (p.pet === "dog") return 4;
@@ -183,7 +189,7 @@ export function buildItem(p: FeedProduct, channel: Channel, site: string): strin
     ...(mpn ? [["g:mpn", mpn] as [string, unknown]] : []),
     ...(!gtin && !mpn ? [["g:identifier_exists", "no"] as [string, unknown]] : []),
     ["g:google_product_category", googleCategory(p)],
-    ["g:product_type", `Pet Supplies > ${p.pet === "dog" ? "Dogs" : p.pet === "cat" ? "Cats" : "Dogs & Cats"} > ${p.categoryTrail.join(" > ")}`],
+    ["g:product_type", `Pet Supplies > ${petTypeLabel(p.pet)} > ${p.categoryTrail.join(" > ")}`],
     ["g:custom_label_0", p.pet],
     ["g:custom_label_1", p.category],
     ["g:adult", "no"],

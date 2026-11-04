@@ -2,10 +2,11 @@ import { Fragment, useMemo, useState, useEffect } from 'react';
 import { track } from '../../lib/analytics.js';
 import { Link, useRouter } from '../../lib/router.jsx';
 import { useStore } from '../../lib/store.jsx';
-import { Icon, Pill, Empty } from '../../ui/index.jsx';
+import { Icon, Empty } from '../../ui/index.jsx';
 import ProductCard from '../ProductCard.jsx';
 import { money, cx } from '../../lib/format.js';
 import { speciesKind, productFitsPet } from '../../lib/species.js';
+import { PET_AISLES, aisleBySlug, fitsAisle } from '../../lib/pets.js';
 import { Reveal } from '../../lib/motion.jsx';
 import { makeResolver, pathOf } from '../../lib/categories.js';
 
@@ -32,12 +33,12 @@ const TITLES = {
 const MEDICINE_CATS = ['preventives', 'antiparasitics', 'skin', 'joint', 'calming', 'vaccines', 'medicine'];
 
 // Slugs with their own rules keep working exactly as before; any other slug is looked up in the category tree.
-const SPECIAL = new Set(['dogs', 'cats', 'prescription', 'medicine', 'accessories']);
+const SPECIAL = new Set(['dogs', 'cats', 'birds', 'rabbits', 'small-pets', 'fish', 'prescription', 'medicine', 'accessories']);
 
 function inCategory(p, cat, tree) {
   if (!cat) return true;
-  if (cat === 'dogs') return p.pet === 'dog' || p.pet === 'both';
-  if (cat === 'cats') return p.pet === 'cat' || p.pet === 'both';
+  const aisle = aisleBySlug(cat);
+  if (aisle) return fitsAisle(p.pet, aisle);
   if (cat === 'prescription') return p.isRx;
   if (cat === 'medicine') return p.isRx || MEDICINE_CATS.includes(p.category);
   if (cat === 'accessories') return p.category === 'accessories' || p.category === 'travel' || p.category === 'supplies';
@@ -104,6 +105,7 @@ export default function Shop({ params }) {
       .filter((o) => o.count > 0);
   }, [base, tree, node]);
   const brandOpts = useMemo(() => countBy(base, (p) => p.brand), [base]);
+  const hasRx = useMemo(() => base.some((p) => p.isRx), [base]);
 
   const list = useMemo(() => {
     let l = base;
@@ -125,13 +127,14 @@ export default function Shop({ params }) {
     return [...l].sort(SORTS[sort][1]);
   }, [base, tree, q, savedOnly, dealsOnly, petMatch, activePet, types, rx, brands, minRating, cold, sub, maxPrice, sort, wishlist]);
 
-  const [crumb, title] = node ? [node.name, node.name] : TITLES[cat] || (cat && tree ? [label(cat), label(cat)] : ['All products', 'Care shop']);
+  const aisle = aisleBySlug(cat);
+  const [crumb, title] = node ? [node.name, node.name] : aisle ? [aisle.label, aisle.label] : TITLES[cat] || (cat && tree ? [label(cat), label(cat)] : ['All products', 'Care shop']);
   const trail = node ? pathOf(node.id, tree.byId).slice(0, -1) : [];
   const heading = q ? `Results for “${query.get('q')}”` : savedOnly ? 'Saved items' : dealsOnly ? 'Deals' : title;
   const active = [
-    petMatch && activePet && { k: 'pet', l: `For ${activePet.name} (${activePet.species})`, clear: () => setPetMatch(false) },
+    petMatch && activePet && { k: 'pet', l: `For ${activePet.name}`, clear: () => setPetMatch(false) },
     ...types.map((t) => ({ k: `t-${t}`, l: typeOpts.find((o) => o.key === t)?.label || label(t), clear: () => setTypes(types.filter((x) => x !== t)) })),
-    rx && { k: 'rx', l: rx === 'rx' ? 'Rx — vet approval' : 'No prescription', clear: () => setRx(null) },
+    rx && { k: 'rx', l: rx === 'rx' ? 'Vet approval (Rx)' : 'No prescription', clear: () => setRx(null) },
     ...brands.map((b) => ({ k: `b-${b}`, l: b, clear: () => setBrands(brands.filter((x) => x !== b)) })),
     minRating && { k: 'r', l: `${minRating}★ & up`, clear: () => setMinRating(0) },
     cold && { k: 'c', l: 'Cold-chain', clear: () => setCold(false) },
@@ -141,19 +144,17 @@ export default function Shop({ params }) {
   const clearAll = () => { setPetMatch(false); setTypes([]); setRx(null); setBrands([]); setMinRating(0); setCold(false); setSub(false); setMaxPrice(null); };
 
   return (
-    <div className="container">
+    <div className="container shop-page">
       <nav className="crumbs" aria-label="Breadcrumb">
         <Link to="/">Home</Link><span>/</span><Link to="/shop">Care Shop</Link>
         {trail.map((c) => <Fragment key={c.id}><span>/</span><Link to={`/shop/${c.slug}`}>{c.name}</Link></Fragment>)}
         {cat && <><span>/</span><span style={{ color: 'var(--ink)' }}>{crumb}</span></>}
       </nav>
 
-      <Reveal className="listing-hero">
-        <div>
-          <h1 className="display-1" style={{ maxWidth: '14ch' }}>{heading}</h1>
-          <p className="muted" style={{ marginTop: 14, maxWidth: '58ch' }}>
-            Genuine, vet-checked products. Prescription items are reviewed by a licensed vet before dispatch, and cold items travel at 2°C – 8°C.
-          </p>
+      <header className="shop-head">
+        <div className="shop-head-main">
+          <h1>{heading}</h1>
+          <span className="sub">{list.length} {list.length === 1 ? 'product' : 'products'}</span>
         </div>
         <div className="row gap-8 wrap">
           {activePet && (
@@ -162,30 +163,30 @@ export default function Shop({ params }) {
               className={cx('pill', petMatch ? 'solid-teal' : 'outline')}
               style={{ height: 34, padding: '0 14px', cursor: 'pointer', background: petMatch ? undefined : 'var(--surface)' }}
               onClick={() => setPetMatch((v) => !v)}
+              aria-pressed={petMatch}
             >
-              <Icon name="paw" size={14} /> For {activePet.name} ({activePet.species})
+              <Icon name="paw" size={14} /> For {activePet.name}
             </button>
           )}
-          <Pill className="outline" icon="cold" style={{ height: 34, padding: '0 14px', background: 'var(--surface)' }}>Delivered at 2°C – 8°C</Pill>
-          <Pill className="outline" icon="shield" style={{ height: 34, padding: '0 14px', background: 'var(--surface)' }}>100% genuine</Pill>
+          <button className="btn btn-outline btn-sm show-sm" onClick={() => setFiltersOpen((o) => !o)}><Icon name="filter" size={14} /> Filters</button>
+          <select className="select" value={sort} onChange={(e) => setSort(e.target.value)} style={{ height: 36, width: 'auto', maxWidth: '100%', borderRadius: 999, background: 'var(--surface)', border: '1px solid var(--line-2)', fontSize: 13 }} aria-label="Sort">
+            {Object.entries(SORTS).map(([k, [l]]) => <option key={k} value={k}>{l}</option>)}
+          </select>
         </div>
-      </Reveal>
+      </header>
+
+      <nav className="aisles" aria-label="Shop by pet">
+        <Link to="/shop" className={cx('aisle', !aisle && 'on')}>All pets</Link>
+        {PET_AISLES.map((a) => <Link key={a.slug} to={`/shop/${a.slug}`} className={cx('aisle', cat === a.slug && 'on')} title={a.hint}>{a.label}</Link>)}
+      </nav>
 
       <div className="listing">
         <aside className={cx('filters', filtersOpen && 'open')} aria-label="Filters">
-          <div className="row between" style={{ paddingBottom: 6 }}>
-            <b style={{ fontSize: 16 }}>Filters</b>
-            <button className="link" style={{ fontSize: 13 }} onClick={clearAll}>Clear all</button>
-          </div>
-          {activePet && (
-            <section>
-              <h4>My Pet</h4>
-              <Check
-                label={`Suitability for ${activePet.name} (${activePet.species})`}
-                checked={petMatch}
-                onChange={setPetMatch}
-              />
-            </section>
+          {active.length > 0 && (
+            <div className="row between" style={{ paddingBottom: 4 }}>
+              <b style={{ fontSize: 14 }}>Filters</b>
+              <button className="link" style={{ fontSize: 13 }} onClick={clearAll}>Clear all</button>
+            </div>
           )}
           {typeOpts.length > (tree ? 0 : 1) && (
             <section>
@@ -195,46 +196,37 @@ export default function Shop({ params }) {
               ))}
             </section>
           )}
+          {hasRx && (
+            <section>
+              <h4>Prescription</h4>
+              <Check label="No prescription" count={base.filter((p) => !p.isRx).length} checked={rx === 'otc'} onChange={(on) => setRx(on ? 'otc' : null)} />
+              <Check label="Vet approval (Rx)" count={base.filter((p) => p.isRx).length} checked={rx === 'rx'} onChange={(on) => setRx(on ? 'rx' : null)} />
+            </section>
+          )}
           <section>
-            <h4>Prescription</h4>
-            <Check label="No prescription needed" count={base.filter((p) => !p.isRx).length} checked={rx === 'otc'} onChange={(on) => setRx(on ? 'otc' : null)} />
-            <Check label="Rx — vet approval" count={base.filter((p) => p.isRx).length} checked={rx === 'rx'} onChange={(on) => setRx(on ? 'rx' : null)} />
-          </section>
-          <section>
-            <h4>Price (৳)</h4>
+            <h4>Price</h4>
             <input type="range" className="range" min={0} max={priceCeil} step={50} value={maxPrice ?? priceCeil} onChange={(e) => setMaxPrice(Number(e.target.value))} aria-label="Maximum price" />
             <div className="row between sub"><span>৳0</span><span>{money(maxPrice ?? priceCeil)}</span></div>
           </section>
-          <section>
-            <h4>Brand</h4>
-            {Object.entries(brandOpts).map(([b, c]) => (
-              <Check key={b} label={b} count={c} checked={brands.includes(b)} onChange={(on) => setBrands(on ? [...brands, b] : brands.filter((x) => x !== b))} />
-            ))}
-          </section>
-          <section>
-            <h4>Rating</h4>
-            <Check label="4★ & up" checked={minRating === 4} onChange={(on) => setMinRating(on ? 4 : 0)} />
-            <Check label="4.5★ & up" checked={minRating === 4.5} onChange={(on) => setMinRating(on ? 4.5 : 0)} />
-          </section>
+          {Object.keys(brandOpts).length > 1 && (
+            <section>
+              <h4>Brand</h4>
+              {Object.entries(brandOpts).map(([b, c]) => (
+                <Check key={b} label={b} count={c} checked={brands.includes(b)} onChange={(on) => setBrands(on ? [...brands, b] : brands.filter((x) => x !== b))} />
+              ))}
+            </section>
+          )}
           <section style={{ borderBottom: 0 }}>
-            <h4>Delivery</h4>
-            <Check label="Cold-chain items" checked={cold} onChange={setCold} />
-            <Check label="Subscribe & save eligible" checked={sub} onChange={setSub} />
+            <h4>More</h4>
+            <Check label="4★ & up" checked={minRating === 4} onChange={(on) => setMinRating(on ? 4 : 0)} />
+            <Check label="Cold-chain" checked={cold} onChange={setCold} />
+            <Check label="Subscribe & save" checked={sub} onChange={setSub} />
           </section>
         </aside>
 
         <div>
-          <div className="row between gap-12 wrap" style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 14 }}><b>{list.length} products</b> <span className="muted">{cat ? `· ${crumb}` : ''}</span></div>
-            <div className="row gap-8 wrap">
-              <button className="btn btn-outline btn-sm show-sm" onClick={() => setFiltersOpen((o) => !o)}><Icon name="filter" size={14} /> Filters</button>
-              <select className="select" value={sort} onChange={(e) => setSort(e.target.value)} style={{ height: 38, width: 'auto', maxWidth: '100%', borderRadius: 999, background: 'var(--surface)', border: '1px solid var(--line-2)', fontSize: 13 }} aria-label="Sort">
-                {Object.entries(SORTS).map(([k, [l]]) => <option key={k} value={k}>{l}</option>)}
-              </select>
-            </div>
-          </div>
           {active.length > 0 && (
-            <div className="row gap-6 wrap" style={{ marginBottom: 16 }}>
+            <div className="row gap-6 wrap" style={{ marginBottom: 12 }}>
               {active.map((a) => (
                 <button key={a.k} className="pill" onClick={a.clear} style={{ height: 30, padding: '0 12px' }}>{a.l} <Icon name="x" size={12} /></button>
               ))}
@@ -244,17 +236,21 @@ export default function Shop({ params }) {
           {products.loading && !products.items.length ? (
             <div className="product-grid cols-3">{[0, 1, 2].map((i) => <div key={i} className="skeleton" style={{ height: 360 }} />)}</div>
           ) : list.length === 0 ? (
-            <div className="card"><Empty icon="search" title="No products match">Try removing a filter or searching for something else.</Empty></div>
+            <div className="card">
+              {aisle && base.length === 0
+                ? <Empty icon="paw" title={`Nothing for ${aisle.label.toLowerCase()} yet`}>We are adding products for this group. <Link to="/shop" className="link">See everything in the shop</Link></Empty>
+                : <Empty icon="search" title="No products match">Try removing a filter or searching for something else.</Empty>}
+            </div>
           ) : (
             <>
               <Reveal className="product-grid cols-3" stagger>
                 {list.slice(0, shown).map((p) => <ProductCard key={p.id} p={p} />)}
               </Reveal>
-              <div className="stack" style={{ alignItems: 'center', gap: 12, marginTop: 32 }}>
-                <span className="sub">Showing {Math.min(shown, list.length)} of {list.length}</span>
-                <div className="meter" style={{ width: 200 }}><span style={{ width: `${Math.min(100, (shown / list.length) * 100)}%` }} /></div>
-                {shown < list.length && <button className="btn btn-outline" onClick={() => setShown((s) => s + 9)}>Load more products</button>}
-              </div>
+              {shown < list.length && (
+                <div className="row" style={{ justifyContent: 'center', marginTop: 20 }}>
+                  <button className="btn btn-outline" onClick={() => setShown((x) => x + 9)}>Show more</button>
+                </div>
+              )}
             </>
           )}
         </div>

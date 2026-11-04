@@ -1,4 +1,5 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useRouter } from '../lib/router.jsx';
 import { useStore } from '../lib/store.jsx';
 import { Icon, Button, ThemeToggle, Ph, Pill } from '../ui/index.jsx';
@@ -7,6 +8,7 @@ import { useScrolled, useBump, Reveal } from '../lib/motion.jsx';
 import { subscribeNewsletter } from '../data/actions.js';
 import { useSupportContact } from '../data/support.js';
 import { contactNumbers } from '../lib/contact.js';
+import { PET_AISLES } from '../lib/pets.js';
 import { TRUST, BRAND } from '../data/content.js';
 import AnnouncementBar, { useAnnouncementConfig } from './AnnouncementBar.jsx';
 import BagDrawer from './BagDrawer.jsx';
@@ -28,8 +30,7 @@ function Modals() {
 
 const NAV = [
   { to: '/shop', label: 'Care Shop', match: (p) => p === '/shop' },
-  { to: '/shop/dogs', label: 'Dogs' },
-  { to: '/shop/cats', label: 'Cats' },
+  { pets: true },
   { to: '/shop/medicine', label: 'Medicine' },
   { to: '/specialists', label: 'Specialists' },
   { to: '/triage', label: 'AI Triage' },
@@ -41,13 +42,67 @@ const NAV = [
 ];
 
 const QUICK_CATS = [
-  { label: 'Dogs', to: '/shop/dogs' },
-  { label: 'Cats', to: '/shop/cats' },
+  ...PET_AISLES.map((a) => ({ label: a.label, to: `/shop/${a.slug}` })),
   { label: 'Medicine', to: '/shop/medicine' },
   { label: 'Food & Diets', to: '/shop/food' },
   { label: 'Toys', to: '/shop/toys' },
   { label: 'Accessories', to: '/shop/accessories' },
 ];
+
+/** "Pets" in the main menu: a pop-up on wide screens, an inline list in the phone menu. */
+function PetsMenu({ path }) {
+  const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState({ top: 0, left: 0 });
+  const [phone, setPhone] = useState(() => typeof window !== 'undefined' && window.innerWidth <= 760);
+  const btn = useRef(null);
+  const pop = useRef(null);
+  const active = PET_AISLES.some((a) => path === `/shop/${a.slug}`);
+
+  useEffect(() => setOpen(false), [path]);
+  useEffect(() => {
+    if (!open) return undefined;
+    const onDown = (e) => { if (!btn.current?.contains(e.target) && !pop.current?.contains(e.target)) setOpen(false); };
+    const onKey = (e) => { if (e.key === 'Escape') { setOpen(false); btn.current?.focus(); } };
+    const close = () => setOpen(false);
+    document.addEventListener('pointerdown', onDown);
+    document.addEventListener('keydown', onKey);
+    window.addEventListener('resize', close);
+    window.addEventListener('scroll', close, { passive: true });
+    return () => {
+      document.removeEventListener('pointerdown', onDown);
+      document.removeEventListener('keydown', onKey);
+      window.removeEventListener('resize', close);
+      window.removeEventListener('scroll', close);
+    };
+  }, [open]);
+
+  const toggle = () => {
+    const isPhone = window.innerWidth <= 760;
+    setPhone(isPhone);
+    if (!open && btn.current) {
+      const r = btn.current.getBoundingClientRect();
+      setPos({ top: r.bottom + 6, left: Math.max(8, Math.min(r.left, window.innerWidth - 248)) });
+    }
+    setOpen((o) => !o);
+  };
+
+  const links = PET_AISLES.map((a) => (
+    <Link key={a.slug} to={`/shop/${a.slug}`} role="menuitem">{a.label}{a.hint && <small>{a.hint}</small>}</Link>
+  ));
+
+  return (
+    <div className="pets-menu">
+      <button ref={btn} type="button" className={cx('nav-link', active && 'active')} aria-haspopup="true" aria-expanded={open} onClick={toggle}>
+        Pets <Icon name="chevronDown" size={14} style={{ marginLeft: 4, transition: 'transform .2s', transform: open ? 'rotate(180deg)' : 'none' }} />
+      </button>
+      {open && phone && <div className="pets-inline" role="menu">{links}</div>}
+      {open && !phone && createPortal(
+        <div ref={pop} className="pets-pop" role="menu" style={{ top: pos.top, left: pos.left }}>{links}</div>,
+        document.body,
+      )}
+    </div>
+  );
+}
 
 export function Logo({ sub = true }) {
   return (
@@ -224,6 +279,7 @@ function Header() {
           </form>
           <div className="nav-links">
             {NAV.map((n) => {
+              if (n.pets) return <PetsMenu key="pets" path={path} />;
               const active = n.match ? n.match(path) : path === n.to;
               return <Link key={n.to} to={n.to} className={cx('nav-link', active && 'active')}>{n.label}</Link>;
             })}
@@ -299,7 +355,7 @@ function Footer() {
           <div className="footer-cols">
             <div>
               <div className="eyebrow muted">Shop</div>
-              <Link to="/shop/dogs">Dogs</Link><Link to="/shop/cats">Cats</Link>
+              {PET_AISLES.map((a) => <Link key={a.slug} to={`/shop/${a.slug}`}>{a.label}</Link>)}
               <Link to="/shop/prescription">Prescription medicine</Link><Link to="/shop/smart-gear">Smart gear</Link>
               <Link to="/shop?subscribe=1">Subscriptions</Link>
             </div>

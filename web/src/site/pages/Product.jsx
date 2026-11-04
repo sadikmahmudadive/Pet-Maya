@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useMemo, useState } from 'react';
+import { aisleForPet, aisleSlugForProduct, petLabel } from '../../lib/pets.js';
 import { track, toItem } from '../../lib/analytics.js';
 import { Link, useRouter } from '../../lib/router.jsx';
 import { useStore } from '../../lib/store.jsx';
@@ -213,7 +214,7 @@ export default function Product({ params }) {
         <Link to="/">Home</Link><span>/</span><Link to="/shop">Care Shop</Link><span>/</span>
         {trail.length
           ? trail.map((c) => <Fragment key={c.id}><Link to={`/shop/${c.slug}`}>{c.name}</Link><span>/</span></Fragment>)
-          : <><Link to={`/shop/${p.pet === 'cat' ? 'cats' : 'dogs'}`}>{p.pet === 'cat' ? 'Cats' : 'Dogs'}</Link><span>/</span></>}
+          : <><Link to={`/shop/${aisleSlugForProduct(p.pet)}`}>{(aisleForPet(p.pet) || aisleForPet('dog')).label}</Link><span>/</span></>}
         <span style={{ color: 'var(--ink)' }}>{p.name}</span>
       </nav>
 
@@ -245,7 +246,7 @@ export default function Product({ params }) {
             <span className="eyebrow">{p.brand}</span>
             {p.isRx && <Pill tone="yellow" sm>Rx — vet approval</Pill>}
             {p.coldChain && <Pill tone="teal" sm icon="cold">Cold-chain</Pill>}
-            <Pill sm>{p.pet === 'cat' ? 'For Cats' : p.pet === 'dog' ? 'For Dogs' : 'Dogs & Cats'} · {p.suitableAge}</Pill>
+            <Pill sm>{p.pet === 'both' ? 'Dogs & Cats' : `For ${petLabel(p.pet)}`} · {p.suitableAge}</Pill>
           </div>
           <h1 className="display-1" style={{ marginTop: 14 }}>{p.name}</h1>
           <p className="lead" style={{ marginTop: 14 }}>{p.shortDescription || p.description}</p>
@@ -359,7 +360,7 @@ export default function Product({ params }) {
               <p>{p.description || p.shortDescription}</p>
               {p.ingredients && <p><b>Ingredients / Composition:</b> {p.ingredients}</p>}
               <div className="row gap-12 wrap sub" style={{ marginTop: 6 }}>
-                <span><b>Suitable for:</b> {p.pet === 'cat' ? 'Cats' : p.pet === 'dog' ? 'Dogs' : 'Dogs & Cats'} ({p.suitableAge})</span>
+                <span><b>Suitable for:</b> {petLabel(p.pet)} ({p.suitableAge})</span>
                 <span><b>Unit:</b> {p.unit || 'pc'}</span>
                 <span><b>SKU:</b> {activeSku}</span>
               </div>

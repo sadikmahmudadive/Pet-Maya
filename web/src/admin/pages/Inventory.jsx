@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { PET_OPTIONS, normalizePet } from '../../lib/pets.js';
 import { useRouter } from '../../lib/router.jsx';
 import { useAdmin, useAdminWrite, downloadCsv, ADMIN_CONFIG } from '../data.jsx';
 import { PageHead } from '../AdminApp.jsx';
@@ -148,7 +149,7 @@ export default function Inventory() {
         brand: r.brand || 'Pet Maya',
         // A category name that matches the tree (any level) is placed there; anything else keeps the plain label.
         ...((node) => (node ? productFields(node.id, categories) : { category: (r.category || 'supplies').toLowerCase() }))(resolver?.nodeBySlug((r.category || '').trim().toLowerCase())),
-        pet: (r.pet || 'both').toLowerCase(),
+        pet: normalizePet(r.pet),
         unit: r.unit || 'pc',
         price: Number(r.price) || 0,
         ...(r.compareAt ? { compareAt: Number(r.compareAt) || null } : {}),
@@ -273,9 +274,7 @@ export default function Inventory() {
               </Field>
               <Field label="Pet type">
                 <select className="select" value={form.pet || 'both'} onChange={(e) => set('pet', e.target.value)}>
-                  <option value="both">Dogs & Cats</option>
-                  <option value="dog">Dogs</option>
-                  <option value="cat">Cats</option>
+                  {PET_OPTIONS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
                 </select>
               </Field>
               <Field className="full" label="Short summary" value={form.shortDescription || ''} onChange={(e) => set('shortDescription', e.target.value)} placeholder="1-line summary shown on cards" />

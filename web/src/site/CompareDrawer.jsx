@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef } from 'react';
+import { petLabel } from '../lib/pets.js';
 import { Link } from '../lib/router.jsx';
 import { useStore } from '../lib/store.jsx';
 import { Icon, Button, Pill, Ph, Portal } from '../ui/index.jsx';
@@ -124,7 +125,7 @@ export default function CompareDrawer() {
                     <td><b>Suitability</b></td>
                     {items.map((p) => (
                       <td key={p.id}>
-                        <Pill sm tone="teal">{p.pet === 'dog' ? 'Dogs' : p.pet === 'cat' ? 'Cats' : 'Dogs & Cats'}</Pill>
+                        <Pill sm tone="teal">{petLabel(p.pet)}</Pill>
                         <div className="sub" style={{ fontSize: 11, marginTop: 4 }}>{p.suitableAge || 'All life stages'}</div>
                       </td>
                     ))}

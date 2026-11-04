@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { normalizePet } from '../lib/pets.js';
 import {
   db, collection, doc, query, where, onSnapshot, setDoc, addDoc, updateDoc,
 } from '../config/firebase';
@@ -52,7 +53,7 @@ export function normProduct(id, d = {}) {
     categoryId: typeof d.categoryId === 'string' ? d.categoryId : '',
     categoryPath: Array.isArray(d.categoryPath) ? d.categoryPath.filter((x) => typeof x === 'string') : [],
     categorySlugs: Array.isArray(d.categorySlugs) ? d.categorySlugs.filter((x) => typeof x === 'string') : [],
-    pet: String(d.pet || d.petType || d.species || 'both').toLowerCase(),
+    pet: normalizePet(d.pet || d.petType || d.species),
     price: basePrice,
     compareAt: n(d.compareAt || d.originalPrice || d.mrp, 0) || null,
     rating: n(d.rating, 4.8),

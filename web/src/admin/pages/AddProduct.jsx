@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { PET_OPTIONS } from '../../lib/pets.js';
 import { useRouter } from '../../lib/router.jsx';
 import { useAdmin, useAdminWrite } from '../data.jsx';
 import { PageHead } from '../AdminApp.jsx';
@@ -169,7 +170,7 @@ export default function AddProduct() {
               </Field>
               <Field label="Pet type">
                 <select className="select" value={form.pet} onChange={(e) => set('pet', e.target.value)}>
-                  <option value="both">Dogs &amp; Cats</option><option value="dog">Dogs</option><option value="cat">Cats</option>
+                  {PET_OPTIONS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
                 </select>
               </Field>
               <Field label="Unit">

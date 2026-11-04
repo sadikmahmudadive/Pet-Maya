@@ -104,3 +104,14 @@ test("products outside the tree (or whose category was removed) keep the plain c
   const y = f.buildItem(f.toFeedProduct("rc-1", { ...base, category: "food", categoryPath: ["gone"] }, new Map()), "google", SITE);
   assert.match(y, /<g:product_type>Pet Supplies &gt; Dogs &gt; food<\/g:product_type>/);
 });
+
+test("the feed names every pet group, not just dogs and cats", () => {
+  const { petTypeLabel } = require("../lib/feed.js");
+  assert.strictEqual(petTypeLabel("dog"), "Dogs");
+  assert.strictEqual(petTypeLabel("both"), "Dogs & Cats");
+  assert.strictEqual(petTypeLabel("bird"), "Birds");
+  assert.strictEqual(petTypeLabel("rabbit"), "Rabbits");
+  assert.strictEqual(petTypeLabel("rodent"), "Small pets");
+  assert.strictEqual(petTypeLabel("fish"), "Fish");
+  assert.strictEqual(petTypeLabel(""), "Dogs & Cats");
+});
