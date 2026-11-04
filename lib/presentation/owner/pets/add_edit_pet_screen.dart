@@ -331,7 +331,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
                       letterSpacing: 1.5,
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 20),
 
                   // Center Avatar Section
                   Center(
@@ -403,7 +403,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 48),
+                  const SizedBox(height: 28),
 
                   _buildClinicalInput(
                     'Pet Name',
@@ -411,7 +411,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
                     icon: Icons.pets_rounded,
                     hint: 'e.g., Mini',
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 14),
 
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.end,
@@ -427,7 +427,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
                       _buildScanAction(),
                     ],
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 14),
 
                   Row(
                     children: [
@@ -436,10 +436,10 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
                       Expanded(child: _buildClinicalDatePicker()),
                     ],
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 14),
 
                   _buildReadOnlyClinical('Calculated Age', _calculateAge()),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 14),
 
                   Row(
                     children: [
@@ -460,7 +460,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 14),
                   Row(
                     children: [
                       Expanded(
@@ -482,7 +482,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 26),
 
                   Text(
                     'FEEDING SCHEDULE',
@@ -493,7 +493,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
                       letterSpacing: 1.5,
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 10),
                   Wrap(
                     spacing: 10,
                     runSpacing: 10,
@@ -514,7 +514,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
                         ),
                       ),
                     ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 14),
                   Row(
                     children: [
                       Expanded(
@@ -534,7 +534,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 26),
 
                   _buildClinicalInput(
                     'Bio & Personality',
@@ -598,7 +598,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 8, bottom: 10),
+          padding: const EdgeInsets.only(left: 8, bottom: 6),
           child: Text(
             label.toUpperCase(),
             style: TextStyle(
@@ -635,7 +635,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
             filled: true,
             fillColor: isDark ? const Color(0xFF1A222D) : Colors.white,
             contentPadding: const EdgeInsets.symmetric(
-              vertical: 22,
+              vertical: 15,
               horizontal: 16,
             ),
             border: OutlineInputBorder(
@@ -672,7 +672,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 8, bottom: 10),
+          padding: const EdgeInsets.only(left: 8, bottom: 6),
           child: Text(
             label.toUpperCase(),
             style: TextStyle(
@@ -685,7 +685,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
         ),
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
           decoration: BoxDecoration(
             color: isDark ? const Color(0xFF0D302D) : Colors.grey[100],
             borderRadius: BorderRadius.circular(20),
@@ -725,7 +725,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 8, bottom: 10),
+          padding: const EdgeInsets.only(left: 8, bottom: 6),
           child: Text(
             label.toUpperCase(),
             style: TextStyle(
@@ -737,7 +737,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
           ),
         ),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 1),
           decoration: BoxDecoration(
             color: isDark ? const Color(0xFF1A222D) : Colors.white,
             borderRadius: BorderRadius.circular(20),
@@ -780,7 +780,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 8, bottom: 10),
+          padding: const EdgeInsets.only(left: 8, bottom: 6),
           child: Text(
             'BIRTH DATE',
             style: TextStyle(
@@ -803,7 +803,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
             if (picked != null) setState(() => _dob = picked);
           },
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 15),
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF1A222D) : Colors.white,
               borderRadius: BorderRadius.circular(20),
@@ -946,7 +946,8 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
 
   Widget _buildClinicalTimeChip(String time) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      padding: const EdgeInsets.only(left: 14, right: 6),
+      constraints: const BoxConstraints(minHeight: 44),
       decoration: BoxDecoration(
         color: const Color(0xFFA8D5BA).withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(14),
@@ -958,24 +959,34 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            time,
-            style: const TextStyle(
-              fontWeight: FontWeight.w900,
-              color: Color(0xFF2D8C69),
-              fontSize: 13,
+          // Flexible + ellipsis: a long entry shortens instead of pushing the chip past the screen edge.
+          Flexible(
+            child: Text(
+              time,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontWeight: FontWeight.w900,
+                color: Color(0xFF1F6B50),
+                fontSize: 13,
+              ),
             ),
           ),
-          const SizedBox(width: 10),
-          GestureDetector(
+          const SizedBox(width: 6),
+          // 44 px tap area around the small remove icon.
+          InkResponse(
+            radius: 22,
             onTap: () {
               HapticFeedback.selectionClick();
               setState(() => _feedingTimes.remove(time));
             },
-            child: const Icon(
-              Icons.cancel_rounded,
-              size: 18,
-              color: Color(0xFF2D8C69),
+            child: const Padding(
+              padding: EdgeInsets.all(8),
+              child: Icon(
+                Icons.cancel_rounded,
+                size: 18,
+                color: Color(0xFF1F6B50),
+              ),
             ),
           ),
         ],
@@ -990,7 +1001,7 @@ class _AddEditPetScreenState extends State<AddEditPetScreen> {
         onTap();
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 18),
+        padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
           color: const Color(0xFFD1E6EE),
           borderRadius: BorderRadius.circular(18),

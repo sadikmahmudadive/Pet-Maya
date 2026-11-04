@@ -31,7 +31,6 @@ import '../community/create_post_screen.dart';
 import '../community/create_blog_screen.dart';
 import 'pet_tracker_screen.dart';
 import '../pets/vaccination_screen.dart';
-import '../../common_widgets/bento_card.dart';
 import '../../common_widgets/resilient_network_image.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
@@ -430,7 +429,7 @@ class HomeDashboardFragment extends StatelessWidget {
                   ),
                 ),
                 SizedBox(
-                  height: 190,
+                  height: 232,
                   child: pets.isEmpty
                       ? _buildEmptyPetsPlaceholder(context)
                       : ListView.builder(
@@ -687,84 +686,142 @@ class HomeDashboardFragment extends StatelessWidget {
     required PetModel pet,
     required List<ServiceRecordModel> allRecords,
   }) {
-    final isLandscape =
-        MediaQuery.of(context).orientation == Orientation.landscape;
-    final cardWidth = isLandscape ? 140.0 : 150.0;
-    final petRecords = allRecords.where((r) => r.petId == pet.petID).toList();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+    final cardWidth = isLandscape ? 150.0 : 160.0;
     final hasMedicalLogs =
-        petRecords.isNotEmpty ||
+        allRecords.any((r) => r.petId == pet.petID) ||
         (pet.vaccinationDetails?.trim().isNotEmpty == true);
-    final petHealthScore = hasMedicalLogs ? pet.healthIndex : 0;
+    final score = hasMedicalLogs ? pet.healthIndex.clamp(0, 100) : 0;
+
+    // Each kind of animal gets its own pastel, so a family of pets is easy to tell apart at a glance.
+    final (tint, ink) = switch (pet.resolvedSpecies) {
+      'Dog' => (AppColors.peach, AppColors.peachInk),
+      'Cat' => (AppColors.lilac, AppColors.lilacInk),
+      'Bird' || 'Fish' => (AppColors.sky, AppColors.skyInk),
+      'Rabbit' || 'Rodent' => (AppColors.rose, AppColors.roseInk),
+      _ => (AppColors.mintSoft, AppColors.mintInk),
+    };
+    final bg = isDark ? Color.alphaBlend(tint.withValues(alpha: 0.14), AppColors.surfaceDark) : tint;
+    final ringColor = hasMedicalLogs ? AppColors.healthGreen : AppColors.accentAmber;
+    final reduce = SoftMotion.reduced(context);
+
+    Widget avatar = ClipOval(
+      child: pet.photoUrl != null && pet.photoUrl!.isNotEmpty
+          ? ResilientNetworkImage(
+              imageUrl: pet.photoUrl!,
+              width: 68,
+              height: 68,
+              fit: BoxFit.cover,
+              fallbackAssetPath: 'assets/images/pet_placeholder.png',
+            )
+          : SizedBox(width: 68, height: 68, child: _buildPetErrorIcon(context)),
+    );
+
+    final statusText = hasMedicalLogs ? '$score% healthy' : 'No health log';
 
     return Container(
       width: cardWidth,
-      margin: const EdgeInsets.only(left: 16, right: 4, bottom: 8),
-      child: BentoCard(
-        padding: const EdgeInsets.all(14),
-        borderRadius: 24,
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => PetDetailsScreen(petId: pet.petID)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 6),
-            Stack(
-              alignment: Alignment.center,
+      margin: const EdgeInsets.only(left: 16, right: 4, bottom: 10),
+      child: Semantics(
+        button: true,
+        label: '${pet.name}, ${pet.breed}. $statusText',
+        excludeSemantics: true,
+        child: Pressable(
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => PetDetailsScreen(petId: pet.petID)),
+          ),
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(12, 14, 12, 12),
+            decoration: BoxDecoration(
+              color: bg,
+              borderRadius: BorderRadius.circular(AppRadius.lg),
+              boxShadow: AppShadows.soft(isDark, tint: ink),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                SizedBox(
-                  width: 64,
-                  height: 64,
-                  child: CircularProgressIndicator(
-                    value: hasMedicalLogs ? (petHealthScore / 100.0) : 0.0,
-                    strokeWidth: 3,
-                    backgroundColor: Colors.grey.withValues(alpha: 0.15),
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      hasMedicalLogs
-                          ? AppColors.healthGreen
-                          : AppColors.accentAmber,
+                // Photo in a white ring, wrapped by a health arc that fills in when the card appears.
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Container(
+                      width: 86,
+                      height: 86,
+                      decoration: BoxDecoration(
+                        color: isDark ? AppColors.surfaceDark : Colors.white,
+                        shape: BoxShape.circle,
+                      ),
                     ),
-                  ),
+                    SizedBox(
+                      width: 86,
+                      height: 86,
+                      child: TweenAnimationBuilder<double>(
+                        tween: Tween(begin: 0, end: score / 100.0),
+                        duration: reduce ? Duration.zero : const Duration(milliseconds: 900),
+                        curve: SoftMotion.out,
+                        builder: (context, v, _) => CircularProgressIndicator(
+                          value: v,
+                          strokeWidth: 4,
+                          strokeCap: StrokeCap.round,
+                          backgroundColor: ringColor.withValues(alpha: 0.18),
+                          valueColor: AlwaysStoppedAnimation<Color>(ringColor),
+                        ),
+                      ),
+                    ),
+                    avatar,
+                  ],
                 ),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(28),
-                  child: pet.photoUrl != null && pet.photoUrl!.isNotEmpty
-                      ? ResilientNetworkImage(
-                          imageUrl: pet.photoUrl!,
-                          width: 56,
-                          height: 56,
-                          fit: BoxFit.cover,
-                          fallbackAssetPath:
-                              'assets/images/pet_placeholder.png',
-                        )
-                      : _buildPetErrorIcon(context),
+                const SizedBox(height: 10),
+                Text(
+                  pet.name,
+                  style: AppTypography.titleMedium.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: isDark ? Colors.white : AppColors.textPrimary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  pet.breed,
+                  style: AppTypography.bodySmall.copyWith(color: isDark ? AppColors.textSecondaryDark : ink),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.white.withValues(alpha: 0.85),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        hasMedicalLogs ? Icons.favorite_rounded : Icons.edit_note_rounded,
+                        size: 13,
+                        color: hasMedicalLogs ? AppColors.mintInk : AppColors.butterInk,
+                      ),
+                      const SizedBox(width: 4),
+                      Flexible(
+                        child: Text(
+                          statusText,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTypography.labelSmall.copyWith(
+                            color: isDark ? Colors.white : (hasMedicalLogs ? AppColors.mintInk : AppColors.butterInk),
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 10),
-            Text(
-              pet.name,
-              style: GoogleFonts.nunito(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 2),
-            Text(
-              pet.breed,
-              style: AppTypography.bodySmall.copyWith(
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? AppColors.textSecondaryDark
-                    : AppColors.textSecondary,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 6),
-          ],
+          ),
         ),
       ),
     );

@@ -5,10 +5,13 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../data/repositories/app_state_repository.dart';
 import '../../../data/models/vet_model.dart';
+import '../../../data/nearby.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../common_widgets/glass_scaffold.dart';
 import '../../common_widgets/premium_card.dart';
 import '../../common_widgets/status_chip.dart';
 import '../../common_widgets/empty_state.dart';
+import '../../common_widgets/illustrations/pet_illustrations.dart';
 import '../../common_widgets/pet_refresh_indicator.dart';
 import '../../common_widgets/skeleton_loader.dart';
 import '../../common_widgets/resilient_network_image.dart';
@@ -29,11 +32,64 @@ class _PetServicesScreenState extends State<PetServicesScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   bool _onlyNearby = false;
+  bool _locating = false;
+  double _radiusKm = 5;
 
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  /// Turns the Nearby filter on or off. Switching it on finds the phone's location first (asking permission if needed).
+  Future<void> _toggleNearby(AppStateRepository state) async {
+    HapticFeedback.selectionClick();
+    if (_locating) return;
+    if (_onlyNearby) {
+      setState(() => _onlyNearby = false);
+      return;
+    }
+    if (!state.hasLocation) {
+      final ok = await _locate(state);
+      if (!ok) return;
+    }
+    if (!state.anyVetHasLocation) {
+      _say('Specialists have not shared their location yet, so distances cannot be shown.');
+      return;
+    }
+    if (mounted) setState(() => _onlyNearby = true);
+  }
+
+  /// Reads the phone's location; explains what to do when it cannot. Returns true when it worked.
+  Future<bool> _locate(AppStateRepository state) async {
+    setState(() => _locating = true);
+    final result = await state.locateMe();
+    if (!mounted) return false;
+    setState(() => _locating = false);
+    switch (result) {
+      case LocateResult.ok:
+        return true;
+      case LocateResult.serviceOff:
+        _say('Location is switched off on your phone.', actionLabel: 'Turn on', onAction: Geolocator.openLocationSettings);
+      case LocateResult.denied:
+        _say('Allow location access to find specialists near you.');
+      case LocateResult.deniedForever:
+        _say('Location access is blocked for Pet Maya.', actionLabel: 'Open settings', onAction: Geolocator.openAppSettings);
+      case LocateResult.failed:
+        _say('Could not find your location. Check your signal and try again.');
+    }
+    return false;
+  }
+
+  void _say(String message, {String? actionLabel, VoidCallback? onAction}) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          action: actionLabel == null ? null : SnackBarAction(label: actionLabel, onPressed: onAction ?? () {}),
+        ),
+      );
   }
 
   @override
@@ -53,11 +109,15 @@ class _PetServicesScreenState extends State<PetServicesScreen> {
           v.tag.toLowerCase().contains(q) ||
           v.bio.toLowerCase().contains(q);
       
-      final bool isClose = v.distance.contains('km') && (double.tryParse(v.distance.split(' ')[0]) ?? 5.0) < 2.0;
-      final matchesNearby = !_onlyNearby || isClose;
+      // Real, measured distance only; a specialist whose distance is unknown is never "nearby".
+      final matchesNearby = !_onlyNearby || isWithinKm(state.vetDistanceMeters(v.id), _radiusKm);
 
       return matchesCategory && matchesSearch && matchesNearby;
     }).toList();
+    if (_onlyNearby) {
+      vets.sort((a, b) => (state.vetDistanceMeters(a.id) ?? double.infinity)
+          .compareTo(state.vetDistanceMeters(b.id) ?? double.infinity));
+    }
 
     return GlassScaffold(
       body: PetRefreshIndicator(
@@ -239,39 +299,92 @@ class _PetServicesScreenState extends State<PetServicesScreen> {
                         'Categories',
                         style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.w900, fontSize: 18),
                       ),
-                      GestureDetector(
-                        onTap: () {
-                          HapticFeedback.selectionClick();
-                          setState(() => _onlyNearby = !_onlyNearby);
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                          decoration: BoxDecoration(
-                            color: _onlyNearby ? AppColors.primary : AppColors.primary.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.near_me_rounded,
-                                size: 13,
-                                color: _onlyNearby ? Colors.white : AppColors.primary,
+                      Semantics(
+                        button: true,
+                        selected: _onlyNearby,
+                        label: _onlyNearby
+                            ? 'Nearby filter on, within ${_radiusKm.toStringAsFixed(0)} kilometres. Tap to turn off'
+                            : 'Show specialists near me',
+                        excludeSemantics: true,
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () => _toggleNearby(state),
+                          child: Container(
+                            constraints: const BoxConstraints(minHeight: 44),
+                            alignment: Alignment.center,
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 220),
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+                              decoration: BoxDecoration(
+                                color: _onlyNearby ? AppColors.primaryStrong : AppColors.primaryLight,
+                                borderRadius: BorderRadius.circular(18),
                               ),
-                              const SizedBox(width: 4),
-                              Text(
-                                'Nearby (<2km)',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w800,
-                                  color: _onlyNearby ? Colors.white : AppColors.primary,
-                                ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (_locating)
+                                    SizedBox(
+                                      width: 14,
+                                      height: 14,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: _onlyNearby ? Colors.white : AppColors.primaryDark,
+                                      ),
+                                    )
+                                  else
+                                    Icon(
+                                      Icons.near_me_rounded,
+                                      size: 15,
+                                      color: _onlyNearby ? Colors.white : AppColors.primaryDark,
+                                    ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    _locating
+                                        ? 'Finding you…'
+                                        : (_onlyNearby ? 'Nearby · ${_radiusKm.toStringAsFixed(0)} km' : 'Near me'),
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w800,
+                                      color: _onlyNearby ? Colors.white : AppColors.primaryDark,
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
+                            ),
                           ),
                         ),
                       ),
                     ],
                   ),
+                  if (_onlyNearby) ...[
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Wrap(
+                            spacing: 8,
+                            runSpacing: 6,
+                            children: [
+                              for (final km in nearbyRadiiKm)
+                                ChoiceChip(
+                                  label: Text('${km.toStringAsFixed(0)} km'),
+                                  selected: _radiusKm == km,
+                                  onSelected: (_) {
+                                    HapticFeedback.selectionClick();
+                                    setState(() => _radiusKm = km);
+                                  },
+                                ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          tooltip: 'Update my location',
+                          onPressed: _locating ? null : () => _locate(state),
+                          icon: const Icon(Icons.my_location_rounded, color: AppColors.primaryDark),
+                        ),
+                      ],
+                    ),
+                  ],
                   const SizedBox(height: 12),
                   FadeInUp(
                     duration: const Duration(milliseconds: 250),
@@ -288,7 +401,7 @@ class _PetServicesScreenState extends State<PetServicesScreen> {
                         style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w900, fontSize: 19),
                       ),
                       Text(
-                        '${vets.length} FOUND',
+                        _onlyNearby ? '${vets.length} WITHIN ${_radiusKm.toStringAsFixed(0)} KM' : '${vets.length} FOUND',
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w900,
@@ -317,13 +430,33 @@ class _PetServicesScreenState extends State<PetServicesScreen> {
                   ),
                 )
               : vets.isEmpty
-                  ? const SliverFillRemaining(
+                  ? SliverFillRemaining(
                       hasScrollBody: false,
-                      child: EmptyState(
-                        icon: Icons.medical_services_outlined,
-                        title: 'No specialists found',
-                        message: 'Try adjusting your search query or category filter.',
-                      ),
+                      child: _onlyNearby
+                          ? EmptyState(
+                              icon: Icons.travel_explore_rounded,
+                              scene: IllustrationScene.noResults,
+                              title: 'Nobody within ${_radiusKm.toStringAsFixed(0)} km',
+                              message: widerRadius(_radiusKm) != null
+                                  ? 'Try a bigger search area, or clear the filters.'
+                                  : 'No specialists are listed this close to you yet.',
+                              actionLabel: widerRadius(_radiusKm) != null
+                                  ? 'Search ${widerRadius(_radiusKm)!.toStringAsFixed(0)} km'
+                                  : 'Show everyone',
+                              onAction: () => setState(() {
+                                final next = widerRadius(_radiusKm);
+                                if (next != null) {
+                                  _radiusKm = next;
+                                } else {
+                                  _onlyNearby = false;
+                                }
+                              }),
+                            )
+                          : const EmptyState(
+                              icon: Icons.medical_services_outlined,
+                              title: 'No specialists found',
+                              message: 'Try adjusting your search query or category filter.',
+                            ),
                     )
                   : SliverPadding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -448,7 +581,10 @@ class _PetServicesScreenState extends State<PetServicesScreen> {
   Widget _buildVetCard(BuildContext context, VetModel vet, bool isFavorite) {
     final state = context.read<AppStateRepository>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bool isVeryClose = vet.distance.contains('km') && (double.tryParse(vet.distance.split(' ')[0]) ?? 5.0) < 2.0;
+    final measured = state.vetDistanceMeters(vet.id);
+    final bool isVeryClose = measured != null
+        ? measured < 2000
+        : vet.distance.contains('km') && (double.tryParse(vet.distance.split(' ')[0]) ?? 5.0) < 2.0;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),

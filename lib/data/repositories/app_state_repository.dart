@@ -25,6 +25,8 @@ import '../models/coupon_model.dart';
 import '../models/promo_model.dart';
 import '../models/other_animal_model.dart';
 import '../models/support_models.dart';
+import '../feeding_times.dart';
+import '../nearby.dart';
 import '../../core/app_info.dart';
 import '../../core/services/firebase_storage_service.dart';
 import '../services/realtime_database_service.dart';
@@ -780,19 +782,52 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
     });
   }
 
+  /// This phone's position, found when the user taps "Nearby" (kept for this session only, never uploaded).
+  Position? _myPosition;
+  final Map<String, double> _vetMeters = {};
+
+  /// Metres from the user to a specialist, or null when either location is unknown.
+  double? vetDistanceMeters(String vetId) => _vetMeters[vetId];
+
+  /// True once we know where the user is: from the phone just now, or from the saved profile.
+  bool get hasLocation =>
+      _myPosition != null || (_currentUser?.latitude != null && _currentUser?.longitude != null);
+
+  /// True when at least one specialist has published a location (otherwise distances are impossible).
+  bool get anyVetHasLocation => _vets.any((v) => v.latitude != null && v.longitude != null);
+
+  /// Asks for permission if needed, reads the phone's location once and refreshes every distance.
+  Future<LocateResult> locateMe() async {
+    try {
+      if (!await Geolocator.isLocationServiceEnabled()) return LocateResult.serviceOff;
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.deniedForever) return LocateResult.deniedForever;
+      if (permission == LocationPermission.denied) return LocateResult.denied;
+      _myPosition = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.medium, timeLimit: Duration(seconds: 15)),
+      );
+      _calculateDynamicDistances(_myPosition!.latitude, _myPosition!.longitude);
+      notifyListeners();
+      return LocateResult.ok;
+    } catch (e) {
+      debugPrint('[AppStateRepository] locateMe failed: $e');
+      return LocateResult.failed;
+    }
+  }
+
   void _calculateDynamicDistances(double userLat, double userLng) {
+    // The phone's own position, when we have it, beats the address saved on the profile.
+    final lat = _myPosition?.latitude ?? userLat;
+    final lng = _myPosition?.longitude ?? userLng;
     bool changed = false;
     for (var vet in _vets) {
       if (vet.latitude != null && vet.longitude != null) {
-        final distanceInMeters = Geolocator.distanceBetween(
-          userLat,
-          userLng,
-          vet.latitude!,
-          vet.longitude!,
-        );
-        String distanceStr = distanceInMeters < 1000
-            ? '${distanceInMeters.toStringAsFixed(0)} m'
-            : '${(distanceInMeters / 1000).toStringAsFixed(1)} km';
+        final meters = Geolocator.distanceBetween(lat, lng, vet.latitude!, vet.longitude!);
+        _vetMeters[vet.id] = meters;
+        final distanceStr = formatDistance(meters);
         if (_calculatedDistances[vet.id] != distanceStr) {
           _calculatedDistances[vet.id] = distanceStr;
           changed = true;
@@ -2336,9 +2371,9 @@ Our neural health triage model has analyzed the clinical presentation. Based on 
         'age': age,
         'weight': weight,
       });
-      return List<String>.from(result['schedule']);
+      return normaliseFeedingTimes(result['schedule'] as List);
     } catch (_) {
-      return ['08:00', '13:00', '19:00'];
+      return List.of(defaultFeedingTimes);
     }
   }
 
