@@ -30,7 +30,8 @@ if (typeof window !== 'undefined') {
     if (c?.saveData || /(^|-)2g$/.test(c?.effectiveType || '')) return;
     loadScene().catch(() => {});
   };
-  const whenIdle = () => ('requestIdleCallback' in window ? window.requestIdleCallback(warm, { timeout: 4000 }) : setTimeout(warm, 2500));
+  // a few seconds after load, in idle time, so it never competes with the page becoming usable
+  const whenIdle = () => setTimeout(() => ('requestIdleCallback' in window ? window.requestIdleCallback(warm, { timeout: 4000 }) : warm()), 3500);
   if (document.readyState === 'complete') whenIdle();
   else window.addEventListener('load', whenIdle, { once: true });
 }
@@ -240,7 +241,7 @@ export default function HaloBreakdown() {
     };
 
     // build it only when the section is about to appear, so the home page itself stays light
-    const near = new IntersectionObserver(([e]) => { if (e.isIntersecting) { start(); near.disconnect(); } }, { rootMargin: '1500px 0px' });
+    const near = new IntersectionObserver(([e]) => { if (e.isIntersecting) { start(); near.disconnect(); } }, { rootMargin: '700px 0px' });
     near.observe(track.current);
     cleanups.push(() => near.disconnect());
 
@@ -316,7 +317,7 @@ export default function HaloBreakdown() {
           </div>
           <div className="hxf-cue" ref={cueEl}>Scroll</div>
           <div className="hxf-bar"><i ref={barEl} /></div>
-          <div className="hxf-loading" aria-hidden="true"><span>Maya Halo</span></div>
+          <div className="hxf-loader" aria-hidden="true"><span>Maya Halo</span></div>
         </div>
       </div>
     </section>

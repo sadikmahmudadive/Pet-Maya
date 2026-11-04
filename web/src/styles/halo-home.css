@@ -45,10 +45,10 @@
 @keyframes hxf-cue { 0%, 100% { transform: translateY(0); opacity: 1; } 50% { transform: translateY(8px); opacity: .4; } }
 .hxf-bar { position: absolute; z-index: 20; left: 0; right: 0; bottom: 0; height: 3px; background: rgba(255, 255, 255, 0.08); }
 .hxf-bar i { display: block; height: 100%; background: var(--hx-accent); transform-origin: 0 50%; transform: scaleX(0); }
-.hxf-loading { position: absolute; inset: 0; z-index: 30; display: grid; place-items: center; background: #050607; transition: opacity .7s ease; pointer-events: none; }
-.hxf-loading span { font: 500 12px/1 var(--sans); letter-spacing: .5em; text-indent: .5em; text-transform: uppercase; color: var(--hx-accent); opacity: .8; animation: hxf-pulse 1.4s ease-in-out infinite; }
-.hxf-live .hxf-loading, .hxf-still .hxf-loading { opacity: 0; }
-@keyframes hxf-pulse { 0%, 100% { opacity: .35; } 50% { opacity: .9; } }
+.hxf-loader { position: absolute; inset: 0; z-index: 30; display: grid; place-items: center; background: #050607; transition: opacity .7s ease; pointer-events: none; }
+.hxf-loader span { font: 500 12px/1 var(--sans); letter-spacing: .5em; text-indent: .5em; text-transform: uppercase; color: var(--hx-accent); opacity: 1; animation: hxf-pulse 1.4s ease-in-out infinite; }
+.hxf-live .hxf-loader, .hxf-still .hxf-loader { opacity: 0; }
+@keyframes hxf-pulse { 0%, 100% { opacity: .72; } 50% { opacity: 1; } }
 
 /* while the film is pinned it owns the whole screen: the site header steps aside */
 .hxf-immersive .site-header { opacity: 0; pointer-events: none; transition: opacity .2s ease; }
@@ -66,4 +66,4 @@
   .hxf-rail { display: none; }
   .hxf-cue { bottom: 2.4vh; }
 }
-@media (prefers-reduced-motion: reduce) { .hxf-cue::after, .hxf-loading span { animation: none; } .hxf-loading { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .hxf-cue::after, .hxf-loader span { animation: none; } .hxf-loader { transition: none; } }

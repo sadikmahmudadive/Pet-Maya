@@ -176,7 +176,7 @@
 .hero-stats > div > span { display: block; font-size: 11px; color: rgba(255,255,255,.6); }
 .hero-side { display: grid; grid-template-rows: 1fr 1fr; gap: 16px; }
 .hero-tile { border-radius: var(--r-xl); padding: 30px; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; }
-.hero-tile h3 { font: 400 clamp(26px, 2.6vw, 34px)/1.08 var(--serif); letter-spacing: -0.02em; margin-top: 14px; max-width: 15ch; }
+.hero-tile h3, .hero-tile h2 { font: 400 clamp(26px, 2.6vw, 34px)/1.08 var(--serif); letter-spacing: -0.02em; margin-top: 14px; max-width: 15ch; }
 .btn-on-dark,
 .btn.btn-on-dark { background: #ffffff !important; color: #1A1917 !important; border-color: transparent !important; }
 .btn-on-dark:hover,
@@ -551,7 +551,7 @@ details.faq p { padding-bottom: 18px; color: var(--muted); font-size: 14.5px; }
 /* ── Cookie / measurement consent ── */
 .consent-bar { position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 70; max-width: 720px; margin: 0 auto; display: flex; align-items: center; gap: 16px; padding: 14px 16px; border-radius: 16px; background: var(--card, #fff); color: var(--ink); border: 1px solid var(--line); box-shadow: var(--shadow-lg); animation: rise .25s ease; }
 .consent-bar p { margin: 0; font-size: 13px; line-height: 1.5; color: var(--ink-2, inherit); flex: 1; }
-.consent-bar a { text-decoration: underline; }
+.consent-bar a { text-decoration: underline; color: var(--ink); font-weight: 600; }
 .consent-actions { display: flex; gap: 8px; flex: none; }
 @media (max-width: 560px) { .consent-bar { flex-direction: column; align-items: stretch; gap: 10px; } .consent-actions { justify-content: flex-end; } }
 

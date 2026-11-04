@@ -48,7 +48,7 @@ export function Avatar({ name, src, tone, size, className }) {
 export function Ph({ label, src, tone, style, className, children }) {
   return (
     <div className={cx('ph', tone, className)} style={style}>
-      {src ? <img src={src} alt={label || ''} loading="lazy" onError={(e) => { e.currentTarget.remove(); }} /> : <span>[{label || ' '}]</span>}
+      {src ? <img src={src} alt={(label || '').trim()} loading="lazy" onError={(e) => { e.currentTarget.remove(); }} /> : <span>[{label || ' '}]</span>}
       {children}
     </div>
   );
@@ -113,7 +113,7 @@ export function Field({ label, hint, className, children, ...input }) {
 
 export function Stars({ value = 5, size = 13 }) {
   return (
-    <span className="row gap-4" style={{ color: '#E0A526' }} aria-label={`${value} out of 5`}>
+    <span className="row gap-4" style={{ color: '#E0A526' }} role="img" aria-label={`${value} out of 5`}>
       <Icon name="star" size={size} style={{ fill: 'currentColor' }} stroke={1} />
       <b style={{ color: 'var(--ink)', fontSize: 13 }}>{Number(value).toFixed(1)}</b>
     </span>
@@ -122,7 +122,7 @@ export function Stars({ value = 5, size = 13 }) {
 
 export function StarRow({ n = 5, size = 13 }) {
   return (
-    <span className="row" style={{ color: '#E0A526', gap: 2 }} aria-label={`${n} stars`}>
+    <span className="row" style={{ color: '#E0A526', gap: 2 }} role="img" aria-label={`${n} stars`}>
       {Array.from({ length: 5 }).map((_, i) => (
         <Icon key={i} name="star" size={size} stroke={1} style={{ fill: i < n ? 'currentColor' : 'none' }} />
       ))}

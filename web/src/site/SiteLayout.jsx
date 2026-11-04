@@ -106,7 +106,7 @@ function PetsMenu({ path }) {
 
 export function Logo({ sub = true }) {
   return (
-    <Link to="/" className="logo" aria-label="Pet Maya home">
+    <Link to="/" className="logo" aria-label={`Pet Maya ${BRAND.tagline}, home`}>
       <span className="logo-word">PET MAYA</span>
       {sub && <span className="logo-sub">{BRAND.tagline}</span>}
     </Link>
@@ -265,7 +265,7 @@ function Header() {
             <NotificationBell />
             <ThemeToggle />
             <AccountButton />
-            <button className="btn btn-dark bag-btn" onClick={() => setBagOpen(true)} aria-label={`Open bag, ${totals.count} items`}>
+            <button className="btn btn-dark bag-btn" onClick={() => setBagOpen(true)} aria-label={`Bag · ${money(totals.subtotal)} · ${totals.count} ${totals.count === 1 ? 'item' : 'items'}`}>
               <Icon name="bag" size={17} />
               <span className="hide-sm">Bag · {money(totals.subtotal)}</span>
               <span className={cx('bag-count', bump && 'bump')}>{totals.count}</span>

@@ -123,7 +123,7 @@ export default function AiShoppingAssistant() {
         type="button"
         className={`btn btn-dark ai-fab${compareIds.length > 0 ? ' up' : ''}`}
         onClick={() => setOpen(true)}
-        aria-label="Open AI Shopping Assistant"
+        aria-label="Ask Maya AI, the shopping assistant"
       >
         <Icon name="sparkles" size={16} />
         <span>Ask Maya AI</span>

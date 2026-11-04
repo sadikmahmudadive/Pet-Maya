@@ -116,7 +116,7 @@ export default function Home() {
             <div className="row between gap-16 wrap" style={{ alignItems: 'center', height: '100%' }}>
               <div>
                 <div className="eyebrow">Live tracking</div>
-                <h3>Follow your order from pharmacy to door.</h3>
+                <h2>Follow your order from pharmacy to door.</h2>
                 <Link to="/account/orders" className="link-plain row gap-6" style={{ marginTop: 14, fontSize: 14 }}>Track an order <Icon name="arrowRight" size={14} /></Link>
               </div>
               <div className="card" style={{ minWidth: 170, padding: 18 }}>
@@ -130,7 +130,7 @@ export default function Home() {
             <div className="row between gap-16" style={{ alignItems: 'center', height: '100%' }}>
               <div>
                 <div className="eyebrow" style={{ color: 'var(--yellow-ink)' }}>Subscribe & save</div>
-                <h3>Auto-refill. 5% off. Never run out.</h3>
+                <h2>Auto-refill. 5% off. Never run out.</h2>
                 <Link to="/shop?subscribe=1" className="row gap-6" style={{ marginTop: 14, fontSize: 14, fontWeight: 600, color: 'var(--yellow-ink)' }}>See refill plans <Icon name="arrowRight" size={14} /></Link>
               </div>
               <RefillArt className="hide-sm" />
@@ -395,7 +395,10 @@ export default function Home() {
           </div>
           <div className="app-banner-visual">
             <img
-              src="/assets/images/Smartphones_displaying_app_screen.jpg"
+              src="/assets/images/Smartphones_displaying_app_screen.webp"
+              width="1400"
+              height="782"
+              decoding="async"
               alt="Pet Maya mobile app screen showcasing smart care hub, AI health scanner, veterinary services and community"
               className="app-banner-img"
               loading="lazy"
