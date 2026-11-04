@@ -2447,10 +2447,12 @@ h1, h2, h3, h4, h5, h6 {
   border-color: rgba(26, 182, 128, 0.25) !important;
 }
 
-/* Input Fields & Textareas */
-[data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]),
-[data-theme="dark"] textarea,
-[data-theme="dark"] select {
+/* Input Fields & Textareas (legacy UI). The current design system's fields (.input, .select, .textarea and the
+   input inside .searchbar) take their colours from the theme tokens, so they are left out here: forcing this green
+   fill onto them put a dark box inside the pill-shaped search bar. */
+[data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]):not(.input):not(.searchbar input),
+[data-theme="dark"] textarea:not(.textarea),
+[data-theme="dark"] select:not(.select) {
   background-color: #07211F !important;
   border-color: rgba(26, 182, 128, 0.28) !important;
   color: #FFFFFF !important;
