@@ -7,8 +7,33 @@ import '../styles/halo-home.css';
 
    The section pins to the whole screen. Scrolling lights the halo, flies the collar apart into its
    23 parts, visits seven of them in turn (camera + callout card + leader line), then reassembles it.
-   The 3D scene (src/halo/scene.js) is drawn live with three.js and is only downloaded when the
-   section is about to come on screen. Facts come from the firmware docs (firmware/README.md). */
+   The 3D scene (src/halo/scene.js) is drawn live with three.js; its script is fetched when the browser is idle after
+   page load and the scene is built when the section is about to come on screen. Facts come from the firmware docs (firmware/README.md). */
+
+/* The 3D scene is ~580 KB of script. Fetching it only when the section was 500px away meant a first-time visitor
+   scrolled onto a black "loading" box while it downloaded (a repeat visit had it cached). So the download starts
+   as soon as the browser is idle after the page has loaded (unless the visitor saves data or is on a very slow
+   connection); building the scene still waits until the section is near. A failed download is retried once. */
+let sceneLoad = null;
+function loadScene() {
+  if (!sceneLoad) {
+    sceneLoad = import('../halo/scene.js').catch((err) => {
+      sceneLoad = null;
+      throw err;
+    });
+  }
+  return sceneLoad;
+}
+if (typeof window !== 'undefined') {
+  const warm = () => {
+    const c = navigator.connection;
+    if (c?.saveData || /(^|-)2g$/.test(c?.effectiveType || '')) return;
+    loadScene().catch(() => {});
+  };
+  const whenIdle = () => ('requestIdleCallback' in window ? window.requestIdleCallback(warm, { timeout: 4000 }) : setTimeout(warm, 2500));
+  if (document.readyState === 'complete') whenIdle();
+  else window.addEventListener('load', whenIdle, { once: true });
+}
 
 const STEPS = [
   { id: 'strap-left', d: 4.2, title: 'Woven strap', text: 'A soft woven band with teal stitching, wide enough to spread the load across the neck.', chips: ['Woven', 'Teal stitching'] },
@@ -100,7 +125,9 @@ export default function HaloBreakdown() {
       started = true;
       setState('loading');
       try {
-        const { createHalo } = await import('../halo/scene.js');
+        let mod;
+        try { mod = await loadScene(); } catch { mod = await loadScene(); } // one retry on a dropped connection
+        const { createHalo } = mod;
         if (disposed) return;
         canvas = document.createElement('canvas');
         canvas.setAttribute('aria-label', 'Live 3D breakdown of the Maya Halo collar: it flies apart into its parts and reassembles as you scroll');
@@ -213,7 +240,7 @@ export default function HaloBreakdown() {
     };
 
     // build it only when the section is about to appear, so the home page itself stays light
-    const near = new IntersectionObserver(([e]) => { if (e.isIntersecting) { start(); near.disconnect(); } }, { rootMargin: '500px 0px' });
+    const near = new IntersectionObserver(([e]) => { if (e.isIntersecting) { start(); near.disconnect(); } }, { rootMargin: '1500px 0px' });
     near.observe(track.current);
     cleanups.push(() => near.disconnect());
 
