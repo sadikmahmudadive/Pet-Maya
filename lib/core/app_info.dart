@@ -12,13 +12,13 @@ class AppInfo {
   static const String playStoreUrl =
       'https://play.google.com/store/apps/details?id=com.vertexhand.petmaya&pcampaignid=web_share';
 
-  static String version = '1.3.3';
-  static String buildNumber = '29';
+  static String version = '1.3.4';
+  static String buildNumber = '30';
 
-  /// e.g. "v1.3.3 (Build 29)"
+  /// e.g. "v1.3.4 (Build 30)"
   static String get label => 'v$version (Build $buildNumber)';
 
-  /// e.g. "v1.3.3+29"
+  /// e.g. "v1.3.4+30"
   static String get short => 'v$version+$buildNumber';
 
   static Future<void> load() async {
